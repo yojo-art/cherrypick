@@ -2947,6 +2947,10 @@ export interface Locale extends ILocale {
      */
     "poll": string;
     /**
+     * 予約
+     */
+    "schedule": string;
+    /**
      * 内容を隠す
      */
     "useCw": string;

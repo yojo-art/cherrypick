@@ -1609,6 +1609,7 @@ declare namespace entities {
         NotesConversationResponse,
         NotesCreateRequest,
         NotesCreateResponse,
+        NotesCreateScheduleRequest,
         NotesDeleteRequest,
         NotesUpdateRequest,
         NotesFavoritesCreateRequest,
@@ -2327,7 +2328,15 @@ type ISigninHistoryRequest = operations['i___signin-history']['requestBody']['co
 type ISigninHistoryResponse = operations['i___signin-history']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-function isPureRenote(note: Note): note is PureRenote;
+function isPureRenote(note: {
+    renote?: object | null;
+    reply?: object | null;
+    text: string | null;
+    cw?: string | null;
+    fileIds?: string[];
+    poll?: object | null;
+    event?: Record<string, never> | null;
+}): note is PureRenote;
 
 // @public (undocumented)
 type IUnpinRequest = operations['i___unpin']['requestBody']['content']['application/json'];
@@ -2658,6 +2667,9 @@ type NotesCreateRequest = operations['notes___create']['requestBody']['content']
 
 // @public (undocumented)
 type NotesCreateResponse = operations['notes___create']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesCreateScheduleRequest = operations['notes___create-schedule']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesDeleteRequest = operations['notes___delete']['requestBody']['content']['application/json'];

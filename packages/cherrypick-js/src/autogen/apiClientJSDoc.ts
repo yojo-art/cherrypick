@@ -3116,6 +3116,17 @@ declare module '../api.js' {
      * 
      * **Credential required**: *Yes* / **Permission**: *write:notes*
      */
+    request<E extends 'notes/create-schedule', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:notes*
+     */
     request<E extends 'notes/delete', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,

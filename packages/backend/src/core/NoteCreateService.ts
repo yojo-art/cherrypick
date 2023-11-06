@@ -63,6 +63,7 @@ import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { isReply } from '@/misc/is-reply.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { MiNoteSchedule } from '@/models/_.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -139,6 +140,7 @@ type Option = {
 	files?: MiDriveFile[] | null;
 	poll?: IPoll | null;
 	event?: IEvent | null;
+	schedule?: MiNoteSchedule | null;
 	localOnly?: boolean | null;
 	reactionAcceptance?: MiNote['reactionAcceptance'];
 	disableRightClick?: boolean | null;
@@ -400,7 +402,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
 		}
-
 		const note = await this.insertNote(user, data, tags, emojis, mentionedUsers);
 
 		setImmediate('post created', { signal: this.#shutdownController.signal }).then(

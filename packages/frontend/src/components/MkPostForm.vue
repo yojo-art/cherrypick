@@ -72,6 +72,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<input v-show="withHashtags" ref="hashtagsInputEl" v-model="hashtags" :class="$style.hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
 	<XPostFormAttaches v-model="files" @detach="detachFile" @changeSensitive="updateFileSensitive" @changeName="updateFileName" @replaceFile="replaceFile"/>
 	<MkPollEditor v-if="poll" v-model="poll" @destroyed="poll = null"/>
+	<MkScheduleEditor v-if="schedule" v-model="schedule" @destroyed="schedule = null"/>
 	<MkNotePreview v-if="showPreview" :class="$style.preview" :text="text" :files="files" :poll="poll ?? undefined" :useCw="useCw" :cw="cw" :user="postAccount ?? $i" :showProfile="showProfilePreview"/>
 	<div v-if="showingOptions" style="padding: 8px 16px;">
 	</div>
@@ -79,6 +80,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.footerLeft">
 			<button v-tooltip="i18n.ts.attachFile" class="_button" :class="$style.footerButton" @click="chooseFileFrom"><i class="ti ti-photo-plus"></i></button>
 			<button v-tooltip="i18n.ts.poll" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: poll }]" @click="togglePoll"><i class="ti ti-chart-arrows"></i></button>
+			<button v-tooltip="i18n.ts.schedule" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: schedule }]" @click="toggleSchedule"><i class="ti ti-calendar-event"></i></button>
 			<button v-tooltip="i18n.ts.event" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: event }]" @click="toggleEvent"><i class="ti ti-calendar"></i></button>
 			<button v-tooltip="i18n.ts.useCw" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: useCw }]" @click="useCw = !useCw"><i class="ti ti-eye-off"></i></button>
 			<button v-tooltip="i18n.ts.mention" class="_button" :class="$style.footerButton" @click="insertMention"><i class="ti ti-at"></i></button>
@@ -132,6 +134,7 @@ import { emojiPicker } from '@/scripts/emoji-picker.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import * as sound from '@/scripts/sound.js';
 import { mfmFunctionPicker } from '@/scripts/mfm-function-picker.js';
+import MkScheduleEditor from '@/components/MkScheduleEditor.vue';
 
 const $i = signinRequired();
 
@@ -188,6 +191,9 @@ const event = ref<{
 	end: string | null;
 	metadata: Record<string, string>;
 } | null>(null);
+let schedule = ref<{
+  expiresAt: string | null;
+}| null>(null);
 const useCw = ref<boolean>(!!props.initialCw);
 const showPreview = ref(defaultStore.state.showPreview);
 const showProfilePreview = ref(defaultStore.state.showProfilePreview);
@@ -433,6 +439,16 @@ function toggleEvent() {
 			start: (new Date()).toString(),
 			end: null,
 			metadata: {},
+		};
+	}
+}
+
+function toggleSchedule() {
+	if (schedule.value) {
+		schedule.value = null;
+	} else {
+		schedule.value = {
+			expiresAt: null,
 		};
 	}
 }
@@ -770,6 +786,7 @@ async function post(ev?: MouseEvent) {
 		replyId: props.reply ? props.reply.id : undefined,
 		renoteId: props.renote ? props.renote.id : quoteId.value ? quoteId.value : undefined,
 		channelId: props.channel ? props.channel.id : undefined,
+		schedule: schedule.value ?? undefined,
 		poll: poll.value,
 		event: event.value,
 		cw: useCw.value ? cw.value ?? '' : null,
@@ -814,7 +831,7 @@ async function post(ev?: MouseEvent) {
 	}
 
 	posting.value = true;
-	misskeyApi(props.updateMode ? 'notes/update' : 'notes/create', postData, token).then(() => {
+	misskeyApi(props.updateMode ? 'notes/update' : (postData.schedule ? 'notes/create-schedule' : 'notes/create'), postData, token).then(() => {
 		if (props.freezeAfterPosted) {
 			posted.value = true;
 		} else {
