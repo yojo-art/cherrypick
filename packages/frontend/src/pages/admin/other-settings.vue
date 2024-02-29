@@ -44,6 +44,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #label>{{ i18n.ts.doNotSendNotificationEmailsForAbuseReport }}</template>
 					</MkSwitch>
 				</div>
+
+				<div class="_panel" style="padding: 16px;">
+					<MkButton class="button" inline danger @click="fullIndex()"> Create Full Index </MkButton>
+				</div>
 			</div>
 		</FormSuspense>
 	</MkSpacer>
@@ -61,6 +65,7 @@ import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import FormLink from '@/components/form/link.vue';
+import MkButton from '@/components/MkButton.vue';
 
 const enableServerMachineStats = ref<boolean>(false);
 const enableIdenticonGeneration = ref<boolean>(false);
@@ -87,6 +92,10 @@ function save() {
 	}).then(() => {
 		fetchInstance(true);
 	});
+}
+
+function fullIndex() {
+	os.apiWithDialog('admin/full-index');
 }
 
 const headerActions = computed(() => [{
