@@ -66,7 +66,7 @@ const reactionName = computed(() => {
 	return r.slice(0, r.indexOf('@'));
 });
 
-const alternative: ComputedRef<string | null> = computed(() => defaultStore.state.reactableRemoteReactionEnabled ? (customEmojisMap.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
+const alternative: ComputedRef<string | null> = computed(() => defaultStore.state.reactableRemoteReactionEnabled ? (customEmojisMap.get(reactionName.value)?.name ?? null) : null);
 
 async function toggleReaction(ev: MouseEvent) {
 	if (!canToggle.value) {
@@ -167,7 +167,7 @@ async function menu(ev) {
 				}),
 			});
 		},
-	}, customEmojisMap.value.find(it => it.name === reactionName.value)?.name ? {
+	}, customEmojisMap.get(reactionName.value)?.name ? {
 		text: i18n.ts.copy,
 		icon: 'ti ti-copy',
 		action: () => {
