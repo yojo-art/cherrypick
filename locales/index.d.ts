@@ -7394,6 +7394,10 @@ export interface Locale extends ILocale {
              * ノート検索の利用
              */
             "canSearchNotes": string;
+						/**
+						 * 高度な検索
+						 */
+						"canAdvancedSearchNotes": string;
             /**
              * 翻訳機能の利用
              */
@@ -11116,6 +11120,22 @@ export interface Locale extends ILocale {
          */
         "noResizeCompressLossy": string;
     };
+		"_advancedSearch": {
+			"_fileOption": {
+				/**
+				 * ファイル付きのみ
+				 */
+				"fileAttachedOnly": string;
+				/**
+				 * ファイルなし
+				 */
+				"noFile": string;
+				/**
+				 * どっちも
+				 */
+				"combined": string;
+			};
+		};
 }
 declare const locales: {
     [lang: string]: Locale;
