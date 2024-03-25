@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</MkRadios>
 		<MkFolder>
 			<template #label>{{ i18n.ts.options }}</template>
-			
+
 			<div class="_gaps_m">
 				<!-- <MkSwitch v-model="isLocalOnly">{{ i18n.ts.localOnly }}</MkSwitch> -->
 				<!-- ファイル付き検索のみ -->
@@ -47,6 +47,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
+
 			<div class="_gaps_m">
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
@@ -138,10 +139,9 @@ async function search() {
 		},
 	};
 
-	if(isfileOnly.value !== 'combined')
-	{
-		notePagination.value.endpoint = 'notes/search-file'
-		notePagination.value.params.fileOption = isfileOnly.value
+	if (isfileOnly.value !== 'combined') {
+		notePagination.value.endpoint = 'notes/search-file';
+		notePagination.value.params.fileOption = isfileOnly.value;
 	}
 	if (isLocalOnly.value) notePagination.value.params.host = '.';
 
