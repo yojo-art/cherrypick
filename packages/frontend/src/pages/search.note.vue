@@ -47,9 +47,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
-
-			<!-- ファイル付き検索のみ -->
-
 			<div class="_gaps_m">
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
@@ -137,6 +134,7 @@ async function search() {
 			query: searchQuery.value,
 			userId: user.value ? user.value.id : null,
 			origin: searchOrigin.value,
+			fileOption: isfileOnly.value,
 		},
 	};
 
