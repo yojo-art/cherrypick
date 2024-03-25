@@ -16,10 +16,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</MkRadios>
 		<MkFolder>
 			<template #label>{{ i18n.ts.options }}</template>
-
+			
 			<div class="_gaps_m">
 				<!-- <MkSwitch v-model="isLocalOnly">{{ i18n.ts.localOnly }}</MkSwitch> -->
+				<!-- ファイル付き検索のみ -->
+				<MkFolder :defaultOpen="true">
+					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
+					<template v-if="isfileOnly" #suffix></template>
 
+					<div style="text-align: center;" class="_gaps">
+						<div>
+							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
+								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
+								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
+								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
+							</MkRadios>
+						</div>
+					</div>
+				</MkFolder>
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.specifyUser }}</template>
 					<template v-if="user" #suffix>@{{ user.username }}</template>
@@ -116,7 +130,6 @@ async function search() {
 
 		return;
 	}
-
 	notePagination.value = {
 		endpoint: 'notes/search',
 		limit: 10,
@@ -127,6 +140,11 @@ async function search() {
 		},
 	};
 
+	if(isfileOnly.value !== 'combined')
+	{
+		notePagination.value.endpoint = 'notes/search-file'
+		notePagination.value.params.fileOption = isfileOnly.value
+	}
 	if (isLocalOnly.value) notePagination.value.params.host = '.';
 
 	key.value++;

@@ -1899,6 +1899,7 @@ _role:
     descriptionOfRateLimitFactor: "小さいほど制限が緩和され、大きいほど制限が強化されます。"
     canHideAds: "広告の非表示"
     canSearchNotes: "ノート検索の利用"
+    canAdvancedSearchNotes: "高度な検索の利用"
     canUseTranslator: "翻訳機能の利用"
     avatarDecorationLimit: "アイコンデコレーションの最大取付個数"
   _condition:
@@ -2119,7 +2120,7 @@ _mfm:
   plainDescription: "内側の構文を全て無効にします。"
   ruby: "ルビ"
   rubyDescription: "文字の上にルビを表示します。"
-  border: "border"
+  border: "ボーダー"
   borderDescription: "内容を枠線で囲むことができます。"
 
 _instanceTicker:
