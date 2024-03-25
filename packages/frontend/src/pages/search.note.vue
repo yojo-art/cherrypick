@@ -47,6 +47,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
+
+			<!-- ファイル付き検索のみ -->
+
+			<div class="_gaps_m">
+				<MkFolder :defaultOpen="true">
+					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
+					<template v-if="isfileOnly" #suffix></template>
+
+					<div style="text-align: center;" class="_gaps">
+						<div>
+							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
+								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
+								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
+								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
+							</MkRadios>
+						</div>
+					</div>
+				</MkFolder>
+			</div>
 		</MkFolder>
 		<div>
 			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>

@@ -2936,7 +2936,7 @@ _imageCompressionMode:
   noResizeCompress: "縮小せず再圧縮する"
   resizeCompressLossy: "縮小して非可逆圧縮する"
   noResizeCompressLossy: "縮小せず非可逆圧縮する"
-  
+
 _advancedSearch:
   _fileOption:
     fileAttachedOnly: ファイル付きのみ
