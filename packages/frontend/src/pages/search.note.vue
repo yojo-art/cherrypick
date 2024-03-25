@@ -16,27 +16,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</MkRadios>
 		<MkFolder>
 			<template #label>{{ i18n.ts.options }}</template>
-
+			
 			<div class="_gaps_m">
 				<!-- <MkSwitch v-model="isLocalOnly">{{ i18n.ts.localOnly }}</MkSwitch> -->
-
-				<MkFolder :defaultOpen="true">
-					<template #label>{{ i18n.ts.specifyUser }}</template>
-					<template v-if="user" #suffix>@{{ user.username }}</template>
-
-					<div style="text-align: center;" class="_gaps">
-						<div v-if="user">@{{ user.username }}</div>
-						<div>
-							<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
-							<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
-						</div>
-					</div>
-				</MkFolder>
-			</div>
-
-			<!-- ファイル付き検索のみ -->
-
-			<div class="_gaps_m">
+				<!-- ファイル付き検索のみ -->
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
 					<template v-if="isfileOnly" #suffix></template>
@@ -48,6 +31,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
 								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
 							</MkRadios>
+						</div>
+					</div>
+				</MkFolder>
+				<MkFolder :defaultOpen="true">
+					<template #label>{{ i18n.ts.specifyUser }}</template>
+					<template v-if="user" #suffix>@{{ user.username }}</template>
+
+					<div style="text-align: center;" class="_gaps">
+						<div v-if="user">@{{ user.username }}</div>
+						<div>
+							<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
+							<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
 						</div>
 					</div>
 				</MkFolder>
@@ -116,7 +111,6 @@ async function search() {
 
 		return;
 	}
-
 	notePagination.value = {
 		endpoint: 'notes/search',
 		limit: 10,
@@ -127,6 +121,11 @@ async function search() {
 		},
 	};
 
+	if(isfileOnly.value !== 'combined')
+	{
+		notePagination.value.endpoint = 'notes/search-file'
+		notePagination.value.params.fileOption = isfileOnly.value
+	}
 	if (isLocalOnly.value) notePagination.value.params.host = '.';
 
 	key.value++;
