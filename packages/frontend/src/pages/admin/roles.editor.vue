@@ -335,7 +335,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkSwitch>
 
 					<MkRange v-model="role.policies.canAdvancedSearchNotes.priority" :min="0" :max="2" :step="1" easing :textConverter="(v) => v === 0 ? i18n.ts._role._priority.low : v === 1 ? i18n.ts._role._priority.middle : v === 2 ? i18n.ts._role._priority.high : ''">
-
 						<template #label>{{ i18n.ts._role.priority }}</template>
 					</MkRange>
 				</div>
