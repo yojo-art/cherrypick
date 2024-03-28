@@ -6968,9 +6968,13 @@ export interface Locale extends ILocale {
                  */
                 "title": string;
                 /**
-                 * これであなたもロリコン
+                 *  名前を 幼女 に設定した
                  */
                 "description": string;
+                /**
+                 * これであなたもロリコン
+                 */
+                "flavor": string;
             };
             "_passedSinceAccountCreated1": {
                 /**
