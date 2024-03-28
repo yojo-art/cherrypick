@@ -6962,16 +6962,6 @@ export interface Locale extends ILocale {
                  */
                 "description": string;
             };
-			"_setNameToYojo": {
-			    /**
-			     * ロリータコンプレックス
-			     */
-				"title": string;
-				/**
-				 これであなたもロリコン
-				 */
-				"description": string;
-			}
             "_passedSinceAccountCreated1": {
                 /**
                  * 一周年

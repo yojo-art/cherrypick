@@ -84,7 +84,6 @@ export const ACHIEVEMENT_TYPES = [
 	'justPlainLucky',
 	'setNameToSyuilo',
 	'setNameToNoriDev',
-	'setNameToYojo',
 	'cookieClicked',
 	'brainDiver',
 	'smashTestNotificationButton',
