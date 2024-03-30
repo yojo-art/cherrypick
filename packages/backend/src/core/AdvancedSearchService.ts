@@ -79,14 +79,30 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async read(user: { id: MiUser['id'], host: null}): Promise<void> {
-		const createdAt = this.idService.parse(user.id).date;
+	public async searchNoteBetweenDate(startDate: Date, endDate: Date): Promise<MiNote[]> {
+		const query = this.notesRepository.createQueryBuilder('note')
+			.where('note.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
+		return await query.getMany();
+	}
+
+	@bindThis
+	private async searchNoteAfterDate(startDate: Date): Promise<MiNote[]> {
+		const query = this.notesRepository.createQueryBuilder('note')
+			.where('note.createdAt >= :startDate', { startDate });
+		return await query.getMany();
+	}
+
+	@bindThis
+	private async searchNoteBeforeDate(endDate: Date): Promise<MiNote[]> {
+		const query = this.notesRepository.createQueryBuilder('note')
+			.where('note.createdAt <= :endDate', { endDate });
+		return await query.getMany();
 	}
 
 	@bindThis
 	public async indexNote(note: MiNote): Promise<void> {
 		if (note.text == null && note.cw == null) return;
-		if (!['home', 'public'].includes(note.visibility)) return;
+		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 	}
 
 	@bindThis
@@ -96,14 +112,28 @@ export class AdvancedSearchService {
 		host?: string | null;
 		origin?: string | null;
 		fileOption?: string | null;
-		fileId?: MiNote['fileIds'] | null;
 		visibility?: MiNote['visibility'] | null;
+		excludeNsfw?: boolean;
+		excludeReply?: boolean;
+		betweenDates?: boolean;
+		startDate?: Date | null;
+		endDate?: Date | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
 		limit?: number;
 	}): Promise<MiNote[]> {
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
+
+		if (opts.betweenDates) {
+			if (opts.startDate && opts.endDate) {
+				return await this.searchNoteBetweenDate(opts.startDate, opts.endDate);
+			} else if (opts.startDate) {
+				return await this.searchNoteAfterDate(opts.startDate);
+			} else if (opts.endDate) {
+				return await this.searchNoteBeforeDate(opts.endDate);
+			}
+		}
 
 		if (opts.origin === 'local') {
 			query.where('note.userHost IS NULL');
@@ -149,6 +179,18 @@ export class AdvancedSearchService {
 			} else if (opts.visibility === 'followers') {
 				query.andWhere('(note.visibility = \'followers\')');
 			}
+		}
+
+		if (opts.excludeNsfw) {
+			query.andWhere('note.cw IS NULL');
+		} else {
+			query.andWhere('note.cw IS NOT NULL');
+		}
+
+		if (opts.excludeReply) {
+			query.andWhere('note.replyId IS NULL');
+		} else {
+			query.andWhere('note.replyId IS NOT NULL');
 		}
 
 		this.queryService.generateVisibilityQuery(query, me);

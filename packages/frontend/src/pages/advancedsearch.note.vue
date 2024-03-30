@@ -15,16 +15,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<option value="remote">{{ i18n.ts.remote }}</option>
 		</MkRadios>
 		<MkFolder>
-			<template #label>{{ i18n.ts.options }}</template>
+			<template #label>{{ i18n.ts._advancedSearch.options }}</template>
 
 			<div class="_gaps_m">
+				<!-- ファイル付き検索 -->
 				<MkFolder :defaultOpen="true">
-					<template #label>{{ i18n.ts._advancedSearch.fileAttachedOnly }}</template>
+					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
 					<template v-if="isfileOnly" #suffix></template>
 
 					<div style="text-align: center;" class="_gaps">
 						<div>
-							<MkRadios v-model="isfileOnly">
+							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
 								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
 								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
 								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
@@ -32,6 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</div>
 				</MkFolder>
+				<!-- ユーザー指定 -->
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.specifyUser }}</template>
 					<template v-if="user" #suffix>@{{ user.username }}</template>
@@ -44,34 +46,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</div>
 				</MkFolder>
-				<!-- 日時指定 -->
+				<!-- nsfw -->
 				<MkFolder :defaultOpen="true">
-					<template #label>{{ i18n.ts._advancedSearch.specifyDate }}</template>
-					<template v-if="specifyDate" #suffix></template>
+					<template #label>{{ i18n.ts.specifyUser }}</template>
+					<template v-if="" #suffix></template>
 
 					<div style="text-align: center;" class="_gaps">
-						<div></div>
+						<div v-if=""></div>
 						<div>
-							<section>
-								<MkInput v-model="startDate" small type="date" class="input">
-									<template #label>*{{ i18n.ts._advancedSearch.startDate }}</template>
-								</MkInput>
-							</section>
-							<section>
-								<MkInput v-model="startTime" small type="time" class="input">
-									<template #label>*{{ i18n.ts._advancedSearch.startTime }}</template>
-								</MkInput>
-							</section>
-							<section>
-								<MkInput v-model="endDate" small type="date" class="input">
-									<template #label>{{ i18n.ts._advancedSearch.endDate }}</template>
-								</MkInput>
-							</section>
-							<section>
-								<MkInput v-model="endTime" small type="time" class="input">
-									<template #label>{{ i18n.ts._advancedSearch.endTime }}</template>
-								</MkInput>
-							</section>
+							<MkSwitch v-model="excludeNsfw"></MkSwitch>
 						</div>
 					</div>
 				</MkFolder>
@@ -88,6 +71,8 @@ import MkNotes from '@/components/MkNotes.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkRadios from '@/components/MkRadios.vue';
 import MkButton from '@/components/MkButton.vue';
+import MkSelect from '@/components/MkSelect.vue';
+import MkSwitch from '@/components/MkSwitch.vue';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
@@ -117,17 +102,6 @@ function selectUser() {
 	os.selectUser({ includeSelf: true }).then(_user => {
 		user.value = _user;
 	});
-}
-
-function datespecify() {
-	const calcAt = (date: Ref<string>, time: Ref<string>): number => (new Date(`${date.value} ${time.value}`)).getTime();
-
-	const start = calcAt(startDate, startTime);
-	const end = endDate.value ? calcAt(endDate, endTime) : null;
-	return {
-		start: start,
-		end: end,
-	};
 }
 
 async function search() {
@@ -160,6 +134,10 @@ async function search() {
 			userId: user.value ? user.value.id : null,
 			origin: searchOrigin.value,
 			fileOption: isfileOnly.value,
+			startDate: startDate.value,
+			endDate: endDate.value,
+			excludeNsfw: excludeNsfw.value,
+			excludeReply: excludeReply.value,
 		},
 	};
 
