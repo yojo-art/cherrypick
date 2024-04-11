@@ -7878,7 +7878,7 @@ export interface Locale extends ILocale {
          */
         "blockCode": string;
         /**
-         * 複数行のプログラムなどのコードをブロックでシンタックスハイライトします。
+         * 複数行のプログラムなどのコードをブロックでシンタックスハイライトします。いくつかの言語を指定するとその言語に合わせたシンタックスハイライトになります。
          */
         "blockCodeDescription": string;
         /**
@@ -8105,14 +8105,14 @@ export interface Locale extends ILocale {
          * 文字の上にルビを表示します。
          */
         "rubyDescription": string;
-				/**
-				 * ボーダー
-				 */
-				"border": string;
-				/**
-				 * 内容を枠線で囲みます。
-				 */
-				"borderDescription": string;
+        /**
+         * ボーダー
+         */
+        "border": string;
+        /**
+         * 内容を枠線で囲むことができます。
+         */
+        "borderDescription": string;
     };
     "_instanceTicker": {
         /**
