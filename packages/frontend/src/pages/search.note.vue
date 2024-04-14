@@ -56,17 +56,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkFolder>
 			<MkFolder>
 				<!-- 日時指定 -->
-				<!-- 日時指定するかトグルボタンで管理する -->
-				<template #label>{{ i18n.ts._advancedSearch._searchOption._toggleDate }}</template>
-				<template v-if="toggleDate" #suffix></template>
+				<template #label>{{ i18n.ts._advancedSearch._searchOption.toggleDate }}</template>
 
 				<div style="text-align: center;" class="_gaps">
 					<div>
-						<MkSwitch v-model="toggleDate">{{ i18n.ts._advancedSearch._searchOption._toggleDate }}</MkSwitch>
-						<MkInput v-if="toggleDate" v-model="startDate" small style="margin-top: 10px;" type="date">
+						<MkInput v-model="startDate" small style="margin-top: 10px;" type="date">
 							<template #label>{{ i18n.ts._advancedSearch._specifyDate.startDate }}</template>
 						</MkInput>
-						<MkInput v-if="toggleDate" v-model="endDate" small style="margin-top: 10px;" type="date">
+						<MkInput v-model="endDate" small style="margin-top: 10px;" type="date">
 							<template #label>{{ i18n.ts._advancedSearch._specifyDate.endDate }}</template>
 						</MkInput>
 					</div>
@@ -86,7 +83,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { format } from 'util';
 import { ref } from 'vue';
 import MkNotes from '@/components/MkNotes.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -116,7 +112,6 @@ const isfileOnly = ref('combined');
 const advancedSearch = ref(false);
 const excludeNsfw = ref(false);
 const excludeReply = ref(false);
-const toggleDate = ref(false);
 const startDate = ref(formatDateTimeString(addTime(new Date(), 1, 'day'), 'yyyy-MM-dd'));
 const endDate = ref('');
 
@@ -151,27 +146,22 @@ async function search() {
 		return;
 	}
 
-	if (isAdvancedSearchAvailable && advancedSearch.value) {
-		notePagination.value = {
-			endpoint: 'notes/advanced-search',
-			userId: user.value ? user.value.id : null,
-			origin: searchOrigin.value,
-			fileOption: isfileOnly.value,
-			excludeNsfw: excludeNsfw.value,
-			excludeReply: excludeReply.value,
-		},
-	} else {
-		notePagination.value = {
-			endpoint: 'notes/search',
-			userId: user.value ? user.value.id : null,
-			origin: searchOrigin.value,
-		},
+	notePagination.value = {
+		endpoint: 'notes/search',
+		limit: 10,
+		userId: user.value ? user.value.id : null,
+		origin: searchOrigin.value,
 	};
 
-	if (isfileOnly.value !== 'combined') {
-		notePagination.value.endpoint = 'notes/search-file';
+	if (isAdvancedSearchAvailable && advancedSearch.value) {
+		notePagination.value.endpoint = 'notes/advanced-search';
 		notePagination.value.params.fileOption = isfileOnly.value;
+		notePagination.value.params.excludeNsfw = excludeNsfw.value;
+		notePagination.value.params.excludeReply = excludeReply.value;
+		notePagination.value.params.startDate = startDate.value;
+		notePagination.value.params.endDate = endDate.value;
 	}
+
 	if (isLocalOnly.value) notePagination.value.params.host = '.';
 
 	key.value++;

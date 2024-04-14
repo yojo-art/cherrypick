@@ -11055,6 +11055,30 @@ export interface Locale extends ILocale {
 				 */
 				"combined": string;
 			};
+			"_searchOption": {
+				/**
+				 * NSFWを除外する
+				*/
+				"toggleNsfw": string;
+				/**
+				 * 返信を除外する
+				 */
+				"toggleReply": string;
+				/**
+				 * 日時を指定する
+				 */
+				"toggleDate": string;
+			};
+			"_specifyDate": {
+				/**
+				 * ～から
+				 */
+				"startDate": string;
+				/**
+				 * ～まで
+				 */
+				"endDate": string;
+			};
 		};
 }
 declare const locales: {
