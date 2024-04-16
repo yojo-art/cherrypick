@@ -2939,6 +2939,13 @@ _imageCompressionMode:
 
 _advancedSearch:
   _fileOption:
-    fileAttachedOnly: ファイル付きのみ
-    noFile: ファイルなし
-    combined: どっちも
+    fileAttachedOnly: "ファイル付きのみ"
+    noFile: "ファイルなし"
+    combined: "どっちも"
+  _searchOption:
+    toggleNsfw: "NSFWを除外する"
+    toggleReply: "リプライを除外する"
+    toggleDate: "日時を指定する"
+  _specifyDate: 
+    startDate: "～から"
+    endDate: "～まで"
