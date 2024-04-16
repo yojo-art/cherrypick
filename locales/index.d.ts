@@ -11068,6 +11068,10 @@ export interface Locale extends ILocale {
 				 * 日時を指定する
 				 */
 				"toggleDate": string;
+				/**
+				 * 高度な検索を有効にする
+				 */
+				"toggleAdvancedSearch": string;
 			};
 			"_specifyDate": {
 				/**

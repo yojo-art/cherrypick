@@ -2847,6 +2847,7 @@ _advancedSearch:
     toggleNsfw: "Exclude NSFW"
     toggleReply: "Exclude Reply"
     toggleDate: "Specify date and time"
-  _specifyDate: 
+    toggleAdvancedSearch: "Enable Advanced Search"
+  _specifyDate:
     startDate: "From"
     endDate: "Until"

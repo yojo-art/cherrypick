@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<option value="local">{{ i18n.ts.local }}</option>
 			<option value="remote">{{ i18n.ts.remote }}</option>
 		</MkRadios>
-		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">{{ i18n.ts._advancedSearch. }}</MkSwitch>
+		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}</MkSwitch>
 		<MkFolder v-if="advancedSearch">
 			<template #label>{{ i18n.ts.options }}</template>
 
@@ -79,7 +79,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
 		</div>
 	</div>
-	<MkFoldableSection>
+	<MkFoldableSection v-if="notePagination">
 		<template #label>{{ i18n.ts.searchResult }}</template>
 		<MkNotes :key="key" :pagination="notePagination"/>
 	</MkFoldableSection>
