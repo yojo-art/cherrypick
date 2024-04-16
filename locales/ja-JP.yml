@@ -2948,5 +2948,5 @@ _advancedSearch:
     toggleDate: "日時を指定する"
     toggleAdvancedSearch: "高度な検索を有効にする"
   _specifyDate:
-    startDate: "～から"
-    endDate: "～まで"
+    startDate: "から"
+    endDate: "まで"
