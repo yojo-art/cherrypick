@@ -11075,11 +11075,11 @@ export interface Locale extends ILocale {
 			};
 			"_specifyDate": {
 				/**
-				 * ～から
+				 * から
 				 */
 				"startDate": string;
 				/**
-				 * ～まで
+				 * まで
 				 */
 				"endDate": string;
 			};
