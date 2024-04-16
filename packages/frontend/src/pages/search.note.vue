@@ -1,24 +1,40 @@
 <!--
-SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
 <div class="_gaps">
 	<div class="_gaps">
-		<MkInput v-model="searchQuery" :large="true" :autofocus="true" type="search" @enter="search">
+		<MkSearchInput v-model="searchQuery" :autofocus="true" :large="true" type="search" @enter="search">
 			<template #prefix><i class="ti ti-search"></i></template>
-		</MkInput>
-		<MkRadios v-model="searchOrigin" @update:modelValue="search()">
+		</MkSearchInput>
+		<MkRadios v-model="searchOrigin">
 			<option value="combined">{{ i18n.ts.all }}</option>
 			<option value="local">{{ i18n.ts.local }}</option>
 			<option value="remote">{{ i18n.ts.remote }}</option>
 		</MkRadios>
-		<MkFolder>
+		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">{{ i18n.ts._advancedSearch. }}</MkSwitch>
+		<MkFolder v-if="advancedSearch">
 			<template #label>{{ i18n.ts.options }}</template>
 
 			<div class="_gaps_m">
-				<!-- <MkSwitch v-model="isLocalOnly">{{ i18n.ts.localOnly }}</MkSwitch> -->
+				<MkFolder :defaultOpen="true">
+					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
+					<template v-if="isfileOnly" #suffix></template>
+
+					<div style="text-align: center;" class="_gaps">
+						<div>
+							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
+								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
+								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
+								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
+							</MkRadios>
+						</div>
+					</div>
+				</MkFolder>
+			</div>
+			<div class="_gaps_m">
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.specifyUser }}</template>
 					<template v-if="user" #suffix>@{{ user.username }}</template>
@@ -32,51 +48,39 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
-		</MkFolder>
-		<!-- 高度な検索のトグル -->
-		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">{{ i18n.ts._advancedSearch.toggleAdvancedSearch }}</MkSwitch>
-		<div v-if="isAdvancedSearchAvailable">
-			<!-- toggle nsfw -->
-			<MkSwitch v-model="excludeNsfw">{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}</MkSwitch>
-			<MkSwitch v-model="excludeReply">{{ i18n.ts._advancedSearch._searchOption.toggleReply }}</MkSwitch>
-			<MkFolder>
-				<!-- ファイル付き検索 -->
-				<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
-				<template v-if="isfileOnly" #suffix></template>
-
-				<div style="text-align: center;" class="_gaps">
-					<div>
-						<MkRadios v-model="isfileOnly" @update:modelValue="search()">
-							<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
-							<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
-							<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
-						</MkRadios>
-					</div>
-				</div>
-			</MkFolder>
-			<MkFolder>
-				<!-- 日時指定 -->
-				<template #label>{{ i18n.ts._advancedSearch._searchOption.toggleDate }}</template>
-
-				<div style="text-align: center;" class="_gaps">
-					<div>
-						<MkInput v-model="startDate" small style="margin-top: 10px;" type="date">
+			<div class="_gaps_m">
+				<MkFolder>
+					<template #label>{{ i18n.ts._advancedSearch._searchOption.toggleDate }}</template>
+					<div style="text-align: center;" class="_gaps">
+						<MkInput v-model="startDate" small style="margin-top: 10px;">
 							<template #label>{{ i18n.ts._advancedSearch._specifyDate.startDate }}</template>
 						</MkInput>
-						<MkInput v-model="endDate" small style="margin-top: 10px;" type="date">
+						<MkInput v-model="endDate" small style="margin-top: 10px;">
 							<template #label>{{ i18n.ts._advancedSearch._specifyDate.endDate }}</template>
 						</MkInput>
 					</div>
-				</div>
-			</MkFolder>
-		</div>
+				</MkFolder>
+			</div>
+			<div class="_gaps_m">
+				<MkFolder>
+					<template #label>{{ i18n.ts.other }}</template>
+					<div style="text-align: center;" class="_gaps">
+						<MkSwitch v-model="excludeReply">
+							{{ i18n.ts._advancedSearch._searchOption.toggleReply }}
+						</MkSwitch>
+						<MkSwitch v-model="excludeNsfw">
+							{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}
+						</MkSwitch>
+					</div>
+				</MkFolder>
+			</div>
+		</MkFolder>
 		<div>
 			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
 		</div>
 	</div>
-
-	<MkFoldableSection v-if="notePagination">
-		<template #header>{{ i18n.ts.searchResult }}</template>
+	<MkFoldableSection>
+		<template #label>{{ i18n.ts.searchResult }}</template>
 		<MkNotes :key="key" :pagination="notePagination"/>
 	</MkFoldableSection>
 </div>
@@ -99,6 +103,7 @@ import { instance } from '@/instance.js';
 import { $i } from '@/account';
 import { formatDateTimeString } from '@/scripts/format-time-string';
 import { addTime } from '@/scripts/time';
+import MkSearchInput from '@/components/MkSearchInput.vue';
 
 const router = useRouter();
 
@@ -148,13 +153,15 @@ async function search() {
 
 	notePagination.value = {
 		endpoint: 'notes/search',
+		query: searchQuery.value,
 		limit: 10,
 		userId: user.value ? user.value.id : null,
 		origin: searchOrigin.value,
 	};
 
-	if (isAdvancedSearchAvailable && advancedSearch.value) {
+	if (isAdvancedSearchAvailable === true && advancedSearch.value === true) {
 		notePagination.value.endpoint = 'notes/advanced-search';
+		notePagination.value.query = searchQuery.value;
 		notePagination.value.params.fileOption = isfileOnly.value;
 		notePagination.value.params.excludeNsfw = excludeNsfw.value;
 		notePagination.value.params.excludeReply = excludeReply.value;

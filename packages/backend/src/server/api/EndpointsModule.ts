@@ -302,6 +302,7 @@ import * as ep___notes_replies from './endpoints/notes/replies.js';
 import * as ep___notes_searchByTag from './endpoints/notes/search-by-tag.js';
 import * as ep___notes_search from './endpoints/notes/search.js';
 import * as ep___notes_searchFile from './endpoints/notes/search-file.js';
+import * as ep___notes_advancedSearch from './endpoints/notes/advanced-search.js';
 import * as ep___notes_show from './endpoints/notes/show.js';
 import * as ep___notes_state from './endpoints/notes/state.js';
 import * as ep___notes_threadMuting_create from './endpoints/notes/thread-muting/create.js';
@@ -705,6 +706,7 @@ const $notes_replies: Provider = { provide: 'ep:notes/replies', useClass: ep___n
 const $notes_searchByTag: Provider = { provide: 'ep:notes/search-by-tag', useClass: ep___notes_searchByTag.default };
 const $notes_search: Provider = { provide: 'ep:notes/search', useClass: ep___notes_search.default };
 const $notes_searchFile: Provider = { provide: 'ep:notes/search-file', useClass: ep___notes_searchFile.default };
+const $notes_advancedSearch: Provider = { provide: 'ep:notes/advanced-search', useClass: ep___notes_advancedSearch.default };
 const $notes_show: Provider = { provide: 'ep:notes/show', useClass: ep___notes_show.default };
 const $notes_state: Provider = { provide: 'ep:notes/state', useClass: ep___notes_state.default };
 const $notes_threadMuting_create: Provider = { provide: 'ep:notes/thread-muting/create', useClass: ep___notes_threadMuting_create.default };
@@ -1113,6 +1115,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_searchByTag,
 		$notes_search,
 		$notes_searchFile,
+		$notes_advancedSearch,
 		$notes_show,
 		$notes_state,
 		$notes_threadMuting_create,
@@ -1513,6 +1516,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_searchByTag,
 		$notes_search,
 		$notes_searchFile,
+		$notes_advancedSearch,
 		$notes_show,
 		$notes_state,
 		$notes_threadMuting_create,
