@@ -106,6 +106,11 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
+	public async unindexNote(note: MiNote): Promise<void> {
+		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
+	}
+
+	@bindThis
 	public async searchNote(q: string, me: MiUser | null, opts: {
 		userId?: MiNote['userId'] | null;
 		channelId?: MiNote['channelId'] | null;
