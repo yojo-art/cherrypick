@@ -75,26 +75,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 			</div>
 		</MkFolder>
-		<MkFolder v-else="advancedSearch">
-			<template #label>{{ i18n.ts.options }}</template>
-
-			<div class="_gaps_m">
-				<MkSwitch v-model="isLocalOnly">{{ i18n.ts.localOnly }}</MkSwitch>
-
-				<MkFolder :defaultOpen="true">
-					<template #label>{{ i18n.ts.specifyUser }}</template>
-					<template v-if="user" #suffix>@{{ user.username }}</template>
-
-					<div style="text-align: center;" class="_gaps">
-						<div v-if="user">@{{ user.username }}</div>
-						<div>
-							<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
-							<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
-						</div>
-					</div>
-				</MkFolder>
-			</div>
-		</MkFolder>
 		<div>
 			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
 		</div>
@@ -137,8 +117,8 @@ const isfileOnly = ref('combined');
 const advancedSearch = ref(false);
 const excludeNsfw = ref(false);
 const excludeReply = ref(false);
-const startDate = ref('');
-const endDate = ref(formatDateTimeString(addTime(new Date(), 1, 'day'), 'yyyy-MM-dd'));
+const startDate = ref(formatDateTimeString(addTime(new Date(), 1, 'day'), 'yyyy-MM-dd'));
+const endDate = ref('');
 
 const isAdvancedSearchAvailable = ($i != null && instance.policies.canAdvancedSearchNotes ) || ($i != null && $i.policies.canAdvancedSearchNotes );
 
@@ -171,23 +151,6 @@ async function search() {
 		return;
 	}
 
-
-	if (isAdvancedSearchAvailable === true && advancedSearch.value === true) {
-		notePagination.value = {
-		endpoint : 'notes/advanced-search',
-		query: searchQuery.value,
-		limit: 10,
-		userId: user.value ? user.value.id : null,
-		origin: searchOrigin.value,
-		fileOption : isfileOnly.value,
-		excludeNsfw : excludeNsfw.value,
-		excludeReply : excludeReply.value,
-		startDate : startDate.value,
-		endDate : endDate.value,
-		}
-	}
-	else
-	{
 	notePagination.value = {
 		endpoint: 'notes/search',
 		query: searchQuery.value,
@@ -195,9 +158,19 @@ async function search() {
 		userId: user.value ? user.value.id : null,
 		origin: searchOrigin.value,
 	};
+
+	if (isAdvancedSearchAvailable === true && advancedSearch.value === true) {
+		notePagination.value.endpoint = 'notes/advanced-search';
+		notePagination.value.query = searchQuery.value;
+		notePagination.value.params.fileOption = isfileOnly.value;
+		notePagination.value.params.excludeNsfw = excludeNsfw.value;
+		notePagination.value.params.excludeReply = excludeReply.value;
+		notePagination.value.params.startDate = startDate.value;
+		notePagination.value.params.endDate = endDate.value;
 	}
-	
+
 	if (isLocalOnly.value) notePagination.value.params.host = '.';
+
 	key.value++;
 }
 </script>
