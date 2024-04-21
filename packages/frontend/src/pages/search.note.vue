@@ -14,11 +14,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<option value="local">{{ i18n.ts.local }}</option>
 			<option value="remote">{{ i18n.ts.remote }}</option>
 		</MkRadios>
-		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}</MkSwitch>
+		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">
+			{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}
+		</MkSwitch>
 		<MkFolder v-if="advancedSearch">
 			<template #label>{{ i18n.ts.options }}</template>
 
-			<div class="_gaps_m">
+			<div class="_gaps">
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
 					<template v-if="isfileOnly" #suffix></template>
@@ -34,7 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
-			<div class="_gaps_m">
+			<div class="_gaps">
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.specifyUser }}</template>
 					<template v-if="user" #suffix>@{{ user.username }}</template>
@@ -48,7 +50,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
-			<div class="_gaps_m">
+			<div class="_gaps">
 				<MkFolder>
 					<template #label>{{ i18n.ts._advancedSearch._searchOption.toggleDate }}</template>
 					<div style="text-align: center;" class="_gaps">
@@ -61,7 +63,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</MkFolder>
 			</div>
-			<div class="_gaps_m">
+			<div class="_gaps">
 				<MkFolder>
 					<template #label>{{ i18n.ts.other }}</template>
 					<div style="text-align: center;" class="_gaps">
@@ -71,6 +73,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkSwitch v-model="excludeNsfw">
 							{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}
 						</MkSwitch>
+					</div>
+				</MkFolder>
+			</div>
+		</MkFolder>
+		<MkFolder v-else>
+			<template #label>{{ i18n.ts.options }}</template>
+
+			<div class="_gaps_m">
+				<MkFolder :defaultOpen="true">
+					<template #label>{{ i18n.ts.specifyUser }}</template>
+					<template v-if="user" #suffix>@{{ user.username }}</template>
+
+					<div style="text-align: center;" class="_gaps">
+						<div v-if="user">@{{ user.username }}</div>
+						<div>
+							<MkButton v-if="user == null" primary rounded inline @click="selectUser">
+								{{ i18n.ts.selectUser }}
+							</MkButton>
+							<MkButton v-else danger rounded inline @click="user == null">
+								{{ i18n.ts.remove }}
+							</MkButton>
+						</div>
 					</div>
 				</MkFolder>
 			</div>
@@ -117,8 +141,8 @@ const isfileOnly = ref('combined');
 const advancedSearch = ref(false);
 const excludeNsfw = ref(false);
 const excludeReply = ref(false);
-const startDate = ref(formatDateTimeString(addTime(new Date(), 1, 'day'), 'yyyy-MM-dd'));
-const endDate = ref('');
+const startDate = ref('');
+const endDate = ref(formatDateTimeString(addTime(new Date(), 1, 'day'), 'yyyy-MM-dd'));
 
 const isAdvancedSearchAvailable = ($i != null && instance.policies.canAdvancedSearchNotes ) || ($i != null && $i.policies.canAdvancedSearchNotes );
 
@@ -161,7 +185,6 @@ async function search() {
 
 	if (isAdvancedSearchAvailable === true && advancedSearch.value === true) {
 		notePagination.value.endpoint = 'notes/advanced-search';
-		notePagination.value.query = searchQuery.value;
 		notePagination.value.params.fileOption = isfileOnly.value;
 		notePagination.value.params.excludeNsfw = excludeNsfw.value;
 		notePagination.value.params.excludeReply = excludeReply.value;
