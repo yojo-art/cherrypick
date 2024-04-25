@@ -1608,6 +1608,10 @@ declare namespace entities {
         NotesSearchByTagResponse,
         NotesSearchRequest,
         NotesSearchResponse,
+        NotesSearchFileRequest,
+        NotesSearchFileResponse,
+        NotesAdvancedSearchRequest,
+        NotesAdvancedSearchResponse,
         NotesShowRequest,
         NotesShowResponse,
         NotesStateRequest,
@@ -2528,6 +2532,12 @@ type NoteFavorite = components['schemas']['NoteFavorite'];
 type NoteReaction = components['schemas']['NoteReaction'];
 
 // @public (undocumented)
+type NotesAdvancedSearchRequest = operations['notes/advanced-search']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesAdvancedSearchResponse = operations['notes/advanced-search']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type NotesChildrenRequest = operations['notes/children']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -2640,6 +2650,12 @@ type NotesSearchByTagRequest = operations['notes/search-by-tag']['requestBody'][
 
 // @public (undocumented)
 type NotesSearchByTagResponse = operations['notes/search-by-tag']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesSearchFileRequest = operations['notes/search-file']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesSearchFileResponse = operations['notes/search-file']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesSearchRequest = operations['notes/search']['requestBody']['content']['application/json'];
