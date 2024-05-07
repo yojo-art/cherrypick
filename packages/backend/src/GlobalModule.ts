@@ -133,8 +133,8 @@ const $redisForJobQueue: Provider = {
 @Global()
 @Module({
 	imports: [RepositoryModule],
-	providers: [$config, $db, $meilisearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue],
-	exports: [$config, $db, $meilisearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, RepositoryModule],
+	providers: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue],
+	exports: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, RepositoryModule],
 })
 export class GlobalModule implements OnApplicationShutdown {
 	constructor(
