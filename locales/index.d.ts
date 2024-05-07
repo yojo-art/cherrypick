@@ -6962,16 +6962,6 @@ export interface Locale extends ILocale {
                  */
                 "description": string;
             };
-						"_setNameToYojo": {
-							/**
-							 * ロリータコンプレックス
-							 */
-							"title": string;
-							/**
-							 * これであなたもロリコン
-							 */
-							"description": string;
-						}
             "_passedSinceAccountCreated1": {
                 /**
                  * 一周年
@@ -7338,10 +7328,10 @@ export interface Locale extends ILocale {
              * ノート検索の利用
              */
             "canSearchNotes": string;
-						/**
-						 * 高度な検索
-						 */
-						"canAdvancedSearchNotes": string;
+            /**
+             * 高度な検索の利用
+             */
+            "canAdvancedSearchNotes": string;
             /**
              * 翻訳機能の利用
              */
@@ -7892,7 +7882,7 @@ export interface Locale extends ILocale {
          */
         "blockCode": string;
         /**
-         * 複数行のプログラムなどのコードをブロックでシンタックスハイライトします。
+         * 複数行のプログラムなどのコードをブロックでシンタックスハイライトします。いくつかの言語を指定するとその言語に合わせたシンタックスハイライトになります。
          */
         "blockCodeDescription": string;
         /**
@@ -8119,14 +8109,14 @@ export interface Locale extends ILocale {
          * 文字の上にルビを表示します。
          */
         "rubyDescription": string;
-				/**
-				 * ボーダー
-				 */
-				"border": string;
-				/**
-				 * 内容を枠線で囲みます。
-				 */
-				"borderDescription": string;
+        /**
+         * ボーダー
+         */
+        "border": string;
+        /**
+         * 内容を枠線で囲むことができます。
+         */
+        "borderDescription": string;
     };
     "_instanceTicker": {
         /**
@@ -11040,50 +11030,50 @@ export interface Locale extends ILocale {
          */
         "noResizeCompressLossy": string;
     };
-		"_advancedSearch": {
-			"_fileOption": {
-				/**
-				 * ファイル付きのみ
-				 */
-				"fileAttachedOnly": string;
-				/**
-				 * ファイルなし
-				 */
-				"noFile": string;
-				/**
-				 * どっちも
-				 */
-				"combined": string;
-			};
-			"_searchOption": {
-				/**
-				 * NSFWを除外する
-				*/
-				"toggleNsfw": string;
-				/**
-				 * 返信を除外する
-				 */
-				"toggleReply": string;
-				/**
-				 * 日時を指定する
-				 */
-				"toggleDate": string;
-				/**
-				 * 高度な検索を有効にする
-				 */
-				"toggleAdvancedSearch": string;
-			};
-			"_specifyDate": {
-				/**
-				 * から
-				 */
-				"startDate": string;
-				/**
-				 * まで
-				 */
-				"endDate": string;
-			};
-		};
+    "_advancedSearch": {
+        "_fileOption": {
+            /**
+             * ファイル付きのみ
+             */
+            "fileAttachedOnly": string;
+            /**
+             * ファイルなし
+             */
+            "noFile": string;
+            /**
+             * どっちも
+             */
+            "combined": string;
+        };
+        "_searchOption": {
+            /**
+             * NSFWを除外する
+             */
+            "toggleNsfw": string;
+            /**
+             * リプライを除外する
+             */
+            "toggleReply": string;
+            /**
+             * 日時を指定する
+             */
+            "toggleDate": string;
+            /**
+             * 高度な検索を有効にする
+             */
+            "toggleAdvancedSearch": string;
+        };
+        "_specifyDate": {
+            /**
+             * から
+             */
+            "startDate": string;
+            /**
+             * まで
+             */
+            "endDate": string;
+        };
+    };
 }
 declare const locales: {
     [lang: string]: Locale;
