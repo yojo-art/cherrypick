@@ -9,95 +9,64 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkSearchInput v-model="searchQuery" :autofocus="true" :large="true" type="search" @enter="search">
 			<template #prefix><i class="ti ti-search"></i></template>
 		</MkSearchInput>
-		<MkRadios v-model="searchOrigin">
+		<MkRadios v-model="searchOrigin" @update:modelValue="search()">
 			<option value="combined">{{ i18n.ts.all }}</option>
 			<option value="local">{{ i18n.ts.local }}</option>
 			<option value="remote">{{ i18n.ts.remote }}</option>
 		</MkRadios>
-		<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">
-			{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}
-		</MkSwitch>
-		<MkFolder v-if="advancedSearch">
+		<MkFolder>
 			<template #label>{{ i18n.ts.options }}</template>
 
-			<div class="_gaps">
-				<MkFolder :defaultOpen="true">
+			<FormSlot>
+				<template #label>{{ i18n.ts.specifyUser }}</template>
+				<template v-if="user" #suffix>@{{ user.username }}</template>
+
+				<div style="text-align: center;" class="_gaps_m">
+					<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
+					<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
+				</div>
+			</FormSlot>
+			<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">
+				{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}
+			</MkSwitch>
+			<MkFolder v-if="advancedSearch" class="_gaps">
+				<FormSlot>
 					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
-					<template v-if="isfileOnly" #suffix></template>
 
-					<div style="text-align: center;" class="_gaps">
-						<div>
-							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
-								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
-								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
-							</MkRadios>
-						</div>
+					<div style="text-align: center;" class="_gaps_m">
+						<MkRadios v-model="isfileOnly" @update:modelValue="search()">
+							<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
+							<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
+							<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
+						</MkRadios>
 					</div>
-				</MkFolder>
-			</div>
-			<div class="_gaps">
-				<MkFolder :defaultOpen="true">
-					<template #label>{{ i18n.ts.specifyUser }}</template>
-					<template v-if="user" #suffix>@{{ user.username }}</template>
-
-					<div style="text-align: center;" class="_gaps">
-						<div v-if="user">@{{ user.username }}</div>
-						<div>
-							<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
-							<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
-						</div>
-					</div>
-				</MkFolder>
-			</div>
-			<div class="_gaps">
-				<MkFolder>
+				</FormSlot>
+				<FormSlot>
 					<template #label>{{ i18n.ts._advancedSearch._searchOption.toggleDate }}</template>
-					<div style="text-align: center;" class="_gaps">
-						<MkInput v-model="startDate" small style="margin-top: 10px;">
+					<template #caption>{{ i18n.ts._advancedSearch._description.toggleDate }}</template>
+
+					<FormSplit :minWidth="200">
+						<MkInput v-model="startDate" type="date" small style="margin-top: 10px;">
 							<template #label>{{ i18n.ts._advancedSearch._specifyDate.startDate }}</template>
+							<template #prefix><i class="ti ti-calender"></i></template>
 						</MkInput>
-						<MkInput v-model="endDate" small style="margin-top: 10px;">
+						<MkInput v-model="endDate" type="date" small style="margin-top: 10px;">
 							<template #label>{{ i18n.ts._advancedSearch._specifyDate.endDate }}</template>
+							<template #prefix><i class="ti ti-calender"></i></template>
 						</MkInput>
-					</div>
-				</MkFolder>
-			</div>
-			<div class="_gaps">
-				<MkFolder>
+					</FormSplit>
+				</FormSlot>
+				<FormSlot>
 					<template #label>{{ i18n.ts.other }}</template>
-					<div style="text-align: center;" class="_gaps">
-						<MkSwitch v-model="excludeReply">
-							{{ i18n.ts._advancedSearch._searchOption.toggleReply }}
-						</MkSwitch>
-						<MkSwitch v-model="excludeNsfw">
-							{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}
-						</MkSwitch>
-					</div>
-				</MkFolder>
-			</div>
-		</MkFolder>
-		<MkFolder v-else>
-			<template #label>{{ i18n.ts.options }}</template>
-
-			<div class="_gaps_m">
-				<MkFolder :defaultOpen="true">
-					<template #label>{{ i18n.ts.specifyUser }}</template>
-					<template v-if="user" #suffix>@{{ user.username }}</template>
+					<template #caption>{{ i18n.ts._advancedSearch._description.other }}</template>
+					<template #prefix></template>
 
 					<div style="text-align: center;" class="_gaps">
-						<div v-if="user">@{{ user.username }}</div>
-						<div>
-							<MkButton v-if="user == null" primary rounded inline @click="selectUser">
-								{{ i18n.ts.selectUser }}
-							</MkButton>
-							<MkButton v-else danger rounded inline @click="user == null">
-								{{ i18n.ts.remove }}
-							</MkButton>
-						</div>
+						<MkSwitch v-model="excludeReply">{{ i18n.ts._advancedSearch._searchOption.toggleReply }}</MkSwitch>
+						<MkSwitch v-model="excludeNsfw">{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}</MkSwitch>
 					</div>
-				</MkFolder>
-			</div>
+				</FormSlot>
+			</MkFolder>
 		</MkFolder>
 		<div>
 			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
@@ -128,6 +97,8 @@ import { $i } from '@/account';
 import { formatDateTimeString } from '@/scripts/format-time-string';
 import { addTime } from '@/scripts/time';
 import MkSearchInput from '@/components/MkSearchInput.vue';
+import FormSlot from '@/components/form/slot.vue';
+import FormSplit from '@/components/form/split.vue';
 
 const router = useRouter();
 
