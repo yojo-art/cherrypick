@@ -103,6 +103,8 @@ export class AdvancedSearchService {
 									channelId: { type: 'keyword' },
 									tags: { type: 'keyword' },
 									createdAt: { type: 'long' },
+									replyId: { type: 'keyword' },
+									fileId: { type: 'keyword' },
 								},
 							},
 							settings: {
@@ -198,6 +200,7 @@ export class AdvancedSearchService {
 				channelId: note.channelId,
 				createdAt: this.idService.parse(note.id).date.getTime(),
 				tags: note.tags,
+				replyId: note.replyId,
 			};
 
 			await this.opensearch.index({
@@ -279,6 +282,25 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'userHost' } }] } });
 				} else {
 					osFilter.bool.must.push({ term: { userHost: opts.host } });
+				}
+			}
+			if (opts.excludeReply) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'replyId' } }] } });
+			if (opts.excludeNsfw) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'cw' } }] } });
+			if (opts.fileOption) {
+				if (opts.fileOption === 'file-only') {
+					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'fileId' } }] } });
+				} else if (opts.fileOption === 'no-file') {
+					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileId' } }] } });
+				}
+			}
+			if (opts.betweenDates) {
+				if (opts.startDate && opts.endDate) {
+					osFilter.bool.must.push({ range: {
+						createdAt: {
+							gte: opts.startDate,
+							lte: opts.endDate,
+						},
+					} });
 				}
 			}
 
