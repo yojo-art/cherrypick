@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkFolder>
 			<template #label>{{ i18n.ts.options }}</template>
 
-			<FormSlot>
+			<FormSection>
 				<template #label>{{ i18n.ts.specifyUser }}</template>
 				<template v-if="user" #suffix>@{{ user.username }}</template>
 
@@ -25,12 +25,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
 					<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
 				</div>
-			</FormSlot>
+			</FormSection>
 			<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">
 				{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}
 			</MkSwitch>
 			<MkFolder v-if="advancedSearch" class="_gaps">
-				<FormSlot>
+				<FormSection>
 					<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
 
 					<div style="text-align: center;" class="_gaps_m">
@@ -40,8 +40,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
 						</MkRadios>
 					</div>
-				</FormSlot>
-				<FormSlot>
+				</FormSection>
+				<FormSection>
 					<template #label>{{ i18n.ts._advancedSearch._searchOption.toggleDate }}</template>
 					<template #caption>{{ i18n.ts._advancedSearch._description.toggleDate }}</template>
 
@@ -55,8 +55,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template #prefix><i class="ti ti-calender"></i></template>
 						</MkInput>
 					</FormSplit>
-				</FormSlot>
-				<FormSlot>
+				</FormSection>
+				<FormSection>
 					<template #label>{{ i18n.ts.other }}</template>
 					<template #caption>{{ i18n.ts._advancedSearch._description.other }}</template>
 					<template #prefix></template>
@@ -65,7 +65,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkSwitch v-model="excludeReply">{{ i18n.ts._advancedSearch._searchOption.toggleReply }}</MkSwitch>
 						<MkSwitch v-model="excludeNsfw">{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}</MkSwitch>
 					</div>
-				</FormSlot>
+				</FormSection>
 			</MkFolder>
 		</MkFolder>
 		<div>
@@ -97,8 +97,8 @@ import { $i } from '@/account';
 import { formatDateTimeString } from '@/scripts/format-time-string';
 import { addTime } from '@/scripts/time';
 import MkSearchInput from '@/components/MkSearchInput.vue';
-import FormSlot from '@/components/form/slot.vue';
 import FormSplit from '@/components/form/split.vue';
+import FormSection from '@/components/form/section.vue';
 
 const router = useRouter();
 
