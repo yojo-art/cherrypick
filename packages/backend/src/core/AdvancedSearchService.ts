@@ -258,7 +258,6 @@ export class AdvancedSearchService {
 		visibility?: MiNote['visibility'] | null;
 		excludeNsfw?: boolean;
 		excludeReply?: boolean;
-		betweenDates?: boolean;
 		startDate?: Date | null;
 		endDate?: Date | null;
 	}, pagination: {
@@ -293,15 +292,26 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileId' } }] } });
 				}
 			}
-			if (opts.betweenDates) {
-				if (opts.startDate && opts.endDate) {
-					osFilter.bool.must.push({ range: {
-						createdAt: {
-							gte: opts.startDate,
-							lte: opts.endDate,
-						},
-					} });
-				}
+
+			if (opts.startDate && opts.endDate) {
+				osFilter.bool.must.push({ range: {
+					createdAt: {
+						gte: opts.startDate,
+						lte: opts.endDate,
+					},
+				} });
+			} else if (opts.startDate) {
+				osFilter.bool.must.push({ range: {
+					createdAt: {
+						gte: opts.startDate,
+					},
+				} });
+			} else if (opts.endDate) {
+				osFilter.bool.must.push({ range: {
+					createdAt: {
+						lte: opts.endDate,
+					},
+				} });
 			}
 
 			if (q !== '') {
