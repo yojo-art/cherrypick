@@ -11073,6 +11073,16 @@ export interface Locale extends ILocale {
              */
             "endDate": string;
         };
+				"_description": {
+					/**
+					 * 日時検索
+					 */
+					"toggleDate": string;
+					/**
+					 * その他
+					 */
+					"other": string;
+				};
     };
 }
 declare const locales: {

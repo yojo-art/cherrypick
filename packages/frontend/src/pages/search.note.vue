@@ -22,8 +22,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template v-if="user" #suffix>@{{ user.username }}</template>
 
 				<div style="text-align: center;" class="_gaps_m">
-					<MkButton v-if="user == null" primary rounded inline @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
-					<MkButton v-else danger rounded inline @click="user = null">{{ i18n.ts.remove }}</MkButton>
+					<MkButton v-if="user == null" primary rounded inline style="margin: 0 auto;" @click="selectUser">{{ i18n.ts.selectUser }}</MkButton>
+					<MkButton v-else danger rounded inline style="margin: 0 auto;" @click="user = null">{{ i18n.ts.remove }}</MkButton>
 				</div>
 			</FormSection>
 			<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">
