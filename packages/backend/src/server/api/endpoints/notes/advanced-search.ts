@@ -35,6 +35,7 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
+		// TODO: 整理する
 		query: { type: 'string' },
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
@@ -48,8 +49,6 @@ export const paramDef = {
 		},
 		excludeNsfw: { type: 'boolean', default: false },
 		excludeReply: { type: 'boolean', default: false },
-		startDate: { type: 'integer', nullable: true },
-		endDate: { type: 'integer', nullable: true },
 		userId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
 		channelId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
 	},
@@ -71,9 +70,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.unavailable);
 			}
 
-			const startDate = ps.startDate ? new Date(ps.startDate) : null;
-			const endDate = ps.endDate ? new Date(ps.endDate) : null;
-
 			const notes = await this.advancedSearchService.searchNote(ps.query, me, {
 				userId: ps.userId,
 				channelId: ps.channelId,
@@ -82,8 +78,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				fileOption: ps.fileOption,
 				excludeNsfw: ps.excludeNsfw,
 				excludeReply: ps.excludeReply,
-				startDate: startDate,
-				endDate: endDate,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,

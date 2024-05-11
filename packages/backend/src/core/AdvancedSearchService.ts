@@ -101,7 +101,6 @@ export class AdvancedSearchService {
 									userHost: { type: 'keyword' },
 									channelId: { type: 'keyword' },
 									tags: { type: 'keyword' },
-									createdAt: { type: 'long' },
 									replyId: { type: 'keyword' },
 									fileId: { type: 'keyword' },
 								},
@@ -236,8 +235,6 @@ export class AdvancedSearchService {
 		visibility?: MiNote['visibility'] | null;
 		excludeNsfw?: boolean;
 		excludeReply?: boolean;
-		startDate?: Date | null;
-		endDate?: Date | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -269,27 +266,6 @@ export class AdvancedSearchService {
 				} else if (opts.fileOption === 'no-file') {
 					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileId' } }] } });
 				}
-			}
-
-			if (opts.startDate && opts.endDate) {
-				osFilter.bool.must.push({ range: {
-					createdAt: {
-						gte: opts.startDate,
-						lte: opts.endDate,
-					},
-				} });
-			} else if (opts.startDate) {
-				osFilter.bool.must.push({ range: {
-					createdAt: {
-						gte: opts.startDate,
-					},
-				} });
-			} else if (opts.endDate) {
-				osFilter.bool.must.push({ range: {
-					createdAt: {
-						lte: opts.endDate,
-					},
-				} });
 			}
 
 			if (q !== '') {
@@ -398,14 +374,6 @@ export class AdvancedSearchService {
 				} else if (opts.fileOption === 'no-file') {
 					query.andWhere('note.fileIds = :fIds', { fIds: '{}' });
 				}
-			}
-
-			if (opts.startDate && opts.endDate) {
-				query.where('note.createdAt BETWEEN :startDate AND :endDate', { startDate: opts.startDate, endDate: opts.endDate });
-			} else if (opts.startDate) {
-				query.where('note.createdAt >= :startDate', { startDate: opts.startDate });
-			} else if (opts.endDate) {
-				query.where('note.createdAt <= :endDate', { endDate: opts.endDate });
 			}
 
 			this.queryService.generateVisibilityQuery(query, me);
