@@ -148,14 +148,17 @@ async function search() {
 
 	notePagination.value = {
 		endpoint: 'notes/search',
-		query: searchQuery.value,
 		limit: 10,
-		userId: user.value ? user.value.id : null,
-		origin: searchOrigin.value,
+		params: {
+			query: searchQuery.value,
+			userId: user.value ? user.value.id : null,
+			origin: searchOrigin.value,
+		},
 	};
 
 	if (isAdvancedSearchAvailable === true && advancedSearch.value === true) {
 		notePagination.value.endpoint = 'notes/advanced-search';
+		notePagination.value.params.query = searchQuery.value;
 		notePagination.value.params.fileOption = isfileOnly.value;
 		notePagination.value.params.excludeNsfw = excludeNsfw.value;
 		notePagination.value.params.excludeReply = excludeReply.value;
