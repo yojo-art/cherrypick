@@ -6,7 +6,6 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
-import { KeysMap } from 'bullmq';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -163,27 +162,6 @@ export class AdvancedSearchService {
 			console.error('OpenSearch is not available');
 			this.opensearchNoteIndex = null;
 		}
-	}
-
-	@bindThis
-	public async searchNoteBetweenDate(startDate: Date, endDate: Date): Promise<MiNote[]> {
-		const query = this.notesRepository.createQueryBuilder('note')
-			.where('note.createdAt BETWEEN :startDate AND :endDate', { startDate, endDate });
-		return await query.getMany();
-	}
-
-	@bindThis
-	private async searchNoteAfterDate(startDate: Date): Promise<MiNote[]> {
-		const query = this.notesRepository.createQueryBuilder('note')
-			.where('note.createdAt >= :startDate', { startDate });
-		return await query.getMany();
-	}
-
-	@bindThis
-	private async searchNoteBeforeDate(endDate: Date): Promise<MiNote[]> {
-		const query = this.notesRepository.createQueryBuilder('note')
-			.where('note.createdAt <= :endDate', { endDate });
-		return await query.getMany();
 	}
 
 	@bindThis
@@ -372,7 +350,7 @@ export class AdvancedSearchService {
 			}
 
 			if (this.config.pgroonga) {
-				query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape}%` });
+				query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
 			} else {
 				query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
 			}
@@ -422,14 +400,12 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (opts.betweenDates) {
-				if (opts.startDate && opts.endDate) {
-					return await this.searchNoteBetweenDate(opts.startDate, opts.endDate);
-				} else if (opts.startDate) {
-					return await this.searchNoteAfterDate(opts.startDate);
-				} else if (opts.endDate) {
-					return await this.searchNoteBeforeDate(opts.endDate);
-				}
+			if (opts.startDate && opts.endDate) {
+				query.where('note.createdAt BETWEEN :startDate AND :endDate', { startDate: opts.startDate, endDate: opts.endDate });
+			} else if (opts.startDate) {
+				query.where('note.createdAt >= :startDate', { startDate: opts.startDate });
+			} else if (opts.endDate) {
+				query.where('note.createdAt <= :endDate', { endDate: opts.endDate });
 			}
 
 			this.queryService.generateVisibilityQuery(query, me);
