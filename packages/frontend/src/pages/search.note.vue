@@ -146,24 +146,31 @@ async function search() {
 		return;
 	}
 
-	notePagination.value = {
-		endpoint: 'notes/search',
-		limit: 10,
-		params: {
-			query: searchQuery.value,
-			userId: user.value ? user.value.id : null,
-			origin: searchOrigin.value,
-		},
-	};
-
 	if (isAdvancedSearchAvailable === true && advancedSearch.value === true) {
-		notePagination.value.endpoint = 'notes/advanced-search';
-		notePagination.value.params.query = searchQuery.value;
-		notePagination.value.params.fileOption = isfileOnly.value;
-		notePagination.value.params.excludeNsfw = excludeNsfw.value;
-		notePagination.value.params.excludeReply = excludeReply.value;
-		notePagination.value.params.startDate = startDate.value;
-		notePagination.value.params.endDate = endDate.value;
+		notePagination.value = {
+			endpoint: 'notes/advanced-search',
+			limit: 10,
+			params: {
+				query: searchQuery.value,
+				userId: user.value ? user.value.id : null,
+				origin: searchOrigin.value,
+				fileOption: isfileOnly.value,
+				excludeNsfw: excludeNsfw.value,
+				excludeReply: excludeReply.value,
+				startDate: startDate.value,
+				endDate: endDate.value,
+			},
+		};
+	} else {
+		notePagination.value = {
+			endpoint: 'notes/search',
+			limit: 10,
+			params: {
+				query: searchQuery.value,
+				userId: user.value ? user.value.id : null,
+				origin: searchOrigin.value,
+			},
+		};
 	}
 
 	if (isLocalOnly.value) notePagination.value.params.host = '.';
