@@ -358,14 +358,10 @@ export class AdvancedSearchService {
 
 			if (opts.excludeNsfw) {
 				query.andWhere('note.cw IS NULL');
-			} else {
-				query.andWhere('note.cw IS NOT NULL');
 			}
 
 			if (opts.excludeReply) {
 				query.andWhere('note.replyId IS NULL');
-			} else {
-				query.andWhere('note.replyId IS NOT NULL');
 			}
 
 			if (opts.fileOption) {
