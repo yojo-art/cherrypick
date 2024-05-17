@@ -29,9 +29,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</div>
 				</MkFolder>
-				<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable" class="_gaps_m">
-					{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}
-				</MkSwitch>
+				<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable" class="_gaps">{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}</MkSwitch>
 				<MkFolder v-if="advancedSearch" class="_gaps">
 					<template #label>{{ i18n.ts.options }}</template>
 					<FormSection>
@@ -45,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkRadios>
 						</div>
 					</FormSection>
-					<FormSection class="_gaps_m">
+					<FormSection>
 						<template #label>{{ i18n.ts.other }}</template>
 						<template #caption>{{ i18n.ts._advancedSearch._description.other }}</template>
 						<template #prefix></template>
@@ -84,7 +82,6 @@ import { useRouter } from '@/router/supplier.js';
 import { instance } from '@/instance.js';
 import { $i } from '@/account';
 import MkSearchInput from '@/components/MkSearchInput.vue';
-import FormSplit from '@/components/form/split.vue';
 import FormSection from '@/components/form/section.vue';
 
 const router = useRouter();
