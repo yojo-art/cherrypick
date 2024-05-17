@@ -2844,7 +2844,7 @@ _advancedSearch:
     noFile: "No file only"
     combined: "both"
   _searchOption:
-    toggleNsfw: "Exclude NSFW"
+    toggleNsfw: "Exclude CW"
     toggleReply: "Exclude Reply"
     toggleDate: "Specify date and time"
     toggleAdvancedSearch: "Enable Advanced Search"
