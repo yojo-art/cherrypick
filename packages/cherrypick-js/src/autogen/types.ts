@@ -22990,8 +22990,6 @@ export type operations = {
           excludeNsfw?: boolean;
           /** @default false */
           excludeReply?: boolean;
-          startDate?: number | null;
-          endDate?: number | null;
           /**
            * Format: misskey:id
            * @default null
