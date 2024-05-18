@@ -1608,8 +1608,6 @@ declare namespace entities {
         NotesSearchByTagResponse,
         NotesSearchRequest,
         NotesSearchResponse,
-        NotesSearchFileRequest,
-        NotesSearchFileResponse,
         NotesAdvancedSearchRequest,
         NotesAdvancedSearchResponse,
         NotesShowRequest,
@@ -2650,12 +2648,6 @@ type NotesSearchByTagRequest = operations['notes/search-by-tag']['requestBody'][
 
 // @public (undocumented)
 type NotesSearchByTagResponse = operations['notes/search-by-tag']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type NotesSearchFileRequest = operations['notes/search-file']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type NotesSearchFileResponse = operations['notes/search-file']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesSearchRequest = operations['notes/search']['requestBody']['content']['application/json'];

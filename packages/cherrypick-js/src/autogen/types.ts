@@ -2833,15 +2833,6 @@ export type paths = {
      */
     post: operations['notes/search'];
   };
-  '/notes/search-file': {
-    /**
-     * notes/search-file
-     * @description No description provided.
-     *
-     * **Credential required**: *No*
-     */
-    post: operations['notes/search-file'];
-  };
   '/notes/advanced-search': {
     /**
      * notes/advanced-search
@@ -22816,89 +22807,6 @@ export type operations = {
            * @enum {string}
            */
           origin?: 'local' | 'remote' | 'combined';
-          /** @default 0 */
-          offset?: number;
-          /** @description The local host is represented with `.`. */
-          host?: string;
-          /**
-           * Format: misskey:id
-           * @default null
-           */
-          userId?: string | null;
-          /**
-           * Format: misskey:id
-           * @default null
-           */
-          channelId?: string | null;
-        };
-      };
-    };
-    responses: {
-      /** @description OK (with results) */
-      200: {
-        content: {
-          'application/json': components['schemas']['Note'][];
-        };
-      };
-      /** @description Client error */
-      400: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description Authentication error */
-      401: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description Forbidden error */
-      403: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description I'm Ai */
-      418: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description Internal server error */
-      500: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-    };
-  };
-  /**
-   * notes/search-file
-   * @description No description provided.
-   *
-   * **Credential required**: *No*
-   */
-  'notes/search-file': {
-    requestBody: {
-      content: {
-        'application/json': {
-          query: string;
-          /** Format: misskey:id */
-          sinceId?: string;
-          /** Format: misskey:id */
-          untilId?: string;
-          /** @default 8 */
-          limit?: number;
-          /**
-           * @default combined
-           * @enum {string}
-           */
-          origin?: 'local' | 'remote' | 'combined';
-          /**
-           * @default combined
-           * @enum {string}
-           */
-          fileOption?: 'file-only' | 'no-file' | 'combined';
           /** @default 0 */
           offset?: number;
           /** @description The local host is represented with `.`. */

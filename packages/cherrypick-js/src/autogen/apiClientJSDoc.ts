@@ -3277,17 +3277,6 @@ declare module '../api.js' {
      * 
      * **Credential required**: *No*
      */
-    request<E extends 'notes/search-file', P extends Endpoints[E]['req']>(
-      endpoint: E,
-      params: P,
-      credential?: string | null,
-    ): Promise<SwitchCaseResponseType<E, P>>;
-
-    /**
-     * No description provided.
-     * 
-     * **Credential required**: *No*
-     */
     request<E extends 'notes/advanced-search', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
