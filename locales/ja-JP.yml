@@ -2939,8 +2939,8 @@ _imageCompressionMode:
 
 _advancedSearch:
   _fileOption:
-    fileAttachedOnly: "ファイル付きのみ"
-    noFile: "ファイルなし"
+    fileAttachedOnly: "あり"
+    noFile: "なし"
     combined: "全て"
   _searchOption:
     toggleNsfw: "CW付きを除外する"
