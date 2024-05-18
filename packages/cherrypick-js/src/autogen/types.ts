@@ -22873,39 +22873,60 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
+          /** @description 指定した文字列を含むノートを返します */
           query: string;
-          /** Format: misskey:id */
+          /** 
+           * Format: misskey:id
+           * @description 指定するとノートID以降のノートを返します
+					 */
           sinceId?: string;
-          /** Format: misskey:id */
+          /** 
+           * Format: misskey:id
+           * @description 指定するとノートID以前のノートを返します
+					 */
           untilId?: string;
-          /** @default 10 */
+          /** 
+           * @default 10
+           * @description 取得するノートの件数
+					 */
           limit?: number;
           /**
            * @default combined
            * @enum {string}
+           * @description オリジナルのノートが作成された場所
            */
           origin?: 'local' | 'remote' | 'combined';
           /**
+					 * @description ファイルの添付状態を指定することができます
            * @default combined
            * @enum {string}
            */
           fileOption?: 'file-only' | 'no-file' | 'combined';
           /** @default 0 */
           offset?: number;
-          /** @description The local host is represented with `.`. */
+          /** 
+					 * @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します
+					 */
           host?: string;
-          /** @default false */
+          /** 
+           * @default false
+           * @description trueを指定するとCWを含むノートを除外します
+           */
           excludeNsfw?: boolean;
-          /** @default false */
+          /** 
+           * @default false 
+           * @description trueを指定するとリプライのノートを除外します*/
           excludeReply?: boolean;
           /**
            * Format: misskey:id
            * @default null
+           * @description ノートを作成したユーザーのID
            */
           userId?: string | null;
           /**
            * Format: misskey:id
            * @default null
+           * @description 指定されたチャンネルIDのノートを返します
            */
           channelId?: string | null;
         };
