@@ -29,7 +29,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</div>
 				</MkFolder>
-				<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable" class="_gaps">{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}</MkSwitch>
+				<MkSwitch v-model="advancedSearch" :disabled="!isAdvancedSearchAvailable">{{ i18n.ts._advancedSearch._searchOption.toggleAdvancedSearch }}</MkSwitch>
 				<MkFolder v-if="advancedSearch" class="_gaps">
 					<template #label>{{ i18n.ts.options }}</template>
 					<FormSection>
