@@ -33,7 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkFolder v-if="advancedSearch" class="_gaps">
 					<template #label>{{ i18n.ts.options }}</template>
 					<FormSection>
-						<template #label>{{ i18n.ts.fileAttachedOnly }}</template>
+						<template #label>{{ i18n.ts._advancedSearch._fileOption.title }}</template>
 
 						<div style="text-align: center;" class="_gaps_m">
 							<MkRadios v-model="isfileOnly" @update:modelValue="search()">

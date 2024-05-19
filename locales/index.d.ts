@@ -11033,6 +11033,10 @@ export interface Locale extends ILocale {
     "_advancedSearch": {
         "_fileOption": {
             /**
+             * ファイルの添付状態
+             */
+            "title": string;
+            /**
              * あり
              */
             "fileAttachedOnly": string;
@@ -11073,16 +11077,6 @@ export interface Locale extends ILocale {
              */
             "endDate": string;
         };
-				"_description": {
-					/**
-					 * 日時検索
-					 */
-					"toggleDate": string;
-					/**
-					 * その他
-					 */
-					"other": string;
-				};
     };
 }
 declare const locales: {

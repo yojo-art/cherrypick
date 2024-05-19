@@ -2939,6 +2939,7 @@ _imageCompressionMode:
 
 _advancedSearch:
   _fileOption:
+    title: "ファイルの添付状態"
     fileAttachedOnly: "あり"
     noFile: "なし"
     combined: "全て"
