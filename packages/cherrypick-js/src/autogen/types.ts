@@ -2836,7 +2836,7 @@ export type paths = {
   '/notes/advanced-search': {
     /**
      * notes/advanced-search
-     * @description No description provided.
+     * @description 高度な検索ができます
      *
      * **Credential required**: *No*
      */
@@ -22865,7 +22865,7 @@ export type operations = {
   };
   /**
    * notes/advanced-search
-   * @description No description provided.
+   * @description 高度な検索ができます
    *
    * **Credential required**: *No*
    */
@@ -22875,58 +22875,57 @@ export type operations = {
         'application/json': {
           /** @description 指定した文字列を含むノートを返します */
           query: string;
-          /** 
+          /**
            * Format: misskey:id
-           * @description 指定するとノートID以降のノートを返します
-					 */
+           * @description 指定されたID以降のノートを返します
+           */
           sinceId?: string;
-          /** 
+          /**
            * Format: misskey:id
-           * @description 指定するとノートID以前のノートを返します
-					 */
+           * @description 指定されたID以前のノートを返します
+           */
           untilId?: string;
-          /** 
+          /**
+           * @description ノートを取得する件数
            * @default 10
-           * @description 取得するノートの件数
-					 */
+           */
           limit?: number;
           /**
+           * @description ノートが作成された場所
            * @default combined
            * @enum {string}
-           * @description オリジナルのノートが作成された場所
            */
           origin?: 'local' | 'remote' | 'combined';
           /**
-					 * @description ファイルの添付状態を指定することができます
+           * @description ファイルの添付状態
            * @default combined
            * @enum {string}
            */
           fileOption?: 'file-only' | 'no-file' | 'combined';
           /** @default 0 */
           offset?: number;
-          /** 
-					 * @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します
-					 */
+          /** @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します */
           host?: string;
-          /** 
-           * @default false
+          /**
            * @description trueを指定するとCWを含むノートを除外します
+           * @default false
            */
           excludeNsfw?: boolean;
-          /** 
-           * @default false 
-           * @description trueを指定するとリプライのノートを除外します*/
+          /**
+           * @description trueを指定するとリプライのノートを除外します
+           * @default false
+           */
           excludeReply?: boolean;
           /**
            * Format: misskey:id
-           * @default null
            * @description ノートを作成したユーザーのID
+           * @default null
            */
           userId?: string | null;
           /**
            * Format: misskey:id
+           * @description 指定されたチャンネル内のノートを返します
            * @default null
-           * @description 指定されたチャンネルIDのノートを返します
            */
           channelId?: string | null;
         };

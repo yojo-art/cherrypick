@@ -3273,7 +3273,7 @@ declare module '../api.js' {
     ): Promise<SwitchCaseResponseType<E, P>>;
 
     /**
-     * 高度な検索を行うことができます
+     * 高度な検索ができます
      * 
      * **Credential required**: *No*
      */

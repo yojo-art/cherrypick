@@ -11033,21 +11033,21 @@ export interface Locale extends ILocale {
     "_advancedSearch": {
         "_fileOption": {
             /**
-             * ファイル付きのみ
+             * あり
              */
             "fileAttachedOnly": string;
             /**
-             * ファイルなし
+             * なし
              */
             "noFile": string;
             /**
-             * どっちも
+             * 全て
              */
             "combined": string;
         };
         "_searchOption": {
             /**
-             * NSFWを除外する
+             * CW付きを除外する
              */
             "toggleNsfw": string;
             /**
@@ -11073,16 +11073,6 @@ export interface Locale extends ILocale {
              */
             "endDate": string;
         };
-				"_description": {
-					/**
-					 * 日時検索
-					 */
-					"toggleDate": string;
-					/**
-					 * その他
-					 */
-					"other": string;
-				};
     };
 }
 declare const locales: {
