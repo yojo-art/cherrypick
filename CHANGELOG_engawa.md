@@ -21,6 +21,7 @@
 
 ### General
 - feat: 高度な検索機能の追加
+  - PGroongaやOpenSearchを利用できるようになります
 
 ### Client
 - fix: 投稿にされたリアクションが正常に表示されない問題
