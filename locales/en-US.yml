@@ -2852,3 +2852,5 @@ _advancedSearch:
   _specifyDate:
     startDate: "From"
     endDate: "Until"
+  _description:
+    other: "Other settings"

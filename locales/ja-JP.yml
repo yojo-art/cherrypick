@@ -2951,3 +2951,5 @@ _advancedSearch:
   _specifyDate:
     startDate: "から"
     endDate: "まで"
+  _description:
+    other: "その他の設定"

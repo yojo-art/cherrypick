@@ -11077,6 +11077,12 @@ export interface Locale extends ILocale {
              */
             "endDate": string;
         };
+				"_description": {
+					/**
+					 * その他
+					 */
+					"other": string;
+				}
     };
 }
 declare const locales: {
