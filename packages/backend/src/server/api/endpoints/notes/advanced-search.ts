@@ -11,6 +11,7 @@ import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
+	description: '高度な検索ができます',
 	tags: ['notes'],
 	requireCredential: false,
 	res: {
@@ -36,21 +37,71 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		// TODO: 整理する
-		query: { type: 'string' },
-		sinceId: { type: 'string', format: 'misskey:id' },
-		untilId: { type: 'string', format: 'misskey:id' },
-		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-		origin: { type: 'string', enum: ['local', 'remote', 'combined'], default: 'combined' },
-		fileOption: { type: 'string', enum: ['file-only', 'no-file', 'combined'], default: 'combined' },
-		offset: { type: 'integer', default: 0 },
+		query: {
+			type: 'string',
+			description: '指定した文字列を含むノートを返します',
+		},
+		sinceId: {
+			type: 'string',
+			description: '指定されたID以降のノートを返します',
+			format: 'misskey:id',
+		},
+		untilId: {
+			type: 'string',
+			format: 'misskey:id',
+			description: '指定されたID以前のノートを返します',
+		},
+		limit: {
+			type: 'integer',
+			minimum: 1,
+			maximum: 100,
+			default: 10,
+			description: 'ノートを取得する件数',
+		},
+		origin: {
+			type: 'string',
+			enum: ['local', 'remote', 'combined'],
+			default: 'combined',
+			description: 'ノートが作成された場所',
+		},
+		fileOption: {
+			type: 'string',
+			enum: ['file-only', 'no-file', 'combined'],
+			default: 'combined',
+			description: 'ファイルの添付状態',
+		},
+		offset: {
+			type: 'integer',
+			default: 0,
+		},
 		host: {
 			type: 'string',
-			description: 'The local host is represented with `.`.',
+			description: 'ノートが作成されたインスタンス。ローカルの場合は`.`を指定します',
 		},
-		excludeNsfw: { type: 'boolean', default: false },
-		excludeReply: { type: 'boolean', default: false },
-		userId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
-		channelId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
+		excludeNsfw: {
+			type: 'boolean',
+			default: false,
+			description: 'trueを指定するとCWを含むノートを除外します',
+		},
+		excludeReply: {
+			type: 'boolean',
+			default: false,
+			description: 'trueを指定するとリプライのノートを除外します',
+		},
+		userId: {
+			type: 'string',
+			format: 'misskey:id',
+			nullable: true,
+			default: null,
+			description: 'ノートを作成したユーザーのID',
+		},
+		channelId: {
+			type: 'string',
+			format: 'misskey:id',
+			nullable: true,
+			default: null,
+			description: '指定されたチャンネル内のノートを返します',
+		},
 	},
 	required: ['query'],
 } as const;

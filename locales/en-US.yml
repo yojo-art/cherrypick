@@ -2840,8 +2840,9 @@ _imageCompressionMode:
 
 _advancedSearch:
   _fileOption:
-    fileAttachedOnly: "Only with file"
-    noFile: "No file only"
+    title: "File attachment status"
+    fileAttachedOnly: "with file"
+    noFile: "No file"
     combined: "both"
   _searchOption:
     toggleNsfw: "Exclude CW"

@@ -2836,7 +2836,7 @@ export type paths = {
   '/notes/advanced-search': {
     /**
      * notes/advanced-search
-     * @description No description provided.
+     * @description 高度な検索ができます
      *
      * **Credential required**: *No*
      */
@@ -22865,7 +22865,7 @@ export type operations = {
   };
   /**
    * notes/advanced-search
-   * @description No description provided.
+   * @description 高度な検索ができます
    *
    * **Credential required**: *No*
    */
@@ -22873,38 +22873,58 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
+          /** @description 指定した文字列を含むノートを返します */
           query: string;
-          /** Format: misskey:id */
+          /**
+           * Format: misskey:id
+           * @description 指定されたID以降のノートを返します
+           */
           sinceId?: string;
-          /** Format: misskey:id */
+          /**
+           * Format: misskey:id
+           * @description 指定されたID以前のノートを返します
+           */
           untilId?: string;
-          /** @default 10 */
+          /**
+           * @description ノートを取得する件数
+           * @default 10
+           */
           limit?: number;
           /**
+           * @description ノートが作成された場所
            * @default combined
            * @enum {string}
            */
           origin?: 'local' | 'remote' | 'combined';
           /**
+           * @description ファイルの添付状態
            * @default combined
            * @enum {string}
            */
           fileOption?: 'file-only' | 'no-file' | 'combined';
           /** @default 0 */
           offset?: number;
-          /** @description The local host is represented with `.`. */
+          /** @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します */
           host?: string;
-          /** @default false */
+          /**
+           * @description trueを指定するとCWを含むノートを除外します
+           * @default false
+           */
           excludeNsfw?: boolean;
-          /** @default false */
+          /**
+           * @description trueを指定するとリプライのノートを除外します
+           * @default false
+           */
           excludeReply?: boolean;
           /**
            * Format: misskey:id
+           * @description ノートを作成したユーザーのID
            * @default null
            */
           userId?: string | null;
           /**
            * Format: misskey:id
+           * @description 指定されたチャンネル内のノートを返します
            * @default null
            */
           channelId?: string | null;
