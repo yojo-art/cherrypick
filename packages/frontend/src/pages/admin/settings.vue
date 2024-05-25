@@ -50,6 +50,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #caption>{{ i18n.ts.impressumDescription }}</template>
 					</MkInput>
 
+					<MkInput v-model="statusUrl" type="url">
+						<template #label>{{ i18n.ts.statusUrl }}</template>
+						<template #prefix><i class="ti ti-link"></i></template>
+					</MkInput>
+
 					<MkTextarea v-model="pinnedUsers">
 						<template #label>{{ i18n.ts.pinnedUsers }}</template>
 						<template #caption>{{ i18n.ts.pinnedUsersDescription }}</template>
@@ -242,6 +247,7 @@ const maintainerName = ref<string | null>(null);
 const maintainerEmail = ref<string | null>(null);
 const repositoryUrl = ref<string | null>(null);
 const impressumUrl = ref<string | null>(null);
+const statusUrl = ref<string | null>(null);
 const emailToReceiveAbuseReport = ref<string | null>(null);
 const pinnedUsers = ref<string>('');
 const cacheRemoteFiles = ref<boolean>(false);
@@ -272,6 +278,7 @@ async function init(): Promise<void> {
 	maintainerEmail.value = meta.maintainerEmail;
 	repositoryUrl.value = meta.repositoryUrl;
 	impressumUrl.value = meta.impressumUrl;
+	statusUrl.value = meta.statusUrl;
 	emailToReceiveAbuseReport.value = meta.emailToReceiveAbuseReport;
 	pinnedUsers.value = meta.pinnedUsers.join('\n');
 	cacheRemoteFiles.value = meta.cacheRemoteFiles;
@@ -303,6 +310,7 @@ async function save() {
 		maintainerEmail: maintainerEmail.value,
 		repositoryUrl: repositoryUrl.value,
 		impressumUrl: impressumUrl.value,
+		statusUrl: statusUrl.value,
 		emailToReceiveAbuseReport: emailToReceiveAbuseReport.value ?? null,
 		pinnedUsers: pinnedUsers.value.split('\n'),
 		cacheRemoteFiles: cacheRemoteFiles.value,
@@ -325,7 +333,7 @@ async function save() {
 		urlPreviewSummaryProxyUrl: urlPreviewSummaryProxyUrl.value,
 	});
 
-	fetchInstance(true);
+	fetchInstance();
 }
 
 const headerTabs = computed(() => []);

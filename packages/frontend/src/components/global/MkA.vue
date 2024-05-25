@@ -27,10 +27,6 @@ const props = withDefaults(defineProps<{
 	behavior: null,
 });
 
-const el = shallowRef<HTMLElement>();
-
-defineExpose({ $el: el });
-
 const router = useRouter();
 
 const active = computed(() => {

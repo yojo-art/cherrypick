@@ -31,7 +31,7 @@ import { vibrate } from '@/scripts/vibrate.js';
 import { globalEvents } from '@/events.js';
 
 const props = withDefaults(defineProps<{
-	src: 'home' | 'local' | 'social' | 'global' | 'mentions' | 'directs' | 'list' | 'antenna' | 'channel' | 'role';
+	src: 'home' | 'local' | 'social' | 'global' | 'media' | 'mentions' | 'directs' | 'list' | 'antenna' | 'channel' | 'role';
 	list?: string;
 	antenna?: string;
 	channel?: string;
@@ -118,6 +118,14 @@ function connectChannel() {
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
 		});
+	} else if (props.src === 'media') {
+		connection = stream.useChannel('globalTimeline', {
+			withRenotes: props.withRenotes,
+			withReplies: props.withReplies,
+			withFiles: true,
+			withCats: props.onlyCats,
+		},
+		);
 	} else if (props.src === 'social') {
 		connection = stream.useChannel('hybridTimeline', {
 			withRenotes: props.withRenotes,
@@ -191,6 +199,14 @@ function updatePaginationQuery() {
 			withRenotes: props.withRenotes,
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
+			withCats: props.onlyCats,
+		};
+	} else if (props.src === 'media') {
+		endpoint = 'notes/global-timeline';
+		query = {
+			withRenotes: props.withRenotes,
+			withReplies: props.withReplies,
+			withFiles: true,
 			withCats: props.onlyCats,
 		};
 	} else if (props.src === 'social') {

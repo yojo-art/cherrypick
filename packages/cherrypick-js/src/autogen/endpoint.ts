@@ -41,9 +41,7 @@ import type {
 	AdminDriveShowFileResponse,
 	AdminEmojiAddAliasesBulkRequest,
 	AdminEmojiAddRequest,
-	AdminEmojiAddResponse,
 	AdminEmojiAddsRequest,
-	AdminEmojiAddsResponse,
 	AdminEmojiCopyRequest,
 	AdminEmojiCopyResponse,
 	AdminEmojiDeleteBulkRequest,
@@ -439,6 +437,8 @@ import type {
 	NotesSearchByTagResponse,
 	NotesSearchRequest,
 	NotesSearchResponse,
+	NotesAdvancedSearchRequest,
+	NotesAdvancedSearchResponse,
 	NotesShowRequest,
 	NotesShowResponse,
 	NotesStateRequest,
@@ -628,8 +628,8 @@ export type Endpoints = {
 	'admin/drive/files': { req: AdminDriveFilesRequest; res: AdminDriveFilesResponse };
 	'admin/drive/show-file': { req: AdminDriveShowFileRequest; res: AdminDriveShowFileResponse };
 	'admin/emoji/add-aliases-bulk': { req: AdminEmojiAddAliasesBulkRequest; res: EmptyResponse };
-	'admin/emoji/add': { req: AdminEmojiAddRequest; res: AdminEmojiAddResponse };
-	'admin/emoji/adds': { req: AdminEmojiAddsRequest; res: AdminEmojiAddsResponse };
+	'admin/emoji/add': { req: AdminEmojiAddRequest; res: EmptyResponse };
+	'admin/emoji/adds': { req: AdminEmojiAddsRequest; res: EmptyResponse };
 	'admin/emoji/copy': { req: AdminEmojiCopyRequest; res: AdminEmojiCopyResponse };
 	'admin/emoji/delete-bulk': { req: AdminEmojiDeleteBulkRequest; res: EmptyResponse };
 	'admin/emoji/delete': { req: AdminEmojiDeleteRequest; res: EmptyResponse };
@@ -893,6 +893,7 @@ export type Endpoints = {
 	'notes/replies': { req: NotesRepliesRequest; res: NotesRepliesResponse };
 	'notes/search-by-tag': { req: NotesSearchByTagRequest; res: NotesSearchByTagResponse };
 	'notes/search': { req: NotesSearchRequest; res: NotesSearchResponse };
+	'notes/advanced-search': { req: NotesAdvancedSearchRequest; res: NotesAdvancedSearchResponse };
 	'notes/show': { req: NotesShowRequest; res: NotesShowResponse };
 	'notes/state': { req: NotesStateRequest; res: NotesStateResponse };
 	'notes/thread-muting/create': { req: NotesThreadMutingCreateRequest; res: EmptyResponse };
@@ -902,7 +903,6 @@ export type Endpoints = {
 	'notes/unrenote': { req: NotesUnrenoteRequest; res: EmptyResponse };
 	'notes/user-list-timeline': { req: NotesUserListTimelineRequest; res: NotesUserListTimelineResponse };
 	'notifications/create': { req: NotificationsCreateRequest; res: EmptyResponse };
-	'notifications/flush': { req: EmptyRequest; res: EmptyResponse };
 	'notifications/mark-all-as-read': { req: EmptyRequest; res: EmptyResponse };
 	'notifications/test-notification': { req: EmptyRequest; res: EmptyResponse };
 	'page-push': { req: PagePushRequest; res: EmptyResponse };

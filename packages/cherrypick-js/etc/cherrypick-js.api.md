@@ -560,7 +560,6 @@ export type Channels = {
             unreadNotification: (payload: Notification_2) => void;
             unreadMention: (payload: Note['id']) => void;
             readAllUnreadMentions: () => void;
-            notificationFlushed: () => void;
             unreadSpecifiedNote: (payload: Note['id']) => void;
             readAllUnreadSpecifiedNotes: () => void;
             readAllMessagingMessages: () => void;
@@ -1219,9 +1218,7 @@ declare namespace entities {
         AdminDriveShowFileResponse,
         AdminEmojiAddAliasesBulkRequest,
         AdminEmojiAddRequest,
-        AdminEmojiAddResponse,
         AdminEmojiAddsRequest,
-        AdminEmojiAddsResponse,
         AdminEmojiCopyRequest,
         AdminEmojiCopyResponse,
         AdminEmojiDeleteBulkRequest,
@@ -1617,6 +1614,8 @@ declare namespace entities {
         NotesSearchByTagResponse,
         NotesSearchRequest,
         NotesSearchResponse,
+        NotesAdvancedSearchRequest,
+        NotesAdvancedSearchResponse,
         NotesShowRequest,
         NotesShowResponse,
         NotesStateRequest,
@@ -1815,7 +1814,6 @@ declare namespace entities {
         RoleCondFormulaLogics,
         RoleCondFormulaValueNot,
         RoleCondFormulaValueIsLocalOrRemote,
-        RoleCondFormulaValueAssignedRole,
         RoleCondFormulaValueCreated,
         RoleCondFormulaFollowersOrFollowingOrNotes,
         RoleCondFormulaValue,
@@ -1823,10 +1821,7 @@ declare namespace entities {
         Role,
         RolePolicies,
         ReversiGameLite,
-        ReversiGameDetailed,
-        MetaLite,
-        MetaDetailedOnly,
-        MetaDetailed
+        ReversiGameDetailed
     }
 }
 export { entities }
@@ -2476,9 +2471,6 @@ type ModerationLog = {
     type: 'unsuspendRemoteInstance';
     info: ModerationLogPayloads['unsuspendRemoteInstance'];
 } | {
-    type: 'updateRemoteInstanceNote';
-    info: ModerationLogPayloads['updateRemoteInstanceNote'];
-} | {
     type: 'markSensitiveDriveFile';
     info: ModerationLogPayloads['markSensitiveDriveFile'];
 } | {
@@ -2517,7 +2509,7 @@ type ModerationLog = {
 });
 
 // @public (undocumented)
-export const moderationLogTypes: readonly ["updateServerSettings", "suspend", "unsuspend", "updateUserNote", "addCustomEmoji", "updateCustomEmoji", "deleteCustomEmoji", "assignRole", "unassignRole", "createRole", "updateRole", "deleteRole", "clearQueue", "promoteQueue", "deleteDriveFile", "deleteNote", "createGlobalAnnouncement", "createUserAnnouncement", "updateGlobalAnnouncement", "updateUserAnnouncement", "deleteGlobalAnnouncement", "deleteUserAnnouncement", "resetPassword", "suspendRemoteInstance", "unsuspendRemoteInstance", "updateRemoteInstanceNote", "markSensitiveDriveFile", "unmarkSensitiveDriveFile", "resolveAbuseReport", "createInvitation", "createAd", "updateAd", "deleteAd", "createAvatarDecoration", "updateAvatarDecoration", "deleteAvatarDecoration", "unsetUserAvatar", "unsetUserBanner"];
+export const moderationLogTypes: readonly ["updateServerSettings", "suspend", "unsuspend", "updateUserNote", "addCustomEmoji", "updateCustomEmoji", "deleteCustomEmoji", "assignRole", "unassignRole", "createRole", "updateRole", "deleteRole", "clearQueue", "promoteQueue", "deleteDriveFile", "deleteNote", "createGlobalAnnouncement", "createUserAnnouncement", "updateGlobalAnnouncement", "updateUserAnnouncement", "deleteGlobalAnnouncement", "deleteUserAnnouncement", "resetPassword", "suspendRemoteInstance", "unsuspendRemoteInstance", "markSensitiveDriveFile", "unmarkSensitiveDriveFile", "resolveAbuseReport", "createInvitation", "createAd", "updateAd", "deleteAd", "createAvatarDecoration", "updateAvatarDecoration", "deleteAvatarDecoration", "unsetUserAvatar", "unsetUserBanner"];
 
 // @public (undocumented)
 type MuteCreateRequest = operations['mute___create']['requestBody']['content']['application/json'];
@@ -2553,106 +2545,106 @@ type NoteFavorite = components['schemas']['NoteFavorite'];
 type NoteReaction = components['schemas']['NoteReaction'];
 
 // @public (undocumented)
-type NotesChildrenRequest = operations['notes___children']['requestBody']['content']['application/json'];
+type NotesChildrenRequest = operations['notes/children']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesChildrenResponse = operations['notes___children']['responses']['200']['content']['application/json'];
+type NotesChildrenResponse = operations['notes/children']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesClipsRequest = operations['notes___clips']['requestBody']['content']['application/json'];
+type NotesClipsRequest = operations['notes/clips']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesClipsResponse = operations['notes___clips']['responses']['200']['content']['application/json'];
+type NotesClipsResponse = operations['notes/clips']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesConversationRequest = operations['notes___conversation']['requestBody']['content']['application/json'];
+type NotesConversationRequest = operations['notes/conversation']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesConversationResponse = operations['notes___conversation']['responses']['200']['content']['application/json'];
+type NotesConversationResponse = operations['notes/conversation']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesCreateRequest = operations['notes___create']['requestBody']['content']['application/json'];
+type NotesCreateRequest = operations['notes/create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesCreateResponse = operations['notes___create']['responses']['200']['content']['application/json'];
+type NotesCreateResponse = operations['notes/create']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesDeleteRequest = operations['notes___delete']['requestBody']['content']['application/json'];
+type NotesDeleteRequest = operations['notes/delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesEventsSearchRequest = operations['notes___events___search']['requestBody']['content']['application/json'];
+type NotesEventsSearchRequest = operations['notes/events/search']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesEventsSearchResponse = operations['notes___events___search']['responses']['200']['content']['application/json'];
+type NotesEventsSearchResponse = operations['notes/events/search']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesFavoritesCreateRequest = operations['notes___favorites___create']['requestBody']['content']['application/json'];
+type NotesFavoritesCreateRequest = operations['notes/favorites/create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesFavoritesDeleteRequest = operations['notes___favorites___delete']['requestBody']['content']['application/json'];
+type NotesFavoritesDeleteRequest = operations['notes/favorites/delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesFeaturedRequest = operations['notes___featured']['requestBody']['content']['application/json'];
+type NotesFeaturedRequest = operations['notes/featured']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesFeaturedResponse = operations['notes___featured']['responses']['200']['content']['application/json'];
+type NotesFeaturedResponse = operations['notes/featured']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesGlobalTimelineRequest = operations['notes___global-timeline']['requestBody']['content']['application/json'];
+type NotesGlobalTimelineRequest = operations['notes/global-timeline']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesGlobalTimelineResponse = operations['notes___global-timeline']['responses']['200']['content']['application/json'];
+type NotesGlobalTimelineResponse = operations['notes/global-timeline']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesHybridTimelineRequest = operations['notes___hybrid-timeline']['requestBody']['content']['application/json'];
+type NotesHybridTimelineRequest = operations['notes/hybrid-timeline']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesHybridTimelineResponse = operations['notes___hybrid-timeline']['responses']['200']['content']['application/json'];
+type NotesHybridTimelineResponse = operations['notes/hybrid-timeline']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesLocalTimelineRequest = operations['notes___local-timeline']['requestBody']['content']['application/json'];
+type NotesLocalTimelineRequest = operations['notes/local-timeline']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesLocalTimelineResponse = operations['notes___local-timeline']['responses']['200']['content']['application/json'];
+type NotesLocalTimelineResponse = operations['notes/local-timeline']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesMentionsRequest = operations['notes___mentions']['requestBody']['content']['application/json'];
+type NotesMentionsRequest = operations['notes/mentions']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesMentionsResponse = operations['notes___mentions']['responses']['200']['content']['application/json'];
+type NotesMentionsResponse = operations['notes/mentions']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesPollsRecommendationRequest = operations['notes___polls___recommendation']['requestBody']['content']['application/json'];
+type NotesPollsRecommendationRequest = operations['notes/polls/recommendation']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesPollsRecommendationResponse = operations['notes___polls___recommendation']['responses']['200']['content']['application/json'];
+type NotesPollsRecommendationResponse = operations['notes/polls/recommendation']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesPollsVoteRequest = operations['notes___polls___vote']['requestBody']['content']['application/json'];
+type NotesPollsVoteRequest = operations['notes/polls/vote']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesReactionsCreateRequest = operations['notes___reactions___create']['requestBody']['content']['application/json'];
+type NotesReactionsCreateRequest = operations['notes/reactions/create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesReactionsDeleteRequest = operations['notes___reactions___delete']['requestBody']['content']['application/json'];
+type NotesReactionsDeleteRequest = operations['notes/reactions/delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesReactionsRequest = operations['notes___reactions']['requestBody']['content']['application/json'];
+type NotesReactionsRequest = operations['notes/reactions']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesReactionsResponse = operations['notes___reactions']['responses']['200']['content']['application/json'];
+type NotesReactionsResponse = operations['notes/reactions']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesRenotesRequest = operations['notes___renotes']['requestBody']['content']['application/json'];
+type NotesRenotesRequest = operations['notes/renotes']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesRenotesResponse = operations['notes___renotes']['responses']['200']['content']['application/json'];
+type NotesRenotesResponse = operations['notes/renotes']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesRepliesRequest = operations['notes___replies']['requestBody']['content']['application/json'];
+type NotesRepliesRequest = operations['notes/replies']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-type NotesRepliesResponse = operations['notes___replies']['responses']['200']['content']['application/json'];
+type NotesRepliesResponse = operations['notes/replies']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesRequest = operations['notes']['requestBody']['content']['application/json'];
@@ -2882,9 +2874,6 @@ type RoleCondFormulaLogics = components['schemas']['RoleCondFormulaLogics'];
 
 // @public (undocumented)
 type RoleCondFormulaValue = components['schemas']['RoleCondFormulaValue'];
-
-// @public (undocumented)
-type RoleCondFormulaValueAssignedRole = components['schemas']['RoleCondFormulaValueAssignedRole'];
 
 // @public (undocumented)
 type RoleCondFormulaValueCreated = components['schemas']['RoleCondFormulaValueCreated'];

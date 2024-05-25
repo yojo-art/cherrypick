@@ -63,6 +63,7 @@ import { ProxyAccountService } from './ProxyAccountService.js';
 import { UtilityService } from './UtilityService.js';
 import { FileInfoService } from './FileInfoService.js';
 import { SearchService } from './SearchService.js';
+import { AdvancedSearchService } from './AdvancedSearchService.js';
 import { ClipService } from './ClipService.js';
 import { FeaturedService } from './FeaturedService.js';
 import { FanoutTimelineService } from './FanoutTimelineService.js';
@@ -121,7 +122,6 @@ import { FlashEntityService } from './entities/FlashEntityService.js';
 import { FlashLikeEntityService } from './entities/FlashLikeEntityService.js';
 import { RoleEntityService } from './entities/RoleEntityService.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
-import { MetaEntityService } from './entities/MetaEntityService.js';
 
 import { ApAudienceService } from './activitypub/ApAudienceService.js';
 import { ApDbResolverService } from './activitypub/ApDbResolverService.js';
@@ -207,6 +207,7 @@ const $WebhookService: Provider = { provide: 'WebhookService', useExisting: Webh
 const $UtilityService: Provider = { provide: 'UtilityService', useExisting: UtilityService };
 const $FileInfoService: Provider = { provide: 'FileInfoService', useExisting: FileInfoService };
 const $SearchService: Provider = { provide: 'SearchService', useExisting: SearchService };
+const $AdvancedSearchService: Provider = { provide: 'AdvancedSearchService', useExisting: AdvancedSearchService };
 const $ClipService: Provider = { provide: 'ClipService', useExisting: ClipService };
 const $FeaturedService: Provider = { provide: 'FeaturedService', useExisting: FeaturedService };
 const $FanoutTimelineService: Provider = { provide: 'FanoutTimelineService', useExisting: FanoutTimelineService };
@@ -266,7 +267,6 @@ const $FlashEntityService: Provider = { provide: 'FlashEntityService', useExisti
 const $FlashLikeEntityService: Provider = { provide: 'FlashLikeEntityService', useExisting: FlashLikeEntityService };
 const $RoleEntityService: Provider = { provide: 'RoleEntityService', useExisting: RoleEntityService };
 const $ReversiGameEntityService: Provider = { provide: 'ReversiGameEntityService', useExisting: ReversiGameEntityService };
-const $MetaEntityService: Provider = { provide: 'MetaEntityService', useExisting: MetaEntityService };
 
 const $ApAudienceService: Provider = { provide: 'ApAudienceService', useExisting: ApAudienceService };
 const $ApDbResolverService: Provider = { provide: 'ApDbResolverService', useExisting: ApDbResolverService };
@@ -353,6 +353,7 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		UtilityService,
 		FileInfoService,
 		SearchService,
+		AdvancedSearchService,
 		ClipService,
 		FeaturedService,
 		FanoutTimelineService,
@@ -412,7 +413,6 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		FlashLikeEntityService,
 		RoleEntityService,
 		ReversiGameEntityService,
-		MetaEntityService,
 
 		ApAudienceService,
 		ApDbResolverService,
@@ -495,6 +495,7 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$UtilityService,
 		$FileInfoService,
 		$SearchService,
+		$AdvancedSearchService,
 		$ClipService,
 		$FeaturedService,
 		$FanoutTimelineService,
@@ -554,7 +555,6 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$FlashLikeEntityService,
 		$RoleEntityService,
 		$ReversiGameEntityService,
-		$MetaEntityService,
 
 		$ApAudienceService,
 		$ApDbResolverService,
@@ -638,6 +638,7 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		UtilityService,
 		FileInfoService,
 		SearchService,
+		AdvancedSearchService,
 		ClipService,
 		FeaturedService,
 		FanoutTimelineService,
@@ -696,7 +697,6 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		FlashLikeEntityService,
 		RoleEntityService,
 		ReversiGameEntityService,
-		MetaEntityService,
 
 		ApAudienceService,
 		ApDbResolverService,
@@ -779,6 +779,7 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$UtilityService,
 		$FileInfoService,
 		$SearchService,
+		$AdvancedSearchService,
 		$ClipService,
 		$FeaturedService,
 		$FanoutTimelineService,
@@ -837,7 +838,6 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$FlashLikeEntityService,
 		$RoleEntityService,
 		$ReversiGameEntityService,
-		$MetaEntityService,
 
 		$ApAudienceService,
 		$ApDbResolverService,

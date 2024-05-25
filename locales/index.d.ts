@@ -2375,10 +2375,6 @@ export interface Locale extends ILocale {
      */
     "showNoteActionsOnlyHover": string;
     /**
-     * ノートのリアクション数を表示する
-     */
-    "showReactionsCount": string;
-    /**
      * 履歴はありません
      */
     "noHistory": string;
@@ -4748,7 +4744,7 @@ export interface Locale extends ILocale {
      */
     "events": string;
     /**
-     * 倒叙
+     * 終了済み
      */
     "reverseChronological": string;
     /**
@@ -5120,10 +5116,6 @@ export interface Locale extends ILocale {
      */
     "mutualFollow": string;
     /**
-     * フォロー中またはフォロワー
-     */
-    "followingOrFollower": string;
-    /**
      * ファイル付きのみ
      */
     "fileAttachedOnly": string;
@@ -5207,6 +5199,10 @@ export interface Locale extends ILocale {
      * 利用規約・プライバシーポリシー
      */
     "tosAndPrivacyPolicy": string;
+    /**
+     * ステータスページ
+     */
+    "statusUrl": string;
     /**
      * アイコンデコレーション
      */
@@ -5324,14 +5320,6 @@ export interface Locale extends ILocale {
      */
     "replaying": string;
     /**
-     * リプレイを終了
-     */
-    "endReplay": string;
-    /**
-     * リプレイデータをコピー
-     */
-    "copyReplayData": string;
-    /**
      * ランキング
      */
     "ranking": string;
@@ -5408,7 +5396,7 @@ export interface Locale extends ILocale {
      */
     "showUnreadNotificationsCount": string;
     /**
-     * キャット付きのみ
+     * ネコミミ付きのみ
      */
     "showCatOnly": string;
     /**
@@ -5488,40 +5476,6 @@ export interface Locale extends ILocale {
          * 遊び方
          */
         "howToPlay": string;
-        /**
-         * ホールド
-         */
-        "hold": string;
-        "_score": {
-            /**
-             * スコア
-             */
-            "score": string;
-            /**
-             * 稼いだ金額
-             */
-            "scoreYen": string;
-            /**
-             * ハイスコア
-             */
-            "highScore": string;
-            /**
-             * 最大チェーン数
-             */
-            "maxChain": string;
-            /**
-             * {yen}円
-             */
-            "yen": ParameterizedString<"yen">;
-            /**
-             * {qty}個分
-             */
-            "estimatedQty": ParameterizedString<"qty">;
-            /**
-             * おにぎり {onigiriQtyWithUnit}
-             */
-            "scoreSweets": ParameterizedString<"onigiriQtyWithUnit">;
-        };
         "_howToPlay": {
             /**
              * 位置を調整してハコにモノを落とします。
@@ -6180,7 +6134,7 @@ export interface Locale extends ILocale {
          */
         "price": string;
         /**
-         * 可用性
+         * 予約可能
          */
         "availability": string;
         /**
@@ -6192,11 +6146,11 @@ export interface Locale extends ILocale {
          */
         "until": string;
         /**
-         * アベイラビリティ開始
+         * 予約開始
          */
         "availabilityStart": string;
         /**
-         * アベイラビリティ終了
+         * 予約終了
          */
         "availabilityEnd": string;
         /**
@@ -7343,10 +7297,6 @@ export interface Locale extends ILocale {
              */
             "canEditNote": string;
             /**
-             * ノート内の最大メンション数
-             */
-            "mentionMax": string;
-            /**
              * サーバー招待コードの発行
              */
             "canInvite": string;
@@ -7427,6 +7377,10 @@ export interface Locale extends ILocale {
              */
             "canSearchNotes": string;
             /**
+             * 高度な検索の利用
+             */
+            "canAdvancedSearchNotes": string;
+            /**
              * 翻訳機能の利用
              */
             "canUseTranslator": string;
@@ -7436,10 +7390,6 @@ export interface Locale extends ILocale {
             "avatarDecorationLimit": string;
         };
         "_condition": {
-            /**
-             * マニュアルロールにアサイン済み
-             */
-            "roleAssignedTo": string;
             /**
              * ローカルユーザー
              */
@@ -7717,10 +7667,6 @@ export interface Locale extends ILocale {
          * ソースを表示
          */
         "viewSource": string;
-        /**
-         * ログを表示
-         */
-        "viewLog": string;
     };
     "_preferencesBackups": {
         /**
@@ -7984,7 +7930,7 @@ export interface Locale extends ILocale {
          */
         "blockCode": string;
         /**
-         * 複数行のプログラムなどのコードをブロックでシンタックスハイライトします。
+         * 複数行のプログラムなどのコードをブロックでシンタックスハイライトします。いくつかの言語を指定するとその言語に合わせたシンタックスハイライトになります。
          */
         "blockCodeDescription": string;
         /**
@@ -8211,6 +8157,14 @@ export interface Locale extends ILocale {
          * 文字の上にルビを表示します。
          */
         "rubyDescription": string;
+        /**
+         * ボーダー
+         */
+        "border": string;
+        /**
+         * 内容を枠線で囲むことができます。
+         */
+        "borderDescription": string;
     };
     "_instanceTicker": {
         /**
@@ -9844,6 +9798,10 @@ export interface Locale extends ILocale {
          */
         "local": string;
         /**
+         * メディア
+         */
+        "media": string;
+        /**
          * ソーシャル
          */
         "social": string;
@@ -9909,10 +9867,6 @@ export interface Locale extends ILocale {
          * 説明
          */
         "summary": string;
-        /**
-         * 非公開に設定するとプロフィールに表示されなくなりますが、URLを知っている人は引き続きアクセスできます。
-         */
-        "visibilityDescription": string;
     };
     "_pages": {
         /**
@@ -10212,10 +10166,6 @@ export interface Locale extends ILocale {
          */
         "reactedBySomeUsers": ParameterizedString<"n">;
         /**
-         * {n}人がいいねしました
-         */
-        "likedBySomeUsers": ParameterizedString<"n">;
-        /**
          * {n}人がリノートしました
          */
         "renotedBySomeUsers": ParameterizedString<"n">;
@@ -10223,10 +10173,6 @@ export interface Locale extends ILocale {
          * {n}人にフォローされました
          */
         "followedBySomeUsers": ParameterizedString<"n">;
-        /**
-         * 通知の履歴をリセットする
-         */
-        "flushNotification": string;
         "_types": {
             /**
              * すべて
@@ -10552,7 +10498,7 @@ export interface Locale extends ILocale {
          */
         "updateServerSettings": string;
         /**
-         * ユーザーのモデレーションノート更新
+         * モデレーションノート更新
          */
         "updateUserNote": string;
         /**
@@ -10599,10 +10545,6 @@ export interface Locale extends ILocale {
          * リモートサーバーを再開
          */
         "unsuspendRemoteInstance": string;
-        /**
-         * リモートサーバーのモデレーションノート更新
-         */
-        "updateRemoteInstanceNote": string;
         /**
          * ファイルをセンシティブ付与
          */
@@ -11043,14 +10985,6 @@ export interface Locale extends ILocale {
          * 変則なし
          */
         "disallowIrregularRules": string;
-        /**
-         * 盤面に行・列番号を表示
-         */
-        "showBoardLabels": string;
-        /**
-         * 石をアイコンにする
-         */
-        "useAvatarAsStone": string;
     };
     "_offlineScreen": {
         /**
@@ -11219,6 +11153,60 @@ export interface Locale extends ILocale {
          * 縮小せず非可逆圧縮する
          */
         "noResizeCompressLossy": string;
+    };
+    "_advancedSearch": {
+        "_fileOption": {
+            /**
+             * ファイルの添付状態
+             */
+            "title": string;
+            /**
+             * あり
+             */
+            "fileAttachedOnly": string;
+            /**
+             * なし
+             */
+            "noFile": string;
+            /**
+             * 全て
+             */
+            "combined": string;
+        };
+        "_searchOption": {
+            /**
+             * CW付きを除外する
+             */
+            "toggleNsfw": string;
+            /**
+             * リプライを除外する
+             */
+            "toggleReply": string;
+            /**
+             * 日時を指定する
+             */
+            "toggleDate": string;
+            /**
+             * 高度な検索を有効にする
+             */
+            "toggleAdvancedSearch": string;
+        };
+        "_specifyDate": {
+            /**
+             * から
+             */
+            "startDate": string;
+            /**
+             * まで
+             */
+            "endDate": string;
+        };
+				"_description": {
+					/**
+					 * その他
+					 */
+					"other": string;
+				}
     };
 }
 declare const locales: {
