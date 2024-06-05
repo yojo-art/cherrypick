@@ -92,6 +92,7 @@ type Source = {
 	apFileBaseUrl?: string;
 
 	mediaProxy?: string;
+	remoteProxy?: string;
 	proxyRemoteFiles?: boolean;
 	videoThumbnailGenerator?: string;
 
@@ -177,6 +178,7 @@ export type Config = {
 	clientEntry: string;
 	clientManifestExists: boolean;
 	mediaProxy: string;
+	remoteProxy?: string;
 	externalMediaProxyEnabled: boolean;
 	videoThumbnailGenerator: string | null;
 	redis: RedisOptions & RedisOptionsSource;
@@ -226,6 +228,11 @@ export function loadConfig(): Config {
 		config.mediaProxy.endsWith('/') ? config.mediaProxy.substring(0, config.mediaProxy.length - 1) : config.mediaProxy
 		: null;
 	const internalMediaProxy = `${scheme}://${host}/proxy`;
+
+	const remoteProxy = config.remoteProxy ?
+		config.remoteProxy.endsWith('/') ? config.remoteProxy.substring(0, config.remoteProxy.length - 1) : config.remoteProxy
+		: null;
+
 	const redis = convertRedisOptions(config.redis, host);
 
 	return {
@@ -275,6 +282,7 @@ export function loadConfig(): Config {
 		apFileBaseUrl: config.apFileBaseUrl,
 		mediaProxy: externalMediaProxy ?? internalMediaProxy,
 		externalMediaProxyEnabled: externalMediaProxy !== null && externalMediaProxy !== internalMediaProxy,
+		remoteProxy,
 		videoThumbnailGenerator: config.videoThumbnailGenerator ?
 			config.videoThumbnailGenerator.endsWith('/') ? config.videoThumbnailGenerator.substring(0, config.videoThumbnailGenerator.length - 1) : config.videoThumbnailGenerator
 			: null,
