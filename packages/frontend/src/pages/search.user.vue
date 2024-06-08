@@ -42,13 +42,22 @@ const key = ref(0);
 const searchQuery = ref('');
 const searchOrigin = ref('combined');
 const userPagination = ref();
+const isApUserName = RegExp('@.+@.+');
 
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
 	if (query == null || query === '') return;
 
-	if (query.startsWith('https://')) {
+	if (query.startsWith('https://') || isApUserName.test(query)) {
+		const { canceled } = await os.confirm({
+				type: 'question',
+				text: i18n.ts._searchOrApShow.question,
+				caption: i18n.ts._searchOrApShow.caption,
+				okText: i18n.ts.yes,
+				cancelText: i18n.ts.no
+		});
+		if(!canceled){
 		const promise = misskeyApi('ap/show', {
 			uri: query,
 		});
@@ -65,7 +74,7 @@ async function search() {
 
 		return;
 	}
-
+	}
 	userPagination.value = {
 		endpoint: 'users/search',
 		limit: 10,

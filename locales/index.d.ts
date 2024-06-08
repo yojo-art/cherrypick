@@ -11201,12 +11201,22 @@ export interface Locale extends ILocale {
              */
             "endDate": string;
         };
-				"_description": {
-					/**
-					 * その他
-					 */
-					"other": string;
-				}
+        "_description": {
+            /**
+             * その他の設定
+             */
+            "other": string;
+        };
+    };
+    "_searchOrApShow": {
+        /**
+         * 照会を行いますか？
+         */
+        "question": string;
+        /**
+         * 検索する場合はいいえを選択してください
+         */
+        "caption": string;
     };
 }
 declare const locales: {
