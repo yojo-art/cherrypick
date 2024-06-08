@@ -86,6 +86,7 @@ async function search() {
 			return;
 		}
 	}
+	
 	userPagination.value = {
 		endpoint: 'users/search',
 		limit: 10,
