@@ -55,24 +55,34 @@ async function search() {
 			text: i18n.ts._searchOrApShow.question,
 			caption: i18n.ts._searchOrApShow.caption,
 			okText: i18n.ts.yes,
-			cancelText: i18n.ts.no
+			cancelText: i18n.ts.no,
 		});
 
 		if (!canceled) {
-			const promise = misskeyApi('ap/show', {
-				uri: query,
-			});
+			if (isApUserName.test(query)) {
+				const querys = query.split('@');
+				const promise = misskeyApi('users/show', {
+					username: querys[1],
+					host: querys[2],
+				});
+				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+				const res = await promise;
+				if (typeof res.error === 'undefined') {
+					router.push(`/@${res.username}@${res.host}`);
+				}
+			} else {
+				const promise = misskeyApi('ap/show', {
+					uri: query,
+				});
+				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+				const res = await promise;
 
-			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
-
-			const res = await promise;
-
-			if (res.type === 'User') {
-				router.push(`/@${res.object.username}@${res.object.host}`);
-			} else if (res.type === 'Note') {
-				router.push(`/notes/${res.object.id}`);
+				if (res.type === 'User') {
+					router.push(`/@${res.object.username}@${res.object.host}`);
+				} else if (res.type === 'Note') {
+					router.push(`/notes/${res.object.id}`);
+				}
 			}
-
 			return;
 		}
 	}
