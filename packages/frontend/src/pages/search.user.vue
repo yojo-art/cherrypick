@@ -51,29 +51,30 @@ async function search() {
 
 	if (query.startsWith('https://') || isApUserName.test(query)) {
 		const { canceled } = await os.confirm({
-				type: 'question',
-				text: i18n.ts._searchOrApShow.question,
-				caption: i18n.ts._searchOrApShow.caption,
-				okText: i18n.ts.yes,
-				cancelText: i18n.ts.no
-		});
-		if(!canceled){
-		const promise = misskeyApi('ap/show', {
-			uri: query,
+			type: 'question',
+			text: i18n.ts._searchOrApShow.question,
+			caption: i18n.ts._searchOrApShow.caption,
+			okText: i18n.ts.yes,
+			cancelText: i18n.ts.no
 		});
 
-		os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+		if (!canceled) {
+			const promise = misskeyApi('ap/show', {
+				uri: query,
+			});
 
-		const res = await promise;
+			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 
-		if (res.type === 'User') {
-			router.push(`/@${res.object.username}@${res.object.host}`);
-		} else if (res.type === 'Note') {
-			router.push(`/notes/${res.object.id}`);
+			const res = await promise;
+
+			if (res.type === 'User') {
+				router.push(`/@${res.object.username}@${res.object.host}`);
+			} else if (res.type === 'Note') {
+				router.push(`/notes/${res.object.id}`);
+			}
+
+			return;
 		}
-
-		return;
-	}
 	}
 	userPagination.value = {
 		endpoint: 'users/search',

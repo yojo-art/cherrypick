@@ -118,6 +118,7 @@ async function search() {
 			okText: i18n.ts.yes,
 			cancelText: i18n.ts.no,
 		});
+
 		if (!canceled) {
 			const promise = misskeyApi('ap/show', {
 				uri: query,
