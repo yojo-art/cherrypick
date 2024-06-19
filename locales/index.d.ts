@@ -11217,6 +11217,14 @@ export interface Locale extends ILocale {
          * 検索する場合はいいえを選択してください
          */
         "caption": string;
+        /**
+         * 検索
+         */
+        "search": string;
+        /**
+         * 照会
+         */
+        "lookup": string;
     };
 }
 declare const locales: {

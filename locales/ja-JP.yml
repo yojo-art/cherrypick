@@ -2991,3 +2991,5 @@ _advancedSearch:
 _searchOrApShow:
   question: "照会を行いますか？"
   caption: "検索する場合はいいえを選択してください"
+  search: "検索"
+  lookup: "照会"

@@ -114,9 +114,8 @@ async function search() {
 		const { canceled } = await os.confirm({
 			type: 'question',
 			text: i18n.ts._searchOrApShow.question,
-			caption: i18n.ts._searchOrApShow.caption,
-			okText: i18n.ts.yes,
-			cancelText: i18n.ts.no,
+			okText: i18n.ts._searchOrApShow.lookup,
+			cancelText: i18n.ts._searchOrApShow.search,
 		});
 
 		if (!canceled) {
