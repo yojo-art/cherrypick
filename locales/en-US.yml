@@ -2856,5 +2856,6 @@ _advancedSearch:
     other: "Other settings"
 
 _searchOrApShow:
-  question: "Do you want to get it from Fediverse?"
-  caption: "Please select No when searching"
+  question: "Want to search?"
+  search: "Search"
+  lookup: "Lookup"

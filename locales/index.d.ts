@@ -11214,10 +11214,6 @@ export interface Locale extends ILocale {
          */
         "question": string;
         /**
-         * 検索する場合はいいえを選択してください
-         */
-        "caption": string;
-        /**
          * 検索
          */
         "search": string;
