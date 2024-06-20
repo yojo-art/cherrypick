@@ -20,7 +20,7 @@
 ### Release Date
 2024-03-09
 
-### Generalz
+### General
 - メディアプロキシurlと拡大画像urlを分割
 
 ### Client
