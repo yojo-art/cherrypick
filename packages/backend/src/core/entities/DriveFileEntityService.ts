@@ -112,7 +112,7 @@ export class DriveFileEntityService {
 	public getPublicUrl(file: MiDriveFile, mode?: 'avatar', ap?: boolean): string { // static = thumbnail
 		// PublicUrlにはexternalMediaProxyEnabledでもremoteProxyを使う
 		// https://github.com/yojo-art/cherrypick/issues/84
-		if (file.uri != null && file.userHost != null && mode !== 'avatar' && this.config.remoteProxy!=null) {
+		if (file.uri != null && file.userHost != null && mode !== 'avatar' && this.config.remoteProxy != null) {
 			//下のローカルプロキシからコピペで持ってきた
 			const key = file.webpublicAccessKey;
 			if (key && !key.match('/')) {	// 古いものはここにオブジェクトストレージキーが入ってるので除外
