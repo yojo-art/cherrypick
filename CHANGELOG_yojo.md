@@ -20,12 +20,12 @@
 ### Release Date
 2024-03-09
 
-### General
+### Generalz
 - メディアプロキシurlと拡大画像urlを分割
 
 ### Client
 - enhance: ノートとユーザーの検索時に照会を行うかが選択できるようになりました
-	- @foo@example.com 形式でユーザ検索した場合に照会ができるようになりました
+	- \@foo@example.com 形式でユーザ検索した場合に照会ができるようになりました
 - add: 通知音を追加 [@mujin-nohuman (無人)](https://github.com/mujin-nohuman)
 
 ### Server
