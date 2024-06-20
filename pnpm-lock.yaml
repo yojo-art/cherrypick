@@ -342,8 +342,8 @@ importers:
         specifier: 2.7.0
         version: 2.7.0
       pug:
-        specifier: 3.0.2
-        version: 3.0.2
+        specifier: 3.0.3
+        version: 3.0.3
       punycode:
         specifier: 2.3.1
         version: 2.3.1
@@ -18173,8 +18173,8 @@ packages:
   /pug-walk@2.0.0:
     resolution: {integrity: sha512-yYELe9Q5q9IQhuvqsZNwA5hfPkMJ8u92bQLIMcsMxf/VADjNtEYptU+inlufAFYcWdHlwNfZOEnOOQrZrcyJCQ==}
 
-  /pug@3.0.2:
-    resolution: {integrity: sha512-bp0I/hiK1D1vChHh6EfDxtndHji55XP/ZJKwsRqrz6lRia6ZC2OZbdAymlxdVFwd1L70ebrVJw4/eZ79skrIaw==}
+  /pug@3.0.3:
+    resolution: {integrity: sha512-uBi6kmc9f3SZ3PXxqcHiUZLmIXgfgWooKWXcwSGwQd2Zi5Rb0bT14+8CJjJgI8AB+nndLaNgHGrcc6bPIB665g==}
     dependencies:
       pug-code-gen: 3.0.3
       pug-filters: 4.0.0
@@ -21085,7 +21085,7 @@ packages:
       esm-resolve: 1.0.11
       hash-sum: 2.0.0
       lru-cache: 8.0.5
-      pug: 3.0.2
+      pug: 3.0.3
       recast: 0.23.9
       ts-map: 1.0.3
       vue: 3.4.18(typescript@5.3.3)
