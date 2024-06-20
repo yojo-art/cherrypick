@@ -42,7 +42,7 @@ const key = ref(0);
 const searchQuery = ref('');
 const searchOrigin = ref('combined');
 const userPagination = ref();
-const isApUserName = RegExp('@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
+const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
 
 async function search() {
 	const query = searchQuery.value.toString().trim();
