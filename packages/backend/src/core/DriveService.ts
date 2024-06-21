@@ -44,7 +44,6 @@ import { correctFilename } from '@/misc/correct-filename.js';
 import { isMimeImage } from '@/misc/is-mime-image.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { RegistryApiService } from '@/core/RegistryApiService.js';
-import { meta } from '@/server/api/endpoints/announcements.js';
 
 type AddFileArgs = {
 	/** User who wish to add file */
@@ -129,7 +128,7 @@ export class DriveService {
 		private driveChart: DriveChart,
 		private perUserDriveChart: PerUserDriveChart,
 		private instanceChart: InstanceChart,
-		private registryApiService :RegistryApiService,
+		private registryApiService: RegistryApiService,
 	) {
 		const logger = new Logger('drive', 'blue');
 		this.registerLogger = logger.createSubLogger('register', 'yellow');
@@ -149,7 +148,7 @@ export class DriveService {
 	@bindThis
 	private async save(file: MiDriveFile, path: string, name: string, type: string, hash: string, size: number, isRemote: boolean): Promise<MiDriveFile> {
 	// thunbnail, webpublic を必要なら生成
-		const alts = await this.generateAlts(path, type, !file.uri,file.userId);
+		const alts = await this.generateAlts(path, type, !file.uri, file.userId);
 
 		const meta = await this.metaService.fetch();
 
@@ -277,7 +276,7 @@ export class DriveService {
 	 * @param generateWeb Generate webpublic or not
 	 */
 	@bindThis
-	public async generateAlts(path: string, type: string, generateWeb: boolean,userId : string?) {
+	public async generateAlts(path: string, type: string, generateWeb: boolean, userId: string) {
 		if (type.startsWith('video/')) {
 			if (this.config.videoThumbnailGenerator != null) {
 				// videoThumbnailGeneratorが指定されていたら動画サムネイル生成はスキップ
@@ -313,7 +312,8 @@ export class DriveService {
 		let img: sharp.Sharp | null = null;
 		let satisfyWebpublic: boolean;
 		let isAnimated: boolean;
-
+		let width: number;
+		let height: number;
 		try {
 			img = await sharpBmp(path, type);
 			const metadata = await img.metadata();
@@ -326,6 +326,8 @@ export class DriveService {
 			metadata.width && metadata.width <= 2048 &&
 			metadata.height && metadata.height <= 2048
 			);
+			width = metadata.width;
+			height = metadata.height;
 		} catch (err) {
 			this.registerLogger.warn(`sharp failed: ${err}`);
 			return {
@@ -341,45 +343,38 @@ export class DriveService {
 			this.registerLogger.info('creating web image');
 
 			try {
-				if(userId === null)
-				{
-					if (['image/jpeg', 'image/webp', 'image/avif'].includes(type)) {
-						webpublic = await this.imageProcessingService.convertSharpToWebp(img, 2048, 2048);
-					} else if (['image/png', 'image/bmp', 'image/svg+xml'].includes(type)) {
-						webpublic = await this.imageProcessingService.convertSharpToPng(img, 2048, 2048);
-					} else {
-						this.registerLogger.debug('web image not created (not an required image)');
-					}
-				}
-				else
-				{
-					const compressMode = await this.registryApiService.getItem(userId,null,["client","base"],"imageCompressionMode",);
-					//const metadata = await img.metadata();
-					var option = new sharp.WebpOptions;
-					switch(compressMode?.value){
+				if (userId == null) {
+					width = 2048;
+					height = 2048;
+				} else {
+					const compressMode = await this.registryApiService.getItem(userId, null, ['client', 'base'], 'imageCompressionMode');
+					this.registerLogger.debug(compressMode?.value);
+					switch (compressMode?.value) {
 						case 'resizeCompress':
-							option.resizeCompress =true;
-						break;
+							width = 2048;
+							height = 2048;
+							break;
 						case 'noResizeCompress':
-							option.noResizeCompress = true;
-							break;						
+							break;
 						case 'resizeCompressLossy':
-							option.resizeCompressLossy =true;
-						break;					
+							width = 2048;
+							height = 2048;
+							break;
 						case 'noResizeCompressLossy':
-							option.noResizeCompressLossy = true;
-						break;
+							break;
 						default:
-							this.registerLogger.debug('web image not created (undefined CompressMode)');
+							this.registerLogger.debug('undefined CompressMode');
+							width = 2048;
+							height = 2048;
 							break;
 					}
-					if (['image/jpeg', 'image/webp', 'image/avif'].includes(type)) {
-						webpublic = await this.imageProcessingService.convertSharpToWebp(img, 2048, 2048,option);
-					} else if (['image/png', 'image/bmp', 'image/svg+xml'].includes(type)) {
-						webpublic = await this.imageProcessingService.convertSharpToPng(img, 2048, 2048);
-					} else {
-						this.registerLogger.debug('web image not created (not an required image)');
-					}
+				}
+				if (['image/jpeg', 'image/webp', 'image/avif'].includes(type)) {
+					webpublic = await this.imageProcessingService.convertSharpToWebp(img, width, height);
+				} else if (['image/png', 'image/bmp', 'image/svg+xml'].includes(type)) {
+					webpublic = await this.imageProcessingService.convertSharpToPng(img, width, height);
+				} else {
+					this.registerLogger.debug('web image not created (not an required image)');
 				}
 			} catch (err) {
 				this.registerLogger.warn('web image not created (an error occurred)', err as Error);
