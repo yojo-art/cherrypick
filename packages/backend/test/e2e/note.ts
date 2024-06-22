@@ -1016,7 +1016,7 @@ describe('Note', () => {
 
 			// NOTE: デフォルトでは登録されていないので落ちる
 			assert.strictEqual(res.status, 400);
-			assert.strictEqual(res.body.error.code, 'UNAVAILABLE');
+			assert.strictEqual(res.body.error.code, 'NO_TRANSLATE_SERVICE');
 		});
 	});
 });
