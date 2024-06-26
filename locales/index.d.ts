@@ -6171,6 +6171,10 @@ export interface Locale extends ILocale {
          * グローバルタイムラインでは、接続している他のすべてのサーバーからの投稿を見られます。
          */
         "global": string;
+        /**
+         * メディアタイムラインでは、グローバルタイムラインからファイル付きのみが表示されます。
+         */
+        "media": string;
     };
     "_serverRules": {
         /**
