@@ -321,20 +321,6 @@ const routes: RouteDef[] = [{
 	path: '/gallery',
 	component: page(() => import('@/pages/gallery/index.vue')),
 }, {
-	path: '/channels/:channelId/edit',
-	component: page(() => import('@/pages/channel-editor.vue')),
-	loginRequired: true,
-}, {
-	path: '/channels/new',
-	component: page(() => import('@/pages/channel-editor.vue')),
-	loginRequired: true,
-}, {
-	path: '/channels/:channelId',
-	component: page(() => import('@/pages/channel.vue')),
-}, {
-	path: '/channels',
-	component: page(() => import('@/pages/channels.vue')),
-}, {
 	path: '/custom-emojis-manager',
 	component: page(() => import('@/pages/custom-emojis-manager.vue')),
 }, {
