@@ -628,7 +628,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	enableChannelTimeline: {
 		where: 'device',
-		default: true,
+		default: false,
 	},
 
 	// - Settings/Sounds & Vibrations
