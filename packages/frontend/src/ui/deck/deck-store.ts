@@ -19,7 +19,7 @@ type ColumnWidget = {
 
 export type Column = {
 	id: string;
-	type: 'main' | 'widgets' | 'notifications' | 'tl' | 'antenna' | 'channel' | 'list' | 'mentions' | 'direct';
+	type: 'main' | 'widgets' | 'notifications' | 'tl' | 'antenna' | 'list' | 'mentions' | 'direct';
 	name: string | null;
 	width: number;
 	widgets?: ColumnWidget[];
