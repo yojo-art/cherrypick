@@ -10,6 +10,7 @@ import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,

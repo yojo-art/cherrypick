@@ -11,6 +11,7 @@ import { ApiError } from '../../error.js';
 import { GetterService } from '../../GetterService.js';
 
 export const meta = {
+	tags: ['reversi','account'],
 	requireCredential: true,
 
 	kind: 'write:account',

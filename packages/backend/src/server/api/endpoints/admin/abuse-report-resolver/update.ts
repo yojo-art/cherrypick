@@ -11,6 +11,7 @@ import type { AbuseReportResolversRepository, MiAbuseReportResolver } from '@/mo
 import { ApiError } from '../../../error.js';
 
 export const meta = {
+	tags: ['admin', 'abuse-report-resolver'],
 	requireCredential: true,
 	kind: 'arr-update', // ここにkindプロパティを追加
 	secure: true,

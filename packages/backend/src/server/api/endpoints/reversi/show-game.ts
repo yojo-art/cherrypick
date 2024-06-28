@@ -10,6 +10,7 @@ import { ReversiGameEntityService } from '@/core/entities/ReversiGameEntityServi
 import { ApiError } from '../../error.js';
 
 export const meta = {
+	tags: ['reversi'],
 	requireCredential: false,
 
 	errors: {

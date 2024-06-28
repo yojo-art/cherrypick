@@ -12,7 +12,7 @@ import type { AbuseReportResolversRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 
 export const meta = {
-	tags: ['admin'],
+	tags: ['admin', 'abuse-report-resolver'],
 	requireCredential: true,
 	secure: true,
 	requireAdmin: true,

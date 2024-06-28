@@ -9,6 +9,7 @@ import { ReversiService } from '@/core/ReversiService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
+	tags: ['reversi','account'],
 	requireCredential: true,
 
 	kind: 'write:account',
