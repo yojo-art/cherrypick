@@ -5467,6 +5467,10 @@ export interface Locale extends ILocale {
      * プロフィールを翻訳する
      */
     "translateProfile": string;
+    /**
+     * マスコット画像のリンク
+     */
+    "mascotImageUrl": string;
     "_nsfwOpenBehavior": {
         /**
          * タップして開く
@@ -6337,6 +6341,10 @@ export interface Locale extends ILocale {
          * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
          */
         "inquiryUrlDescription": string;
+        /**
+         * 空欄かデフォルト値(/assets/ai.png)の場合タイムラインが表示されます
+         */
+        "mascotImageUrlDescription": string;
     };
     "_accountMigration": {
         /**
