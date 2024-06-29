@@ -11,6 +11,7 @@ import { QueryService } from '@/core/QueryService.js';
 import type { AbuseReportResolversRepository } from '@/models/_.js';
 
 export const meta = {
+	tags: ['admin', 'abuse-report-resolver'],
 	requireCredential: true,
 	kind: 'arr-list', // ここにkindプロパティを追加
 	secure: true,

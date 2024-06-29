@@ -9,6 +9,7 @@ import { RegistryApiService } from '@/core/RegistryApiService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
+	tags: ['account', 'registry'],
 	requireCredential: true,
 	kind: 'read:account',
 

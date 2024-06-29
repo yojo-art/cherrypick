@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { ReversiService } from '@/core/ReversiService.js';
 
 export const meta = {
+	tags: ['reversi', 'account'],
 	requireCredential: true,
 
 	kind: 'write:account',

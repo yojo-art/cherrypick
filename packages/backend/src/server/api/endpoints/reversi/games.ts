@@ -12,6 +12,7 @@ import type { ReversiGamesRepository } from '@/models/_.js';
 import { QueryService } from '@/core/QueryService.js';
 
 export const meta = {
+	tags: ['reversi'],
 	requireCredential: false,
 
 	res: {

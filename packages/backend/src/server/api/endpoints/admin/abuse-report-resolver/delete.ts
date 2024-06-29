@@ -10,6 +10,7 @@ import type { AbuseReportResolversRepository } from '@/models/_.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
+	tags: ['admin', 'abuse-report-resolver'],
 	requireCrendential: true,
 	kind: 'arr-delete', // ここにkindプロパティを追加
 	requireAdmin: true,
