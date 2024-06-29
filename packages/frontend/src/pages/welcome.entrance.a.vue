@@ -98,10 +98,10 @@ misskeyApiGet('federation/instances', {
 		position: fixed;
 		top: 0;
 		bottom: 0;
-		right: 64px;
+		right: 2px;
 		margin: auto;
 		padding: 128px 0;
-		width: 500px;
+		width: 680px;
 		height: auto;
 		overflow: hidden;
 		-webkit-mask-image: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 128px, rgba(0,0,0,1) calc(100% - 128px), rgba(0,0,0,0) 100%);
