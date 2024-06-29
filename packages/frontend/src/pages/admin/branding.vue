@@ -43,7 +43,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #caption>
 							<div>{{ i18n.ts._serverSettings.mascotImageUrlDescription}}</div>
 						</template>
-
 					</MkInput>
 
 					<MkInput v-model="bannerUrl" type="url">
