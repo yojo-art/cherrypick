@@ -37,6 +37,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</template>
 					</MkInput>
 
+					<MkInput v-model="mascotImageUrl" type="url">
+						<template #prefix><i class="ti ti-link"></i></template>
+						<template #label>{{ i18n.ts.mascotImageUrl }}</template>
+						<template #caption>
+							<div>{{ i18n.ts._serverSettings.mascotImageUrlDescription}}</div>
+						</template>
+
+					</MkInput>
+
 					<MkInput v-model="bannerUrl" type="url">
 						<template #prefix><i class="ti ti-link"></i></template>
 						<template #label>{{ i18n.ts.bannerUrl }}</template>
@@ -123,6 +132,7 @@ const iconUrl = ref<string | null>(null);
 const app192IconUrl = ref<string | null>(null);
 const app512IconUrl = ref<string | null>(null);
 const bannerUrl = ref<string | null>(null);
+const mascotImageUrl = ref<string | null>(null);
 const backgroundImageUrl = ref<string | null>(null);
 const themeColor = ref<string | null>(null);
 const defaultLightTheme = ref<string | null>(null);
@@ -139,6 +149,7 @@ async function init() {
 	iconUrl.value = meta.iconUrl;
 	app192IconUrl.value = meta.app192IconUrl;
 	app512IconUrl.value = meta.app512IconUrl;
+	mascotImageUrl.value = meta.mascotImageUrl;
 	bannerUrl.value = meta.bannerUrl;
 	backgroundImageUrl.value = meta.backgroundImageUrl;
 	themeColor.value = meta.themeColor;
@@ -157,6 +168,7 @@ function save() {
 		iconUrl: iconUrl.value,
 		app192IconUrl: app192IconUrl.value,
 		app512IconUrl: app512IconUrl.value,
+		mascotImageUrl: mascotImageUrl.value,
 		bannerUrl: bannerUrl.value,
 		backgroundImageUrl: backgroundImageUrl.value,
 		themeColor: themeColor.value === '' ? null : themeColor.value,
