@@ -123,7 +123,7 @@ const headerTabs = computed(() => []);
 
 definePageMetadata(() => ({
 	title: i18n.ts._official_tag.navbar,
-	icon: 'ti ti-bookmarks',
+	icon: 'ti ti-bookmark',
 }));
 </script>
 

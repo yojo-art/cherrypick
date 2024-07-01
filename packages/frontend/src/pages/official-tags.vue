@@ -29,7 +29,7 @@ const official_tags = ref<Misskey.entities.OfficialTagsShowResponse>([]);
 
 definePageMetadata(() => ({
 	title: i18n.ts._official_tag.title,
-	icon: 'ti ti-bookmarks',
+	icon: 'ti ti-bookmark',
 }));
 </script>
 

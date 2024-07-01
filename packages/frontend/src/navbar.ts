@@ -133,7 +133,7 @@ export const navbarItemDef = reactive({
 	},
 	official_tags: {
 		title: i18n.ts._official_tag.navbar,
-		icon: 'ti ti-bookmarks',
+		icon: 'ti ti-bookmark',
 		to: '/official-tags',
 	},
 	ui: {
