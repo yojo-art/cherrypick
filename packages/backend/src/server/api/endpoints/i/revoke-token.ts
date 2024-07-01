@@ -9,6 +9,7 @@ import type { AccessTokensRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,

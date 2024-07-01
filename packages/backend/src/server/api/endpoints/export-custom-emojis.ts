@@ -9,6 +9,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { QueueService } from '@/core/QueueService.js';
 
 export const meta = {
+	tags: ['admin', 'emoji'],
 	secure: true,
 	requireCredential: true,
 	limit: {

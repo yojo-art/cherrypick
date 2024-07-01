@@ -12,6 +12,7 @@ import { DI } from '@/di-symbols.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
+	tags: ['account', '2fa'],
 	requireCredential: true,
 
 	secure: true,

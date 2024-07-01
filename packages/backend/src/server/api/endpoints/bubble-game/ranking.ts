@@ -11,6 +11,7 @@ import { DI } from '@/di-symbols.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 
 export const meta = {
+	tags: ['bubble-game'],
 	allowGet: true,
 	cacheSec: 60,
 

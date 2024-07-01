@@ -11,6 +11,7 @@ import { DI } from '@/di-symbols.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,

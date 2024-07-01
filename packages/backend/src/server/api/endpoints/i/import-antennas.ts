@@ -14,6 +14,7 @@ import { DownloadService } from '@/core/DownloadService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
+	tags: ['account'],
 	secure: true,
 	requireCredential: true,
 	prohibitMoved: true,

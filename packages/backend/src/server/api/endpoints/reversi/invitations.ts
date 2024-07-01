@@ -10,6 +10,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ReversiService } from '@/core/ReversiService.js';
 
 export const meta = {
+	tags: ['reversi', 'account'],
 	requireCredential: true,
 
 	kind: 'read:account',
