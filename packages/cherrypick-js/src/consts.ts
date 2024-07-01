@@ -92,6 +92,7 @@ export const permissions = [
 	'read:clip-favorite',
 	'read:federation',
 	'write:report-abuse',
+	'write:admin:official-tags',
 ] as const;
 
 export const moderationLogTypes = [

@@ -330,6 +330,8 @@ import * as ep___notifications_create from './endpoints/notifications/create.js'
 import * as ep___notifications_flush from './endpoints/notifications/flush.js';
 import * as ep___notifications_markAllAsRead from './endpoints/notifications/mark-all-as-read.js';
 import * as ep___notifications_testNotification from './endpoints/notifications/test-notification.js';
+import * as ep___officialTags_show from './endpoints/official-tags/show.js';
+import * as ep___officialTags_update from './endpoints/official-tags/update.js';
 import * as ep___pagePush from './endpoints/page-push.js';
 import * as ep___pages_create from './endpoints/pages/create.js';
 import * as ep___pages_delete from './endpoints/pages/delete.js';
@@ -743,6 +745,8 @@ const eps = [
 	['notifications/flush', ep___notifications_flush],
 	['notifications/mark-all-as-read', ep___notifications_markAllAsRead],
 	['notifications/test-notification', ep___notifications_testNotification],
+	['official-tags/show', ep___officialTags_show],
+	['official-tags/update', ep___officialTags_update],
 	['page-push', ep___pagePush],
 	['pages/create', ep___pages_create],
 	['pages/delete', ep___pages_delete],

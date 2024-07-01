@@ -345,6 +345,10 @@ const routes: RouteDef[] = [{
 	component: page(() => import('@/pages/install-extensions.vue')),
 	loginRequired: true,
 }, {
+	path: '/official-tags',
+	name: 'officialTags',
+	component: page(() => import('@/pages/official-tags.vue')),
+}, {
 	path: '/admin/user/:userId',
 	component: iAmModerator ? page(() => import('@/pages/admin-user.vue')) : page(() => import('@/pages/not-found.vue')),
 }, {
@@ -462,6 +466,10 @@ const routes: RouteDef[] = [{
 		path: '/other-settings',
 		name: 'other-settings',
 		component: page(() => import('@/pages/admin/other-settings.vue')),
+	}, {
+		path: '/official-tags',
+		name: 'officialTags',
+		component: page(() => import('@/pages/admin/official-tags.vue')),
 	}, {
 		path: '/server-rules',
 		name: 'server-rules',

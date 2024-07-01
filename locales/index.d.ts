@@ -5467,6 +5467,20 @@ export interface Locale extends ILocale {
      * プロフィールを翻訳する
      */
     "translateProfile": string;
+    "_official_tag": {
+        /**
+         * 公式タグ
+         */
+        "title": string;
+        /**
+         * 公式タグ
+         */
+        "navbar": string;
+        /**
+         * 優先度の値が小さいものが上に表示されます
+         */
+        "adminTopInfo": string;
+    };
     /**
      * マスコット画像のリンク
      */
@@ -9427,6 +9441,10 @@ export interface Locale extends ILocale {
          * 違反を報告する
          */
         "write:report-abuse": string;
+        /**
+         * 公式タグを編集する
+         */
+        "write:admin:official-tags": string;
     };
     "_auth": {
         /**
@@ -10947,6 +10965,10 @@ export interface Locale extends ILocale {
          * 通報の通知先を削除
          */
         "deleteAbuseReportNotificationRecipient": string;
+        /**
+         * 公式タグ一覧を更新
+         */
+        "updateOfficialTags": string;
     };
     "_fileViewer": {
         /**

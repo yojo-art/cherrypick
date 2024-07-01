@@ -46,6 +46,7 @@ import { MiNoteFavorite } from '@/models/NoteFavorite.js';
 import { MiNoteReaction } from '@/models/NoteReaction.js';
 import { MiNoteThreadMuting } from '@/models/NoteThreadMuting.js';
 import { MiNoteUnread } from '@/models/NoteUnread.js';
+import { MiOfficialTag } from '@/models/OfficialTag.js';
 import { MiPage } from '@/models/Page.js';
 import { MiPageLike } from '@/models/PageLike.js';
 import { MiPasswordResetRequest } from '@/models/PasswordResetRequest.js';
@@ -167,6 +168,7 @@ export const entities = [
 	MiNoteReaction,
 	MiNoteThreadMuting,
 	MiNoteUnread,
+	MiOfficialTag,
 	MiPage,
 	MiPageLike,
 	MiGalleryPost,

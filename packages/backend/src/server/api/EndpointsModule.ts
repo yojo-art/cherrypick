@@ -325,6 +325,8 @@ import * as ep___notifications_create from './endpoints/notifications/create.js'
 import * as ep___notifications_flush from './endpoints/notifications/flush.js';
 import * as ep___notifications_markAllAsRead from './endpoints/notifications/mark-all-as-read.js';
 import * as ep___notifications_testNotification from './endpoints/notifications/test-notification.js';
+import * as ep___officialTags_show from './endpoints/official-tags/show.js';
+import * as ep___officialTags_update from './endpoints/official-tags/update.js';
 import * as ep___pagePush from './endpoints/page-push.js';
 import * as ep___pages_create from './endpoints/pages/create.js';
 import * as ep___pages_delete from './endpoints/pages/delete.js';
@@ -740,6 +742,8 @@ const $notifications_create: Provider = { provide: 'ep:notifications/create', us
 const $notifications_flush: Provider = { provide: 'ep:notifications/flush', useClass: ep___notifications_flush.default };
 const $notifications_markAllAsRead: Provider = { provide: 'ep:notifications/mark-all-as-read', useClass: ep___notifications_markAllAsRead.default };
 const $notifications_testNotification: Provider = { provide: 'ep:notifications/test-notification', useClass: ep___notifications_testNotification.default };
+const $officialTags_show: Provider = { provide: 'ep:official-tags/show', useClass: ep___officialTags_show.default };
+const $officialTags_update: Provider = { provide: 'ep:official-tags/update', useClass: ep___officialTags_update.default };
 const $pagePush: Provider = { provide: 'ep:page-push', useClass: ep___pagePush.default };
 const $pages_create: Provider = { provide: 'ep:pages/create', useClass: ep___pages_create.default };
 const $pages_delete: Provider = { provide: 'ep:pages/delete', useClass: ep___pages_delete.default };
@@ -1160,6 +1164,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notifications_flush,
 		$notifications_markAllAsRead,
 		$notifications_testNotification,
+		$officialTags_show,
+		$officialTags_update,
 		$pagePush,
 		$pages_create,
 		$pages_delete,

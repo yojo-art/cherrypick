@@ -47,6 +47,7 @@ import { MiNoteFavorite } from '@/models/NoteFavorite.js';
 import { MiNoteReaction } from '@/models/NoteReaction.js';
 import { MiNoteThreadMuting } from '@/models/NoteThreadMuting.js';
 import { MiNoteUnread } from '@/models/NoteUnread.js';
+import { MiOfficialTag } from '@/models/OfficialTag.js';
 import { MiPage } from '@/models/Page.js';
 import { MiPageLike } from '@/models/PageLike.js';
 import { MiPasswordResetRequest } from '@/models/PasswordResetRequest.js';
@@ -188,6 +189,7 @@ export {
 	MiNoteReaction,
 	MiNoteThreadMuting,
 	MiNoteUnread,
+	MiOfficialTag,
 	MiPage,
 	MiPageLike,
 	MiPasswordResetRequest,
@@ -265,6 +267,7 @@ export type NoteFavoritesRepository = Repository<MiNoteFavorite> & MiRepository<
 export type NoteReactionsRepository = Repository<MiNoteReaction> & MiRepository<MiNoteReaction>;
 export type NoteThreadMutingsRepository = Repository<MiNoteThreadMuting> & MiRepository<MiNoteThreadMuting>;
 export type NoteUnreadsRepository = Repository<MiNoteUnread> & MiRepository<MiNoteUnread>;
+export type OfficialTagRepository = Repository<MiOfficialTag> & MiRepository<MiOfficialTag>;
 export type PagesRepository = Repository<MiPage> & MiRepository<MiPage>;
 export type PageLikesRepository = Repository<MiPageLike> & MiRepository<MiPageLike>;
 export type PasswordResetRequestsRepository = Repository<MiPasswordResetRequest> & MiRepository<MiPasswordResetRequest>;

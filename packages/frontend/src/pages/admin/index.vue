@@ -172,6 +172,11 @@ const menuDef = computed(() => [{
 		to: '/admin/abuses',
 		active: currentPage.value?.route.name === 'abuses',
 	}, {
+		icon: 'ti ti-bookmarks',
+		text: i18n.ts._official_tag.navbar,
+		to: '/admin/official-tags',
+		active: currentPage.value?.route.name === 'officialTags',
+	}, {
 		icon: 'ti ti-list-search',
 		text: i18n.ts.moderationLogs,
 		to: '/admin/modlog',
