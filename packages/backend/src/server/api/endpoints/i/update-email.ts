@@ -19,6 +19,7 @@ import { MetaService } from '@/core/MetaService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,

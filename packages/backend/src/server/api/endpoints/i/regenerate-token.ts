@@ -12,6 +12,7 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,

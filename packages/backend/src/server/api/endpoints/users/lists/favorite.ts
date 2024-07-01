@@ -11,6 +11,7 @@ import { ApiError } from '@/server/api/error.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['lists', 'account'],
 	requireCredential: true,
 	kind: 'write:account',
 	errors: {

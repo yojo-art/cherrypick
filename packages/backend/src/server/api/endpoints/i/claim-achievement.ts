@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { AchievementService, ACHIEVEMENT_TYPES } from '@/core/AchievementService.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 	prohibitMoved: true,
 	kind: 'write:account',
