@@ -83,6 +83,7 @@ import {
 	MiUserPublickey,
 	MiUserSecurityKey,
 	MiWebhook,
+	MiOfficialTag,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
@@ -537,6 +538,12 @@ const $abuseReportResolversRepository: Provider = {
 	inject: [DI.db],
 };
 
+const $officialTagRepository: Provider = {
+	provide: DI.officialTagRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiOfficialTag).extend(miRepository as MiRepository<MiOfficialTag>),
+	inject: [DI.db],
+};
+
 @Module({
 	imports: [],
 	providers: [
@@ -615,6 +622,7 @@ const $abuseReportResolversRepository: Provider = {
 		$abuseReportResolversRepository,
 		$bubbleGameRecordsRepository,
 		$reversiGamesRepository,
+		$officialTagRepository,
 	],
 	exports: [
 		$usersRepository,
@@ -692,6 +700,7 @@ const $abuseReportResolversRepository: Provider = {
 		$abuseReportResolversRepository,
 		$bubbleGameRecordsRepository,
 		$reversiGamesRepository,
+		$officialTagRepository,
 	],
 })
 export class RepositoryModule {

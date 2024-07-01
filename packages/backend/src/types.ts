@@ -98,6 +98,7 @@ export const moderationLogTypes = [
 	'createAbuseReportNotificationRecipient',
 	'updateAbuseReportNotificationRecipient',
 	'deleteAbuseReportNotificationRecipient',
+	'updateOfficialTags',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -315,6 +316,15 @@ export type ModerationLogPayloads = {
 	deleteAbuseReportNotificationRecipient: {
 		recipientId: string;
 		recipient: any;
+	};
+	updateOfficialTags: {
+		insert_data: {
+			id: string;
+			tag: string;
+			description: string | null;
+			bannerUrl: string | null;
+			priority: number,
+		}[];
 	};
 };
 

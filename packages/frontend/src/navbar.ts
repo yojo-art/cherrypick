@@ -131,6 +131,11 @@ export const navbarItemDef = reactive({
 		icon: 'ti ti-device-gamepad',
 		to: '/games',
 	},
+	official_tags: {
+		title: i18n.ts._official_tag.navbar,
+		icon: 'ti ti-bookmarks',
+		to: '/official-tags',
+	},
 	ui: {
 		title: i18n.ts.switchUi,
 		icon: 'ti ti-devices',

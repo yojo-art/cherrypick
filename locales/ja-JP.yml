@@ -1361,6 +1361,10 @@ additionalPermissionsForFlash: "Playへの追加許可"
 thisFlashRequiresTheFollowingPermissions: "このPlayは以下の権限を要求しています"
 doYouWantToAllowThisPlayToAccessYourAccount: "このPlayによるアカウントへのアクセスを許可しますか？"
 translateProfile: "プロフィールを翻訳する"
+_official_tag:
+  title: "公式タグ"
+  navbar: "公式タグ"
+  adminTopInfo: "優先度の値が小さいものが上に表示されます"
 
 _nsfwOpenBehavior:
   click: "タップして開く"
@@ -2475,6 +2479,7 @@ _permissions:
   "read:clip-favorite": "クリップのいいねを見る"
   "read:federation": "連合に関する情報を取得する"
   "write:report-abuse": "違反を報告する"
+  "write:admin:official-tags": "公式タグを編集する"
 
 _auth:
   shareAccessTitle: "アプリへのアクセス許可"
@@ -2901,6 +2906,7 @@ _moderationLogTypes:
   createAbuseReportNotificationRecipient: "通報の通知先を作成"
   updateAbuseReportNotificationRecipient: "通報の通知先を更新"
   deleteAbuseReportNotificationRecipient: "通報の通知先を削除"
+  updateOfficialTags: "公式タグ一覧を更新"
 
 _fileViewer:
   title: "ファイルの詳細"
