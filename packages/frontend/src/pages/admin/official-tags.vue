@@ -14,28 +14,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div v-for="tag in tags" :key="tag.id" class="_panel _gaps_m tag_entity">
 				<MkFolder>
 					<template #label>{{ tag.tag }}</template>
-					<MkInput v-model="tag.tag" type="url">
+					<MkInput v-model="tag.tag" class="input">
 						<template #label>タグ名</template>
 					</MkInput>
-					<MkInput v-model="tag.bannerUrl" type="url">
+					<MkInput v-model="tag.bannerUrl" type="url" class="input">
 						<template #label>{{ i18n.ts.imageUrl }}</template>
 					</MkInput>
-					<MkTextarea v-model="tag.description">
+					<MkTextarea v-model="tag.description" class="input">
 						<template #label>{{ i18n.ts.description }}</template>
 					</MkTextarea>
-					<MkInput v-model="tag.priority" type="number">
+					<MkInput v-model="tag.priority" type="number" class="input">
 						<template #label>{{ i18n.ts.priority }}</template>
 					</MkInput>
-					<MkButton class="button" inline danger @click="remove(tag)">
+					<MkButton class="button input" danger @click="remove(tag)">
 						<i class="ti ti-trash"></i> {{ i18n.ts.remove }}
 					</MkButton>
 				</MkFolder>
 			</div>
 			<div class="buttons">
-				<MkButton class="button" @click="refresh()">
+				<MkButton class="button" inline @click="refresh()">
 					<i class="ti ti-reload"></i> {{ i18n.ts.reload }}
 				</MkButton>
-				<MkButton class="button" inline primary style="margin-right: 12px;" @click="save()">
+				<MkButton class="button" inline primary @click="save()">
 					<i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}
 				</MkButton>
 			</div>
@@ -122,23 +122,24 @@ const headerActions = computed(() => [{
 const headerTabs = computed(() => []);
 
 definePageMetadata(() => ({
-	title: i18n.ts.ads,
-	icon: 'ti ti-ad',
+	title: i18n.ts._official_tag.navbar,
+	icon: 'ti ti-bookmarks',
 }));
 </script>
 
 <style lang="scss" scoped>
 .tag_entity {
 	padding: 4px;
-
 	&:not(:last-child) {
 		margin-bottom: var(--margin);
 	}
+	.input {
+		margin-top: 6px;
+	}
 }
-.input {
-	margin-bottom: 32px;
-}
-.buttons{
-	display: block;
+.button{
+	margin: 8px;
+	margin-left: 0;
+	margin-top: 0;
 }
 </style>
