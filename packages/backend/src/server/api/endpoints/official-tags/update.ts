@@ -13,7 +13,7 @@ import { IdService } from '@/core/IdService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
-	tags: ['official-Tags'],
+	tags: ['admin', 'official-Tags'],
 
 	requireCredential: true,
 	requireModerator: true,
