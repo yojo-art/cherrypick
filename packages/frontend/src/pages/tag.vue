@@ -27,6 +27,7 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/account.js';
 import { defaultStore } from '@/store.js';
+import { useStream } from '@/stream.js';
 import * as os from '@/os.js';
 
 const props = defineProps<{
@@ -41,6 +42,8 @@ const pagination = {
 	})),
 };
 const notes = ref<InstanceType<typeof MkNotes>>();
+
+const stream = useStream();
 
 async function post() {
 	defaultStore.set('postFormHashtags', props.tag);
@@ -59,6 +62,17 @@ definePageMetadata(() => ({
 	title: props.tag,
 	icon: 'ti ti-hash',
 }));
+
+function openStream() {
+	const connection = stream.useChannel('hashtag', {
+		q: [[props.tag]],
+	});
+	connection.on('note', note => {
+		notes.value?.pagingComponent?.prepend(note);
+	});
+}
+
+openStream();
 </script>
 
 <style lang="scss" module>
