@@ -20,7 +20,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
+import * as Misskey from 'cherrypick-js';
 import MkNotes from '@/components/MkNotes.vue';
 import MkButton from '@/components/MkButton.vue';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
@@ -57,14 +58,18 @@ async function post() {
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
+let connection: Misskey.ChannelConnection | null = null;
 
 definePageMetadata(() => ({
 	title: props.tag,
 	icon: 'ti ti-hash',
 }));
+onUnmounted(() => {
+	connection?.dispose();
+});
 
 function openStream() {
-	const connection = stream.useChannel('hashtag', {
+	connection = stream.useChannel('hashtag', {
 		q: [[props.tag]],
 	});
 	connection.on('note', note => {
