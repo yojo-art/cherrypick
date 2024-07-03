@@ -1,3 +1,7 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, noridev, cherrypick-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
 
 export class NoRecursiveDelete1711722198590 {
     name = 'NoRecursiveDelete1711722198590'
