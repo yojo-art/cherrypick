@@ -3135,6 +3135,10 @@ export interface Locale extends ILocale {
      */
     "notificationSettingDesc": string;
     /**
+     * 通知を全部削除
+     */
+    "notificationFlush": string;
+    /**
      * グローバル設定を使う
      */
     "useGlobalSetting": string;
