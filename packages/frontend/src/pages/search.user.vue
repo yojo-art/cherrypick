@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -33,7 +33,8 @@ import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import MkFoldableSection from '@/components/MkFoldableSection.vue';
-import { useRouter } from '@/router.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
+import { useRouter } from '@/router/supplier.js';
 
 const router = useRouter();
 
@@ -41,28 +42,48 @@ const key = ref(0);
 const searchQuery = ref('');
 const searchOrigin = ref('combined');
 const userPagination = ref();
+const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
 
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
 	if (query == null || query === '') return;
 
-	if (query.startsWith('https://')) {
-		const promise = os.api('ap/show', {
-			uri: query,
+	if (query.startsWith('https://') || isApUserName.test(query)) {
+		const { canceled } = await os.confirm({
+			type: 'question',
+			text: i18n.ts._searchOrApShow.question,
+			okText: i18n.ts._searchOrApShow.lookup,
+			cancelText: i18n.ts._searchOrApShow.search,
 		});
 
-		os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+		if (!canceled) {
+			if (isApUserName.test(query)) {
+				const querys = query.split('@');
+				const promise = misskeyApi('users/show', {
+					username: querys[1],
+					host: querys[2],
+				});
+				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+				const res = await promise;
+				if (typeof res.error === 'undefined') {
+					router.push(`/@${res.username}@${res.host}`);
+				}
+			} else {
+				const promise = misskeyApi('ap/show', {
+					uri: query,
+				});
+				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+				const res = await promise;
 
-		const res = await promise;
-
-		if (res.type === 'User') {
-			router.push(`/@${res.object.username}@${res.object.host}`);
-		} else if (res.type === 'Note') {
-			router.push(`/notes/${res.object.id}`);
+				if (res.type === 'User') {
+					router.push(`/@${res.object.username}@${res.object.host}`);
+				} else if (res.type === 'Note') {
+					router.push(`/notes/${res.object.id}`);
+				}
+			}
+			return;
 		}
-
-		return;
 	}
 
 	userPagination.value = {

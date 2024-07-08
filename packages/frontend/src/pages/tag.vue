@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -20,13 +20,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref } from 'vue';
+import { computed, onUnmounted, ref } from 'vue';
+import * as Misskey from 'cherrypick-js';
 import MkNotes from '@/components/MkNotes.vue';
 import MkButton from '@/components/MkButton.vue';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/account.js';
 import { defaultStore } from '@/store.js';
+import { useStream } from '@/stream.js';
 import * as os from '@/os.js';
 
 const props = defineProps<{
@@ -42,6 +44,8 @@ const pagination = {
 };
 const notes = ref<InstanceType<typeof MkNotes>>();
 
+const stream = useStream();
+
 async function post() {
 	defaultStore.set('postFormHashtags', props.tag);
 	defaultStore.set('postFormWithHashtags', true);
@@ -54,22 +58,38 @@ async function post() {
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
+let connection: Misskey.ChannelConnection | null = null;
 
-definePageMetadata(computed(() => ({
+definePageMetadata(() => ({
 	title: props.tag,
 	icon: 'ti ti-hash',
-})));
+}));
+onUnmounted(() => {
+	connection?.dispose();
+});
+
+function openStream() {
+	connection = stream.useChannel('hashtag', {
+		q: [[props.tag]],
+	});
+	connection.on('note', note => {
+		notes.value?.pagingComponent?.prepend(note);
+	});
+}
+
+openStream();
 </script>
 
 <style lang="scss" module>
 .footer {
 	-webkit-backdrop-filter: var(--blur, blur(15px));
 	backdrop-filter: var(--blur, blur(15px));
+	background: var(--acrylicBg);
 	border-top: solid 0.5px var(--divider);
 	display: flex;
 }
 
 .button {
-		margin: 0 auto var(--margin) auto;
+	margin: 0 auto;
 }
 </style>

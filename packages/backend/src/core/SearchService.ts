@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -162,6 +162,7 @@ export class SearchService {
 		channelId?: MiNote['channelId'] | null;
 		host?: string | null;
 		origin?: string | null;
+		fileOption?: string | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];

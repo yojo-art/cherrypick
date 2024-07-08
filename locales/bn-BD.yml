@@ -357,6 +357,8 @@ hcaptcha: "hCaptcha"
 enableHcaptcha: "hCaptcha চালু করুন"
 hcaptchaSiteKey: "সাইট কী"
 hcaptchaSecretKey: "সিক্রেট কী"
+mcaptchaSiteKey: "সাইট কী"
+mcaptchaSecretKey: "সিক্রেট কী"
 recaptcha: "reCAPTCHA"
 enableRecaptcha: "reCAPTCHA চালু করুন"
 recaptchaSiteKey: "সাইট কী"
@@ -866,7 +868,12 @@ youFollowing: "অনুসরণ করা হচ্ছে"
 icon: "প্রোফাইল ছবি"
 replies: "জবাব"
 renotes: "রিনোট"
+sourceCode: "সোর্স কোড"
 flip: "উল্টান"
+_delivery:
+  stop: "স্থগিত করা হয়েছে"
+  _type:
+    none: "প্রকাশ করা হচ্ছে"
 _role:
   priority: "অগ্রাধিকার"
   _priority:
@@ -1293,6 +1300,7 @@ _profile:
   changeBanner: "ব্যানার পরিবর্তন করুন"
 _exportOrImport:
   allNotes: "সকল নোট"
+  clips: "ক্লিপ"
   followingList: "অনুসরণ করা হচ্ছে"
   muteList: "মিউট"
   blockingList: "ব্লক"
@@ -1446,3 +1454,5 @@ _webhookSettings:
 _moderationLogTypes:
   suspend: "স্থগিত করা"
   resetPassword: "পাসওয়ার্ড রিসেট করুন"
+_reversi:
+  total: "মোট"

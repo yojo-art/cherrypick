@@ -345,6 +345,8 @@ hcaptcha: "hCaptcha"
 enableHcaptcha: "Aktivera hCaptcha"
 hcaptchaSiteKey: "Webbplatsnyckel"
 hcaptchaSecretKey: "Hemlig nyckel"
+mcaptchaSiteKey: "Webbplatsnyckel"
+mcaptchaSecretKey: "Hemlig nyckel"
 recaptcha: "reCAPTCHA"
 enableRecaptcha: "Aktivera reCAPTCHA"
 recaptchaSiteKey: "Webbplatsnyckel"
@@ -486,6 +488,10 @@ dataSaver: "Databesparing"
 icon: "Profilbild"
 replies: "Svara"
 renotes: "Omnotera"
+_delivery:
+  stop: "Suspenderad"
+  _type:
+    none: "Publiceras"
 _achievements:
   _types:
     _open3windows:

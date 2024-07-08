@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -104,7 +104,6 @@ import * as os from '@/os.js';
 import { navbarItemDef } from '@/navbar.js';
 import { $i } from '@/account.js';
 import { i18n } from '@/i18n.js';
-import { mainRouter } from '@/router.js';
 import { unisonReload } from '@/scripts/unison-reload.js';
 import { deviceKind } from '@/scripts/device-kind.js';
 import { defaultStore } from '@/store.js';
@@ -112,12 +111,13 @@ import XMainColumn from '@/ui/deck/main-column.vue';
 import XTlColumn from '@/ui/deck/tl-column.vue';
 import XAntennaColumn from '@/ui/deck/antenna-column.vue';
 import XListColumn from '@/ui/deck/list-column.vue';
-import XChannelColumn from '@/ui/deck/channel-column.vue';
 import XNotificationsColumn from '@/ui/deck/notifications-column.vue';
 import XWidgetsColumn from '@/ui/deck/widgets-column.vue';
 import XMentionsColumn from '@/ui/deck/mentions-column.vue';
 import XDirectColumn from '@/ui/deck/direct-column.vue';
 import XRoleTimelineColumn from '@/ui/deck/role-timeline-column.vue';
+import { mainRouter } from '@/router/main.js';
+import { MenuItem } from '@/types/menu.js';
 const XStatusBars = defineAsyncComponent(() => import('@/ui/_common_/statusbars.vue'));
 const XAnnouncements = defineAsyncComponent(() => import('@/ui/_common_/announcements.vue'));
 
@@ -127,7 +127,6 @@ const columnComponents = {
 	notifications: XNotificationsColumn,
 	tl: XTlColumn,
 	list: XListColumn,
-	channel: XChannelColumn,
 	antenna: XAntennaColumn,
 	mentions: XMentionsColumn,
 	direct: XDirectColumn,
@@ -181,7 +180,6 @@ const addColumn = async (ev) => {
 		'tl',
 		'antenna',
 		'list',
-		'channel',
 		'mentions',
 		'direct',
 		'roleTimeline',
@@ -190,7 +188,7 @@ const addColumn = async (ev) => {
 	const { canceled, result: column } = await os.select({
 		title: i18n.ts._deck.addColumn,
 		items: columns.map(column => ({
-			value: column, text: i18n.t('_deck._columns.' + column),
+			value: column, text: i18n.ts._deck._columns[column],
 		})),
 	});
 	if (canceled) return;
@@ -198,7 +196,7 @@ const addColumn = async (ev) => {
 	addColumnToStore({
 		type: column,
 		id: uuid(),
-		name: i18n.t('_deck._columns.' + column),
+		name: i18n.ts._deck._columns[column],
 		width: 330,
 	});
 };
@@ -222,42 +220,41 @@ document.documentElement.style.scrollBehavior = 'auto';
 loadDeck();
 
 function changeProfile(ev: MouseEvent) {
-	const items = ref([{
+	let items: MenuItem[] = [{
 		text: deckStore.state.profile,
-		active: true.valueOf,
-	}]);
+		active: true,
+		action: () => {},
+	}];
 	getProfiles().then(profiles => {
-		items.value = [{
-			text: deckStore.state.profile,
-			active: true.valueOf,
-		}, ...(profiles.filter(k => k !== deckStore.state.profile).map(k => ({
+		items.push(...(profiles.filter(k => k !== deckStore.state.profile).map(k => ({
 			text: k,
 			action: () => {
 				deckStore.set('profile', k);
 				unisonReload();
 			},
-		}))), { type: 'divider' }, {
+		}))), { type: 'divider' as const }, {
 			text: i18n.ts._deck.newProfile,
 			icon: 'ti ti-plus',
 			action: async () => {
 				const { canceled, result: name } = await os.inputText({
 					title: i18n.ts._deck.profile,
-					allowEmpty: false,
+					minLength: 1,
 				});
 				if (canceled) return;
 
 				deckStore.set('profile', name);
 				unisonReload();
 			},
-		}];
+		});
+	}).then(() => {
+		os.popupMenu(items, ev.currentTarget ?? ev.target);
 	});
-	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
 async function deleteProfile() {
 	const { canceled } = await os.confirm({
 		type: 'warning',
-		text: i18n.t('deleteAreYouSure', { x: deckStore.state.profile }),
+		text: i18n.tsx.deleteAreYouSure({ x: deckStore.state.profile }),
 	});
 	if (canceled) return;
 
@@ -489,7 +486,7 @@ body {
 	left: 0;
 	color: var(--indicator);
 	font-size: 16px;
-	animation: blink 1s infinite;
+	animation: global-blink 1s infinite;
 
 	&:has(.itemIndicateValueIcon) {
 		animation: none;

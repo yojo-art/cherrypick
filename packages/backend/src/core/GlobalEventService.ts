@@ -1,10 +1,11 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
+import * as Reversi from 'misskey-reversi';
 import type { MiChannel } from '@/models/Channel.js';
 import type { MiUser } from '@/models/User.js';
 import type { MiUserProfile } from '@/models/UserProfile.js';
@@ -19,8 +20,9 @@ import type { MiAbuseUserReport } from '@/models/AbuseUserReport.js';
 import type { MiSignin } from '@/models/Signin.js';
 import type { MiPage } from '@/models/Page.js';
 import type { MiWebhook } from '@/models/Webhook.js';
+import type { MiSystemWebhook } from '@/models/SystemWebhook.js';
 import type { MiMeta } from '@/models/Meta.js';
-import { MiAvatarDecoration, MiRole, MiRoleAssignment } from '@/models/_.js';
+import { MiAvatarDecoration, MiReversiGame, MiRole, MiRoleAssignment } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -55,21 +57,22 @@ export interface MainEventTypes {
 	reply: Packed<'Note'>;
 	renote: Packed<'Note'>;
 	follow: Packed<'UserDetailedNotMe'>;
-	followed: Packed<'User'>;
-	unfollow: Packed<'User'>;
-	meUpdated: Packed<'User'>;
+	followed: Packed<'UserLite'>;
+	unfollow: Packed<'UserDetailedNotMe'>;
+	meUpdated: Packed<'MeDetailed'>;
 	pageEvent: {
 		pageId: MiPage['id'];
 		event: string;
 		var: any;
 		userId: MiUser['id'];
-		user: Packed<'User'>;
+		user: Packed<'UserDetailed'>;
 	};
 	urlUploadFinished: {
 		marker?: string | null;
 		file: Packed<'DriveFile'>;
 	};
 	readAllNotifications: undefined;
+	notificationFlushed: undefined;
 	unreadNotification: Packed<'Notification'>;
 	unreadMention: MiNote['id'];
 	readAllUnreadMentions: undefined;
@@ -96,7 +99,7 @@ export interface MainEventTypes {
 	};
 	driveFileCreated: Packed<'DriveFile'>;
 	readAntenna: MiAntenna;
-	receiveFollowRequest: Packed<'User'>;
+	receiveFollowRequest: Packed<'UserLite'>;
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
 	};
@@ -148,8 +151,8 @@ export interface ChannelEventTypes {
 }
 
 export interface UserListEventTypes {
-	userAdded: Packed<'User'>;
-	userRemoved: Packed<'User'>;
+	userAdded: Packed<'UserLite'>;
+	userRemoved: Packed<'UserLite'>;
 }
 
 export interface AntennaEventTypes {
@@ -190,6 +193,38 @@ export interface AdminEventTypes {
 		comment: string;
 	};
 }
+
+export interface ReversiEventTypes {
+	matched: {
+		game: Packed<'ReversiGameDetailed'>;
+	};
+	invited: {
+		user: Packed<'User'>;
+	};
+}
+
+export interface ReversiGameEventTypes {
+	changeReadyStates: {
+		user1: boolean;
+		user2: boolean;
+	};
+	updateSettings: {
+		userId: MiUser['id'];
+		key: string;
+		value: any;
+	};
+	log: Reversi.Serializer.Log & { id: string | null };
+	started: {
+		game: Packed<'ReversiGameDetailed'>;
+	};
+	ended: {
+		winnerId: MiUser['id'] | null;
+		game: Packed<'ReversiGameDetailed'>;
+	};
+	canceled: {
+		userId: MiUser['id'];
+	};
+}
 //#endregion
 
 // 辞書(interface or type)から{ type, body }ユニオンを定義
@@ -207,8 +242,10 @@ type SerializedAll<T> = {
 
 export interface InternalEventTypes {
 	userChangeSuspendedState: { id: MiUser['id']; isSuspended: MiUser['isSuspended']; };
+	userChangeDeletedState: { id: MiUser['id']; isDeleted: MiUser['isDeleted']; };
 	userTokenRegenerated: { id: MiUser['id']; oldToken: string; newToken: string; };
 	remoteUserUpdated: { id: MiUser['id']; };
+	localUserUpdated: { id: MiUser['id']; };
 	follow: { followerId: MiUser['id']; followeeId: MiUser['id']; };
 	unfollow: { followerId: MiUser['id']; followeeId: MiUser['id']; };
 	blockingCreated: { blockerId: MiUser['id']; blockeeId: MiUser['id']; };
@@ -222,6 +259,9 @@ export interface InternalEventTypes {
 	webhookCreated: MiWebhook;
 	webhookDeleted: MiWebhook;
 	webhookUpdated: MiWebhook;
+	systemWebhookCreated: MiSystemWebhook;
+	systemWebhookDeleted: MiSystemWebhook;
+	systemWebhookUpdated: MiSystemWebhook;
 	antennaCreated: MiAntenna;
 	antennaDeleted: MiAntenna;
 	antennaUpdated: MiAntenna;
@@ -295,6 +335,14 @@ export type GlobalEvents = {
 	notes: {
 		name: 'notesStream';
 		payload: Serialized<Packed<'Note'>>;
+	};
+	reversi: {
+		name: `reversiStream:${MiUser['id']}`;
+		payload: EventUnionFromDictionary<SerializedAll<ReversiEventTypes>>;
+	};
+	reversiGame: {
+		name: `reversiGameStream:${MiReversiGame['id']}`;
+		payload: EventUnionFromDictionary<SerializedAll<ReversiGameEventTypes>>;
 	};
 };
 
@@ -399,5 +447,15 @@ export class GlobalEventService {
 	@bindThis
 	public publishAdminStream<K extends keyof AdminEventTypes>(userId: MiUser['id'], type: K, value?: AdminEventTypes[K]): void {
 		this.publish(`adminStream:${userId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishReversiStream<K extends keyof ReversiEventTypes>(userId: MiUser['id'], type: K, value?: ReversiEventTypes[K]): void {
+		this.publish(`reversiStream:${userId}`, type, typeof value === 'undefined' ? null : value);
+	}
+
+	@bindThis
+	public publishReversiGameStream<K extends keyof ReversiGameEventTypes>(gameId: MiReversiGame['id'], type: K, value?: ReversiGameEventTypes[K]): void {
+		this.publish(`reversiGameStream:${gameId}`, type, typeof value === 'undefined' ? null : value);
 	}
 }

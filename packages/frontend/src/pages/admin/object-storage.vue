@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -164,6 +164,7 @@ import MkInput from '@/components/MkInput.vue';
 import FormSuspense from '@/components/form/suspense.vue';
 import FormSplit from '@/components/form/split.vue';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 import { fetchInstance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
@@ -198,7 +199,7 @@ const objectStorageRemoteSetPublicRead = ref<boolean>(false);
 const objectStorageRemoteS3ForcePathStyle = ref<boolean>(true);
 
 async function init() {
-	const meta = await os.api('admin/meta');
+	const meta = await misskeyApi('admin/meta');
 	useObjectStorage.value = meta.useObjectStorage;
 	objectStorageBaseUrl.value = meta.objectStorageBaseUrl;
 	objectStorageBucket.value = meta.objectStorageBucket;
@@ -258,16 +259,16 @@ function save() {
 		objectStorageRemoteSetPublicRead: objectStorageRemoteSetPublicRead.value,
 		objectStorageRemoteS3ForcePathStyle: objectStorageRemoteS3ForcePathStyle.value,
 	}).then(() => {
-		fetchInstance();
+		fetchInstance(true);
 	});
 }
 
 const headerTabs = computed(() => []);
 
-definePageMetadata({
+definePageMetadata(() => ({
 	title: i18n.ts.objectStorage,
 	icon: 'ti ti-cloud',
-});
+}));
 </script>
 
 <style lang="scss" module>

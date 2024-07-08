@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -31,15 +31,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div v-if="user && user.securityKeys" class="or-hr">
 				<p class="or-msg">{{ i18n.ts.or }}</p>
 			</div>
-			<div class="twofa-group totp-group">
-				<p style="margin-bottom:0;">{{ i18n.ts['2fa'] }}</p>
+			<div class="twofa-group totp-group _gaps">
 				<MkInput v-if="user && user.usePasswordLessLogin" v-model="password" type="password" autocomplete="current-password" :withPasswordToggle="true" required>
 					<template #label>{{ i18n.ts.password }}</template>
 					<template #prefix><i class="ti ti-lock"></i></template>
 				</MkInput>
-				<MkInput v-model="token" type="text" pattern="^([0-9]{6}|[A-Z0-9]{32})$" autocomplete="one-time-code" :spellcheck="false" required>
-					<template #label>{{ i18n.ts.token }}</template>
-					<template #prefix><i class="ti ti-123"></i></template>
+				<MkInput v-model="token" type="text" :pattern="isBackupCode ? '^[A-Z0-9]{32}$' :'^[0-9]{6}$'" autocomplete="one-time-code" required :spellcheck="false" :inputmode="isBackupCode ? undefined : 'numeric'">
+					<template #label>{{ i18n.ts.token }} ({{ i18n.ts['2fa'] }})</template>
+					<template #prefix><i v-if="isBackupCode" class="ti ti-key"></i><i v-else class="ti ti-123"></i></template>
+					<template #caption><button class="_textButton" type="button" @click="isBackupCode = !isBackupCode">{{ isBackupCode ? i18n.ts.useTotp : i18n.ts.useBackupCode }}</button></template>
 				</MkInput>
 				<MkButton type="submit" :disabled="signing" large primary rounded style="margin: 0 auto;">{{ signing ? i18n.ts.loggingIn : i18n.ts.login }}</MkButton>
 			</div>
@@ -59,6 +59,7 @@ import MkInput from '@/components/MkInput.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import { host as configHost } from '@/config.js';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 import { login } from '@/account.js';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
@@ -72,6 +73,7 @@ const password = ref('');
 const token = ref('');
 const host = ref(toUnicode(configHost));
 const totpLogin = ref(false);
+const isBackupCode = ref(false);
 const queryingKey = ref(false);
 const credentialRequest = ref<CredentialRequestOptions | null>(null);
 
@@ -98,7 +100,7 @@ const props = defineProps({
 });
 
 function onUsernameChange(): void {
-	os.api('users/show', {
+	misskeyApi('users/show', {
 		username: username.value,
 	}).then(userResponse => {
 		user.value = userResponse;
@@ -114,6 +116,7 @@ function onLogin(res: any): Promise<void> | void {
 }
 
 async function queryKey(): Promise<void> {
+	if (credentialRequest.value == null) return;
 	queryingKey.value = true;
 	await webAuthnRequest(credentialRequest.value)
 		.catch(() => {
@@ -123,7 +126,7 @@ async function queryKey(): Promise<void> {
 			credentialRequest.value = null;
 			queryingKey.value = false;
 			signing.value = true;
-			return os.api('signin', {
+			return misskeyApi('signin', {
 				username: username.value,
 				password: password.value,
 				credential: credential.toJSON(),
@@ -145,7 +148,7 @@ function onSubmit(): void {
 	signing.value = true;
 	if (!totpLogin.value && user.value && user.value.twoFactorEnabled) {
 		if (webAuthnSupported() && user.value.securityKeys) {
-			os.api('signin', {
+			misskeyApi('signin', {
 				username: username.value,
 				password: password.value,
 			}).then(res => {
@@ -162,7 +165,7 @@ function onSubmit(): void {
 			signing.value = false;
 		}
 	} else {
-		os.api('signin', {
+		misskeyApi('signin', {
 			username: username.value,
 			password: password.value,
 			token: user.value?.twoFactorEnabled ? token.value : undefined,

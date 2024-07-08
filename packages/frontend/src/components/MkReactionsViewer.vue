@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -100,6 +100,9 @@ watch([() => props.note.reactions, () => props.maxNumber], ([newSource, maxNumbe
 }
 
 .root {
+	display: flex;
+	flex-wrap: wrap;
+	align-items: center;
 	margin: 10px -2px 10px -2px;
 
 	&:empty {

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -15,6 +15,7 @@ import { ApiError } from '@/server/api/error.js';
 import { UserAuthService } from '@/core/UserAuthService.js';
 
 export const meta = {
+	tags: ['account', '2fa'],
 	requireCredential: true,
 
 	secure: true,
@@ -96,10 +97,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			const keyInfo = await this.webAuthnService.verifyRegistration(me.id, ps.credential);
+			const keyId = keyInfo.credentialID;
 
-			const credentialId = Buffer.from(keyInfo.credentialID).toString('base64url');
 			await this.userSecurityKeysRepository.insert({
-				id: credentialId,
+				id: keyId,
 				userId: me.id,
 				name: ps.name,
 				publicKey: Buffer.from(keyInfo.credentialPublicKey).toString('base64url'),
@@ -111,12 +112,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 			// Publish meUpdated event
 			this.globalEventService.publishMainStream(me.id, 'meUpdated', await this.userEntityService.pack(me.id, me, {
-				detail: true,
+				schema: 'MeDetailed',
 				includeSecrets: true,
 			}));
 
 			return {
-				id: credentialId,
+				id: keyId,
 				name: ps.name,
 			};
 		});

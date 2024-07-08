@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -11,6 +11,7 @@ import { ApiError } from '@/server/api/error.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['lists', 'account'],
 	requireCredential: true,
 	kind: 'write:account',
 	errors: {
@@ -47,7 +48,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const userListExist = await this.userListsRepository.exist({
+			const userListExist = await this.userListsRepository.exists({
 				where: {
 					id: ps.listId,
 					isPublic: true,
@@ -58,7 +59,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.noSuchList);
 			}
 
-			const exist = await this.userListFavoritesRepository.exist({
+			const exist = await this.userListFavoritesRepository.exists({
 				where: {
 					userId: me.id,
 					userListId: ps.listId,

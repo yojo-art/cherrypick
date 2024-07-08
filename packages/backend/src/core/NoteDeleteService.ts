@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -23,8 +23,9 @@ import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { MetaService } from '@/core/MetaService.js';
 import { SearchService } from '@/core/SearchService.js';
+import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
-import { isPureRenote } from '@/misc/is-pure-renote.js';
+import { isQuote, isRenote } from '@/misc/is-renote.js';
 
 @Injectable()
 export class NoteDeleteService {
@@ -50,6 +51,7 @@ export class NoteDeleteService {
 		private apDeliverManagerService: ApDeliverManagerService,
 		private metaService: MetaService,
 		private searchService: SearchService,
+		private advancedSearchService: AdvancedSearchService,
 		private moderationLogService: ModerationLogService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
@@ -63,7 +65,7 @@ export class NoteDeleteService {
 	 */
 	async delete(user: { id: MiUser['id']; uri: MiUser['uri']; host: MiUser['host']; isBot: MiUser['isBot']; }, note: MiNote, quiet = false, deleter?: MiUser) {
 		const deletedAt = new Date();
-		const cascadingNotes = await this.findCascadingNotes(note);
+		// const cascadingNotes = await this.findCascadingNotes(note);
 
 		if (note.replyId) {
 			await this.notesRepository.decrement({ id: note.replyId }, 'repliesCount', 1);
@@ -79,7 +81,7 @@ export class NoteDeleteService {
 				let renote: MiNote | null = null;
 
 				// if deleted note is renote
-				if (isPureRenote(note)) {
+				if (isRenote(note) && !isQuote(note)) {
 					renote = await this.notesRepository.findOneBy({
 						id: note.renoteId,
 					});
@@ -92,6 +94,7 @@ export class NoteDeleteService {
 				this.deliverToConcerned(user, note, content);
 			}
 
+			/*
 			// also deliever delete activity to cascaded notes
 			const federatedLocalCascadingNotes = (cascadingNotes).filter(note => !note.localOnly && note.userHost == null); // filter out local-only notes
 			for (const cascadingNote of federatedLocalCascadingNotes) {
@@ -100,6 +103,7 @@ export class NoteDeleteService {
 				const content = this.apRendererService.addContext(this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/notes/${cascadingNote.id}`), cascadingNote.user));
 				this.deliverToConcerned(cascadingNote.user, cascadingNote, content);
 			}
+			 */
 			//#endregion
 
 			const meta = await this.metaService.fetch();
@@ -119,10 +123,14 @@ export class NoteDeleteService {
 			}
 		}
 
+		/*
 		for (const cascadingNote of cascadingNotes) {
 			this.searchService.unindexNote(cascadingNote);
+			this.advancedSearchService.unindexNote(cascadingNote);
 		}
+		 */
 		this.searchService.unindexNote(note);
+		this.advancedSearchService.unindexNote(note);
 
 		await this.notesRepository.delete({
 			id: note.id,
@@ -141,6 +149,7 @@ export class NoteDeleteService {
 		}
 	}
 
+	/*
 	@bindThis
 	private async findCascadingNotes(note: MiNote): Promise<MiNote[]> {
 		const recursive = async (noteId: string): Promise<MiNote[]> => {
@@ -163,6 +172,7 @@ export class NoteDeleteService {
 
 		return cascadingNotes;
 	}
+	 */
 
 	@bindThis
 	private async getMentionedRemoteUsers(note: MiNote) {

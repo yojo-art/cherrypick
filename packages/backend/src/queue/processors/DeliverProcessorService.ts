@@ -1,10 +1,11 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as Bull from 'bullmq';
+import { Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { InstancesRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
@@ -62,7 +63,7 @@ export class DeliverProcessorService {
 		if (suspendedHosts == null) {
 			suspendedHosts = await this.instancesRepository.find({
 				where: {
-					isSuspended: true,
+					suspensionState: Not('none'),
 				},
 			});
 			this.suspendedHostsCache.set(suspendedHosts);
@@ -72,13 +73,14 @@ export class DeliverProcessorService {
 		}
 
 		try {
-			await this.apRequestService.signedPost(job.data.user, job.data.to, job.data.content);
+			await this.apRequestService.signedPost(job.data.user, job.data.to, job.data.content, job.data.digest);
 
 			// Update stats
 			this.federatedInstanceService.fetch(host).then(i => {
 				if (i.isNotResponding) {
 					this.federatedInstanceService.update(i.id, {
 						isNotResponding: false,
+						notRespondingSince: null,
 					});
 				}
 
@@ -98,7 +100,15 @@ export class DeliverProcessorService {
 				if (!i.isNotResponding) {
 					this.federatedInstanceService.update(i.id, {
 						isNotResponding: true,
+						notRespondingSince: new Date(),
 					});
+				} else if (i.notRespondingSince) {
+					// 1週間以上不通ならサスペンド
+					if (i.suspensionState === 'none' && i.notRespondingSince.getTime() <= Date.now() - 1000 * 60 * 60 * 24 * 7) {
+						this.federatedInstanceService.update(i.id, {
+							suspensionState: 'autoSuspendedForNotResponding',
+						});
+					}
 				}
 
 				this.apRequestChart.deliverFail();
@@ -111,12 +121,12 @@ export class DeliverProcessorService {
 
 			if (res instanceof StatusError) {
 				// 4xx
-				if (res.isClientError) {
+				if (!res.isRetryable) {
 					// 相手が閉鎖していることを明示しているため、配送停止する
 					if (job.data.isSharedInbox && res.statusCode === 410) {
 						this.federatedInstanceService.fetch(host).then(i => {
 							this.federatedInstanceService.update(i.id, {
-								isSuspended: true,
+								suspensionState: 'goneSuspended',
 							});
 						});
 						throw new Bull.UnrecoverableError(`${host} is gone`);

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -11,6 +11,7 @@ import { SigninEntityService } from '@/core/entities/SigninEntityService.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 	secure: true,
 

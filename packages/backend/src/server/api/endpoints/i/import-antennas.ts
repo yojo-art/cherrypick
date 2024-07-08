@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -14,6 +14,7 @@ import { DownloadService } from '@/core/DownloadService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
+	tags: ['account'],
 	secure: true,
 	requireCredential: true,
 	prohibitMoved: true,
@@ -71,7 +72,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private downloadService: DownloadService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const userExist = await this.usersRepository.exist({ where: { id: me.id } });
+			const userExist = await this.usersRepository.exists({ where: { id: me.id } });
 			if (!userExist) throw new ApiError(meta.errors.noSuchUser);
 			const file = await this.driveFilesRepository.findOneBy({ id: ps.fileId });
 			if (file === null) throw new ApiError(meta.errors.noSuchFile);

@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -37,6 +37,7 @@ import * as Misskey from 'cherrypick-js';
 import MkButton from '@/components/MkButton.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { postMessageToParentWindow } from '@/scripts/post-message.js';
 import { i18n } from '@/i18n.js';
@@ -55,7 +56,7 @@ const renote = ref<Misskey.entities.Note | undefined>();
 const visibility = ref(Misskey.noteVisibilities.includes(visibilityQuery) ? visibilityQuery : undefined);
 const localOnly = ref(localOnlyQuery === '0' ? false : localOnlyQuery === '1' ? true : undefined);
 const files = ref([] as Misskey.entities.DriveFile[]);
-const visibleUsers = ref([] as Misskey.entities.User[]);
+const visibleUsers = ref([] as Misskey.entities.UserDetailed[]);
 
 async function init() {
 	let noteText = '';
@@ -63,7 +64,34 @@ async function init() {
 	// Googleニュース対策
 	if (text?.startsWith(`${title.value}.\n`)) noteText += text.replace(`${title.value}.\n`, '');
 	else if (text && title.value !== text) noteText += `${text}\n`;
-	if (url) noteText += `${url}`;
+	if (url) {
+		try {
+			// Normalize the URL to URL-encoded and puny-coded from with the URL constructor.
+			//
+			// It's common to use unicode characters in the URL for better visibility of URL
+			//     like: https://ja.wikipedia.org/wiki/ミスキー
+			//  or like: https://藍.moe/
+			// However, in the MFM, the unicode characters must be URL-encoded to be parsed as `url` node
+			//     like: https://ja.wikipedia.org/wiki/%E3%83%9F%E3%82%B9%E3%82%AD%E3%83%BC
+			//  or like: https://xn--931a.moe/
+			// Therefore, we need to normalize the URL to URL-encoded form.
+			//
+			// The URL constructor will parse the URL and normalize unicode characters
+			//   in the host to punycode and in the path component to URL-encoded form.
+			//   (see url.spec.whatwg.org)
+			//
+			// In addition, the current MFM renderer decodes the URL-encoded path and / punycode encoded host name so
+			//   this normalization doesn't make the visible URL ugly.
+			//   (see MkUrl.vue)
+
+			noteText += new URL(url).href;
+		} catch {
+			// fallback to original URL if the URL is invalid.
+			// note that this is extremely rare since the `url` parameter is designed to share a URL and
+			// the URL constructor will throw TypeError only if failure, which means the URL is not valid.
+			noteText += url;
+		}
+	}
 	initialText.value = noteText.trim();
 
 	if (visibility.value === 'specified') {
@@ -76,7 +104,7 @@ async function init() {
 			]
 			// TypeScriptの指示通りに変換する
 				.map(q => 'username' in q ? { username: q.username, host: q.host === null ? undefined : q.host } : q)
-				.map(q => os.api('users/show', q)
+				.map(q => misskeyApi('users/show', q)
 					.then(user => {
 						visibleUsers.value.push(user);
 					}, () => {
@@ -91,11 +119,11 @@ async function init() {
 		const replyId = urlParams.get('replyId');
 		const replyUri = urlParams.get('replyUri');
 		if (replyId) {
-			reply.value = await os.api('notes/show', {
+			reply.value = await misskeyApi('notes/show', {
 				noteId: replyId,
 			});
 		} else if (replyUri) {
-			const obj = await os.api('ap/show', {
+			const obj = await misskeyApi('ap/show', {
 				uri: replyUri,
 			});
 			if (obj.type === 'Note') {
@@ -108,11 +136,11 @@ async function init() {
 		const renoteId = urlParams.get('renoteId');
 		const renoteUri = urlParams.get('renoteUri');
 		if (renoteId) {
-			renote.value = await os.api('notes/show', {
+			renote.value = await misskeyApi('notes/show', {
 				noteId: renoteId,
 			});
 		} else if (renoteUri) {
-			const obj = await os.api('ap/show', {
+			const obj = await misskeyApi('ap/show', {
 				uri: renoteUri,
 			});
 			if (obj.type === 'Note') {
@@ -126,7 +154,7 @@ async function init() {
 		if (fileIds) {
 			await Promise.all(
 				fileIds.split(',')
-					.map(fileId => os.api('drive/files/show', { fileId })
+					.map(fileId => misskeyApi('drive/files/show', { fileId })
 						.then(file => {
 							files.value.push(file);
 						}, () => {
@@ -171,8 +199,8 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata({
+definePageMetadata(() => ({
 	title: i18n.ts.share,
 	icon: 'ti ti-share',
-});
+}));
 </script>

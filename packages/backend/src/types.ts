@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -14,8 +14,8 @@
  * pollEnded - 自分のアンケートもしくは自分が投票したアンケートが終了した
  * receiveFollowRequest - フォローリクエストされた
  * followRequestAccepted - 自分の送ったフォローリクエストが承認された
- * roleAssigned - ロールが付与された
  * groupInvited - グループに招待された
+ * roleAssigned - ロールが付与された
  * achievementEarned - 実績を獲得
  * app - アプリ通知
  * test - テスト通知（サーバー側）
@@ -31,11 +31,19 @@ export const notificationTypes = [
 	'pollEnded',
 	'receiveFollowRequest',
 	'followRequestAccepted',
-	'roleAssigned',
 	'groupInvited',
+	'roleAssigned',
 	'achievementEarned',
 	'app',
-	'test'] as const;
+	'test',
+] as const;
+
+export const groupedNotificationTypes = [
+	...notificationTypes,
+	'reaction:grouped',
+	'renote:grouped',
+] as const;
+
 export const obsoleteNotificationTypes = ['pollVote'/*, 'groupInvited'*/] as const;
 
 export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as const;
@@ -71,6 +79,7 @@ export const moderationLogTypes = [
 	'resetPassword',
 	'suspendRemoteInstance',
 	'unsuspendRemoteInstance',
+	'updateRemoteInstanceNote',
 	'markSensitiveDriveFile',
 	'unmarkSensitiveDriveFile',
 	'resolveAbuseReport',
@@ -83,6 +92,13 @@ export const moderationLogTypes = [
 	'deleteAvatarDecoration',
 	'unsetUserAvatar',
 	'unsetUserBanner',
+	'createSystemWebhook',
+	'updateSystemWebhook',
+	'deleteSystemWebhook',
+	'createAbuseReportNotificationRecipient',
+	'updateAbuseReportNotificationRecipient',
+	'deleteAbuseReportNotificationRecipient',
+	'updateOfficialTags',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -211,6 +227,12 @@ export type ModerationLogPayloads = {
 		id: string;
 		host: string;
 	};
+	updateRemoteInstanceNote: {
+		id: string;
+		host: string;
+		before: string | null;
+		after: string | null;
+	};
 	markSensitiveDriveFile: {
 		fileId: string;
 		fileUserId: string | null;
@@ -269,6 +291,41 @@ export type ModerationLogPayloads = {
 		userHost: string | null;
 		fileId: string;
 	};
+	createSystemWebhook: {
+		systemWebhookId: string;
+		webhook: any;
+	};
+	updateSystemWebhook: {
+		systemWebhookId: string;
+		before: any;
+		after: any;
+	};
+	deleteSystemWebhook: {
+		systemWebhookId: string;
+		webhook: any;
+	};
+	createAbuseReportNotificationRecipient: {
+		recipientId: string;
+		recipient: any;
+	};
+	updateAbuseReportNotificationRecipient: {
+		recipientId: string;
+		before: any;
+		after: any;
+	};
+	deleteAbuseReportNotificationRecipient: {
+		recipientId: string;
+		recipient: any;
+	};
+	updateOfficialTags: {
+		insert_data: {
+			id: string;
+			tag: string;
+			description: string | null;
+			bannerUrl: string | null;
+			priority: number,
+		}[];
+	};
 };
 
 export type Serialized<T> = {
@@ -279,7 +336,11 @@ export type Serialized<T> = {
 				? (string | null)
 				: T[K] extends Record<string, any>
 					? Serialized<T[K]>
-					: T[K];
+					: T[K] extends (Record<string, any> | null)
+					? (Serialized<T[K]> | null)
+						: T[K] extends (Record<string, any> | undefined)
+						? (Serialized<T[K]> | undefined)
+							: T[K];
 };
 
 export type FilterUnionByProperty<

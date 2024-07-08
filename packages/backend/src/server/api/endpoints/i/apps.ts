@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -10,6 +10,7 @@ import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,
@@ -21,21 +22,26 @@ export const meta = {
 			properties: {
 				id: {
 					type: 'string',
+					optional: false,
 					format: 'misskey:id',
 				},
 				name: {
 					type: 'string',
+					optional: true,
 				},
 				createdAt: {
 					type: 'string',
+					optional: false,
 					format: 'date-time',
 				},
 				lastUsedAt: {
 					type: 'string',
+					optional: true,
 					format: 'date-time',
 				},
 				permission: {
 					type: 'array',
+					optional: false,
 					uniqueItems: true,
 					items: {
 						type: 'string',

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -89,7 +89,12 @@ export function openInstanceMenu(ev: MouseEvent) {
 		text: i18n.ts.tools,
 		icon: 'ti ti-tool',
 		children: toolsMenuItems(),
-	}, { type: 'divider' }, (instance.impressumUrl) ? {
+	}, { type: 'divider' }, {
+		type: 'link',
+		text: i18n.ts.inquiry,
+		icon: 'ti ti-help-circle',
+		to: '/contact',
+	}, (instance.impressumUrl) ? {
 		text: i18n.ts.impressum,
 		icon: 'ti ti-file-invoice',
 		action: () => {
@@ -107,13 +112,19 @@ export function openInstanceMenu(ev: MouseEvent) {
 		action: () => {
 			window.open(instance.privacyPolicyUrl, '_blank', 'noopener');
 		},
-	} : undefined, (!instance.impressumUrl && !instance.tosUrl && !instance.privacyPolicyUrl) ? undefined : { type: 'divider' }, {
+	} : undefined, (instance.statusUrl) ? {
+		text: i18n.ts.statusUrl,
+		icon: 'ti ti-activity',
+		action: () => {
+			window.open(instance.statusUrl, '_blank', 'noopener');
+		},
+	} : undefined, (!instance.impressumUrl && !instance.tosUrl && !instance.privacyPolicyUrl && !instance.statusUrl) ? undefined : { type: 'divider' }, {
 		type: 'parent',
-		text: i18n.ts.help,
-		icon: 'ti ti-help-circle',
+		text: i18n.ts.document,
+		icon: 'ti ti-bulb',
 		children: [{
-			text: i18n.ts.help,
-			icon: 'ti ti-help-circle',
+			text: i18n.ts.document,
+			icon: 'ti ti-bulb',
 			action: () => {
 				window.open('https://misskey-hub.net/docs/for-users/', '_blank', 'noopener');
 			},

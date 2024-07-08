@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -110,6 +110,18 @@ export class DriveFileEntityService {
 
 	@bindThis
 	public getPublicUrl(file: MiDriveFile, mode?: 'avatar', ap?: boolean): string { // static = thumbnail
+		// PublicUrlにはexternalMediaProxyEnabledでもremoteProxyを使う
+		// https://github.com/yojo-art/cherrypick/issues/84
+		if (file.uri != null && file.userHost != null && mode !== 'avatar' && this.config.remoteProxy != null) {
+			//下のローカルプロキシからコピペで持ってきた
+			const key = file.webpublicAccessKey;
+			if (key && !key.match('/')) {	// 古いものはここにオブジェクトストレージキーが入ってるので除外
+				if (this.config.remoteProxy.startsWith('/')) {
+					return `${this.config.url}${this.config.remoteProxy}/${key}`;
+				}
+				return `${this.config.remoteProxy}/${key}`;
+			}
+		}
 		// リモートかつメディアプロキシ
 		if (file.uri != null && file.userHost != null && this.config.externalMediaProxyEnabled) {
 			return this.getProxiedUrl(file.uri, mode);
@@ -232,6 +244,9 @@ export class DriveFileEntityService {
 	public async packNullable(
 		src: MiDriveFile['id'] | MiDriveFile,
 		options?: PackOptions,
+		hint?: {
+			packedUser?: Packed<'UserLite'>
+		},
 	): Promise<Packed<'DriveFile'> | null> {
 		const opts = Object.assign({
 			detail: false,
@@ -258,8 +273,8 @@ export class DriveFileEntityService {
 			folder: opts.detail && file.folderId ? this.driveFolderEntityService.pack(file.folderId, {
 				detail: true,
 			}) : null,
-			userId: opts.withUser ? file.userId : null,
-			user: (opts.withUser && file.userId) ? this.userEntityService.pack(file.userId) : null,
+			userId: file.userId,
+			user: (opts.withUser && file.userId) ? hint?.packedUser ?? this.userEntityService.pack(file.userId) : null,
 		});
 	}
 
@@ -268,8 +283,11 @@ export class DriveFileEntityService {
 		files: MiDriveFile[],
 		options?: PackOptions,
 	): Promise<Packed<'DriveFile'>[]> {
-		const items = await Promise.all(files.map(f => this.packNullable(f, options)));
-		return items.filter((x): x is Packed<'DriveFile'> => x != null);
+		const _user = files.map(({ user, userId }) => user ?? userId).filter(isNotNull);
+		const _userMap = await this.userEntityService.packMany(_user)
+			.then(users => new Map(users.map(user => [user.id, user])));
+		const items = await Promise.all(files.map(f => this.packNullable(f, options, f.userId ? { packedUser: _userMap.get(f.userId) } : {})));
+		return items.filter(isNotNull);
 	}
 
 	@bindThis

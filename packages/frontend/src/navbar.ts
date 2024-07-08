@@ -1,9 +1,9 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { computed, defineAsyncComponent, reactive } from 'vue';
+import { computed, reactive } from 'vue';
 import { clearCache } from './scripts/clear-cache.js';
 import { $i } from '@/account.js';
 import { miLocalStorage } from '@/local-storage.js';
@@ -120,16 +120,21 @@ export const navbarItemDef = reactive({
 		show: computed(() => $i != null),
 		to: '/my/clips',
 	},
-	channels: {
-		title: i18n.ts.channel,
-		icon: 'ti ti-device-tv',
-		to: '/channels',
-	},
 	achievements: {
 		title: i18n.ts.achievements,
 		icon: 'ti ti-medal',
 		show: computed(() => $i != null),
 		to: '/my/achievements',
+	},
+	games: {
+		title: 'CherryPick Games',
+		icon: 'ti ti-device-gamepad',
+		to: '/games',
+	},
+	official_tags: {
+		title: i18n.ts._official_tag.navbar,
+		icon: 'ti ti-bookmarks',
+		to: '/official-tags',
 	},
 	ui: {
 		title: i18n.ts.switchUi,

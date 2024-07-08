@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -7,6 +7,7 @@ export const DI = {
 	config: Symbol('config'),
 	db: Symbol('db'),
 	meilisearch: Symbol('meilisearch'),
+	opensearch: Symbol('opensearch'),
 	cloudLogging: Symbol('cloudLogging'),
 	redis: Symbol('redis'),
 	redisForPub: Symbol('redisForPub'),
@@ -56,6 +57,7 @@ export const DI = {
 	swSubscriptionsRepository: Symbol('swSubscriptionsRepository'),
 	hashtagsRepository: Symbol('hashtagsRepository'),
 	abuseUserReportsRepository: Symbol('abuseUserReportsRepository'),
+	abuseReportNotificationRecipientRepository: Symbol('abuseReportNotificationRecipientRepository'),
 	registrationTicketsRepository: Symbol('registrationTicketsRepository'),
 	authSessionsRepository: Symbol('authSessionsRepository'),
 	accessTokensRepository: Symbol('accessTokensRepository'),
@@ -78,6 +80,7 @@ export const DI = {
 	channelFavoritesRepository: Symbol('channelFavoritesRepository'),
 	registryItemsRepository: Symbol('registryItemsRepository'),
 	webhooksRepository: Symbol('webhooksRepository'),
+	systemWebhooksRepository: Symbol('systemWebhooksRepository'),
 	adsRepository: Symbol('adsRepository'),
 	passwordResetRequestsRepository: Symbol('passwordResetRequestsRepository'),
 	retentionAggregationsRepository: Symbol('retentionAggregationsRepository'),
@@ -86,5 +89,8 @@ export const DI = {
 	flashsRepository: Symbol('flashsRepository'),
 	flashLikesRepository: Symbol('flashLikesRepository'),
 	userMemosRepository: Symbol('userMemosRepository'),
+	bubbleGameRecordsRepository: Symbol('bubbleGameRecordsRepository'),
+	reversiGamesRepository: Symbol('reversiGamesRepository'),
+	officialTagRepository: Symbol('officialTagRepository'),
 	//#endregion
 };

@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -11,6 +11,7 @@ import { AppEntityService } from '@/core/entities/AppEntityService.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['account'],
 	requireCredential: true,
 
 	secure: true,
@@ -23,16 +24,19 @@ export const meta = {
 				id: {
 					type: 'string',
 					format: 'misskey:id',
+					optional: false,
 				},
 				name: {
 					type: 'string',
+					optional: false,
 				},
 				callbackUrl: {
 					type: 'string',
-					nullable: true,
+					optional: false, nullable: true,
 				},
 				permission: {
 					type: 'array',
+					optional: false,
 					uniqueItems: true,
 					items: {
 						type: 'string',
@@ -40,6 +44,7 @@ export const meta = {
 				},
 				isAuthorized: {
 					type: 'boolean',
+					optional: true,
 				},
 			},
 		},

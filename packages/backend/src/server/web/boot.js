@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -91,8 +91,8 @@
 	//#endregion
 
 	//#region Script
-	function importAppScript() {
-		import(`/vite/${CLIENT_ENTRY}`)
+	async function importAppScript() {
+		await import(`/vite/${CLIENT_ENTRY}`)
 			.catch(async e => {
 				console.error(e);
 				renderError('APP_IMPORT', e);

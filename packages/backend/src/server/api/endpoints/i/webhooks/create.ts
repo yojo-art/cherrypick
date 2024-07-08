@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -89,14 +89,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.tooManyWebhooks);
 			}
 
-			const webhook = await this.webhooksRepository.insert({
+			const webhook = await this.webhooksRepository.insertOne({
 				id: this.idService.gen(),
 				userId: me.id,
 				name: ps.name,
 				url: ps.url,
 				secret: ps.secret,
 				on: ps.on,
-			}).then(x => this.webhooksRepository.findOneByOrFail(x.identifiers[0]));
+			});
 
 			this.globalEventService.publishInternalEvent('webhookCreated', webhook);
 
@@ -108,7 +108,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				url: webhook.url,
 				secret: webhook.secret,
 				active: webhook.active,
-				latestSentAt: webhook.latestSentAt?.toISOString(),
+				latestSentAt: webhook.latestSentAt ? webhook.latestSentAt.toISOString() : null,
 				latestStatus: webhook.latestStatus,
 			};
 		});

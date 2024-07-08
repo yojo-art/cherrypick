@@ -1,0 +1,133 @@
+name: Check CherryPick JS autogen
+
+on:
+  pull_request_target:
+    branches:
+      - master
+      - develop
+      - improve-cherrypick-js-autogen-check
+    paths:
+      - packages/backend/**
+
+jobs:
+  # pull_request_target safety: permissions: read-all, and there are no secrets used in this job
+  generate-cherrypick-js:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: ${{ github.event.pull_request.mergeable == null || github.event.pull_request.mergeable == true }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          submodules: true
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: setup pnpm
+        uses: pnpm/action-setup@v4
+
+      - name: setup node
+        id: setup-node
+        uses: actions/setup-node@v4.0.2
+        with:
+          node-version-file: '.node-version'
+          cache: pnpm
+
+      - name: install dependencies
+        run: pnpm i --frozen-lockfile
+
+      # generate api.json
+      - name: Copy Config
+        run: cp .config/example.yml .config/default.yml
+      - name: Build
+        run: pnpm build
+      - name: Generate API JSON
+        run: pnpm --filter backend generate-api-json
+
+      # build cherrypick js
+      - name: Build cherrypick-js
+        run: |-
+          cp packages/backend/built/api.json packages/cherrypick-js/generator/api.json
+          pnpm run --filter cherrypick-js-type-generator generate
+
+      # packages/cherrypick-js/generator/built/autogen
+      - name: Upload Generated
+        uses: actions/upload-artifact@v4
+        with:
+          name: generated-cherrypick-js
+          path: packages/cherrypick-js/generator/built/autogen
+
+  # pull_request_target safety: permissions: read-all, and there are no secrets used in this job
+  get-actual-cherrypick-js:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    if: ${{ github.event.pull_request.mergeable == null || github.event.pull_request.mergeable == true }}
+    steps:
+      - name: checkout
+        uses: actions/checkout@v4.1.1
+        with:
+          submodules: true
+          ref: refs/pull/${{ github.event.pull_request.number }}/merge
+
+      - name: Upload From Merged
+        uses: actions/upload-artifact@v4
+        with:
+          name: actual-cherrypick-js
+          path: packages/cherrypick-js/src/autogen
+
+  # pull_request_target safety: nothing is cloned from repository
+  comment-cherrypick-js-autogen:
+    runs-on: ubuntu-latest
+    needs: [generate-cherrypick-js, get-actual-cherrypick-js]
+    permissions:
+      pull-requests: write
+    steps:
+      - name: download generated-cherrypick-js
+        uses: actions/download-artifact@v4
+        with:
+          name: generated-cherrypick-js
+          path: cherrypick-js-generated
+
+      - name: download actual-cherrypick-js
+        uses: actions/download-artifact@v4
+        with:
+          name: actual-cherrypick-js
+          path: cherrypick-js-actual
+
+      - name: check cherrypick-js changes
+        id: check-changes
+        run: |
+          diff -r -u --label=generated --label=on-tree ./cherrypick-js-generated ./cherrypick-js-actual > cherrypick-js.diff || true
+
+          if [ -s cherrypick-js.diff ]; then
+            echo "changes=true" >> $GITHUB_OUTPUT
+          else
+            echo "changes=false" >> $GITHUB_OUTPUT
+          fi
+
+      - name: Print full diff
+        run: cat ./cherrypick-js.diff
+
+      - name: send message
+        if: steps.check-changes.outputs.changes == 'true'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          comment_tag: check-cherrypick-js-autogen
+          message: |-
+            Thank you for sending us a great Pull Request! 👍
+            Please regenerate cherrypick-js type definitions! 🙏
+
+            example:
+            ```sh
+            pnpm run build-cherrypick-js-with-types
+            ```
+
+      - name: send message
+        if: steps.check-changes.outputs.changes == 'false'
+        uses: thollander/actions-comment-pull-request@v2
+        with:
+          comment_tag: check-cherrypick-js-autogen
+          mode: delete
+          message: "Thank you!"
+          create_if_not_exists: false

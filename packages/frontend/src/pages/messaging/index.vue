@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and noridev and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project & noridev and cherrypick-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -8,6 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template #header><MkPageHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs"/></template>
 	<MkSpacer :contentMax="800">
 		<div>
+			<MkSearchInput v-model="searchQuery" :large="true" :autofocus="true" type="search" @enter="search">{{ i18n.ts.search }}</MkSearchInput>
 			<div v-if="tab === 'direct'">
 				<MkPagination v-slot="{ items }" ref="pagingComponent" :pagination="directPagination">
 					<MkChatPreview v-for="message in items" :key="message.id" :message="message"/>
@@ -27,20 +28,27 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, markRaw, onActivated, onMounted, onUnmounted, ref, shallowRef } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 import { useStream } from '@/stream.js';
-import { useRouter } from '@/router.js';
+import { useRouter } from '@/router/supplier.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { $i } from '@/account.js';
 import { globalEvents } from '@/events.js';
 import MkChatPreview from '@/components/MkChatPreview.vue';
 import MkPagination from '@/components/MkPagination.vue';
+import MkSearchInput from '@/components/MkSearchInput.vue';
 
 const pagingComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
 const router = useRouter();
 
+const key = ref(0);
 const tab = ref('direct');
+const searchQuery = ref('');
+const messagePagination = ref();
+const recipientId = ref(null);
+const groupId = ref(null);
 
 let messages;
 let connection;
@@ -59,6 +67,36 @@ const groupsPagination = {
 		group: true,
 	},
 };
+
+async function search() {
+	const query = searchQuery.value.toString().trim();
+
+	if (query == null || query === '') return;
+
+	if (query.startsWith('https://')) {
+		const promise = misskeyApi('ap/show', {
+			uri: query,
+		});
+
+		os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+
+		const res = await promise;
+
+		if (res.type === 'User') {
+			router.push(`/@${res.object.username}@${res.object.host}`);
+		} else if (res.type === 'Note') {
+			router.push(`/notes/${res.object.id}`);
+		}
+
+		return;
+	}
+	messagePagination.value = {
+		endpoint: 'messaging/message/search',
+		recipientId: recipientId.value,
+		groupId: groupId.value,
+	};
+	key.value++;
+}
 
 function onMessage(message) {
 	if (message.recipientId) {
@@ -105,8 +143,8 @@ async function startUser() {
 }
 
 async function startGroup() {
-	const groups1 = await os.api('users/groups/owned');
-	const groups2 = await os.api('users/groups/joined');
+	const groups1 = await misskeyApi('users/groups/owned');
+	const groups2 = await misskeyApi('users/groups/joined');
 	if (groups1.length === 0 && groups2.length === 0) {
 		os.alert({
 			type: 'warning',
@@ -135,8 +173,8 @@ onMounted(() => {
 	connection.on('message', onMessage);
 	connection.on('read', onRead);
 
-	os.api('messaging/history', { group: false }).then(userMessages => {
-		os.api('messaging/history', { group: true }).then(groupMessages => {
+	misskeyApi('messaging/history', { group: false }).then(userMessages => {
+		misskeyApi('messaging/history', { group: true }).then(groupMessages => {
 			const _messages = userMessages.concat(groupMessages);
 			_messages.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
 			messages = _messages;
@@ -176,10 +214,10 @@ const headerTabs = computed(() => [{
 	icon: 'ti ti-users-group',
 }]);
 
-definePageMetadata({
+definePageMetadata(() => ({
 	title: i18n.ts.messaging,
 	icon: 'ti ti-messages',
-});
+}));
 </script>
 
 <style lang="scss" module>

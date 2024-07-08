@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -12,9 +12,23 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
 
 export const meta = {
+	tags: ['account', '2fa'],
 	requireCredential: true,
 
 	secure: true,
+
+	res: {
+		type: 'object',
+		properties: {
+			backupCodes: {
+				type: 'array',
+				optional: false,
+				items: {
+					type: 'string',
+				},
+			},
+		},
+	},
 } as const;
 
 export const paramDef = {
@@ -64,7 +78,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			// Publish meUpdated event
 			this.globalEventService.publishMainStream(me.id, 'meUpdated', await this.userEntityService.pack(me.id, me, {
-				detail: true,
+				schema: 'MeDetailed',
 				includeSecrets: true,
 			}));
 

@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -33,6 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #label>{{ i18n.ts.users }}</template>
 					<template #caption>{{ i18n.ts.antennaUsersDescription }} <button class="_textButton" @click="addUser">{{ i18n.ts.addUser }}</button></template>
 				</MkTextarea>
+				<MkSwitch v-model="excludeBots">{{ i18n.ts.antennaExcludeBots }}</MkSwitch>
 				<MkSwitch v-model="withReplies">{{ i18n.ts.withReplies }}</MkSwitch>
 				<MkTextarea v-model="keywords">
 					<template #label>{{ i18n.ts.antennaKeywords }}</template>
@@ -45,7 +46,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="localOnly">{{ i18n.ts.localOnly }}</MkSwitch>
 				<MkSwitch v-model="caseSensitive">{{ i18n.ts.caseSensitive }}</MkSwitch>
 				<MkSwitch v-model="withFile">{{ i18n.ts.withFileAntenna }}</MkSwitch>
-				<MkSwitch v-model="notify">{{ i18n.ts.notifyAntenna }}</MkSwitch>
 			</div>
 			<div :class="$style.actions">
 				<MkButton inline primary @click="saveAntenna()"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</MkButton>
@@ -65,6 +65,7 @@ import MkTextarea from '@/components/MkTextarea.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
@@ -86,20 +87,20 @@ const keywords = ref<string>(props.antenna.keywords.map(x => x.join(' ')).join('
 const excludeKeywords = ref<string>(props.antenna.excludeKeywords.map(x => x.join(' ')).join('\n'));
 const caseSensitive = ref<boolean>(props.antenna.caseSensitive);
 const localOnly = ref<boolean>(props.antenna.localOnly);
+const excludeBots = ref<boolean>(props.antenna.excludeBots);
 const withReplies = ref<boolean>(props.antenna.withReplies);
 const withFile = ref<boolean>(props.antenna.withFile);
-const notify = ref<boolean>(props.antenna.notify);
 const userLists = ref<Misskey.entities.UserList[] | null>(null);
 const userGroups = ref<Misskey.entities.UserGroup[] | null>(null);
 
 watch(() => src.value, async () => {
 	if (src.value === 'list' && userLists.value === null) {
-		userLists.value = await os.api('users/lists/list');
+		userLists.value = await misskeyApi('users/lists/list');
 	}
 
 	if (src.value === 'group' && userGroups.value === null) {
-		const groups1 = await os.api('users/groups/owned');
-		const groups2 = await os.api('users/groups/joined');
+		const groups1 = await misskeyApi('users/groups/owned');
+		const groups2 = await misskeyApi('users/groups/joined');
 
 		userGroups.value = [...groups1, ...groups2];
 	}
@@ -115,9 +116,9 @@ async function saveAntenna() {
 		src: src.value,
 		userListId: userListId.value,
 		userGroupId: userGroupId.value,
+		excludeBots: excludeBots.value,
 		withReplies: withReplies.value,
 		withFile: withFile.value,
-		notify: notify.value,
 		caseSensitive: caseSensitive.value,
 		localOnly: localOnly.value,
 		users: users.value.trim().split('\n').map(x => x.trim()),
@@ -137,11 +138,11 @@ async function saveAntenna() {
 async function deleteAntenna() {
 	const { canceled } = await os.confirm({
 		type: 'warning',
-		text: i18n.t('removeAreYouSure', { x: props.antenna.name }),
+		text: i18n.tsx.removeAreYouSure({ x: props.antenna.name }),
 	});
 	if (canceled) return;
 
-	await os.api('antennas/delete', {
+	await misskeyApi('antennas/delete', {
 		antennaId: props.antenna.id,
 	});
 
@@ -150,7 +151,7 @@ async function deleteAntenna() {
 }
 
 function addUser() {
-	os.selectUser().then(user => {
+	os.selectUser({ includeSelf: true }).then(user => {
 		users.value = users.value.trim();
 		users.value += '\n@' + Misskey.acct.toString(user as any);
 		users.value = users.value.trim();

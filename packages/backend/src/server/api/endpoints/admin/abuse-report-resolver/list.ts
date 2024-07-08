@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and other misskey, cherrypick contributors
+ * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -11,8 +11,10 @@ import { QueryService } from '@/core/QueryService.js';
 import type { AbuseReportResolversRepository } from '@/models/_.js';
 
 export const meta = {
+	tags: ['admin', 'abuse-report-resolver'],
 	requireCredential: true,
-
+	kind: 'arr-list', // ここにkindプロパティを追加
+	secure: true,
 	requireAdmin: true,
 
 	res: {
