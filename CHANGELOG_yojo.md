@@ -15,7 +15,8 @@
 ### Misc
 
 -->
-## 0.2.0 (unreleased)
+## 0.2.0
+Cherrypick 4.9.0-beta.2
 
 ### General
 - enhance: ノートとユーザーの検索時に照会を行うかが選択できるようになりました
@@ -37,6 +38,7 @@
   - デフォルト値(/assets/ai.png)または空欄の場合タイムラインが表示されます
 
 ## 0.1.0 (unreleased)
+Cherrypick 4.8.0
 
 ### General
 - enhance: メディアプロキシurlと拡大画像urlを分割
