@@ -2542,6 +2542,7 @@ _widgets:
     chooseList: "リストを選択"
   clicker: "クリッカー"
   birthdayFollowings: "今日誕生日のユーザー"
+  mascot: "マスコット画像"
 
 _cw:
   hide: "隠す"

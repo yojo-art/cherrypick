@@ -9659,6 +9659,10 @@ export interface Locale extends ILocale {
          * 今日誕生日のユーザー
          */
         "birthdayFollowings": string;
+        /**
+         * マスコット画像
+         */
+        "mascot": string;
     };
     "_cw": {
         /**
