@@ -15,7 +15,8 @@
 ### Misc
 
 -->
-## 0.2.1 (unreleased)
+## 0.2.1
+Cherrypick 4.9.0-beta.2
 ### Client
 - feat: マスコット画像を表示するウィジェットを追加
 
