@@ -4,8 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkContainer :naked="widgetProps.transparent" :showHeader="false" data-cy-mkw-aichan class="mkw-aichan">
-	<img ref="mascotImage" :class="$style.root" @click="touched">
+<MkContainer :naked="widgetProps.transparent" :showHeader="false">
+	<img ref="mascotImage" :class="$style.root">
 </MkContainer>
 </template>
 
@@ -43,9 +43,6 @@ watchEffect(() => {
 		val.src = getProxiedImageUrl(instance.mascotImageUrl);
 	}
 });
-const touched = () => {
-	//if (this.live2d) this.live2d.changeExpression('gurugurume');
-};
 
 defineExpose<WidgetComponentExpose>({
 	name,
