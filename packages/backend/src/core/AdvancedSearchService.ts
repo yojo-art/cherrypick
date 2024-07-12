@@ -267,28 +267,27 @@ export class AdvancedSearchService {
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
 			if (opts.userId) osFilter.bool.must.push({ term: { userId: opts.userId } });
-			if (opts.channelId) osFilter.bool.must.push({ term: { channelId: opts.channelId } });
 			if (opts.host) {
 				if (opts.host === '.') {
-					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'userHost' } }] } });
+					osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'userHost' } }] } });
 				} else {
-					osFilter.bool.must.push({ term: { userHost: opts.host } });
+					osFilter.bool.must.push({ terms: { userHost: opts.host } });
 				}
 			}
 			if (opts.origin) {
 				if (opts.origin === 'local') {
-					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'userHost' } }] } });
+					osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'userHost' } }] } });
 				} else if (opts.origin === 'remote') {
-					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'userHost' } }] } });
+					osFilter.bool.must.push({ terms: { must: [{ exists: { field: 'userHost' } }] } });
 				}
 			}
-			if (opts.excludeReply) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'replyId' } }] } });
-			if (opts.excludeNsfw) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'cw' } }] } });
+			if (opts.excludeReply) osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'replyId' } }] } });
+			if (opts.excludeNsfw) osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'cw' } }] } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
-					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'fileIds' } }] } });
+					osFilter.bool.must.push({ terms: { must: [{ exists: { field: 'fileIds' } }] } });
 				} else if (opts.fileOption === 'no-file') {
-					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileIds' } }] } });
+					osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'fileIds' } }] } });
 				}
 			}
 
