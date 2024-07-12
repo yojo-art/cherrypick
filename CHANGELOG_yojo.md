@@ -26,6 +26,7 @@
 - Enhance: 高度な検索に新たな条件を追加(OpenSearchが必要)/OpenSearchを利用できるように
 	- 添付ファイルにセンシティブを含むものがあるか
 	- 引用の除外
+- Change: notes/advanced-search のexcludeNsfwをexcludeCWに変更  
  
 ## 0.2.1
 Cherrypick 4.9.0-beta.2
