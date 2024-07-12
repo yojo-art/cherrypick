@@ -261,6 +261,7 @@ export class AdvancedSearchService {
 			const osFilter: any = {
 				bool: {
 					must: [],
+					must_not: [],
 				},
 			};
 
@@ -269,25 +270,25 @@ export class AdvancedSearchService {
 			if (opts.userId) osFilter.bool.must.push({ term: { userId: opts.userId } });
 			if (opts.host) {
 				if (opts.host === '.') {
-					osFilter.bool.must.push({ exists: { field: 'userHost' } });
+					osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
 				} else {
 					osFilter.bool.must.push({ userHost: opts.host });
 				}
 			}
 			if (opts.origin) {
 				if (opts.origin === 'local') {
-					osFilter.bool.must.push({ exists: { field: 'userHost' } });
+					osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
 				} else if (opts.origin === 'remote') {
 					osFilter.bool.must.push({ exists: { field: 'userHost' } } );
 				}
 			}
-			if (opts.excludeReply) osFilter.bool.must.push({ exists: { field: 'replyId' } });
-			if (opts.excludeCW) osFilter.bool.must.push({ exists: { field: 'cw' } });
+			if (opts.excludeReply) osFilter.bool.must_not.push({ exists: { field: 'replyId' } });
+			if (opts.excludeCW) osFilter.bool.must_not.push({ exists: { field: 'cw' } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
 					osFilter.bool.must.push({ exists: { field: 'fileIds' } });
 				} else if (opts.fileOption === 'no-file') {
-					osFilter.bool.must.push({ exists: { field: 'fileIds' } });
+					osFilter.bool.must_not.push({ exists: { field: 'fileIds' } });
 				}
 			}
 
