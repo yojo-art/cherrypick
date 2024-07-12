@@ -181,7 +181,7 @@ export class AdvancedSearchService {
 			};
 
 			await this.opensearch.index({
-				index: this.opensearchNoteIndex + `-${new Date().toISOString().slice(0, 7).split(/-/g).join('')}` + `${randomUUID()}` as string,
+				index: this.opensearchNoteIndex as string,
 				id: note.id,
 				body: body,
 			}).catch((error) => {
@@ -217,7 +217,7 @@ export class AdvancedSearchService {
 
 		if (this.opensearch) {
 			this.opensearch.delete({
-				index: this.opensearchNoteIndex + `-${new Date().toISOString().slice(0, 7).split(/-/g).join('')}` + `${randomUUID()}` as string,
+				index: this.opensearchNoteIndex as string,
 				id: note.id,
 			}).catch((error) => {
 				console.error(error);
@@ -283,7 +283,7 @@ export class AdvancedSearchService {
 			}
 
 			const res = await this.opensearch.search({
-				index: this.opensearchNoteIndex + `-${new Date().toISOString().slice(0, 7).split(/-/g).join('')}` + `${randomUUID()}` as string,
+				index: this.opensearchNoteIndex as string,
 				body: {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
