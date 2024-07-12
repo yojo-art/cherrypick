@@ -22942,6 +22942,12 @@ export type operations = {
            * @enum {string}
            */
           fileOption?: 'file-only' | 'no-file' | 'combined';
+          /**
+           * @description 添付ファイルがセンシティブを含むか
+           * @default combined
+           * @enum {string}
+           */
+          sensitiveFilter?: 'includeSensitive' | 'withOutsensitive' | 'combined';
           /** @default 0 */
           offset?: number;
           /** @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します */
@@ -22957,17 +22963,16 @@ export type operations = {
            */
           excludeReply?: boolean;
           /**
+           * @description trueを指定すると引用のノートを除外します
+           * @default false
+           */
+          excludeQuote?: boolean;
+          /**
            * Format: misskey:id
            * @description ノートを作成したユーザーのID
            * @default null
            */
           userId?: string | null;
-          /**
-           * Format: misskey:id
-           * @description 指定されたチャンネル内のノートを返します
-           * @default null
-           */
-          channelId?: string | null;
         };
       };
     };

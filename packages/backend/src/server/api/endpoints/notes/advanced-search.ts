@@ -70,6 +70,12 @@ export const paramDef = {
 			default: 'combined',
 			description: 'ファイルの添付状態',
 		},
+		sensitiveFilter: {
+			type: 'string',
+			enum: ['includeSensitive', 'withOutsensitive', 'combined'],
+			default: 'combined',
+			description: '添付ファイルがセンシティブを含むか',
+		},
 		offset: {
 			type: 'integer',
 			default: 0,
@@ -88,19 +94,17 @@ export const paramDef = {
 			default: false,
 			description: 'trueを指定するとリプライのノートを除外します',
 		},
+		excludeQuote: {
+			type: 'boolean',
+			default: false,
+			description: 'trueを指定すると引用のノートを除外します',
+		},
 		userId: {
 			type: 'string',
 			format: 'misskey:id',
 			nullable: true,
 			default: null,
 			description: 'ノートを作成したユーザーのID',
-		},
-		channelId: {
-			type: 'string',
-			format: 'misskey:id',
-			nullable: true,
-			default: null,
-			description: '指定されたチャンネル内のノートを返します',
 		},
 	},
 	required: ['query'],
@@ -127,8 +131,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				host: ps.host,
 				origin: ps.origin,
 				fileOption: ps.fileOption,
+				sensitiveFilter: ps.sensitiveFilter,
 				excludeCW: ps.excludeCW,
 				excludeReply: ps.excludeReply,
+				excludeQuote: ps.excludeQuote,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,

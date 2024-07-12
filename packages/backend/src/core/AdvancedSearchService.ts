@@ -252,6 +252,8 @@ export class AdvancedSearchService {
 		visibility?: MiNote['visibility'] | null;
 		excludeCW?: boolean;
 		excludeReply?: boolean;
+		excludeQuote?: boolean;
+		sensitiveFilter?: string | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -262,6 +264,8 @@ export class AdvancedSearchService {
 				bool: {
 					must: [],
 					must_not: [],
+					range: [],
+					term: [],
 				},
 			};
 
@@ -284,11 +288,19 @@ export class AdvancedSearchService {
 			}
 			if (opts.excludeReply) osFilter.bool.must_not.push({ exists: { field: 'replyId' } });
 			if (opts.excludeCW) osFilter.bool.must_not.push({ exists: { field: 'cw' } });
+			if (opts.excludeQuote) osFilter.bool.term.push({ term: { isQuote: true } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
 					osFilter.bool.must.push({ exists: { field: 'fileIds' } });
 				} else if (opts.fileOption === 'no-file') {
 					osFilter.bool.must_not.push({ exists: { field: 'fileIds' } });
+				}
+			}
+			if (opts.sensitiveFilter) {
+				if (opts.sensitiveFilter === 'includeSensitive') {
+					osFilter.bool.range.push({ range: { SensitivefileCount: { gte: 1 } } });
+				} else if (opts.sensitiveFilter === 'withOutsensitive') {
+					osFilter.bool.range.push({ exists: { SensitivefileCount: { lte: 0 } } });
 				}
 			}
 
