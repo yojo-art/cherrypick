@@ -23,7 +23,7 @@
 
 ### Server
 - remove: チャンネル機能のAPIを削除
-- Enhance: 高度な検索に新たな条件を追加(OpenSearchが必要)
+- Enhance: 高度な検索に新たな条件を追加(OpenSearchが必要)/OpenSearchを利用できるように
 	- 添付ファイルにセンシティブを含むものがあるか
 	- 引用の除外
  

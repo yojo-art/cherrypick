@@ -194,7 +194,6 @@ redis:
 #───┘ OpenSearch configuration └─────────────────────────────
 
 # You can use OpenSearch when you enabled AdvancedSearch.
-# THIS DOES NOT WORK BECAUSE OF WIP
 
 #opensearch:
 #  host: localhost
