@@ -19,6 +19,8 @@ import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
+import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { DriveService } from './DriveService.js';
 
 type K = string;
 type V = string | number | boolean;
@@ -81,6 +83,7 @@ export class AdvancedSearchService {
 		private queryService: QueryService,
 		private idService: IdService,
 		private loggerService: LoggerService,
+		private driveService: DriveService,
 	) {
 		if (opensearch && config.opensearch && config.opensearch.index) {
 			const indexname = `${config.opensearch.index}---notes`;
@@ -91,7 +94,7 @@ export class AdvancedSearchService {
 			}).then((indexExists) => {
 				if (!indexExists) [
 					this.opensearch?.indices.create({
-						index: indexname + `-${new Date().toISOString().slice(0, 7).split(/-/g).join('')}` + `-${randomUUID()}`,
+						index: indexname,
 						body: {
 							mappings: {
 								properties: {
@@ -99,10 +102,13 @@ export class AdvancedSearchService {
 									cw: { type: 'text' },
 									userId: { type: 'keyword' },
 									userHost: { type: 'keyword' },
-									channelId: { type: 'keyword' },
+									createdAt: { type: 'date' },
 									tags: { type: 'keyword' },
 									replyId: { type: 'keyword' },
-									fileId: { type: 'keyword' },
+									fileIds: { type: 'keyword' },
+									isQuote: { type: 'bool' },
+									sensitivefileCount: { type: 'byte' },
+									nonSensitivefileCount: { type: 'byte' },
 								},
 							},
 							settings: {
@@ -169,15 +175,26 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
+			let sensitiveCount = 0;
+			let nonSensitiveCount = 0;
+			if (note.fileIds) {
+				sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
+				nonSensitiveCount = note.fileIds.length - sensitiveCount;
+			}
+			const Quote = isRenote(note) && isQuote(note);
+
 			const body = {
 				text: note.text,
 				cw: note.cw,
 				userId: note.userId,
 				userHost: note.userHost,
-				channelId: note.channelId,
 				createdAt: this.idService.parse(note.id).date.getTime(),
 				tags: note.tags,
 				replyId: note.replyId,
+				fileIds: note.fileIds,
+				isQuote: Quote,
+				SensitivefileCount: sensitiveCount,
+				nonSensitivefileCount: nonSensitiveCount,
 			};
 
 			await this.opensearch.index({
@@ -258,13 +275,20 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({ term: { userHost: opts.host } });
 				}
 			}
+			if (opts.origin) {
+				if (opts.origin === 'local') {
+					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'userHost' } }] } });
+				} else if (opts.origin === 'remote') {
+					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'userHost' } }] } });
+				}
+			}
 			if (opts.excludeReply) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'replyId' } }] } });
 			if (opts.excludeNsfw) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'cw' } }] } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
-					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'fileId' } }] } });
+					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'fileIds' } }] } });
 				} else if (opts.fileOption === 'no-file') {
-					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileId' } }] } });
+					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileIds' } }] } });
 				}
 			}
 
