@@ -63,7 +63,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<div style="text-align: center;" class="_gaps">
 							<MkSwitch v-model="excludeReply">{{ i18n.ts._advancedSearch._searchOption.toggleReply }}</MkSwitch>
-							<MkSwitch v-model="excludeNsfw">{{ i18n.ts._advancedSearch._searchOption.toggleNsfw }}</MkSwitch>
 							<MkSwitch v-model="excludeCW">{{ i18n.ts._advancedSearch._searchOption.toggleCW }}</MkSwitch>
 							<MkSwitch v-model="excludeQuote">{{ i18n.ts._advancedSearch._searchOption.toggleQuote }}</MkSwitch>
 						</div>
