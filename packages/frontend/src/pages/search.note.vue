@@ -185,3 +185,6 @@ async function search() {
 	key.value++;
 }
 </script>
+<style lang="scss" scoped>
+
+</style>
