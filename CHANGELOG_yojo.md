@@ -16,9 +16,17 @@
 
 -->
 ## 0.2.2 (unreleased)
-### Server
-remove: チャンネル機能のAPIを削除
 
+### General
+
+### Client
+
+### Server
+- remove: チャンネル機能のAPIを削除
+- Enhance: 高度な検索に新たな条件を追加(OpenSearchが必要)
+	- 添付ファイルにセンシティブを含むものがあるか
+	- 引用の除外
+ 
 ## 0.2.1
 Cherrypick 4.9.0-beta.2
 ### Client
