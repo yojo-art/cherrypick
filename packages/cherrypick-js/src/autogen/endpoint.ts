@@ -162,26 +162,6 @@ import type {
 	BlockingDeleteResponse,
 	BlockingListRequest,
 	BlockingListResponse,
-	ChannelsCreateRequest,
-	ChannelsCreateResponse,
-	ChannelsFeaturedResponse,
-	ChannelsFollowRequest,
-	ChannelsFollowedRequest,
-	ChannelsFollowedResponse,
-	ChannelsOwnedRequest,
-	ChannelsOwnedResponse,
-	ChannelsShowRequest,
-	ChannelsShowResponse,
-	ChannelsTimelineRequest,
-	ChannelsTimelineResponse,
-	ChannelsUnfollowRequest,
-	ChannelsUpdateRequest,
-	ChannelsUpdateResponse,
-	ChannelsFavoriteRequest,
-	ChannelsUnfavoriteRequest,
-	ChannelsMyFavoritesResponse,
-	ChannelsSearchRequest,
-	ChannelsSearchResponse,
 	ChartsActiveUsersRequest,
 	ChartsActiveUsersResponse,
 	ChartsApRequestRequest,
@@ -735,19 +715,6 @@ export type Endpoints = {
 	'blocking/create': { req: BlockingCreateRequest; res: BlockingCreateResponse };
 	'blocking/delete': { req: BlockingDeleteRequest; res: BlockingDeleteResponse };
 	'blocking/list': { req: BlockingListRequest; res: BlockingListResponse };
-	'channels/create': { req: ChannelsCreateRequest; res: ChannelsCreateResponse };
-	'channels/featured': { req: EmptyRequest; res: ChannelsFeaturedResponse };
-	'channels/follow': { req: ChannelsFollowRequest; res: EmptyResponse };
-	'channels/followed': { req: ChannelsFollowedRequest; res: ChannelsFollowedResponse };
-	'channels/owned': { req: ChannelsOwnedRequest; res: ChannelsOwnedResponse };
-	'channels/show': { req: ChannelsShowRequest; res: ChannelsShowResponse };
-	'channels/timeline': { req: ChannelsTimelineRequest; res: ChannelsTimelineResponse };
-	'channels/unfollow': { req: ChannelsUnfollowRequest; res: EmptyResponse };
-	'channels/update': { req: ChannelsUpdateRequest; res: ChannelsUpdateResponse };
-	'channels/favorite': { req: ChannelsFavoriteRequest; res: EmptyResponse };
-	'channels/unfavorite': { req: ChannelsUnfavoriteRequest; res: EmptyResponse };
-	'channels/my-favorites': { req: EmptyRequest; res: ChannelsMyFavoritesResponse };
-	'channels/search': { req: ChannelsSearchRequest; res: ChannelsSearchResponse };
 	'charts/active-users': { req: ChartsActiveUsersRequest; res: ChartsActiveUsersResponse };
 	'charts/ap-request': { req: ChartsApRequestRequest; res: ChartsApRequestResponse };
 	'charts/drive': { req: ChartsDriveRequest; res: ChartsDriveResponse };

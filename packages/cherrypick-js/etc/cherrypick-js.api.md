@@ -850,66 +850,6 @@ export type Channels = {
 };
 
 // @public (undocumented)
-type ChannelsCreateRequest = operations['channels___create']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsCreateResponse = operations['channels___create']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsFavoriteRequest = operations['channels___favorite']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsFeaturedResponse = operations['channels___featured']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsFollowedRequest = operations['channels___followed']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsFollowedResponse = operations['channels___followed']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsFollowRequest = operations['channels___follow']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsMyFavoritesResponse = operations['channels___my-favorites']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsOwnedRequest = operations['channels___owned']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsOwnedResponse = operations['channels___owned']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsSearchRequest = operations['channels___search']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsSearchResponse = operations['channels___search']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsShowRequest = operations['channels___show']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsShowResponse = operations['channels___show']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsTimelineRequest = operations['channels___timeline']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsTimelineResponse = operations['channels___timeline']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsUnfavoriteRequest = operations['channels___unfavorite']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsUnfollowRequest = operations['channels___unfollow']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsUpdateRequest = operations['channels___update']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type ChannelsUpdateResponse = operations['channels___update']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
 type ChartsActiveUsersRequest = operations['charts___active-users']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1403,26 +1343,6 @@ declare namespace entities {
         BlockingDeleteResponse,
         BlockingListRequest,
         BlockingListResponse,
-        ChannelsCreateRequest,
-        ChannelsCreateResponse,
-        ChannelsFeaturedResponse,
-        ChannelsFollowRequest,
-        ChannelsFollowedRequest,
-        ChannelsFollowedResponse,
-        ChannelsOwnedRequest,
-        ChannelsOwnedResponse,
-        ChannelsShowRequest,
-        ChannelsShowResponse,
-        ChannelsTimelineRequest,
-        ChannelsTimelineResponse,
-        ChannelsUnfollowRequest,
-        ChannelsUpdateRequest,
-        ChannelsUpdateResponse,
-        ChannelsFavoriteRequest,
-        ChannelsUnfavoriteRequest,
-        ChannelsMyFavoritesResponse,
-        ChannelsSearchRequest,
-        ChannelsSearchResponse,
         ChartsActiveUsersRequest,
         ChartsActiveUsersResponse,
         ChartsApRequestRequest,

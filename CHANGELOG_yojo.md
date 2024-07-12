@@ -15,6 +15,10 @@
 ### Misc
 
 -->
+## 0.2.2 (unreleased)
+### Server
+remove: チャンネル機能のAPIを削除
+
 ## 0.2.1
 Cherrypick 4.9.0-beta.2
 ### Client
