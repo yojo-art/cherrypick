@@ -277,18 +277,18 @@ export class AdvancedSearchService {
 			}
 			if (opts.origin) {
 				if (opts.origin === 'local') {
-					osFilter.bool.must.push({ term: { must_not: { exists: { field: 'userHost' } } } });
+					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'userHost' } }] } });
 				} else if (opts.origin === 'remote') {
-					osFilter.bool.must.push({ term: { must: { exists: { field: 'userHost' } } } });
+					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'userHost' } }] } });
 				}
 			}
-			if (opts.excludeReply) osFilter.bool.must.push({ term: { must_not: { exists: { field: 'replyId' } } } });
-			if (opts.excludeNsfw) osFilter.bool.must.push({ term: { must_not: { exists: { field: 'cw' } } } });
+			if (opts.excludeReply) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'replyId' } }] } });
+			if (opts.excludeNsfw) osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'cw' } }] } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
-					osFilter.bool.must.push({ term: { must: { exists: { field: 'fileIds' } } } });
+					osFilter.bool.must.push({ term: { must: [{ exists: { field: 'fileIds' } }] } });
 				} else if (opts.fileOption === 'no-file') {
-					osFilter.bool.must.push({ term: { must_not: { exists: { field: 'fileIds' } } } });
+					osFilter.bool.must.push({ term: { must_not: [{ exists: { field: 'fileIds' } }] } });
 				}
 			}
 
@@ -306,6 +306,7 @@ export class AdvancedSearchService {
 				});
 			}
 
+			this.loggerService.getLogger('search').info(osFilter);
 			const res = await this.opensearch.search({
 				index: this.opensearchNoteIndex as string,
 				body: {
