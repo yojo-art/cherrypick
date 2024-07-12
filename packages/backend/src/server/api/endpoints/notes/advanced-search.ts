@@ -78,7 +78,7 @@ export const paramDef = {
 			type: 'string',
 			description: 'ノートが作成されたインスタンス。ローカルの場合は`.`を指定します',
 		},
-		excludeNsfw: {
+		excludeCW: {
 			type: 'boolean',
 			default: false,
 			description: 'trueを指定するとCWを含むノートを除外します',
@@ -127,7 +127,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				host: ps.host,
 				origin: ps.origin,
 				fileOption: ps.fileOption,
-				excludeNsfw: ps.excludeNsfw,
+				excludeCW: ps.excludeCW,
 				excludeReply: ps.excludeReply,
 			}, {
 				untilId: ps.untilId,

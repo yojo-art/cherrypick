@@ -250,7 +250,7 @@ export class AdvancedSearchService {
 		origin?: string | null;
 		fileOption?: string | null;
 		visibility?: MiNote['visibility'] | null;
-		excludeNsfw?: boolean;
+		excludeCW?: boolean;
 		excludeReply?: boolean;
 	}, pagination: {
 		untilId?: MiNote['id'];
@@ -282,7 +282,7 @@ export class AdvancedSearchService {
 				}
 			}
 			if (opts.excludeReply) osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'replyId' } }] } });
-			if (opts.excludeNsfw) osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'cw' } }] } });
+			if (opts.excludeCW) osFilter.bool.must.push({ terms: { must_not: [{ exists: { field: 'cw' } }] } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
 					osFilter.bool.must.push({ terms: { must: [{ exists: { field: 'fileIds' } }] } });
@@ -305,7 +305,6 @@ export class AdvancedSearchService {
 				});
 			}
 
-			this.loggerService.getLogger('search').info(osFilter);
 			const res = await this.opensearch.search({
 				index: this.opensearchNoteIndex as string,
 				body: {
@@ -380,7 +379,7 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (opts.excludeNsfw) {
+			if (opts.excludeCW) {
 				query.andWhere('note.cw IS NULL');
 			}
 
