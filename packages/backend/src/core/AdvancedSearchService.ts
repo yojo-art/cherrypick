@@ -303,16 +303,30 @@ export class AdvancedSearchService {
 			}
 
 			if (q !== '') {
-				osFilter.bool.must.push({
-					bool: {
-						should: [
-							{ wildcard: { 'text': { value: q } } },
-							{ simple_query_string: { fields: ['text'], 'query': q, default_operator: 'and' } },								{ wildcard: { 'cw': { value: q } } },
-							{ simple_query_string: { fields: ['cw'], 'query': q, default_operator: 'and' } },
-						],
-						minimum_should_match: 1,
-					} } );
-			}　
+				if (opts.excludeCW) {
+					osFilter.bool.must.push({
+						bool: {
+							should: [
+								{ wildcard: { 'text': { value: q } } },
+								{ simple_query_string: { fields: ['text'], 'query': q, default_operator: 'and' } },
+							],
+							minimum_should_match: 1,
+						},
+					});
+				} else {
+					osFilter.bool.must.push({
+						bool: {
+							should: [
+								{ wildcard: { 'text': { value: q } } },
+								{ simple_query_string: { fields: ['text'], 'query': q, default_operator: 'and' } },
+								{ wildcard: { 'cw': { value: q } } },
+								{ simple_query_string: { fields: ['cw'], 'query': q, default_operator: 'and' } },
+							],
+							minimum_should_match: 1,
+						},
+					});
+				}
+			}
 
 			const res = await this.opensearch.search({
 				index: this.opensearchNoteIndex as string,
