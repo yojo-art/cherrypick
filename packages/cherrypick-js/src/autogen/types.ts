@@ -22950,7 +22950,7 @@ export type operations = {
            * @description trueを指定するとCWを含むノートを除外します
            * @default false
            */
-          excludeNsfw?: boolean;
+          excludeCW?: boolean;
           /**
            * @description trueを指定するとリプライのノートを除外します
            * @default false
