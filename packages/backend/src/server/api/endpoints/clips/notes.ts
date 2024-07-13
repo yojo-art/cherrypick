@@ -208,11 +208,12 @@ async function remote(
 	let create_count = 0;
 	const notes = [];
 	for (const note of remote_notes) {
-		if (note.uri !== null) {
+		const uri = note.uri ? note.uri : 'https://' + host + '/notes/' + note.id;
+		if (uri !== null) {
 			if (create_count > create_limit) {
 				break;
 			}
-			const local_note = await remoteNote(apNoteService, note.uri, redisForRemoteClips, metaService, utilityService, apLoggerService, host, note.id);
+			const local_note = await remoteNote(apNoteService, uri, redisForRemoteClips, metaService, utilityService, apLoggerService, host, note.id);
 			if (local_note !== null) {
 				if (local_note.is_create) {
 					create_count++;
