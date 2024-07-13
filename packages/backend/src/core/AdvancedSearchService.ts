@@ -245,7 +245,6 @@ export class AdvancedSearchService {
 	@bindThis
 	public async searchNote(q: string, me: MiUser | null, opts: {
 		userId?: MiNote['userId'] | null;
-		channelId?: MiNote['channelId'] | null;
 		host?: string | null;
 		origin?: string | null;
 		fileOption?: string | null;
@@ -361,8 +360,6 @@ export class AdvancedSearchService {
 
 			if (opts.userId) {
 				query.andWhere('note.userId = :userId', { userId: opts.userId });
-			} else if (opts.channelId) {
-				query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
 			}
 
 			if (opts.origin === 'local') {

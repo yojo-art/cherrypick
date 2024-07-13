@@ -127,7 +127,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 			const notes = await this.advancedSearchService.searchNote(ps.query, me, {
 				userId: ps.userId,
-				channelId: ps.channelId,
 				host: ps.host,
 				origin: ps.origin,
 				fileOption: ps.fileOption,
