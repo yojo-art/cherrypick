@@ -201,9 +201,10 @@ async function remote(
 			}),
 		});
 		remote_json = await res.text();
-	}
-	if (remote_json === null) {
-		throw new ApiError(meta.errors.noSuchClip);
+		redisForRemoteClips.set(cache_key, remote_json);
+		redisForRemoteClips.expire(cache_key, 10 * 60);
+	} else {
+		remote_json = cache_value;
 	}
 	const remote_notes = JSON.parse(remote_json);
 	//リモートに照会する回数の上限

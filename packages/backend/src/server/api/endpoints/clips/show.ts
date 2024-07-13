@@ -111,7 +111,8 @@ async function remote(
 	host:string,
 	local_id:string,
 ) {
-	const cache_value = await redisForRemoteClips.get(local_id);
+	const cache_key = local_id + '-info';
+	const cache_value = await redisForRemoteClips.get(cache_key);
 	let remote_json = null;
 	if (cache_value === null) {
 		const timeout = 30 * 1000;
@@ -144,9 +145,10 @@ async function remote(
 			}),
 		});
 		remote_json = await res.text();
-	}
-	if (remote_json === null) {
-		throw new ApiError(meta.errors.noSuchClip);
+		redisForRemoteClips.set(cache_key, remote_json);
+		redisForRemoteClips.expire(cache_key, 10 * 60);
+	} else {
+		remote_json = cache_value;
 	}
 	const remote_clip = JSON.parse(remote_json);
 	if (remote_clip.user == null || remote_clip.user.username == null) {
