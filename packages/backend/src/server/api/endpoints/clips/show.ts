@@ -149,7 +149,10 @@ async function remote(
 		throw new ApiError(meta.errors.noSuchClip);
 	}
 	const remote_clip = JSON.parse(remote_json);
-	const user = await remoteUserResolveService.resolveUser(remote_clip.username, host).catch(err => {
+	if (remote_clip.user == null || remote_clip.user.username == null) {
+		throw new ApiError(meta.errors.failedToResolveRemoteUser);
+	}
+	const user = await remoteUserResolveService.resolveUser(remote_clip.user.username, host).catch(err => {
 		throw new ApiError(meta.errors.failedToResolveRemoteUser);
 	});
 	return await awaitAll({
