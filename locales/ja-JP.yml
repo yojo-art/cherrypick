@@ -3099,7 +3099,7 @@ _advancedSearch:
     combined: "フィルタしない"
     withOutSensitive: "除外"
     includeSensitive: "含むもの"
-    onlySensitive: "全てセンシティブ"
+    sensitiveOnly: "全てセンシティブ"
 
 _searchOrApShow:
   question: "照会を行いますか？"

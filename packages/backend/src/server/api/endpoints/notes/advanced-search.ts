@@ -72,7 +72,7 @@ export const paramDef = {
 		},
 		sensitiveFilter: {
 			type: 'string',
-			enum: ['combined', 'includeSensitive', 'withOutSensitive', 'sensitiveOnly'],
+			enum: ['includeSensitive', 'withOutSensitive', 'sensitiveOnly', 'combined'],
 			default: 'combined',
 			description: '添付ファイルのセンシティブ状態',
 		},
@@ -87,17 +87,17 @@ export const paramDef = {
 		excludeCW: {
 			type: 'boolean',
 			default: false,
-			description: 'trueを指定するとCWを含むノートを除外します',
+			description: 'CWを含むノートを除外するか',
 		},
 		excludeReply: {
 			type: 'boolean',
 			default: false,
-			description: 'trueを指定するとリプライのノートを除外します',
+			description: 'リプライのノートを除外するか',
 		},
 		excludeQuote: {
 			type: 'boolean',
 			default: false,
-			description: 'trueを指定すると引用のノートを除外します',
+			description: '引用のノートを除外するか',
 		},
 		userId: {
 			type: 'string',

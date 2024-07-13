@@ -11609,13 +11609,17 @@ export interface Locale extends ILocale {
              */
             "combined": string;
             /**
-             * 除外する
+             * 除外
              */
-            "withOutsensitive": string;
+            "withOutSensitive": string;
             /**
-             * 含むもののみ
+             * 含むもの
              */
             "includeSensitive": string;
+            /**
+             * 全てセンシティブ
+             */
+            "sensitiveOnly": string;
         };
     };
     "_searchOrApShow": {

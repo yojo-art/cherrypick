@@ -22943,27 +22943,27 @@ export type operations = {
            */
           fileOption?: 'file-only' | 'no-file' | 'combined';
           /**
-           * @description 添付ファイルがセンシティブを含むか
+           * @description 添付ファイルのセンシティブ状態
            * @default combined
            * @enum {string}
            */
-          sensitiveFilter?: 'includeSensitive' | 'withOutsensitive' | 'combined';
+          sensitiveFilter?: 'includeSensitive' | 'withOutSensitive' | 'sensitiveOnly' | 'combined';
           /** @default 0 */
           offset?: number;
           /** @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します */
           host?: string;
           /**
-           * @description trueを指定するとCWを含むノートを除外します
+           * @description CWを含むノートを除外するか
            * @default false
            */
           excludeCW?: boolean;
           /**
-           * @description trueを指定するとリプライのノートを除外します
+           * @description リプライのノートを除外するか
            * @default false
            */
           excludeReply?: boolean;
           /**
-           * @description trueを指定すると引用のノートを除外します
+           * @description 引用のノートを除外するか
            * @default false
            */
           excludeQuote?: boolean;
