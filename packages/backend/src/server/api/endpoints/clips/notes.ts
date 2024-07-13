@@ -227,9 +227,9 @@ async function remoteNote(
 	remote_note_id:string,
 ): Promise<MiNote | null> {
 	const fetchedMeta = await metaService.fetch();
+	console.log(uri);
 	if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
 	//取得or null
-	console.log(uri);
 	let note = await apNoteService.fetchNote(uri);
 	if (note == null) {
 		note = await apNoteService.createNote(uri, undefined, true);
