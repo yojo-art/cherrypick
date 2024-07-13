@@ -158,7 +158,7 @@ async function remote(
 	sinceId:string|undefined,
 	untilId:string|undefined,
 ) {
-	const cache_key = local_id + '-' + (sinceId ? sinceId : '') + '-' + (untilId ? untilId : '');
+	const cache_key = local_id + '-' + (sinceId ? sinceId : '') + '-' + (untilId ? untilId : '') + limit;
 	const cache_value = await redisForRemoteClips.get(cache_key);
 	let remote_json = null;
 	if (cache_value === null) {
