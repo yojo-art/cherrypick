@@ -13351,7 +13351,6 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
-          /** Format: misskey:id */
           clipId: string;
         };
       };
