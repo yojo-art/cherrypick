@@ -198,8 +198,9 @@ async function remote(
 			notes_or_null.push(remoteNote(apNoteService, note.uri, redisForRemoteClips, host, note.id));
 		}
 	}
+	const notes = await awaitAll(notes_or_null);
 	const some_notes = [];
-	for (const note of await awaitAll(notes_or_null)) {
+	for (const note of notes) {
 		if (note !== null)some_notes.push(note);
 	}
 	return some_notes;
