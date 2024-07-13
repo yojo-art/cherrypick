@@ -298,7 +298,7 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({ range: { SensitivefileCount: { gte: 1 } } });
 				} else if (opts.sensitiveFilter === 'withOutSensitive') {
 					osFilter.bool.must.push({ term: { SensitivefileCount: 0 } } );
-				} else if (opts.sensitiveFilter === 'onlySensitive') {
+				} else if (opts.sensitiveFilter === 'sensitiveOnly') {
 					osFilter.bool.must.push({ term: { nonSensitivefileCount: 0 } } );
 					osFilter.bool.must.push({ range: { SensitivefileCount: { gte: 1 } } });
 				}
