@@ -119,6 +119,7 @@ async function remote(
 		const res = got.post(url, {
 			headers: {
 				'User-Agent': config.userAgent,
+				'Content-Type': 'application/json; charset=utf-8',
 			},
 			timeout: {
 				lookup: timeout,
