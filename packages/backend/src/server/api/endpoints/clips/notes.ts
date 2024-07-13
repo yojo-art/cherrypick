@@ -210,7 +210,6 @@ async function remote(
 		}
 	}
 	const notes = await Promise.all(notes_or_null);
-	console.log(notes);
 	const some_notes = [];
 	for (const note of notes) {
 		if (note !== null)some_notes.push(note);
@@ -230,6 +229,7 @@ async function remoteNote(
 	const fetchedMeta = await metaService.fetch();
 	if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
 	//取得or null
+	console.log(uri);
 	let note = await apNoteService.fetchNote(uri);
 	if (note == null) {
 		note = await apNoteService.createNote(uri, undefined, true);
