@@ -98,8 +98,12 @@ export class AdvancedSearchService {
 						body: {
 							mappings: {
 								properties: {
-									text: { type: 'text' },
-									cw: { type: 'text' },
+									text: {
+										type: 'text',
+										analyzer: 'sudachi_analyzer' },
+									cw: {
+										type: 'text',
+										analyzer: 'sudachi_analyzer' },
 									userId: { type: 'keyword' },
 									userHost: { type: 'keyword' },
 									createdAt: { type: 'date' },
@@ -111,47 +115,24 @@ export class AdvancedSearchService {
 									nonSensitiveFileCount: { type: 'byte' },
 								},
 							},
-							settings: {
-								// TODO: いい感じにする
-								index: {
-									analysis: {
-										tokenizer: {
-											sudachi_c_tokenizer: {
-												type: 'sudachi_tokenizer',
-												additional_settings: '{"systemDict":"system_full.dic"}',
-												split_mode: 'C',
-												discard_punctuation: true,
-											},
-											sudachi_b_tokenizer: {
-												type: 'sudachi_tokenizer',
-												additional_settings: '{"systemDict":"system_full.dic"}',
-												split_mode: 'B',
-												discard_punctuation: true,
-											},
-											sudachi_a_tokenizer: {
-												type: 'sudachi_tokenizer',
-												additional_settings: '{"systemDict":"system_full.dic"}',
-												split_mode: 'A',
-												discard_punctuation: true,
-											},
-										},
-										analyzer: {
-											c_analyzer: {
-												filter: [],
-												tokenizer: 'sudachi_c_tokenizer',
-												type: 'custom',
-											},
-											b_analyzer: {
-												filter: [],
-												tokenizer: 'sudachi_b_tokenizer',
-												type: 'custom',
-											},
-											a_normalization_analyzer: {
-												filter: [],
-												tokenizer: 'sudachi_a_tokenizer',
-												type: 'custom',
-											},
-										},
+							analysis: {
+								analyzer: {
+									sudachi_analyzer: {
+										filter: [
+											'sudachi_base_form',
+											'sudachi_readingform',
+											'sudachi_normalizedform',
+										],
+										tokenizer: 'sudachi_a_tokenizer',
+										type: 'custom',
+									},
+								},
+								tokenizer: {
+									sudachi_a_tokenizer: {
+										type: 'sudachi_tokenizer',
+										additional_settings: '{"systemDict":"system_full.dic"}',
+										split_mode: 'A',
+										discard_punctuation: true,
 									},
 								},
 							},
