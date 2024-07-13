@@ -31,13 +31,18 @@ export const meta = {
 			code: 'ALREADY_FAVORITED',
 			id: '92658936-c625-4273-8326-2d790129256e',
 		},
+		unimplemented: {
+			message: 'Unimplemented.',
+			code: 'UNIMPLEMENTED',
+			id: '92658936-c625-4273-8326-2d790129256e',
+		},
 	},
 } as const;
 
 export const paramDef = {
 	type: 'object',
 	properties: {
-		clipId: { type: 'string', format: 'misskey:id' },
+		clipId: { type: 'string' },
 	},
 	required: ['clipId'],
 } as const;
@@ -54,6 +59,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			if (ps.clipId.split('@').length > 1) {
+				throw new ApiError(meta.errors.unimplemented);
+			}
 			const clip = await this.clipsRepository.findOneBy({ id: ps.clipId });
 			if (clip == null) {
 				throw new ApiError(meta.errors.noSuchClip);
