@@ -15,8 +15,15 @@
 ### Misc
 
 -->
+## 0.2.2
+Cherrypick 4.9.0-beta.2
+
+### Server
+remove: チャンネル機能のAPIを削除
+
 ## 0.2.1
 Cherrypick 4.9.0-beta.2
+
 ### Client
 - feat: マスコット画像を表示するウィジェットを追加
 
