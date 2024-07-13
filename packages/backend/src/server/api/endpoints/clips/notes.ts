@@ -87,8 +87,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private redisForRemoteClips: Redis.Redis,
 
 		private httpRequestService: HttpRequestService,
-		private userEntityService: UserEntityService,
-		private remoteUserResolveService: RemoteUserResolveService,
 		private apNoteService: ApNoteService,
 		private metaService: MetaService,
 		private utilityService: UtilityService,
@@ -103,7 +101,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (parsed_id.length === 2 ) {//is remote
 				const url = 'https://' + parsed_id[1] + '/api/clips/notes';
 				apLoggerService.logger.debug('remote clip ' + url);
-				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, metaService, utilityService, apLoggerService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
+				notes = await remote(config, httpRequestService, redisForRemoteClips, apNoteService, metaService, utilityService, apLoggerService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
 			} else if (parsed_id.length === 1 ) {//is not local
 				const clip = await this.clipsRepository.findOneBy({
 					id: ps.clipId,
@@ -147,8 +145,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 async function remote(
 	config:Config,
 	httpRequestService: HttpRequestService,
-	userEntityService: UserEntityService,
-	remoteUserResolveService: RemoteUserResolveService,
 	redisForRemoteClips: Redis.Redis,
 	apNoteService: ApNoteService,
 	metaService: MetaService,
