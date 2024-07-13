@@ -18,6 +18,8 @@ import { awaitAll } from '@/misc/prelude/await-all.js';
 import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
 import { ApNoteService } from '@/core/activitypub/models/ApNoteService.js';
 import { IObject } from '@/core/activitypub/type.js';
+import { MetaService } from '@/core/MetaService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -87,6 +89,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private userEntityService: UserEntityService,
 		private remoteUserResolveService: RemoteUserResolveService,
 		private apNoteService: ApNoteService,
+		private metaService: MetaService,
+		private utilityService: UtilityService,
 
 		private noteEntityService: NoteEntityService,
 		private queryService: QueryService,
@@ -97,7 +101,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (parsed_id.length === 2 ) {//is remote
 				const url = 'https://' + parsed_id[1] + '/api/clips/notes';
 				console.log(url);
-				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
+				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, metaService, utilityService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
 			} else if (parsed_id.length === 1 ) {//is not local
 				const clip = await this.clipsRepository.findOneBy({
 					id: ps.clipId,
@@ -145,6 +149,8 @@ async function remote(
 	remoteUserResolveService: RemoteUserResolveService,
 	redisForRemoteClips: Redis.Redis,
 	apNoteService: ApNoteService,
+	metaService: MetaService,
+	utilityService: UtilityService,
 	url:string,
 	clipId:string,
 	host:string,
@@ -153,9 +159,12 @@ async function remote(
 	sinceId:string|undefined,
 	untilId:string|undefined,
 ) {
-	const cache_value = await redisForRemoteClips.get(local_id);
+	const cache_key = local_id + '-' + (sinceId ? sinceId : '') + '-' + (untilId ? untilId : '');
+	const cache_value = await redisForRemoteClips.get(cache_key);
 	let remote_json = null;
 	if (cache_value === null) {
+		const sinceIdRemote = sinceId ? await redisForRemoteClips.get(sinceId + '@' + host) : undefined;
+		const untilIdRemote = untilId ? await redisForRemoteClips.get(untilId + '@' + host) : undefined;
 		const timeout = 30 * 1000;
 		const operationTimeout = 60 * 1000;
 		const res = got.post(url, {
@@ -184,6 +193,8 @@ async function remote(
 			body: JSON.stringify({
 				clipId,
 				limit,
+				sinceId: sinceIdRemote,
+				untilId: untilIdRemote,
 			}),
 		});
 		remote_json = await res.text();
@@ -195,7 +206,7 @@ async function remote(
 	const notes_or_null = [];
 	for (const note of remote_notes) {
 		if (note.uri !== null) {
-			notes_or_null.push(remoteNote(apNoteService, note.uri, redisForRemoteClips, host, note.id));
+			notes_or_null.push(remoteNote(apNoteService, note.uri, redisForRemoteClips, metaService, utilityService, host, note.id));
 		}
 	}
 	const notes = await Promise.all(notes_or_null);
@@ -209,14 +220,17 @@ async function remote(
 
 async function remoteNote(
 	apNoteService: ApNoteService,
-	object: string | IObject,
+	uri: string,
 	redisForRemoteClips: Redis.Redis,
+	metaService: MetaService,
+	utilityService: UtilityService,
 	host:string,
 	remote_note_id:string,
 ): Promise<MiNote | null> {
+	const fetchedMeta = await metaService.fetch();
+	if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
 	//取得or null
-	console.log(object);
-	const note = await apNoteService.fetchNote(object);
+	const note = await apNoteService.fetchNote(uri);
 	if (note !== null) {
 		redisForRemoteClips.sadd(note.id + '@' + host, remote_note_id);
 	}
