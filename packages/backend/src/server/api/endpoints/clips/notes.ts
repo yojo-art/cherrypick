@@ -205,18 +205,30 @@ async function remote(
 		throw new ApiError(meta.errors.noSuchClip);
 	}
 	const remote_notes = JSON.parse(remote_json);
-	const notes_or_null = [];
+	//リモートに照会する回数の上限
+	const create_limit = 10;
+	let create_count = 0;
+	const notes = [];
 	for (const note of remote_notes) {
 		if (note.uri !== null) {
-			notes_or_null.push(remoteNote(apNoteService, note.uri, redisForRemoteClips, metaService, utilityService, host, note.id));
+			if (create_count > create_limit) {
+				break;
+			}
+			const local_note = await remoteNote(apNoteService, note.uri, redisForRemoteClips, metaService, utilityService, host, note.id);
+			if (local_note !== null) {
+				if (local_note.is_create) {
+					create_count++;
+				}
+				notes.push(local_note.note);
+			}
 		}
 	}
-	const notes = await Promise.all(notes_or_null);
-	const some_notes = [];
-	for (const note of notes) {
-		if (note !== null)some_notes.push(note);
-	}
-	return some_notes;
+	return notes;
+}
+
+class RemoteNote {
+	note:MiNote;
+	is_create:boolean;
 }
 
 async function remoteNote(
@@ -227,22 +239,33 @@ async function remoteNote(
 	utilityService: UtilityService,
 	host:string,
 	remote_note_id:string,
-): Promise<MiNote | null> {
+): Promise<RemoteNote | null> {
 	const fetchedMeta = await metaService.fetch();
 	console.log(uri);
+	let note;
+	let is_create = false;
 	try {
+		//ブロックされたインスタンスの投稿は無かった事にする
 		if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
+		//ローカルのDBから取得を試みる
+		note = await apNoteService.fetchNote(uri);
+		if (note == null) {
+			//ダメそうなら照会
+			note = await apNoteService.createNote(uri, undefined, true);
+			is_create = true;
+		}
 	} catch (e) {
 		console.log(e);
+		//照会失敗した時はクリップ内に無かった事にする
 		return null;
-	}
-	//取得or null
-	let note = await apNoteService.fetchNote(uri);
-	if (note == null) {
-		note = await apNoteService.createNote(uri, undefined, true);
 	}
 	if (note !== null) {
 		redisForRemoteClips.set(note.id + '@' + host, remote_note_id);
+		return {
+			note,
+			is_create,
+		};
+	} else {
+		return null;
 	}
-	return note;
 }
