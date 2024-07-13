@@ -232,7 +232,7 @@ async function remoteNote(
 	//取得or null
 	const note = await apNoteService.fetchNote(uri);
 	if (note !== null) {
-		redisForRemoteClips.sadd(note.id + '@' + host, remote_note_id);
+		redisForRemoteClips.set(note.id + '@' + host, remote_note_id);
 	}
 	return note;
 }
