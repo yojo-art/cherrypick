@@ -79,6 +79,7 @@ services:
 #      interval: 5s
 #      retries: 20
 
+# opensearchとopensearch-dashboardsのdockerfileは実装時の最新版の辞書なので適宜書き換えてください
 #  opensearch:
 #    build: ./opensearch
 #    environment:
@@ -94,7 +95,7 @@ services:
 #        soft: 65536 # Maximum number of open files for the opensearch user - set to at least 65536
 #        hard: 65536
 #    volumes:
-#      - ./data/opensearch:/usr/share/opensearch/data
+#      - ./os-data:/usr/share/opensearch/data
 #    networks:
 #      - internal_network
 #      - external_network
