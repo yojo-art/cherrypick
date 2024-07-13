@@ -97,7 +97,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (parsed_id.length === 2 ) {//is remote
 				const url = 'https://' + parsed_id[1] + '/api/clips/notes';
 				console.log(url);
-				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, url, parsed_id[0], parsed_id[1], ps.clipId);
+				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
 			} else if (parsed_id.length === 1 ) {//is not local
 				const clip = await this.clipsRepository.findOneBy({
 					id: ps.clipId,
@@ -149,6 +149,9 @@ async function remote(
 	clipId:string,
 	host:string,
 	local_id:string,
+	limit:number,
+	sinceId:string|undefined,
+	untilId:string|undefined,
 ) {
 	const cache_value = await redisForRemoteClips.get(local_id);
 	let remote_json = null;
@@ -180,6 +183,7 @@ async function remote(
 			enableUnixSockets: false,
 			body: JSON.stringify({
 				clipId,
+				limit,
 			}),
 		});
 		remote_json = await res.text();
@@ -191,7 +195,7 @@ async function remote(
 	const notes_or_null = [];
 	for (const note of remote_notes) {
 		if (note.uri !== null) {
-			notes_or_null.push(remoteNote(apNoteService, note.uri));
+			notes_or_null.push(remoteNote(apNoteService, note.uri, redisForRemoteClips, host, note.id));
 		}
 	}
 	const some_notes = [];
@@ -201,7 +205,17 @@ async function remote(
 	return some_notes;
 }
 
-async function remoteNote(apNoteService: ApNoteService, object: string | IObject): Promise<MiNote | null> {
+async function remoteNote(
+	apNoteService: ApNoteService,
+	object: string | IObject,
+	redisForRemoteClips: Redis.Redis,
+	host:string,
+	remote_note_id:string,
+): Promise<MiNote | null> {
 	//取得or null
-	return await apNoteService.fetchNote(object);
+	const note = await apNoteService.fetchNote(object);
+	if (note !== null) {
+		redisForRemoteClips.sadd(note.id + '@' + host, remote_note_id);
+	}
+	return note;
 }
