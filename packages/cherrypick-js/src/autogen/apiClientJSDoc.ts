@@ -3267,7 +3267,7 @@ declare module '../api.js' {
     /**
      * 高度な検索ができます
      * 
-     * **Credential required**: *No*
+     * **Credential required**: *Yes*
      */
     request<E extends 'notes/advanced-search', P extends Endpoints[E]['req']>(
       endpoint: E,
