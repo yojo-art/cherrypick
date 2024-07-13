@@ -92,7 +92,7 @@ async function remote(
 	sinceId:string|undefined,
 	untilId:string|undefined,
 ) {
-	const cache_key = user.id + '-clips';
+	const cache_key = user.id + '-' + sinceId + '-' + untilId + '-clips';
 	const cache_value = await redisForRemoteClips.get(cache_key);
 	if (cache_value !== null) {
 		//ステータス格納
