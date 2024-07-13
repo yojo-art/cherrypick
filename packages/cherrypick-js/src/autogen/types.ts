@@ -2834,7 +2834,7 @@ export type paths = {
      * notes/advanced-search
      * @description 高度な検索ができます
      *
-     * **Credential required**: *No*
+     * **Credential required**: *Yes*
      */
     post: operations['notes___advanced-search'];
   };
@@ -22907,7 +22907,7 @@ export type operations = {
    * notes/advanced-search
    * @description 高度な検索ができます
    *
-   * **Credential required**: *No*
+   * **Credential required**: *Yes*
    */
   'notes___advanced-search': {
     requestBody: {
