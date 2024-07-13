@@ -103,7 +103,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (parsed_id.length === 2 ) {//is remote
 				const url = 'https://' + parsed_id[1] + '/api/clips/notes';
 				apLoggerService.logger.debug('remote clip ' + url);
-				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, metaService, utilityService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
+				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, metaService, utilityService, apLoggerService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
 			} else if (parsed_id.length === 1 ) {//is not local
 				const clip = await this.clipsRepository.findOneBy({
 					id: ps.clipId,
@@ -153,6 +153,7 @@ async function remote(
 	apNoteService: ApNoteService,
 	metaService: MetaService,
 	utilityService: UtilityService,
+	apLoggerService: ApLoggerService,
 	url:string,
 	clipId:string,
 	host:string,
@@ -214,7 +215,7 @@ async function remote(
 			if (create_count > create_limit) {
 				break;
 			}
-			const local_note = await remoteNote(apNoteService, note.uri, redisForRemoteClips, metaService, utilityService, host, note.id);
+			const local_note = await remoteNote(apNoteService, note.uri, redisForRemoteClips, metaService, utilityService, apLoggerService, host, note.id);
 			if (local_note !== null) {
 				if (local_note.is_create) {
 					create_count++;
@@ -237,11 +238,12 @@ async function remoteNote(
 	redisForRemoteClips: Redis.Redis,
 	metaService: MetaService,
 	utilityService: UtilityService,
+	apLoggerService: ApLoggerService,
 	host:string,
 	remote_note_id:string,
 ): Promise<RemoteNote | null> {
 	const fetchedMeta = await metaService.fetch();
-	console.log(uri);
+	apLoggerService.logger.debug(uri);
 	let note;
 	let is_create = false;
 	try {
@@ -255,7 +257,7 @@ async function remoteNote(
 			is_create = true;
 		}
 	} catch (e) {
-		console.log(e);
+		apLoggerService.logger.warn(String(e));
 		//照会失敗した時はクリップ内に無かった事にする
 		return null;
 	}
