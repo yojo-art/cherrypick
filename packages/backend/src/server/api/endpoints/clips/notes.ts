@@ -230,7 +230,10 @@ async function remoteNote(
 	const fetchedMeta = await metaService.fetch();
 	if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
 	//取得or null
-	const note = await apNoteService.fetchNote(uri);
+	let note = await apNoteService.fetchNote(uri);
+	if (note == null) {
+		note = await apNoteService.createNote(uri, undefined, true);
+	}
 	if (note !== null) {
 		redisForRemoteClips.set(note.id + '@' + host, remote_note_id);
 	}
