@@ -118,19 +118,19 @@ export class AdvancedSearchService {
 										tokenizer: {
 											sudachi_c_tokenizer: {
 												type: 'sudachi_tokenizer',
-												additional_settings: '',
+												additional_settings: '{"systemDict":"system_full.dic"}',
 												split_mode: 'C',
 												discard_punctuation: true,
 											},
 											sudachi_b_tokenizer: {
 												type: 'sudachi_tokenizer',
-												additional_settings: '',
+												additional_settings: '{"systemDict":"system_full.dic"}',
 												split_mode: 'B',
 												discard_punctuation: true,
 											},
 											sudachi_a_tokenizer: {
 												type: 'sudachi_tokenizer',
-												additional_settings: '',
+												additional_settings: '{"systemDict":"system_full.dic"}',
 												split_mode: 'A',
 												discard_punctuation: true,
 											},
