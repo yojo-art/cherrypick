@@ -207,7 +207,7 @@ async function remote(
 	}
 	const remote_notes = JSON.parse(remote_json);
 	//リモートに照会する回数の上限
-	const create_limit = 10;
+	const create_limit = 5;
 	let create_count = 0;
 	const notes = [];
 	for (const note of remote_notes) {
@@ -243,7 +243,7 @@ async function remoteNote(
 	remote_note_id:string,
 ): Promise<RemoteNote | null> {
 	const fetchedMeta = await metaService.fetch();
-	apLoggerService.logger.debug(uri);
+	apLoggerService.logger.debug('remote clip note fetch ' + uri);
 	let note;
 	let is_create = false;
 	try {
