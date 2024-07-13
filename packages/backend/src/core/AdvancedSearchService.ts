@@ -309,7 +309,6 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({
 						bool: {
 							should: [
-								{ wildcard: { 'text': { value: q } } },
 								{ simple_query_string: { fields: ['text'], 'query': q, default_operator: 'and' } },
 							],
 							minimum_should_match: 1,
@@ -319,9 +318,7 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({
 						bool: {
 							should: [
-								{ wildcard: { 'text': { value: q } } },
 								{ simple_query_string: { fields: ['text'], 'query': q, default_operator: 'and' } },
-								{ wildcard: { 'cw': { value: q } } },
 								{ simple_query_string: { fields: ['cw'], 'query': q, default_operator: 'and' } },
 							],
 							minimum_should_match: 1,
