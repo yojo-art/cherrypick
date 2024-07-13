@@ -20,6 +20,7 @@ import { ApNoteService } from '@/core/activitypub/models/ApNoteService.js';
 import { IObject } from '@/core/activitypub/type.js';
 import { MetaService } from '@/core/MetaService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { ApLoggerService } from '@/core/activitypub/ApLoggerService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -94,13 +95,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private noteEntityService: NoteEntityService,
 		private queryService: QueryService,
+		private apLoggerService: ApLoggerService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.clipId.split('@');
 			let notes = [];
 			if (parsed_id.length === 2 ) {//is remote
 				const url = 'https://' + parsed_id[1] + '/api/clips/notes';
-				console.log(url);
+				apLoggerService.logger.debug('remote clip ' + url);
 				notes = await remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, apNoteService, metaService, utilityService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
 			} else if (parsed_id.length === 1 ) {//is not local
 				const clip = await this.clipsRepository.findOneBy({
@@ -228,7 +230,12 @@ async function remoteNote(
 ): Promise<MiNote | null> {
 	const fetchedMeta = await metaService.fetch();
 	console.log(uri);
-	if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
+	try {
+		if (utilityService.isBlockedHost(fetchedMeta.blockedHosts, utilityService.extractDbHost(uri))) return null;
+	} catch (e) {
+		console.log(e);
+		return null;
+	}
 	//取得or null
 	let note = await apNoteService.fetchNote(uri);
 	if (note == null) {
