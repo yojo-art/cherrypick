@@ -107,8 +107,8 @@ export class AdvancedSearchService {
 									replyId: { type: 'keyword' },
 									fileIds: { type: 'keyword' },
 									isQuote: { type: 'bool' },
-									sensitivefileCount: { type: 'byte' },
-									nonSensitivefileCount: { type: 'byte' },
+									sensitiveFileCount: { type: 'byte' },
+									nonSensitiveFileCount: { type: 'byte' },
 								},
 							},
 							settings: {
@@ -193,8 +193,8 @@ export class AdvancedSearchService {
 				replyId: note.replyId,
 				fileIds: note.fileIds,
 				isQuote: Quote,
-				SensitivefileCount: sensitiveCount,
-				nonSensitivefileCount: nonSensitiveCount,
+				sensitiveFileCount: sensitiveCount,
+				nonSensitiveFileCount: nonSensitiveCount,
 			};
 
 			await this.opensearch.index({
@@ -295,12 +295,12 @@ export class AdvancedSearchService {
 			}
 			if (opts.sensitiveFilter) {
 				if (opts.sensitiveFilter === 'includeSensitive') {
-					osFilter.bool.must.push({ range: { SensitivefileCount: { gte: 1 } } });
+					osFilter.bool.must.push({ range: { sensitiveFileCount: { gte: 1 } } });
 				} else if (opts.sensitiveFilter === 'withOutSensitive') {
-					osFilter.bool.must.push({ term: { SensitivefileCount: 0 } } );
+					osFilter.bool.must.push({ term: { sensitiveFileCount: 0 } } );
 				} else if (opts.sensitiveFilter === 'sensitiveOnly') {
-					osFilter.bool.must.push({ term: { nonSensitivefileCount: 0 } } );
-					osFilter.bool.must.push({ range: { SensitivefileCount: { gte: 1 } } });
+					osFilter.bool.must.push({ term: { nonSensitiveFileCount: 0 } } );
+					osFilter.bool.must.push({ range: { sensitiveFileCount: { gte: 1 } } });
 				}
 			}
 
