@@ -213,6 +213,7 @@ async function remoteNote(
 	remote_note_id:string,
 ): Promise<MiNote | null> {
 	//取得or null
+	console.log(object);
 	const note = await apNoteService.fetchNote(object);
 	if (note !== null) {
 		redisForRemoteClips.sadd(note.id + '@' + host, remote_note_id);
