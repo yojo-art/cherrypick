@@ -72,9 +72,9 @@ export const paramDef = {
 		},
 		sensitiveFilter: {
 			type: 'string',
-			enum: ['includeSensitive', 'withOutsensitive', 'combined'],
+			enum: ['combined', 'includeSensitive', 'withOutSensitive', 'sensitiveOnly'],
 			default: 'combined',
-			description: '添付ファイルがセンシティブを含むか',
+			description: '添付ファイルのセンシティブ状態',
 		},
 		offset: {
 			type: 'integer',

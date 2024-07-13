@@ -3097,8 +3097,9 @@ _advancedSearch:
   _fileNsfwOption:
     title: "添付ファイルのセンシティブ状態"
     combined: "フィルタしない"
-    withOutsensitive: "除外する"
-    includeSensitive: "含むもののみ"
+    withOutSensitive: "除外"
+    includeSensitive: "含むもの"
+    onlySensitive: "全てセンシティブ"
 
 _searchOrApShow:
   question: "照会を行いますか？"

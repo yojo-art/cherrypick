@@ -51,8 +51,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div style="text-align: center;" class="_gaps_m">
 							<MkRadios v-model="sensitiveFilter" @update:modelValue="search()">
 								<option value="combined">{{ i18n.ts._advancedSearch._fileNsfwOption.combined }}</option>
-								<option value="withOutsensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.withOutsensitive }}</option>
+								<option value="withOutSensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive }}</option>
 								<option value="includeSensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.includeSensitive }}</option>
+								<option value="sensitiveOnly">{{ i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly }}</option>
 							</MkRadios>
 						</div>
 					</FormSection>
