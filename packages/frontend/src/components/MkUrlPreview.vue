@@ -44,12 +44,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 </template>
 <div v-else>
-	<component :is="self ? 'MkA' : 'a'" :class="[$style.link, { [$style.compact]: compact }]" :[attr]="self ? url.substring(local.length) : url" rel="nofollow noopener" :target="target" :title="url" @click.stop>
+	<component :is="self ? 'MkA' : 'a'" :class="[$style.link, { [$style.compact]: compact }]" :[attr]="self ? url_string.substring(local.length) : url_string" rel="nofollow noopener" :target="target" :title="url_string" @click.stop>
 		<div v-if="thumbnail && !sensitive" :class="$style.thumbnail" :style="defaultStore.state.dataSaver.urlPreview ? '' : `background-image: url('${thumbnail}')`">
 		</div>
 		<article :class="$style.body">
 			<header :class="$style.header">
-				<h1 v-if="unknownUrl" :class="$style.title">{{ url }}</h1>
+				<h1 v-if="unknownUrl" :class="$style.title">{{ url_string }}</h1>
 				<h1 v-else-if="fetching" :class="$style.title"><MkEllipsis/></h1>
 				<h1 v-else :class="$style.title" :title="title ?? undefined">{{ title }}</h1>
 			</header>
@@ -102,16 +102,24 @@ const props = withDefaults(defineProps<{
 	detail?: boolean;
 	compact?: boolean;
 	showActions?: boolean;
+	host?: string | null | undefined;
 }>(), {
 	detail: false,
 	compact: false,
 	showActions: true,
+	host: null,
 });
 
 const MOBILE_THRESHOLD = 500;
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
 
-const self = props.url.startsWith(local);
+let self = props.url.startsWith(local);
+let requestUrl = new URL(props.url);
+if (props.host === requestUrl.host && requestUrl.pathname.startsWith('/clips/')) {
+	requestUrl = new URL(local + requestUrl.pathname + '@' + props.host);
+	self = true;
+}
+const url_string = requestUrl.toString();
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 const fetching = ref(true);
@@ -137,7 +145,7 @@ onDeactivated(() => {
 	playerEnabled.value = false;
 });
 
-const requestUrl = new URL(props.url);
+//const requestUrl = new URL(props.url);
 if (!['http:', 'https:'].includes(requestUrl.protocol)) throw new Error('invalid url');
 
 if (requestUrl.hostname === 'twitter.com' || requestUrl.hostname === 'mobile.twitter.com' || requestUrl.hostname === 'x.com' || requestUrl.hostname === 'mobile.x.com') {
