@@ -102,16 +102,23 @@ const props = withDefaults(defineProps<{
 	detail?: boolean;
 	compact?: boolean;
 	showActions?: boolean;
+	host?: string | null | undefined;
 }>(), {
 	detail: false,
 	compact: false,
 	showActions: true,
+	host: null,
 });
 
 const MOBILE_THRESHOLD = 500;
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
 
-const self = props.url.startsWith(local);
+let self = props.url.startsWith(local);
+let requestUrl = new URL(props.url);
+if (props.host === requestUrl.host && requestUrl.pathname.startsWith('/clips/')) {
+	requestUrl = new URL(local + requestUrl.pathname + '@' + props.host);
+	self = true;
+}
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 const fetching = ref(true);
@@ -137,7 +144,7 @@ onDeactivated(() => {
 	playerEnabled.value = false;
 });
 
-const requestUrl = new URL(props.url);
+//const requestUrl = new URL(props.url);
 if (!['http:', 'https:'].includes(requestUrl.protocol)) throw new Error('invalid url');
 
 if (requestUrl.hostname === 'twitter.com' || requestUrl.hostname === 'mobile.twitter.com' || requestUrl.hostname === 'x.com' || requestUrl.hostname === 'mobile.x.com') {
