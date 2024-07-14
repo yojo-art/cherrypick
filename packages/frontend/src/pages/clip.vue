@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions"/></template>
 	<MkSpacer :contentMax="800">
-		<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn"/>
+		<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn" :class="$style.remote_caution"/>
 		<div v-if="clip" class="_gaps">
 			<div class="_panel">
 				<div class="_gaps_s" :class="$style.description">
@@ -177,6 +177,9 @@ definePageMetadata(() => ({
 </script>
 
 <style lang="scss" module>
+.remote_caution{
+	margin-bottom: 10px;
+}
 .description {
 	padding: 16px;
 }
