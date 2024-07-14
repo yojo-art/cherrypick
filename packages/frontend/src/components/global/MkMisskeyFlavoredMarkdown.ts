@@ -355,7 +355,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 					key: Math.random(),
 					url: token.props.url,
 					rel: 'nofollow noopener',
-					host: props.author?.instance,
+					host: props.author?.host,
 				})];
 			}
 
