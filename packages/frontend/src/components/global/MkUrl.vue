@@ -46,32 +46,32 @@ const props = withDefaults(defineProps<{
 });
 
 let self = props.url.startsWith(local);
-const url = new URL(props.url);
+let url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
+
+if (props.host === url.host && url.pathname.startsWith('/clips/')) {
+	url = new URL(local + '/clips/' + url.pathname + '@' + props.host);
+	self = true;
+}
 const el = ref();
 
 if (props.showUrlPreview && isEnabledUrlPreview.value) {
 	useTooltip(el, (showing) => {
 		os.popup(defineAsyncComponent(() => import('@/components/MkUrlPreviewPopup.vue')), {
 			showing,
-			url: props.url,
+			url: url.toString(),
 			source: el.value instanceof HTMLElement ? el.value : el.value?.$el,
 		}, {}, 'closed');
 	});
 }
 
 const schema = url.protocol;
-let hostname = decodePunycode(url.hostname);
-let port = url.port;
-let pathname = safeURIDecode(url.pathname);
+const hostname = decodePunycode(url.hostname);
+const port = url.port;
+const pathname = safeURIDecode(url.pathname);
 const query = safeURIDecode(url.search);
 const hash = safeURIDecode(url.hash);
 
-if (props.host === url.host && pathname.startsWith('/clips/')) {
-	const local_url = new URL(local);
-	hostname = local_url.hostname;
-	self = true;
-}
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 </script>
