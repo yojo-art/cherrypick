@@ -40,11 +40,12 @@ const props = withDefaults(defineProps<{
 	rel?: string;
 	showUrlPreview?: boolean;
 	navigationBehavior?: MkABehavior;
+	host?: string;
 }>(), {
 	showUrlPreview: true,
 });
 
-const self = props.url.startsWith(local);
+let self = props.url.startsWith(local);
 const url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
 const el = ref();
@@ -60,11 +61,17 @@ if (props.showUrlPreview && isEnabledUrlPreview.value) {
 }
 
 const schema = url.protocol;
-const hostname = decodePunycode(url.hostname);
-const port = url.port;
-const pathname = safeURIDecode(url.pathname);
+let hostname = decodePunycode(url.hostname);
+let port = url.port;
+let pathname = safeURIDecode(url.pathname);
 const query = safeURIDecode(url.search);
 const hash = safeURIDecode(url.hash);
+
+if (props.host === url.host && pathname.startsWith('/clips/')) {
+	const local_url = new URL(local);
+	hostname = local_url.hostname;
+	self = true;
+}
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 </script>
