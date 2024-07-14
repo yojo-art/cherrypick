@@ -9,6 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSpacer :contentMax="800">
 		<div v-if="clip" class="_gaps">
 			<div class="_panel">
+				<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn"/>
 				<div class="_gaps_s" :class="$style.description">
 					<div v-if="clip.description">
 						<Mfm :text="clip.description" :isNote="false"/>
@@ -58,7 +59,10 @@ const pagination = {
 		clipId: props.clipId,
 	})),
 };
-
+const remoteUrl = computed<string | null>(() => {
+	let remote_split = props.clipId.split('@');
+	return remote_split.length === 2 ? 'https://' + remote_split[1] + '/clips/' + remote_split[0] : null;
+});
 const isOwned = computed<boolean | null>(() => $i && clip.value && ($i.id === clip.value.userId));
 
 watch(() => props.clipId, async () => {
