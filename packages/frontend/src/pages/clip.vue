@@ -65,6 +65,7 @@ const remoteUrl = ref<string | null>(null);
 	if (remote_split.length === 2 ) {
 		remoteUrl.value = 'https://' + remote_split[1] + '/clips/' + remote_split[0];
 	}
+	console.log(remote_split);
 })();
 const isOwned = computed<boolean | null>(() => $i && clip.value && ($i.id === clip.value.userId));
 
