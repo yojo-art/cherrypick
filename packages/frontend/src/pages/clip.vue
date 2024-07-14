@@ -7,9 +7,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions"/></template>
 	<MkSpacer :contentMax="800">
+		<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn"/>
 		<div v-if="clip" class="_gaps">
 			<div class="_panel">
-				<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn"/>
 				<div class="_gaps_s" :class="$style.description">
 					<div v-if="clip.description">
 						<Mfm :text="clip.description" :isNote="false"/>
