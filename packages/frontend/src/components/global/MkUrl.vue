@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <component
-	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? props.url.substring(local.length) : props.url" :rel="rel ?? 'nofollow noopener'" :target="target"
+	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? url_string.substring(local.length) : url_string" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
 	@click.stop
 	@contextmenu.stop="() => {}"
@@ -40,20 +40,27 @@ const props = withDefaults(defineProps<{
 	rel?: string;
 	showUrlPreview?: boolean;
 	navigationBehavior?: MkABehavior;
+	host: string | null | undefined;
 }>(), {
 	showUrlPreview: true,
 });
 
-const self = props.url.startsWith(local);
-const url = new URL(props.url);
+let self = props.url.startsWith(local);
+let url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
+
+if (props.host === url.host && url.pathname.startsWith('/clips/')) {
+	url = new URL(local + url.pathname + '@' + props.host);
+	self = true;
+}
+const url_string = url.toString();
 const el = ref();
 
 if (props.showUrlPreview && isEnabledUrlPreview.value) {
 	useTooltip(el, (showing) => {
 		os.popup(defineAsyncComponent(() => import('@/components/MkUrlPreviewPopup.vue')), {
 			showing,
-			url: props.url,
+			url: url_string,
 			source: el.value instanceof HTMLElement ? el.value : el.value?.$el,
 		}, {}, 'closed');
 	});
@@ -65,6 +72,7 @@ const port = url.port;
 const pathname = safeURIDecode(url.pathname);
 const query = safeURIDecode(url.search);
 const hash = safeURIDecode(url.hash);
+
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 </script>

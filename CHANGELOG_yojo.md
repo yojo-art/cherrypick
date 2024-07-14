@@ -15,12 +15,38 @@
 ### Misc
 
 -->
+## 0.3.0
+
+### Release Date
+
+### General
+- Feat: リモートユーザーのクリップが閲覧できるように
+  - お気に入りは未実装です
+  - ログインが必要な投稿は見れません
+
+### Client
+-
+
+### Server
+- Feat: OpenSearchを利用できるように
+- Enhance: 高度な検索に新たな条件を追加(OpenSearchが必要です)
+	- 添付ファイルのセンシティブ条件(なし/含む/除外)
+	- 引用ノート除外
+  - 検索方法の詳細はdoc/Advanced-Search.mdに 
+- Change:APIのパラメータを変更
+	-  notes/advanced-search の"excludeNsfw"を"excludeCW"に変更  
+	-  notes/advanced-search の"channelId"を削除  
+ 
 ## 0.2.2
 Cherrypick 4.9.0-beta.2
 
-### Server
-remove: チャンネル機能のAPIを削除
+### General
 
+### Client
+
+### Server
+- remove: チャンネル機能のAPIを削除
+ 
 ## 0.2.1
 Cherrypick 4.9.0-beta.2
 

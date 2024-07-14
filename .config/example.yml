@@ -175,6 +175,16 @@ redis:
 #  # You can specify more ioredis options...
 #  #username: example-username
 
+#redisForRemoteClips:
+#  host: localhost
+#  port: 6379
+#  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
+#  #pass: example-pass
+#  #prefix: example-prefix
+#  #db: 1
+#  # You can specify more ioredis options...
+#  #username: example-username
+
 #   ┌───────────────────────────┐
 #───┘ MeiliSearch configuration └─────────────────────────────
 
@@ -191,19 +201,17 @@ redis:
 
 
 #   ┌───────────────────────────┐
-#───┘ OpenSearch configuration └─────────────────────────────
+#───┘ OpenSearch configuration  └─────────────────────────────
 
 # You can use OpenSearch when you enabled AdvancedSearch.
-# THIS DOES NOT WORK BECAUSE OF WIP
 
 #opensearch:
 #  host: localhost
 #  port: 9200
-#  user: ''
-#  pass: ''
+#  user: 'admin'
+#  pass: 'opensearch-adminpassword' #強めのパスワードじゃないと怒られる
 #  ssl: false
-#  index: ''
-#  dictName: ''
+#  index: 'instancename' #なんでもいい
 
 #   ┌───────────────┐
 #───┘ ID generation └───────────────────────────────────────────
