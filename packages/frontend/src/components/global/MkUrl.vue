@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <component
-	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? props.url.substring(local.length) : props.url" :rel="rel ?? 'nofollow noopener'" :target="target"
+	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? url_string.substring(local.length) : url_string" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
 	@click.stop
 	@contextmenu.stop="() => {}"
@@ -53,13 +53,14 @@ if (props.host === url.host && url.pathname.startsWith('/clips/')) {
 	url = new URL(local + url.pathname + '@' + props.host);
 	self = true;
 }
+const url_string = url.toString();
 const el = ref();
 
 if (props.showUrlPreview && isEnabledUrlPreview.value) {
 	useTooltip(el, (showing) => {
 		os.popup(defineAsyncComponent(() => import('@/components/MkUrlPreviewPopup.vue')), {
 			showing,
-			url: url.toString(),
+			url: url_string,
 			source: el.value instanceof HTMLElement ? el.value : el.value?.$el,
 		}, {}, 'closed');
 	});
