@@ -59,10 +59,13 @@ const pagination = {
 		clipId: props.clipId,
 	})),
 };
-const remoteUrl = computed<string | null>(() => {
+const remoteUrl = ref<string | null>(null);
+(() => {
 	let remote_split = props.clipId.split('@');
-	return remote_split.length === 2 ? 'https://' + remote_split[1] + '/clips/' + remote_split[0] : null;
-});
+	if (remote_split.length === 2 ) {
+		remoteUrl.value = 'https://' + remote_split[1] + '/clips/' + remote_split[0];
+	}
+})();
 const isOwned = computed<boolean | null>(() => $i && clip.value && ($i.id === clip.value.userId));
 
 watch(() => props.clipId, async () => {
