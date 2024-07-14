@@ -35,6 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, watch, provide, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import MkNotes from '@/components/MkNotes.vue';
+import MkRemoteCaution from '@/components/MkRemoteCaution.vue';
 import { $i } from '@/account.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
@@ -65,7 +66,6 @@ const remoteUrl = ref<string | null>(null);
 	if (remote_split.length === 2 ) {
 		remoteUrl.value = 'https://' + remote_split[1] + '/clips/' + remote_split[0];
 	}
-	console.log(remote_split);
 })();
 const isOwned = computed<boolean | null>(() => $i && clip.value && ($i.id === clip.value.userId));
 
