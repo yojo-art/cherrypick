@@ -15,6 +15,11 @@
 ### Misc
 
 -->
+## 0.3.1
+
+### Server
+- fix: inquiryUrlが設定できない不具合を修正
+
 ## 0.3.0
 
 ### Release Date
