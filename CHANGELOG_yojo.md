@@ -15,14 +15,37 @@
 ### Misc
 
 -->
+## 0.3.2
+Cherrypick 4.9.0-beta.2
+
+### Release Date
+2024-07-16
+
+### General
+-
+
+### Client
+- Change: 非ログイン時のインスタンス画面にマスコット画像/人気の投稿を表示しなくなりました
+
+### Server
+- Fix: ステータスページURLが返ってこない問題を修正
+
+### Misc
+
 ## 0.3.1
+Cherrypick 4.9.0-beta.2
+
+### Release Date
+2024-07-15
 
 ### Server
 - fix: inquiryUrlが設定できない不具合を修正
 
 ## 0.3.0
+Cherrypick 4.9.0-beta.2
 
 ### Release Date
+2024-07-15
 
 ### General
 - Feat: リモートユーザーのクリップが閲覧できるように
@@ -45,6 +68,9 @@
 ## 0.2.2
 Cherrypick 4.9.0-beta.2
 
+### Release Date
+2024-07-13
+
 ### General
 
 ### Client
@@ -55,11 +81,17 @@ Cherrypick 4.9.0-beta.2
 ## 0.2.1
 Cherrypick 4.9.0-beta.2
 
+### Release Date
+2024-07-11
+
 ### Client
 - feat: マスコット画像を表示するウィジェットを追加
 
 ## 0.2.0
 Cherrypick 4.9.0-beta.2
+
+### Release Date
+2024-07-8
 
 ### General
 - enhance: ノートとユーザーの検索時に照会を行うかが選択できるようになりました
