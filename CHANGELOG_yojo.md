@@ -15,6 +15,21 @@
 ### Misc
 
 -->
+## yojo-x.x.x (unreleased)
+
+### Release Date
+
+### General
+-
+
+### Client
+- Change: 非ログイン時のインスタンス画面にマスコット画像/人気の投稿を表示しなくなりました
+
+### Server
+-
+
+### Misc
+
 ## 0.3.1
 
 ### Server
