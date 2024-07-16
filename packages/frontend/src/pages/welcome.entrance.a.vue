@@ -1,13 +1,11 @@
 <!--
-SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-FileCopyrightText: syuilo and misskey-project yojo-art team
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
 <div v-if="meta" class="rsqzvsbo">
 	<MkFeaturedPhotos class="bg"/>
-	<XTimeline v-if="meta.mascotImageUrl === '/assets/ai.png'||meta.mascotImageUrl === ''" class="tl"/>
-	<img v-else :src="meta.mascotImageUrl" alt="" title="mascotImage" class="mascotImage">
 	<div class="shape1"></div>
 	<div class="shape2"></div>
 	<div class="logo-wrapper">
@@ -39,7 +37,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
-import XTimeline from './welcome.timeline.vue';
 import MarqueeText from '@/components/MkMarquee.vue';
 import MkFeaturedPhotos from '@/components/MkFeaturedPhotos.vue';
 import cherrypicksvg from '/client-assets/cherrypick.svg';
@@ -74,42 +71,6 @@ misskeyApiGet('federation/instances', {
 		right: 0;
 		width: 80vw; // 100%からshapeの幅を引いている
 		height: 100vh;
-	}
-
-	> .tl {
-		position: fixed;
-		top: 0;
-		bottom: 0;
-		right: 64px;
-		margin: auto;
-		padding: 128px 0;
-		width: 500px;
-		height: calc(100% - 256px);
-		overflow: hidden;
-		-webkit-mask-image: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 128px, rgba(0,0,0,1) calc(100% - 128px), rgba(0,0,0,0) 100%);
-		mask-image: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 128px, rgba(0,0,0,1) calc(100% - 128px), rgba(0,0,0,0) 100%);
-
-		@media (max-width: 1200px) {
-			display: none;
-		}
-	}
-
-	> .mascotImage {
-		position: fixed;
-		top: 0;
-		bottom: 0;
-		right: 2px;
-		margin: auto;
-		padding: 128px 0;
-		width: 680px;
-		height: auto;
-		overflow: hidden;
-		-webkit-mask-image: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 128px, rgba(0,0,0,1) calc(100% - 128px), rgba(0,0,0,0) 100%);
-		mask-image: linear-gradient(0deg, rgba(0,0,0,0) 0%, rgba(0,0,0,1) 128px, rgba(0,0,0,1) calc(100% - 128px), rgba(0,0,0,0) 100%);
-
-		@media (max-width: 1200px) {
-			display: none;
-		}
 	}
 
 	> .shape1 {
