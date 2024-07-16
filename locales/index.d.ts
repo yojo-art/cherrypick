@@ -6356,7 +6356,7 @@ export interface Locale extends ILocale {
          */
         "inquiryUrlDescription": string;
         /**
-         * 空欄かデフォルト値(/assets/ai.png)の場合タイムラインが表示されます
+         * マスコット画像ウィジェットに表示されます
          */
         "mascotImageUrlDescription": string;
     };
