@@ -5387,6 +5387,7 @@ export type operations = {
             objectStorageS3ForcePathStyle: boolean;
             objectStorageRemoteS3ForcePathStyle: boolean;
             privacyPolicyUrl: string | null;
+            statusUrl: string | null;
             inquiryUrl: string | null;
             repositoryUrl: string | null;
             /**
