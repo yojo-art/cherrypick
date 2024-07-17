@@ -16,10 +16,11 @@
 
 -->
 
-## 0.3.3 (unreleased)
+## 0.3.3
 Cherrypick 4.9.0-beta.2
 
 ### Release Date
+2024-07-18
 
 ### General
 -
