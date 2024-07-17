@@ -27,6 +27,8 @@ Cherrypick 4.9.0-beta.2
 ### Client
 - Change: 公式タグ一覧の画像高さを調節しました
 - Fix: ハッシュタグTLで投稿フォームを閉じた後にリロードしないように
+- Feat: 通知画面で通知を消せるように
+(Cherry-picked from https://github.com/1673beta/cherrypick/pull/76)
 
 ### Server
 -	feat: 通知を個別削除するAPI  
