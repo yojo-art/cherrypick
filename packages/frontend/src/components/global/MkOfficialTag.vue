@@ -51,9 +51,10 @@ const bannerStyle = computed(() => {
 	> .banner {
 		position: relative;
 		width: 100%;
-		height: 200px;
+		aspect-ratio: 7 / 3;
 		background-position: center;
-		background-size: cover;
+		background-size: contain;
+		background-repeat: no-repeat;
 
 		> .fade {
 			position: absolute;
@@ -87,29 +88,13 @@ const bannerStyle = computed(() => {
 	@media (max-width: 550px) {
 		font-size: 0.9em;
 
-		> .banner {
-			height: 80px;
-
-			> .status {
-				display: none;
-			}
-		}
-
 		> article {
 			padding: 12px;
-		}
-
-		> footer {
-			display: none;
 		}
 	}
 
 	@media (max-width: 500px) {
 		font-size: 0.8em;
-
-		> .banner {
-			height: 70px;
-		}
 
 		> article {
 			padding: 8px;
