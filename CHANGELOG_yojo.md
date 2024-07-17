@@ -15,6 +15,22 @@
 ### Misc
 
 -->
+
+## 0.3.3 (unreleased)
+Cherrypick 4.9.0-beta.2
+
+### Release Date
+
+### General
+-
+
+### Client
+- Change: 公式タグ一覧の画像高さを調節しました
+
+### Server
+
+### Misc
+
 ## 0.3.2
 Cherrypick 4.9.0-beta.2
 
