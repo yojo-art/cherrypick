@@ -200,6 +200,12 @@ const headerActions = computed(() => [{
 	icon: 'ti ti-check',
 	text: i18n.ts.markAllAsRead,
 	handler: readAllMessagingMessages,
+}, {
+	icon: 'ti ti-check',
+	text: i18n.ts.notificationFlush,
+	handler: () => {
+		os.apiWithDialog('notifications/flush');
+	},
 }]);
 
 const headerTabs = computed(() => [{

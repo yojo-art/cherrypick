@@ -90,7 +90,13 @@ const headerActions = computed(() => [deviceKind === 'desktop' && !props.disable
 	handler: () => {
 		os.apiWithDialog('notifications/mark-all-as-read');
 	},
-} : undefined].filter(x => x !== undefined));
+} : undefined, tab.value === 'all' ? {
+	text: i18n.ts.notificationFlush,
+	icon: 'ti ti-trash',
+	handler: () => {
+		os.apiWithDialog('notifications/flush');
+	},
+}  : undefined].filter(x => x !== undefined));
 
 const headerTabs = computed(() => [{
 	key: 'all',
