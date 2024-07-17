@@ -26,6 +26,7 @@ Cherrypick 4.9.0-beta.2
 
 ### Client
 - Change: 公式タグ一覧の画像高さを調節しました
+- Fix: ハッシュタグTLで投稿フォームを閉じた後にリロードしないように
 
 ### Server
 
