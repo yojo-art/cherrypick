@@ -31,7 +31,7 @@ Cherrypick 4.9.0-beta.2
 (Cherry-picked from https://github.com/1673beta/cherrypick/pull/76)
 
 ### Server
--	feat: 通知を個別削除するAPI  
+- feat: 通知を個別削除するAPI  
 (Cherry-picked from https://github.com/1673beta/cherrypick/pull/76)
 ### Misc
 
