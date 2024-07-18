@@ -95,6 +95,25 @@ export class AdvancedSearchService {
 					this.opensearch?.indices.create({
 						index: indexname,
 						body: {
+							mappings: {
+								properties: {
+									text: {
+										type: 'text',
+										analyzer: 'sudachi_analyzer' },
+									cw: {
+										type: 'text',
+										analyzer: 'sudachi_analyzer' },
+									userId: { type: 'keyword' },
+									userHost: { type: 'keyword' },
+									createdAt: { type: 'date' },
+									tags: { type: 'keyword' },
+									replyId: { type: 'keyword' },
+									fileIds: { type: 'keyword' },
+									isQuote: { type: 'boolean' },
+									sensitiveFileCount: { type: 'byte' },
+									nonSensitiveFileCount: { type: 'byte' },
+								},
+							},
 							settings: {
 								index: {
 									analysis: {
@@ -118,25 +137,6 @@ export class AdvancedSearchService {
 											},
 										},
 									},
-								},
-							},
-							mappings: {
-								properties: {
-									text: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer' },
-									cw: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer' },
-									userId: { type: 'keyword' },
-									userHost: { type: 'keyword' },
-									createdAt: { type: 'date' },
-									tags: { type: 'keyword' },
-									replyId: { type: 'keyword' },
-									fileIds: { type: 'keyword' },
-									isQuote: { type: 'boolean' },
-									sensitiveFileCount: { type: 'byte' },
-									nonSensitiveFileCount: { type: 'byte' },
 								},
 							},
 						},
