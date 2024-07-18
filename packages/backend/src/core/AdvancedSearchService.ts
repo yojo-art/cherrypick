@@ -115,31 +115,40 @@ export class AdvancedSearchService {
 									nonSensitiveFileCount: { type: 'byte' },
 								},
 							},
-							analysis: {
-								analyzer: {
-									sudachi_analyzer: {
-										filter: [
-											'sudachi_base_form',
-											'sudachi_readingform',
-											'sudachi_normalizedform',
-										],
-										tokenizer: 'sudachi_a_tokenizer',
-										type: 'custom',
-									},
-								},
-								tokenizer: {
-									sudachi_a_tokenizer: {
-										type: 'sudachi_tokenizer',
-										additional_settings: '{"systemDict":"system_full.dic"}',
-										split_mode: 'A',
-										discard_punctuation: true,
+
+							settings: {
+								index: {
+									analysis: {
+										analyzer: {
+											sudachi_analyzer: {
+												filter: [
+													'sudachi_base_form',
+													'sudachi_readingform',
+													'sudachi_normalizedform',
+												],
+												tokenizer: 'sudachi_a_tokenizer',
+												type: 'custom',
+											},
+										},
+										tokenizer: {
+											sudachi_a_tokenizer: {
+												type: 'sudachi_tokenizer',
+												additional_settings: '{"systemDict":"system_full.dic"}',
+												split_mode: 'A',
+												discard_punctuation: true,
+											},
+										},
 									},
 								},
 							},
 						},
-					}).catch((error) => {
-						console.error(error);
-					}),
+					},
+					),
+					//インデックスが存在しない場合作成後にノートを全部インデックスする
+					this.fullIndexNote()
+						.catch((error) => {
+							console.error(error);
+						}),
 				];
 			}).catch((error) => {
 				console.error(error);
@@ -190,14 +199,13 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async fullIndexNote(): Promise<void> {
-		const notesCount = await this.notesRepository.createQueryBuilder('note').where('note.userHost IS NULL').getCount();
+		const notesCount = await this.notesRepository.createQueryBuilder('note').getCount();
 		const limit = 100;
 		let latestid = '';
 		for (let index = 0; index < notesCount; index += limit) {
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
-				.where('note.userHost IS NULL')
-				.andWhere('note.id > :latestid', { latestid })
+				.where('note.id > :latestid', { latestid })
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
