@@ -106,7 +106,7 @@ export class AdvancedSearchService {
 				sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
 				nonSensitiveCount = note.fileIds.length - sensitiveCount;
 			}
-
+			const Quote = isRenote(note) && isQuote(note);
 			const body = {
 				text: note.text,
 				cw: note.cw,
@@ -116,7 +116,7 @@ export class AdvancedSearchService {
 				tags: note.tags,
 				replyId: note.replyId,
 				fileIds: note.fileIds,
-				isQuote: isRenote(note) && isQuote(note),
+				isQuote: Quote,
 				sensitiveFileCount: sensitiveCount,
 				nonSensitiveFileCount: nonSensitiveCount,
 			};
@@ -131,20 +131,6 @@ export class AdvancedSearchService {
 							settings: {
 								index: {
 									analysis: {
-										filter: {
-											search: {
-												type: 'sudachi_split',
-												mode: 'search',
-											},
-											romaji_readingform: {
-												type: 'sudachi_readingform',
-												use_romaji: true,
-											},
-											katakana_readingform: {
-												type: 'sudachi_readingform',
-												use_romaji: false,
-											},
-										},
 										analyzer: {
 											sudachi_analyzer: {
 												filter: [
@@ -233,7 +219,7 @@ export class AdvancedSearchService {
 
 		if (this.opensearch) {
 			this.opensearch.delete({
-				index: this.opensearchNoteIndex + note.id as string,
+				index: `${this.opensearchNoteIndex}-${note.id}` as string,
 				id: note.id,
 			}).catch((error) => {
 				console.error(error);
