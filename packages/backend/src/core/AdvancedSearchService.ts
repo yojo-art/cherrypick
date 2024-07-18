@@ -194,7 +194,11 @@ export class AdvancedSearchService {
 	@bindThis
 	public async recreateIndex(): Promise<void> {
 		if (this.opensearch) {
-			await this.redisClient.set('indexDeleted', 'deleted');
+			if (await this.redisClient.get('indexDeleted') !== null) {
+				return;
+			}
+			//削除がコケたときに備えて有効期限を指定
+			await this.redisClient.set('indexDeleted', 'deleted', 'EX', 300);
 			await	this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
 				this.loggerService.getLogger('search').error(error);
@@ -254,7 +258,16 @@ export class AdvancedSearchService {
 				return;
 			});
 
-			await this.redisClient.del('indexDeleted');
+			let reCreatedDel =	await this.redisClient.del('indexDeleted');
+			if (reCreatedDel === 0 ) {
+				this.loggerService.getLogger('search').error('indexDeleted flag delete failed');
+				//一回だけ再試行する
+				await new Promise(resolve => setTimeout(resolve, 5000));
+				reCreatedDel =	await this.redisClient.del('indexDeleted');
+			}
+			if (reCreatedDel === 1) {
+				this.loggerService.getLogger('search').info('indexDeleted flag deleted');
+			}
 			this.loggerService.getLogger('search').info('Index recreating.');
 			this.fullIndexNote().catch((error) => {
 				this.loggerService.getLogger('search').error(error);
