@@ -117,7 +117,7 @@ async function reIndex() {
 	});
 
 	if (!canceled) {
-		os.apiWithDialog('admin/full-index' );
+		os.apiWithDialog('admin/recreate-index' );
 	}
 }
 
