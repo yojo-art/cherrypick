@@ -148,7 +148,7 @@ export class AdvancedSearchService {
 									replyId: { type: 'keyword' },
 									fileIds: { type: 'keyword' },
 									isQuote: {
-										type: 'bool',
+										type: 'boolean',
 										index: 'not_analyzed' },
 									sensitiveFileCount: { type: 'byte' },
 									nonSensitiveFileCount: { type: 'byte' },
