@@ -159,7 +159,7 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
-			const sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
+			const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
 
 			const body = {
@@ -187,13 +187,13 @@ export class AdvancedSearchService {
 	@bindThis
 	public async recreateIndex(): Promise<void> {
 		if (this.opensearch) {
-			this.opensearch.indices.delete({
+			await	this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
 				console.error(error);
 				return;
 			});
 
-			this.opensearch.indices.create({
+			await	this.opensearch.indices.create({
 				index: this.opensearchNoteIndex as string,
 				body: {
 					mappings: {
@@ -245,6 +245,7 @@ export class AdvancedSearchService {
 				console.error(error);
 				return;
 			});
+			this.loggerService.getLogger('search').info('Index recreating.');
 			this.fullIndexNote().catch((error) => {
 				console.error(error);
 				return;
