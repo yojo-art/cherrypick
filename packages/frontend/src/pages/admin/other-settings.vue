@@ -96,7 +96,7 @@ function save() {
 
 async function fullIndex() {
 	const { canceled } = await os.confirm({
-		type: 'question',
+		type: 'warning',
 		text: i18n.ts._reIndexOpenSearch.quesion,
 		okText: i18n.ts.yes,
 		cancelText: i18n.ts.no,
