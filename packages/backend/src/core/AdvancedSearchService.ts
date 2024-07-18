@@ -268,7 +268,7 @@ export class AdvancedSearchService {
 			if (reCreatedDel === 1) {
 				this.loggerService.getLogger('search').info('indexDeleted flag deleted');
 			}
-			this.loggerService.getLogger('search').info('Index recreating.');
+			this.loggerService.getLogger('search').info('reIndexing.');
 			this.fullIndexNote().catch((error) => {
 				this.loggerService.getLogger('search').error(error);
 				return;
