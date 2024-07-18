@@ -147,9 +147,7 @@ export class AdvancedSearchService {
 									tags: { type: 'keyword' },
 									replyId: { type: 'keyword' },
 									fileIds: { type: 'keyword' },
-									isQuote: {
-										type: 'boolean',
-										index: 'not_analyzed' },
+									isQuote: { type: 'boolean' },
 									sensitiveFileCount: { type: 'byte' },
 									nonSensitiveFileCount: { type: 'byte' },
 								},
