@@ -191,7 +191,7 @@ export class AdvancedSearchService {
 		this.opensearch.indices.exists({
 			index: this.opensearchNoteIndex as string,
 		}).then((indexExists) => {
-			if (!indexExists) [
+			if (indexExists) [
 				this.opensearch?.indices.close({
 					index: this.opensearchNoteIndex as string }).catch((error) => {
 					console.error(error);
