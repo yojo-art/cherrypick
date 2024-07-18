@@ -16,6 +16,22 @@
 
 -->
 
+## yojo-x.x.x (unreleased)
+
+### Release Date
+
+### General
+-
+
+### Client
+-
+
+### Server
+- enhance: 全ノートを強制的にインデックスさせるAPIの追加  
+(Based on from https://github.com/TeamNijimiss/misskey/commit/e106092f5d4c79ec8d6ad53431ecb46839afe26c)
+
+### Misc
+
 ## 0.3.3
 Cherrypick 4.9.0-beta.2
 
