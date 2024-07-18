@@ -106,7 +106,6 @@ export class AdvancedSearchService {
 				sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
 				nonSensitiveCount = note.fileIds.length - sensitiveCount;
 			}
-			const Quote = isRenote(note) && isQuote(note);
 
 			const body = {
 				text: note.text,
@@ -117,7 +116,7 @@ export class AdvancedSearchService {
 				tags: note.tags,
 				replyId: note.replyId,
 				fileIds: note.fileIds,
-				isQuote: Quote,
+				isQuote: isRenote(note) && isQuote(note),
 				sensitiveFileCount: sensitiveCount,
 				nonSensitiveFileCount: nonSensitiveCount,
 			};
