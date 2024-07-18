@@ -203,6 +203,8 @@ export class AdvancedSearchService {
 		const limit = 100;
 		let latestid = '';
 		for (let index = 0; index < notesCount; index += limit) {
+			this.loggerService.getLogger('search').info('indexing' + index + '/' + notesCount);
+
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
 				.where('note.id > :latestid', { latestid })
