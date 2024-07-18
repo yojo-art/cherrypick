@@ -177,7 +177,7 @@ export class AdvancedSearchService {
 				nonSensitiveFileCount: nonSensitiveCount,
 			};
 			await this.opensearch.index({
-				index: indexName,
+				index: this.opensearchNoteIndex as string,
 				id: note.id,
 				body: body,
 			}).catch((error) => {
@@ -214,7 +214,7 @@ export class AdvancedSearchService {
 
 		if (this.opensearch) {
 			this.opensearch.delete({
-				index: `${this.opensearchNoteIndex}-${note.id}` as string,
+				index: this.opensearchNoteIndex as string,
 				id: note.id,
 			}).catch((error) => {
 				console.error(error);
@@ -310,7 +310,7 @@ export class AdvancedSearchService {
 			}
 
 			const res = await this.opensearch.search({
-				index: `${this.opensearchNoteIndex}-*` as string,
+				index: this.opensearchNoteIndex as string,
 				body: {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
