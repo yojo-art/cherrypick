@@ -88,25 +88,12 @@ export class AdvancedSearchService {
 		if (opensearch && config.opensearch && config.opensearch.index) {
 			const indexname = `${config.opensearch.index}---notes`;
 			this.opensearchNoteIndex = indexname;
-		} else {
-			console.error('OpenSearch is not available');
-			this.opensearchNoteIndex = null;
-		}
-	}
-
-	@bindThis
-	public async indexNote(note: MiNote): Promise<void> {
-		if (note.text == null && note.cw == null) return;
-		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
-
-		if (this.opensearch) {
-			const indexName = `${this.opensearchNoteIndex}-${note.id}` as string;
-			await this.opensearch.indices.exists({
-				index: indexName,
-			}).then(async (indexExists) => {
-				if (indexExists.statusCode === 404) {
-					await this.opensearch?.indices.create({
-						index: indexName,
+			this.opensearch?.indices.exists({
+				index: indexname,
+			}).then((indexExists) => {
+				if (!indexExists) [
+					this.opensearch?.indices.create({
+						index: indexname,
 						body: {
 							settings: {
 								index: {
@@ -154,38 +141,45 @@ export class AdvancedSearchService {
 							},
 						},
 					}).catch((error) => {
-						this.loggerService.getLogger('search').error(error);
-					});
-				}
-			}).then(async () => {
-				let sensitiveCount = 0;
-				let nonSensitiveCount = 0;
+						console.error(error);
+					}),
+				];
+			}).catch((error) => {
+				console.error(error);
+			});
+		} else {
+			console.error('OpenSearch is not available');
+			this.opensearchNoteIndex = null;
+		}
+	}
 
-				if (0 < note.fileIds.length) {
-					sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
-					nonSensitiveCount = note.fileIds.length - sensitiveCount;
-				}
-				const Quote = isRenote(note) && isQuote(note);
-				const body = {
-					text: note.text,
-					cw: note.cw,
-					userId: note.userId,
-					userHost: note.userHost,
-					createdAt: this.idService.parse(note.id).date.getTime(),
-					tags: note.tags,
-					replyId: note.replyId,
-					fileIds: note.fileIds,
-					isQuote: Quote,
-					sensitiveFileCount: sensitiveCount,
-					nonSensitiveFileCount: nonSensitiveCount,
-				};
-				await this.opensearch?.index({
-					index: indexName,
-					id: note.id,
-					body: body,
-				}).catch((error) => {
-					this.loggerService.getLogger('search').error(error);
-				});
+	@bindThis
+	public async indexNote(note: MiNote): Promise<void> {
+		if (note.text == null && note.cw == null) return;
+		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
+
+		if (this.opensearch) {
+			const indexName = `${this.opensearchNoteIndex}-${note.id}` as string;
+
+			const sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
+			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+			const body = {
+				text: note.text,
+				cw: note.cw,
+				userId: note.userId,
+				userHost: note.userHost,
+				createdAt: this.idService.parse(note.id).date.getTime(),
+				tags: note.tags,
+				replyId: note.replyId,
+				fileIds: note.fileIds,
+				isQuote: isRenote(note) && isQuote(note),
+				sensitiveFileCount: sensitiveCount,
+				nonSensitiveFileCount: nonSensitiveCount,
+			};
+			await this.opensearch.index({
+				index: indexName,
+				id: note.id,
+				body: body,
 			}).catch((error) => {
 				this.loggerService.getLogger('search').error(error);
 			});
