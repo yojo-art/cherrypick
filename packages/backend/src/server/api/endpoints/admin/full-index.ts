@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { SearchService } from '@/core/SearchService.js';
+import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -20,10 +20,10 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
-		private searchService: SearchService,
+		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			await this.searchService.fullIndexNote();
+			await this.advancedSearchService.fullIndexNote();
 		});
 	}
 }

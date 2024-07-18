@@ -46,7 +46,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 
 				<div class="_panel" style="padding: 16px;">
-					<MkButton class="button" inline danger @click="fullIndex()"> Create Full Index </MkButton>
+					<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
 				</div>
 			</div>
 		</FormSuspense>
@@ -94,8 +94,17 @@ function save() {
 	});
 }
 
-function fullIndex() {
-	os.apiWithDialog('admin/full-index');
+async function fullIndex() {
+	const { canceled } = await os.confirm({
+		type: 'question',
+		text: i18n.ts._reIndexOpenSearch.quesion,
+		okText: i18n.ts.yes,
+		cancelText: i18n.ts.no,
+	});
+
+	if (!canceled) {
+		os.apiWithDialog('admin/full-index');
+	}
 }
 
 const headerActions = computed(() => [{

@@ -1362,6 +1362,7 @@ additionalPermissionsForFlash: "Playへの追加許可"
 thisFlashRequiresTheFollowingPermissions: "このPlayは以下の権限を要求しています"
 doYouWantToAllowThisPlayToAccessYourAccount: "このPlayによるアカウントへのアクセスを許可しますか？"
 translateProfile: "プロフィールを翻訳する"
+
 _official_tag:
   title: "公式タグ"
   navbar: "公式タグ"
@@ -3106,3 +3107,7 @@ _searchOrApShow:
   question: "照会を行いますか？"
   search: "検索"
   lookup: "照会"
+
+_reIndexOpenSearch:
+  title: "再インデックスする"
+  quesion: "全てのノートを再インデックスしますか？"
