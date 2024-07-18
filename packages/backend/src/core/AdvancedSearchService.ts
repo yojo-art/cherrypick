@@ -4,6 +4,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
@@ -79,6 +80,9 @@ export class AdvancedSearchService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private cacheService: CacheService,
 		private queryService: QueryService,
 		private idService: IdService,
@@ -141,11 +145,11 @@ export class AdvancedSearchService {
 							},
 						},
 					}).catch((error) => {
-						console.error(error);
+						this.loggerService.getLogger('search').error(error);
 					}),
 				];
 			}).catch((error) => {
-				console.error(error);
+				this.loggerService.getLogger('search').error(error);
 			});
 		} else {
 			console.error('OpenSearch is not available');
@@ -159,6 +163,9 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
+			if (await this.redisClient.get('indexDeleted') !== null) {
+				return;
+			}
 			const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
 
@@ -187,9 +194,10 @@ export class AdvancedSearchService {
 	@bindThis
 	public async recreateIndex(): Promise<void> {
 		if (this.opensearch) {
+			await this.redisClient.set('indexDeleted', 'deleted');
 			await	this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
-				console.error(error);
+				this.loggerService.getLogger('search').error(error);
 				return;
 			});
 
@@ -242,12 +250,14 @@ export class AdvancedSearchService {
 					},
 				},
 			}).catch((error) => {
-				console.error(error);
+				this.loggerService.getLogger('search').error(error);
 				return;
 			});
+
+			await this.redisClient.del('indexDeleted');
 			this.loggerService.getLogger('search').info('Index recreating.');
 			this.fullIndexNote().catch((error) => {
-				console.error(error);
+				this.loggerService.getLogger('search').error(error);
 				return;
 			});
 		}
@@ -282,6 +292,9 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
+			if (await this.redisClient.get('indexDeleted') !== null) {
+				return;
+			}
 			this.opensearch.delete({
 				index: this.opensearchNoteIndex as string,
 				id: note.id,
