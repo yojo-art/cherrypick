@@ -159,10 +159,9 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
-			const indexName = `${this.opensearchNoteIndex}-${note.id}` as string;
-
 			const sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
 			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+
 			const body = {
 				text: note.text,
 				cw: note.cw,
