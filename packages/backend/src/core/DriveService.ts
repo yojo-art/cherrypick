@@ -936,6 +936,7 @@ export class DriveService {
 
 	@bindThis
 	public async getSensitiveFileCount(FileIds: string[]): Promise<number> {
+		if (FileIds.length === 0) return 0;
 		let SensitiveCount = 0;
 
 		for (const FileId of FileIds) {

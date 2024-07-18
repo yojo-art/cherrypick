@@ -100,26 +100,6 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
-			let sensitiveCount = 0;
-			let nonSensitiveCount = 0;
-			if (note.fileIds) {
-				sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
-				nonSensitiveCount = note.fileIds.length - sensitiveCount;
-			}
-			const Quote = isRenote(note) && isQuote(note);
-			const body = {
-				text: note.text,
-				cw: note.cw,
-				userId: note.userId,
-				userHost: note.userHost,
-				createdAt: this.idService.parse(note.id).date.getTime(),
-				tags: note.tags,
-				replyId: note.replyId,
-				fileIds: note.fileIds,
-				isQuote: Quote,
-				sensitiveFileCount: sensitiveCount,
-				nonSensitiveFileCount: nonSensitiveCount,
-			};
 			const indexName = `${this.opensearchNoteIndex}-${note.id}` as string;
 			await this.opensearch.indices.exists({
 				index: indexName,
@@ -167,7 +147,9 @@ export class AdvancedSearchService {
 									tags: { type: 'keyword' },
 									replyId: { type: 'keyword' },
 									fileIds: { type: 'keyword' },
-									isQuote: { type: 'bool' },
+									isQuote: {
+										type: 'bool',
+										index: 'not_analyzed' },
 									sensitiveFileCount: { type: 'byte' },
 									nonSensitiveFileCount: { type: 'byte' },
 								},
@@ -178,6 +160,27 @@ export class AdvancedSearchService {
 					});
 				}
 			}).then(async () => {
+				let sensitiveCount = 0;
+				let nonSensitiveCount = 0;
+
+				if (0 < note.fileIds.length) {
+					sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
+					nonSensitiveCount = note.fileIds.length - sensitiveCount;
+				}
+				const Quote = isRenote(note) && isQuote(note);
+				const body = {
+					text: note.text,
+					cw: note.cw,
+					userId: note.userId,
+					userHost: note.userHost,
+					createdAt: this.idService.parse(note.id).date.getTime(),
+					tags: note.tags,
+					replyId: note.replyId,
+					fileIds: note.fileIds,
+					isQuote: Quote,
+					sensitiveFileCount: sensitiveCount,
+					nonSensitiveFileCount: nonSensitiveCount,
+				};
 				await this.opensearch?.index({
 					index: indexName,
 					id: note.id,
