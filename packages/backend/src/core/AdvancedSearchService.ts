@@ -88,71 +88,6 @@ export class AdvancedSearchService {
 		if (opensearch && config.opensearch && config.opensearch.index) {
 			const indexname = `${config.opensearch.index}---notes`;
 			this.opensearchNoteIndex = indexname;
-
-			this.opensearch?.indices.exists({
-				index: indexname,
-			}).then((indexExists) => {
-				if (!indexExists) [
-					this.opensearch?.indices.create({
-						index: indexname,
-						body: {
-							mappings: {
-								properties: {
-									text: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer' },
-									cw: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer' },
-									userId: { type: 'keyword' },
-									userHost: { type: 'keyword' },
-									createdAt: { type: 'date' },
-									tags: { type: 'keyword' },
-									replyId: { type: 'keyword' },
-									fileIds: { type: 'keyword' },
-									isQuote: { type: 'bool' },
-									sensitiveFileCount: { type: 'byte' },
-									nonSensitiveFileCount: { type: 'byte' },
-								},
-							},
-
-							settings: {
-								index: {
-									analysis: {
-										analyzer: {
-											sudachi_analyzer: {
-												filter: [
-													'sudachi_base_form',
-													'sudachi_readingform',
-													'sudachi_normalizedform',
-												],
-												tokenizer: 'sudachi_a_tokenizer',
-												type: 'custom',
-											},
-										},
-										tokenizer: {
-											sudachi_a_tokenizer: {
-												type: 'sudachi_tokenizer',
-												additional_settings: '{"systemDict":"system_full.dic"}',
-												split_mode: 'A',
-												discard_punctuation: true,
-											},
-										},
-									},
-								},
-							},
-						},
-					},
-					),
-					//インデックスが存在しない場合作成後にノートを全部インデックスする
-					this.fullIndexNote()
-						.catch((error) => {
-							console.error(error);
-						}),
-				];
-			}).catch((error) => {
-				console.error(error);
-			});
 		} else {
 			console.error('OpenSearch is not available');
 			this.opensearchNoteIndex = null;
@@ -186,13 +121,73 @@ export class AdvancedSearchService {
 				sensitiveFileCount: sensitiveCount,
 				nonSensitiveFileCount: nonSensitiveCount,
 			};
-
-			await this.opensearch.index({
-				index: this.opensearchNoteIndex as string,
-				id: note.id,
-				body: body,
+			const indexName = `${this.opensearchNoteIndex}-${note.id}` as string;
+			await this.opensearch.indices.exists({
+				index: indexName,
+			}).then(async (indexExists) => {
+				if (indexExists.statusCode === 404) {
+					await this.opensearch?.indices.create({
+						index: indexName,
+						body: {
+							settings: {
+								index: {
+									analysis: {
+										analyzer: {
+											sudachi_analyzer: {
+												filter: [
+													'sudachi_base_form',
+													'sudachi_readingform',
+													'sudachi_normalizedform',
+												],
+												tokenizer: 'sudachi_a_tokenizer',
+												type: 'custom',
+											},
+										},
+										tokenizer: {
+											sudachi_a_tokenizer: {
+												type: 'sudachi_tokenizer',
+												additional_settings: '{"systemDict":"system_full.dic"}',
+												split_mode: 'A',
+												discard_punctuation: true,
+											},
+										},
+									},
+								},
+							},
+							mappings: {
+								properties: {
+									text: {
+										type: 'text',
+										analyzer: 'sudachi_analyzer' },
+									cw: {
+										type: 'text',
+										analyzer: 'sudachi_analyzer' },
+									userId: { type: 'keyword' },
+									userHost: { type: 'keyword' },
+									createdAt: { type: 'date' },
+									tags: { type: 'keyword' },
+									replyId: { type: 'keyword' },
+									fileIds: { type: 'keyword' },
+									isQuote: { type: 'bool' },
+									sensitiveFileCount: { type: 'byte' },
+									nonSensitiveFileCount: { type: 'byte' },
+								},
+							},
+						},
+					}).catch((error) => {
+						this.loggerService.getLogger('search').error(error);
+					});
+				}
+			}).then(async () => {
+				await this.opensearch?.index({
+					index: indexName,
+					id: note.id,
+					body: body,
+				}).catch((error) => {
+					this.loggerService.getLogger('search').error(error);
+				});
 			}).catch((error) => {
-				console.error(error);
+				this.loggerService.getLogger('search').error(error);
 			});
 		}
 	}
@@ -225,7 +220,7 @@ export class AdvancedSearchService {
 
 		if (this.opensearch) {
 			this.opensearch.delete({
-				index: this.opensearchNoteIndex as string,
+				index: this.opensearchNoteIndex + note.id as string,
 				id: note.id,
 			}).catch((error) => {
 				console.error(error);
@@ -321,7 +316,7 @@ export class AdvancedSearchService {
 			}
 
 			const res = await this.opensearch.search({
-				index: this.opensearchNoteIndex as string,
+				index: this.opensearchNoteIndex + '*' as string,
 				body: {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
