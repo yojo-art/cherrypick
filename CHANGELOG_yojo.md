@@ -27,8 +27,12 @@
 -
 
 ### Server
-- enhance: 全ノートを強制的にインデックスさせるAPIの追加  
-(Based on from https://github.com/TeamNijimiss/misskey/commit/e106092f5d4c79ec8d6ad53431ecb46839afe26c)
+- Fix: 高度な検索(opensearch)でsudachiが使われていない問題を修正
+  -  現在のインデックスを破棄して全ノートを再インデックスする必要があります
+
+- enhance: 全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
+(Based on https://github.com/TeamNijimiss/misskey/commit/e106092f5d4c79ec8d6ad53431ecb46839afe26c)
+- enhance: 現在のインデックスを破棄して全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
 
 ### Misc
 
