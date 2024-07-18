@@ -315,7 +315,7 @@ export class AdvancedSearchService {
 			}
 
 			const res = await this.opensearch.search({
-				index: this.opensearchNoteIndex + '*' as string,
+				index: `${this.opensearchNoteIndex}-*` as string,
 				body: {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
