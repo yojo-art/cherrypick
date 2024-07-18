@@ -148,7 +148,7 @@ export class AdvancedSearchService {
 										analyzer: {
 											sudachi_analyzer: {
 												filter: [
-													'sudachi_base_form',
+													'sudachi_baseform',
 													'sudachi_readingform',
 													'sudachi_normalizedform',
 												],
