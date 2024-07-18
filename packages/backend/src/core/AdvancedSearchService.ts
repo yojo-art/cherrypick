@@ -184,9 +184,85 @@ export class AdvancedSearchService {
 			});
 		}
 	}
+	@bindThis
+	public async recreateIndex(): Promise<void> {
+		if (!this.opensearch) return;
+
+		this.opensearch.indices.exists({
+			index: this.opensearchNoteIndex as string,
+		}).then((indexExists) => {
+			if (!indexExists) [
+				this.opensearch?.indices.close({
+					index: this.opensearchNoteIndex as string }).catch((error) => {
+					console.error(error);
+				}),
+				this.opensearch?.indices.delete({
+					index: this.opensearchNoteIndex as string }).catch((error) => {
+					console.error(error);
+				}),
+
+				this.opensearch?.indices.create({
+					index: this.opensearchNoteIndex as string,
+					body: {
+						mappings: {
+							properties: {
+								text: {
+									type: 'text',
+									analyzer: 'sudachi_analyzer' },
+								cw: {
+									type: 'text',
+									analyzer: 'sudachi_analyzer' },
+								userId: { type: 'keyword' },
+								userHost: { type: 'keyword' },
+								createdAt: { type: 'date' },
+								tags: { type: 'keyword' },
+								replyId: { type: 'keyword' },
+								fileIds: { type: 'keyword' },
+								isQuote: { type: 'boolean' },
+								sensitiveFileCount: { type: 'byte' },
+								nonSensitiveFileCount: { type: 'byte' },
+							},
+						},
+						settings: {
+							index: {
+								analysis: {
+									analyzer: {
+										sudachi_analyzer: {
+											filter: [
+												'sudachi_baseform',
+												'sudachi_readingform',
+												'sudachi_normalizedform',
+											],
+											tokenizer: 'sudachi_a_tokenizer',
+											type: 'custom',
+										},
+									},
+									tokenizer: {
+										sudachi_a_tokenizer: {
+											type: 'sudachi_tokenizer',
+											additional_settings: '{"systemDict":"system_full.dic"}',
+											split_mode: 'A',
+											discard_punctuation: true,
+										},
+									},
+								},
+							},
+						},
+					},
+				}).catch((error) => {
+					console.error(error);
+				}),
+				this.fullIndexNote(),
+			];
+		}).catch((error) => {
+			console.error(error);
+		});
+	}
 
 	@bindThis
 	public async fullIndexNote(): Promise<void> {
+		if (!this.opesearch) return;
+
 		const notesCount = await this.notesRepository.createQueryBuilder('note').getCount();
 		const limit = 100;
 		let latestid = '';

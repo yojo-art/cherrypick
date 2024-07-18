@@ -11642,11 +11642,21 @@ export interface Locale extends ILocale {
     };
     "_reIndexOpenSearch": {
         /**
-         * 再インデックスする
+         * 全てのノートを再インデックスする
          */
         "title": string;
         /**
          * 全てのノートを再インデックスしますか？
+         */
+        "quesion": string;
+    };
+    "_reCreateOpenSearchIndex": {
+        /**
+         * 現在のインデックスを破棄して再インデックスする
+         */
+        "title": string;
+        /**
+         * 現在のインデックスを破棄して全てのノートを再インデックスしますか？
          */
         "quesion": string;
     };
