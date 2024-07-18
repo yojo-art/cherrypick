@@ -131,6 +131,20 @@ export class AdvancedSearchService {
 							settings: {
 								index: {
 									analysis: {
+										filter: {
+											search: {
+												type: 'sudachi_split',
+												mode: 'search',
+											},
+											romaji_readingform: {
+												type: 'sudachi_readingform',
+												use_romaji: true,
+											},
+											katakana_readingform: {
+												type: 'sudachi_readingform',
+												use_romaji: false,
+											},
+										},
 										analyzer: {
 											sudachi_analyzer: {
 												filter: [
