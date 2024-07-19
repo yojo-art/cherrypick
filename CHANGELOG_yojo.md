@@ -15,6 +15,20 @@
 ### Misc
 
 -->
+## yojo-x.x.x (unreleased)
+
+### Release Date
+
+### General
+-
+
+### Client
+-
+
+### Server
+- Fix: notifications/deleteで通知を削除できない問題を修正  
+
+### Misc
 
 ## 0.3.3
 Cherrypick 4.9.0-beta.2
