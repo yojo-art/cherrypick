@@ -228,7 +228,7 @@ export class NotificationService implements OnApplicationShutdown {
 			`notificationTimeline:${userId}`,
 			`${this.idService.parse(notificationId).date.getTime() - 1000}-0`,
 			`${this.idService.parse(notificationId).date.getTime() + 1000}-9999 `,
-			'COUNT', 50
+			'COUNT', 50,
 		);
 		return notificationRes.find(x => JSON.parse(x[1][1]).id === notificationId);
 	}
@@ -241,6 +241,34 @@ export class NotificationService implements OnApplicationShutdown {
 		await this.redisClient.xdel(`notificationTimeline:${userId}`, targetResId);
 		this.globalEventService.publishMainStream(userId, 'notificationDeleted', notificationId);
 		return notificationId;
+	}
+	@bindThis
+	public async deleteInvitedNotification(userId: MiUser['id'], invitationId: string) : Promise<string | void> {
+		const ids = await this.getRedisInvitedNotificationId(userId, invitationId);
+		if (ids) {
+			await this.redisClient.xdel(`notificationTimeline:${userId}`, ids[0]);
+
+			this.globalEventService.publishMainStream(userId, 'notificationDeleted', ids[1]);
+			return ids[1];
+		}
+	}
+
+	@bindThis
+	async getRedisInvitedNotificationId(userId: MiUser['id'], invitationId: string) {
+		//取れるだけ取るのはやりすぎかも
+		const res = await this.redisClient.xrange(
+			`notificationTimeline:${userId}`,
+			'-',
+			'+',
+			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
+		);
+		for (let i = 0; i < res.length; i++) {
+			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
+			if (notification.type === 'groupInvited' && notification.userGroupInvitationId === invitationId) {
+				return	[res[i][0], notification.id];
+			}
+		}
+		return null;
 	}
 
 	@bindThis

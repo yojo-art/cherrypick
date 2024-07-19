@@ -56,7 +56,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.noSuchInvitation);
 			}
 
-			await this.notificationService.deleteNotification(me.id, invitation.id);
+			await this.notificationService.deleteInvitedNotification(me.id, invitation.id);
 			await this.userGroupInvitationsRepository.delete(invitation.id);
 		});
 	}
