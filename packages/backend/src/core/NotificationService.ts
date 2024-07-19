@@ -21,6 +21,7 @@ import type { Config } from '@/config.js';
 import { UserListService } from '@/core/UserListService.js';
 import type { FilterUnionByProperty } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 @Injectable()
 export class NotificationService implements OnApplicationShutdown {
@@ -244,7 +245,12 @@ export class NotificationService implements OnApplicationShutdown {
 			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
 		);
 		for (let i = 0; i < res.length; i++) {
-			if (JSON.parse(res[i][1].toString().replace('data,', '')).id === notificationId) {
+			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
+			if (notification.id === notificationId) {
+				//消えるとまずい
+				if (notification.type === 'receiveFollowRequest' || notification.type === 'groupInvited') {
+					throw new IdentifiableError('d09b1ffa-1a59-4a42-8a3d-02d257d78df7', 'Cannot clear this notification type');
+				}
 				return res[i][0];
 			}
 		}
