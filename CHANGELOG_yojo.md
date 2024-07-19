@@ -16,6 +16,26 @@
 
 -->
 
+## yojo-x.x.x (unreleased)
+
+### Release Date
+
+### General
+-
+
+### Client
+-
+
+### Server
+- Fix: 高度な検索(opensearch)でsudachiが使われていない問題を修正
+  -  現在のインデックスを破棄して全ノートを再インデックスする必要があります
+
+- enhance: 全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
+(Based on https://github.com/TeamNijimiss/misskey/commit/e106092f5d4c79ec8d6ad53431ecb46839afe26c)
+- enhance: 現在のインデックスを破棄して全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
+
+### Misc
+
 ## 0.3.3
 Cherrypick 4.9.0-beta.2
 

@@ -82,6 +82,8 @@ import * as ep___admin_relays_remove from './endpoints/admin/relays/remove.js';
 import * as ep___admin_resetPassword from './endpoints/admin/reset-password.js';
 import * as ep___admin_resolveAbuseUserReport from './endpoints/admin/resolve-abuse-user-report.js';
 import * as ep___admin_sendEmail from './endpoints/admin/send-email.js';
+import * as ep___admin_fullIndex from './endpoints/admin/full-index.js';
+import * as ep___admin_reCreateIndex from './endpoints/admin/recreate-index.js';
 import * as ep___admin_serverInfo from './endpoints/admin/server-info.js';
 import * as ep___admin_showModerationLogs from './endpoints/admin/show-moderation-logs.js';
 import * as ep___admin_showUser from './endpoints/admin/show-user.js';
@@ -485,6 +487,8 @@ const eps = [
 	['admin/reset-password', ep___admin_resetPassword],
 	['admin/resolve-abuse-user-report', ep___admin_resolveAbuseUserReport],
 	['admin/send-email', ep___admin_sendEmail],
+	['admin/full-index', ep___admin_fullIndex],
+	['admin/recreate-index', ep___admin_reCreateIndex],
 	['admin/server-info', ep___admin_serverInfo],
 	['admin/show-moderation-logs', ep___admin_showModerationLogs],
 	['admin/show-user', ep___admin_showUser],
