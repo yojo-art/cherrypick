@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserGroupInvitationsRepository, UserGroupJoiningsRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
+import { NotificationService } from '@/core/NotificationService.js';
 import type { MiUserGroupJoining } from '@/models/UserGroupJoining.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
@@ -44,6 +45,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
+		private notificationService: NotificationService,
+
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -66,7 +69,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 				userGroupId: invitation.userGroupId,
 			} as MiUserGroupJoining);
-
+			
+			await this.notificationService.deleteNotification(me.id, invitation.id);
 			return await this.userGroupInvitationsRepository.delete(invitation.id);
 		});
 	}
