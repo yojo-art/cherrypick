@@ -166,6 +166,7 @@ export class AdvancedSearchService {
 			if (await this.redisClient.get('indexDeleted') !== null) {
 				return;
 			}
+			const IsQuote = isRenote(note) && isQuote(note);
 			const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
 
@@ -178,7 +179,7 @@ export class AdvancedSearchService {
 				tags: note.tags,
 				replyId: note.replyId,
 				fileIds: note.fileIds,
-				isQuote: isRenote(note) && isQuote(note),
+				isQuote: IsQuote,
 				sensitiveFileCount: sensitiveCount,
 				nonSensitiveFileCount: nonSensitiveCount,
 			};
