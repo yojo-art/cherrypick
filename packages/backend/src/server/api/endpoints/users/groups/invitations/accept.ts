@@ -62,8 +62,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (invitation.userId !== me.id) {
 				throw new ApiError(meta.errors.noSuchInvitation);
 			}
-			//Redisから通知を消す
-			await this.notificationService.deleteInvitedNotification(me.id, invitation.id);
 
 			// Push the user
 			await this.userGroupJoiningsRepository.insert({
@@ -71,6 +69,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 				userGroupId: invitation.userGroupId,
 			} as MiUserGroupJoining);
+
+			//Redisから通知を消す
+			await this.notificationService.deleteInvitedNotification(me.id, invitation.id);
 
 			return await this.userGroupInvitationsRepository.delete(invitation.id);
 		});
