@@ -652,6 +652,24 @@ export type paths = {
      */
     post: operations['admin___send-email'];
   };
+  '/admin/full-index': {
+    /**
+     * admin/full-index
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes*
+     */
+    post: operations['admin___full-index'];
+  };
+  '/admin/recreate-index': {
+    /**
+     * admin/recreate-index
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes*
+     */
+    post: operations['admin___recreate-index'];
+  };
   '/admin/server-info': {
     /**
      * admin/server-info
@@ -9384,6 +9402,94 @@ export type operations = {
         };
       };
     };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/full-index
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes*
+   */
+  'admin___full-index': {
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/recreate-index
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes*
+   */
+  'admin___recreate-index': {
     responses: {
       /** @description OK (without any results) */
       204: {
