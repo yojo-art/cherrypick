@@ -1,5 +1,5 @@
 /**
- * SPDX-FileCopyrightText: TeamNijimiss(@nafu-at), yojo-art team
+ * SPDX-FileCopyrightText: syuilo and misskey-project, TeamNijimiss(@nafu-at), yojo-art team
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
