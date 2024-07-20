@@ -15,6 +15,20 @@
 ### Misc
 
 -->
+## yojo-x.x.x (unreleased)
+
+### Release Date
+
+### General
+-
+
+### Client
+-
+
+### Server
+- Fix: notifications/deleteで通知を削除できない問題を修正  
+
+### Misc
 
 ## yojo-x.x.x (unreleased)
 
