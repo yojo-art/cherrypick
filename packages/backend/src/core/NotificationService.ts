@@ -252,6 +252,35 @@ export class NotificationService implements OnApplicationShutdown {
 	}
 
 	@bindThis
+	public async deleteInvitedNotification(userId: MiUser['id'], invitationId: string) : Promise<string | void> {
+		const ids = await this.getRedisInvitedNotificationId(userId, invitationId);
+		if (ids) {
+			await this.redisClient.xdel(`notificationTimeline:${userId}`, ids[0]);
+
+			this.globalEventService.publishMainStream(userId, 'notificationDeleted', ids[1]);
+			return ids[1];
+		}
+	}
+
+	@bindThis
+	async getRedisInvitedNotificationId(userId: MiUser['id'], invitationId: string) {
+		//取れるだけ取るのはやりすぎかも
+		const res = await this.redisClient.xrange(
+			`notificationTimeline:${userId}`,
+			'-',
+			'+',
+			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
+		);
+		for (let i = 0; i < res.length; i++) {
+			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
+			if (notification.type === 'groupInvited' && notification.userGroupInvitationId === invitationId) {
+				return	[res[i][0], notification.id];
+			}
+		}
+		return null;
+	}
+
+	@bindThis
 	public dispose(): void {
 		this.#shutdownController.abort();
 	}

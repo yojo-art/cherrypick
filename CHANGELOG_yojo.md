@@ -15,20 +15,6 @@
 ### Misc
 
 -->
-## yojo-x.x.x (unreleased)
-
-### Release Date
-
-### General
--
-
-### Client
--
-
-### Server
-- Fix: notifications/deleteで通知を削除できない問題を修正  
-
-### Misc
 
 ## yojo-x.x.x (unreleased)
 
@@ -41,6 +27,8 @@
 -
 
 ### Server
+- Fix:グループ招待に返答すると通知が見れなくなる問題を修正
+- Fix: notifications/deleteで通知を削除できない問題を修正 
 - Fix: 高度な検索(opensearch)でsudachiが使われていない問題を修正
   -  検索文に一致していてもノートが出てこないことがあるのを修正しました
   -  現在のインデックスを破棄して全ノートを再インデックスする必要があります
