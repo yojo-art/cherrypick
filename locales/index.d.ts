@@ -11640,6 +11640,26 @@ export interface Locale extends ILocale {
          */
         "lookup": string;
     };
+    "_reIndexOpenSearch": {
+        /**
+         * 全てのノートを再インデックスする
+         */
+        "title": string;
+        /**
+         * 全てのノートを再インデックスしますか？
+         */
+        "quesion": string;
+    };
+    "_reCreateOpenSearchIndex": {
+        /**
+         * 現在のインデックスを破棄して再インデックスする
+         */
+        "title": string;
+        /**
+         * 現在のインデックスを破棄して全てのノートを再インデックスしますか？
+         */
+        "quesion": string;
+    };
 }
 declare const locales: {
     [lang: string]: Locale;

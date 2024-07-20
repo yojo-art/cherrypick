@@ -4,6 +4,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
@@ -79,6 +80,9 @@ export class AdvancedSearchService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private cacheService: CacheService,
 		private queryService: QueryService,
 		private idService: IdService,
@@ -88,7 +92,6 @@ export class AdvancedSearchService {
 		if (opensearch && config.opensearch && config.opensearch.index) {
 			const indexname = `${config.opensearch.index}---notes`;
 			this.opensearchNoteIndex = indexname;
-
 			this.opensearch?.indices.exists({
 				index: indexname,
 			}).then((indexExists) => {
@@ -110,16 +113,128 @@ export class AdvancedSearchService {
 									tags: { type: 'keyword' },
 									replyId: { type: 'keyword' },
 									fileIds: { type: 'keyword' },
-									isQuote: { type: 'bool' },
+									isQuote: { type: 'boolean' },
 									sensitiveFileCount: { type: 'byte' },
 									nonSensitiveFileCount: { type: 'byte' },
 								},
 							},
+							settings: {
+								index: {
+									analysis: {
+										analyzer: {
+											sudachi_analyzer: {
+												filter: [
+													'sudachi_baseform',
+													'sudachi_readingform',
+													'sudachi_normalizedform',
+												],
+												tokenizer: 'sudachi_a_tokenizer',
+												type: 'custom',
+											},
+										},
+										tokenizer: {
+											sudachi_a_tokenizer: {
+												type: 'sudachi_tokenizer',
+												additional_settings: '{"systemDict":"system_full.dic"}',
+												split_mode: 'A',
+												discard_punctuation: true,
+											},
+										},
+									},
+								},
+							},
+						},
+					}).catch((error) => {
+						this.loggerService.getLogger('search').error(error);
+					}),
+				];
+			}).catch((error) => {
+				this.loggerService.getLogger('search').error(error);
+			});
+		} else {
+			console.error('OpenSearch is not available');
+			this.opensearchNoteIndex = null;
+		}
+	}
+
+	@bindThis
+	public async indexNote(note: MiNote): Promise<void> {
+		if (note.text == null && note.cw == null) return;
+		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
+
+		if (this.opensearch) {
+			if (await this.redisClient.get('indexDeleted') !== null) {
+				return;
+			}
+			const IsQuote = isRenote(note) && isQuote(note);
+			const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
+			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+
+			const body = {
+				text: note.text,
+				cw: note.cw,
+				userId: note.userId,
+				userHost: note.userHost,
+				createdAt: this.idService.parse(note.id).date.getTime(),
+				tags: note.tags,
+				replyId: note.replyId,
+				fileIds: note.fileIds,
+				isQuote: IsQuote,
+				sensitiveFileCount: sensitiveCount,
+				nonSensitiveFileCount: nonSensitiveCount,
+			};
+			await this.opensearch.index({
+				index: this.opensearchNoteIndex as string,
+				id: note.id,
+				body: body,
+			}).catch((error) => {
+				this.loggerService.getLogger('search').error(error);
+			});
+		}
+	}
+	@bindThis
+	public async recreateIndex(): Promise<void> {
+		if (this.opensearch) {
+			if (await this.redisClient.get('indexDeleted') !== null) {
+				return;
+			}
+			//削除がコケたときに備えて有効期限を指定
+			await this.redisClient.set('indexDeleted', 'deleted', 'EX', 300);
+			await	this.opensearch.indices.delete({
+				index: this.opensearchNoteIndex as string }).catch((error) => {
+				this.loggerService.getLogger('search').error(error);
+				return;
+			});
+
+			await	this.opensearch.indices.create({
+				index: this.opensearchNoteIndex as string,
+				body: {
+					mappings: {
+						properties: {
+							text: {
+								type: 'text',
+								analyzer: 'sudachi_analyzer' },
+							cw: {
+								type: 'text',
+								analyzer: 'sudachi_analyzer' },
+							userId: { type: 'keyword' },
+							userHost: { type: 'keyword' },
+							createdAt: { type: 'date' },
+							tags: { type: 'keyword' },
+							replyId: { type: 'keyword' },
+							fileIds: { type: 'keyword' },
+							isQuote: { type: 'boolean' },
+							sensitiveFileCount: { type: 'byte' },
+							nonSensitiveFileCount: { type: 'byte' },
+						},
+					},
+					settings: {
+						index: {
 							analysis: {
 								analyzer: {
 									sudachi_analyzer: {
 										filter: [
-											'sudachi_base_form',
+											'sudachi_baseform',
 											'sudachi_readingform',
 											'sudachi_normalizedform',
 										],
@@ -137,67 +252,44 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}).catch((error) => {
-						console.error(error);
-					}),
-				];
+					},
+				},
 			}).catch((error) => {
-				console.error(error);
+				this.loggerService.getLogger('search').error(error);
+				return;
 			});
-		} else {
-			console.error('OpenSearch is not available');
-			this.opensearchNoteIndex = null;
-		}
-	}
 
-	@bindThis
-	public async indexNote(note: MiNote): Promise<void> {
-		if (note.text == null && note.cw == null) return;
-		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
-
-		if (this.opensearch) {
-			let sensitiveCount = 0;
-			let nonSensitiveCount = 0;
-			if (note.fileIds) {
-				sensitiveCount = await	this.driveService.getSensitiveFileCount(note.fileIds);
-				nonSensitiveCount = note.fileIds.length - sensitiveCount;
+			let reCreatedDel =	await this.redisClient.del('indexDeleted');
+			if (reCreatedDel === 0 ) {
+				this.loggerService.getLogger('search').error('indexDeleted flag delete failed');
+				//一回だけ再試行する
+				await new Promise(resolve => setTimeout(resolve, 5000));
+				reCreatedDel =	await this.redisClient.del('indexDeleted');
 			}
-			const Quote = isRenote(note) && isQuote(note);
-
-			const body = {
-				text: note.text,
-				cw: note.cw,
-				userId: note.userId,
-				userHost: note.userHost,
-				createdAt: this.idService.parse(note.id).date.getTime(),
-				tags: note.tags,
-				replyId: note.replyId,
-				fileIds: note.fileIds,
-				isQuote: Quote,
-				sensitiveFileCount: sensitiveCount,
-				nonSensitiveFileCount: nonSensitiveCount,
-			};
-
-			await this.opensearch.index({
-				index: this.opensearchNoteIndex as string,
-				id: note.id,
-				body: body,
-			}).catch((error) => {
-				console.error(error);
+			if (reCreatedDel === 1) {
+				this.loggerService.getLogger('search').info('indexDeleted flag deleted');
+			}
+			this.loggerService.getLogger('search').info('reIndexing.');
+			this.fullIndexNote().catch((error) => {
+				this.loggerService.getLogger('search').error(error);
+				return;
 			});
 		}
 	}
 
 	@bindThis
 	public async fullIndexNote(): Promise<void> {
-		const notesCount = await this.notesRepository.createQueryBuilder('note').where('note.userHost IS NULL').getCount();
+		if (!this.opensearch) return;
+
+		const notesCount = await this.notesRepository.createQueryBuilder('note').getCount();
 		const limit = 100;
 		let latestid = '';
 		for (let index = 0; index < notesCount; index += limit) {
+			this.loggerService.getLogger('search').info('indexing' + index + '/' + notesCount);
+
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
-				.where('note.userHost IS NULL')
-				.andWhere('note.id > :latestid', { latestid })
+				.where('note.id > :latestid', { latestid })
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -214,6 +306,9 @@ export class AdvancedSearchService {
 		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
+			if (await this.redisClient.get('indexDeleted') !== null) {
+				return;
+			}
 			this.opensearch.delete({
 				index: this.opensearchNoteIndex as string,
 				id: note.id,

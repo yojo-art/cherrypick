@@ -15,6 +15,12 @@
 ### Misc
 
 -->
+
+- Fix:グループ招待に返答すると通知が見れなくなる問題を修正
+- Fix: notifications/deleteで通知を削除できない問題を修正  
+
+### Misc
+
 ## yojo-x.x.x (unreleased)
 
 ### Release Date
@@ -26,7 +32,13 @@
 -
 
 ### Server
-- Fix:グループ招待に返答すると通知が見れなくなる問題を修正
+- Fix: 高度な検索(opensearch)でsudachiが使われていない問題を修正
+  -  検索文に一致していてもノートが出てこないことがあるのを修正しました
+  -  現在のインデックスを破棄して全ノートを再インデックスする必要があります
+
+- enhance: 全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
+(Based on https://github.com/TeamNijimiss/misskey/commit/e106092f5d4c79ec8d6ad53431ecb46839afe26c)
+- enhance: 現在のインデックスを破棄して全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
 
 ### Misc
 
