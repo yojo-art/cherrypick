@@ -24,49 +24,6 @@ import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { DriveService } from './DriveService.js';
 
-type K = string;
-type V = string | number | boolean;
-type Q =
-	{ op: '=', k: K, v: V } |
-	{ op: '!=', k: K, v: V } |
-	{ op: '>', k: K, v: number } |
-	{ op: '<', k: K, v: number } |
-	{ op: '>=', k: K, v: number } |
-	{ op: '<=', k: K, v: number } |
-	{ op: 'is null', k: K} |
-	{ op: 'is not null', k: K} |
-	{ op: 'and', qs: Q[] } |
-	{ op: 'or', qs: Q[] } |
-	{ op: 'not', q: Q };
-
-function compileValue(value: V): string {
-	if (typeof value === 'string' ) {
-		return `'${value}'`;
-	} else if (typeof value === 'number' ) {
-		return value.toString();
-	} else if (typeof value === 'boolean' ) {
-		return value.toString();
-	}
-	throw new Error('unrecognized value');
-}
-
-function compileQuery(q: Q): string {
-	switch (q.op) {
-		case '=': return `(${q.k} = ${compileValue(q.v)})`;
-		case '!=': return `(${q.k} != ${compileValue(q.v)})`;
-		case '>': return `(${q.k} > ${compileValue(q.v)})`;
-		case '<': return `(${q.k} < ${compileValue(q.v)})`;
-		case '>=': return `(${q.k} >= ${compileValue(q.v)})`;
-		case '<=': return `(${q.k} <= ${compileValue(q.v)})`;
-		case 'and': return q.qs.length === 0 ? '' : `(${ q.qs.map(_q => compileQuery(_q)).join(' AND ') })`;
-		case 'or': return q.qs.length === 0 ? '' : `(${ q.qs.map(_q => compileQuery(_q)).join(' OR ')})`;
-		case 'is null': return `(${q.k} IS NULL)`;
-		case 'is not null': return `(${q.k} IS NOT NULL)`;
-		case 'not': return `(NOT ${compileQuery(q.q)})`;
-		default: throw new Error('unrecognized query operator');
-	}
-}
-
 @Injectable()
 export class AdvancedSearchService {
 	private opensearchNoteIndex: string | null = null;
