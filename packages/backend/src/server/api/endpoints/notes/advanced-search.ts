@@ -130,6 +130,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (!policies.canAdvancedSearchNotes) {
 				throw new ApiError(meta.errors.unavailable);
 			}
+
 			try {
 				const notes = await this.advancedSearchService.searchNote(ps.query, me, {
 					userId: ps.userId,
@@ -151,7 +152,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					console.error(err);
 				}
 				if (err instanceof IdentifiableError) {
-					if (err.id === 'd09b1ffa-1a59-4a42-8a3d-02d257d78df7') throw new ApiError(meta.errors.opensearchIsNotConfiguredOnThisServer);
+					if (err.id === 'eb208b77-dcbd-4db8-8b65-6c41864dd190') throw new ApiError(meta.errors.opensearchIsNotConfiguredOnThisServer);
 				}
 			}
 		});
