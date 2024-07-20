@@ -250,6 +250,7 @@ export class NotificationService implements OnApplicationShutdown {
 		}
 		return null;
 	}
+
 	@bindThis
 	public async deleteInvitedNotification(userId: MiUser['id'], invitationId: string) : Promise<string | void> {
 		const ids = await this.getRedisInvitedNotificationId(userId, invitationId);
