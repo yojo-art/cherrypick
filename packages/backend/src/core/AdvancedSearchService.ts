@@ -21,6 +21,7 @@ import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { DriveService } from './DriveService.js';
 
 type K = string;
@@ -434,70 +435,7 @@ export class AdvancedSearchService {
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
-			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
-
-			if (opts.userId) {
-				query.andWhere('note.userId = :userId', { userId: opts.userId });
-			}
-
-			if (opts.origin === 'local') {
-				query.andWhere('note.userHost IS NULL');
-			} else if (opts.origin === 'remote') {
-				query.andWhere('note.userHost IS NOT NULL');
-			}
-
-			if (this.config.pgroonga) {
-				query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
-			} else {
-				query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
-			}
-
-			query
-				.innerJoinAndSelect('note.user', 'user')
-				.leftJoinAndSelect('note.reply', 'reply')
-				.leftJoinAndSelect('note.renote', 'renote')
-				.leftJoinAndSelect('reply.user', 'replyUser')
-				.leftJoinAndSelect('renote.user', 'renoteUser');
-
-			if (opts.host) {
-				if (opts.host === '.') {
-					query.andWhere('note.userHost IS NULL');
-				} else {
-					query.andWhere('note.userHost = :host', { host: opts.host });
-				}
-			}
-
-			if (opts.visibility) {
-				if (opts.visibility === 'home') {
-					query.andWhere('(note.visibility = \'home\')');
-				} else if (opts.visibility === 'followers') {
-					query.andWhere('(note.visibility = \'followers\')');
-				} else if (opts.visibility === 'public') {
-					query.andWhere('(note.visibility === \'public\')');
-				}
-			}
-
-			if (opts.excludeCW) {
-				query.andWhere('note.cw IS NULL');
-			}
-
-			if (opts.excludeReply) {
-				query.andWhere('note.replyId IS NULL');
-			}
-
-			if (opts.fileOption) {
-				if (opts.fileOption === 'file-only') {
-					query.andWhere('note.fileIds != \'{}\'');
-				} else if (opts.fileOption === 'no-file') {
-					query.andWhere('note.fileIds = :fIds', { fIds: '{}' });
-				}
-			}
-
-			this.queryService.generateVisibilityQuery(query, me);
-			if (me) this.queryService.generateMutedUserQuery(query, me);
-			if (me) this.queryService.generateBlockedUserQuery(query, me);
-
-			return await query.limit(pagination.limit).getMany();
+			throw new IdentifiableError('eb208b77-dcbd-4db8-8b65-6c41864dd190', 'Opensearch is not configured on this server');
 		}
 	}
 }

@@ -4,6 +4,7 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -13,7 +14,7 @@ import { ApiError } from '../../error.js';
 export const meta = {
 	description: '高度な検索ができます',
 	tags: ['notes'],
-	requireCredential: true,
+	requireCredential: false,
 	res: {
 		type: 'array',
 		optional: false, nullable: false,
@@ -29,6 +30,11 @@ export const meta = {
 			message: 'Advanced Search is unavailable.',
 			code: 'UNAVAILABLE',
 			id: '2f621660-e9b4-11ee-b87d-00155d0c9b27',
+		},
+		opensearchIsNotConfiguredOnThisServer: {
+			message: 'Opensearch is not configured on this server.',
+			code: 'OPENSEARCH_IS_NOT_AVAILABLE',
+			id: '9cd020fa-fcef-4733-8f76-b0e17524bb55',
 		},
 	},
 } as const;
@@ -124,23 +130,30 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (!policies.canAdvancedSearchNotes) {
 				throw new ApiError(meta.errors.unavailable);
 			}
-
-			const notes = await this.advancedSearchService.searchNote(ps.query, me, {
-				userId: ps.userId,
-				host: ps.host,
-				origin: ps.origin,
-				fileOption: ps.fileOption,
-				sensitiveFilter: ps.sensitiveFilter,
-				excludeCW: ps.excludeCW,
-				excludeReply: ps.excludeReply,
-				excludeQuote: ps.excludeQuote,
-			}, {
-				untilId: ps.untilId,
-				sinceId: ps.sinceId,
-				limit: ps.limit,
-			});
-
-			return await this.noteEntityService.packMany(notes, me);
+			try {
+				const notes = await this.advancedSearchService.searchNote(ps.query, me, {
+					userId: ps.userId,
+					host: ps.host,
+					origin: ps.origin,
+					fileOption: ps.fileOption,
+					sensitiveFilter: ps.sensitiveFilter,
+					excludeCW: ps.excludeCW,
+					excludeReply: ps.excludeReply,
+					excludeQuote: ps.excludeQuote,
+				}, {
+					untilId: ps.untilId,
+					sinceId: ps.sinceId,
+					limit: ps.limit,
+				});
+				return await this.noteEntityService.packMany(notes, me);
+			} catch (err) {
+				if (err instanceof Error || typeof err === 'string') {
+					console.error(err);
+				}
+				if (err instanceof IdentifiableError) {
+					if (err.id === 'd09b1ffa-1a59-4a42-8a3d-02d257d78df7') throw new ApiError(meta.errors.opensearchIsNotConfiguredOnThisServer);
+				}
+			}
 		});
 	}
 }
