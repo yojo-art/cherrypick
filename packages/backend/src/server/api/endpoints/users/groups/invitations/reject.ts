@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserGroupInvitationsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { NotificationService } from '@/core/NotificationService.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '../../../../error.js';
 
@@ -38,6 +39,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.userGroupInvitationsRepository)
 		private userGroupInvitationsRepository: UserGroupInvitationsRepository,
+
+		private notificationService: NotificationService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Fetch the invitation
@@ -52,7 +55,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (invitation.userId !== me.id) {
 				throw new ApiError(meta.errors.noSuchInvitation);
 			}
-
+			//Redisから通知を消す
+			await this.notificationService.deleteInvitedNotification(me.id, invitation.id);
 			await this.userGroupInvitationsRepository.delete(invitation.id);
 		});
 	}
