@@ -430,9 +430,12 @@ export class AdvancedSearchService {
 			})).filter(note => {
 					if (!isUserRelated(note, userIdsWhoMeMuting) &&
 						!isUserRelated(note, userIdsWhoMeBlockingMe)) 
-						if (Followings) {{
-						if (note.visibility !== 'followers') { return true;}
-							(note.userId === me?.id || !Object.hasOwn(Followings, note.userId)) {
+						if (Followings) {
+							{
+							if (note.visibility !== 'followers') { 
+								return true;
+							}
+							if (note.userId === me?.id || !Object.hasOwn(Followings, note.userId)) {
 							return true;
 						} else {
 							if (note.visibility !== 'followers') return true;
