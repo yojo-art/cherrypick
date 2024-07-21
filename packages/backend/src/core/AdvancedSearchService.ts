@@ -431,16 +431,16 @@ export class AdvancedSearchService {
 					if (!isUserRelated(note, userIdsWhoMeMuting) &&
 						!isUserRelated(note, userIdsWhoMeBlockingMe)) 
 						if (Followings) {
-							{
 							if (note.visibility !== 'followers') { 
 								return true;
 							}
 							if (note.userId === me?.id || !Object.hasOwn(Followings, note.userId)) {
-							return true;
-						} else {
-							if (note.visibility !== 'followers') return true;
+								return true;
+							} else {
+							if (note.visibility !== 'followers') {
+								return true;
+							}
 						}
-					}
 				}
 				return false;
 			});
