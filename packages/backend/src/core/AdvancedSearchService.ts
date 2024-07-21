@@ -428,19 +428,18 @@ export class AdvancedSearchService {
 			const notes = (await this.notesRepository.findBy({
 				id: In(noteIds),
 			})).filter(note => {
-				if (Followings) {
-					if (isUserRelated(note, userIdsWhoMeMuting)) return false;
-					if (isUserRelated(note, userIdsWhoMeBlockingMe)) return false;
-					if (!Object.hasOwn(Followings, note.userId) && note.visibility === 'followers') return false;
-					if (opts.visibility) { if (opts.visibility !== note.visibility) return false; }
-				} else {
-					if (isUserRelated(note, userIdsWhoMeMuting)) return false;
-					if (isUserRelated(note, userIdsWhoMeBlockingMe)) return false;
-					if (opts.visibility) { if (opts.visibility !== note.visibility) return false; }
-					if (note.visibility === 'followers') return false;
+					if (!isUserRelated(note, userIdsWhoMeMuting) &&
+						!isUserRelated(note, userIdsWhoMeBlockingMe)) 
+						if (Followings) {{
+						if (note.visibility !== 'followers') { return true;}
+							(note.userId === me?.id || !Object.hasOwn(Followings, note.userId)) {
+							return true;
+						} else {
+							if (note.visibility !== 'followers') return true;
+						}
+					}
 				}
-
-				return true;
+				return false;
 			});
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
