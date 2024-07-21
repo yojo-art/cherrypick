@@ -428,7 +428,7 @@ export class AdvancedSearchService {
 			const notes = (await this.notesRepository.findBy({
 				id: In(noteIds),
 			})).filter(note => {
-				if (!isUserRelated(note, userIdsWhoMeMuting) && !isUserRelated(note, userIdsWhoMeBlockingMe)){ 
+				if (!isUserRelated(note, userIdsWhoMeMuting) && !isUserRelated(note, userIdsWhoMeBlockingMe)) { 
 					if (Followings) {
 						if (note.visibility !== 'followers') { 
 							return true;
