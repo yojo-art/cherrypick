@@ -17,20 +17,13 @@
 -->
 
 ## 0.3.5
+Cherrypick 4.9.0-beta.2
 
 ### Release Date
-
-### General
--
-
-### Client
--
+2024-07-21
 
 ### Server
 - Fix:高度な検索の検索結果が正しくないのを修正
-
-### Misc
-
 
 ## 0.3.4
 Cherrypick 4.9.0-beta.2
