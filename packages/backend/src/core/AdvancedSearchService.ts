@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { randomUUID } from 'node:crypto';
 import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
@@ -424,11 +423,25 @@ export class AdvancedSearchService {
 				this.cacheService.userMutingsCache.fetch(me.id),
 				this.cacheService.userBlockedCache.fetch(me.id),
 			]) : [new Set<string>(), new Set<string>()];
+			const Followings = me ? await this.cacheService.userFollowingsCache.fetch(me.id) : null;
+
 			const notes = (await this.notesRepository.findBy({
 				id: In(noteIds),
 			})).filter(note => {
-				if (me && isUserRelated(note, userIdsWhoMeMuting)) return false;
-				if (me && isUserRelated(note, userIdsWhoMeBlockingMe)) return false;
+				if (Followings) {
+					if (isUserRelated(note, userIdsWhoMeMuting)) return false;
+					if (isUserRelated(note, userIdsWhoMeBlockingMe)) return false;
+					if (me && me.id === note.userId) return true;
+					if (!Object.hasOwn(Followings, note.userId) && note.visibility === 'followers') return false;
+					if (opts.visibility) { if (opts.visibility !== note.visibility) return false; }
+				} else {
+					if (isUserRelated(note, userIdsWhoMeMuting)) return false;
+					if (isUserRelated(note, userIdsWhoMeBlockingMe)) return false;
+					if (me && me.id === note.userId) return true;
+					if (opts.visibility) { if (opts.visibility !== note.visibility) return false; }
+					if (note.visibility === 'followers') return false;
+				}
+
 				return true;
 			});
 
