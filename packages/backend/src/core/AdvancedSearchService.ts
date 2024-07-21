@@ -438,9 +438,9 @@ export class AdvancedSearchService {
 							if (!Object.hasOwn(Followings, note.userId)) {
 								return true;
 							}
+						}
 					}
 				}
-			}
 				return false;
 			});
 
