@@ -24,7 +24,8 @@
 -
 
 ### Client
--
+- feat: サイコロウィジェット  
+(Cherry-picked from https://github.com/1673beta/cherrypick/pull/73)
 
 ### Server
 -
