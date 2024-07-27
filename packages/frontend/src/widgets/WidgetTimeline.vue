@@ -121,23 +121,23 @@ const choose = async (ev) => {
 		text: i18n.ts._timelines.home,
 		icon: 'ti ti-home',
 		action: () => { setSrc('home'); },
-	}, {
+	}, isLocalTimelineAvailable ? {
 		text: i18n.ts._timelines.local,
 		icon: 'ti ti-planet',
 		action: () => { setSrc('local'); },
-	}, {
-		text: i18n.ts._timelines.media,
-		icon: 'ti ti-photo',
-		action: () => { setSrc('media'); },
-	}, {
+	} : undefined, isLocalTimelineAvailable ? {
 		text: i18n.ts._timelines.social,
 		icon: 'ti ti-universe',
 		action: () => { setSrc('social'); },
-	}, {
+	} : undefined, isGlobalTimelineAvailable ? {
 		text: i18n.ts._timelines.global,
 		icon: 'ti ti-world',
 		action: () => { setSrc('global'); },
-	}, antennaItems.length > 0 ? { type: 'divider' } : undefined, ...antennaItems, listItems.length > 0 ? { type: 'divider' } : undefined, ...listItems], ev.currentTarget ?? ev.target).then(() => {
+	} : undefined, isGlobalTimelineAvailable ? {
+		text: i18n.ts._timelines.media,
+		icon: 'ti ti-photo',
+		action: () => { setSrc('media'); },
+	} : undefined, antennaItems.length > 0 ? { type: 'divider' } : undefined, ...antennaItems, listItems.length > 0 ? { type: 'divider' } : undefined, ...listItems], ev.currentTarget ?? ev.target).then(() => {
 		menuOpened.value = false;
 	});
 };
