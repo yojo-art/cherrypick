@@ -110,11 +110,6 @@ function onClick(ev: MouseEvent) {
 				os.apiWithDialog('admin/emoji/steal', {
 					name: customEmojiName.value,
 					host: props.host,
-				}).then(_res => {
-					os.alert({
-						type: 'success',
-						text: i18n.ts.emoji,
-					});
 				});
 			},
 		}] : []), ...(props.menuReaction && react ? [{

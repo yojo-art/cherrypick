@@ -156,9 +156,13 @@ const edit = (emoji) => {
 	}, 'closed');
 };
 
-const importEmoji = (emoji) => {
-	os.apiWithDialog('admin/emoji/copy', {
+const importEmoji = async(emoji) => {
+	await os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
+	});
+	os.alert({
+		type: 'success',
+		text: i18n.ts.emoji,
 	});
 };
 
