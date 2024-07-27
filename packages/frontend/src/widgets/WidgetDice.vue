@@ -1,17 +1,21 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, noridev, cherrypick-project, esurio
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
 <template>
-	<div class="_monospace" :class="[$style.root, {_panel: !widgetProps.transparent}]">
-		<MkDice
-			:showMinTotal="widgetProps.showMinTotal"
-			:showMaxTotal="widgetProps.showMaxTotal"
-			:showAverageTotal="widgetProps.showAverageTotal"
-		/>
-	</div>
+<div class="_monospace" :class="[$style.root, {_panel: !widgetProps.transparent}]">
+	<MkDice
+		:showMinTotal="widgetProps.showMinTotal"
+		:showMaxTotal="widgetProps.showMaxTotal"
+		:showAverageTotal="widgetProps.showAverageTotal"
+	/>
+</div>
 </template>
 
 <script lang="ts" setup>
 import { Ref, ref } from 'vue';
-import { GetFormResultType } from '@/scripts/form.js';
 import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
+import { GetFormResultType } from '@/scripts/form.js';
 import MkDice from '@/components/MkDice.vue';
 import { i18n }	from '@/i18n.js';
 
@@ -34,7 +38,7 @@ const widgetPropsDef = {
 		type: 'boolean' as const,
 		default: false,
 	},
-}
+};
 
 type WidgetProps = GetFormResultType<typeof widgetPropsDef>;
 

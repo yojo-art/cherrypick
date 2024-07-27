@@ -1,26 +1,30 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, noridev, cherrypick-project, esurio
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
 <template>
-	<div class="zmdxowus">
-		<div>
-			<MkInput v-model="diceCount" small type="text" class="input">
-				<template #label>{{ i18n.ts._dice.diceCount }}</template>
-			</MkInput>
-		</div>
-		<div>
-			<MkInput v-model="diceFaces" small type="text" class="input">
-				<template #label>{{ i18n.ts._dice.diceFaces }}</template>
-			</MkInput>
-		</div>
-		<div>
-			<MkButton large primary style="margin: 0 auto;" @click="rollDice">
-				<i class="ti ti-dice-2"></i>
-				{{ i18n.ts._dice.rollDice }}
-			</MkButton>
-		</div>
-		<div v-if="diceResult" class="result">{{ diceResult }}</div>
-		<div v-if="showMinTotal" class="option">{{ diceMinTotal }}</div>
-		<div v-if="showMaxTotal" class="option">{{ diceMaxTotal }}</div>
-		<dic v-if="showAverageTotal" class="option">{{ diceAverageTotal }}</dic>
+<div class="zmdxowus">
+	<div>
+		<MkInput v-model="diceCount" small type="text" class="input">
+			<template #label>{{ i18n.ts._dice.diceCount }}</template>
+		</MkInput>
 	</div>
+	<div>
+		<MkInput v-model="diceFaces" small type="text" class="input">
+			<template #label>{{ i18n.ts._dice.diceFaces }}</template>
+		</MkInput>
+	</div>
+	<div>
+		<MkButton large primary style="margin: 0 auto;" @click="rollDice">
+			<i class="ti ti-dice-2"></i>
+			{{ i18n.ts._dice.rollDice }}
+		</MkButton>
+	</div>
+	<div v-if="diceResult" class="result">{{ diceResult }}</div>
+	<div v-if="showMinTotal" class="option">{{ diceMinTotal }}</div>
+	<div v-if="showMaxTotal" class="option">{{ diceMaxTotal }}</div>
+	<dic v-if="showAverageTotal" class="option">{{ diceAverageTotal }}</dic>
+</div>
 </template>
 
 <script lang="ts" setup>
@@ -57,7 +61,7 @@ const rollDice = () => {
 	diceMinTotal.value = roll.minTotal;
 	diceMaxTotal.value = roll.maxTotal;
 	diceAverageTotal.value = roll.averageTotal;
-}
+};
 
 </script>
 
