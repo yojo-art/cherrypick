@@ -126,7 +126,7 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'enableGlobalTimeline',
 	'enableListTimeline',
 	'enableAntennaTimeline',
-	'enableChannelTimeline',
+	'enableMediaTimeline',
 	'useEnterToSend',
 	'postFormVisibilityHotkey',
 	'showRenoteConfirmPopup',

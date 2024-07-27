@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i v-else-if="widgetProps.src === 'social'" class="ti ti-universe"></i>
 		<i v-else-if="widgetProps.src === 'cat'" class="ti ti-cat"></i>
 		<i v-else-if="widgetProps.src === 'global'" class="ti ti-world"></i>
+		<i v-else-if="widgetProps.src === 'media'" class="ti ti-photo"></i>
 		<i v-else-if="widgetProps.src === 'list'" class="ti ti-list"></i>
 		<i v-else-if="widgetProps.src === 'antenna'" class="ti ti-antenna"></i>
 	</template>
@@ -21,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</button>
 	</template>
 
-	<div v-if="(((widgetProps.src === 'local' || widgetProps.src === 'social') && !isLocalTimelineAvailable) || (widgetProps.src === 'global' && !isGlobalTimelineAvailable))" :class="$style.disabled">
+	<div v-if="(((widgetProps.src === 'local' || widgetProps.src === 'social') && !isLocalTimelineAvailable) || ((widgetProps.src === 'global'||widgetProps.src === 'media') && !isGlobalTimelineAvailable))" :class="$style.disabled">
 		<p :class="$style.disabledTitle">
 			<i class="ti ti-minus"></i>
 			{{ i18n.ts._disabledTimeline.title }}

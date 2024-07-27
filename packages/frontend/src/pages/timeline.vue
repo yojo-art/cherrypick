@@ -402,11 +402,10 @@ const headerTabs = computed(() => [...(defaultStore.reactiveState.pinnedUserList
 	title: i18n.ts.antennas,
 	iconOnly: true,
 	onClick: chooseAntenna,
-}] : []), ...(defaultStore.state.enableChannelTimeline ? [{
-	icon: 'ti ti-device-tv',
-	title: i18n.ts.channel,
+}] : []), ...(isGlobalTimelineAvailable && defaultStore.state.enableMediaTimeline ? [{
+	icon: 'ti ti-photo',
+	title: i18n.ts._timelines.media,
 	iconOnly: true,
-	onClick: chooseChannel,
 }] : [])] as Tab[]);
 
 const headerTabsWhenNotLogin = computed(() => [
@@ -420,6 +419,12 @@ const headerTabsWhenNotLogin = computed(() => [
 		key: 'global',
 		title: i18n.ts._timelines.global,
 		icon: 'ti ti-world',
+		iconOnly: true,
+	}] : []),
+	...(isGlobalTimelineAvailable ? [{
+		key: 'media',
+		title: i18n.ts._timelines.media,
+		icon: 'ti ti-photo',
 		iconOnly: true,
 	}] : []),
 ] as Tab[]);
