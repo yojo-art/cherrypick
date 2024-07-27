@@ -3115,3 +3115,8 @@ _reIndexOpenSearch:
 _reCreateOpenSearchIndex:
   title: "現在のインデックスを破棄して再インデックスする"
   quesion: "現在のインデックスを破棄して全てのノートを再インデックスしますか？"
+
+_dice:
+  rollDice: "サイコロを振る"
+  diceCount: "サイコロの数"
+  diceFaces: "サイコロの面数"

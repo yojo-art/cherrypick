@@ -24,7 +24,8 @@
 - 連合過激派によってローカルのみ投稿機能は削除されました
 
 ### Client
--
+- feat: サイコロウィジェット  
+(Cherry-picked from https://github.com/1673beta/cherrypick/pull/73)
 
 ### Server
 -
