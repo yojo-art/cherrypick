@@ -417,6 +417,7 @@ export class AdvancedSearchService {
 
 			const noteIds = res.body.hits.hits.map((hit: any) => hit._id);
 			if (noteIds.length === 0) return [];
+			pagination.untilId = noteIds[noteIds.length - 1];
 			//検索結果がある
 			const Followings = me ? await this.cacheService.userFollowingsCache.fetch(me.id) : null;
 			const [
