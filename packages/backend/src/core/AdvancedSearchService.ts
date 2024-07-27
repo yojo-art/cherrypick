@@ -417,6 +417,8 @@ export class AdvancedSearchService {
 
 			const noteIds = res.body.hits.hits.map((hit: any) => hit._id);
 			if (noteIds.length === 0) return [];
+			//検索結果がある
+			const Followings = me ? await this.cacheService.userFollowingsCache.fetch(me.id) : null;
 			const [
 				userIdsWhoMeMuting,
 				userIdsWhoMeBlockingMe,
@@ -427,10 +429,23 @@ export class AdvancedSearchService {
 			const notes = (await this.notesRepository.findBy({
 				id: In(noteIds),
 			})).filter(note => {
-				if (me && isUserRelated(note, userIdsWhoMeMuting)) return false;
-				if (me && isUserRelated(note, userIdsWhoMeBlockingMe)) return false;
-				return true;
+				if (note.visibility === 'public' || note.visibility === 'home') {
+					if (me && (isUserRelated(note, userIdsWhoMeMuting) || isUserRelated(note, userIdsWhoMeBlockingMe))) return false;
+					else return true;
+				}
+				if (note.visibility === 'followers' ) {
+					if (Followings) {
+						if (!Object.hasOwn(Followings, note.userId)) {
+							return true;
+						}
+					}
+				}
+				return false;
 			});
+			if (notes.length === 0) {
+				//フィルタした結果0件になった場合は再帰的に処理する
+				return await this.searchNote(q, me, opts, pagination);
+			}
 
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
