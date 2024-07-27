@@ -402,10 +402,6 @@ const headerTabs = computed(() => [...(defaultStore.reactiveState.pinnedUserList
 	title: i18n.ts.antennas,
 	iconOnly: true,
 	onClick: chooseAntenna,
-}] : []), ...(isGlobalTimelineAvailable && defaultStore.state.enableMediaTimeline ? [{
-	icon: 'ti ti-photo',
-	title: i18n.ts._timelines.media,
-	iconOnly: true,
 }] : [])] as Tab[]);
 
 const headerTabsWhenNotLogin = computed(() => [
