@@ -25,7 +25,6 @@ const props = withDefaults(defineProps<{
 	initialCw?: string;
 	initialVisibility?: (typeof Misskey.noteVisibilities)[number];
 	initialFiles?: Misskey.entities.DriveFile[];
-	initialLocalOnly?: boolean;
 	initialVisibleUsers?: Misskey.entities.UserDetailed[];
 	initialNote?: Misskey.entities.Note;
 	instant?: boolean;
@@ -33,7 +32,6 @@ const props = withDefaults(defineProps<{
 	autofocus?: boolean;
 	updateMode?: boolean;
 }>(), {
-	initialLocalOnly: undefined,
 });
 
 const emit = defineEmits<{
