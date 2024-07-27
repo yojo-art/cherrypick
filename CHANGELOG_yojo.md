@@ -25,6 +25,8 @@
 
 ### Client
 - Fix: 引用とCWを併用した場合にタイムラインと詳細で表示が異なる不具合を修正
+- Feat: サイコロウィジェット  
+(Cherry-picked from https://github.com/1673beta/cherrypick/pull/73)
 
 ### Server
 -
