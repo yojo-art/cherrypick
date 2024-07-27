@@ -21,10 +21,10 @@
 ### Release Date
 
 ### General
-- 連合過激派によってローカルのみ投稿機能は削除されました
+- Remove: 連合過激派によってローカルのみ投稿機能は削除されました
 
 ### Client
--
+- Fix: 引用とCWを併用した場合にタイムラインと詳細で表示が異なる不具合を修正
 
 ### Server
 -
@@ -39,15 +39,15 @@ Cherrypick 4.9.0-beta.2
 2024-07-21
 
 ### General
-- enhance: 現在のインデックスを破棄して全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)
-- enhance: 全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
+- Enhance: 現在のインデックスを破棄して全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)
+- Enhance: 全ノートを強制的にインデックスさせるAPIの追加(コントロールパネル/その他)  
 (Based on https://github.com/TeamNijimiss/misskey/commit/e106092f5d4c79ec8d6ad53431ecb46839afe26c)
 
 ### Client
 -
 
 ### Server
-- Fix:グループ招待に返答すると通知が見れなくなる問題を修正
+- Fix: グループ招待に返答すると通知が見れなくなる問題を修正
 - Fix: notifications/deleteで通知を削除できない問題を修正
 - Fix: 高度な検索(opensearch)でsudachiが使われていない問題を修正
   -  検索文に一致していてもノートが出てこないことがあるのを修正しました
@@ -121,7 +121,7 @@ Cherrypick 4.9.0-beta.2
 	- 添付ファイルのセンシティブ条件(なし/含む/除外)
 	- 引用ノート除外
   - 検索方法の詳細はdoc/Advanced-Search.mdに 
-- Change:APIのパラメータを変更
+- Change: APIのパラメータを変更
 	-  notes/advanced-search の"excludeNsfw"を"excludeCW"に変更  
 	-  notes/advanced-search の"channelId"を削除  
  
