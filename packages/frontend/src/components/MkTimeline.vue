@@ -121,7 +121,6 @@ function connectChannel() {
 	} else if (props.src === 'media') {
 		connection = stream.useChannel('globalTimeline', {
 			withRenotes: props.withRenotes,
-			withReplies: props.withReplies,
 			withFiles: true,
 			withCats: props.onlyCats,
 		},
