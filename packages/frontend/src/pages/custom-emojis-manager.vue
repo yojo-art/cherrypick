@@ -167,7 +167,7 @@ const importEmoji = async(emoji) => {
 			try {
 				emoji[key] = json[key];
 			} catch {
-
+				//一部失敗したら転送せず空欄のままにしておく
 			}
 		};
 		from_json('license');
@@ -176,8 +176,9 @@ const importEmoji = async(emoji) => {
 		from_json('isSensitive');
 	} catch {
 		//リモートから取得に失敗
+	} finally {
+		edit(emoji);
 	}
-	edit(emoji);
 };
 
 const remoteMenu = (emoji, ev: MouseEvent) => {
