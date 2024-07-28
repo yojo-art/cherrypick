@@ -3,7 +3,7 @@ export async function importEmojiMeta(emoji, host:string) {
 	try {
 		const json = await(await fetch('https://' + host + '/api/emoji?name=' + emoji.name)).json();
 		emoji.category = '';
-		const from_json = (key) => {
+		const from_json = (key: string) => {
 			try {
 				if (json[key]) {
 					emoji[key] = json[key];
