@@ -471,13 +471,17 @@ onDeactivated(() => {
 	bufferedEnd.value = 0;
 	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
 		hide.value = true;
-	} else if (props.video.isSensitive && defaultStore.state.nsfw !== 'ignore') {
-		hide.value = true;
+	} else if (props.video.isSensitive) {
+		if (defaultStore.state.nsfw !== 'ignore') {
+			hide.value = true;
+		} else {
+			hide.value = true;
+			wasConfirmR18().then(r18 => {
+				hide.value = !r18;
+			});
+		}
 	} else {
-		hide.value = true;
-		wasConfirmR18().then(r18 => {
-			hide.value = !r18;
-		});
+		hide.value = false;
 	}
 	stopVideoElWatch();
 	onceInit = false;
