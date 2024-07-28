@@ -1,3 +1,7 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
 export async function importEmojiMeta(emoji, host:string) {
 	emoji.category = '取得失敗';
 	try {

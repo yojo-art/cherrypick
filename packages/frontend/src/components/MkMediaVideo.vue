@@ -122,6 +122,7 @@ import hasAudio from '@/scripts/media-has-audio.js';
 import MkMediaRange from '@/components/MkMediaRange.vue';
 import { $i, iAmModerator } from '@/account.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
+import { confirmR18 } from '@/scripts/check-r18.js';
 
 const props = defineProps<{
 	video: Misskey.entities.DriveFile;
@@ -172,9 +173,9 @@ const clickToShowMessage = computed(() => defaultStore.state.nsfwOpenBehavior ==
 		: '',
 );
 
-function onClick(ev: MouseEvent) {
+async function onClick(ev: MouseEvent) {
 	if (!hide.value) return;
-	else hide.value = false;
+	if (!await confirmR18()) return;
 	if (defaultStore.state.nsfwOpenBehavior === 'doubleClick') os.popup(MkRippleEffect, { x: ev.clientX, y: ev.clientY }, {}, 'end');
 	if (defaultStore.state.nsfwOpenBehavior === 'click') hide.value = false;
 }
