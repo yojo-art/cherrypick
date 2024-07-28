@@ -160,10 +160,13 @@ const importEmoji = async(emoji) => {
 	await os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
 	});
-	os.alert({
-		type: 'success',
-		text: i18n.ts.emoji,
-	});
+	try {
+		let json = (await fetch('https://misskey.kzkr.xyz/api/emoji?name=' + emoji.id)).json();
+		console.log(json);
+	} catch {
+		//リモートから取得に失敗
+	}
+	edit(emoji);
 };
 
 const remoteMenu = (emoji, ev: MouseEvent) => {
