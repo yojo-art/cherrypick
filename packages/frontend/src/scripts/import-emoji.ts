@@ -1,6 +1,6 @@
-export async function importEmojiMeta(emoji) {
+export async function importEmojiMeta(emoji, host:string) {
 	try {
-		const json = await(await fetch('https://' + emoji.host + '/api/emoji?name=' + emoji.name)).json();
+		const json = await(await fetch('https://' + host + '/api/emoji?name=' + emoji.name)).json();
 		console.log(json);
 		const from_json = (key) => {
 			try {

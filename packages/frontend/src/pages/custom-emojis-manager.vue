@@ -161,7 +161,7 @@ const importEmoji = async(emoji) => {
 	let res = await os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
 	});
-	res = await importEmojiMeta(res);
+	res = await importEmojiMeta(res, emoji.host);
 	edit(res);
 };
 
