@@ -30,6 +30,7 @@ Cherrypick 4.9.0
 (Cherry-picked from https://github.com/1673beta/cherrypick/pull/73)
 - Enhance: 絵文字のインポート時にリモートから取得した値で埋めた編集ダイアログを表示する
 - Fix: メディアタイムラインの可視性を変更できない問題を修正 [#54](https://github.com/yojo-art/cherrypick/issues/54)
+- Feat: NSFWフラグの付いた画像と動画で年齢確認ダイアログを出す [#245](https://github.com/yojo-art/cherrypick/pull/245)
 
 ### Server
 -
