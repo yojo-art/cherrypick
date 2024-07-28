@@ -174,9 +174,11 @@ const importEmoji = async(emoji) => {
 		from_json('aliases');
 		from_json('category');
 		from_json('isSensitive');
-	} catch {
+	} catch (err) {
+		console.log(err);
 		//リモートから取得に失敗
 	} finally {
+		console.log('edit');
 		edit(emoji);
 	}
 };
