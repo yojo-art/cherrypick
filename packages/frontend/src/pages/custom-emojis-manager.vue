@@ -165,7 +165,7 @@ const importEmoji = async(emoji) => {
 			console.log(json);
 			let from_json = (key) => {
 				try {
-					emoji[key] = json[key];
+					res[key] = json[key];
 				} catch {
 					//一部失敗したら転送せず空欄のままにしておく
 				}
@@ -179,7 +179,7 @@ const importEmoji = async(emoji) => {
 			//リモートから取得に失敗
 		} finally {
 			console.log('edit');
-			edit(emoji);
+			edit(res);
 		}
 	});
 };
