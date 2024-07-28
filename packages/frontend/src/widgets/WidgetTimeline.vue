@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i v-else-if="widgetProps.src === 'social'" class="ti ti-universe"></i>
 		<i v-else-if="widgetProps.src === 'cat'" class="ti ti-cat"></i>
 		<i v-else-if="widgetProps.src === 'global'" class="ti ti-world"></i>
+		<i v-else-if="widgetProps.src === 'media'" class="ti ti-photo"></i>
 		<i v-else-if="widgetProps.src === 'list'" class="ti ti-list"></i>
 		<i v-else-if="widgetProps.src === 'antenna'" class="ti ti-antenna"></i>
 	</template>
@@ -21,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</button>
 	</template>
 
-	<div v-if="(((widgetProps.src === 'local' || widgetProps.src === 'social') && !isLocalTimelineAvailable) || (widgetProps.src === 'global' && !isGlobalTimelineAvailable))" :class="$style.disabled">
+	<div v-if="(((widgetProps.src === 'local' || widgetProps.src === 'social') && !isLocalTimelineAvailable) || ((widgetProps.src === 'global'||widgetProps.src === 'media') && !isGlobalTimelineAvailable))" :class="$style.disabled">
 		<p :class="$style.disabledTitle">
 			<i class="ti ti-minus"></i>
 			{{ i18n.ts._disabledTimeline.title }}
@@ -120,23 +121,23 @@ const choose = async (ev) => {
 		text: i18n.ts._timelines.home,
 		icon: 'ti ti-home',
 		action: () => { setSrc('home'); },
-	}, {
+	}, isLocalTimelineAvailable ? {
 		text: i18n.ts._timelines.local,
 		icon: 'ti ti-planet',
 		action: () => { setSrc('local'); },
-	}, {
-		text: i18n.ts._timelines.media,
-		icon: 'ti ti-photo',
-		action: () => { setSrc('media'); },
-	}, {
+	} : undefined, isLocalTimelineAvailable ? {
 		text: i18n.ts._timelines.social,
 		icon: 'ti ti-universe',
 		action: () => { setSrc('social'); },
-	}, {
+	} : undefined, isGlobalTimelineAvailable ? {
 		text: i18n.ts._timelines.global,
 		icon: 'ti ti-world',
 		action: () => { setSrc('global'); },
-	}, antennaItems.length > 0 ? { type: 'divider' } : undefined, ...antennaItems, listItems.length > 0 ? { type: 'divider' } : undefined, ...listItems], ev.currentTarget ?? ev.target).then(() => {
+	} : undefined, isGlobalTimelineAvailable ? {
+		text: i18n.ts._timelines.media,
+		icon: 'ti ti-photo',
+		action: () => { setSrc('media'); },
+	} : undefined, antennaItems.length > 0 ? { type: 'divider' } : undefined, ...antennaItems, listItems.length > 0 ? { type: 'divider' } : undefined, ...listItems], ev.currentTarget ?? ev.target).then(() => {
 		menuOpened.value = false;
 	});
 };

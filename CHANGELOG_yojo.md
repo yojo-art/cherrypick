@@ -17,6 +17,7 @@
 -->
 
 ## 0.4.0 (unreleased)
+Cherrypick 4.9.0
 
 ### Release Date
 
@@ -24,10 +25,10 @@
 - Remove: 連合過激派によってローカルのみ投稿機能は削除されました
 
 ### Client
-- Fix: 引用とCWを併用した場合にタイムラインと詳細で表示が異なる不具合を修正
+- Fix: 引用とCWを併用した場合にタイムラインと詳細で表示が異なる不具合を修正 [#231](https://github.com/yojo-art/cherrypick/issues/231)
 - Feat: サイコロウィジェット  
 (Cherry-picked from https://github.com/1673beta/cherrypick/pull/73)
-
+- Fix: メディアタイムラインの可視性を変更できない問題を修正 [#54](https://github.com/yojo-art/cherrypick/issues/54)
 ### Server
 -
 
