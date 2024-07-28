@@ -165,7 +165,9 @@ const importEmoji = async(emoji) => {
 		console.log(json);
 		let from_json = (key) => {
 			try {
-				res[key] = json[key];
+				if (json[key]) {
+					res[key] = json[key];
+				}
 			} catch {
 				//一部失敗したら転送せず空欄のままにしておく
 			}
