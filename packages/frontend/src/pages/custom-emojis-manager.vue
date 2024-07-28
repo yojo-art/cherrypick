@@ -161,8 +161,19 @@ const importEmoji = async(emoji) => {
 		emojiId: emoji.id,
 	});
 	try {
-		let json = (await fetch('https://misskey.kzkr.xyz/api/emoji?name=' + emoji.id)).json();
+		let json = await (await fetch('https://misskey.kzkr.xyz/api/emoji?name=' + emoji.name)).json();
 		console.log(json);
+		let from_json = (key) => {
+			try {
+				emoji[key] = json[key];
+			} catch {
+
+			}
+		};
+		from_json('license');
+		from_json('aliases');
+		from_json('category');
+		from_json('isSensitive');
 	} catch {
 		//リモートから取得に失敗
 	}
