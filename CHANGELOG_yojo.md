@@ -15,11 +15,26 @@
 ### Misc
 
 -->
+## x.x.x (unreleased)
 
-## 0.4.0 (unreleased)
+### Release Date
+
+### General
+-
+
+### Client
+-
+
+### Server
+-
+
+### Misc
+
+## 0.4.0
 Cherrypick 4.9.0
 
 ### Release Date
+2024-07-28
 
 ### General
 - Remove: 連合過激派によってローカルのみ投稿機能は削除されました
