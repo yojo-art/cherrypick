@@ -2105,8 +2105,6 @@ _permissions:
   "write:page-likes": "Sunting suka pada Halaman"
   "read:user-groups": "Lihat grup pengguna"
   "write:user-groups": "Sunting atau hapus grup pengguna"
-  "read:channels": "Lihat Kanal"
-  "write:channels": "Sunting Kanal"
   "read:gallery": "Lihat galeri"
   "write:gallery": "Sunting galeri"
   "read:gallery-likes": "Lihat daftar postingan galeri yang disukai"

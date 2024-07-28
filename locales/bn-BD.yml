@@ -1188,8 +1188,6 @@ _permissions:
   "write:page-likes": "পৃষ্ঠায় দেয়া পছন্দগুলি সম্পাদনা করুন"
   "read:user-groups": "ব্যাবহারকারী গ্রুপগুলি দেখুন"
   "write:user-groups": "ব্যাবহারকারী গ্রুপগুলি সম্পাদনা করুন"
-  "read:channels": "চ্যানেলগুলি দেখুন"
-  "write:channels": "চ্যানেলগুলি সম্পাদনা করুন"
   "read:gallery": "গ্যালারী দেখুন"
   "write:gallery": "গ্যালারী সম্পাদনা করুন"
   "read:gallery-likes": "গ্যালারীর পছন্দগুলি দেখুন"
