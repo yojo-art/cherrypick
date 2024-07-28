@@ -1368,6 +1368,9 @@ _official_tag:
   navbar: "公式タグ"
   adminTopInfo: "優先度の値が小さいものが上に表示されます"
 mascotImageUrl: "マスコット画像のリンク"
+_checkR18:
+  title: "成人指定のメディアです"
+  description: "あなたは18歳以上ですか？"
 
 _nsfwOpenBehavior:
   click: "タップして開く"
