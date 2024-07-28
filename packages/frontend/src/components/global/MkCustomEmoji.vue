@@ -29,7 +29,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, inject, ref } from 'vue';
+import { computed, onMounted, onUnmounted, inject, ref, defineAsyncComponent } from 'vue';
 import { getProxiedImageUrl, getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { defaultStore } from '@/store.js';
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
@@ -40,6 +40,7 @@ import copyToClipboard from '@/scripts/copy-to-clipboard.js';
 import { i18n } from '@/i18n.js';
 import MkCustomEmojiDetailedDialog from '@/components/MkCustomEmojiDetailedDialog.vue';
 import { $i } from '@/account.js';
+import { importEmojiMeta } from '@/scripts/import-emoji.js';
 
 const props = defineProps<{
 	name: string;
@@ -106,10 +107,14 @@ function onClick(ev: MouseEvent) {
 		}] : []), ...(props.host && $i && ($i.isAdmin || $i.policies.canManageCustomEmojis) ? [{
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
-			action: () => {
-				os.apiWithDialog('admin/emoji/steal', {
+			action: async() => {
+				let emoji = await os.apiWithDialog('admin/emoji/steal', {
 					name: customEmojiName.value,
 					host: props.host,
+				});
+				emoji = await importEmojiMeta(emoji);
+				os.popup(defineAsyncComponent(() => import('./emoji-edit-dialog.vue')), {
+					emoji: emoji,
 				});
 			},
 		}] : []), ...(props.menuReaction && react ? [{

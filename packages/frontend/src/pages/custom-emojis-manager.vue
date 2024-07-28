@@ -85,6 +85,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { importEmojiMeta } from '@/scripts/import-emoji.js';
 
 const emojisPaginationComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
@@ -160,26 +161,7 @@ const importEmoji = async(emoji) => {
 	let res = await os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
 	});
-	try {
-		let json = await(await fetch('https://' + emoji.host + '/api/emoji?name=' + emoji.name)).json();
-		console.log(json);
-		let from_json = (key) => {
-			try {
-				if (json[key]) {
-					res[key] = json[key];
-				}
-			} catch {
-				//一部失敗したら転送せず空欄のままにしておく
-			}
-		};
-		from_json('license');
-		from_json('aliases');
-		from_json('category');
-		from_json('isSensitive');
-	} catch (err) {
-		console.log(err);
-		//リモートから取得に失敗
-	}
+	res = await importEmojiMeta(res);
 	edit(res);
 };
 
