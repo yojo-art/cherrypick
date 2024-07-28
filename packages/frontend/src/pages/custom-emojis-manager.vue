@@ -161,7 +161,7 @@ const importEmoji = async(emoji) => {
 		emojiId: emoji.id,
 	}).then(async res => {
 		try {
-			let json = await(await fetch('https://misskey.kzkr.xyz/api/emoji?name=' + emoji.name)).json();
+			let json = await(await fetch('https://' + emoji.host + '/api/emoji?name=' + emoji.name)).json();
 			console.log(json);
 			let from_json = (key) => {
 				try {
