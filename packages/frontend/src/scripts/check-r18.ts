@@ -26,6 +26,6 @@ export async function confirmR18() {
 		return true;
 	}
 }
-export async function wasConfirmR18() {
+export function wasConfirmR18() {
 	return localStorage.getItem('checkR18') === 'true';
 }

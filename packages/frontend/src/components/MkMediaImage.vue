@@ -127,10 +127,7 @@ watch(() => props.image, () => {
 		if (defaultStore.state.nsfw !== 'ignore') {
 			hide.value = true;
 		} else {
-			hide.value = true;
-			wasConfirmR18().then(r18 => {
-				hide.value = !r18;
-			});
+			hide.value = !wasConfirmR18();
 		}
 	} else {
 		hide.value = false;
