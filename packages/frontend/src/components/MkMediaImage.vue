@@ -65,7 +65,7 @@ import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { $i, iAmModerator } from '@/account.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
-import { confirmR18 } from '@/scripts/check-r18.js';
+import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
 
 const props = withDefaults(defineProps<{
 	image: Misskey.entities.DriveFile;
@@ -121,7 +121,16 @@ function resetTimer() {
 
 // Plugin:register_note_view_interruptor を使って書き換えられる可能性があるためwatchする
 watch(() => props.image, () => {
-	hide.value = (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) ? true : (props.image.isSensitive && defaultStore.state.nsfw !== 'ignore');
+	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
+		hide.value = true;
+	} else if (props.image.isSensitive && defaultStore.state.nsfw !== 'ignore') {
+		hide.value = true;
+	} else {
+		hide.value = true;
+		wasConfirmR18().then(r18 => {
+			hide.value = !r18;
+		});
+	}
 }, {
 	deep: true,
 	immediate: true,
