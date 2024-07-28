@@ -21727,8 +21727,6 @@ export type operations = {
           visibility?: 'public' | 'home' | 'followers' | 'specified';
           visibleUserIds?: string[];
           cw?: string | null;
-          /** @default false */
-          localOnly?: boolean;
           /**
            * @default null
            * @enum {string|null}

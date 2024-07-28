@@ -74,6 +74,7 @@ export const defaultStore = markRaw(new Storage('base', {
 			local: false,
 			social: false,
 			global: false,
+			media: false,
 		},
 	},
 	keepCw: {
@@ -193,7 +194,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	tl: {
 		where: 'deviceAccount',
 		default: {
-			src: 'home' as 'home' | 'local' | 'social' | 'global' | `list:${string}`,
+			src: 'home' as 'home' | 'local' | 'social' | 'global' | 'media' | `list:${string}`,
 			userList: null as Misskey.entities.UserList | null,
 			filter: {
 				withReplies: false,
@@ -623,9 +624,9 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: true,
 	},
-	enableChannelTimeline: {
+	enableMediaTimeline: {
 		where: 'device',
-		default: false,
+		default: true,
 	},
 
 	// - Settings/Sounds & Vibrations

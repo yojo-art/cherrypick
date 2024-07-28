@@ -65,6 +65,7 @@ import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { $i, iAmModerator } from '@/account.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
+import { confirmR18 } from '@/scripts/check-r18.js';
 
 const props = withDefaults(defineProps<{
 	image: Misskey.entities.DriveFile;
@@ -99,9 +100,10 @@ const clickToShowMessage = computed(() => defaultStore.state.nsfwOpenBehavior ==
 		: '',
 );
 
-function onClick(ev: MouseEvent) {
+async function onClick(ev: MouseEvent) {
 	if (!props.controls) return;
 	if (!hide.value) return;
+	if (!await confirmR18()) return;
 	if (defaultStore.state.nsfwOpenBehavior === 'doubleClick') os.popup(MkRippleEffect, { x: ev.clientX, y: ev.clientY }, {}, 'end');
 	if (defaultStore.state.nsfwOpenBehavior === 'click') hide.value = false;
 }

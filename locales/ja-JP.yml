@@ -1368,6 +1368,9 @@ _official_tag:
   navbar: "公式タグ"
   adminTopInfo: "優先度の値が小さいものが上に表示されます"
 mascotImageUrl: "マスコット画像のリンク"
+_checkR18:
+  title: "成人指定のメディアです"
+  description: "あなたは18歳以上ですか？"
 
 _nsfwOpenBehavior:
   click: "タップして開く"
@@ -3115,3 +3118,8 @@ _reIndexOpenSearch:
 _reCreateOpenSearchIndex:
   title: "現在のインデックスを破棄して再インデックスする"
   quesion: "現在のインデックスを破棄して全てのノートを再インデックスしますか？"
+
+_dice:
+  rollDice: "サイコロを振る"
+  diceCount: "サイコロの数"
+  diceFaces: "サイコロの面数"

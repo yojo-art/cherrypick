@@ -5489,6 +5489,16 @@ export interface Locale extends ILocale {
      * マスコット画像のリンク
      */
     "mascotImageUrl": string;
+    "_checkR18": {
+        /**
+         * 成人指定のメディアです
+         */
+        "title": string;
+        /**
+         * あなたは18歳以上ですか？
+         */
+        "description": string;
+    };
     "_nsfwOpenBehavior": {
         /**
          * タップして開く
@@ -11659,6 +11669,20 @@ export interface Locale extends ILocale {
          * 現在のインデックスを破棄して全てのノートを再インデックスしますか？
          */
         "quesion": string;
+    };
+    "_dice": {
+        /**
+         * サイコロを振る
+         */
+        "rollDice": string;
+        /**
+         * サイコロの数
+         */
+        "diceCount": string;
+        /**
+         * サイコロの面数
+         */
+        "diceFaces": string;
     };
 }
 declare const locales: {
