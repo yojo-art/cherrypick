@@ -99,7 +99,7 @@ onMounted(() => {
 	} else if ($i) {
 		disabled.value = (
 			(!((instance.policies.ltlAvailable) || ($i.policies.ltlAvailable)) && ['local', 'social'].includes(props.column.tl)) ||
-			(!((instance.policies.gtlAvailable) || ($i.policies.gtlAvailable)) && ['global'].includes(props.column.tl)));
+			(!((instance.policies.gtlAvailable) || ($i.policies.gtlAvailable)) && ['global', 'media'].includes(props.column.tl)));
 	}
 });
 
@@ -111,12 +111,11 @@ async function setType() {
 		}, {
 			value: 'local' as const, text: i18n.ts._timelines.local,
 		}, {
-			value: 'media' as const, text: i18n.ts._timelines.media,
-		},
-		{
 			value: 'social' as const, text: i18n.ts._timelines.social,
 		}, {
 			value: 'global' as const, text: i18n.ts._timelines.global,
+		}, {
+			value: 'media' as const, text: i18n.ts._timelines.media,
 		}],
 	});
 	if (canceled) {

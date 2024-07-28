@@ -30,7 +30,7 @@ export type Column = {
 	channelId?: string;
 	roleId?: string;
 	excludeTypes?: typeof notificationTypes[number][];
-	tl?: 'home' | 'local' | 'media' |'social' | 'global';
+	tl?: 'home' | 'local' | 'social' | 'global' | 'media';
 	withRenotes?: boolean;
 	withReplies?: boolean;
 	onlyFiles?: boolean;
