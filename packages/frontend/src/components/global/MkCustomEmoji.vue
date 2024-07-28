@@ -113,7 +113,7 @@ function onClick(ev: MouseEvent) {
 					host: props.host,
 				});
 				emoji = await importEmojiMeta(emoji);
-				os.popup(defineAsyncComponent(() => import('./emoji-edit-dialog.vue')), {
+				os.popup(defineAsyncComponent(() => import('@/pages/emoji-edit-dialog.vue')), {
 					emoji: emoji,
 				});
 			},
