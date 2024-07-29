@@ -2099,8 +2099,6 @@ _permissions:
   "write:page-likes": "แก้ไขรายการเพจที่ถูกใจ"
   "read:user-groups": "ดูกลุ่มผู้ใช้ของคุณ"
   "write:user-groups": "แก้ไขหรือลบกลุ่มผู้ใช้ของคุณ"
-  "read:channels": "ดูแชนแนลของคุณ"
-  "write:channels": "แก้ไขแชนแนลของคุณ"
   "read:gallery": "ดูแกลเลอรี่"
   "write:gallery": "แก้ไขแกลเลอรี่ของคุณ"
   "read:gallery-likes": "ดูรายการโพสต์แกลเลอรีที่ถูกใจไว้"

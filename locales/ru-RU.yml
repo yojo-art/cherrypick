@@ -1771,8 +1771,6 @@ _permissions:
   "write:page-likes": "Изменять добавления страниц в избранное"
   "read:user-groups": "Смотреть группы пользователей"
   "write:user-groups": "Изменять и удалять группы пользователей"
-  "read:channels": "Смотреть каналы"
-  "write:channels": "Изменять каналы"
   "read:gallery": "Просмотр галереи"
   "write:gallery": "Редактирование галереи"
   "read:gallery-likes": "Просмотр списка понравившегося в галерее"

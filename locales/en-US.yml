@@ -2337,8 +2337,6 @@ _permissions:
   "write:page-likes": "Edit list of liked Pages"
   "read:user-groups": "View your user groups"
   "write:user-groups": "Edit or delete your user groups"
-  "read:channels": "View your channels"
-  "write:channels": "Edit your channels"
   "read:gallery": "View your gallery"
   "write:gallery": "Edit your gallery"
   "read:gallery-likes": "View your list of liked gallery posts"

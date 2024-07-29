@@ -1260,8 +1260,6 @@ _permissions:
   "write:page-likes": "Upraviť páčiky na stránkach"
   "read:user-groups": "Vidieť vaše skupiny"
   "write:user-groups": "Upraviť alebo odstrániť vaše skupiny"
-  "read:channels": "Čítať vaše kanály"
-  "write:channels": "Upravovať vaše kanály"
   "read:gallery": "Vidieť vašu galériu"
   "write:gallery": "Upravovať vašu galériu"
   "read:gallery-likes": "Vidieť zoznam obľúbených príspevkov z galérie"
