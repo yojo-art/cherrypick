@@ -43,7 +43,8 @@ type Keys =
 	'emojis' | // DEPRECATED, stored in indexeddb (13.9.0~);
 	`channelLastReadedAt:${string}` |
 	'neverShowNoteEditInfo' |
-	'showPushNotificationDialog'
+	'showPushNotificationDialog' |
+	'checkR18'
 
 export const miLocalStorage = {
 	getItem: (key: Keys): string | null => window.localStorage.getItem(key),

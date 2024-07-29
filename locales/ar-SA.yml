@@ -1329,8 +1329,6 @@ _permissions:
   "read:page-likes": "يعرض ما أعجبك من ملاحظات في صفحات"
   "read:user-groups": "اعرض فِرق المستخدمين"
   "write:user-groups": "عدّل أو احذف فِرق المستخدمين"
-  "read:channels": "طالع قنواتك"
-  "write:channels": "عدّل القنوات"
   "read:gallery": "اعرض المعرض"
   "write:gallery": "عدّل المعرض"
   "read:gallery-likes": "يعرض ما أعجبك من مشاركات المعرض"

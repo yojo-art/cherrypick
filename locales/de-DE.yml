@@ -1959,8 +1959,6 @@ _permissions:
   "write:page-likes": "Liste der Seiten, die mir gefallen, bearbeiten"
   "read:user-groups": "Benutzergruppen lesen"
   "write:user-groups": "Benutzergruppen bearbeiten oder löschen"
-  "read:channels": "Kanäle lesen"
-  "write:channels": "Kanäle bedienen"
   "read:gallery": "Beiträge deiner Galerie lesen"
   "write:gallery": "Deine Galerie bearbeiten"
   "read:gallery-likes": "Liste deiner mit \"Gefällt mir\" markierten Galerie-Beiträge lesen"

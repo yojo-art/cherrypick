@@ -2091,8 +2091,6 @@ _permissions:
   "write:page-likes": "Gestire i \"Mi piace\" di pagine"
   "read:user-groups": "Vedere i gruppi di utenti"
   "write:user-groups": "Gestire i gruppi di utenti"
-  "read:channels": "Visualizza canali"
-  "write:channels": "Gerisci canali"
   "read:gallery": "Visualizza la galleria."
   "write:gallery": "Gestione della galleria"
   "read:gallery-likes": "Visualizza i contenuti della galleria."

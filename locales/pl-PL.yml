@@ -1354,8 +1354,6 @@ _permissions:
   "write:page-likes": "Edycja polubień na stronach"
   "read:user-groups": "Wyświetlanie grup użytkownika"
   "write:user-groups": "Edycja lub usuwanie grup użytkownika"
-  "read:channels": "Zobacz swoje kanały"
-  "write:channels": "Edytuj swoje kanały"
   "read:gallery": "Zobacz swoją galerię"
   "write:gallery": "Edytuj swoją galerię"
   "read:gallery-likes": "Wyświetlanie listy polubionych postów w galerii"

@@ -1709,8 +1709,6 @@ _permissions:
   "write:page-likes": "Sửa lượt thích của tôi trên trang"
   "read:user-groups": "Xem nhóm của tôi"
   "write:user-groups": "Sửa hoặc xóa nhóm của tôi"
-  "read:channels": "Xem kênh của tôi"
-  "write:channels": "Sửa kênh của tôi"
   "read:gallery": "Xem kho ảnh của tôi"
   "write:gallery": "Sửa kho ảnh của tôi"
   "read:gallery-likes": "Xem danh sách các tút đã thích trong thư viện của tôi"

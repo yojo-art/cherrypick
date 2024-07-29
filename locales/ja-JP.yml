@@ -2428,8 +2428,6 @@ _permissions:
   "write:page-likes": "ページのいいねを操作する"
   "read:user-groups": "ユーザーグループを見る"
   "write:user-groups": "ユーザーグループを操作する"
-  "read:channels": "チャンネルを見る"
-  "write:channels": "チャンネルを操作する"
   "read:gallery": "ギャラリーを見る"
   "write:gallery": "ギャラリーを操作する"
   "read:gallery-likes": "ギャラリーのいいねを見る"

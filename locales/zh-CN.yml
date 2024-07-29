@@ -2109,8 +2109,6 @@ _permissions:
   "write:page-likes": "操作喜欢的页面"
   "read:user-groups": "查看用户组"
   "write:user-groups": "操作用户组"
-  "read:channels": "查看频道"
-  "write:channels": "管理频道"
   "read:gallery": "浏览图库"
   "write:gallery": "操作图库"
   "read:gallery-likes": "读取喜欢的图片"
