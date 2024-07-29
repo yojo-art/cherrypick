@@ -4,9 +4,10 @@
  */
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
+import { miLocalStorage } from '@/local-storage.js';
 
 export async function confirmR18() {
-	if (localStorage.getItem('checkR18') === 'true') {
+	if (miLocalStorage.getItem('checkR18') === 'true') {
 		//確認処理を済ませてる場合
 		return true;
 	} else {
@@ -22,7 +23,10 @@ export async function confirmR18() {
 			return false;
 		}
 		//はい18禁コンテンツの閲覧を望みます
-		localStorage.setItem('checkR18', 'true');
+		miLocalStorage.setItem('checkR18', 'true');
 		return true;
 	}
+}
+export function wasConfirmR18() {
+	return miLocalStorage.getItem('checkR18') === 'true';
 }

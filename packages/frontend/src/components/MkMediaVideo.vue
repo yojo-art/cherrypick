@@ -122,7 +122,7 @@ import hasAudio from '@/scripts/media-has-audio.js';
 import MkMediaRange from '@/components/MkMediaRange.vue';
 import { $i, iAmModerator } from '@/account.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
-import { confirmR18 } from '@/scripts/check-r18.js';
+import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
 
 const props = defineProps<{
 	video: Misskey.entities.DriveFile;
@@ -469,7 +469,17 @@ onDeactivated(() => {
 	elapsedTimeMs.value = 0;
 	durationMs.value = 0;
 	bufferedEnd.value = 0;
-	hide.value = (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) ? true : (props.video.isSensitive && defaultStore.state.nsfw !== 'ignore');
+	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
+		hide.value = true;
+	} else if (props.video.isSensitive) {
+		if (defaultStore.state.nsfw !== 'ignore') {
+			hide.value = true;
+		} else {
+			hide.value = !wasConfirmR18();
+		}
+	} else {
+		hide.value = false;
+	}
 	stopVideoElWatch();
 	onceInit = false;
 	if (mediaTickFrameId) {
