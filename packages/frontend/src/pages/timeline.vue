@@ -101,7 +101,7 @@ const tlComponent = shallowRef<InstanceType<typeof MkTimeline>>();
 const rootEl = shallowRef<HTMLElement>();
 
 const queue = ref(0);
-const srcWhenNotSignin = ref<'local' | 'global'>(isLocalTimelineAvailable ? 'local' : 'global');
+const srcWhenNotSignin = ref<'local' | 'global' | 'media'>(isLocalTimelineAvailable ? 'local' : 'global');
 const src = computed<'home' | 'local' | 'media' | 'social' | 'global' | 'media' | `list:${string}`>({
 	get: () => ($i ? defaultStore.reactiveState.tl.value.src : srcWhenNotSignin.value),
 	set: (x) => saveSrc(x),
@@ -266,8 +266,8 @@ function saveSrc(newSrc: 'home' | 'local' | 'media' | 'social' | 'global' | 'med
 	}
 
 	defaultStore.set('tl', out);
-	if (['local', 'global'].includes(newSrc)) {
-		srcWhenNotSignin.value = newSrc as 'local' | 'global';
+	if (['local', 'global', 'media'].includes(newSrc)) {
+		srcWhenNotSignin.value = newSrc as 'local' | 'global' | 'media';
 	}
 }
 
