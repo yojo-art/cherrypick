@@ -20,7 +20,7 @@
 ### Release Date
 
 ### General
--
+- Fix: チャンネルに関する権限定義を削除
 
 ### Client
 -
