@@ -733,7 +733,7 @@ export class ApRendererService {
 			actor: this.userEntityService.genLocalUserUri(local_user_id),
 			object: remote_user_uri,
 			game_type_uuid: game_id,
-			game_state,
+			game_state: JSON.stringify(game_state),
 		};
 	}
 }
