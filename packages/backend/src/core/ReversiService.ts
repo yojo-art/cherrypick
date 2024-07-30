@@ -111,15 +111,16 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			const game_state = {
 				state: 'match',
 			};
+			console.log('A');
 			const content = this.apRendererService.addContext(await this.apRendererService.renderGame(local_user_id, remote_user_uri, game_id, game_state));
+			console.log('B');
 			const dm = this.apDeliverManagerService.createDeliverManager({
 				id: me.id,
 				host: null,
 			}, content);
-			dm.addDirectRecipe({
-				host: targetUser.host,
-				uri: targetUser.uri,
-			} as MiRemoteUser);
+			console.log('C');
+			dm.addDirectRecipe(targetUser as MiRemoteUser);
+			console.log('D');
 			trackPromise(dm.execute());
 		}
 
