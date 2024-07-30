@@ -608,7 +608,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$ApPersonService,
 		$ApQuestionService,
 		$ApEventService,
-		ApGameService,
+		$ApGameService,
 		//#endregion
 	],
 	exports: [
