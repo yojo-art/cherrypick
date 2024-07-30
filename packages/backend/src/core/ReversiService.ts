@@ -12,7 +12,7 @@ import type {
 	MiReversiGame,
 	ReversiGamesRepository,
 } from '@/models/_.js';
-import type { MiUser } from '@/models/User.js';
+import type { MiRemoteUser, MiUser } from '@/models/User.js';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 import { CacheService } from '@/core/CacheService.js';
@@ -21,7 +21,10 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { IdService } from '@/core/IdService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { Serialized } from '@/types.js';
+import { trackPromise } from '@/misc/promise-tracker.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
+import { ApRendererService } from './activitypub/ApRendererService.js';
+import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
 import type { OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 
 const INVITATION_TIMEOUT_MS = 1000 * 20; // 20sec
@@ -43,6 +46,8 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private userEntityService: UserEntityService,
 		private globalEventService: GlobalEventService,
 		private reversiGameEntityService: ReversiGameEntityService,
+		private apRendererService: ApRendererService,
+		private apDeliverManagerService: ApDeliverManagerService,
 		private idService: IdService,
 	) {
 	}
@@ -93,6 +98,29 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	public async matchSpecificUser(me: MiUser, targetUser: MiUser, multiple = false): Promise<MiReversiGame | null> {
 		if (targetUser.id === me.id) {
 			throw new Error('You cannot match yourself.');
+		}
+
+		if (targetUser.host !== null) {
+			//超暫定的な処理
+			const local_user_id = me.id;
+			const remote_user_uri = targetUser.uri;
+			if (remote_user_uri === null) {
+				throw new Error('WIP');
+			}
+			const game_id = '1c086295-25e3-4b82-b31e-3e3959906312';
+			const game_state = {
+				state: 'match',
+			};
+			const content = this.apRendererService.addContext(await this.apRendererService.renderGame(local_user_id, remote_user_uri, game_id, game_state));
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: me.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe({
+				host: targetUser.host,
+				uri: targetUser.uri,
+			} as MiRemoteUser);
+			trackPromise(dm.execute());
 		}
 
 		if (!multiple) {

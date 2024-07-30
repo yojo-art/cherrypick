@@ -318,6 +318,12 @@ export interface IMove extends IActivity {
 	target: IObject | string;
 }
 
+export interface IGame extends IActivity {
+	type: 'Game';
+	game_type_uuid: string;
+	game_state: any;
+}
+
 export const isCreate = (object: IObject): object is ICreate => getApType(object) === 'Create';
 export const isDelete = (object: IObject): object is IDelete => getApType(object) === 'Delete';
 export const isUpdate = (object: IObject): object is IUpdate => getApType(object) === 'Update';
@@ -334,3 +340,4 @@ export const isBlock = (object: IObject): object is IBlock => getApType(object) 
 export const isFlag = (object: IObject): object is IFlag => getApType(object) === 'Flag';
 export const isMove = (object: IObject): object is IMove => getApType(object) === 'Move';
 export const isNote = (object: IObject): object is IPost => getApType(object) === 'Note';
+export const isGame = (object: IObject): object is IGame => getApType(object) === 'Game';
