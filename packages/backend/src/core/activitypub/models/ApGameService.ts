@@ -52,7 +52,7 @@ export class ApGameService {
 		const targetUser = local_user;
 		const fromUser = remote_user;
 		const redisPipeline = this.redisClient.pipeline();
-		if (!game_state.game_session_id) throw Error('bad session');
+		if (!game_state.game_session_id) throw Error('bad session' + JSON.stringify(game_state));
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,
 			game_session_id: game_state.game_session_id,
