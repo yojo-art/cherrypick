@@ -32,7 +32,7 @@ import { IdService } from '@/core/IdService.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
-import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IBlock, ICreate, IDelete, IFlag, IFollow, IGame, IKey, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
+import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApGame, IApHashtag, IApImage, IApMention, IBlock, ICreate, IDelete, IFlag, IFollow, IGame, IInvite, IKey, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
 export class ApRendererService {
@@ -723,17 +723,23 @@ export class ApRendererService {
 
 		return emojis;
 	}
-
 	@bindThis
-	public renderGame(local_user_id:string, remote_user_uri:string, game_id:'1c086295-25e3-4b82-b31e-3e3959906312', game_state:any): IGame {
-		//ゲームIDに合わせたコマンドがgame_state内に入る。ゲームによって適切な値が違うからとりあえずanyにしとく
-		return {
+	public async renderReversiInvite(game_session_id:string, invite_from:MiUser, invite_to:MiRemoteUser, invite_date:Date): Promise<IInvite> {
+		const game:IApGame = {
 			type: 'Game',
-			id: `${this.config.url}/games/${game_id}`,
-			actor: this.userEntityService.genLocalUserUri(local_user_id),
-			object: remote_user_uri,
-			game_type_uuid: game_id,
-			game_state: JSON.stringify(game_state),
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			game_state: null,
 		};
+		const activity: IInvite = {
+			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
+			actor: this.userEntityService.genLocalUserUri(invite_from.id),
+			type: 'Invite',
+			published: invite_date.toISOString(),
+			object: game,
+		};
+		activity.to = invite_to.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
+		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
+
+		return activity;
 	}
 }

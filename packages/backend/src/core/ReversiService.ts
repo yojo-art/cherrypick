@@ -142,7 +142,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
 			const game_session_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
-			const content = this.apRendererService.addContext(await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
+			const content = this.apRendererService.addContext(await this.apRendererService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
 			const dm = this.apDeliverManagerService.createDeliverManager({
 				id: me.id,
 				host: null,
