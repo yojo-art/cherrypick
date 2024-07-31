@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { randomUUID } from 'crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import { ModuleRef } from '@nestjs/core';
@@ -118,20 +119,37 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		}
 
 		//#region 相手から既に招待されてないか確認
-		const invitations = await this.redisClient.zrange(
+		const invitations = (await this.redisClient.zrange(
 			`reversi:matchSpecific:${me.id}`,
 			Date.now() - INVITATION_TIMEOUT_MS,
 			'+inf',
-			'BYSCORE');
+			'BYSCORE')).map(raw => JSON.parse(raw));
 
-		if (invitations.includes(targetUser.id)) {
-			await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, targetUser.id);
+		for (const invite of invitations) {
+			if (invite.from_user_id === targetUser.id) {
+				const game_session_id = invite.game_session_id;
+				await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, JSON.stringify(invite));
 
-			const game = await this.matched(targetUser.id, me.id, {
-				noIrregularRules: false,
-			});
+				const game = await this.matched(targetUser.id, me.id, {
+					noIrregularRules: false,
+				});
+				if (targetUser.host !== null) {
+				//リモートユーザーに招待を飛ばす
+					if (targetUser.uri === null) {
+						throw new Error('WIP');
+					}
+					const join = await this.apGameService.renderReversiJoin(game_session_id, me, targetUser as MiRemoteUser, new Date());
+					const content = this.apRendererService.addContext(join);
+					const dm = this.apDeliverManagerService.createDeliverManager({
+						id: me.id,
+						host: null,
+					}, content);
+					dm.addDirectRecipe(targetUser as MiRemoteUser);
+					trackPromise(dm.execute());
+				}
 
-			return game;
+				return game;
+			}
 		}
 		//#endregion
 
@@ -140,19 +158,22 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			if (targetUser.uri === null) {
 				throw new Error('WIP');
 			}
+			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
+			let game_session_id = randomUUID().toString();
 			//有効な招待を列挙
-			const invitations = await this.redisClient.zrange(
+			const invitations = (await this.redisClient.zrange(
 				`reversi:matchSpecific:${targetUser.id}`,
 				Date.now() - INVITATION_TIMEOUT_MS,
 				'+inf',
-				'BYSCORE');
-
-			if (invitations.includes(targetUser.id)) {
-				//何らかの招待が有効であるのでこれ以上配送をしない
-				return null;
+				'BYSCORE')).map(raw => JSON.parse(raw));
+			const me_uri = this.userEntityService.genLocalUserUri(me.id);
+			for (const invite of invitations) {
+				if (invite.actor === me_uri) {
+					//招待がすでに発行されていた場合には初期IDを使う
+					game_session_id = invite.object.game_state.game_session_id;
+					console.log('reversi:TTL延長 ' + game_session_id);
+				}
 			}
-			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
-			const game_session_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
 			const invite = await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date());
 			const content = this.apRendererService.addContext(invite);
 
@@ -178,7 +199,9 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		} else {
 			//ローカルユーザーの待機リストに追加する
 			const redisPipeline = this.redisClient.pipeline();
-			redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), me.id);
+			redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify({
+				from_user_id: me.id,
+			}));
 			redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
 			await redisPipeline.exec();
 

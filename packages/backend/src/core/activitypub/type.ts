@@ -328,6 +328,9 @@ export interface IMove extends IActivity {
 export interface IInvite extends IActivity {
 	type: 'Invite';
 }
+export interface IJoin extends IActivity {
+	type: 'Join';
+}
 
 export const isCreate = (object: IObject): object is ICreate => getApType(object) === 'Create';
 export const isDelete = (object: IObject): object is IDelete => getApType(object) === 'Delete';
@@ -346,3 +349,4 @@ export const isFlag = (object: IObject): object is IFlag => getApType(object) ==
 export const isMove = (object: IObject): object is IMove => getApType(object) === 'Move';
 export const isNote = (object: IObject): object is IPost => getApType(object) === 'Note';
 export const isInvite = (object: IObject): object is IInvite => getApType(object) === 'Invite';
+export const isJoin = (object: IObject): object is IJoin => getApType(object) === 'Join';

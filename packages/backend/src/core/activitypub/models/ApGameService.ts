@@ -18,7 +18,7 @@ import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
 import type { Resolver } from '../ApResolverService.js';
-import type { IApGame, ICreate, IInvite, IObject, IUndo } from '../type.js';
+import type { IApGame, ICreate, IInvite, IJoin, IObject, IUndo } from '../type.js';
 
 @Injectable()
 export class ApGameService {
@@ -39,14 +39,24 @@ export class ApGameService {
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
+	async reversiInboxJoin(local_user: MiUser, arg1: MiRemoteUser, game: IApGame) {
+		console.log('リバーシのJoinが飛んできた' + JSON.stringify(game.game_state));
+	}
 	async reversiInboxUndoInvite(actor: MiRemoteUser, target_user:MiLocalUser, game: IApGame) {
-		await this.redisClient.zrem(`reversi:matchSpecific:${target_user.id}`, actor.id);
+		await this.redisClient.zrem(`reversi:matchSpecific:${target_user.id}`, JSON.stringify({
+			from_user_id: actor.id,
+			game_session_id: game.game_state.game_session_id,
+		}));
 	}
 	async reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game_state: any) {
 		const targetUser = local_user;
 		const fromUser = remote_user;
 		const redisPipeline = this.redisClient.pipeline();
-		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), fromUser.id);
+		if (!game_state.game_session_id) throw Error('bad session');
+		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
+			from_user_id: fromUser.id,
+			game_session_id: game_state.game_session_id,
+		}));
 		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
 		await redisPipeline.exec();
 
@@ -59,7 +69,9 @@ export class ApGameService {
 		const game:IApGame = {
 			type: 'Game',
 			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
-			game_state: null,
+			game_state: {
+				game_session_id,
+			},
 		};
 		const activity: IInvite = {
 			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
@@ -69,6 +81,27 @@ export class ApGameService {
 			object: game,
 		};
 		activity.to = invite_to.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
+		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
+
+		return activity;
+	}
+	@bindThis
+	public async renderReversiJoin(game_session_id:string, join_user:MiUser, invite_from:MiRemoteUser, join_date:Date): Promise<IJoin> {
+		const game:IApGame = {
+			type: 'Game',
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			game_state: {
+				game_session_id,
+			},
+		};
+		const activity: IJoin = {
+			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
+			actor: this.userEntityService.genLocalUserUri(join_user.id),
+			type: 'Join',
+			published: join_date.toISOString(),
+			object: game,
+		};
+		activity.to = invite_from.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
 		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
 
 		return activity;

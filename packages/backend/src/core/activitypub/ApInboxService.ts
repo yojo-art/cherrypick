@@ -32,7 +32,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { isNotNull } from '@/misc/is-not-null.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -41,7 +41,7 @@ import { ApAudienceService } from './ApAudienceService.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import { ApQuestionService } from './models/ApQuestionService.js';
 import type { Resolver } from './ApResolverService.js';
-import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame } from './type.js';
+import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame, IJoin } from './type.js';
 import { ApGameService } from './models/ApGameService.js';
 
 @Injectable()
@@ -171,6 +171,8 @@ export class ApInboxService {
 			return await this.move(actor, activity);
 		} else if (isInvite(activity)) {
 			return await this.invite(actor, activity);
+		} else if (isJoin(activity)) {
+			return await this.join(actor, activity);
 		} else {
 			return `unrecognized activity type: ${activity.type}`;
 		}
@@ -927,5 +929,32 @@ export class ApInboxService {
 			return 'ok';
 		}
 		return 'skip: unknown invite type';
+	}
+	@bindThis
+	private async join(actor: MiRemoteUser, activity: IJoin): Promise<string> {
+		const resolver = this.apResolverService.createResolver();
+		const object = await resolver.resolve(activity.object).catch(e => {
+			this.logger.error(`Resolution failed: ${e}`);
+			throw e;
+		});
+		if (getApType(object) === 'Game') {
+			const to = toArray(activity.to);
+			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
+			let game=object as IApGame;
+			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
+				return 'skip: unknown game type';
+			}
+			if (target_user == null) {
+				return 'skip: target_user not found';
+			}
+			let remote_user=await this.usersRepository.findOneByOrFail({ id: actor.id });
+			let local_user=await this.usersRepository.findOneByOrFail({ id: target_user.id });
+			if (remote_user == null || local_user==null || remote_user.host == null || remote_user.uri == null) {
+				return 'skip: user resolve error';
+			}
+			this.apgameService.reversiInboxJoin(local_user,remote_user as MiRemoteUser,game);
+			return 'ok';
+		}
+		return 'skip: unknown join type';
 	}
 }
