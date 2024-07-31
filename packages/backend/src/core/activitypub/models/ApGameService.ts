@@ -48,14 +48,14 @@ export class ApGameService {
 			game_session_id: game.game_state.game_session_id,
 		}));
 	}
-	async reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game_state: any) {
+	async reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;
 		const fromUser = remote_user;
 		const redisPipeline = this.redisClient.pipeline();
-		if (!game_state.game_session_id) throw Error('bad session' + JSON.stringify(game_state));
+		if (!game.game_state.game_session_id) throw Error('bad session' + JSON.stringify(game));
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,
-			game_session_id: game_state.game_session_id,
+			game_session_id: game.game_state.game_session_id,
 		}));
 		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
 		await redisPipeline.exec();
