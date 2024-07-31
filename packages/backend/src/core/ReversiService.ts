@@ -162,6 +162,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		}
 		return null;
 	}
+	@bindThis
 	public async inviteFromRemoteUser(fromUser:MiRemoteUser, targetUser:MiUser) {
 		const redisPipeline = this.redisClient.pipeline();
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), fromUser.id);
