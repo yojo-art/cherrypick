@@ -159,7 +159,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 				throw new Error('WIP');
 			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
-			let game_session_id = randomUUID().toString();
+			const game_session_id = randomUUID().toString();
 			//有効な招待を列挙
 			const invitations = (await this.redisClient.zrange(
 				`reversi:matchSpecific:${targetUser.id}`,
@@ -170,8 +170,9 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			for (const invite of invitations) {
 				if (invite.actor === me_uri) {
 					//招待がすでに発行されていた場合には初期IDを使う
-					game_session_id = invite.object.game_state.game_session_id;
-					console.log('reversi:TTL延長 ' + game_session_id);
+					//game_session_id = invite.object.game_state.game_session_id;
+					//console.log('reversi:TTL延長 ' + game_session_id);
+					break;
 				}
 			}
 			const invite = await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date());
