@@ -41,7 +41,7 @@ import { ApAudienceService } from './ApAudienceService.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import { ApQuestionService } from './models/ApQuestionService.js';
 import type { Resolver } from './ApResolverService.js';
-import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IGame, IPost, IInvite } from './type.js';
+import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame } from './type.js';
 import { ApGameService } from './models/ApGameService.js';
 
 @Injectable()
@@ -694,8 +694,32 @@ export class ApInboxService {
 		if (isLike(object)) return await this.undoLike(actor, object);
 		if (isAnnounce(object)) return await this.undoAnnounce(actor, object);
 		if (isAccept(object)) return await this.undoAccept(actor, object);
+		if (isInvite(object)) return await this.undoInvite(actor, object);
 
 		return `skip: unknown object type ${getApType(object)}`;
+	}
+
+	@bindThis
+	private async undoInvite(actor: MiRemoteUser, activity: IInvite): Promise<string> {
+		const resolver = this.apResolverService.createResolver();
+		const object = await resolver.resolve(activity.object).catch(e => {
+			this.logger.error(`Resolution failed: ${e}`);
+			throw e;
+		});
+		if (getApType(object) === 'Game') {
+			const to = toArray(activity.to);
+			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
+			let game=object as IApGame;
+			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
+				return 'skip: unknown game type';
+			}
+			if(target_user===null || target_user.host!==null){
+				return 'skip: unknown target user';
+			}
+			await this.apgameService.reversiInboxUndoInvite(actor,target_user,game);
+			return 'ok';
+		}
+		return 'skip: 不明な招待';
 	}
 
 	@bindThis
@@ -887,7 +911,7 @@ export class ApInboxService {
 		if (getApType(object) === 'Game') {
 			const to = toArray(activity.to);
 			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
-			let game=object as IGame;
+			let game=object as IApGame;
 			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
 				return 'skip: unknown game type';
 			}

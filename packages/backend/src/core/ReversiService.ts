@@ -140,9 +140,28 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			if (targetUser.uri === null) {
 				throw new Error('WIP');
 			}
+			const found = await this.redisClient.get(`reversi:matchSpecific:${targetUser.id}`) !== null;
+			if (found) {
+				return null;
+			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
 			const game_session_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
-			const content = this.apRendererService.addContext(await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
+			const invite = await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date());
+			const content = this.apRendererService.addContext(invite);
+
+			const redisPipeline = this.redisClient.pipeline();
+			redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify(invite));
+			redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX', () => {
+				const undo = this.apRendererService.renderUndo(invite, me);
+				const content = this.apRendererService.addContext(undo);
+				const dm = this.apDeliverManagerService.createDeliverManager({
+					id: me.id,
+					host: null,
+				}, content);
+				dm.addDirectRecipe(targetUser as MiRemoteUser);
+				trackPromise(dm.execute());
+			});
+			await redisPipeline.exec();
 			const dm = this.apDeliverManagerService.createDeliverManager({
 				id: me.id,
 				host: null,
@@ -234,8 +253,12 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async matchSpecificUserCancel(user: MiUser, targetUserId: MiUser['id']) {
-		await this.redisClient.zrem(`reversi:matchSpecific:${targetUserId}`, user.id);
+	public async matchSpecificUserCancel(user: MiUser, targetUser: MiUser) {
+		await this.redisClient.zrem(`reversi:matchSpecific:${targetUser.id}`, user.id);
+
+		if (targetUser.host !== null && targetUser.uri !== null) {
+			await this.redisClient.expire(`reversi:inviteSpecific:${targetUser.id}`, 0);
+		}
 	}
 
 	@bindThis

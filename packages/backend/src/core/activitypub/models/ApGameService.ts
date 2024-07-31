@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
-import type { MiRemoteUser, MiUser } from '@/models/User.js';
+import type { MiLocalUser, MiRemoteUser, MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { NotificationService } from '@/core/NotificationService.js';
@@ -18,7 +18,7 @@ import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
 import type { Resolver } from '../ApResolverService.js';
-import type { IApGame, ICreate, IInvite, IObject } from '../type.js';
+import type { IApGame, ICreate, IInvite, IObject, IUndo } from '../type.js';
 
 @Injectable()
 export class ApGameService {
@@ -38,6 +38,9 @@ export class ApGameService {
 		private apLoggerService: ApLoggerService,
 	) {
 		this.logger = this.apLoggerService.logger;
+	}
+	async reversiInboxUndoInvite(actor: MiRemoteUser, target_user:MiLocalUser, game: IApGame) {
+		await this.redisClient.zrem(`reversi:matchSpecific:${target_user.id}`, actor.id);
 	}
 	async reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game_state: any) {
 		const targetUser = local_user;
