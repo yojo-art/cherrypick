@@ -140,8 +140,15 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			if (targetUser.uri === null) {
 				throw new Error('WIP');
 			}
-			const found = await this.redisClient.get(`reversi:matchSpecific:${targetUser.id}`) !== null;
-			if (found) {
+			//有効な招待を列挙
+			const invitations = await this.redisClient.zrange(
+				`reversi:matchSpecific:${targetUser.id}`,
+				Date.now() - INVITATION_TIMEOUT_MS,
+				'+inf',
+				'BYSCORE');
+
+			if (invitations.includes(targetUser.id)) {
+				//何らかの招待が有効であるのでこれ以上配送をしない
 				return null;
 			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
