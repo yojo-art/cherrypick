@@ -10,6 +10,7 @@ import type { MiRemoteUser, MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { NotificationService } from '@/core/NotificationService.js';
+import { ReversiService } from '@/core/ReversiService.js';
 import { isGame } from '../type.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
@@ -28,13 +29,14 @@ export class ApGameService {
 		private apResolverService: ApResolverService,
 		private userEntityService: UserEntityService,
 		private notificationService: NotificationService,
+		private reversiService: ReversiService,
 		private apLoggerService: ApLoggerService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
-	reversiInboxInvite(local_user: MiUser, remote_user: MiUser, game_state: any) {
-		console.log(remote_user);
-		console.log(local_user);
+	reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game_state: any) {
+		this.reversiService.inviteFromRemoteUser(remote_user, local_user);
+		//招待が飛んできたら通知を飛ばす
 		this.notificationService.createNotification(local_user.id, 'app', {
 			customBody: 'reversiInboxInvite',
 			customHeader: null,

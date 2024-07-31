@@ -896,10 +896,10 @@ export class ApInboxService {
 			}
 			let remote_user=await this.usersRepository.findOneByOrFail({ id: actor.id });
 			let local_user=await this.usersRepository.findOneByOrFail({ id: target_user.id });
-			if (remote_user == null || local_user==null) {
+			if (remote_user == null || local_user==null || remote_user.host == null || remote_user.uri == null) {
 				return 'skip: user resolve error';
 			}
-			this.apgameService.reversiInboxInvite(local_user,remote_user,game);
+			this.apgameService.reversiInboxInvite(local_user,remote_user as MiRemoteUser,game);
 			return 'ok';
 		}
 		return 'skip: unknown invite type';

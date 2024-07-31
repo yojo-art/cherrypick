@@ -102,22 +102,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			throw new Error('You cannot match yourself.');
 		}
 
-		if (targetUser.host !== null) {
-			//超暫定的な処理
-			if (targetUser.uri === null) {
-				throw new Error('WIP');
-			}
-			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
-			const game_session_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
-			const content = this.apRendererService.addContext(await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
-			const dm = this.apDeliverManagerService.createDeliverManager({
-				id: me.id,
-				host: null,
-			}, content);
-			dm.addDirectRecipe(targetUser as MiRemoteUser);
-			trackPromise(dm.execute());
-		}
-
 		if (!multiple) {
 			// 既にマッチしている対局が無いか探す(3分以内)
 			const games = await this.reversiGamesRepository.find({
@@ -151,18 +135,43 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		}
 		//#endregion
 
+		if (targetUser.host !== null) {
+			//リモートユーザーに招待を飛ばす
+			if (targetUser.uri === null) {
+				throw new Error('WIP');
+			}
+			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
+			const game_session_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
+			const content = this.apRendererService.addContext(await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: me.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(targetUser as MiRemoteUser);
+			trackPromise(dm.execute());
+		} else {
+			//ローカルユーザーの待機リストに追加する
+			const redisPipeline = this.redisClient.pipeline();
+			redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), me.id);
+			redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
+			await redisPipeline.exec();
+
+			this.globalEventService.publishReversiStream(targetUser.id, 'invited', {
+				user: await this.userEntityService.pack(me, targetUser),
+			});
+		}
+		return null;
+	}
+	public async inviteFromRemoteUser(fromUser:MiRemoteUser, targetUser:MiUser) {
 		const redisPipeline = this.redisClient.pipeline();
-		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), me.id);
+		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), fromUser.id);
 		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
 		await redisPipeline.exec();
 
 		this.globalEventService.publishReversiStream(targetUser.id, 'invited', {
-			user: await this.userEntityService.pack(me, targetUser),
+			user: await this.userEntityService.pack(fromUser, targetUser),
 		});
-
-		return null;
 	}
-
 	@bindThis
 	public async matchAnyUser(me: MiUser, options: { noIrregularRules: boolean }, multiple = false): Promise<MiReversiGame | null> {
 		if (!multiple) {
