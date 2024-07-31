@@ -35,10 +35,12 @@ coverage
 !/.config/example.yml
 !/.config/docker_example.yml
 !/.config/docker_example.env
+compose.yml
 docker-compose.yml
 !/.devcontainer/docker-compose.yml
 
 # cherrypick
+os-data/
 /build
 built
 built-test
