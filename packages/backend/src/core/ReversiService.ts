@@ -48,6 +48,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private globalEventService: GlobalEventService,
 		private reversiGameEntityService: ReversiGameEntityService,
 		private apRendererService: ApRendererService,
+		private apGameService: ApGameService,
 		private apDeliverManagerService: ApDeliverManagerService,
 		private idService: IdService,
 	) {
@@ -141,7 +142,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
 			const game_session_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
-			const content = this.apRendererService.addContext(await this.apRendererService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
+			const content = this.apRendererService.addContext(await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date()));
 			const dm = this.apDeliverManagerService.createDeliverManager({
 				id: me.id,
 				host: null,
@@ -160,17 +161,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			});
 		}
 		return null;
-	}
-	@bindThis
-	public async inviteFromRemoteUser(fromUser:MiRemoteUser, targetUser:MiUser) {
-		const redisPipeline = this.redisClient.pipeline();
-		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), fromUser.id);
-		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
-		await redisPipeline.exec();
-
-		this.globalEventService.publishReversiStream(targetUser.id, 'invited', {
-			user: await this.userEntityService.pack(fromUser, targetUser),
-		});
 	}
 	@bindThis
 	public async matchAnyUser(me: MiUser, options: { noIrregularRules: boolean }, multiple = false): Promise<MiReversiGame | null> {

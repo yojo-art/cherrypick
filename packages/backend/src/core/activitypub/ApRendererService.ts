@@ -723,23 +723,4 @@ export class ApRendererService {
 
 		return emojis;
 	}
-	@bindThis
-	public async renderReversiInvite(game_session_id:string, invite_from:MiUser, invite_to:MiRemoteUser, invite_date:Date): Promise<IInvite> {
-		const game:IApGame = {
-			type: 'Game',
-			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
-			game_state: null,
-		};
-		const activity: IInvite = {
-			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
-			actor: this.userEntityService.genLocalUserUri(invite_from.id),
-			type: 'Invite',
-			published: invite_date.toISOString(),
-			object: game,
-		};
-		activity.to = invite_to.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
-		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
-
-		return activity;
-	}
 }
