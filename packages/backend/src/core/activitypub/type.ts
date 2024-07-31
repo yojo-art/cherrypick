@@ -256,6 +256,14 @@ export interface IApImage extends IApDocument {
 	type: 'Image';
 }
 
+export interface IApGame extends IObject {
+	type: 'Game';
+	game_type_uuid: string;
+	game_state: any;
+}
+export const isGame = (object: IObject): object is IApGame =>
+	getApType(object) === 'Game';
+
 export interface ICreate extends IActivity {
 	type: 'Create';
 }
@@ -317,11 +325,8 @@ export interface IMove extends IActivity {
 	type: 'Move';
 	target: IObject | string;
 }
-
-export interface IGame extends IActivity {
-	type: 'Game';
-	game_type_uuid: string;
-	game_state: any;
+export interface IInvite extends IActivity {
+	type: 'Invite';
 }
 
 export const isCreate = (object: IObject): object is ICreate => getApType(object) === 'Create';
@@ -340,4 +345,4 @@ export const isBlock = (object: IObject): object is IBlock => getApType(object) 
 export const isFlag = (object: IObject): object is IFlag => getApType(object) === 'Flag';
 export const isMove = (object: IObject): object is IMove => getApType(object) === 'Move';
 export const isNote = (object: IObject): object is IPost => getApType(object) === 'Note';
-export const isGame = (object: IObject): object is IGame => getApType(object) === 'Game';
+export const isInvite = (object: IObject): object is IInvite => getApType(object) === 'Invite';

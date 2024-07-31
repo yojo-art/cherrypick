@@ -25,6 +25,7 @@ import { trackPromise } from '@/misc/promise-tracker.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
 import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
+import { ApGameService } from './activitypub/models/ApGameService.js';
 import type { OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 
 const INVITATION_TIMEOUT_MS = 1000 * 20; // 20sec
@@ -47,6 +48,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private globalEventService: GlobalEventService,
 		private reversiGameEntityService: ReversiGameEntityService,
 		private apRendererService: ApRendererService,
+		private apGameService: ApGameService,
 		private apDeliverManagerService: ApDeliverManagerService,
 		private idService: IdService,
 	) {
@@ -102,16 +104,12 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		if (targetUser.host !== null) {
 			//超暫定的な処理
-			const local_user_id = me.id;
-			const remote_user_uri = targetUser.uri;
-			if (remote_user_uri === null) {
+			if (targetUser.uri === null) {
 				throw new Error('WIP');
 			}
-			const game_id = '1c086295-25e3-4b82-b31e-3e3959906312';
-			const game_state = {
-				state: 'match',
-			};
-			const content = this.apRendererService.addContext(await this.apRendererService.renderGame(local_user_id, remote_user_uri, game_id, game_state));
+			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
+			const invite_id = 'b5faaae6-45fc-474d-925d-310b2867b66c';
+			const content = this.apRendererService.addContext(await this.apGameService.renderReversiInvite(invite_id, me, remote_user, new Date()));
 			const dm = this.apDeliverManagerService.createDeliverManager({
 				id: me.id,
 				host: null,

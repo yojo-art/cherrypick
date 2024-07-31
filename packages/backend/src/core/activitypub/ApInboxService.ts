@@ -32,7 +32,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { isNotNull } from '@/misc/is-not-null.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -41,7 +41,8 @@ import { ApAudienceService } from './ApAudienceService.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import { ApQuestionService } from './models/ApQuestionService.js';
 import type { Resolver } from './ApResolverService.js';
-import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IGame, IPost } from './type.js';
+import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IGame, IPost, IInvite } from './type.js';
+import { ApGameService } from './models/ApGameService.js';
 
 @Injectable()
 export class ApInboxService {
@@ -91,6 +92,7 @@ export class ApInboxService {
 		private queueService: QueueService,
 		private globalEventService: GlobalEventService,
 		private messagingService: MessagingService,
+		private apgameService: ApGameService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -167,8 +169,8 @@ export class ApInboxService {
 			return await this.flag(actor, activity);
 		} else if (isMove(activity)) {
 			return await this.move(actor, activity);
-		} else if (isGame(activity)) {
-			return await this.game(actor, activity);
+		} else if (isInvite(activity)) {
+			return await this.invite(actor, activity);
 		} else {
 			return `unrecognized activity type: ${activity.type}`;
 		}
@@ -876,19 +878,30 @@ export class ApInboxService {
 		return await this.apPersonService.updatePerson(actor.uri) ?? 'skip: nothing to do';
 	}
 	@bindThis
-	private async game(actor: MiRemoteUser, activity: IGame): Promise<string> {
-		if(activity.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
-			return 'skip: unknown game type';
+	private async invite(actor: MiRemoteUser, activity: IInvite): Promise<string> {
+		const resolver = this.apResolverService.createResolver();
+		const object = await resolver.resolve(activity.object).catch(e => {
+			this.logger.error(`Resolution failed: ${e}`);
+			throw e;
+		});
+		if (getApType(object) === 'Game') {
+			const to = toArray(activity.to);
+			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
+			let game=object as IGame;
+			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
+				return 'skip: unknown game type';
+			}
+			if (target_user == null) {
+				return 'skip: target_user not found';
+			}
+			let remote_user=await this.usersRepository.findOneByOrFail({ id: actor.id });
+			let local_user=await this.usersRepository.findOneByOrFail({ id: target_user.id });
+			if (remote_user == null || local_user==null) {
+				return 'skip: user resolve error';
+			}
+			this.apgameService.reversiInboxInvite(local_user,remote_user,game);
+			return 'ok';
 		}
-		const target_user = await this.apDbResolverService.getUserFromApId(activity.object);
-
-		if (target_user == null) {
-			return 'skip: target_user not found';
-		}
-		let remote_user=await this.usersRepository.findOneByOrFail({ id: actor.id });
-		let local_user=await this.usersRepository.findOneByOrFail({ id: target_user.id });
-		console.log(remote_user);
-		console.log(local_user);
-		return 'ok';
+		return 'skip: unknown invite type';
 	}
 }
