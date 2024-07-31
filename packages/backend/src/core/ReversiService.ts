@@ -48,7 +48,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private globalEventService: GlobalEventService,
 		private reversiGameEntityService: ReversiGameEntityService,
 		private apRendererService: ApRendererService,
-		private apGameService: ApGameService,
 		private apDeliverManagerService: ApDeliverManagerService,
 		private idService: IdService,
 	) {
