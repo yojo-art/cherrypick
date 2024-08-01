@@ -39,8 +39,15 @@ export class ApGameService {
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
-	async reversiInboxJoin(local_user: MiUser, arg1: MiRemoteUser, game: IApGame) {
+	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		console.log('リバーシのJoinが飛んできた' + JSON.stringify(game.game_state));
+		const targetUser = local_user;
+		const fromUser = remote_user;
+		if (!game.game_state.game_session_id) throw Error('bad session' + JSON.stringify(game));
+		const redisPipeline = this.redisClient.pipeline();
+		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), fromUser.id);
+		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
+		await redisPipeline.exec();
 	}
 	async reversiInboxUndoInvite(actor: MiRemoteUser, target_user:MiLocalUser, game: IApGame) {
 		await this.redisClient.zrem(`reversi:matchSpecific:${target_user.id}`, JSON.stringify({
@@ -51,8 +58,8 @@ export class ApGameService {
 	async reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;
 		const fromUser = remote_user;
-		const redisPipeline = this.redisClient.pipeline();
 		if (!game.game_state.game_session_id) throw Error('bad session' + JSON.stringify(game));
+		const redisPipeline = this.redisClient.pipeline();
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,
 			game_session_id: game.game_state.game_session_id,

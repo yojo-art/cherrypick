@@ -134,7 +134,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 					noIrregularRules: false,
 				});
 				if (targetUser.host !== null) {
-				//リモートユーザーに招待を飛ばす
+					//リモートユーザーに参加を飛ばす
 					if (targetUser.uri === null) {
 						throw new Error('WIP');
 					}
@@ -160,6 +160,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
 			const game_session_id = randomUUID().toString();
+			/*
 			//有効な招待を列挙
 			const invitations = (await this.redisClient.zrange(
 				`reversi:matchSpecific:${targetUser.id}`,
@@ -175,6 +176,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 					break;
 				}
 			}
+			*/
 			const invite = await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date());
 			const content = this.apRendererService.addContext(invite);
 
