@@ -2112,8 +2112,6 @@ _permissions:
   "write:page-likes": "編輯頁面上喜歡"
   "read:user-groups": "顯示使用者群組"
   "write:user-groups": "編輯使用者群組"
-  "read:channels": "已查看的頻道"
-  "write:channels": "編輯頻道"
   "read:gallery": "瀏覽相簿"
   "write:gallery": "編輯相簿"
   "read:gallery-likes": "瀏覽相簿的讚"

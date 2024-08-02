@@ -9224,14 +9224,6 @@ export interface Locale extends ILocale {
          */
         "write:user-groups": string;
         /**
-         * チャンネルを見る
-         */
-        "read:channels": string;
-        /**
-         * チャンネルを操作する
-         */
-        "write:channels": string;
-        /**
          * ギャラリーを見る
          */
         "read:gallery": string;
