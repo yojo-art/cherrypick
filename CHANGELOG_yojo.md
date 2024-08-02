@@ -20,6 +20,22 @@
 ### Release Date
 
 ### General
+-
+
+### Client
+-
+
+### Server
+-
+
+### Misc
+
+## 0.4.1
+
+### Release Date
+2024-08-02
+
+### General
 - Fix: チャンネルに関する権限定義を削除
 
 ### Client
