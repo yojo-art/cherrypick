@@ -261,8 +261,15 @@ export interface IApGame extends IObject {
 	game_type_uuid: string;
 	game_state: any;
 }
+export interface IApReversi extends IApGame {
+	type: 'Game';
+	game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312';
+	game_state: any;
+}
 export const isGame = (object: IObject): object is IApGame =>
 	getApType(object) === 'Game';
+export const isReversi = (object: IObject): object is IApReversi =>
+	isGame(object) && object.game_type_uuid === '1c086295-25e3-4b82-b31e-3e3959906312';
 
 export interface ICreate extends IActivity {
 	type: 'Create';

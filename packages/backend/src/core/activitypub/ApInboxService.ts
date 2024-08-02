@@ -32,7 +32,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { isNotNull } from '@/misc/is-not-null.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -712,7 +712,7 @@ export class ApInboxService {
 			const to = toArray(activity.to);
 			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
 			const game = object as IApGame;
-			if (game.game_type_uuid !== ApGameService.reversiUUID) {
+			if (!isReversi(game)) {
 				return 'skip: unknown game type';
 			}
 			if (target_user === null || target_user.host !== null) {
@@ -868,7 +868,7 @@ export class ApInboxService {
 	private async updateGame(resolver: Resolver, actor: MiRemoteUser, game: IApGame, activity: IUpdate): Promise<string> {
 		const to = toArray(activity.to);
 		const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
-		if (game.game_type_uuid !== ApGameService.reversiUUID) {
+		if (!isReversi(game)) {
 			return 'skip: unknown game type';
 		}
 		if (target_user === null || target_user.host !== null) {
@@ -931,7 +931,7 @@ export class ApInboxService {
 			const to = toArray(activity.to);
 			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
 			const game = object as IApGame;
-			if (game.game_type_uuid !== ApGameService.reversiUUID) {
+			if (!isReversi(game)) {
 				return 'skip: unknown game type';
 			}
 			if (target_user == null) {
@@ -958,7 +958,7 @@ export class ApInboxService {
 			const to = toArray(activity.to);
 			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
 			const game = object as IApGame;
-			if (game.game_type_uuid !== ApGameService.reversiUUID) {
+			if (!isReversi(game)) {
 				return 'skip: unknown game type';
 			}
 			if (target_user == null) {

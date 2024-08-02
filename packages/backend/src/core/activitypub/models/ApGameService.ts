@@ -23,7 +23,6 @@ import type { IApGame, ICreate, IInvite, IJoin, IObject, IUndo, IUpdate } from '
 
 @Injectable()
 export class ApGameService {
-	public static readonly reversiUUID = '1c086295-25e3-4b82-b31e-3e3959906312';
 	private logger: Logger;
 
 	constructor(

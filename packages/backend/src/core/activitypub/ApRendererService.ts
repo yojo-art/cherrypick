@@ -32,8 +32,7 @@ import { IdService } from '@/core/IdService.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
-import { ApGameService } from './models/ApGameService.js';
-import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApGame, IApHashtag, IApImage, IApMention, IBlock, ICreate, IDelete, IFlag, IFollow, IGame, IInvite, IJoin, IKey, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
+import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApGame, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
 export class ApRendererService {
@@ -727,9 +726,9 @@ export class ApRendererService {
 
 	@bindThis
 	public async renderReversiInvite(game_session_id:string, invite_from:MiUser, invite_to:MiRemoteUser, invite_date:Date): Promise<IInvite> {
-		const game:IApGame = {
+		const game:IApReversi = {
 			type: 'Game',
-			game_type_uuid: ApGameService.reversiUUID,
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
 			game_state: {
 				game_session_id,
 			},
@@ -749,9 +748,9 @@ export class ApRendererService {
 
 	@bindThis
 	public async renderReversiJoin(game_session_id:string, join_user:MiUser, invite_from:MiRemoteUser, join_date:Date): Promise<IJoin> {
-		const game:IApGame = {
+		const game:IApReversi = {
 			type: 'Game',
-			game_type_uuid: ApGameService.reversiUUID,
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
 			game_state: {
 				game_session_id,
 			},
@@ -771,9 +770,9 @@ export class ApRendererService {
 
 	@bindThis
 	public async renderReversiUpdate(local_user:MiUser, remote_user:MiRemoteUser, game_state:any) {
-		const game:IApGame = {
+		const game:IApReversi = {
 			type: 'Game',
-			game_type_uuid: ApGameService.reversiUUID,
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
 			game_state,
 		};
 		const activity: IUpdate = {
