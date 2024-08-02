@@ -146,7 +146,7 @@
 		"vitest": "0.34.6",
 		"vitest-fetch-mock": "0.2.2",
 		"vue-component-type-helpers": "2.0.16",
-		"vue-eslint-parser": "9.4.2",
+		"vue-eslint-parser": "9.4.3",
 		"vue-tsc": "2.0.16"
 	}
 }
