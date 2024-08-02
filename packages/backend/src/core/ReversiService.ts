@@ -346,6 +346,21 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		} else {
 			return;
 		}
+		if (user.host === null) {
+			const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
+			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
+				game_session_id: game.federationId,
+				type: 'ready_states',
+				ready,
+			});
+			const content = this.apRendererService.addContext(update);
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: user.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(remote_user as MiRemoteUser);
+			trackPromise(dm.execute());
+		}
 
 		if (isBothReady) {
 			// 3秒後、両者readyならゲーム開始

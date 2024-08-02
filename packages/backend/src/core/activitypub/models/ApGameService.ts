@@ -46,19 +46,19 @@ export class ApGameService {
 	}
 	async reversiInboxUpdate(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApGame) {
 		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(apgame.game_state));
-		const key = apgame.game_state.key;
-		const value = apgame.game_state.value;
 		const id = await this.gameIdFromUUID(apgame.game_state.game_session_id);
 		if (id === null) {
 			console.error('Update reversi Id Solve error');
 			return;
 		}
-		const game = await this.reversiService.updateSettings(id, remote_user, key, value, false);
-		this.globalEventService.publishReversiGameStream(id, 'updateSettings', {
-			userId: remote_user.id,
-			key: key,
-			value: value,
-		});
+		if (apgame.game_state.type === 'settings') {
+			const key = apgame.game_state.key;
+			const value = apgame.game_state.value;
+			await this.reversiService.updateSettings(id, remote_user, key, value, false);
+		} else if (apgame.game_state.type === 'ready_states') {
+			const ready = apgame.game_state.ready;
+			await this.reversiService.gameReady(id, remote_user, ready);
+		}
 	}
 	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;
