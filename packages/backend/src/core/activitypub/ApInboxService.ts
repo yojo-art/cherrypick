@@ -874,7 +874,7 @@ export class ApInboxService {
 		if (target_user === null || target_user.host !== null) {
 			return 'skip: unknown target user';
 		}
-		await this.apgameService.reversiInboxUpdate(game);
+		await this.apgameService.reversiInboxUpdate(target_user, actor, game);
 		return 'ok';
 	}
 

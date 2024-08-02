@@ -41,12 +41,25 @@ export class ApGameService {
 		private notificationService: NotificationService,
 		private globalEventService: GlobalEventService,
 		private apLoggerService: ApLoggerService,
+		private reversiService: ReversiService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
-	async reversiInboxUpdate(game: IApGame) {
-		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(game.game_state));
-		gameIdFromUUID(game.game_state.game_session_id);
+	async reversiInboxUpdate(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApGame) {
+		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(apgame.game_state));
+		const key = apgame.game_state.key;
+		const value = apgame.game_state.value;
+		const id = await this.gameIdFromUUID(apgame.game_state.game_session_id);
+		if (id === null) {
+			console.error('Update reversi Id Solve error');
+			return;
+		}
+		const game = await this.reversiService.updateSettings(id, remote_user, key, value, false);
+		this.globalEventService.publishReversiGameStream(id, 'updateSettings', {
+			userId: remote_user.id,
+			key: key,
+			value: value,
+		});
 	}
 	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;
@@ -101,64 +114,5 @@ export class ApGameService {
 		}
 		//DBにも無いなら知らん
 		return null;
-	}
-	@bindThis
-	public async renderReversiInvite(game_session_id:string, invite_from:MiUser, invite_to:MiRemoteUser, invite_date:Date): Promise<IInvite> {
-		const game:IApGame = {
-			type: 'Game',
-			game_type_uuid: ApGameService.reversiUUID,
-			game_state: {
-				game_session_id,
-			},
-		};
-		const activity: IInvite = {
-			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
-			actor: this.userEntityService.genLocalUserUri(invite_from.id),
-			type: 'Invite',
-			published: invite_date.toISOString(),
-			object: game,
-		};
-		activity.to = invite_to.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
-		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
-
-		return activity;
-	}
-	@bindThis
-	public async renderReversiJoin(game_session_id:string, join_user:MiUser, invite_from:MiRemoteUser, join_date:Date): Promise<IJoin> {
-		const game:IApGame = {
-			type: 'Game',
-			game_type_uuid: ApGameService.reversiUUID,
-			game_state: {
-				game_session_id,
-			},
-		};
-		const activity: IJoin = {
-			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
-			actor: this.userEntityService.genLocalUserUri(join_user.id),
-			type: 'Join',
-			published: join_date.toISOString(),
-			object: game,
-		};
-		activity.to = invite_from.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
-		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
-
-		return activity;
-	}
-	@bindThis
-	public async renderReversiUpdate(local_user:MiUser, remote_user:MiRemoteUser, game_state:any) {
-		const game:IApGame = {
-			type: 'Game',
-			game_type_uuid: ApGameService.reversiUUID,
-			game_state,
-		};
-		const activity: IUpdate = {
-			type: 'Update',
-			actor: this.userEntityService.genLocalUserUri(local_user.id),
-			object: game,
-		};
-		activity.to = remote_user.uri;
-		activity.cc = [];
-
-		return activity;
 	}
 }

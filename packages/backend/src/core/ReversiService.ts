@@ -26,7 +26,6 @@ import { trackPromise } from '@/misc/promise-tracker.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
 import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
-import { ApGameService } from './activitypub/models/ApGameService.js';
 import type { OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 
 const INVITATION_TIMEOUT_MS = 1000 * 20; // 20sec
@@ -49,7 +48,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private globalEventService: GlobalEventService,
 		private reversiGameEntityService: ReversiGameEntityService,
 		private apRendererService: ApRendererService,
-		private apGameService: ApGameService,
 		private apDeliverManagerService: ApDeliverManagerService,
 		private idService: IdService,
 	) {
@@ -144,7 +142,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 					if (targetUser.uri === null) {
 						throw new Error('WIP');
 					}
-					const join = await this.apGameService.renderReversiJoin(game_session_id, me, targetUser as MiRemoteUser, new Date());
+					const join = await this.apRendererService.renderReversiJoin(game_session_id, me, targetUser as MiRemoteUser, new Date());
 					const content = this.apRendererService.addContext(join);
 					const dm = this.apDeliverManagerService.createDeliverManager({
 						id: me.id,
@@ -183,7 +181,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 				}
 			}
 			*/
-			const invite = await this.apGameService.renderReversiInvite(game_session_id, me, remote_user, new Date());
+			const invite = await this.apRendererService.renderReversiInvite(game_session_id, me, remote_user, new Date());
 			const content = this.apRendererService.addContext(invite);
 
 			const redisPipeline = this.redisClient.pipeline();
@@ -481,7 +479,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any) {
+	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any, deliver = true) {
 		const game = await this.get(gameId);
 		if (game == null) throw new Error('game not found');
 		if (game.isStarted) return;
@@ -501,8 +499,8 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
 
-		if (remote_user && remote_user.host != null) {
-			const update = await this.apGameService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
+		if (deliver && remote_user && remote_user.host != null) {
+			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
 				game_session_id: game.federationId,
 				type: 'settings',
 				key,
