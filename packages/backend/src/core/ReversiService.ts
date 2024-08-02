@@ -125,7 +125,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		for (const invite of invitations) {
 			if (invite.from_user_id === targetUser.id) {
-				const game_session_id = invite.game_session_id;
+				const game_session_id:string|undefined = invite.game_session_id;
 				console.log('ゲーム開始 共通セッションid=' + game_session_id);
 				await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, JSON.stringify(invite));
 
@@ -134,7 +134,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 				const game = await this.matched(parentId, childId, {
 					noIrregularRules: false,
 				}, game_session_id);
-				if (targetUser.host !== null) {
+				if (targetUser.host !== null && game_session_id) {
 					//重要。リモートユーザーが送ってきたIDの解決に使う
 					const redisPipeline = this.redisClient.pipeline();
 					redisPipeline.set(`reversi:federationId:${game_session_id}`, game.id);
@@ -403,7 +403,15 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	private async startGame(game: MiReversiGame) {
 		let bw: number;
 		if (game.bw === 'random') {
-			bw = Math.random() > 0.5 ? 1 : 2;
+			//連合プレイの場合完全ランダムにすると同期が大変なので連合管理用のidから生成する
+			//フロントエンドからは知り得ない情報なのでリレー鯖や鯖缶が漏らしたりしない限りは問題無いはず
+			if (game.federationId) {
+				//境界外アクセスするとundefinedになる
+				const cp = game.federationId.codePointAt(0);
+				bw = cp ? cp % 2 : 1;
+			} else {
+				bw = Math.random() > 0.5 ? 1 : 2;
+			}
 		} else {
 			bw = parseInt(game.bw, 10);
 		}

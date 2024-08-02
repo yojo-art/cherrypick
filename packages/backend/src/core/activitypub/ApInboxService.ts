@@ -42,7 +42,7 @@ import { ApPersonService } from './models/ApPersonService.js';
 import { ApQuestionService } from './models/ApQuestionService.js';
 import { ApGameService } from './models/ApGameService.js';
 import type { Resolver } from './ApResolverService.js';
-import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame, IJoin } from './type.js';
+import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame, IJoin, ILeave } from './type.js';
 
 @Injectable()
 export class ApInboxService {
@@ -977,7 +977,7 @@ export class ApInboxService {
 		return 'skip: unknown join type';
 	}
 	@bindThis
-	private async leave(actor: MiRemoteUser, activity: IJoin): Promise<string> {
+	private async leave(actor: MiRemoteUser, activity: ILeave): Promise<string> {
 		const resolver = this.apResolverService.createResolver();
 		const object = await resolver.resolve(activity.object).catch(e => {
 			this.logger.error(`Resolution failed: ${e}`);
