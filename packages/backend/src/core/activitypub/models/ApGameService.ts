@@ -76,7 +76,13 @@ export class ApGameService {
 			console.error('Update reversi Id Solve error');
 			return;
 		}
-		this.reversiService.surrender(id, remote_user);
+		const game = await this.reversiService.get(id);
+		if (game === null) return;
+		if (game.isStarted) {
+			this.reversiService.surrender(id, remote_user);
+		} else {
+			this.reversiService.cancelGame(id, remote_user);
+		}
 	}
 	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;

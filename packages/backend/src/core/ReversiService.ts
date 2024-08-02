@@ -408,7 +408,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			if (game.federationId) {
 				//境界外アクセスするとundefinedになる
 				const cp = game.federationId.codePointAt(0);
-				bw = cp ? cp % 2 : 1;
+				bw = cp ? (cp % 2 === 0 ? 1 : 2) : 1;
 			} else {
 				bw = Math.random() > 0.5 ? 1 : 2;
 			}
@@ -693,6 +693,19 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		this.globalEventService.publishReversiGameStream(game.id, 'canceled', {
 			userId: user.id,
 		});
+		const remote_user = game.user1Id === user.id ? game.user2 : game.user1;
+		if (user.host === null && remote_user && remote_user.host != null && game.federationId !== null) {
+			const leave = await this.apRendererService.renderReversiLeave(user, remote_user as MiRemoteUser, {
+				game_session_id: game.federationId,
+			});
+			const content = this.apRendererService.addContext(leave);
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: user.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(remote_user as MiRemoteUser);
+			trackPromise(dm.execute());
+		}
 	}
 
 	@bindThis
