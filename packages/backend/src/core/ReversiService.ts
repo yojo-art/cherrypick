@@ -521,6 +521,12 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		};
 		this.cacheGame(updatedGame);
 
+		this.globalEventService.publishReversiGameStream(game.id, 'updateSettings', {
+			userId: user.id,
+			key: key,
+			value: value,
+		});
+
 		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
 
 		if (user.host === null && remote_user && remote_user.host !== null) {
@@ -538,12 +544,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			dm.addDirectRecipe(remote_user as MiRemoteUser);
 			trackPromise(dm.execute());
 		}
-
-		this.globalEventService.publishReversiGameStream(game.id, 'updateSettings', {
-			userId: user.id,
-			key: key,
-			value: value,
-		});
 	}
 
 	@bindThis
@@ -598,6 +598,22 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			...log,
 			id: id ?? null,
 		});
+
+		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
+		if (user.host === null && remote_user && remote_user.host) {
+			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
+				game_session_id: game.federationId,
+				type: 'putstone',
+				pos,
+			});
+			const content = this.apRendererService.addContext(update);
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: user.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(remote_user as MiRemoteUser);
+			trackPromise(dm.execute());
+		}
 
 		if (engine.isEnded) {
 			let winnerId;

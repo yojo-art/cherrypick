@@ -55,10 +55,19 @@ export class ApGameService {
 		if (apgame.game_state.type === 'settings') {
 			const key = apgame.game_state.key;
 			const value = apgame.game_state.value;
-			await this.reversiService.updateSettings(id, remote_user, key, value);
+			if (key && value) {
+				await this.reversiService.updateSettings(id, remote_user, key, value);
+			}
 		} else if (apgame.game_state.type === 'ready_states') {
 			const ready = apgame.game_state.ready;
-			await this.reversiService.gameReady(id, remote_user, ready);
+			if (ready !== undefined && ready !== null) {
+				await this.reversiService.gameReady(id, remote_user, ready);
+			}
+		} else if (apgame.game_state.type === 'putstone') {
+			const pos = apgame.game_state.pos;
+			if (pos !== undefined && pos !== null) {
+				await this.reversiService.putStoneToGame(id, remote_user, pos);
+			}
 		}
 	}
 	async reversiInboxLeave(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
