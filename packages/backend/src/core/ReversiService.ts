@@ -129,7 +129,9 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 				console.log('ゲーム開始 共通セッションid=' + game_session_id);
 				await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, JSON.stringify(invite));
 
-				const game = await this.matched(targetUser.id, me.id, {
+				const parentId = invite.host_user_id ? invite.host_user_id : targetUser.id;
+				const childId = parentId === me.id ? targetUser.id : me.id;
+				const game = await this.matched(parentId, childId, {
 					noIrregularRules: false,
 				}, game_session_id);
 				if (targetUser.host !== null) {

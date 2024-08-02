@@ -77,6 +77,7 @@ export class ApGameService {
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,
 			game_session_id: game.game_state.game_session_id,
+			host_user_id: local_user.id,
 		}));
 		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
 		await redisPipeline.exec();
@@ -95,6 +96,7 @@ export class ApGameService {
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,
 			game_session_id: game.game_state.game_session_id,
+			host_user_id: remote_user.id,
 		}));
 		redisPipeline.expire(`reversi:matchSpecific:${targetUser.id}`, 120, 'NX');
 		await redisPipeline.exec();
