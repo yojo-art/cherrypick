@@ -47,7 +47,7 @@ export class ApGameService {
 	}
 	async reversiInboxUpdate(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApGame) {
 		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(apgame.game_state));
-		const id = await this.gameIdFromUUID(apgame.game_state.game_session_id);
+		const id = await this.reversiIdFromUUID(apgame.game_state.game_session_id);
 		if (id === null) {
 			console.error('Update reversi Id Solve error');
 			return;
@@ -62,7 +62,7 @@ export class ApGameService {
 		}
 	}
 	async reversiInboxLeave(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
-		const id = await this.gameIdFromUUID(apgame.game_state.game_session_id);
+		const id = await this.reversiIdFromUUID(apgame.game_state.game_session_id);
 		if (id === null) {
 			console.error('Update reversi Id Solve error');
 			return;
@@ -103,7 +103,7 @@ export class ApGameService {
 			user: await this.userEntityService.pack(fromUser, targetUser),
 		});
 	}
-	public async gameIdFromUUID(game_session_id:string) :Promise<string|null> {
+	public async reversiIdFromUUID(game_session_id:string) :Promise<string|null> {
 		//キャッシュにあればそれ
 		const cache = await this.redisClient.get(`reversi:federationId:${game_session_id}`);
 		if (cache) {

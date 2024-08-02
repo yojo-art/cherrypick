@@ -131,8 +131,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 				const game = await this.matched(targetUser.id, me.id, {
 					noIrregularRules: false,
-					federationId: game_session_id,
-				});
+				}, game_session_id);
 				if (targetUser.host !== null) {
 					//重要。リモートユーザーが送ってきたIDの解決に使う
 					const redisPipeline = this.redisClient.pipeline();
@@ -249,7 +248,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 			const game = await this.matched(invitorId, me.id, {
 				noIrregularRules: false,
-				federationId: null, //ランダムマッチは連合非対応
 			});
 
 			return game;
@@ -275,7 +273,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 			const game = await this.matched(matchedUserId, me.id, {
 				noIrregularRules: options.noIrregularRules || option === 'noIrregularRules',
-				federationId: null, //ランダムマッチは連合非対応
 			});
 
 			return game;
@@ -376,7 +373,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	private async matched(parentId: MiUser['id'], childId: MiUser['id'], options: { noIrregularRules: boolean;federationId:string|null; }): Promise<MiReversiGame> {
+	private async matched(parentId: MiUser['id'], childId: MiUser['id'], options: { noIrregularRules: boolean;}, federationId:string|null = null): Promise<MiReversiGame> {
 		const game = await this.reversiGamesRepository.insertOne({
 			id: this.idService.gen(),
 			user1Id: parentId,
@@ -390,6 +387,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			bw: 'random',
 			isLlotheo: false,
 			noIrregularRules: options.noIrregularRules,
+			federationId,
 		}, { relations: ['user1', 'user2'] });
 		this.cacheGame(game);
 
