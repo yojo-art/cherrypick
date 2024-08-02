@@ -101,15 +101,9 @@ export class ApGameService {
 			return cache;
 		}
 		//無かったらDBから探す
-		const games = await this.reversiGamesRepository.find({
-			where: [
-				{ federationId: game_session_id },
-			],
-			relations: ['id'],
-			order: { id: 'DESC' },
-		});
-		if (games.length > 0) {
-			return games[0].id;
+		const game = await this.reversiGamesRepository.findOneBy({ federationId: game_session_id });
+		if (game !== null) {
+			return game.id;
 		}
 		//DBにも無いなら知らん
 		return null;
