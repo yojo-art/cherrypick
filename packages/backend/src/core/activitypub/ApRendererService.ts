@@ -32,7 +32,7 @@ import { IdService } from '@/core/IdService.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
-import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApGame, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
+import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApGame, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
 export class ApRendererService {
@@ -777,6 +777,24 @@ export class ApRendererService {
 		};
 		const activity: IUpdate = {
 			type: 'Update',
+			actor: this.userEntityService.genLocalUserUri(local_user.id),
+			object: game,
+		};
+		activity.to = remote_user.uri;
+		activity.cc = [];
+
+		return activity;
+	}
+
+	@bindThis
+	public async renderReversiLeave(local_user: MiUser, remote_user: MiRemoteUser, game_state: { game_session_id: string; }) {
+		const game:IApReversi = {
+			type: 'Game',
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			game_state,
+		};
+		const activity: ILeave = {
+			type: 'Leave',
 			actor: this.userEntityService.genLocalUserUri(local_user.id),
 			object: game,
 		};

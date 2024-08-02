@@ -19,7 +19,7 @@ import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
 import type { Resolver } from '../ApResolverService.js';
-import type { IApGame, ICreate, IInvite, IJoin, IObject, IUndo, IUpdate } from '../type.js';
+import type { IApGame, IApReversi, ICreate, IInvite, IJoin, IObject, IUndo, IUpdate } from '../type.js';
 
 @Injectable()
 export class ApGameService {
@@ -40,6 +40,7 @@ export class ApGameService {
 		private notificationService: NotificationService,
 		private globalEventService: GlobalEventService,
 		private apLoggerService: ApLoggerService,
+		//ReversiServiceを先に初期化するのでReversiServiceからApGameServiceを利用してはいけない
 		private reversiService: ReversiService,
 	) {
 		this.logger = this.apLoggerService.logger;
@@ -54,11 +55,19 @@ export class ApGameService {
 		if (apgame.game_state.type === 'settings') {
 			const key = apgame.game_state.key;
 			const value = apgame.game_state.value;
-			await this.reversiService.updateSettings(id, remote_user, key, value, false);
+			await this.reversiService.updateSettings(id, remote_user, key, value);
 		} else if (apgame.game_state.type === 'ready_states') {
 			const ready = apgame.game_state.ready;
 			await this.reversiService.gameReady(id, remote_user, ready);
 		}
+	}
+	async reversiInboxLeave(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
+		const id = await this.gameIdFromUUID(apgame.game_state.game_session_id);
+		if (id === null) {
+			console.error('Update reversi Id Solve error');
+			return;
+		}
+		this.reversiService.surrender(id, remote_user);
 	}
 	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;
@@ -107,9 +116,6 @@ export class ApGameService {
 			redisPipeline.set(`reversi:federationId:${game_session_id}`, game.id);
 			redisPipeline.expire(`reversi:federationId:${game_session_id}`, 300);//適当、いい感じにしたい
 			await redisPipeline.exec();
-			if (cache) {
-				return cache;
-			}
 			return game.id;
 		}
 		//DBにも無いなら知らん

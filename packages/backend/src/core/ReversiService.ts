@@ -126,6 +126,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		for (const invite of invitations) {
 			if (invite.from_user_id === targetUser.id) {
 				const game_session_id = invite.game_session_id;
+				console.log('ゲーム開始 共通セッションid=' + game_session_id);
 				await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, JSON.stringify(invite));
 
 				const game = await this.matched(targetUser.id, me.id, {
@@ -494,7 +495,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any, deliver = true) {
+	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any) {
 		const game = await this.get(gameId);
 		if (game == null) throw new Error('game not found');
 		if (game.isStarted) return;
@@ -514,7 +515,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
 
-		if (deliver && remote_user && remote_user.host != null) {
+		if (user.host === null && remote_user && remote_user.host !== null) {
 			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
 				game_session_id: game.federationId,
 				type: 'settings',
@@ -614,7 +615,19 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		if ((game.user1Id !== user.id) && (game.user2Id !== user.id)) return;
 
 		const winnerId = game.user1Id === user.id ? game.user2Id : game.user1Id;
-
+		const remote_user = game.user1Id === user.id ? game.user2 : game.user1;
+		if (user.host === null && remote_user && remote_user.host != null && game.federationId !== null) {
+			const leave = await this.apRendererService.renderReversiLeave(user, remote_user as MiRemoteUser, {
+				game_session_id: game.federationId,
+			});
+			const content = this.apRendererService.addContext(leave);
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: user.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(remote_user as MiRemoteUser);
+			trackPromise(dm.execute());
+		}
 		await this.endGame(game, winnerId, 'surrender');
 	}
 

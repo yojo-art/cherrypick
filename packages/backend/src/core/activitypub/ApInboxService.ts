@@ -32,7 +32,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { isNotNull } from '@/misc/is-not-null.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isGame, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi, isLeave } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -173,6 +173,8 @@ export class ApInboxService {
 			return await this.invite(actor, activity);
 		} else if (isJoin(activity)) {
 			return await this.join(actor, activity);
+		} else if (isLeave(activity)) {
+			return await this.leave(actor, activity);
 		} else {
 			return `unrecognized activity type: ${activity.type}`;
 		}
@@ -942,7 +944,7 @@ export class ApInboxService {
 			if (remote_user.host == null || remote_user.uri == null) {
 				return 'skip: user resolve error';
 			}
-			this.apgameService.reversiInboxInvite(local_user, remote_user as MiRemoteUser, game);
+			await this.apgameService.reversiInboxInvite(local_user, remote_user as MiRemoteUser, game);
 			return 'ok';
 		}
 		return 'skip: unknown invite type';
@@ -969,9 +971,36 @@ export class ApInboxService {
 			if (remote_user.host == null || remote_user.uri == null) {
 				return 'skip: user resolve error';
 			}
-			this.apgameService.reversiInboxJoin(local_user, remote_user as MiRemoteUser, game);
+			await this.apgameService.reversiInboxJoin(local_user, remote_user as MiRemoteUser, game);
 			return 'ok';
 		}
 		return 'skip: unknown join type';
+	}
+	@bindThis
+	private async leave(actor: MiRemoteUser, activity: IJoin): Promise<string> {
+		const resolver = this.apResolverService.createResolver();
+		const object = await resolver.resolve(activity.object).catch(e => {
+			this.logger.error(`Resolution failed: ${e}`);
+			throw e;
+		});
+		if (getApType(object) === 'Game') {
+			const to = toArray(activity.to);
+			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
+			const game = object as IApGame;
+			if (!isReversi(game)) {
+				return 'skip: unknown game type';
+			}
+			if (target_user == null) {
+				return 'skip: target_user not found';
+			}
+			const remote_user = await this.usersRepository.findOneByOrFail({ id: actor.id });
+			const local_user = await this.usersRepository.findOneByOrFail({ id: target_user.id });
+			if (remote_user.host == null || remote_user.uri == null) {
+				return 'skip: user resolve error';
+			}
+			await this.apgameService.reversiInboxLeave(local_user, remote_user as MiRemoteUser, game);
+			return 'ok';
+		}
+		return 'skip: unknown leave type';
 	}
 }
