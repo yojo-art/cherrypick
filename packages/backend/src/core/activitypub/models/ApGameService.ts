@@ -13,6 +13,7 @@ import { DI } from '@/di-symbols.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ReversiService } from '@/core/ReversiService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
+import type { ReversiGamesRepository } from '@/models/_.js';
 import { isGame } from '../type.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
@@ -32,6 +33,9 @@ export class ApGameService {
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
+		@Inject(DI.reversiGamesRepository)
+		private reversiGamesRepository: ReversiGamesRepository,
+
 		private apResolverService: ApResolverService,
 		private userEntityService: UserEntityService,
 		private notificationService: NotificationService,
@@ -42,6 +46,7 @@ export class ApGameService {
 	}
 	async reversiInboxUpdate(game: IApGame) {
 		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(game.game_state));
+		gameIdFromUUID(game.game_state.game_session_id);
 	}
 	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApGame) {
 		const targetUser = local_user;
@@ -76,6 +81,26 @@ export class ApGameService {
 		this.globalEventService.publishReversiStream(targetUser.id, 'invited', {
 			user: await this.userEntityService.pack(fromUser, targetUser),
 		});
+	}
+	public async gameIdFromUUID(game_session_id:string) :Promise<string|null> {
+		//キャッシュにあればそれ
+		const cache = await this.redisClient.get(`reversi:federationId:${game_session_id}`);
+		if (cache) {
+			return cache;
+		}
+		//無かったらDBから探す
+		const games = await this.reversiGamesRepository.find({
+			where: [
+				{ federationId: game_session_id },
+			],
+			relations: ['id'],
+			order: { id: 'DESC' },
+		});
+		if (games.length > 0) {
+			return games[0].id;
+		}
+		//DBにも無いなら知らん
+		return null;
 	}
 	@bindThis
 	public async renderReversiInvite(game_session_id:string, invite_from:MiUser, invite_to:MiRemoteUser, invite_date:Date): Promise<IInvite> {

@@ -132,8 +132,14 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 				const game = await this.matched(targetUser.id, me.id, {
 					noIrregularRules: false,
+					federationId: game_session_id,
 				});
 				if (targetUser.host !== null) {
+					//重要。リモートユーザーが送ってきたIDの解決に使う
+					const redisPipeline = this.redisClient.pipeline();
+					redisPipeline.set(`reversi:federationId:${game_session_id}`, game.id);
+					redisPipeline.expire(`reversi:federationId:${game_session_id}`, 300);//適当、いい感じにしたい
+					await redisPipeline.exec();
 					//リモートユーザーに参加を飛ばす
 					if (targetUser.uri === null) {
 						throw new Error('WIP');
@@ -244,6 +250,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 			const game = await this.matched(invitorId, me.id, {
 				noIrregularRules: false,
+				federationId: null, //ランダムマッチは連合非対応
 			});
 
 			return game;
@@ -269,6 +276,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 			const game = await this.matched(matchedUserId, me.id, {
 				noIrregularRules: options.noIrregularRules || option === 'noIrregularRules',
+				federationId: null, //ランダムマッチは連合非対応
 			});
 
 			return game;
@@ -288,10 +296,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	@bindThis
 	public async matchSpecificUserCancel(user: MiUser, targetUser: MiUser) {
 		await this.redisClient.zrem(`reversi:matchSpecific:${targetUser.id}`, user.id);
-
-		if (targetUser.host !== null && targetUser.uri !== null) {
-			await this.redisClient.expire(`reversi:inviteSpecific:${targetUser.id}`, 0);
-		}
 	}
 
 	@bindThis
@@ -358,7 +362,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	private async matched(parentId: MiUser['id'], childId: MiUser['id'], options: { noIrregularRules: boolean; }): Promise<MiReversiGame> {
+	private async matched(parentId: MiUser['id'], childId: MiUser['id'], options: { noIrregularRules: boolean;federationId:string|null; }): Promise<MiReversiGame> {
 		const game = await this.reversiGamesRepository.insertOne({
 			id: this.idService.gen(),
 			user1Id: parentId,
@@ -499,6 +503,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		if (remote_user && remote_user.host != null) {
 			const update = await this.apGameService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
+				game_session_id: game.federationId,
 				type: 'settings',
 				key,
 				value,
