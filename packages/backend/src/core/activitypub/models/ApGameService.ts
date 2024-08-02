@@ -103,6 +103,13 @@ export class ApGameService {
 		//無かったらDBから探す
 		const game = await this.reversiGamesRepository.findOneBy({ federationId: game_session_id });
 		if (game !== null) {
+			const redisPipeline = this.redisClient.pipeline();
+			redisPipeline.set(`reversi:federationId:${game_session_id}`, game.id);
+			redisPipeline.expire(`reversi:federationId:${game_session_id}`, 300);//適当、いい感じにしたい
+			await redisPipeline.exec();
+			if (cache) {
+				return cache;
+			}
 			return game.id;
 		}
 		//DBにも無いなら知らん
