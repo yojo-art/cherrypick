@@ -495,6 +495,23 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		};
 		this.cacheGame(updatedGame);
 
+		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
+
+		if (remote_user && remote_user.host != null) {
+			const update = await this.apGameService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
+				type: 'settings',
+				key,
+				value,
+			});
+			const content = this.apRendererService.addContext(update);
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: user.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(remote_user as MiRemoteUser);
+			trackPromise(dm.execute());
+		}
+
 		this.globalEventService.publishReversiGameStream(game.id, 'updateSettings', {
 			userId: user.id,
 			key: key,

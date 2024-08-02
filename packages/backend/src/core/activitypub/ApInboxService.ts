@@ -40,9 +40,9 @@ import { ApResolverService } from './ApResolverService.js';
 import { ApAudienceService } from './ApAudienceService.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import { ApQuestionService } from './models/ApQuestionService.js';
+import { ApGameService } from './models/ApGameService.js';
 import type { Resolver } from './ApResolverService.js';
 import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame, IJoin } from './type.js';
-import { ApGameService } from './models/ApGameService.js';
 
 @Injectable()
 export class ApInboxService {
@@ -710,15 +710,15 @@ export class ApInboxService {
 		});
 		if (getApType(object) === 'Game') {
 			const to = toArray(activity.to);
-			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
-			let game=object as IApGame;
-			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
+			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
+			const game = object as IApGame;
+			if (game.game_type_uuid !== ApGameService.reversiUUID) {
 				return 'skip: unknown game type';
 			}
-			if(target_user===null || target_user.host!==null){
+			if (target_user === null || target_user.host !== null) {
 				return 'skip: unknown target user';
 			}
-			await this.apgameService.reversiInboxUndoInvite(actor,target_user,game);
+			await this.apgameService.reversiInboxUndoInvite(actor, target_user, game);
 			return 'ok';
 		}
 		return 'skip: 不明な招待';
@@ -856,9 +856,26 @@ export class ApInboxService {
 		} else if (getApType(object) === 'Note') {
 			await this.updateNote(resolver, actor, object, false, activity);
 			return 'ok: Note updated';
+		} else if (getApType(object) === 'Game') {
+			await this.updateGame(resolver, actor, object as IApGame, activity);
+			return 'ok: Note updated';
 		} else {
 			return `skip: Unknown type: ${getApType(object)}`;
 		}
+	}
+
+	@bindThis
+	private async updateGame(resolver: Resolver, actor: MiRemoteUser, game: IApGame, activity: IUpdate): Promise<string> {
+		const to = toArray(activity.to);
+		const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
+		if (game.game_type_uuid !== ApGameService.reversiUUID) {
+			return 'skip: unknown game type';
+		}
+		if (target_user === null || target_user.host !== null) {
+			return 'skip: unknown target user';
+		}
+		await this.apgameService.reversiInboxUpdate(game);
+		return 'ok';
 	}
 
 	@bindThis
@@ -912,20 +929,20 @@ export class ApInboxService {
 		});
 		if (getApType(object) === 'Game') {
 			const to = toArray(activity.to);
-			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
-			let game=object as IApGame;
-			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
+			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
+			const game = object as IApGame;
+			if (game.game_type_uuid !== ApGameService.reversiUUID) {
 				return 'skip: unknown game type';
 			}
 			if (target_user == null) {
 				return 'skip: target_user not found';
 			}
-			let remote_user=await this.usersRepository.findOneByOrFail({ id: actor.id });
-			let local_user=await this.usersRepository.findOneByOrFail({ id: target_user.id });
-			if (remote_user == null || local_user==null || remote_user.host == null || remote_user.uri == null) {
+			const remote_user = await this.usersRepository.findOneByOrFail({ id: actor.id });
+			const local_user = await this.usersRepository.findOneByOrFail({ id: target_user.id });
+			if (remote_user.host == null || remote_user.uri == null) {
 				return 'skip: user resolve error';
 			}
-			this.apgameService.reversiInboxInvite(local_user,remote_user as MiRemoteUser,game);
+			this.apgameService.reversiInboxInvite(local_user, remote_user as MiRemoteUser, game);
 			return 'ok';
 		}
 		return 'skip: unknown invite type';
@@ -939,20 +956,20 @@ export class ApInboxService {
 		});
 		if (getApType(object) === 'Game') {
 			const to = toArray(activity.to);
-			const target_user = to.length>0 ? await this.apDbResolverService.getUserFromApId(to[0]):null;
-			let game=object as IApGame;
-			if(game.game_type_uuid !=="1c086295-25e3-4b82-b31e-3e3959906312"){
+			const target_user = to.length > 0 ? await this.apDbResolverService.getUserFromApId(to[0]) : null;
+			const game = object as IApGame;
+			if (game.game_type_uuid !== ApGameService.reversiUUID) {
 				return 'skip: unknown game type';
 			}
 			if (target_user == null) {
 				return 'skip: target_user not found';
 			}
-			let remote_user=await this.usersRepository.findOneByOrFail({ id: actor.id });
-			let local_user=await this.usersRepository.findOneByOrFail({ id: target_user.id });
-			if (remote_user == null || local_user==null || remote_user.host == null || remote_user.uri == null) {
+			const remote_user = await this.usersRepository.findOneByOrFail({ id: actor.id });
+			const local_user = await this.usersRepository.findOneByOrFail({ id: target_user.id });
+			if (remote_user.host == null || remote_user.uri == null) {
 				return 'skip: user resolve error';
 			}
-			this.apgameService.reversiInboxJoin(local_user,remote_user as MiRemoteUser,game);
+			this.apgameService.reversiInboxJoin(local_user, remote_user as MiRemoteUser, game);
 			return 'ok';
 		}
 		return 'skip: unknown join type';
