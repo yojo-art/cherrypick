@@ -58,7 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #label>{{ i18n.ts._reversi.timeLimitForEachTurn }}</template>
 						<template #suffix>{{ game.timeLimitForEachTurn }}{{ i18n.ts._time.second }}</template>
 
-						<MkRadios v-model="game.timeLimitForEachTurn">
+						<MkRadios v-model="game.timeLimitForEachTurn" @click="updateSettings('timeLimitForEachTurn')">
 							<option :value="5">5{{ i18n.ts._time.second }}</option>
 							<option :value="10">10{{ i18n.ts._time.second }}</option>
 							<option :value="30">30{{ i18n.ts._time.second }}</option>
@@ -161,10 +161,6 @@ const isFederation = computed(() => {
 });
 
 const opponentHasSettingsChanged = ref(false);
-
-watch(() => game.value.timeLimitForEachTurn, () => {
-	updateSettings('timeLimitForEachTurn');
-});
 
 function chooseMap(ev: MouseEvent) {
 	const menu: MenuItem[] = [];
