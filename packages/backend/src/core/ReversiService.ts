@@ -300,9 +300,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			from_user_id: user.id,
 			game_session_id,
 		}));
-		this.globalEventService.publishReversiStream(targetUser.id, 'uninvited', {
-			user: await this.userEntityService.pack(user, targetUser),
-		});
 	}
 
 	@bindThis

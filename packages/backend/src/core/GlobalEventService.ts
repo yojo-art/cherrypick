@@ -203,9 +203,6 @@ export interface ReversiEventTypes {
 	invited: {
 		user: Packed<'User'>;
 	};
-	uninvited: {
-		user: Packed<'User'>;
-	};
 }
 
 export interface ReversiGameEventTypes {

@@ -99,7 +99,7 @@ export class ApGameService {
 		await redisPipeline.exec();
 	}
 	async reversiInboxUndoInvite(actor: MiRemoteUser, target_user:MiLocalUser, game: IApReversi) {
-		this.reversiService.matchSpecificUserCancel(actor, target_user, game.game_state.game_session_id);
+		await this.reversiService.matchSpecificUserCancel(actor, target_user, game.game_state.game_session_id);
 	}
 	async reversiInboxInvite(local_user: MiUser, remote_user: MiRemoteUser, game: IApReversi) {
 		const targetUser = local_user;
