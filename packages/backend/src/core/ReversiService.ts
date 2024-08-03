@@ -169,23 +169,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			}
 			const remote_user : MiRemoteUser = targetUser as MiRemoteUser;
 			const game_session_id = randomUUID().toString();
-			/*
-			//有効な招待を列挙
-			const invitations = (await this.redisClient.zrange(
-				`reversi:matchSpecific:${targetUser.id}`,
-				Date.now() - INVITATION_TIMEOUT_MS,
-				'+inf',
-				'BYSCORE')).map(raw => JSON.parse(raw));
-			const me_uri = this.userEntityService.genLocalUserUri(me.id);
-			for (const invite of invitations) {
-				if (invite.actor === me_uri) {
-					//招待がすでに発行されていた場合には初期IDを使う
-					//game_session_id = invite.object.game_state.game_session_id;
-					//console.log('reversi:TTL延長 ' + game_session_id);
-					break;
-				}
-			}
-			*/
 			const invite = await this.apRendererService.renderReversiInvite(game_session_id, me, remote_user, new Date());
 			const content = this.apRendererService.addContext(invite);
 

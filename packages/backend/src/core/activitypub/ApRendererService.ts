@@ -741,8 +741,8 @@ export class ApRendererService {
 			published: invite_date.toISOString(),
 			object: game,
 		};
-		activity.to = invite_to.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
-		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
+		activity.to = invite_to.uri;
+		activity.cc = [];
 
 		return activity;
 	}
@@ -764,8 +764,8 @@ export class ApRendererService {
 			published: join_date.toISOString(),
 			object: game,
 		};
-		activity.to = invite_from.uri;//フォロワー限定に招待する場合は`${actor.uri}/followers`
-		activity.cc = [];//誰でも観戦が許可される場合はCCに"https://www.w3.org/ns/activitystreams#Public"を指定
+		activity.to = invite_from.uri;
+		activity.cc = [];
 
 		return activity;
 	}
