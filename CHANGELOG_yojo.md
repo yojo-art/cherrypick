@@ -20,7 +20,7 @@
 ### Release Date
 
 ### General
--
+- Enhance: リバーシをリモートユーザーと対戦できるように [#271](https://github.com/yojo-art/cherrypick/pull/271)
 
 ### Client
 -
