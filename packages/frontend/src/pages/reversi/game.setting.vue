@@ -54,7 +54,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkRadios>
 					</MkFolder>
 
-					<MkFolder :defaultOpen="true">
+					<MkFolder v-if="!isFederation" :defaultOpen="true">
 						<template #label>{{ i18n.ts._reversi.timeLimitForEachTurn }}</template>
 						<template #suffix>{{ game.timeLimitForEachTurn }}{{ i18n.ts._time.second }}</template>
 
@@ -152,6 +152,11 @@ const isReady = computed(() => {
 const isOpReady = computed(() => {
 	if (game.value.user1Id !== $i.id && game.value.user1Ready) return true;
 	if (game.value.user2Id !== $i.id && game.value.user2Ready) return true;
+	return false;
+});
+const isFederation = computed(() => {
+	if (game.value.user1.host !== null) return true;
+	if (game.value.user2.host !== null) return true;
 	return false;
 });
 
