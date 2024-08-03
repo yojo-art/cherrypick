@@ -352,8 +352,8 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		} else {
 			return;
 		}
-		if (user.host === null) {
-			const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
+		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
+		if (user.host === null && remote_user && remote_user.host) {
 			if (game.federationId === null) throw new Error('game.federationId===null');
 			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
 				game_session_id: game.federationId,
