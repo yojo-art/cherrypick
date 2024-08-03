@@ -6,7 +6,6 @@
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
 import type Logger from '@/logger.js';
-import { bindThis } from '@/decorators.js';
 import type { MiLocalUser, MiRemoteUser, MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
@@ -14,12 +13,10 @@ import { NotificationService } from '@/core/NotificationService.js';
 import { ReversiService } from '@/core/ReversiService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import type { ReversiGamesRepository } from '@/models/_.js';
-import { isGame } from '../type.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import type { Resolver } from '../ApResolverService.js';
-import type { IApGame, IApReversi, ICreate, IInvite, IJoin, IObject, IUndo, IUpdate } from '../type.js';
+import type { IApReversi } from '../type.js';
 
 @Injectable()
 export class ApGameService {
