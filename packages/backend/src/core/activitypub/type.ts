@@ -269,7 +269,6 @@ export interface IApReversi extends IApGame {
 		type?:string,
 		key?:string, //設定変更
 		value?:any, //設定変更
-		old_value?:any, //設定変更
 		ready?:boolean, //準備完了
 		pos?:number, //石配置
 	};

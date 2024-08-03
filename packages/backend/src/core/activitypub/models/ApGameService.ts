@@ -55,11 +55,10 @@ export class ApGameService {
 		if (apgame.game_state.type === 'settings') {
 			const key = apgame.game_state.key;
 			const value = apgame.game_state.value;
-			const old_value = apgame.game_state.old_value;
-			if (key && value && old_value) {
-				await this.reversiService.updateSettings(id, remote_user, key, value, old_value);
+			if (key && value) {
+				await this.reversiService.updateSettings(id, remote_user, key, value);
 			} else {
-				this.logger.warn('skip ApReversi settings unknown key or value or old_value');
+				this.logger.warn('skip ApReversi settings unknown key or value');
 			}
 		} else if (apgame.game_state.type === 'ready_states') {
 			const ready = apgame.game_state.ready;

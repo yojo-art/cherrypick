@@ -778,7 +778,6 @@ export class ApRendererService {
 			pos?:number;//石配置
 			key?:string;//設定変更
 			value?:any;//設定変更
-			old_value?:any;//設定変更
 			ready?:boolean;//ゲーム開始
 		},
 	) {
