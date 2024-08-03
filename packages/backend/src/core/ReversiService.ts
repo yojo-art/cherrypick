@@ -565,7 +565,10 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		if (game == null) throw new Error('game not found');
 		if (!game.isStarted) return;
 		if (game.isEnded) return;
-		if ((game.user1Id !== user.id) && (game.user2Id !== user.id)) return;
+		if ((game.user1Id !== user.id) && (game.user2Id !== user.id)) {
+			console.log('Reversi:putStoneToGame user is not player');
+			return;
+		}
 
 		const myColor =
 			((game.user1Id === user.id) && game.black === 1) || ((game.user2Id === user.id) && game.black === 2)
@@ -580,8 +583,14 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			logs: game.logs,
 		});
 
-		if (engine.turn !== myColor) return;
-		if (!engine.canPut(myColor, pos)) return;
+		if (engine.turn !== myColor) {
+			console.log('Reversi:putStoneToGame bad turn');
+			return;
+		}
+		if (!engine.canPut(myColor, pos)) {
+			console.log('Reversi:putStoneToGame can not Putable');
+			return;
+		}
 
 		engine.putStone(pos);
 

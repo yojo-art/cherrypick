@@ -46,10 +46,10 @@ export class ApGameService {
 		this.logger = this.apLoggerService.logger;
 	}
 	async reversiInboxUpdate(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
-		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(apgame.game_state));
+		this.logger.debug('リバーシのUpdateが飛んできた' + JSON.stringify(apgame.game_state));
 		const id = await this.reversiIdFromUUID(apgame.game_state.game_session_id);
 		if (id === null) {
-			console.error('Update reversi Id Solve error');
+			this.logger.error('Update reversi Id Solve error');
 			return;
 		}
 		if (apgame.game_state.type === 'settings') {
@@ -58,17 +58,25 @@ export class ApGameService {
 			const old_value = apgame.game_state.old_value;
 			if (key && value && old_value) {
 				await this.reversiService.updateSettings(id, remote_user, key, value, old_value);
+			} else {
+				this.logger.warn('skip ApReversi settings unknown key or value or old_value');
 			}
 		} else if (apgame.game_state.type === 'ready_states') {
 			const ready = apgame.game_state.ready;
 			if (ready !== undefined) {
 				await this.reversiService.gameReady(id, remote_user, ready);
+			} else {
+				this.logger.warn('skip ApReversi undefined ready');
 			}
 		} else if (apgame.game_state.type === 'putstone') {
 			const pos = apgame.game_state.pos;
 			if (pos !== undefined) {
 				await this.reversiService.putStoneToGame(id, remote_user, pos);
+			} else {
+				this.logger.warn('skip ApReversi undefined putstone');
 			}
+		} else {
+			this.logger.error('skip ApReversi unknown update type');
 		}
 	}
 	async reversiInboxLeave(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
