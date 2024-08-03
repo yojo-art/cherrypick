@@ -23,9 +23,11 @@ import { IdService } from '@/core/IdService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { Serialized } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
+import type Logger from '@/logger.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
 import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
+import { LoggerService } from './LoggerService.js';
 import type { OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 
 const INVITATION_TIMEOUT_MS = 1000 * 20; // 20sec
@@ -33,6 +35,7 @@ const INVITATION_TIMEOUT_MS = 1000 * 20; // 20sec
 @Injectable()
 export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	private notificationService: NotificationService;
+	private logger: Logger;
 
 	constructor(
 		private moduleRef: ModuleRef,
@@ -49,8 +52,10 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private reversiGameEntityService: ReversiGameEntityService,
 		private apRendererService: ApRendererService,
 		private apDeliverManagerService: ApDeliverManagerService,
+		private loggerService: LoggerService,
 		private idService: IdService,
 	) {
+		this.logger = this.loggerService.getLogger('reversi');
 	}
 
 	async onModuleInit() {
@@ -126,7 +131,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		for (const invite of invitations) {
 			if (invite.from_user_id === targetUser.id) {
 				const game_session_id:string|undefined = invite.game_session_id;
-				console.log('ゲーム開始 共通セッションid=' + game_session_id);
+				this.logger.info('ゲーム開始 共通セッションid=' + game_session_id);
 				await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, JSON.stringify(invite));
 
 				const parentId = invite.host_user_id ? invite.host_user_id : targetUser.id;
@@ -543,7 +548,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		if (!game.isStarted) return;
 		if (game.isEnded) return;
 		if ((game.user1Id !== user.id) && (game.user2Id !== user.id)) {
-			console.log('Reversi:putStoneToGame user is not player');
+			this.logger.info('Reversi:putStoneToGame user is not player');
 			return;
 		}
 
@@ -561,11 +566,11 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		});
 
 		if (engine.turn !== myColor) {
-			console.log('Reversi:putStoneToGame bad turn');
+			this.logger.info('Reversi:putStoneToGame bad turn');
 			return;
 		}
 		if (!engine.canPut(myColor, pos)) {
-			console.log('Reversi:putStoneToGame can not Putable');
+			this.logger.info('Reversi:putStoneToGame can not Putable');
 			return;
 		}
 
