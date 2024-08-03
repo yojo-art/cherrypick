@@ -96,7 +96,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async matchSpecificUser(me: MiUser, targetUser: MiUser, multiple = false): Promise<MiReversiGame | null> {
+	public async matchSpecificUser(me: MiUser, targetUser: MiUser, multiple = false, accept_only = false): Promise<MiReversiGame | null> {
 		if (targetUser.id === me.id) {
 			throw new Error('You cannot match yourself.');
 		}
@@ -158,7 +158,10 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			}
 		}
 		//#endregion
-
+		//参加のみフラグが付いていた場合は招待を確認するだけ
+		if (accept_only) {
+			return null;
+		}
 		if (targetUser.host !== null) {
 			//リモートユーザーに招待を飛ばす
 			if (targetUser.uri === null) {
