@@ -78,7 +78,7 @@ export class ApGameService {
 	async reversiInboxLeave(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
 		const id = await this.reversiIdFromUUID(apgame.game_state.game_session_id);
 		if (id === null) {
-			console.error('Update reversi Id Solve error');
+			this.logger.error('Update reversi Id Solve error');
 			return;
 		}
 		const game = await this.reversiService.get(id);
