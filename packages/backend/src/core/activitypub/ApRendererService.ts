@@ -729,6 +729,7 @@ export class ApRendererService {
 		const game:IApReversi = {
 			type: 'Game',
 			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
 			game_state: {
 				game_session_id,
 			},
@@ -751,6 +752,7 @@ export class ApRendererService {
 		const game:IApReversi = {
 			type: 'Game',
 			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
 			game_state: {
 				game_session_id,
 			},
@@ -769,10 +771,21 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public async renderReversiUpdate(local_user:MiUser, remote_user:MiRemoteUser, game_state:any) {
+	public async renderReversiUpdate(local_user:MiUser, remote_user:MiRemoteUser,
+		game_state: {
+			game_session_id: string;
+			type:string;
+			pos?:number;//石配置
+			key?:string;//設定変更
+			value?:any;//設定変更
+			old_value?:any;//設定変更
+			ready?:boolean;//ゲーム開始
+		},
+	) {
 		const game:IApReversi = {
 			type: 'Game',
 			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
 			game_state,
 		};
 		const activity: IUpdate = {
@@ -791,6 +804,7 @@ export class ApRendererService {
 		const game:IApReversi = {
 			type: 'Game',
 			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
 			game_state,
 		};
 		const activity: ILeave = {

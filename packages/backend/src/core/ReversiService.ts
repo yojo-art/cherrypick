@@ -348,6 +348,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		}
 		if (user.host === null) {
 			const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
+			if (game.federationId === null) throw new Error('game.federationId===null');
 			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
 				game_session_id: game.federationId,
 				type: 'ready_states',
@@ -404,7 +405,6 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		let bw: number;
 		if (game.bw === 'random') {
 			//連合プレイの場合完全ランダムにすると同期が大変なので連合管理用のidから生成する
-			//フロントエンドからは知り得ない情報なのでリレー鯖や鯖缶が漏らしたりしない限りは問題無いはず
 			if (game.federationId) {
 				//境界外アクセスするとundefinedになる
 				const cp = game.federationId.codePointAt(0);
@@ -503,7 +503,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any) {
+	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any, required_old_value:any = undefined) {
 		const game = await this.get(gameId);
 		if (game == null) throw new Error('game not found');
 		if (game.isStarted) return;
@@ -513,6 +513,10 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		if (!['map', 'bw', 'isLlotheo', 'canPutEverywhere', 'loopedBoard', 'timeLimitForEachTurn'].includes(key)) return;
 
+		if (required_old_value !== undefined) {
+			const old_value:any = (game as any)[key];//強引に持ってきてる
+			if (old_value !== required_old_value) return;
+		}
 		// TODO: より厳格なバリデーション
 
 		const updatedGame = {
@@ -530,11 +534,14 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
 
 		if (user.host === null && remote_user && remote_user.host !== null) {
+			if (game.federationId === null) throw new Error('game.federationId===null');
+			const old_value:any = (game as any)[key];//強引に持ってきてる
 			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
 				game_session_id: game.federationId,
 				type: 'settings',
 				key,
 				value,
+				old_value,
 			});
 			const content = this.apRendererService.addContext(update);
 			const dm = this.apDeliverManagerService.createDeliverManager({
@@ -601,6 +608,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		const remote_user = user.id === game.user1Id ? game.user2 : game.user1;
 		if (user.host === null && remote_user && remote_user.host) {
+			if (game.federationId === null) throw new Error('game.federationId===null');
 			const update = await this.apRendererService.renderReversiUpdate(user, remote_user as MiRemoteUser, {
 				game_session_id: game.federationId,
 				type: 'putstone',
@@ -660,6 +668,8 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		const game = await this.get(gameId);
 		if (game == null) throw new Error('game not found');
 		if (game.isEnded) return;
+		//連合プレイの場合配送遅延などの影響で正しく時間制限するのが難しいので時間制限しない
+		if (game.federationId) return;
 
 		const engine = Reversi.Serializer.restoreGame({
 			map: game.map,

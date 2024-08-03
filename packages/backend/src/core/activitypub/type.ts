@@ -262,9 +262,17 @@ export interface IApGame extends IObject {
 	game_state: any;
 }
 export interface IApReversi extends IApGame {
-	type: 'Game';
 	game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312';
-	game_state: any;
+	extent_flags: string[];
+	game_state: {
+		game_session_id:string,
+		type?:string,
+		key?:string, //設定変更
+		value?:any, //設定変更
+		old_value?:any, //設定変更
+		ready?:boolean, //準備完了
+		pos?:number, //石配置
+	};
 }
 export const isGame = (object: IObject): object is IApGame =>
 	getApType(object) === 'Game';

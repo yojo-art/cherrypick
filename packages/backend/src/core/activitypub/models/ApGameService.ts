@@ -45,7 +45,7 @@ export class ApGameService {
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
-	async reversiInboxUpdate(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApGame) {
+	async reversiInboxUpdate(local_user: MiUser, remote_user: MiRemoteUser, apgame: IApReversi) {
 		console.log('リバーシのUpdateが飛んできた' + JSON.stringify(apgame.game_state));
 		const id = await this.reversiIdFromUUID(apgame.game_state.game_session_id);
 		if (id === null) {
@@ -55,17 +55,18 @@ export class ApGameService {
 		if (apgame.game_state.type === 'settings') {
 			const key = apgame.game_state.key;
 			const value = apgame.game_state.value;
-			if (key && value) {
-				await this.reversiService.updateSettings(id, remote_user, key, value);
+			const old_value = apgame.game_state.old_value;
+			if (key && value && old_value) {
+				await this.reversiService.updateSettings(id, remote_user, key, value, old_value);
 			}
 		} else if (apgame.game_state.type === 'ready_states') {
 			const ready = apgame.game_state.ready;
-			if (ready !== undefined && ready !== null) {
+			if (ready !== undefined) {
 				await this.reversiService.gameReady(id, remote_user, ready);
 			}
 		} else if (apgame.game_state.type === 'putstone') {
 			const pos = apgame.game_state.pos;
-			if (pos !== undefined && pos !== null) {
+			if (pos !== undefined) {
 				await this.reversiService.putStoneToGame(id, remote_user, pos);
 			}
 		}
