@@ -297,6 +297,9 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	@bindThis
 	public async matchSpecificUserCancel(user: MiUser, targetUser: MiUser) {
 		await this.redisClient.zrem(`reversi:matchSpecific:${targetUser.id}`, user.id);
+		this.globalEventService.publishReversiStream(targetUser.id, 'uninvited', {
+			user: await this.userEntityService.pack(user, targetUser),
+		});
 	}
 
 	@bindThis

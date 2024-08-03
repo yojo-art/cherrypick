@@ -150,6 +150,13 @@ if ($i) {
 		invitations.value.unshift(invitation.user);
 	});
 
+	connection.on('uninvited', invitation => {
+		let index = invitations.value.map(x => x.id).indexOf(invitation.user.id);
+		if (index >= 0) {
+			invitations.value.splice(index, 1);
+		}
+	});
+
 	onUnmounted(() => {
 		connection.dispose();
 	});
