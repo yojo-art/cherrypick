@@ -35,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkFolder :defaultOpen="true">
 						<template #label>{{ i18n.ts._reversi.blackOrWhite }}</template>
 
-						<MkRadios v-model="game.bw">
+						<MkRadios v-model="game.bw" @click="updateSettings('bw')">
 							<option value="random">{{ i18n.ts.random }}</option>
 							<option :value="'1'">
 								<I18n :src="i18n.ts._reversi.blackIs" tag="span">
@@ -161,10 +161,6 @@ const isFederation = computed(() => {
 });
 
 const opponentHasSettingsChanged = ref(false);
-
-watch(() => game.value.bw, () => {
-	updateSettings('bw');
-});
 
 watch(() => game.value.timeLimitForEachTurn, () => {
 	updateSettings('timeLimitForEachTurn');
