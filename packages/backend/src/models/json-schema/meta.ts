@@ -67,6 +67,10 @@ export const packedMetaLiteSchema = {
 			optional: false, nullable: true,
 			default: 'https://github.com/kokonect-link/cherrypick/issues/new',
 		},
+		statusUrl: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
 		defaultDarkTheme: {
 			type: 'string',
 			optional: false, nullable: true,
@@ -254,6 +258,12 @@ export const packedMetaLiteSchema = {
 			type: 'object',
 			optional: false, nullable: false,
 			ref: 'RolePolicies',
+		},
+		noteSearchableScope: {
+			type: 'string',
+			enum: ['local', 'global'],
+			optional: false, nullable: false,
+			default: 'local',
 		},
 	},
 } as const;
