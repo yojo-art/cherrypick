@@ -29093,6 +29093,8 @@ export type operations = {
           noIrregularRules?: boolean;
           /** @default false */
           multiple?: boolean;
+          /** @default false */
+          accept_only?: boolean;
         };
       };
     };
