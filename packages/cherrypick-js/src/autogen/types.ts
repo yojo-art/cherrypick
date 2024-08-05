@@ -657,7 +657,7 @@ export type paths = {
      * admin/full-index
      * @description No description provided.
      *
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:meta*
      */
     post: operations['admin___full-index'];
   };
@@ -666,7 +666,7 @@ export type paths = {
      * admin/recreate-index
      * @description No description provided.
      *
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:meta*
      */
     post: operations['admin___recreate-index'];
   };
@@ -2852,7 +2852,7 @@ export type paths = {
      * notes/advanced-search
      * @description 高度な検索ができます
      *
-     * **Credential required**: *Yes*
+     * **Credential required**: *No*
      */
     post: operations['notes___advanced-search'];
   };
@@ -9458,7 +9458,7 @@ export type operations = {
    * admin/full-index
    * @description No description provided.
    *
-   * **Credential required**: *Yes*
+   * **Credential required**: *Yes* / **Permission**: *write:admin:meta*
    */
   'admin___full-index': {
     responses: {
@@ -9502,7 +9502,7 @@ export type operations = {
    * admin/recreate-index
    * @description No description provided.
    *
-   * **Credential required**: *Yes*
+   * **Credential required**: *Yes* / **Permission**: *write:admin:meta*
    */
   'admin___recreate-index': {
     responses: {
@@ -23033,7 +23033,7 @@ export type operations = {
    * notes/advanced-search
    * @description 高度な検索ができます
    *
-   * **Credential required**: *Yes*
+   * **Credential required**: *No*
    */
   'notes___advanced-search': {
     requestBody: {
