@@ -61,7 +61,7 @@ async function search() {
 
 	//#region AP lookup
 	if (query.startsWith('https://') || isApUserName.test(query)) {
-			const { canceled } = await os.confirm({
+		const { canceled } = await os.confirm({
 			type: 'question',
 			text: i18n.ts._searchOrApShow.question,
 			okText: i18n.ts._searchOrApShow.lookup,
@@ -82,7 +82,7 @@ async function search() {
 				}
 			} else {
 				const promise = misskeyApi('ap/show', {
-						uri: query,
+					uri: query,
 				});
 				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 				const res = await promise;

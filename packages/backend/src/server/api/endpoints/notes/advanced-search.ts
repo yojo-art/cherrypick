@@ -13,7 +13,7 @@ import { ApiError } from '../../error.js';
 export const meta = {
 	description: '高度な検索ができます',
 	tags: ['notes'],
-	requireCredential: true,
+	requireCredential: false,
 	res: {
 		type: 'array',
 		optional: false, nullable: false,
