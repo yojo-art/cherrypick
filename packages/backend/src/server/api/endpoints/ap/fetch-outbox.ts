@@ -13,6 +13,7 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 export const meta = {
 	tags: ['federation'],
 
+	description: 'リモートユーザの投稿を取得します',
 	requireCredential: true,
 	kind: 'read:account',
 
@@ -49,9 +50,21 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		userId: { type: 'string', format: 'misskey:id' },
-		wait: {type: 'boolean', default: false},
-		includeAnnounce: {type: 'boolean', default: false},
+		userId: {
+			type: 'string',
+			format: 'misskey:id',
+			description: 'Outbox取得対象ユーザのローカルのユーザID',
+		 },
+		wait: {
+			type: 'boolean',
+			default: false,
+			description: 'Outboxの取得が終わるまで待ちます',
+		},
+		includeAnnounce: {
+			type: 'boolean',
+			default: false,
+			description: 'Outbox取得の際にRenoteも対象にします',
+		},
 	},
 	required: ['userId'],
 } as const;
