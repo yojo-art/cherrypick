@@ -8,9 +8,7 @@ build/
 built/
 db/
 docker-compose.yml
-compose.yml
 node_modules/
-os-data/
 packages/*/node_modules
 redis/
 files/
