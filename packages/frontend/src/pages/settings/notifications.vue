@@ -121,10 +121,6 @@ function testNotification(): void {
 	misskeyApi('notifications/test-notification');
 }
 
-async function flushNotification() {
-	flushNotification();
-}
-
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
