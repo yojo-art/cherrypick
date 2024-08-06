@@ -23,7 +23,7 @@
 - Enhance: リバーシをリモートユーザーと対戦できるように [#271](https://github.com/yojo-art/cherrypick/pull/271)
 
 ### Client
--
+- Enhance: 個別に通知を削除できるように
 
 ### Server
 -
