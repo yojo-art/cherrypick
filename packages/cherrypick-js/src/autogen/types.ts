@@ -657,7 +657,7 @@ export type paths = {
      * admin/full-index
      * @description No description provided.
      *
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
      */
     post: operations['admin___full-index'];
   };
@@ -666,7 +666,7 @@ export type paths = {
      * admin/recreate-index
      * @description No description provided.
      *
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
      */
     post: operations['admin___recreate-index'];
   };
@@ -9443,7 +9443,7 @@ export type operations = {
    * admin/full-index
    * @description No description provided.
    *
-   * **Credential required**: *Yes*
+   * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
    */
   'admin___full-index': {
     responses: {
@@ -9487,7 +9487,7 @@ export type operations = {
    * admin/recreate-index
    * @description No description provided.
    *
-   * **Credential required**: *Yes*
+   * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
    */
   'admin___recreate-index': {
     responses: {
@@ -23059,7 +23059,10 @@ export type operations = {
            * @enum {string}
            */
           sensitiveFilter?: 'includeSensitive' | 'withOutSensitive' | 'sensitiveOnly' | 'combined';
-          /** @default 0 */
+          /**
+           * @description 指定された件数の以降のノートを返します
+           * @default 0
+           */
           offset?: number;
           /** @description ノートが作成されたインスタンス。ローカルの場合は`.`を指定します */
           host?: string;

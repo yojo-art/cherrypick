@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { randomUUID } from 'node:crypto';
 import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
@@ -15,12 +14,12 @@ import { MiNote } from '@/models/Note.js';
 import { MiUser } from '@/models/_.js';
 import type { NotesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
-import { isUserRelated } from '@/misc/is-user-related.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { isReply } from '@/misc/is-reply.js';
 import { DriveService } from './DriveService.js';
 
 type K = string;
@@ -65,6 +64,8 @@ function compileQuery(q: Q): string {
 		default: throw new Error('unrecognized query operator');
 	}
 }
+
+const retryLimit = 2;
 
 @Injectable()
 export class AdvancedSearchService {
@@ -111,9 +112,12 @@ export class AdvancedSearchService {
 									userHost: { type: 'keyword' },
 									createdAt: { type: 'date' },
 									tags: { type: 'keyword' },
-									replyId: { type: 'keyword' },
 									fileIds: { type: 'keyword' },
+									visibility: { type: 'keyword' },
+									visibleUserIds: { type: 'keyword' },
+									isReply: { type: 'boolean' },
 									isQuote: { type: 'boolean' },
+									referenceUserId: { type: 'keyword' },
 									sensitiveFileCount: { type: 'byte' },
 									nonSensitiveFileCount: { type: 'byte' },
 								},
@@ -152,7 +156,7 @@ export class AdvancedSearchService {
 				this.loggerService.getLogger('search').error(error);
 			});
 		} else {
-			console.error('OpenSearch is not available');
+			this.loggerService.getLogger('search').info('OpenSearch is not available');
 			this.opensearchNoteIndex = null;
 		}
 	}
@@ -160,12 +164,12 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexNote(note: MiNote): Promise<void> {
 		if (note.text == null && note.cw == null) return;
-		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
 
 		if (this.opensearch) {
 			if (await this.redisClient.get('indexDeleted') !== null) {
 				return;
 			}
+			const IsReply = isReply(note);
 			const IsQuote = isRenote(note) && isQuote(note);
 			const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 			const nonSensitiveCount = note.fileIds.length - sensitiveCount;
@@ -177,9 +181,12 @@ export class AdvancedSearchService {
 				userHost: note.userHost,
 				createdAt: this.idService.parse(note.id).date.getTime(),
 				tags: note.tags,
-				replyId: note.replyId,
 				fileIds: note.fileIds,
+				visibility: note.visibility,
+				visibleUserIds: note.visibleUserIds,
+				isReply: IsReply,
 				isQuote: IsQuote,
+				referenceUserId: IsReply ? note.replyUserId : IsQuote ? note.renoteUserId : null,
 				sensitiveFileCount: sensitiveCount,
 				nonSensitiveFileCount: nonSensitiveCount,
 			};
@@ -192,21 +199,22 @@ export class AdvancedSearchService {
 			});
 		}
 	}
+
 	@bindThis
 	public async recreateIndex(): Promise<void> {
 		if (this.opensearch) {
 			if (await this.redisClient.get('indexDeleted') !== null) {
 				return;
 			}
-			//削除がコケたときに備えて有効期限を指定
+
 			await this.redisClient.set('indexDeleted', 'deleted', 'EX', 300);
-			await	this.opensearch.indices.delete({
+			await this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
 				this.loggerService.getLogger('search').error(error);
 				return;
 			});
 
-			await	this.opensearch.indices.create({
+			await this.opensearch.indices.create({
 				index: this.opensearchNoteIndex as string,
 				body: {
 					mappings: {
@@ -221,9 +229,12 @@ export class AdvancedSearchService {
 							userHost: { type: 'keyword' },
 							createdAt: { type: 'date' },
 							tags: { type: 'keyword' },
-							replyId: { type: 'keyword' },
 							fileIds: { type: 'keyword' },
+							visibility: { type: 'keyword' },
+							visibleUserIds: { type: 'keyword' },
+							isReply: { type: 'boolean' },
 							isQuote: { type: 'boolean' },
+							referenceUserId: { type: 'keyword' },
 							sensitiveFileCount: { type: 'byte' },
 							nonSensitiveFileCount: { type: 'byte' },
 						},
@@ -259,16 +270,7 @@ export class AdvancedSearchService {
 				return;
 			});
 
-			let reCreatedDel =	await this.redisClient.del('indexDeleted');
-			if (reCreatedDel === 0 ) {
-				this.loggerService.getLogger('search').error('indexDeleted flag delete failed');
-				//一回だけ再試行する
-				await new Promise(resolve => setTimeout(resolve, 5000));
-				reCreatedDel =	await this.redisClient.del('indexDeleted');
-			}
-			if (reCreatedDel === 1) {
-				this.loggerService.getLogger('search').info('indexDeleted flag deleted');
-			}
+			await this.redisClient.del('indexDeleted');
 			this.loggerService.getLogger('search').info('reIndexing.');
 			this.fullIndexNote().catch((error) => {
 				this.loggerService.getLogger('search').error(error);
@@ -303,8 +305,6 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async unindexNote(note: MiNote): Promise<void> {
-		if (!['home', 'public', 'followers'].includes(note.visibility)) return;
-
 		if (this.opensearch) {
 			if (await this.redisClient.get('indexDeleted') !== null) {
 				return;
@@ -329,6 +329,7 @@ export class AdvancedSearchService {
 		excludeReply?: boolean;
 		excludeQuote?: boolean;
 		sensitiveFilter?: string | null;
+		offset?: number | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -337,6 +338,7 @@ export class AdvancedSearchService {
 		if (this.opensearch) {
 			const osFilter: any = {
 				bool: {
+					filter: [],
 					must: [],
 					must_not: [],
 				},
@@ -359,7 +361,7 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({ exists: { field: 'userHost' } } );
 				}
 			}
-			if (opts.excludeReply) osFilter.bool.must_not.push({ exists: { field: 'replyId' } });
+			if (opts.excludeReply) osFilter.bool.must_not.push({ exists: { isReply: false } });
 			if (opts.excludeCW) osFilter.bool.must_not.push({ exists: { field: 'cw' } });
 			if (opts.excludeQuote) osFilter.bool.must.push({ term: { isQuote: false } });
 			if (opts.fileOption) {
@@ -405,50 +407,98 @@ export class AdvancedSearchService {
 				}
 			}
 
-			const res = await this.opensearch.search({
-				index: this.opensearchNoteIndex as string,
-				body: {
-					query: osFilter,
-					sort: [{ createdAt: { order: 'desc' } }],
-				},
-				_source: ['id', 'createdAt'],
-				size: pagination.limit,
-			});
+			if (me) {
+				/*ブロックされている or ミュートしているフィルタ*/
+				const [
+					userIdsWhoMeMuting,
+					userIdsWhoMeBlockingMe,
+				] = await Promise.all([
+					this.cacheService.userMutingsCache.fetch(me.id),
+					this.cacheService.userBlockedCache.fetch(me.id),
+				]);
+				const Filter = Array.from(userIdsWhoMeMuting).concat(Array.from(userIdsWhoMeBlockingMe));
+				const FollowingsCache = await this.cacheService.userFollowingsCache.fetch(me.id);
+				const Followings = Object.keys(FollowingsCache);
 
-			const noteIds = res.body.hits.hits.map((hit: any) => hit._id);
-			if (noteIds.length === 0) return [];
-			pagination.untilId = noteIds[noteIds.length - 1];
-			//検索結果がある
-			const Followings = me ? await this.cacheService.userFollowingsCache.fetch(me.id) : null;
-			const [
-				userIdsWhoMeMuting,
-				userIdsWhoMeBlockingMe,
-			] = me ? await Promise.all([
-				this.cacheService.userMutingsCache.fetch(me.id),
-				this.cacheService.userBlockedCache.fetch(me.id),
-			]) : [new Set<string>(), new Set<string>()];
-			const notes = (await this.notesRepository.findBy({
-				id: In(noteIds),
-			})).filter(note => {
-				if (note.visibility === 'public' || note.visibility === 'home') {
-					if (me && (isUserRelated(note, userIdsWhoMeMuting) || isUserRelated(note, userIdsWhoMeBlockingMe))) return false;
-					else return true;
+				let Option: any;
+
+				if (opts.offset && 0 < opts.offset) {
+					Option = {
+						index: this.opensearchNoteIndex as string,
+						body: {
+							query: osFilter,
+							sort: [{ createdAt: { order: 'desc' } }],
+						},
+						_source: ['id', 'userId', 'visibility', 'visibleUserIds', 'referenceUserId'],
+						size: pagination.limit,
+						from: opts.offset,
+					};
+				} else {
+					Option = {
+						index: this.opensearchNoteIndex as string,
+						body: {
+							query: osFilter,
+							sort: [{ createdAt: { order: 'desc' } }],
+						},
+						_source: ['id', 'userId', 'visibility', 'visibleUserIds', 'referenceUserId'],
+						size: pagination.limit,
+					};
 				}
-				if (note.visibility === 'followers' ) {
-					if (Followings) {
-						if (!Object.hasOwn(Followings, note.userId)) {
-							return true;
-						}
-					}
+
+				const Result = await this.search(Option, pagination.untilId ? 1 : 0, Filter, Followings, me.id);
+				if (Result.length === 0) {
+					return [];
 				}
-				return false;
-			});
-			if (notes.length === 0) {
-				//フィルタした結果0件になった場合は再帰的に処理する
-				return await this.searchNote(q, me, opts, pagination);
+				const noteIds = Result.sort((a, b) => a._id > b._id ? -1 : 1).map((hit: any) => hit._id);
+				return (await this.notesRepository.findBy({
+					id: In(noteIds),
+				})).sort((a, b) => a.id > b.id ? -1 : 1);
+			} else {
+				//meがないなら公開範囲が限られたものを探さない
+				osFilter.bool.must.push({
+					bool: {
+						should: [
+							{ term: { visibility: 'public' } },
+							{ term: { visibility: 'home' } },
+						],
+						minimum_should_match: 1,
+					},
+				});
+
+				let Option: any;
+				if (opts.offset && 0 < opts.offset) {
+					Option = {
+						index: this.opensearchNoteIndex as string,
+						body: {
+							query: osFilter,
+							sort: [{ createdAt: { order: 'desc' } }],
+						},
+						_source: ['id'],
+						size: pagination.limit,
+						from: opts.offset,
+					};
+				} else {
+					Option = {
+						index: this.opensearchNoteIndex as string,
+						body: {
+							query: osFilter,
+							sort: [{ createdAt: { order: 'desc' } }],
+						},
+						_source: ['id'],
+						size: pagination.limit,
+					};
+				}
+
+				const Result = await this.opensearch.search(Option);
+
+				if (Result.body.hits.hits.length === 0) {
+					return [];
+				}
+				const noteIds = Result.body.hits.hits.map((hit: any) => hit._id);
+				return (await this.notesRepository.findBy({
+					id: In(noteIds),
+				})).sort((a, b) => a.id > b.id ? -1 : 1);
 			}
-
-			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
@@ -515,5 +565,79 @@ export class AdvancedSearchService {
 
 			return await query.limit(pagination.limit).getMany();
 		}
+	}
+
+	@bindThis
+	public async search(
+		OpenSearchOption: any,
+		untilAvail: number,
+		Filter: string[],
+		followings: string[],
+		meUserId: string,
+	): Promise<any[]> {
+		let res = await this.opensearch.search(OpenSearchOption);
+		let notes = res.body.hits.hits;
+
+		if (!notes || notes.length === 0) return [];
+		const FilterdNotes = notes.filter( Note => {
+			if (Filter.includes(Note._source.userId) || Filter.includes(Note._source.referenceUserId)) return false;//ミュートしてるかブロックされてるので見れない
+			if (['public', 'home'].includes(Note._source.visibility)) return true;//誰でも見れる
+			if (Note._source.visibility === 'followers') { //鍵だけどフォローしてるか自分
+				if (Note._source.userId === meUserId || followings.includes(Note._source.userId)) return true;
+			}
+			if (Note._source.visibility === 'specified') {
+				if (Note._source.userId === meUserId || Note._source.visibleUserIds.includes(meUserId)) return true;//自分の投稿したダイレクトか自分が宛先に含まれている
+			}
+			return false;
+		});
+		let retry = false;
+
+		//フィルタされたノートが1件以上、最初のヒット件数が指定された数未満ではない
+		if (0 < (notes.length - FilterdNotes.length) && !(notes.length < OpenSearchOption.size)) {
+			retry = true;
+			if (untilAvail === 1) {
+				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } };
+			} else {
+				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } });
+				untilAvail = 0;
+			}
+		}
+
+		if (retry) {
+			for (let i = 0; i < retryLimit; i++) {
+				res = await this.opensearch.search(OpenSearchOption);
+				notes = res.body.hits.hits;
+
+				if (!notes || notes.length === 0) break;//これ以上探してもない
+
+				const Filterd = notes.filter( Note => {
+					if (Filter.includes(Note._source.userId) || Filter.includes(Note._source.referenceUserId)) return false;//ミュートしてるかブロックされてるので見れない
+					if (['public', 'home'].includes(Note._source.visibility)) return true;//誰でも見れる
+					if (Note._source.visibility === 'followers') { //鍵だけどフォローしてるか自分
+						if (Note._source.userId === meUserId || followings.includes(Note._source.userId)) return true;
+					}
+					if (Note._source.visibility === 'specified') {//自分の投稿したダイレクトか自分が宛先に含まれている
+						if (Note._source.userId === meUserId || Note._source.visibleUserIds.includes(meUserId)) return true;
+					}
+					return false;
+				});
+
+				for (let i = 0; i < notes.length - FilterdNotes.length && i < Filterd.length; i++) {
+					FilterdNotes.push(Filterd[i]);
+				}
+
+				if (OpenSearchOption.size === FilterdNotes.length) {
+					break;
+				}
+
+				//until指定
+				if (untilAvail === 1) {
+					OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } };
+				} else {
+					OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1] = { range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } };
+				}
+			}
+		}
+		return FilterdNotes;
 	}
 }

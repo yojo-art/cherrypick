@@ -91,6 +91,7 @@ export const permissions = [
 	'read:federation',
 	'write:report-abuse',
 	'write:admin:official-tags',
+	'write:admin:reindex',
 ] as const;
 
 export const moderationLogTypes = [
