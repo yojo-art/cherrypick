@@ -22,6 +22,18 @@ import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { isReply } from '@/misc/is-reply.js';
 import { DriveService } from './DriveService.js';
 
+type opensearchHits = {
+	_index: string
+	_id: string
+	_score?: number
+	_source:{
+    id: string,
+    userId: string
+    visibility: string
+    visibleUserIds?: string[]
+		referenceUserId?: string
+	}
+}
 type K = string;
 type V = string | number | boolean;
 type Q =
@@ -574,18 +586,28 @@ export class AdvancedSearchService {
 		followings: string[],
 		meUserId: string,
 	): Promise<any[]> {
+		if (!this.opensearch) throw new Error();
 		let res = await this.opensearch.search(OpenSearchOption);
-		let notes = res.body.hits.hits;
+		let notes = res.body.hits.hits as opensearchHits[];
 
 		if (!notes || notes.length === 0) return [];
-		const FilterdNotes = notes.filter( Note => {
-			if (Filter.includes(Note._source.userId) || Filter.includes(Note._source.referenceUserId)) return false;//ミュートしてるかブロックされてるので見れない
+		const FilterdNotes = notes.filter( Note => {//ミュートしてるかブロックされてるので見れない
+			if (Filter.includes(Note._source.userId) ) return false;
+			if (Note._source.referenceUserId){
+				if (Filter.includes(Note._source.referenceUserId)) return false;
+			}
+
 			if (['public', 'home'].includes(Note._source.visibility)) return true;//誰でも見れる
+
 			if (Note._source.visibility === 'followers') { //鍵だけどフォローしてるか自分
 				if (Note._source.userId === meUserId || followings.includes(Note._source.userId)) return true;
 			}
+
 			if (Note._source.visibility === 'specified') {
-				if (Note._source.userId === meUserId || Note._source.visibleUserIds.includes(meUserId)) return true;//自分の投稿したダイレクトか自分が宛先に含まれている
+				if (Note._source.userId === meUserId) return true;//自分の投稿したダイレクトか自分が宛先に含まれている
+				if (Note._source.visibleUserIds) {
+					if (Note._source.visibleUserIds.includes(meUserId)) return true;
+				}
 			}
 			return false;
 		});
@@ -595,9 +617,9 @@ export class AdvancedSearchService {
 		if (0 < (notes.length - FilterdNotes.length) && !(notes.length < OpenSearchOption.size)) {
 			retry = true;
 			if (untilAvail === 1) {
-				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } };
+				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } };
 			} else {
-				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } });
+				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } });
 				untilAvail = 0;
 			}
 		}
@@ -605,18 +627,27 @@ export class AdvancedSearchService {
 		if (retry) {
 			for (let i = 0; i < retryLimit; i++) {
 				res = await this.opensearch.search(OpenSearchOption);
-				notes = res.body.hits.hits;
+				notes = res.body.hits.hits as opensearchHits[];
 
 				if (!notes || notes.length === 0) break;//これ以上探してもない
 
-				const Filterd = notes.filter( Note => {
-					if (Filter.includes(Note._source.userId) || Filter.includes(Note._source.referenceUserId)) return false;//ミュートしてるかブロックされてるので見れない
+				const Filterd = notes.filter( Note => {//ミュートしてるかブロックされてるので見れない
+					if (Filter.includes(Note._source.userId) ) return false;
+					if (Note._source.referenceUserId){
+						if (Filter.includes(Note._source.referenceUserId)) return false;
+					}
+
 					if (['public', 'home'].includes(Note._source.visibility)) return true;//誰でも見れる
+
 					if (Note._source.visibility === 'followers') { //鍵だけどフォローしてるか自分
 						if (Note._source.userId === meUserId || followings.includes(Note._source.userId)) return true;
 					}
-					if (Note._source.visibility === 'specified') {//自分の投稿したダイレクトか自分が宛先に含まれている
-						if (Note._source.userId === meUserId || Note._source.visibleUserIds.includes(meUserId)) return true;
+
+					if (Note._source.visibility === 'specified') {
+						if (Note._source.userId === meUserId) return true;//自分の投稿したダイレクトか自分が宛先に含まれている
+						if (Note._source.visibleUserIds) {
+							if (Note._source.visibleUserIds.includes(meUserId)) return true;
+						}
 					}
 					return false;
 				});
@@ -631,12 +662,13 @@ export class AdvancedSearchService {
 
 				//until指定
 				if (untilAvail === 1) {
-					OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } };
+					OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } };
 				} else {
-					OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1] = { range: { createdAt: { lt: this.idService.parse(notes.at(-1)._id).date.getTime() } } };
+					OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } };
 				}
 			}
 		}
 		return FilterdNotes;
 	}
+
 }

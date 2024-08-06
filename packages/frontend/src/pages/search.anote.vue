@@ -98,7 +98,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 	import { instance } from '@/instance.js';
 	import type { UserDetailed } from 'cherrypick-js/entities.js';
 
-
 	const router = useRouter();
 
 	const key = ref(0);
@@ -170,7 +169,7 @@ function removeUser() {
 			params: {
 				query: searchQuery.value,
 				userId: user.value ? user.value.id : null,
-				...(searchOrigin.value === 'specified' ? { host: hostInput.value } : { origin: searchOrigin.value }),//origin: searchOrigin.value
+				...(searchOrigin.value === 'specified' ? { host: hostInput.value } : { origin: searchOrigin.value }),
 				fileOption: isfileOnly.value,
 				excludeCW: excludeCW.value,
 				excludeReply: excludeReply.value,
