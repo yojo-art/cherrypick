@@ -338,7 +338,6 @@ export class AdvancedSearchService {
 		if (this.opensearch) {
 			const osFilter: any = {
 				bool: {
-					filter: [],
 					must: [],
 					must_not: [],
 				},
