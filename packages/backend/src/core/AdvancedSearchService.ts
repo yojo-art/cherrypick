@@ -21,6 +21,7 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { isReply } from '@/misc/is-reply.js';
 import { DriveService } from './DriveService.js';
+import type Logger from '@/logger.js';
 
 type openSearchHit = {
 	_index: string
@@ -82,6 +83,7 @@ const retryLimit = 2;
 @Injectable()
 export class AdvancedSearchService {
 	private opensearchNoteIndex: string | null = null;
+	private logger: Logger;
 
 	constructor(
 		@Inject(DI.config)
@@ -102,6 +104,7 @@ export class AdvancedSearchService {
 		private loggerService: LoggerService,
 		private driveService: DriveService,
 	) {
+		this.logger = this.loggerService.getLogger('search');
 		if (opensearch && config.opensearch && config.opensearch.index) {
 			const indexname = `${config.opensearch.index}---notes`;
 			this.opensearchNoteIndex = indexname;
@@ -161,14 +164,14 @@ export class AdvancedSearchService {
 							},
 						},
 					}).catch((error) => {
-						this.loggerService.getLogger('search').error(error);
+						this.logger.error(error);
 					}),
 				];
 			}).catch((error) => {
-				this.loggerService.getLogger('search').error(error);
+				this.logger.error(error);
 			});
 		} else {
-			this.loggerService.getLogger('search').info('OpenSearch is not available');
+			this.logger.info('OpenSearch is not available');
 			this.opensearchNoteIndex = null;
 		}
 	}
@@ -207,7 +210,7 @@ export class AdvancedSearchService {
 				id: note.id,
 				body: body,
 			}).catch((error) => {
-				this.loggerService.getLogger('search').error(error);
+				this.logger.error(error);
 			});
 		}
 	}
@@ -222,7 +225,7 @@ export class AdvancedSearchService {
 			await this.redisClient.set('indexDeleted', 'deleted', 'EX', 300);
 			await this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
-				this.loggerService.getLogger('search').error(error);
+				this.logger.error(error);
 				return;
 			});
 
@@ -278,14 +281,14 @@ export class AdvancedSearchService {
 					},
 				},
 			}).catch((error) => {
-				this.loggerService.getLogger('search').error(error);
+				this.logger.error(error);
 				return;
 			});
 
 			await this.redisClient.del('indexDeleted');
-			this.loggerService.getLogger('search').info('reIndexing.');
+			this.logger.info('reIndexing.');
 			this.fullIndexNote().catch((error) => {
-				this.loggerService.getLogger('search').error(error);
+				this.logger.error(error);
 				return;
 			});
 		}
@@ -299,7 +302,7 @@ export class AdvancedSearchService {
 		const limit = 100;
 		let latestid = '';
 		for (let index = 0; index < notesCount; index += limit) {
-			this.loggerService.getLogger('search').info('indexing' + index + '/' + notesCount);
+			this.logger.info('indexing' + index + '/' + notesCount);
 
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
@@ -312,7 +315,7 @@ export class AdvancedSearchService {
 				latestid = note.id;
 			});
 		}
-		this.loggerService.getLogger('search').info('All notes has been indexed.');
+		this.logger.info('All notes has been indexed.');
 	}
 
 	@bindThis
