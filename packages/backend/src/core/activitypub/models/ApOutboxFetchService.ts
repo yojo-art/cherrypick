@@ -26,7 +26,7 @@ import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 
-const pagelimit = 3;
+const pagelimit = 5;
 const createLimit = 15;
 
 @Injectable()
@@ -86,30 +86,31 @@ export class ApOutboxFetchService implements OnModuleInit {
 		if (!outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
 
 		let nextUrl = outbox.first;
-		let created = 0;
+		let created = 1;
 
 		for (let i = 0; i < pagelimit; i++){
-			const collectionPage =	await _resolver.resolveOrderedCollectionPage(outbox.first);
+			const collectionPage =	await _resolver.resolveOrderedCollectionPage(nextUrl);
 			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee','Object is not collectionPage');
 
 			if (collectionPage.orderedItems.length === 0) {
 				break;
 			}
-			nextUrl = collectionPage.next;
 			const activityes = collectionPage.orderedItems as any[];
 
 			for (const activity of activityes) {
 				if (created > createLimit) break;
-			//this.apLoggerService.logger.info(JSON.stringify(activity));
 				if (activity) {
 					try {
 						if (isAnnounce(activity)) {
+							const uri = getApId(activity);
+							const announceLocal = await this.apNoteService.fetchNote(uri);
+							if (announceLocal) { continue;}
+
 							if (!activity.object) {
 								this.apLoggerService.logger.info('skip: activity has no object property');
 								continue;
 							}
-							const uri = getApId(activity);
-							//ApInboxService.Announce
+							//From ApInboxService.Announce
 							//Announce対象
 							const targetUri =	getApId(activity.object);
 							if (targetUri.startsWith('bear:')) {
@@ -124,23 +125,19 @@ export class ApOutboxFetchService implements OnModuleInit {
 										continue;
 									}
 									const local = await this.apNoteService.fetchNote(targetUri);
-									if (local) {
-										//this.apLoggerService.logger.info('skip: Outbox activity Exist');
-										continue;
-									}
-
 									let renote;
-									try {
-										renote = await this.apNoteService.resolveNote(target);
-										if (renote == null)  {
-											this.apLoggerService.logger.info('announce target is null');
-										}
-									} catch (err) {
-										// 対象が4xxならスキップ
-										if (err instanceof StatusError) {
-											if (!err.isRetryable) {
-												this.apLoggerService.logger.info(`Ignored announce target ${target.id} - ${err.statusCode}`);
+									if (!local) {
+										try {
+											renote = await this.apNoteService.resolveNote(target);
+											if (renote == null)  {
+												this.apLoggerService.logger.info('announce target is null');
 											}
+										} catch (err) {
+											// 対象が4xxならスキップ
+											if (err instanceof StatusError) {
+												if (!err.isRetryable) {
+													this.apLoggerService.logger.info(`Ignored announce target ${target.id} - ${err.statusCode}`);
+												}
 											this.apLoggerService.logger.info(`Error in announce target ${target.id} - ${err.statusCode}`);
 										}
 										throw err;
@@ -149,6 +146,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 									if (!await this.noteEntityService.isVisibleForMe(renote, user.id)) {
 										this.apLoggerService.logger.info('skip: invalid actor for this activity');
 									}
+									}
+									if (!renote) continue;
 									this.logger.info(`Creating the (Re)Note: ${uri}`);
 
 									const activityAudience = await this.apAudienceService.parseAudience(user, activity.to, activity.cc);
@@ -170,22 +169,33 @@ export class ApOutboxFetchService implements OnModuleInit {
 							}	finally {
 								unlock();
 							}
-						} else if (activity.type === 'Create' && activity.object && isNote(activity.object)) {
-							const local = this.apNoteService.fetchNote(activity.object);
-							if (!local) {
-								await this.apNoteService.createNote(activity.object);
-								created++;
+						} else if (isNote(activity.object)) {
+							const id = getApId(activity.object);
+							const local = await this.apNoteService.fetchNote(id);
+							if (local) {
+								continue;
 							}
+							await this.apNoteService.createNote(id);
+							created++;
 						} else {
 							this.apLoggerService.logger.warn('Outbox activity type is not announce or create-note (type:' + activity.type + ')' );
 						}
 					} catch (err) {
 							this.apLoggerService.logger.warn('Outbox activity fetch error:' + err );
+							this.apLoggerService.logger.info(JSON.stringify(activity));
+
 						}
 				}
 			}
+
+			if (created > createLimit) break;
+			nextUrl = collectionPage.next;
+			if (!nextUrl) {
+				break;
+			}
 		}
-		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
+		this.logger.succ(`Outbox Fetced(${created}): ${outboxUrl}`);
+		this.logger.info(`Outbox Fetced last: ${nextUrl}`);
 	}
 	/**
 	 * outboxからノートを取得します
@@ -211,16 +221,15 @@ export class ApOutboxFetchService implements OnModuleInit {
 		if (!outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
 
 		let nextUrl = outbox.first;
-		let created = 0;
+		let created = 1;
 
 		for (let i = 0; i < pagelimit; i++){
-			const collectionPage =	await _resolver.resolveOrderedCollectionPage(outbox.first);
+			const collectionPage =	await _resolver.resolveOrderedCollectionPage(nextUrl);
 			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee','Object is not collectionPage');
 
 			if (collectionPage.orderedItems.length === 0) {
 				break;
 			}
-			nextUrl = collectionPage.next;
 			const activityes = collectionPage.orderedItems as any[];
 
 			for (const activity of activityes) {
@@ -228,14 +237,14 @@ export class ApOutboxFetchService implements OnModuleInit {
 				//this.apLoggerService.logger.info(JSON.stringify(activity));
 				if (activity) {
 						try {
-							if (activity.type === 'Create' && activity.object && isNote(activity.object)) {
-							const local = await this.apNoteService.fetchNote(activity.object);
-								if (!local) {
-									await this.apNoteService.createNote(activity.object);
-									created++;
+							if (isNote(activity.object)) {
+								const id = getApId(activity.object);
+								const local = await this.apNoteService.fetchNote(id);
+								if (local) {
+									continue;
 								}
-							} else {
-								this.apLoggerService.logger.warn('Outbox activity type is not announce or create-note (type:' + activity.type + ')' );
+								await this.apNoteService.createNote(id);
+								created++;
 							}
 						} catch (err) {
 								this.apLoggerService.logger.warn('Outbox activity fetch error:' + err );
@@ -244,10 +253,12 @@ export class ApOutboxFetchService implements OnModuleInit {
 			}
 
 			if (created > createLimit) break;
-			if (nextUrl) {
+			nextUrl = collectionPage.next;
+			if (!nextUrl) {
 				break;
 			}
 		}
 		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
+		this.logger.info(`Outbox Fetced last: ${nextUrl}`);
 	}
 }
