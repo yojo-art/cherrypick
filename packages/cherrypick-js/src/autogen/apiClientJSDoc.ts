@@ -786,7 +786,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes* / **Permission**: *write:admin:meta*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
      */
     request<E extends 'admin/full-index', P extends Endpoints[E]['req']>(
       endpoint: E,
@@ -797,7 +797,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes* / **Permission**: *write:admin:meta*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
      */
     request<E extends 'admin/recreate-index', P extends Endpoints[E]['req']>(
       endpoint: E,

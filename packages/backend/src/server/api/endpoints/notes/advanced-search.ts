@@ -13,6 +13,7 @@ import { ApiError } from '../../error.js';
 export const meta = {
 	description: '高度な検索ができます',
 	tags: ['notes'],
+
 	requireCredential: false,
 	res: {
 		type: 'array',
@@ -79,6 +80,7 @@ export const paramDef = {
 		offset: {
 			type: 'integer',
 			default: 0,
+			description: '指定された件数の以降のノートを返します',
 		},
 		host: {
 			type: 'string',
@@ -134,6 +136,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				excludeCW: ps.excludeCW,
 				excludeReply: ps.excludeReply,
 				excludeQuote: ps.excludeQuote,
+				offset: ps.offset,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,

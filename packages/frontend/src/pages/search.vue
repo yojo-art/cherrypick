@@ -17,6 +17,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</MkSpacer>
 
+		<MkSpacer v-if="tab === 'anote'" key="anote" :contentMax="800">
+			<div v-if="advanccedNotesSearchAvailable">
+				<XAnote/>
+			</div>
+			<div v-else>
+				<MkInfo warn>{{ i18n.ts.notesAdvancedSearchNotAvailable }}</MkInfo>
+			</div>
+		</MkSpacer>
+
 		<MkSpacer v-else-if="tab === 'user'" key="user" :contentMax="800">
 			<XUser v-bind="props"/>
 		</MkSpacer>
@@ -32,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, defineAsyncComponent, ref, toRef } from 'vue';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
-import { notesSearchAvailable } from '@/scripts/check-permissions.js';
+import { notesSearchAvailable, advanccedNotesSearchAvailable } from '@/scripts/check-permissions.js';
 import MkInfo from '@/components/MkInfo.vue';
 import MkHorizontalSwipe from '@/components/MkHorizontalSwipe.vue';
 
@@ -41,7 +50,7 @@ const props = withDefaults(defineProps<{
 	userId?: string,
 	username?: string,
 	host?: string | null,
-	type?: 'note' | 'user',
+	type?: 'note' | 'user' | 'anote' | 'event',
 	origin?: 'combined' | 'local' | 'remote',
 	// For storybook only
 	ignoreNotesSearchAvailable?: boolean,
@@ -56,6 +65,7 @@ const props = withDefaults(defineProps<{
 });
 
 const XNote = defineAsyncComponent(() => import('./search.note.vue'));
+const XAnote = defineAsyncComponent(() => import('./search.anote.vue'));
 const XUser = defineAsyncComponent(() => import('./search.user.vue'));
 const XEvent = defineAsyncComponent(() => import('./search.event.vue'));
 
@@ -67,6 +77,10 @@ const headerTabs = computed(() => [{
 	key: 'note',
 	title: i18n.ts.notes,
 	icon: 'ti ti-pencil',
+}, {
+	key: 'anote',
+	title: i18n.ts.advancedNotes,
+	icon: 'ti ti-pencil-plus',
 }, {
 	key: 'user',
 	title: i18n.ts.users,
