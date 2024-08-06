@@ -88,9 +88,9 @@ export class ApOutboxFetchService implements OnModuleInit {
 		let nextUrl = outbox.first;
 		let created = 1;
 
-		for (let i = 0; i < pagelimit; i++){
+		for (let i = 0; i < pagelimit; i++) {
 			const collectionPage =	await _resolver.resolveOrderedCollectionPage(nextUrl);
-			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee','Object is not collectionPage');
+			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'Object is not collectionPage');
 
 			if (collectionPage.orderedItems.length === 0) {
 				break;
@@ -114,14 +114,14 @@ export class ApOutboxFetchService implements OnModuleInit {
 							//Announce対象
 							const targetUri =	getApId(activity.object);
 							if (targetUri.startsWith('bear:')) {
-								this.apLoggerService.logger.info('skip: bearcaps url not supported.')
+								this.apLoggerService.logger.info('skip: bearcaps url not supported.');
 								continue;
 							}
 							const target = await _resolver.resolve(activity.object);
 							const unlock = await this.appLockService.getApLock(uri);
 							try {
 								if (isPost(target) && target.id) {
-									if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))){
+									if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) {
 										continue;
 									}
 									const local = await this.apNoteService.fetchNote(targetUri);
@@ -129,7 +129,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 									if (!local) {
 										try {
 											renote = await this.apNoteService.resolveNote(target);
-											if (renote == null)  {
+											if (renote == null) {
 												this.apLoggerService.logger.info('announce target is null');
 											}
 										} catch (err) {
@@ -183,7 +183,6 @@ export class ApOutboxFetchService implements OnModuleInit {
 					} catch (err) {
 							this.apLoggerService.logger.warn('Outbox activity fetch error:' + err );
 							this.apLoggerService.logger.info(JSON.stringify(activity));
-
 						}
 				}
 			}
@@ -223,9 +222,9 @@ export class ApOutboxFetchService implements OnModuleInit {
 		let nextUrl = outbox.first;
 		let created = 1;
 
-		for (let i = 0; i < pagelimit; i++){
+		for (let i = 0; i < pagelimit; i++) {
 			const collectionPage =	await _resolver.resolveOrderedCollectionPage(nextUrl);
-			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee','Object is not collectionPage');
+			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'Object is not collectionPage');
 
 			if (collectionPage.orderedItems.length === 0) {
 				break;

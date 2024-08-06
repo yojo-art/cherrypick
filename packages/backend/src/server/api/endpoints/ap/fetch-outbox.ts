@@ -6,7 +6,7 @@
 import { Injectable } from '@nestjs/common';
 import ms from 'ms';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { ApOutboxFetchService } from '@/core/activitypub/models/ApOutboxFetchService.js'
+import { ApOutboxFetchService } from '@/core/activitypub/models/ApOutboxFetchService.js';
 import { ApiError } from '../../error.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 
@@ -78,7 +78,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.wait) {
 				try {
 				ps.includeAnnounce ?
-				await this.apOutboxFetchService.fetchOutboxWithAnnounce(ps.userId):
+				await this.apOutboxFetchService.fetchOutboxWithAnnounce(ps.userId) :
 				await this.apOutboxFetchService.fetchOutbox(ps.userId);
 				} catch (err) {
 					if (err instanceof IdentifiableError) {
@@ -90,7 +90,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 			} else {
 				ps.includeAnnounce ?
-				this.apOutboxFetchService.fetchOutboxWithAnnounce(ps.userId):
+				this.apOutboxFetchService.fetchOutboxWithAnnounce(ps.userId) :
 				this.apOutboxFetchService.fetchOutbox(ps.userId);
 			}
 		});
