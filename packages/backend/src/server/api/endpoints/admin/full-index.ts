@@ -12,6 +12,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireAdmin: true,
+	kind: 'write:admin:meta',
 } as const;
 
 export const paramDef = {
@@ -20,8 +21,7 @@ export const paramDef = {
 	},
 	required: [],
 } as const;
-
-// eslint-disable-next-line import/no-default-export
+ 
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(

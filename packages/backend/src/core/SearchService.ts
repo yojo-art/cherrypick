@@ -161,7 +161,6 @@ export class SearchService {
 		userId?: MiNote['userId'] | null;
 		channelId?: MiNote['channelId'] | null;
 		host?: string | null;
-		origin?: string | null;
 		fileOption?: string | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
@@ -177,11 +176,6 @@ export class SearchService {
 			if (pagination.sinceId) filter.qs.push({ op: '>', k: 'createdAt', v: this.idService.parse(pagination.sinceId).date.getTime() });
 			if (opts.userId) filter.qs.push({ op: '=', k: 'userId', v: opts.userId });
 			if (opts.channelId) filter.qs.push({ op: '=', k: 'channelId', v: opts.channelId });
-			if (opts.origin === 'local') {
-				filter.qs.push({ op: 'is null', k: 'userHost' });
-			} else if (opts.origin === 'remote') {
-				filter.qs.push({ op: 'is not null', k: 'userHost' });
-			}
 			if (opts.host) {
 				if (opts.host === '.') {
 					filter.qs.push({ op: 'is null', k: 'userHost' });
@@ -214,12 +208,6 @@ export class SearchService {
 			return notes.sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
-
-			if (opts.origin === 'local') {
-				query.andWhere('note.userHost IS NULL');
-			} else if (opts.origin === 'remote') {
-				query.andWhere('note.userHost IS NOT NULL');
-			}
 
 			if (opts.userId) {
 				query.andWhere('note.userId = :userId', { userId: opts.userId });

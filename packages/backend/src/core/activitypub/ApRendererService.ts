@@ -27,12 +27,11 @@ import type { MiUserKeypair } from '@/models/UserKeypair.js';
 import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
-import { isNotNull } from '@/misc/is-not-null.js';
 import { IdService } from '@/core/IdService.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
-import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IBlock, ICreate, IDelete, IFlag, IFollow, IKey, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
+import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
 export class ApRendererService {
@@ -322,7 +321,7 @@ export class ApRendererService {
 		const getPromisedFiles = async (ids: string[]): Promise<MiDriveFile[]> => {
 			if (ids.length === 0) return [];
 			const items = await this.driveFilesRepository.findBy({ id: In(ids) });
-			return ids.map(id => items.find(item => item.id === id)).filter(isNotNull);
+			return ids.map(id => items.find(item => item.id === id)).filter(x => x != null);
 		};
 
 		let inReplyTo;
@@ -719,8 +718,101 @@ export class ApRendererService {
 		if (names.length === 0) return [];
 
 		const allEmojis = await this.customEmojiService.localEmojisCache.fetch();
-		const emojis = names.map(name => allEmojis.get(name)).filter(isNotNull);
+		const emojis = names.map(name => allEmojis.get(name)).filter(x => x != null);
 
 		return emojis;
+	}
+
+	@bindThis
+	public async renderReversiInvite(game_session_id:string, invite_from:MiUser, invite_to:MiRemoteUser, invite_date:Date): Promise<IInvite> {
+		const game:IApReversi = {
+			type: 'Game',
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
+			game_state: {
+				game_session_id,
+			},
+		};
+		const activity: IInvite = {
+			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
+			actor: this.userEntityService.genLocalUserUri(invite_from.id),
+			type: 'Invite',
+			published: invite_date.toISOString(),
+			object: game,
+		};
+		activity.to = invite_to.uri;
+		activity.cc = [];
+
+		return activity;
+	}
+
+	@bindThis
+	public async renderReversiJoin(game_session_id:string, join_user:MiUser, invite_from:MiRemoteUser, join_date:Date): Promise<IJoin> {
+		const game:IApReversi = {
+			type: 'Game',
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
+			game_state: {
+				game_session_id,
+			},
+		};
+		const activity: IJoin = {
+			id: `${this.config.url}/games/${game.game_type_uuid}/${game_session_id}/activity`,
+			actor: this.userEntityService.genLocalUserUri(join_user.id),
+			type: 'Join',
+			published: join_date.toISOString(),
+			object: game,
+		};
+		activity.to = invite_from.uri;
+		activity.cc = [];
+
+		return activity;
+	}
+
+	@bindThis
+	public async renderReversiUpdate(local_user:MiUser, remote_user:MiRemoteUser,
+		game_state: {
+			game_session_id: string;
+			type:string;
+			pos?:number;//石配置
+			key?:string;//設定変更
+			value?:any;//設定変更
+			ready?:boolean;//ゲーム開始
+		},
+	) {
+		const game:IApReversi = {
+			type: 'Game',
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
+			game_state,
+		};
+		const activity: IUpdate = {
+			type: 'Update',
+			actor: this.userEntityService.genLocalUserUri(local_user.id),
+			object: game,
+		};
+		activity.to = remote_user.uri;
+		activity.cc = [];
+
+		return activity;
+	}
+
+	@bindThis
+	public async renderReversiLeave(local_user: MiUser, remote_user: MiRemoteUser, game_state: { game_session_id: string; }) {
+		const game:IApReversi = {
+			type: 'Game',
+			game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312',
+			extent_flags: [],
+			game_state,
+		};
+		const activity: ILeave = {
+			type: 'Leave',
+			actor: this.userEntityService.genLocalUserUri(local_user.id),
+			object: game,
+		};
+		activity.to = remote_user.uri;
+		activity.cc = [];
+
+		return activity;
 	}
 }

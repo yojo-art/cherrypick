@@ -97,7 +97,7 @@ const headerActions = computed(() => [deviceKind === 'desktop' && !props.disable
 	handler: () => {
 		flushNotification();
 	},
-}  : undefined].filter(x => x !== undefined));
+} : undefined].filter(x => x !== undefined));
 
 const headerTabs = computed(() => [{
 	key: 'all',
