@@ -474,6 +474,14 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: true,
 	},
+	confirmWhenRevealingSensitiveMedia: {
+		where: 'device',
+		default: false,
+	},
+	contextMenu: {
+		where: 'device',
+		default: 'app' as 'app' | 'appWithShift' | 'native',
+	},
 	showUnreadNotificationsCount: {
 		where: 'deviceAccount',
 		default: false,
@@ -514,10 +522,6 @@ export const defaultStore = markRaw(new Storage('base', {
 	sound_chatBg: {
 		where: 'device',
 		default: { type: 'syuilo/waon', volume: 1 } as SoundStore,
-	},
-	sound_antenna: {
-		where: 'device',
-		default: { type: 'syuilo/triple', volume: 1 } as SoundStore,
 	},
 	sound_reaction: {
 		where: 'device',

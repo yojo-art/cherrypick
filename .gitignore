@@ -36,8 +36,8 @@ coverage
 !/.config/docker_example.yml
 !/.config/docker_example.env
 compose.yml
-docker-compose.yml
-!/.devcontainer/docker-compose.yml
+.devcontainer/compose.yml
+!/.devcontainer/compose.yml
 
 # cherrypick
 os-data/
@@ -61,6 +61,7 @@ ormconfig.json
 temp
 /packages/frontend/src/**/*.stories.ts
 tsdoc-metadata.json
+misskey-assets
 
 # blender backups
 *.blend1
