@@ -7,12 +7,7 @@ Dockerfile
 build/
 built/
 db/
-<<<<<<< advancedsearch
-docker-compose.yml
-compose.yml
-=======
 .devcontainer/compose.yml
->>>>>>> develop
 node_modules/
 os-data/
 packages/*/node_modules
