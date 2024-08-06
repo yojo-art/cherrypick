@@ -23,10 +23,11 @@
 - Enhance: リバーシをリモートユーザーと対戦できるように [#271](https://github.com/yojo-art/cherrypick/pull/271)
 
 ### Client
--
+- Change: 高度な検索を別タブに分離
+- Enchance: 高度な検索でホスト名を指定できるように
 
 ### Server
--
+-	Enhance: 高度な検索に検索のオフセットを指定できるように
 
 ### Misc
 
