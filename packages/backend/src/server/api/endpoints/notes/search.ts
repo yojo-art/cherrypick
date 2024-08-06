@@ -67,12 +67,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (!policies.canSearchNotes) {
 				throw new ApiError(meta.errors.unavailable);
 			}
-
+			//originは使ってない。ps.hostが"."だと"local"扱いでnullだと"combined"扱いになる
 			const notes = await this.searchService.searchNote(ps.query, me, {
 				userId: ps.userId,
 				channelId: ps.channelId,
 				host: ps.host,
-				origin: ps.origin,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,

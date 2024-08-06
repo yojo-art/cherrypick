@@ -12,6 +12,7 @@ import {
 } from '@/core/entities/AbuseReportNotificationRecipientEntityService.js';
 import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationService.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
+import { UserSearchService } from '@/core/UserSearchService.js';
 import { AccountMoveService } from './AccountMoveService.js';
 import { AccountUpdateService } from './AccountUpdateService.js';
 import { AiService } from './AiService.js';
@@ -62,6 +63,7 @@ import { UserFollowingService } from './UserFollowingService.js';
 import { UserKeypairService } from './UserKeypairService.js';
 import { UserListService } from './UserListService.js';
 import { UserMutingService } from './UserMutingService.js';
+import { UserRenoteMutingService } from './UserRenoteMutingService.js';
 import { UserSuspendService } from './UserSuspendService.js';
 import { UserAuthService } from './UserAuthService.js';
 import { VideoProcessingService } from './VideoProcessingService.js';
@@ -212,6 +214,8 @@ const $UserFollowingService: Provider = { provide: 'UserFollowingService', useEx
 const $UserKeypairService: Provider = { provide: 'UserKeypairService', useExisting: UserKeypairService };
 const $UserListService: Provider = { provide: 'UserListService', useExisting: UserListService };
 const $UserMutingService: Provider = { provide: 'UserMutingService', useExisting: UserMutingService };
+const $UserRenoteMutingService: Provider = { provide: 'UserRenoteMutingService', useExisting: UserRenoteMutingService };
+const $UserSearchService: Provider = { provide: 'UserSearchService', useExisting: UserSearchService };
 const $UserSuspendService: Provider = { provide: 'UserSuspendService', useExisting: UserSuspendService };
 const $UserAuthService: Provider = { provide: 'UserAuthService', useExisting: UserAuthService };
 const $VideoProcessingService: Provider = { provide: 'VideoProcessingService', useExisting: VideoProcessingService };
@@ -366,6 +370,8 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		UserKeypairService,
 		UserListService,
 		UserMutingService,
+		UserRenoteMutingService,
+		UserSearchService,
 		UserSuspendService,
 		UserAuthService,
 		VideoProcessingService,
@@ -516,6 +522,8 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$UserKeypairService,
 		$UserListService,
 		$UserMutingService,
+		$UserRenoteMutingService,
+		$UserSearchService,
 		$UserSuspendService,
 		$UserAuthService,
 		$VideoProcessingService,
@@ -667,6 +675,8 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		UserKeypairService,
 		UserListService,
 		UserMutingService,
+		UserRenoteMutingService,
+		UserSearchService,
 		UserSuspendService,
 		UserAuthService,
 		VideoProcessingService,
@@ -816,6 +826,8 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$UserKeypairService,
 		$UserListService,
 		$UserMutingService,
+		$UserRenoteMutingService,
+		$UserSearchService,
 		$UserSuspendService,
 		$UserAuthService,
 		$VideoProcessingService,
