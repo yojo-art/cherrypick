@@ -112,6 +112,7 @@ import * as ep___antennas_show from './endpoints/antennas/show.js';
 import * as ep___antennas_update from './endpoints/antennas/update.js';
 import * as ep___ap_get from './endpoints/ap/get.js';
 import * as ep___ap_show from './endpoints/ap/show.js';
+import * as ep___ap_fetch_outbox from './endpoints/ap/fetch-outbox.js';
 import * as ep___app_create from './endpoints/app/create.js';
 import * as ep___app_show from './endpoints/app/show.js';
 import * as ep___auth_accept from './endpoints/auth/accept.js';
@@ -519,6 +520,7 @@ const $antennas_show: Provider = { provide: 'ep:antennas/show', useClass: ep___a
 const $antennas_update: Provider = { provide: 'ep:antennas/update', useClass: ep___antennas_update.default };
 const $ap_get: Provider = { provide: 'ep:ap/get', useClass: ep___ap_get.default };
 const $ap_show: Provider = { provide: 'ep:ap/show', useClass: ep___ap_show.default };
+const $ap_fetch_outbox: Provider = { provide: 'ep:ap/fetch-outbox', useClass: ep___ap_fetch_outbox.default };
 const $app_create: Provider = { provide: 'ep:app/create', useClass: ep___app_create.default };
 const $app_show: Provider = { provide: 'ep:app/show', useClass: ep___app_show.default };
 const $auth_accept: Provider = { provide: 'ep:auth/accept', useClass: ep___auth_accept.default };
@@ -931,6 +933,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$antennas_update,
 		$ap_get,
 		$ap_show,
+		$ap_fetch_outbox,
 		$app_create,
 		$app_show,
 		$auth_accept,
@@ -1336,6 +1339,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$antennas_update,
 		$ap_get,
 		$ap_show,
+		$ap_fetch_outbox,
 		$app_create,
 		$app_show,
 		$auth_accept,

@@ -40,7 +40,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
-import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
+import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isIOrderedCollectionPage, isAnnounce, isCreate, isNote, isPropertyValue, isPost } from '../type.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
@@ -397,6 +397,7 @@ export class ApPersonService implements OnModuleInit {
 					usernameLower: person.preferredUsername?.toLowerCase(),
 					host,
 					inbox: person.inbox,
+					outbox: typeof person.outbox === 'string' ? person.outbox : null,
 					sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox,
 					followersUri: person.followers ? getApId(person.followers) : undefined,
 					followersCount:
@@ -506,7 +507,14 @@ export class ApPersonService implements OnModuleInit {
 		//#endregion
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
-
+		//Outboxを取得
+		if (user.outbox && typeof user.outbox === 'string'){
+			try {
+				await this.getOutbox(user.id);
+			}	catch (err) {
+				this.logger.error('error occurred while fetching user outbox', { stack: err });
+			}
+		}
 		return user;
 	}
 
@@ -610,6 +618,7 @@ export class ApPersonService implements OnModuleInit {
 			lastFetchedAt: new Date(),
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox,
+			outbox: typeof person.outbox === 'string' ? person.outbox : null,
 			followersUri: person.followers ? getApId(person.followers) : undefined,
 			followersCount:
 				followersCount !== undefined
@@ -708,6 +717,14 @@ export class ApPersonService implements OnModuleInit {
 		);
 
 		await this.updateFeatured(exist.id, resolver).catch(err => this.logger.error(err));
+		//Outboxを取得
+		if (user.outbox && typeof user.outbox === 'string'){
+			try {
+				await this.getOutbox(user.id);
+			}	catch (err) {
+				this.logger.error('error occurred while fetching user outbox', { stack: err });
+			}
+		}
 
 		const updated = { ...exist, ...updates };
 
@@ -813,6 +830,52 @@ export class ApPersonService implements OnModuleInit {
 				});
 			}
 		});
+	}
+	/**
+	 * outboxからノートを取得します
+	 * Service依存関係でノートのみ。OutboxService.getOutboxはリノートも取得する
+	 */
+	@bindThis
+	public async getOutbox(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
+
+		const user = await this.usersRepository.findOneByOrFail({ id: userId }) as MiRemoteUser;
+		if (!user.outbox) return;
+		const	outboxUrl = user.outbox;
+
+		const meta = await this.metaService.fetch();
+		if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(outboxUrl))) return;
+
+		this.logger.info(`Fetcing the Outbox: ${outboxUrl}`);
+		const _resolver = resolver ?? this.apResolverService.createResolver();
+
+		const outbox = await _resolver.resolveCollection(outboxUrl);
+
+		if (outbox.type !== 'OrderedCollection') return;
+		if (!outbox.first) return;
+
+		const collectionPage =	await _resolver.resolveOrderedCollectionPage(outbox.first);
+		if (!isIOrderedCollectionPage(collectionPage)) throw new Error('Object is not collectionPage');
+
+		const activityes = collectionPage.orderedItems as any[];
+
+		for (const activity of activityes) {
+			//this.apLoggerService.logger.info(JSON.stringify(activity));
+			if (activity) {
+					try {
+							if (activity.type === 'Create' && activity.object) {
+								 if (isNote(activity.object)) {
+								await this.apNoteService.resolveNote(activity.object);
+							} else {
+							//this.apLoggerService.logger.warn('Outbox activity type is not create-note (type:' + activity.type + ')' );
+						}
+					}
+				} catch (err) {
+							this.apLoggerService.logger.warn('Outbox activity fetch error:' + err );
+						}
+				}
+		}
+		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
+
 	}
 
 	/**
