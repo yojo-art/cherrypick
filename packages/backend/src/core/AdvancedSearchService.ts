@@ -22,7 +22,7 @@ import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { isReply } from '@/misc/is-reply.js';
 import { DriveService } from './DriveService.js';
 
-type opensearchHits = {
+type openSearchHit = {
 	_index: string
 	_id: string
 	_score?: number
@@ -588,12 +588,12 @@ export class AdvancedSearchService {
 	): Promise<any[]> {
 		if (!this.opensearch) throw new Error();
 		let res = await this.opensearch.search(OpenSearchOption);
-		let notes = res.body.hits.hits as opensearchHits[];
+		let notes = res.body.hits.hits as openSearchHit[];
 
 		if (!notes || notes.length === 0) return [];
 		const FilterdNotes = notes.filter( Note => {//ミュートしてるかブロックされてるので見れない
 			if (Filter.includes(Note._source.userId) ) return false;
-			if (Note._source.referenceUserId){
+			if (Note._source.referenceUserId) {
 				if (Filter.includes(Note._source.referenceUserId)) return false;
 			}
 
@@ -617,9 +617,9 @@ export class AdvancedSearchService {
 		if (0 < (notes.length - FilterdNotes.length) && !(notes.length < OpenSearchOption.size)) {
 			retry = true;
 			if (untilAvail === 1) {
-				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } };
+				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1 ]._id).date.getTime() } } };
 			} else {
-				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } });
+				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes[notes.length -1 ]._id).date.getTime() } } });
 				untilAvail = 0;
 			}
 		}
@@ -627,13 +627,13 @@ export class AdvancedSearchService {
 		if (retry) {
 			for (let i = 0; i < retryLimit; i++) {
 				res = await this.opensearch.search(OpenSearchOption);
-				notes = res.body.hits.hits as opensearchHits[];
+				notes = res.body.hits.hits as openSearchHit[];
 
 				if (!notes || notes.length === 0) break;//これ以上探してもない
 
 				const Filterd = notes.filter( Note => {//ミュートしてるかブロックされてるので見れない
 					if (Filter.includes(Note._source.userId) ) return false;
-					if (Note._source.referenceUserId){
+					if (Note._source.referenceUserId) {
 						if (Filter.includes(Note._source.referenceUserId)) return false;
 					}
 
@@ -662,13 +662,12 @@ export class AdvancedSearchService {
 
 				//until指定
 				if (untilAvail === 1) {
-					OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } };
+					OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1 ]._id).date.getTime() } } };
 				} else {
-					OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1]._id).date.getTime() } } };
+					OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length -1 ]._id).date.getTime() } } };
 				}
 			}
 		}
 		return FilterdNotes;
 	}
-
 }
