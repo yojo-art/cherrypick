@@ -18,6 +18,7 @@ import { updateColumn, Column } from './deck-store.js';
 import XNotifications from '@/components/MkNotifications.vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
+import { flushNotification } from '@/scripts/check-nortification-delete.js';
 
 const props = defineProps<{
 	column: Column;
@@ -40,17 +41,6 @@ function func() {
 	});
 }
 
-async function flushNotification() {
-	const { canceled } = await os.confirm({
-		type: 'warning',
-		text: i18n.ts.resetAreYouSure,
-	});
-
-	if (canceled) return;
-
-	os.apiWithDialog('notifications/flush');
-}
-
 const menu = [{
 	icon: 'ti ti-pencil',
 	text: i18n.ts.notificationSetting,
@@ -58,6 +48,6 @@ const menu = [{
 }, {
 	icon: 'ti ti-trash',
 	text: i18n.ts.notificationFlush,
-	action: flushNotification,
+	action: flushNotification(),
 }];
 </script>
