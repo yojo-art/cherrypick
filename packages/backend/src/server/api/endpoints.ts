@@ -117,6 +117,7 @@ import * as ep___antennas_show from './endpoints/antennas/show.js';
 import * as ep___antennas_update from './endpoints/antennas/update.js';
 import * as ep___ap_get from './endpoints/ap/get.js';
 import * as ep___ap_show from './endpoints/ap/show.js';
+import * as ep___ap_fetch_outbox from './endpoints/ap/fetch-outbox.js';
 import * as ep___app_create from './endpoints/app/create.js';
 import * as ep___app_show from './endpoints/app/show.js';
 import * as ep___auth_accept from './endpoints/auth/accept.js';
@@ -522,6 +523,7 @@ const eps = [
 	['antennas/update', ep___antennas_update],
 	['ap/get', ep___ap_get],
 	['ap/show', ep___ap_show],
+	['ap/fetch-outbox', ep___ap_fetch_outbox],
 	['app/create', ep___app_create],
 	['app/show', ep___app_show],
 	['auth/accept', ep___auth_accept],
