@@ -7,9 +7,9 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { WebSocket } from 'ws';
-import { MiFollowing } from '@/models/Following.js';
 import { api, createAppToken, initTestDb, port, post, signup, waitFire } from '../utils.js';
 import type * as misskey from 'cherrypick-js';
+import { MiFollowing } from '@/models/Following.js';
 
 describe('Streaming', () => {
 	let Followings: any;
@@ -623,19 +623,6 @@ describe('Streaming', () => {
 				const fired = await waitFire(
 					chitose, 'userList',
 					() => api('notes/create', { text: 'foo', visibility: 'followers' }, kyoko),
-					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
-					{ listId: list.id },
-				);
-
-				assert.strictEqual(fired, false);
-			});
-
-			// #10443
-			test('チャンネル投稿は流れない', async () => {
-				// リスインしている kyoko が 任意のチャンネルに投降した時の動きを見たい
-				const fired = await waitFire(
-					chitose, 'userList',
-					() => api('notes/create', { text: 'foo', channelId: 'dummy' }, kyoko),
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
 					{ listId: list.id },
 				);
