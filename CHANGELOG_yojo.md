@@ -26,7 +26,7 @@
 - Enhance: 個別に通知を削除できるように
 
 ### Server
--
+- Change: redisForRemoteClipsをredisForRemoteApisに変更
 
 ### Misc
 
