@@ -53,8 +53,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private clipsRepository: ClipsRepository,
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
-		@Inject(DI.redisForRemoteClips)
-		private redisForRemoteClips: Redis.Redis,
+		@Inject(DI.redisForRemoteApis)
+		private redisForRemoteApis: Redis.Redis,
 
 		private httpRequestService: HttpRequestService,
 		private userEntityService: UserEntityService,
@@ -67,7 +67,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const user = await this.usersRepository.findOneBy(q);
 			if (user === null) return [];
 			if (userEntityService.isRemoteUser(user)) {
-				return remote(config, httpRequestService, redisForRemoteClips, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
+				return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
 			}
 			const query = this.queryService.makePaginationQuery(this.clipsRepository.createQueryBuilder('clip'), ps.sinceId, ps.untilId)
 				.andWhere('clip.userId = :userId', { userId: ps.userId })
@@ -85,7 +85,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 async function remote(
 	config:Config,
 	httpRequestService: HttpRequestService,
-	redisForRemoteClips: Redis.Redis,
+	redisForRemoteApis: Redis.Redis,
 	userEntityService: UserEntityService,
 	user:MiUser,
 	limit:number,
@@ -93,7 +93,7 @@ async function remote(
 	untilId:string|undefined,
 ) {
 	const cache_key = user.id + '-' + sinceId + '-' + untilId + '-clips';
-	const cache_value = await redisForRemoteClips.get(cache_key);
+	const cache_value = await redisForRemoteApis.get(cache_key);
 	if (cache_value !== null) {
 		//ステータス格納
 		if (cache_value.startsWith('__')) {
@@ -107,7 +107,7 @@ async function remote(
 		//ローカルユーザーではない
 		return [];
 	}
-	const remote_user_id = await fetch_remote_user(config, httpRequestService, redisForRemoteClips, user.username, user.host);
+	const remote_user_id = await fetch_remote_user(config, httpRequestService, redisForRemoteApis, user.username, user.host);
 	if (remote_user_id === null) {
 		return [];
 	}
@@ -130,20 +130,22 @@ async function remote(
 		});
 		clips.push(clip);
 	}
-	await redisForRemoteClips.set(cache_key, JSON.stringify(clips));
-	await redisForRemoteClips.expire(cache_key, 10 * 60);
+	const redisPipeline = redisForRemoteApis.pipeline();
+	redisPipeline.set(cache_key, JSON.stringify(clips));
+	redisPipeline.expire(cache_key, 10 * 60);
+	await redisPipeline.exec();
 	return clips;
 }
 
 async function fetch_remote_user(
 	config:Config,
 	httpRequestService: HttpRequestService,
-	redisForRemoteClips: Redis.Redis,
+	redisForRemoteApis: Redis.Redis,
 	username:string,
 	host:string,
 ) {
 	const cache_key = username + '@' + host + '-userid';
-	const id = await redisForRemoteClips.get(cache_key);
+	const id = await redisForRemoteApis.get(cache_key);
 	if (id !== null) {
 		if (id === '__NOT_MISSKEY') {
 			return null;
@@ -187,12 +189,14 @@ async function fetch_remote_user(
 		const text = await res.text();
 		const json = JSON.parse(text);
 		if (json.id != null) {
-			redisForRemoteClips.set(cache_key, json.id);
+			redisForRemoteApis.set(cache_key, json.id);
 			return json.id as string;
 		}
 	} catch {
-		redisForRemoteClips.set(cache_key, '__INTERVAL');
-		await redisForRemoteClips.expire(cache_key, 60 * 60);
+		const redisPipeline = redisForRemoteApis.pipeline();
+		redisPipeline.set(cache_key, '__INTERVAL');
+		redisPipeline.expire(cache_key, 60 * 60);
+		await redisPipeline.exec();
 	}
 	return null;
 }

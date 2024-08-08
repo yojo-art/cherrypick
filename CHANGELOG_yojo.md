@@ -26,7 +26,8 @@
 - Enhance: 個別に通知を削除できるように
 
 ### Server
--
+- Change: redisForRemoteClipsをredisForRemoteApisに変更
+  - ./config/default.ymlファイルの変更が必要です
 
 ### Misc
 

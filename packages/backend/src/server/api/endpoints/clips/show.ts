@@ -64,8 +64,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private config: Config,
 		@Inject(DI.clipsRepository)
 		private clipsRepository: ClipsRepository,
-		@Inject(DI.redisForRemoteClips)
-		private redisForRemoteClips: Redis.Redis,
+		@Inject(DI.redisForRemoteApis)
+		private redisForRemoteApis: Redis.Redis,
 
 		private httpRequestService: HttpRequestService,
 		private userEntityService: UserEntityService,
@@ -77,7 +77,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (parsed_id.length === 2 ) {//is remote
 				const url = 'https://' + parsed_id[1] + '/api/clips/show';
 				console.log(url);
-				return remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteClips, url, parsed_id[0], parsed_id[1], ps.clipId);
+				return remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteApis, url, parsed_id[0], parsed_id[1], ps.clipId);
 			}
 			if (parsed_id.length !== 1 ) {//is not local
 				throw new ApiError(meta.errors.invalidIdFormat);
@@ -105,14 +105,14 @@ async function remote(
 	httpRequestService: HttpRequestService,
 	userEntityService: UserEntityService,
 	remoteUserResolveService: RemoteUserResolveService,
-	redisForRemoteClips: Redis.Redis,
+	redisForRemoteApis: Redis.Redis,
 	url:string,
 	clipId:string,
 	host:string,
 	local_id:string,
 ) {
 	const cache_key = local_id + '-info';
-	const cache_value = await redisForRemoteClips.get(cache_key);
+	const cache_value = await redisForRemoteApis.get(cache_key);
 	let remote_json = null;
 	if (cache_value === null) {
 		const timeout = 30 * 1000;
@@ -145,8 +145,10 @@ async function remote(
 			}),
 		});
 		remote_json = await res.text();
-		redisForRemoteClips.set(cache_key, remote_json);
-		redisForRemoteClips.expire(cache_key, 10 * 60);
+		const redisPipeline = redisForRemoteApis.pipeline();
+		redisPipeline.set(cache_key, remote_json);
+		redisPipeline.expire(cache_key, 10 * 60);
+		await redisPipeline.exec();
 	} else {
 		remote_json = cache_value;
 	}
