@@ -27,6 +27,7 @@
 
 ### Server
 - Change: redisForRemoteClipsをredisForRemoteApisに変更
+  - ./config/default.ymlファイルの変更が必要です
 
 ### Misc
 
