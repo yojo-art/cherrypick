@@ -158,12 +158,13 @@ async function remote(
 	sinceId:string|undefined,
 	untilId:string|undefined,
 ) {
-	const cache_key = local_id + '-' + (sinceId ? sinceId : '') + '-' + (untilId ? untilId : '') + limit;
+	const cache_key = 'clip:notes:' + local_id + '-' + (sinceId ? sinceId : '') + '-' + (untilId ? untilId : '') + '-' + limit;
 	const cache_value = await redisForRemoteApis.get(cache_key);
 	let remote_json = null;
 	if (cache_value === null) {
-		const sinceIdRemote = sinceId ? await redisForRemoteApis.get(sinceId + '@' + host) : undefined;
-		const untilIdRemote = untilId ? await redisForRemoteApis.get(untilId + '@' + host) : undefined;
+		//リモートのノートIDを対応するローカルのノートIDに解決する
+		const sinceIdRemote = sinceId ? await redisForRemoteApis.get('local-noteId:' + sinceId + '@' + host) : undefined;
+		const untilIdRemote = untilId ? await redisForRemoteApis.get('local-noteId:' + untilId + '@' + host) : undefined;
 		const timeout = 30 * 1000;
 		const operationTimeout = 60 * 1000;
 		const res = got.post(url, {
@@ -262,7 +263,7 @@ async function remoteNote(
 		return null;
 	}
 	if (note !== null) {
-		redisForRemoteApis.set(note.id + '@' + host, remote_note_id);
+		redisForRemoteApis.set('local-noteId:' + note.id + '@' + host, remote_note_id);
 		return {
 			note,
 			is_create,

@@ -92,7 +92,7 @@ async function remote(
 	sinceId:string|undefined,
 	untilId:string|undefined,
 ) {
-	const cache_key = user.id + '-' + sinceId + '-' + untilId + '-clips';
+	const cache_key = 'clip:user:' + user.id + '-' + sinceId + '-' + untilId;
 	const cache_value = await redisForRemoteApis.get(cache_key);
 	if (cache_value !== null) {
 		//ステータス格納
@@ -107,7 +107,7 @@ async function remote(
 		//ローカルユーザーではない
 		return [];
 	}
-	const remote_user_id = await fetch_remote_user(config, httpRequestService, redisForRemoteApis, user.username, user.host);
+	const remote_user_id = await fetch_remote_user(config, httpRequestService, redisForRemoteApis, user.username, user.host, user);
 	if (remote_user_id === null) {
 		return [];
 	}
@@ -143,8 +143,10 @@ async function fetch_remote_user(
 	redisForRemoteApis: Redis.Redis,
 	username:string,
 	host:string,
+	user:MiUser,
 ) {
-	const cache_key = username + '@' + host + '-userid';
+	//ローカルのIDからリモートのIDを割り出す
+	const cache_key = 'remote-userId:' + user.id;
 	const id = await redisForRemoteApis.get(cache_key);
 	if (id !== null) {
 		if (id === '__NOT_MISSKEY') {

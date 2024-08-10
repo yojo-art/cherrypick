@@ -111,7 +111,7 @@ async function remote(
 	host:string,
 	local_id:string,
 ) {
-	const cache_key = local_id + '-info';
+	const cache_key = 'clip:show:' + local_id;
 	const cache_value = await redisForRemoteApis.get(cache_key);
 	let remote_json = null;
 	if (cache_value === null) {
