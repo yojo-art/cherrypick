@@ -118,7 +118,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 			if (activity) {
 				try {
 					if (isAnnounce(activity)) {
-						if (!includeAnnounce) continue;
+						if (includeAnnounce === false) continue;
 						const uri = getApId(activity);
 						const announceLocal = await this.apNoteService.fetchNote(uri);
 						if (announceLocal) continue;
@@ -137,32 +137,13 @@ export class ApOutboxFetchService implements OnModuleInit {
 						const target = await Resolver.resolve(activity.object);
 						const unlock = await this.appLockService.getApLock(uri);
 						try {
-							if (isPost(target) && target.id) {
-								if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) {
-									continue;
-								}
-								const local = await this.apNoteService.fetchNote(targetUri);
-								if (!local) {
-									let renote;
-									try {
-										renote = await this.apNoteService.resolveNote(target);
-										if (renote == null) {
-											this.apLoggerService.logger.info('announce target is null');
-											continue;
-										}
-									} catch (err) {
-										// 対象が4xxならスキップ
-										if (err instanceof StatusError) {
-											if (!err.isRetryable) {
-												this.apLoggerService.logger.info(`Ignored announce target ${target.id} - ${err.statusCode}`);
-											}
-											this.apLoggerService.logger.info(`Error in announce target ${target.id} - ${err.statusCode}`);
-										}
-										throw err;
-									}
-
-									if (!await this.noteEntityService.isVisibleForMe(renote, user.id)) {
-										this.apLoggerService.logger.info('skip: invalid actor for this activity');
+							if (isPost(target)) {
+								if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) continue;
+								let renote;
+								try {
+									renote = await this.apNoteService.resolveNote(targetUri);
+									if (renote == null) {
+										this.apLoggerService.logger.info('announce target is null');
 										continue;
 									}
 									this.logger.info(`Creating the (Re)Note: ${uri}`);
@@ -174,7 +155,10 @@ export class ApOutboxFetchService implements OnModuleInit {
 										this.apLoggerService.logger.info('skip: malformed createdAt');
 										continue;
 									}
-
+									if (!await this.noteEntityService.isVisibleForMe(renote, user.id)) {
+										this.apLoggerService.logger.info('skip: invalid actor for this activity');
+										continue;
+									}
 									await this.noteCreateService.create(user, {
 										createdAt,
 										renote,
@@ -183,6 +167,16 @@ export class ApOutboxFetchService implements OnModuleInit {
 										uri,
 									});
 									created++;
+									continue;
+								} catch (err) {
+									// 対象が4xxならスキップ
+									if (err instanceof StatusError) {
+										if (!err.isRetryable) {
+											this.apLoggerService.logger.info(`Ignored announce target ${target.id} - ${err.statusCode}`);
+										}
+										this.apLoggerService.logger.info(`Error in announce target ${target.id} - ${err.statusCode}`);
+									}
+									throw err;
 								}
 							}
 						}	finally {
