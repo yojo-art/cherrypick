@@ -7,8 +7,8 @@ import { Injectable } from '@nestjs/common';
 import ms from 'ms';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { ApOutboxFetchService } from '@/core/activitypub/models/ApOutboxFetchService.js';
-import { ApiError } from '../../error.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { ApiError } from '../../error.js';
 
 export const meta = {
 	tags: ['federation'],
@@ -71,9 +71,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			if (ps.wait) {
 				try {
-				ps.includeAnnounce ?
-				await this.apOutboxFetchService.fetchOutboxWithAnnounce(ps.userId) :
-				await this.apOutboxFetchService.fetchOutbox(ps.userId);
+					ps.includeAnnounce ?
+						await this.apOutboxFetchService.fetchOutbox(ps.userId, true) :
+						await this.apOutboxFetchService.fetchOutbox(ps.userId, false);
 				} catch (err) {
 					if (err instanceof IdentifiableError) {
 						if (err.id === '3fc5a089-cab4-48db-b9f3-f220574b3c0a') throw new ApiError(meta.errors.noSuchUser);
@@ -84,8 +84,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 			} else {
 				ps.includeAnnounce ?
-				this.apOutboxFetchService.fetchOutboxWithAnnounce(ps.userId) :
-				this.apOutboxFetchService.fetchOutbox(ps.userId);
+					this.apOutboxFetchService.fetchOutbox(ps.userId, true) :
+					this.apOutboxFetchService.fetchOutbox(ps.userId, false);
 			}
 		});
 	}
