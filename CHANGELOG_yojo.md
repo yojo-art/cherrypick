@@ -24,6 +24,7 @@
 
 ### Client
 - Enhance: 個別に通知を削除できるように
+- Fix: ページ遷移に失敗することがある問題を修正
 
 ### Server
 - Change: redisForRemoteClipsをredisForRemoteApisに変更
