@@ -117,10 +117,10 @@ const $redisForTimelines: Provider = {
 	},
 	inject: [DI.config],
 };
-const $redisForRemoteClips: Provider = {
-	provide: DI.redisForRemoteClips,
+const $redisForRemoteApis: Provider = {
+	provide: DI.redisForRemoteApis,
 	useFactory: (config: Config) => {
-		return new Redis.Redis(config.redisForRemoteClips);
+		return new Redis.Redis(config.redisForRemoteApis);
 	},
 	inject: [DI.config],
 };
@@ -140,8 +140,8 @@ const $redisForJobQueue: Provider = {
 @Global()
 @Module({
 	imports: [RepositoryModule],
-	providers: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, $redisForRemoteClips],
-	exports: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, $redisForRemoteClips, RepositoryModule],
+	providers: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, $redisForRemoteApis],
+	exports: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, $redisForRemoteApis, RepositoryModule],
 })
 export class GlobalModule implements OnApplicationShutdown {
 	constructor(
@@ -151,7 +151,7 @@ export class GlobalModule implements OnApplicationShutdown {
 		@Inject(DI.redisForSub) private redisForSub: Redis.Redis,
 		@Inject(DI.redisForTimelines) private redisForTimelines: Redis.Redis,
 		@Inject(DI.redisForJobQueue) private redisForJobQueue: Redis.Redis,
-		@Inject(DI.redisForRemoteClips) private redisForRemoteClips: Redis.Redis,
+		@Inject(DI.redisForRemoteApis) private redisForRemoteApis: Redis.Redis,
 	) { }
 
 	public async dispose(): Promise<void> {
@@ -165,7 +165,7 @@ export class GlobalModule implements OnApplicationShutdown {
 			this.redisForSub.disconnect(),
 			this.redisForTimelines.disconnect(),
 			this.redisForJobQueue.disconnect(),
-			this.redisForRemoteClips.disconnect(),
+			this.redisForRemoteApis.disconnect(),
 		]);
 	}
 

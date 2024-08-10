@@ -175,7 +175,7 @@ redis:
 #  # You can specify more ioredis options...
 #  #username: example-username
 
-#redisForRemoteClips:
+#redisForRemoteApis:
 #  host: localhost
 #  port: 6379
 #  #family: 0  # 0=Both, 4=IPv4, 6=IPv6
