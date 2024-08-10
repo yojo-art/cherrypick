@@ -13,7 +13,6 @@ export const meta = {
 	requireCredential: true,
 	requireAdmin: true,
 	kind: 'write:admin:reindex',
-
 } as const;
 
 export const paramDef = {
