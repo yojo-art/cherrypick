@@ -12,7 +12,7 @@ import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 import { MiNote } from '@/models/Note.js';
 import { MiUser } from '@/models/_.js';
-import type { NotesRepository } from '@/models/_.js';
+import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
@@ -20,8 +20,8 @@ import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { isReply } from '@/misc/is-reply.js';
-import { DriveService } from './DriveService.js';
 import type Logger from '@/logger.js';
+import { DriveService } from './DriveService.js';
 
 type OpenSearchHit = {
 	_index: string
@@ -94,6 +94,9 @@ export class AdvancedSearchService {
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
+
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
 
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
@@ -360,12 +363,23 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
-			if (opts.userId) osFilter.bool.must.push({ term: { userId: opts.userId } });
-			if (opts.host) {
-				if (opts.host === '.') {
-					osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
-				} else {
-					osFilter.bool.must.push({ term: { userHost: opts.host } });
+			if (opts.userId) {
+				osFilter.bool.must.push({ term: { userId: opts.userId } });
+				const user = await this.usersRepository.findOneBy({ id: opts.userId });
+				if (user) {
+					if (user.host) {
+						osFilter.bool.must.push({ term: { userHost: user.host } });
+					} else {
+						osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
+					}
+				}
+			} else {
+				if (opts.host) {
+					if (opts.host === '.') {
+						osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
+					} else {
+						osFilter.bool.must.push({ term: { userHost: opts.host } });
+					}
 				}
 			}
 			if (opts.origin) {
