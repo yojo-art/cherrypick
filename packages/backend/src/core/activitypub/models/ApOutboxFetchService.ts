@@ -139,9 +139,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 						try {
 							if (isPost(target)) {
 								if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) continue;
-								let renote;
 								try {
-									renote = await this.apNoteService.resolveNote(targetUri);
+									const	renote = await this.apNoteService.resolveNote(targetUri);
 									if (renote == null) {
 										this.apLoggerService.logger.info('announce target is null');
 										continue;
