@@ -11794,6 +11794,16 @@ export interface Locale extends ILocale {
          */
         "diceFaces": string;
     };
+    "_deleteConfirm": {
+        /**
+         * 削除する
+         */
+        "delete": string;
+        /**
+         * 通知を削除しますか？
+         */
+        "notificationDeleteTitle": string;
+    };
 }
 declare const locales: {
     [lang: string]: Locale;

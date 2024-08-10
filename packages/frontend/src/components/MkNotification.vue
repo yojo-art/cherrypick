@@ -65,6 +65,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<span v-else-if="notification.type === 'renote:grouped'">{{ i18n.tsx._notification.renotedBySomeUsers({ n: notification.users.length }) }}</span>
 			<span v-else-if="notification.type === 'app'">{{ notification.header }}</span>
 			<MkTime v-if="withTime" :time="notification.createdAt" :class="$style.headerTime" :mode="defaultStore.state.enableAbsoluteTime ? 'absolute' : 'relative'"/>
+			<div>
+				<button class="_button" :class="$style.headerDelete" @click.stop="notificationDelete()">
+					<i class="ti ti-bell-x"></i>
+				</button>
+			</div>
 		</header>
 		<div>
 			<MkA v-if="notification.type === 'reaction' || notification.type === 'reaction:grouped'" :class="$style.text" :to="notePage(notification.note)" :title="getNoteSummary(notification.note)">
@@ -176,6 +181,10 @@ const props = withDefaults(defineProps<{
 const followRequestDone = ref(false);
 const groupInviteDone = ref(false);
 
+const notificationDelete = () => {
+	misskeyApi('notifications/delete', { notificationId: props.notification.id });
+};
+
 const acceptFollowRequest = () => {
 	if (!('user' in props.notification)) return;
 	followRequestDone.value = true;
@@ -196,11 +205,13 @@ function getActualReactedUsersCount(notification: Misskey.entities.Notification)
 const acceptGroupInvitation = () => {
 	groupInviteDone.value = true;
 	misskeyApi('users/groups/invitations/accept', { invitationId: props.notification.invitation.id });
+	misskeyApi('notifications/delete', { notificationId: props.notification.id });
 };
 
 const rejectGroupInvitation = () => {
 	groupInviteDone.value = true;
 	misskeyApi('users/groups/invitations/reject', { invitationId: props.notification.invitation.id });
+	misskeyApi('notifications/delete', { notificationId: props.notification.id });
 };
 </script>
 
@@ -348,6 +359,10 @@ const rejectGroupInvitation = () => {
 .headerTime {
 	margin-left: auto;
 	font-size: 0.9em;
+}
+
+.headerDelete {
+	margin-left: auto;
 }
 
 .text {
