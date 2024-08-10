@@ -19,7 +19,7 @@ import { AppLockService } from '@/core/AppLockService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
-import { getApId, isIOrderedCollectionPage, isAnnounce, isCreate, isNote, isPost } from '../type.js';
+import { getApId, isIOrderedCollectionPage, isAnnounce, isCreate, isNote, isPost, ApObject, IObject } from '../type.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
@@ -77,10 +77,10 @@ export class ApOutboxFetchService implements OnModuleInit {
 		if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(outboxUrl))) return;
 
 		this.logger.info(`Fetcing the Outbox: ${outboxUrl}`);
-		const _resolver = resolver ?? this.apResolverService.createResolver();
+		const Resolver = resolver ?? this.apResolverService.createResolver();
 
 		// Resolve to (Ordered)Collection Object
-		const outbox = await _resolver.resolveCollection(outboxUrl);
+		const outbox = await Resolver.resolveCollection(outboxUrl);
 
 		if (outbox.type !== 'OrderedCollection') throw new IdentifiableError('0be2f5a1-2345-46d8-b8c3-430b111c68d3', 'outbox type is not OrderedCollection');
 		if (!outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
@@ -89,107 +89,15 @@ export class ApOutboxFetchService implements OnModuleInit {
 		let created = 1;
 
 		for (let i = 0; i < pagelimit; i++) {
-			const collectionPage =	await _resolver.resolveOrderedCollectionPage(nextUrl);
+			const collectionPage =	await Resolver.resolveOrderedCollectionPage(nextUrl);
 			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'Object is not collectionPage');
 
 			if (collectionPage.orderedItems.length === 0) {
 				break;
 			}
+
 			const activityes = collectionPage.orderedItems as any[];
-
-			for (const activity of activityes) {
-				if (created > createLimit) break;
-				if (activity) {
-					try {
-						if (isAnnounce(activity)) {
-							if (!includeAnnounce) continue;
-							const uri = getApId(activity);
-							const announceLocal = await this.apNoteService.fetchNote(uri);
-							if (announceLocal) { continue;}
-
-							if (!activity.object) {
-								this.apLoggerService.logger.info('skip: activity has no object property');
-								continue;
-							}
-							//From ApInboxService.Announce
-							//Announce対象
-							const targetUri =	getApId(activity.object);
-							if (targetUri.startsWith('bear:')) {
-								this.apLoggerService.logger.info('skip: bearcaps url not supported.');
-								continue;
-							}
-							const target = await _resolver.resolve(activity.object);
-							const unlock = await this.appLockService.getApLock(uri);
-							try {
-								if (isPost(target) && target.id) {
-									if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) {
-										continue;
-									}
-									const local = await this.apNoteService.fetchNote(targetUri);
-									if (!local) {
-										let renote;
-										try {
-											renote = await this.apNoteService.resolveNote(target);
-											if (renote == null) {
-												this.apLoggerService.logger.info('announce target is null');
-												continue;
-											}
-										} catch (err) {
-											// 対象が4xxならスキップ
-											if (err instanceof StatusError) {
-												if (!err.isRetryable) {
-													this.apLoggerService.logger.info(`Ignored announce target ${target.id} - ${err.statusCode}`);
-												}
-												this.apLoggerService.logger.info(`Error in announce target ${target.id} - ${err.statusCode}`);
-											}
-											throw err;
-										}
-
-										if (!await this.noteEntityService.isVisibleForMe(renote, user.id)) {
-											this.apLoggerService.logger.info('skip: invalid actor for this activity');
-											continue;
-										}
-										this.logger.info(`Creating the (Re)Note: ${uri}`);
-
-										const activityAudience = await this.apAudienceService.parseAudience(user, activity.to, activity.cc);
-										const createdAt = activity.published ? new Date(activity.published) : null;
-
-										if (createdAt && createdAt < this.idService.parse(renote.id).date) {
-											this.apLoggerService.logger.info('skip: malformed createdAt');
-											continue;
-										}
-
-										await this.noteCreateService.create(user, {
-											createdAt,
-											renote,
-											visibility: activityAudience.visibility,
-											visibleUsers: activityAudience.visibleUsers,
-											uri,
-										});
-										created++;
-									}
-								}
-							}	finally {
-								unlock();
-							}
-						} else if (isNote(activity.object)) {
-							const id = getApId(activity.object);
-							const local = await this.apNoteService.fetchNote(id);
-							if (local) {
-								continue;
-							}
-							await this.apNoteService.createNote(id);
-							created++;
-						} else {
-							this.apLoggerService.logger.warn('Outbox activity type is not announce or create-note (type:' + activity.type + ')' );
-						}
-					} catch (err) {
-						this.apLoggerService.logger.warn('Outbox activity fetch error:' + err );
-						this.apLoggerService.logger.info(JSON.stringify(activity));
-					}
-				}
-			}
-
+			created = await	this.fetchObjects(activityes, created, includeAnnounce, outboxUrl, user, Resolver);
 			if (created > createLimit) break;
 			nextUrl = collectionPage.next;
 			if (!nextUrl) {
@@ -198,5 +106,105 @@ export class ApOutboxFetchService implements OnModuleInit {
 		}
 		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
 		//this.logger.info(`Outbox Fetced last: ${nextUrl}`);
+	}
+
+	@bindThis
+	private async fetchObjects(activityes: any[], created: number, includeAnnounce:boolean, outboxUrl: string, user:MiRemoteUser, resolver?: Resolver): Promise<number> {
+		const Resolver = resolver ?? this.apResolverService.createResolver();
+		const meta = await this.metaService.fetch();
+
+		for (const activity of activityes) {
+			if (created > createLimit) break;
+			if (activity) {
+				try {
+					if (isAnnounce(activity)) {
+						if (!includeAnnounce) continue;
+						const uri = getApId(activity);
+						const announceLocal = await this.apNoteService.fetchNote(uri);
+						if (announceLocal) continue;
+
+						if (!activity.object) {
+							this.apLoggerService.logger.info('skip: activity has no object property');
+							continue;
+						}
+						//From ApInboxService.Announce
+						//Announce対象
+						const targetUri =	getApId(activity.object);
+						if (targetUri.startsWith('bear:')) {
+							this.apLoggerService.logger.info('skip: bearcaps url not supported.');
+							continue;
+						}
+						const target = await Resolver.resolve(activity.object);
+						const unlock = await this.appLockService.getApLock(uri);
+						try {
+							if (isPost(target) && target.id) {
+								if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) {
+									continue;
+								}
+								const local = await this.apNoteService.fetchNote(targetUri);
+								if (!local) {
+									let renote;
+									try {
+										renote = await this.apNoteService.resolveNote(target);
+										if (renote == null) {
+											this.apLoggerService.logger.info('announce target is null');
+											continue;
+										}
+									} catch (err) {
+										// 対象が4xxならスキップ
+										if (err instanceof StatusError) {
+											if (!err.isRetryable) {
+												this.apLoggerService.logger.info(`Ignored announce target ${target.id} - ${err.statusCode}`);
+											}
+											this.apLoggerService.logger.info(`Error in announce target ${target.id} - ${err.statusCode}`);
+										}
+										throw err;
+									}
+
+									if (!await this.noteEntityService.isVisibleForMe(renote, user.id)) {
+										this.apLoggerService.logger.info('skip: invalid actor for this activity');
+										continue;
+									}
+									this.logger.info(`Creating the (Re)Note: ${uri}`);
+
+									const activityAudience = await this.apAudienceService.parseAudience(user, activity.to, activity.cc);
+									const createdAt = activity.published ? new Date(activity.published) : null;
+
+									if (createdAt && createdAt < this.idService.parse(renote.id).date) {
+										this.apLoggerService.logger.info('skip: malformed createdAt');
+										continue;
+									}
+
+									await this.noteCreateService.create(user, {
+										createdAt,
+										renote,
+										visibility: activityAudience.visibility,
+										visibleUsers: activityAudience.visibleUsers,
+										uri,
+									});
+									created++;
+								}
+							}
+						}	finally {
+							unlock();
+						}
+					} else if (isNote(activity.object)) {
+						const id = getApId(activity.object);
+						const local = await this.apNoteService.fetchNote(id);
+						if (local) {
+							continue;
+						}
+						await this.apNoteService.createNote(id);
+						created++;
+					} else {
+						this.apLoggerService.logger.warn('Outbox activity type is not announce or create-note (type:' + activity.type + ')' );
+					}
+				} catch (err) {
+					this.apLoggerService.logger.warn('Outbox activity fetch error:' + err );
+					this.apLoggerService.logger.info(JSON.stringify(activity));
+				}
+			}
+		}
+		return created;
 	}
 }

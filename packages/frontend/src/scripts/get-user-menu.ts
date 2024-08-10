@@ -147,8 +147,8 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 	async function userFetchOutbox() {
 		os.apiWithDialog('ap/fetch-outbox', {
 			userId: user.id,
-			wait:true,
-			includeAnnounce:true,
+			wait: true,
+			includeAnnounce: true,
 		});
 	}
 
