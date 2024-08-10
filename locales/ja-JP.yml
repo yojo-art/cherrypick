@@ -3150,3 +3150,7 @@ _dice:
   rollDice: "サイコロを振る"
   diceCount: "サイコロの数"
   diceFaces: "サイコロの面数"
+
+_deleteConfirm:
+  delete: "削除する"
+  notificationDeleteTitle: "通知を削除しますか？"

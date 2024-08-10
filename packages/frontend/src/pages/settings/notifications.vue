@@ -71,6 +71,7 @@ import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
 import { notificationTypes } from '@/const.js';
+import { flushNotification } from '@/scripts/check-nortification-delete.js';
 
 const $i = signinRequired();
 
@@ -118,17 +119,6 @@ function onChangeSendReadMessage(v: boolean) {
 
 function testNotification(): void {
 	misskeyApi('notifications/test-notification');
-}
-
-async function flushNotification() {
-	const { canceled } = await os.confirm({
-		type: 'warning',
-		text: i18n.ts.resetAreYouSure,
-	});
-
-	if (canceled) return;
-
-	os.apiWithDialog('notifications/flush');
 }
 
 const headerActions = computed(() => []);

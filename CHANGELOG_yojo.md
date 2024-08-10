@@ -24,10 +24,11 @@
 - Feat: Outboxから投稿を取得するAPIを追加
 
 ### Client
--
+- Enhance: 個別に通知を削除できるように
 
 ### Server
--
+- Change: redisForRemoteClipsをredisForRemoteApisに変更
+  - ./config/default.ymlファイルの変更が必要です
 
 ### Misc
 
@@ -42,6 +43,7 @@
 ### Client
 - Fix: 非ログイン状態でメディアタイムラインが選べないバグ修正
 - Fix: NSFWを常に表示にする設定でも年齢確認処理を行う前は隠す
+- Enhance: 通知を削除する際に確認を出すように
 
 ### Server
 -
