@@ -71,7 +71,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 		if (!user) throw new IdentifiableError('3fc5a089-cab4-48db-b9f3-f220574b3c0a', 'No such user');
 		if (!user.host) throw new IdentifiableError('67070303-177c-4600-af93-b26a7ab889c6', 'Is local user');
 		if (!user.outbox) throw new IdentifiableError('e7a2e510-a8ce-40e9-b1e6-c007bacdc89f', 'outbox undefined.');
-		const	outboxUrl = user.outbox;
+		const outboxUrl = user.outbox;
 
 		const meta = await this.metaService.fetch();
 		if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(outboxUrl))) return;
@@ -130,7 +130,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						}
 						//From ApInboxService.Announce
 						//Announce対象
-						const targetUri =	getApId(activity.object);
+						const targetUri = getApId(activity.object);
 						if (targetUri.startsWith('bear:')) {
 							this.apLoggerService.logger.info('skip: bearcaps url not supported.');
 							continue;
@@ -141,7 +141,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 							if (isPost(target)) {
 								if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) continue;
 								try {
-									const	renote = await this.apNoteService.resolveNote(targetUri);
+									const renote = await this.apNoteService.resolveNote(targetUri);
 									if (renote == null) {
 										this.apLoggerService.logger.info('announce target is null');
 										continue;
