@@ -68,8 +68,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 	@bindThis
 	public async fetchOutbox(userId: MiUser['id'], includeAnnounce = false, resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId }) as MiRemoteUser;
-		if (!user) 	throw new IdentifiableError('3fc5a089-cab4-48db-b9f3-f220574b3c0a', 'No such user');
-		if (!user.host) 	throw new IdentifiableError('67070303-177c-4600-af93-b26a7ab889c6', 'Is local user');
+		if (!user) throw new IdentifiableError('3fc5a089-cab4-48db-b9f3-f220574b3c0a', 'No such user');
+		if (!user.host) throw new IdentifiableError('67070303-177c-4600-af93-b26a7ab889c6', 'Is local user');
 		if (!user.outbox) throw new IdentifiableError('e7a2e510-a8ce-40e9-b1e6-c007bacdc89f', 'outbox undefined.');
 		const	outboxUrl = user.outbox;
 
