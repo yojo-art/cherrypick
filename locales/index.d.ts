@@ -9753,6 +9753,10 @@ export interface Locale extends ILocale {
          * マスコット画像
          */
         "mascot": string;
+        /**
+         * サイコロ
+         */
+        "dice": string;
     };
     "_cw": {
         /**
