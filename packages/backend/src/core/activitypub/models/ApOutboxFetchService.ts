@@ -86,7 +86,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 		if (!outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
 
 		let nextUrl = outbox.first;
-		let created = 1;
+		let created = 0;
 
 		for (let i = 0; i < pagelimit; i++) {
 			const collectionPage =	await Resolver.resolveOrderedCollectionPage(nextUrl);
@@ -96,6 +96,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 				break;
 			}
 
+			//IObject,IActivity型にないプロパティがあるのでany型にする
 			const activityes = collectionPage.orderedItems as any[];
 			created = await	this.fetchObjects(activityes, created, includeAnnounce, outboxUrl, user, Resolver);
 			if (created > createLimit) break;
@@ -177,6 +178,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 									}
 									throw err;
 								}
+							} else {
+								continue;
 							}
 						}	finally {
 							unlock();
