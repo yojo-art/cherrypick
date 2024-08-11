@@ -19,14 +19,14 @@ import { AppLockService } from '@/core/AppLockService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
-import { getApId, isIOrderedCollectionPage, isAnnounce, isCreate, isNote, isPost, ApObject, IObject } from '../type.js';
+import { getApId, isIOrderedCollectionPage, isAnnounce, isNote, isPost } from '../type.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
 import type { ApResolverService, Resolver } from '../ApResolverService.js';
 import type { ApLoggerService } from '../ApLoggerService.js';
 
-const pagelimit = 5;
+const pagelimit = 3;
 const createLimit = 15;
 
 @Injectable()
