@@ -4,207 +4,207 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
+<div class="_gaps">
 	<div class="_gaps">
-		<div class="_gaps">
-			<MkSearchInput v-model="searchQuery" :autofocus="true" :large="true" type="search" @enter.prevent="search">
-				<template #prefix><i class="ti ti-search"></i></template>
-			</MkSearchInput>
-			<MkFoldableSection :expanded="true">
-				<template #header>{{ i18n.ts.options }}</template>
-				<div class="_gaps_m">
-					<MkRadios v-model="hostSelect">
-						<template #label>{{ i18n.ts.host }}</template>
-						<option value="all" default>{{ i18n.ts.all }}</option>
-						<option value="local">{{ i18n.ts.local }}</option>
-												<option v-if="noteSearchableScope === 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
-					</MkRadios>
-					<MkSearchInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="hostSelect !== 'specified'" :large="true" type="search">
-						<template #prefix><i class="ti ti-server"></i></template>
-					</MkSearchInput>
+		<MkSearchInput v-model="searchQuery" :autofocus="true" :large="true" type="search" @enter.prevent="search">
+			<template #prefix><i class="ti ti-search"></i></template>
+		</MkSearchInput>
+		<MkFoldableSection :expanded="true">
+			<template #header>{{ i18n.ts.options }}</template>
+			<div class="_gaps_m">
+				<MkRadios v-model="hostSelect">
+					<template #label>{{ i18n.ts.host }}</template>
+					<option value="all" default>{{ i18n.ts.all }}</option>
+					<option value="local">{{ i18n.ts.local }}</option>
+					<option v-if="noteSearchableScope === 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
+				</MkRadios>
+				<MkSearchInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="hostSelect !== 'specified'" :large="true" type="search">
+					<template #prefix><i class="ti ti-server"></i></template>
+				</MkSearchInput>
 
-					<MkFolder :defaultOpen="true">
-						<template #label>{{ i18n.ts.specifyUser }}</template>
-						<template v-if="user" #suffix>@{{ user.username }}{{ user.host ? `@${user.host}` : "" }}</template>
+				<MkFolder :defaultOpen="true">
+					<template #label>{{ i18n.ts.specifyUser }}</template>
+					<template v-if="user" #suffix>@{{ user.username }}{{ user.host ? `@${user.host}` : "" }}</template>
 
-						<div class="_gaps">
-							<div :class="$style.userItem">
-								<MkUserCardMini v-if="user" :class="$style.userCard" :user="user" :withChart="false"/>
-								<MkButton v-if="user == null && $i != null" transparent :class="$style.addMeButton" @click="selectSelf"><div :class="$style.addUserButtonInner"><span><i class="ti ti-plus"></i><i class="ti ti-user"></i></span><span>{{ i18n.ts.selectSelf }}</span></div></MkButton>
-								<MkButton v-if="user == null" transparent :class="$style.addUserButton" @click="selectUser"><div :class="$style.addUserButtonInner"><i class="ti ti-plus"></i><span>{{ i18n.ts.selectUser }}</span></div></MkButton>
-								<button class="_button" :class="$style.remove" :disabled="user == null" @click="removeUser"><i class="ti ti-x"></i></button>
-							</div>
+					<div class="_gaps">
+						<div :class="$style.userItem">
+							<MkUserCardMini v-if="user" :class="$style.userCard" :user="user" :withChart="false"/>
+							<MkButton v-if="user == null && $i != null" transparent :class="$style.addMeButton" @click="selectSelf"><div :class="$style.addUserButtonInner"><span><i class="ti ti-plus"></i><i class="ti ti-user"></i></span><span>{{ i18n.ts.selectSelf }}</span></div></MkButton>
+							<MkButton v-if="user == null" transparent :class="$style.addUserButton" @click="selectUser"><div :class="$style.addUserButtonInner"><i class="ti ti-plus"></i><span>{{ i18n.ts.selectUser }}</span></div></MkButton>
+							<button class="_button" :class="$style.remove" :disabled="user == null" @click="removeUser"><i class="ti ti-x"></i></button>
 						</div>
-					</MkFolder>
-				</div>
-			</MkFoldableSection>
-			<div>
-				<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
+					</div>
+				</MkFolder>
 			</div>
-		</div>
-		<MkFoldableSection v-if="notePagination">
-			<template #label>{{ i18n.ts.searchResult }}</template>
-			<MkNotes :key="key" :pagination="notePagination"/>
 		</MkFoldableSection>
+		<div>
+			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
+		</div>
 	</div>
-	</template>
+	<MkFoldableSection v-if="notePagination">
+		<template #label>{{ i18n.ts.searchResult }}</template>
+		<MkNotes :key="key" :pagination="notePagination"/>
+	</MkFoldableSection>
+</div>
+</template>
 
-	<script lang="ts" setup>
-	import { computed, ref, toRef, watch } from 'vue';
-	import type { UserDetailed } from 'cherrypick-js/entities.js';
-	import type { Paging } from '@/components/MkPagination.vue';
-	import MkNotes from '@/components/MkNotes.vue';
-	import MkButton from '@/components/MkButton.vue';
-	import { i18n } from '@/i18n.js';
-	import * as os from '@/os.js';
-	import { misskeyApi } from '@/scripts/misskey-api.js';
-	import MkFoldableSection from '@/components/MkFoldableSection.vue';
-	import MkFolder from '@/components/MkFolder.vue';
-	import { useRouter } from '@/router/supplier.js';
-	import MkUserCardMini from '@/components/MkUserCardMini.vue';
-	import MkRadios from '@/components/MkRadios.vue';
-	import { $i } from '@/account.js';
-	import { instance } from '@/instance.js';
-	import MkSearchInput from '@/components/MkSearchInput.vue';
+<script lang="ts" setup>
+import { computed, ref, toRef, watch } from 'vue';
+import type { UserDetailed } from 'cherrypick-js/entities.js';
+import type { Paging } from '@/components/MkPagination.vue';
+import MkNotes from '@/components/MkNotes.vue';
+import MkButton from '@/components/MkButton.vue';
+import { i18n } from '@/i18n.js';
+import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
+import MkFoldableSection from '@/components/MkFoldableSection.vue';
+import MkFolder from '@/components/MkFolder.vue';
+import { useRouter } from '@/router/supplier.js';
+import MkUserCardMini from '@/components/MkUserCardMini.vue';
+import MkRadios from '@/components/MkRadios.vue';
+import { $i } from '@/account.js';
+import { instance } from '@/instance.js';
+import MkSearchInput from '@/components/MkSearchInput.vue';
 
-	const props = withDefaults(defineProps<{
+const props = withDefaults(defineProps<{
 		query?: string;
 		userId?: string;
 		username?: string;
 		host?: string | null;
 	}>(), {
-		query: '',
-		userId: undefined,
-		username: undefined,
-		host: '',
+	query: '',
+	userId: undefined,
+	username: undefined,
+	host: '',
+});
+
+const router = useRouter();
+const key = ref(0);
+const searchQuery = ref(toRef(props, 'query').value);
+const notePagination = ref<Paging>();
+const user = ref<UserDetailed | null>(null);
+const hostInput = ref(toRef(props, 'host').value);
+
+const noteSearchableScope = instance.noteSearchableScope ?? 'local';
+const hostSelect = ref<'all' | 'local' | 'specified'>('all');
+
+const setHostSelectWithInput = (after:string|undefined|null, before:string|undefined|null) => {
+	if (before === after) return;
+	if (after === '') hostSelect.value = 'all';
+	else hostSelect.value = 'specified';
+};
+
+setHostSelectWithInput(hostInput.value, undefined);
+
+watch(hostInput, setHostSelectWithInput);
+
+const searchHost = computed(() => {
+	if (hostSelect.value === 'local') return '.';
+	if (hostSelect.value === 'specified') return hostInput.value;
+	return null;
+});
+
+if (props.userId != null) {
+	misskeyApi('users/show', { userId: props.userId }).then(_user => {
+		user.value = _user;
 	});
-
-	const router = useRouter();
-	const key = ref(0);
-	const searchQuery = ref(toRef(props, 'query').value);
-	const notePagination = ref<Paging>();
-	const user = ref<UserDetailed | null>(null);
-	const hostInput = ref(toRef(props, 'host').value);
-
-	const noteSearchableScope = instance.noteSearchableScope ?? 'local';
-	const hostSelect = ref<'all' | 'local' | 'specified'>('all');
-
-	const setHostSelectWithInput = (after:string|undefined|null, before:string|undefined|null) => {
-		if (before === after) return;
-		if (after === '') hostSelect.value = 'all';
-		else hostSelect.value = 'specified';
-	};
-
-	setHostSelectWithInput(hostInput.value, undefined);
-
-	watch(hostInput, setHostSelectWithInput);
-
-	const searchHost = computed(() => {
-		if (hostSelect.value === 'local') return '.';
-		if (hostSelect.value === 'specified') return hostInput.value;
-		return null;
+} else if (props.username != null) {
+	misskeyApi('users/show', {
+		username: props.username,
+		...(props.host != null && props.host !== '') ? { host: props.host } : {},
+	}).then(_user => {
+		user.value = _user;
 	});
+}
 
-	if (props.userId != null) {
-		misskeyApi('users/show', { userId: props.userId }).then(_user => {
-			user.value = _user;
+function selectUser() {
+	os.selectUser({ includeSelf: true, localOnly: instance.noteSearchableScope === 'local' }).then(_user => {
+		user.value = _user;
+		hostInput.value = _user.host ?? '';
+	});
+}
+
+function selectSelf() {
+	user.value = $i as UserDetailed | null;
+	hostInput.value = null;
+}
+
+function removeUser() {
+	user.value = null;
+	hostInput.value = '';
+}
+
+async function search() {
+	const query = searchQuery.value.toString().trim();
+
+	if (query == null || query === '') return;
+
+	//#region AP lookup
+	if (query.startsWith('https://') && !query.includes(' ')) {
+		const { canceled } = await os.confirm({
+			type: 'question',
+			text: i18n.ts._searchOrApShow.question,
+			okText: i18n.ts._searchOrApShow.lookup,
+			cancelText: i18n.ts._searchOrApShow.search,
 		});
-	} else if (props.username != null) {
-		misskeyApi('users/show', {
-			username: props.username,
-			...(props.host != null && props.host !== '') ? { host: props.host } : {},
-		}).then(_user => {
-			user.value = _user;
-		});
-	}
 
-	function selectUser() {
-		os.selectUser({ includeSelf: true, localOnly: instance.noteSearchableScope === 'local' }).then(_user => {
-			user.value = _user;
-			hostInput.value = _user.host ?? '';
-		});
-	}
-
-	function selectSelf() {
-		user.value = $i as UserDetailed | null;
-		hostInput.value = null;
-	}
-
-	function removeUser() {
-		user.value = null;
-		hostInput.value = '';
-	}
-
-	async function search() {
-		const query = searchQuery.value.toString().trim();
-
-		if (query == null || query === '') return;
-
-		//#region AP lookup
-		if (query.startsWith('https://') && !query.includes(' ')) {
-			const { canceled } = await os.confirm({
-				type: 'question',
-				text: i18n.ts._searchOrApShow.question,
-				okText: i18n.ts._searchOrApShow.lookup,
-				cancelText: i18n.ts._searchOrApShow.search,
+		if (!canceled) {
+			const promise = misskeyApi('ap/show', {
+				uri: query,
 			});
 
-			if (!canceled) {
-				const promise = misskeyApi('ap/show', {
-					uri: query,
-				});
+			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 
-				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+			const res = await promise;
 
-				const res = await promise;
+			if (res.type === 'User') {
+				router.push(`/@${res.object.username}@${res.object.host}`);
+			} else if (res.type === 'Note') {
+				router.push(`/notes/${res.object.id}`);
+			}
 
-				if (res.type === 'User') {
-					router.push(`/@${res.object.username}@${res.object.host}`);
-				} else if (res.type === 'Note') {
-					router.push(`/notes/${res.object.id}`);
-				}
+			return;
+		}
+	}
+	//#endregion
 
+	if (query.length > 1 && !query.includes(' ')) {
+		if (query.startsWith('@')) {
+			const confirm = await os.confirm({
+				type: 'info',
+				text: i18n.ts.lookupConfirm,
+			});
+			if (!confirm.canceled) {
+				router.push(`/${query}`);
 				return;
 			}
 		}
-		//#endregion
 
-		if (query.length > 1 && !query.includes(' ')) {
-			if (query.startsWith('@')) {
-				const confirm = await os.confirm({
-					type: 'info',
-					text: i18n.ts.lookupConfirm,
-				});
-				if (!confirm.canceled) {
-					router.push(`/${query}`);
-					return;
-				}
-			}
-
-			if (query.startsWith('#')) {
-				const confirm = await os.confirm({
-					type: 'info',
-					text: i18n.ts.openTagPageConfirm,
-				});
-				if (!confirm.canceled) {
-					router.push(`/tags/${encodeURIComponent(query.substring(1))}`);
-					return;
-				}
+		if (query.startsWith('#')) {
+			const confirm = await os.confirm({
+				type: 'info',
+				text: i18n.ts.openTagPageConfirm,
+			});
+			if (!confirm.canceled) {
+				router.push(`/tags/${encodeURIComponent(query.substring(1))}`);
+				return;
 			}
 		}
-
-		notePagination.value = {
-			endpoint: 'notes/search',
-			limit: 10,
-			params: {
-				query: searchQuery.value,
-				userId: user.value ? user.value.id : null,
-				...(searchHost.value ? { host: searchHost.value } : {}),
-			},
-		};
-
-		key.value++;
 	}
-	</script>
+
+	notePagination.value = {
+		endpoint: 'notes/search',
+		limit: 10,
+		params: {
+			query: searchQuery.value,
+			userId: user.value ? user.value.id : null,
+			...(searchHost.value ? { host: searchHost.value } : {}),
+		},
+	};
+
+	key.value++;
+}
+</script>
 	<style lang="scss" module>
 	.userItem {
 		display: flex;
