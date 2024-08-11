@@ -89,7 +89,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 		let created = 0;
 
 		for (let i = 0; i < pagelimit; i++) {
-			const collectionPage =	await Resolver.resolveOrderedCollectionPage(nextUrl);
+			const collectionPage = await Resolver.resolveOrderedCollectionPage(nextUrl);
 			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'Object is not collectionPage');
 
 			if (collectionPage.orderedItems.length === 0) {
@@ -181,7 +181,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 							} else {
 								continue;
 							}
-						}	finally {
+						} finally {
 							unlock();
 						}
 					} else if (isNote(activity.object)) {
