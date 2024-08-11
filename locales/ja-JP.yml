@@ -1176,6 +1176,8 @@ prohibitedWordsDescription2: "スペースで区切るとAND指定になり、�
 hiddenTags: "非表示ハッシュタグ"
 hiddenTagsDescription: "設定したタグをトレンドに表示させないようにします。改行で区切って複数設定できます。"
 notesSearchNotAvailable: "ノート検索は利用できません。"
+notesAdvancedSearchNotAvailable: "高度な検索は利用できません。"
+advancedNotes: "高度な検索"
 license: "ライセンス"
 unfavoriteConfirm: "お気に入り解除しますか？"
 myClips: "自分のクリップ"
@@ -2507,6 +2509,7 @@ _permissions:
   "read:federation": "連合に関する情報を取得する"
   "write:report-abuse": "違反を報告する"
   "write:admin:official-tags": "公式タグを編集する"
+  "write:admin:reindex": "高度な検索の再インデックスをする"
 
 _auth:
   shareAccessTitle: "アプリへのアクセス許可"

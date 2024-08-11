@@ -14,6 +14,14 @@ export const notesSearchAvailable = (
 	false
 ) as boolean;
 
+export const advanccedNotesSearchAvailable = (
+	// FIXME: instance.policies would be null in Vitest
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	($i == null && instance.policies != null && instance.policies.canAdvancedSearchNotes) ||
+	($i != null && $i.policies.canAdvancedSearchNotes) ||
+	false
+) as boolean;
+
 export const canSearchNonLocalNotes = (
 	instance.noteSearchableScope === 'global'
 );

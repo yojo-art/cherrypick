@@ -12,17 +12,17 @@ export const meta = {
 
 	requireCredential: true,
 	requireAdmin: true,
-	kind: 'write:admin:meta',
+	kind: 'write:admin:reindex',
 } as const;
 
 export const paramDef = {
 	type: 'object',
-	properties: {
-	},
+	properties: {},
 	required: [],
 } as const;
- 
+
 @Injectable()
+// eslint-disable-next-line import/no-default-export
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
 		private advancedSearchService: AdvancedSearchService,

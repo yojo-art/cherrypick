@@ -9,6 +9,7 @@ built/
 db/
 .devcontainer/compose.yml
 node_modules/
+os-data/
 packages/*/node_modules
 redis/
 files/

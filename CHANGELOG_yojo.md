@@ -24,12 +24,15 @@
 - Feat: Outboxから投稿を取得するAPIを追加
 
 ### Client
+- Change: 高度な検索を別タブに分離
+- Enchance: 高度な検索でホスト名を指定できるように
 - Enhance: 個別に通知を削除できるように
 - Fix: ページ遷移に失敗することがある問題を修正
 
 ### Server
 - Change: redisForRemoteClipsをredisForRemoteApisに変更
   - ./config/default.ymlファイルの変更が必要です
+-	Enhance: 高度な検索に検索のオフセットを指定できるように
 
 ### Misc
 

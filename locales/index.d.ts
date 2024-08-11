@@ -4728,6 +4728,14 @@ export interface Locale extends ILocale {
      */
     "notesSearchNotAvailable": string;
     /**
+     * 高度な検索は利用できません。
+     */
+    "notesAdvancedSearchNotAvailable": string;
+    /**
+     * 高度な検索
+     */
+    "advancedNotes": string;
+    /**
      * ライセンス
      */
     "license": string;
@@ -9539,6 +9547,10 @@ export interface Locale extends ILocale {
          * 公式タグを編集する
          */
         "write:admin:official-tags": string;
+        /**
+         * 高度な検索の再インデックスをする
+         */
+        "write:admin:reindex": string;
     };
     "_auth": {
         /**
