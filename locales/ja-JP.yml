@@ -696,6 +696,7 @@ output: "出力"
 script: "スクリプト"
 disablePagesScript: "Pagesのスクリプトを無効にする"
 updateRemoteUser: "リモートユーザー情報の更新"
+fetchOutbox: "投稿を取得"
 unsetUserAvatar: "アイコンを解除"
 unsetUserAvatarConfirm: "アイコンを解除しますか？"
 unsetUserBanner: "バナーを解除"
@@ -2570,6 +2571,7 @@ _widgets:
   clicker: "クリッカー"
   birthdayFollowings: "今日誕生日のユーザー"
   mascot: "マスコット画像"
+  dice: "サイコロ"
 
 _cw:
   hide: "隠す"

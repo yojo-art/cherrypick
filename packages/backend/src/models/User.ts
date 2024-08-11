@@ -232,6 +232,11 @@ export class MiUser {
 
 	@Column('varchar', {
 		length: 512, nullable: true,
+	})
+	public outbox: string | null;
+
+	@Column('varchar', {
+		length: 512, nullable: true,
 		comment: 'The featured URL of the User. It will be null if the origin of the user is local.',
 	})
 	public featured: string | null;

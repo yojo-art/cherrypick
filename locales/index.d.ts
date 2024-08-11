@@ -2807,6 +2807,10 @@ export interface Locale extends ILocale {
      */
     "updateRemoteUser": string;
     /**
+     * 投稿を取得
+     */
+    "fetchOutbox": string;
+    /**
      * アイコンを解除
      */
     "unsetUserAvatar": string;
@@ -9765,6 +9769,10 @@ export interface Locale extends ILocale {
          * マスコット画像
          */
         "mascot": string;
+        /**
+         * サイコロ
+         */
+        "dice": string;
     };
     "_cw": {
         /**
