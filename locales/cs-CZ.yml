@@ -2013,7 +2013,6 @@ _webhookSettings:
   createWebhook: "Vytvořit Webhook"
   name: "Jméno"
   secret: "Tajné"
-  events: "Události Webhook"
   active: "Zapnuto"
   _events:
     follow: "Při sledování uživatele"

@@ -337,7 +337,7 @@ export class ApInboxService {
 
 		try {
 			// 既に同じURIを持つものが登録されていないかチェック
-			const exist = await this.apNoteService.fetchNote(uri);
+			const exist = await this.apNoteService.fetchNote(fromRelay ? target : uri);
 			if (exist) {
 				return;
 			}
