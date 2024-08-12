@@ -16,10 +16,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #label>{{ i18n.ts.host }}</template>
 					<option value="combined" default>{{ i18n.ts.all }}</option>
 					<option value="local">{{ i18n.ts.local }}</option>
-					<option v-if="noteSearchableScope === 'global'" value="remote">{{ i18n.ts.remote }}</option>
-					<option v-if="noteSearchableScope === 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
+					<option v-if="noteSearchableScope == 'global'" value="remote">{{ i18n.ts.remote }}</option>
+					<option v-if="noteSearchableScope == 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
 				</MkRadios>
-				<MkSearchInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="searchOrigin !== 'specified'" :large="true" type="search">
+				<MkSearchInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="user != null || searchOrigin == 'combined' || searchOrigin == 'local' || searchOrigin === 'remote'" :large="true" type="search">
 					<template #prefix><i class="ti ti-server"></i></template>
 				</MkSearchInput>
 				<MkFolder :defaultOpen="true">
@@ -120,12 +120,14 @@ function selectUser() {
 	os.selectUser({ includeSelf: true, localOnly: instance.noteSearchableScope === 'local' }).then(_user => {
 		user.value = _user;
 		hostInput.value = _user.host ?? '';
+		searchOrigin.value = 'specified';
 	});
 }
 
 function selectSelf() {
 	user.value = $i as UserDetailed | null;
 	hostInput.value = null;
+	searchOrigin.value = 'local';
 }
 
 function removeUser() {
