@@ -20,23 +20,45 @@
 ### Release Date
 
 ### General
+-
+
+### Client
+-
+
+### Server
+-
+
+### Misc
+
+## 0.5.0
+Cherrypick 4.10.0-rc.3
+
+### Release Date
+2024-08-13
+
+### General
 - Enhance: リバーシをリモートユーザーと対戦できるように [#271](https://github.com/yojo-art/cherrypick/pull/271)
-- Feat: Outboxから投稿を取得するAPIを追加
+- Feat: Outboxから投稿を取得するAPIを追加 [#271](https://github.com/yojo-art/cherrypick/pull/288)
 
 ### Client
 - Change: 高度な検索を別タブに分離
-- Enchance: 高度な検索でホスト名を指定できるように
-- Enhance: 個別に通知を削除できるように
+- Enchance: 高度な検索でホスト名を指定できるように [#285](https://github.com/yojo-art/cherrypick/pull/285)
+- Enhance: 個別に通知を削除できるように [#289](https://github.com/yojo-art/cherrypick/pull/289)
+- Enhance: 通知を削除する際に確認を出すように [#287](https://github.com/yojo-art/cherrypick/pull/287)
 - Fix: ページ遷移に失敗することがある問題を修正
+(Cherry-picked from https://github.com/misskey-dev/misskey/pull/14380)
+- Fix: ダイスウィジェットのロケールが無い問題を修正
+(Cherry-picked from https://github.com/1673beta/cherrypick/pull/74)
 
 ### Server
-- Change: redisForRemoteClipsをredisForRemoteApisに変更
+- Change: redisForRemoteClipsをredisForRemoteApisに変更 [#293](https://github.com/yojo-art/cherrypick/pull/293)
   - ./config/default.ymlファイルの変更が必要です
--	Enhance: 高度な検索に検索のオフセットを指定できるように
+-	Enhance: 高度な検索に検索のオフセットを指定できるように [#285](https://github.com/yojo-art/cherrypick/pull/285)
 
 ### Misc
 
 ## 0.4.1
+Cherrypick 4.9.0
 
 ### Release Date
 2024-08-02
