@@ -148,6 +148,7 @@ export type ApGetRequest = operations['ap___get']['requestBody']['content']['app
 export type ApGetResponse = operations['ap___get']['responses']['200']['content']['application/json'];
 export type ApShowRequest = operations['ap___show']['requestBody']['content']['application/json'];
 export type ApShowResponse = operations['ap___show']['responses']['200']['content']['application/json'];
+export type ApFetchOutboxRequest = operations['ap___fetch-outbox']['requestBody']['content']['application/json'];
 export type AppCreateRequest = operations['app___create']['requestBody']['content']['application/json'];
 export type AppCreateResponse = operations['app___create']['responses']['200']['content']['application/json'];
 export type AppShowRequest = operations['app___show']['requestBody']['content']['application/json'];

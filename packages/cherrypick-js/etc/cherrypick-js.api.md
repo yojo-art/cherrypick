@@ -463,6 +463,9 @@ type AntennasUpdateRequest = operations['antennas___update']['requestBody']['con
 type AntennasUpdateResponse = operations['antennas___update']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type ApFetchOutboxRequest = operations['ap___fetch-outbox']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ApGetRequest = operations['ap___get']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1331,6 +1334,7 @@ declare namespace entities {
         ApGetResponse,
         ApShowRequest,
         ApShowResponse,
+        ApFetchOutboxRequest,
         AppCreateRequest,
         AppCreateResponse,
         AppShowRequest,
