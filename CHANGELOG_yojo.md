@@ -38,7 +38,7 @@ Cherrypick 4.10.0-rc.3
 
 ### General
 - Enhance: リバーシをリモートユーザーと対戦できるように [#271](https://github.com/yojo-art/cherrypick/pull/271)
-- Feat: Outboxから投稿を取得するAPIを追加 [#271](https://github.com/yojo-art/cherrypick/pull/288)
+- Feat: Outboxから投稿を取得するAPIを追加 [#288](https://github.com/yojo-art/cherrypick/pull/288)
 
 ### Client
 - Change: 高度な検索を別タブに分離
