@@ -972,6 +972,15 @@ export type paths = {
      */
     post: operations['ap___show'];
   };
+  '/ap/fetch-outbox': {
+    /**
+     * ap/fetch-outbox
+     * @description リモートユーザの投稿を取得します
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:account*
+     */
+    post: operations['ap___fetch-outbox'];
+  };
   '/app/create': {
     /**
      * app/create
@@ -11720,6 +11729,77 @@ export type operations = {
             object: components['schemas']['Note'];
           }]>;
         };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description To many requests */
+      429: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * ap/fetch-outbox
+   * @description リモートユーザの投稿を取得します
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:account*
+   */
+  'ap___fetch-outbox': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /**
+           * Format: misskey:id
+           * @description Outbox取得対象ユーザのローカルのユーザID
+           */
+          userId: string;
+          /**
+           * @description Outboxの取得が終わるまで待ちます
+           * @default false
+           */
+          wait?: boolean;
+          /**
+           * @description Outbox取得の際にRenoteも対象にします
+           * @default false
+           */
+          includeAnnounce?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
       };
       /** @description Client error */
       400: {
