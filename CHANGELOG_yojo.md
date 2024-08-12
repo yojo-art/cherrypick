@@ -30,6 +30,23 @@
 
 ### Misc
 
+## 0.5.1
+Cherrypick 4.10.0-rc.3
+
+### Release Date
+2024-08-13
+
+### General
+-
+
+### Client
+-
+
+### Server
+- Fix: APリクエストannounceNoteを受け取れない問題を修正
+
+### Misc
+
 ## 0.5.0
 Cherrypick 4.10.0-rc.3
 
