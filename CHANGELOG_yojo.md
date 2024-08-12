@@ -26,7 +26,7 @@
 -
 
 ### Server
--
+- Fix: APリクエストannounceNoteを受け取れない問題を修正
 
 ### Misc
 
