@@ -16,11 +16,11 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
-import { isCollectionOrOrderedCollection } from './type.js';
+import { isCollectionOrOrderedCollection, isIOrderedCollectionPage } from './type.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
 import { ApRendererService } from './ApRendererService.js';
 import { ApRequestService } from './ApRequestService.js';
-import type { IObject, ICollection, IOrderedCollection } from './type.js';
+import type { IObject, ICollection, IOrderedCollection, IOrderedCollectionPage } from './type.js';
 
 export class Resolver {
 	private history: Set<string>;
@@ -60,6 +60,19 @@ export class Resolver {
 			: value;
 
 		if (isCollectionOrOrderedCollection(collection)) {
+			return collection;
+		} else {
+			throw new Error(`unrecognized collection type: ${collection.type}`);
+		}
+	}
+
+	@bindThis
+	public async resolveOrderedCollectionPage(value: string | IObject): Promise<IOrderedCollectionPage> {
+		const collection = typeof value === 'string'
+			? await this.resolve(value)
+			: value;
+
+		if (isIOrderedCollectionPage(collection)) {
 			return collection;
 		} else {
 			throw new Error(`unrecognized collection type: ${collection.type}`);

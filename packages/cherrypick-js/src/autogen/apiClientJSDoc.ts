@@ -786,7 +786,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
      */
     request<E extends 'admin/full-index', P extends Endpoints[E]['req']>(
       endpoint: E,
@@ -797,7 +797,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
      */
     request<E extends 'admin/recreate-index', P extends Endpoints[E]['req']>(
       endpoint: E,
@@ -1168,6 +1168,17 @@ declare module '../api.js' {
      * **Credential required**: *Yes* / **Permission**: *read:account*
      */
     request<E extends 'ap/show', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * リモートユーザの投稿を取得します
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:account*
+     */
+    request<E extends 'ap/fetch-outbox', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,
@@ -3289,7 +3300,7 @@ declare module '../api.js' {
     /**
      * 高度な検索ができます
      * 
-     * **Credential required**: *Yes*
+     * **Credential required**: *No*
      */
     request<E extends 'notes/advanced-search', P extends Endpoints[E]['req']>(
       endpoint: E,

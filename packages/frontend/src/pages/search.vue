@@ -9,16 +9,25 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<MkHorizontalSwipe v-model:tab="tab" :tabs="headerTabs">
 		<MkSpacer v-if="tab === 'note'" key="note" :contentMax="800">
-			<div v-if="notesSearchAvailable">
-				<XNote/>
+			<div v-if="notesSearchAvailable || ignoreNotesSearchAvailable">
+				<XNote v-bind="props"/>
 			</div>
 			<div v-else>
 				<MkInfo warn>{{ i18n.ts.notesSearchNotAvailable }}</MkInfo>
 			</div>
 		</MkSpacer>
 
+		<MkSpacer v-if="tab === 'anote'" key="anote" :contentMax="800">
+			<div v-if="advanccedNotesSearchAvailable">
+				<XAnote/>
+			</div>
+			<div v-else>
+				<MkInfo warn>{{ i18n.ts.notesAdvancedSearchNotAvailable }}</MkInfo>
+			</div>
+		</MkSpacer>
+
 		<MkSpacer v-else-if="tab === 'user'" key="user" :contentMax="800">
-			<XUser/>
+			<XUser v-bind="props"/>
 		</MkSpacer>
 
 		<MkSpacer v-else-if="tab === 'event'" key="event" :contentMax="800">
@@ -29,21 +38,38 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, ref } from 'vue';
+import { computed, defineAsyncComponent, ref, toRef } from 'vue';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
-import { $i } from '@/account.js';
-import { instance } from '@/instance.js';
+import { notesSearchAvailable, advanccedNotesSearchAvailable } from '@/scripts/check-permissions.js';
 import MkInfo from '@/components/MkInfo.vue';
 import MkHorizontalSwipe from '@/components/MkHorizontalSwipe.vue';
 
+const props = withDefaults(defineProps<{
+	query?: string,
+	userId?: string,
+	username?: string,
+	host?: string | null,
+	type?: 'note' | 'user' | 'anote' | 'event',
+	origin?: 'combined' | 'local' | 'remote',
+	// For storybook only
+	ignoreNotesSearchAvailable?: boolean,
+}>(), {
+	query: '',
+	userId: undefined,
+	username: undefined,
+	host: undefined,
+	type: 'note',
+	origin: 'combined',
+	ignoreNotesSearchAvailable: false,
+});
+
 const XNote = defineAsyncComponent(() => import('./search.note.vue'));
+const XAnote = defineAsyncComponent(() => import('./search.anote.vue'));
 const XUser = defineAsyncComponent(() => import('./search.user.vue'));
 const XEvent = defineAsyncComponent(() => import('./search.event.vue'));
 
-const tab = ref('note');
-
-const notesSearchAvailable = (($i == null && instance.policies.canSearchNotes) || ($i != null && $i.policies.canSearchNotes));
+const tab = ref(toRef(props, 'type').value);
 
 const headerActions = computed(() => []);
 
@@ -51,6 +77,10 @@ const headerTabs = computed(() => [{
 	key: 'note',
 	title: i18n.ts.notes,
 	icon: 'ti ti-pencil',
+}, {
+	key: 'anote',
+	title: i18n.ts.advancedNotes,
+	icon: 'ti ti-pencil-plus',
 }, {
 	key: 'user',
 	title: i18n.ts.users,

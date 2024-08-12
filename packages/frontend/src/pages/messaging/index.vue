@@ -36,6 +36,7 @@ import { $i } from '@/account.js';
 import { globalEvents } from '@/events.js';
 import MkChatPreview from '@/components/MkChatPreview.vue';
 import MkPagination from '@/components/MkPagination.vue';
+import { flushNotification } from '@/scripts/check-nortification-delete.js';
 
 const pagingComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
@@ -204,7 +205,7 @@ const headerActions = computed(() => [{
 	icon: 'ti ti-check',
 	text: i18n.ts.notificationFlush,
 	handler: () => {
-		os.apiWithDialog('notifications/flush');
+		flushNotification();
 	},
 }]);
 

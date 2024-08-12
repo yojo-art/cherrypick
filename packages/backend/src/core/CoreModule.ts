@@ -12,6 +12,7 @@ import {
 } from '@/core/entities/AbuseReportNotificationRecipientEntityService.js';
 import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationService.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
+import { UserSearchService } from '@/core/UserSearchService.js';
 import { AccountMoveService } from './AccountMoveService.js';
 import { AccountUpdateService } from './AccountUpdateService.js';
 import { AiService } from './AiService.js';
@@ -62,6 +63,7 @@ import { UserFollowingService } from './UserFollowingService.js';
 import { UserKeypairService } from './UserKeypairService.js';
 import { UserListService } from './UserListService.js';
 import { UserMutingService } from './UserMutingService.js';
+import { UserRenoteMutingService } from './UserRenoteMutingService.js';
 import { UserSuspendService } from './UserSuspendService.js';
 import { UserAuthService } from './UserAuthService.js';
 import { VideoProcessingService } from './VideoProcessingService.js';
@@ -148,9 +150,11 @@ import { WebfingerService } from './WebfingerService.js';
 import { ApImageService } from './activitypub/models/ApImageService.js';
 import { ApMentionService } from './activitypub/models/ApMentionService.js';
 import { ApNoteService } from './activitypub/models/ApNoteService.js';
+import { ApOutboxFetchService } from './activitypub/models/ApOutboxFetchService.js';
 import { ApPersonService } from './activitypub/models/ApPersonService.js';
 import { ApQuestionService } from './activitypub/models/ApQuestionService.js';
 import { ApEventService } from './activitypub/models/ApEventService.js';
+import { ApGameService } from './activitypub/models/ApGameService.js';
 import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
@@ -211,6 +215,8 @@ const $UserFollowingService: Provider = { provide: 'UserFollowingService', useEx
 const $UserKeypairService: Provider = { provide: 'UserKeypairService', useExisting: UserKeypairService };
 const $UserListService: Provider = { provide: 'UserListService', useExisting: UserListService };
 const $UserMutingService: Provider = { provide: 'UserMutingService', useExisting: UserMutingService };
+const $UserRenoteMutingService: Provider = { provide: 'UserRenoteMutingService', useExisting: UserRenoteMutingService };
+const $UserSearchService: Provider = { provide: 'UserSearchService', useExisting: UserSearchService };
 const $UserSuspendService: Provider = { provide: 'UserSuspendService', useExisting: UserSuspendService };
 const $UserAuthService: Provider = { provide: 'UserAuthService', useExisting: UserAuthService };
 const $VideoProcessingService: Provider = { provide: 'VideoProcessingService', useExisting: VideoProcessingService };
@@ -300,9 +306,11 @@ const $WebfingerService: Provider = { provide: 'WebfingerService', useExisting: 
 const $ApImageService: Provider = { provide: 'ApImageService', useExisting: ApImageService };
 const $ApMentionService: Provider = { provide: 'ApMentionService', useExisting: ApMentionService };
 const $ApNoteService: Provider = { provide: 'ApNoteService', useExisting: ApNoteService };
+const $ApOutboxFetchService: Provider = { provide: 'ApOutboxFetchService', useExisting: ApOutboxFetchService };
 const $ApPersonService: Provider = { provide: 'ApPersonService', useExisting: ApPersonService };
 const $ApQuestionService: Provider = { provide: 'ApQuestionService', useExisting: ApQuestionService };
 const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEventService };
+const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGameService };
 //#endregion
 
 @Module({
@@ -364,6 +372,8 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		UserKeypairService,
 		UserListService,
 		UserMutingService,
+		UserRenoteMutingService,
+		UserSearchService,
 		UserSuspendService,
 		UserAuthService,
 		VideoProcessingService,
@@ -453,9 +463,11 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		ApImageService,
 		ApMentionService,
 		ApNoteService,
+		ApOutboxFetchService,
 		ApPersonService,
 		ApQuestionService,
 		ApEventService,
+		ApGameService,
 		QueueService,
 
 		//#region 文字列ベースでのinjection用(循環参照対応のため)
@@ -513,6 +525,8 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$UserKeypairService,
 		$UserListService,
 		$UserMutingService,
+		$UserRenoteMutingService,
+		$UserSearchService,
 		$UserSuspendService,
 		$UserAuthService,
 		$VideoProcessingService,
@@ -602,9 +616,11 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$ApImageService,
 		$ApMentionService,
 		$ApNoteService,
+		$ApOutboxFetchService,
 		$ApPersonService,
 		$ApQuestionService,
 		$ApEventService,
+		$ApGameService,
 		//#endregion
 	],
 	exports: [
@@ -663,6 +679,8 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		UserKeypairService,
 		UserListService,
 		UserMutingService,
+		UserRenoteMutingService,
+		UserSearchService,
 		UserSuspendService,
 		UserAuthService,
 		VideoProcessingService,
@@ -751,9 +769,11 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		ApImageService,
 		ApMentionService,
 		ApNoteService,
+		ApOutboxFetchService,
 		ApPersonService,
 		ApQuestionService,
 		ApEventService,
+		ApGameService,
 		QueueService,
 
 		//#region 文字列ベースでのinjection用(循環参照対応のため)
@@ -811,6 +831,8 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$UserKeypairService,
 		$UserListService,
 		$UserMutingService,
+		$UserRenoteMutingService,
+		$UserSearchService,
 		$UserSuspendService,
 		$UserAuthService,
 		$VideoProcessingService,
@@ -899,9 +921,11 @@ const $ApEventService: Provider = { provide: 'ApEventService', useExisting: ApEv
 		$ApImageService,
 		$ApMentionService,
 		$ApNoteService,
+		$ApOutboxFetchService,
 		$ApPersonService,
 		$ApQuestionService,
 		$ApEventService,
+		$ApGameService,
 		//#endregion
 	],
 })

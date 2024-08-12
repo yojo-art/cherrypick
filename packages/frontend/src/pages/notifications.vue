@@ -33,6 +33,7 @@ import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { notificationTypes } from '@/const.js';
 import { deviceKind } from '@/scripts/device-kind.js';
 import { globalEvents } from '@/events.js';
+import { flushNotification } from '@/scripts/check-nortification-delete.js';
 
 const tab = ref('all');
 const includeTypes = ref<string[] | null>(null);
@@ -94,9 +95,9 @@ const headerActions = computed(() => [deviceKind === 'desktop' && !props.disable
 	text: i18n.ts.notificationFlush,
 	icon: 'ti ti-trash',
 	handler: () => {
-		os.apiWithDialog('notifications/flush');
+		flushNotification();
 	},
-}  : undefined].filter(x => x !== undefined));
+} : undefined].filter(x => x !== undefined));
 
 const headerTabs = computed(() => [{
 	key: 'all',

@@ -103,8 +103,19 @@ export interface ICollection extends IObject {
 
 export interface IOrderedCollection extends IObject {
 	type: 'OrderedCollection';
-	totalItems: number;
-	orderedItems: ApObject;
+	totalItems?: number;
+	orderedItems?: ApObject;
+	first?:string;
+	last?:string;
+}
+
+export interface IOrderedCollectionPage extends IObject {
+	type: 'OrderedCollectionPage';
+	partOf: string;
+	totalItems?: number;
+	orderedItems: ApObject[];
+	prev: string;
+	next: string;
 }
 
 export const validPost = ['Note', 'Question', 'Article', 'Audio', 'Document', 'Image', 'Page', 'Video', 'Event'];
@@ -198,6 +209,9 @@ export const isOrderedCollection = (object: IObject): object is IOrderedCollecti
 export const isCollectionOrOrderedCollection = (object: IObject): object is ICollection | IOrderedCollection =>
 	isCollection(object) || isOrderedCollection(object);
 
+export const isIOrderedCollectionPage = (object: IObject): object is IOrderedCollectionPage =>
+	getApType(object) === 'OrderedCollectionPage';
+
 export interface IApPropertyValue extends IObject {
 	type: 'PropertyValue';
 	identifier: IApPropertyValue;
@@ -255,6 +269,28 @@ export const isDocument = (object: IObject): object is IApDocument =>
 export interface IApImage extends IApDocument {
 	type: 'Image';
 }
+
+export interface IApGame extends IObject {
+	type: 'Game';
+	game_type_uuid: string;
+	game_state: any;
+}
+export interface IApReversi extends IApGame {
+	game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312';
+	extent_flags: string[];
+	game_state: {
+		game_session_id:string,
+		type?:string,
+		key?:string, //設定変更
+		value?:any, //設定変更
+		ready?:boolean, //準備完了
+		pos?:number, //石配置
+	};
+}
+export const isGame = (object: IObject): object is IApGame =>
+	getApType(object) === 'Game';
+export const isReversi = (object: IObject): object is IApReversi =>
+	isGame(object) && object.game_type_uuid === '1c086295-25e3-4b82-b31e-3e3959906312';
 
 export interface ICreate extends IActivity {
 	type: 'Create';
@@ -317,6 +353,15 @@ export interface IMove extends IActivity {
 	type: 'Move';
 	target: IObject | string;
 }
+export interface IInvite extends IActivity {
+	type: 'Invite';
+}
+export interface IJoin extends IActivity {
+	type: 'Join';
+}
+export interface ILeave extends IActivity {
+	type: 'Leave';
+}
 
 export const isCreate = (object: IObject): object is ICreate => getApType(object) === 'Create';
 export const isDelete = (object: IObject): object is IDelete => getApType(object) === 'Delete';
@@ -334,3 +379,6 @@ export const isBlock = (object: IObject): object is IBlock => getApType(object) 
 export const isFlag = (object: IObject): object is IFlag => getApType(object) === 'Flag';
 export const isMove = (object: IObject): object is IMove => getApType(object) === 'Move';
 export const isNote = (object: IObject): object is IPost => getApType(object) === 'Note';
+export const isInvite = (object: IObject): object is IInvite => getApType(object) === 'Invite';
+export const isJoin = (object: IObject): object is IJoin => getApType(object) === 'Join';
+export const isLeave = (object: IObject): object is ILeave => getApType(object) === 'Leave';
