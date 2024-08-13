@@ -42,6 +42,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkA v-else :class="$style.time" :to="notePage(note)">
 				<MkTime :time="note.createdAt" :mode="defaultStore.state.enableAbsoluteTime ? 'absolute' : 'relative'" colored/>
 			</MkA>
+			<button v-if="notificationId" class="_button" style="margin-left: auto;" @click.stop="notificationDelete()">
+				<i class="ti ti-bell-x"></i>
+			</button>
 		</div>
 		<div :style="$style.info"><MkInstanceTicker v-if="showTicker" :instance="note.user.instance" @click.stop="showOnRemote"/></div>
 	</div>
@@ -57,9 +60,11 @@ import { userPage } from '@/filters/user.js';
 import { defaultStore } from '@/store.js';
 import { useRouter } from '@/router/supplier.js';
 import MkInstanceTicker from '@/components/MkInstanceTicker.vue';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const props = defineProps<{
 	note: Misskey.entities.Note;
+	notificationId?: string;
 }>();
 
 const mock = inject<boolean>('mock', false);
@@ -69,9 +74,13 @@ const router = useRouter();
 
 function showOnRemote() {
 	if (props.note.user.instance === undefined) router.push(notePage(props.note));
-	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	 
 	else window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
+
+const notificationDelete = () => {
+	misskeyApi('notifications/delete', { notificationId: props.notificationId });
+};
 </script>
 
 <style lang="scss" module>
