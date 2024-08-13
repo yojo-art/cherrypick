@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #default="{ items: notifications }">
 			<MkDateSeparatedList v-slot="{ item: notification }" :class="$style.list" :items="notifications" :noGap="!defaultStore.state.showGapBetweenNotesInTimeline || mainRouter.currentRoute.value.name !== 'my-notifications'">
 				<MkNote v-if="['reply', 'quote', 'mention'].includes(notification.type)" :key="notification.id + ':note'" :note="notification.note" :withHardMute="true" :notification="true"/>
-				<XNotification v-else :key="notification.id" :notification="notification" :withTime="true" :full="true" class="_panel"/>
+				<XNotification v-else :key="notification.id" :notification="notification" :withTime="true" :full="true" :withDelete="true" class="_panel"/>
 			</MkDateSeparatedList>
 		</template>
 	</MkPagination>

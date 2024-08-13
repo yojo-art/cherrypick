@@ -48,6 +48,6 @@ const menu = [{
 }, {
 	icon: 'ti ti-trash',
 	text: i18n.ts.notificationFlush,
-	action: async () => { await flushNotification(); },
+	action: flushNotification,
 }];
 </script>

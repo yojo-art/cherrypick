@@ -65,8 +65,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<span v-else-if="notification.type === 'renote:grouped'">{{ i18n.tsx._notification.renotedBySomeUsers({ n: notification.users.length }) }}</span>
 			<span v-else-if="notification.type === 'app'">{{ notification.header }}</span>
 			<MkTime v-if="withTime" :time="notification.createdAt" :class="$style.headerTime" :mode="defaultStore.state.enableAbsoluteTime ? 'absolute' : 'relative'"/>
-			<div>
-				<button class="_button" :class="$style.headerDelete" @click.stop="notificationDelete()">
+			<div v-if="withDelete">
+				<button class="_button" style="margin-left: auto;" @click.stop="notificationDelete()">
 					<i class="ti ti-bell-x"></i>
 				</button>
 			</div>
@@ -173,9 +173,11 @@ const props = withDefaults(defineProps<{
 	notification: Misskey.entities.Notification;
 	withTime?: boolean;
 	full?: boolean;
+	withDelete?: boolean
 }>(), {
 	withTime: false,
 	full: false,
+	withDelete: false,
 });
 
 const followRequestDone = ref(false);
@@ -359,10 +361,6 @@ const rejectGroupInvitation = () => {
 .headerTime {
 	margin-left: auto;
 	font-size: 0.9em;
-}
-
-.headerDelete {
-	margin-left: auto;
 }
 
 .text {
