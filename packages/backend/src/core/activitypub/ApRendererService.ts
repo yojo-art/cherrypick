@@ -560,7 +560,7 @@ export class ApRendererService {
 					})),
 				}
 			}));
-			person.mutualLinkSections = ApMutualLinkSections;
+			person.banner = ApMutualLinkSections;
 		}
 
 		return person;
