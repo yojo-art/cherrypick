@@ -122,10 +122,17 @@ async function onClick(ev: MouseEvent) {
 	if (defaultStore.state.nsfwOpenBehavior === 'click') hide.value = false;
 }
 
-async function onDblClick() {
+function onDblClick() {
 	if (!props.controls) return;
-	if (props.image.isSensitive && !await confirmR18()) return;
-	if (hide.value && defaultStore.state.nsfwOpenBehavior === 'doubleClick') hide.value = false;
+	if (!hide.value) return;
+	if (defaultStore.state.nsfwOpenBehavior !== 'doubleClick') return;
+	if (props.image.isSensitive) {
+		confirmR18().then((is_open) => {
+			if (is_open) hide.value = false;
+		});
+	} else {
+		hide.value = false;
+	}
 }
 
 function resetTimer() {
