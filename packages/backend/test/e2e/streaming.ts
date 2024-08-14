@@ -310,7 +310,7 @@ describe('Streaming', () => {
 				kyoko.isCat = true;
 				const fired = await waitFire(
 					ayano, 'homeTimeline',	// ayano:home
-					() => api('notes/create', { text: 'cattest' }, kyoko),	// cat kyoko note
+					() => api('notes/create', { text: 'meow' }, kyoko),	// cat kyoko note
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
 					{ withCats: true },
 				);
@@ -318,16 +318,16 @@ describe('Streaming', () => {
 				assert.strictEqual(fired, true);
 			});
 
-			test('withCats: false のときノートが流れる', async () => {
+			test('withCats: false のときノートが流れない', async () => {
 				kyoko.isCat = false;
 				const fired = await waitFire(
 					ayano, 'homeTimeline',	// ayano:home
-					() => api('notes/create', { text: 'cattest' }, kyoko),	// cat kyoko note
+					() => api('notes/create', { text: 'not cattest' }, kyoko),	// kyoko note
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
 					{ withCats: false },
 				);
 
-				assert.strictEqual(fired, true);
+				assert.strictEqual(fired, false);
 			});
 
 			test('withReplies: true のとき自分のfollowers投稿に対するリプライが流れる', async () => {
