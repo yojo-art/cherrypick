@@ -41,12 +41,12 @@ Cherrypick 4.10.0-rc.3
 -
 
 ### Client
-- Enhance:メンションや引用、返信の通知も削除できるように
-- Fix:デッキモードで通知カラムがあるとリロードするたびに毎回通知を消すか聞かれる問題を修正
-- Fix:通知を全削除できない問題を修正
-- Fix:通知ポップアップにも通知削除ボタンが表示される
-- Fix: MFMでURLの表示文字列を変更した時にリモートクリップURLが書き換えられない
-- Enhance: リモートクリップのURLプレビューをリモートURLで生成
+- Enhance:メンションや引用、返信の通知も削除できるように [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix:デッキモードで通知カラムがあるとリロードするたびに毎回通知を消すか聞かれる問題を修正 [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix:通知を全削除できない問題を修正 [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix:通知ポップアップにも通知削除ボタンが表示される [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix: MFMでURLの表示文字列を変更した時にリモートクリップURLが書き換えられない [#324](https://github.com/yojo-art/cherrypick/pull/324)
+- Enhance: リモートクリップのURLプレビューをリモートURLで生成 [#324](https://github.com/yojo-art/cherrypick/pull/324)
 
 ### Server
 - Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正 [#323](https://github.com/yojo-art/cherrypick/pull/323)
@@ -66,7 +66,7 @@ Cherrypick 4.10.0-rc.3
 -
 
 ### Server
-- Fix: APリクエストannounceNoteを受け取れない問題を修正
+- Fix: APリクエストannounceNoteを受け取れない問題を修正  [#310](https://github.com/yojo-art/cherrypick/pull/310)
 
 ### Misc
 
