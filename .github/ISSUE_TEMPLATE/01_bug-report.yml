@@ -56,7 +56,7 @@ body:
           * Model and OS of the device(s): MacBook Pro (14inch, 2021), macOS Ventura 13.4
           * Browser: Chrome 113.0.5672.126
           * Server URL: cherrypick.example.com
-          * CherryPick: 4.x.x-yojo-x.x.x (Misskey: 2024.x.x)
+          * CherryPick: 4.x.x-yojox.x.x (Misskey: 2024.x.x)
       value: |
         * Model and OS of the device(s):
         * Browser:
@@ -76,7 +76,7 @@ body:
 
         Examples:
           * Installation Method or Hosting Service: docker compose, k8s/docker, systemd, "CherryPick install shell script", development environment
-          * CherryPick: 4.x.x-yojo-x.x.x (Misskey: 2024.x.x)
+          * CherryPick: 4.x.x-yojox.x.x (Misskey: 2024.x.x)
           * Node: 20.x.x
           * PostgreSQL: 15.x.x
           * Redis: 7.x.x
