@@ -2827,11 +2827,11 @@ export interface Locale extends ILocale {
      */
     "unsetUserBannerConfirm": string;
     /**
-     * 相互リンクを解除
+     * 相互リンクを削除
      */
     "unsetUserMutualLink": string;
     /**
-     * 相互リンクを解除しますか？
+     * 相互リンクを削除しますか？
      */
     "unsetUserMutualLinkConfirm": string;
     /**
