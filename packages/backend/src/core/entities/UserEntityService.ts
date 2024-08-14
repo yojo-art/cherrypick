@@ -29,17 +29,21 @@ import type {
 	FollowRequestsRepository,
 	MessagingMessagesRepository,
 	MiFollowing,
+	MiUserBanner,
 	MiUserNotePining,
 	MiUserProfile,
 	MutingsRepository,
 	NoteUnreadsRepository,
 	RenoteMutingsRepository,
 	UserGroupJoiningsRepository,
+	UserBannerRepository,
+	UserBannerPiningRepository,
 	UserMemoRepository,
 	UserNotePiningsRepository,
 	UserProfilesRepository,
 	UserSecurityKeysRepository,
 	UsersRepository,
+	MiUserBannerPining,
 } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -49,9 +53,10 @@ import { IdService } from '@/core/IdService.js';
 import type { AnnouncementService } from '@/core/AnnouncementService.js';
 import type { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { UserBannerEntityService } from '@/core/entities/UserBannerEntityService.js';
+import { UserBannerPiningEntityService } from '@/core/entities/UserBannerPiningEntityService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NoteEntityService } from './NoteEntityService.js';
-import type { DriveFileEntityService } from './DriveFileEntityService.js';
 import type { PageEntityService } from './PageEntityService.js';
 
 const Ajv = _Ajv.default;
@@ -130,6 +135,11 @@ export class UserEntityService implements OnModuleInit {
 		@Inject(DI.userNotePiningsRepository)
 		private userNotePiningsRepository: UserNotePiningsRepository,
 
+		@Inject(DI.userBannerRepository)
+		private userBannerRepository: UserBannerRepository,
+		@Inject(DI.userBannerPiningRepository)
+		private userBannerPiningRepository: UserBannerPiningRepository,
+
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
@@ -141,6 +151,9 @@ export class UserEntityService implements OnModuleInit {
 
 		@Inject(DI.userMemosRepository)
 		private userMemosRepository: UserMemoRepository,
+
+		private userBannerEntityService: UserBannerEntityService,
+		private userBannerPiningEntityService: UserBannerPiningEntityService,
 	) {
 	}
 
@@ -479,6 +492,8 @@ export class UserEntityService implements OnModuleInit {
 		}
 
 		let pins: MiUserNotePining[] = [];
+		let myMutualBanner: MiUserBanner | null = null;
+		let mutualBanners: MiUserBannerPining[] = [];
 		if (isDetailed) {
 			if (opts.pinNotes) {
 				pins = opts.pinNotes.get(user.id) ?? [];
@@ -488,6 +503,12 @@ export class UserEntityService implements OnModuleInit {
 					.innerJoinAndSelect('pin.note', 'note')
 					.orderBy('pin.id', 'DESC')
 					.getMany();
+			}
+			if (user.id) {
+				[myMutualBanner, mutualBanners] = await Promise.all([
+					this.userBannerRepository.findOneBy({ userId: user.id }),
+					this.userBannerPiningRepository.findBy({ userId: user.id }),
+				]);
 			}
 		}
 
@@ -573,6 +594,8 @@ export class UserEntityService implements OnModuleInit {
 				lang: profile!.lang,
 				fields: profile!.fields,
 				verifiedLinks: profile!.verifiedLinks,
+				mutualBanners: mutualBanners.length > 0 ? this.userBannerPiningEntityService.packMany(mutualBanners, me) : [],
+				myMutualBanner: myMutualBanner ? this.userBannerEntityService.pack(myMutualBanner, me) : null,
 				followersCount: followersCount ?? '?',
 				followingCount: followingCount ?? '?',
 				notesCount: user.notesCount,

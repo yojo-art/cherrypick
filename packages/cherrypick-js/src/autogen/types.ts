@@ -282,6 +282,15 @@ export type paths = {
      */
     post: operations['admin___unset-user-banner'];
   };
+  '/admin/unset-user-mutual-banner': {
+    /**
+     * admin/unset-user-mutual-banner
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-banner*
+     */
+    post: operations['admin___unset-user-mutual-banner'];
+  };
   '/admin/drive/clean-remote-files': {
     /**
      * admin/drive/clean-remote-files
@@ -3948,6 +3957,7 @@ export type components = {
           name: string;
           iconUrl: string | null;
           displayOrder: number;
+          behavior?: string;
         })[];
     };
     UserDetailedNotMeOnly: {
@@ -4015,6 +4025,30 @@ export type components = {
       /** @enum {string} */
       notify?: 'normal' | 'none';
       withReplies?: boolean;
+      mutualBanners: (({
+          /** Format: id */
+          id: string;
+          user: components['schemas']['UserLite'];
+          description: string | null;
+          /** Format: url */
+          imgUrl: string;
+          /** Format: url */
+          url: string;
+          /** Format: id */
+          fileId: string;
+        })[]) | null;
+      myMutualBanner: ({
+        /** Format: id */
+        id: string;
+        user: components['schemas']['UserLite'];
+        description: string | null;
+        /** Format: url */
+        imgUrl: string;
+        /** Format: url */
+        url: string;
+        /** Format: id */
+        fileId: string;
+      }) | null;
     };
     MeDetailedOnly: {
       /** Format: id */
@@ -4210,6 +4244,17 @@ export type components = {
     MeDetailed: components['schemas']['UserLite'] & components['schemas']['UserDetailedNotMeOnly'] & components['schemas']['MeDetailedOnly'];
     UserDetailed: components['schemas']['UserDetailedNotMe'] | components['schemas']['MeDetailed'];
     User: components['schemas']['UserLite'] | components['schemas']['UserDetailed'];
+    UserBanner: {
+      /** Format: id */
+      id: string;
+      user: components['schemas']['UserLite'];
+      description: string | null;
+      /** Format: url */
+      imgUrl: string;
+      url: string | null;
+      /** Format: id */
+      fileId: string;
+    };
     UserList: {
       /**
        * Format: id
@@ -7138,6 +7183,58 @@ export type operations = {
    * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-banner*
    */
   'admin___unset-user-banner': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          userId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/unset-user-mutual-banner
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-banner*
+   */
+  'admin___unset-user-mutual-banner': {
     requestBody: {
       content: {
         'application/json': {
@@ -19985,6 +20082,14 @@ export type operations = {
           };
           emailNotificationTypes?: string[];
           alsoKnownAs?: string[];
+          mutualBannerPining?: string[] | null;
+          myMutualBanner?: ({
+            /** Format: misskey:id */
+            fileId: string;
+            description?: string;
+            /** Format: url */
+            url?: string | null;
+          }) | null;
         };
       };
     };

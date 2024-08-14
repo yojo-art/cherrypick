@@ -72,6 +72,8 @@ import { MiUserListMembership } from '@/models/UserListMembership.js';
 import { MiUserNotePining } from '@/models/UserNotePining.js';
 import { MiUserPending } from '@/models/UserPending.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
+import { MiUserBanner } from '@/models/UserBanner.js';
+import { MiUserBannerPining } from '@/models/UserBannerPining.js';
 import { MiUserPublickey } from '@/models/UserPublickey.js';
 import { MiUserSecurityKey } from '@/models/UserSecurityKey.js';
 import { MiUserMemo } from '@/models/UserMemo.js';
@@ -195,6 +197,8 @@ export {
 	MiUserNotePining,
 	MiUserPending,
 	MiUserProfile,
+	MiUserBanner,
+	MiUserBannerPining,
 	MiUserPublickey,
 	MiUserSecurityKey,
 	MiWebhook,

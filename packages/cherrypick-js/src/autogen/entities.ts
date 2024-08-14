@@ -47,6 +47,7 @@ export type AdminAvatarDecorationsUpdateRequest = operations['admin___avatar-dec
 export type AdminDeleteAllFilesOfAUserRequest = operations['admin___delete-all-files-of-a-user']['requestBody']['content']['application/json'];
 export type AdminUnsetUserAvatarRequest = operations['admin___unset-user-avatar']['requestBody']['content']['application/json'];
 export type AdminUnsetUserBannerRequest = operations['admin___unset-user-banner']['requestBody']['content']['application/json'];
+export type AdminUnsetUserMutualBannerRequest = operations['admin___unset-user-mutual-banner']['requestBody']['content']['application/json'];
 export type AdminDriveFilesRequest = operations['admin___drive___files']['requestBody']['content']['application/json'];
 export type AdminDriveFilesResponse = operations['admin___drive___files']['responses']['200']['content']['application/json'];
 export type AdminDriveShowFileRequest = operations['admin___drive___show-file']['requestBody']['content']['application/json'];

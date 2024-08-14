@@ -184,6 +184,10 @@ export const packedUserLiteSchema = {
 						type: 'number',
 						nullable: false, optional: false,
 					},
+					behavior: {
+						type: 'string',
+						nullable: false, optional: true,
+					},
 				},
 			},
 		},
@@ -427,6 +431,80 @@ export const packedUserDetailedNotMeOnlySchema = {
 		withReplies: {
 			type: 'boolean',
 			nullable: false, optional: true,
+		},
+		mutualBanners: {
+			type: 'array',
+			nullable: true, optional: false,
+			items: {
+				type: 'object',
+				nullable: false, optional: false,
+				properties: {
+					id: {
+						type: 'string',
+						format: 'id',
+						nullable: false, optional: false,
+					},
+					user: {
+						type: 'object',
+						nullable: false, optional: false,
+						ref: 'UserLite',
+					},
+					description: {
+						type: 'string',
+						nullable: true, optional: false,
+					},
+					imgUrl: {
+						type: 'string',
+						format: 'url',
+						nullable: false, optional: false,
+					},
+					url: {
+						type: 'string',
+						format: 'url',
+						nullable: false, optional: false,
+					},
+					fileId: {
+						type: 'string',
+						format: 'id',
+						nullable: false, optional: false,
+					},
+				},
+			},
+		},
+		myMutualBanner: {
+			type: 'object',
+			nullable: true, optional: false,
+			properties: {
+				id: {
+					type: 'string',
+					format: 'id',
+					nullable: false, optional: false,
+				},
+				user: {
+					type: 'object',
+					nullable: false, optional: false,
+					ref: 'UserLite',
+				},
+				description: {
+					type: 'string',
+					nullable: true, optional: false,
+				},
+				imgUrl: {
+					type: 'string',
+					format: 'url',
+					nullable: false, optional: false,
+				},
+				url: {
+					type: 'string',
+					format: 'url',
+					nullable: false, optional: false,
+				},
+				fileId: {
+					type: 'string',
+					format: 'id',
+					nullable: false, optional: false,
+				},
+			},
 		},
 		//#endregion
 	},
@@ -729,4 +807,38 @@ export const packedUserSchema = {
 			ref: 'UserDetailed',
 		},
 	],
+} as const;
+
+export const packedUserBannerSchema = {
+	type: 'object',
+	properties: {
+		id: {
+			type: 'string',
+			nullable: false, optional: false,
+			format: 'id',
+		},
+		user: {
+			type: 'object',
+			nullable: false, optional: false,
+			ref: 'UserLite',
+		},
+		description: {
+			type: 'string',
+			nullable: true, optional: false,
+		},
+		imgUrl: {
+			type: 'string',
+			format: 'url',
+			nullable: false, optional: false,
+		},
+		url: {
+			type: 'string',
+			nullable: true, optional: false,
+		},
+		fileId: {
+			type: 'string',
+			format: 'id',
+			nullable: false, optional: false,
+		},
+	},
 } as const;
