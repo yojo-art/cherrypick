@@ -103,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<div :class="$style.mutualLinks">
 								<div v-for="(mutualLink, i) in section.mutualLinks" :key="i">
 									<MkLink :hideIcon="true" :url="mutualLink.url">
-										<img :class="$style.mutualLinkImg" :src="mutualLink.imgSrc" :alt="mutualLink.description"/>
+										<img :class="$style.mutualLinkImg" :src="getProxiedImageUrl(mutualLink.imgSrc)" :alt="mutualLink.description"/>
 									</MkLink>
 								</div>
 							</div>
@@ -203,7 +203,7 @@ import { confetti } from '@/scripts/confetti.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { isFollowingVisibleForMe, isFollowersVisibleForMe } from '@/scripts/isFfVisibleForMe.js';
 import { useRouter } from '@/router/supplier.js';
-import { getStaticImageUrl } from '@/scripts/media-proxy.js';
+import { getStaticImageUrl, getProxiedImageUrl } from '@/scripts/media-proxy.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { editNickname } from '@/scripts/edit-nickname.js';
 import { vibrate } from '@/scripts/vibrate.js';
