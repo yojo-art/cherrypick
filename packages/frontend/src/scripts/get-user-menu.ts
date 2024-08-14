@@ -104,10 +104,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 			userId: user.id,
 		}).then(() => {
 			user.isBlocking = !user.isBlocking;
-		});
-		os.apiWithDialog(user.isMuted ? 'mute/delete' : 'mute/create', {
-			userId: user.id,
-		}).then(() => {
 			user.isMuted = !user.isMuted;
 		});
 	}
