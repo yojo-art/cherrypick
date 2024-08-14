@@ -62,7 +62,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div v-if="appearNote.channel" :class="$style.colorBar" :style="{ background: appearNote.channel.color }"></div>
 			<MkAvatar v-if="!defaultStore.state.hideAvatarsInNote" :class="[$style.avatar, { [$style.avatarReplyTo]: appearNote.reply, [$style.showEl]: !appearNote.reply && (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>defaultStore.state.displayHeaderNavBarWhenScroll)) && mainRouter.currentRoute.value.name === 'index', [$style.showElTab]: !appearNote.reply && (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>defaultStore.state.displayHeaderNavBarWhenScroll)) && mainRouter.currentRoute.value.name !== 'index' }]" :user="appearNote.user" :link="!mock" :preview="!mock" noteClick/>
 			<div :class="$style.main">
-				<MkNoteHeader :note="appearNote" :mini="true"/>
+				<MkNoteHeader :note="appearNote" :mini="true" :notificationId="notificationId"/>
 			</div>
 		</div>
 		<div style="container-type: inline-size;">
@@ -263,6 +263,7 @@ const props = withDefaults(defineProps<{
 	mock?: boolean;
 	withHardMute?: boolean;
   notification?: boolean;
+	notificationId?: string;
 }>(), {
 	mock: false,
 });
