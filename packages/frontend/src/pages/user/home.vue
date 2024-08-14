@@ -97,6 +97,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</MkOmit>
 					</div>
+					<MkContainer v-if="user?.mutualLinkSections?.length > 0" :showHeader="false" :max-height="200" class="fields" :style="{borderRadius: 0}">
+						<div v-for="(section, index) in user?.mutualLinkSections" :key="index" :class="$style.mutualLinkSections">
+							<span v-if="section.name">{{ section.name }}</span>
+							<div :class="$style.mutualLinks">
+								<div v-for="(mutualLink, i) in section.mutualLinks" :key="i">
+									<MkLink :hideIcon="true" :url="mutualLink.url">
+										<img :class="$style.mutualLinkImg" :src="mutualLink.imgSrc" :alt="mutualLink.description"/>
+									</MkLink>
+								</div>
+							</div>
+						</div>
+					</MkContainer>
 					<div class="fields system">
 						<dl v-if="user.location" class="field">
 							<dt class="name"><i class="ti ti-map-pin ti-fw"></i> {{ i18n.ts.location }}</dt>
@@ -121,28 +133,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<i v-if="user.verifiedLinks.includes(field.value)" v-tooltip:dialog="i18n.ts.verifiedLink" class="ti ti-circle-check" :class="$style.verifiedLink"></i>
 							</dd>
 						</dl>
-						<div v-if="user?.myMutualBanner" class="fields">
-						{{ i18n.ts.mutualBannerThisUser }}
 
-						<div :class="$style.myMutualBanner">
-							<MkLink :hideIcon="true" :url="user.myMutualBanner.url">
-								<img :class="$style.mutualBannerImg" :src="user.myMutualBanner.imgUrl" :alt="user.myMutualBanner.description"/>
-							</MkLink>
-							<span>{{ (user.myMutualBanner?.description === '' || user.myMutualBanner?.description === null) ? i18n.ts.noDescription : user.myMutualBanner?.description }}</span>
-							<MkButton v-if="$i && $i?.id !== user.id && !$i?.mutualBanners?.some(banner => banner.id === user.myMutualBanner?.id) " @click="mutualBannerFollow(user.myMutualBanner?.id)">{{ i18n.ts.follow }}</MkButton>
-							<MkButton v-else-if="$i && $i?.id !== user.id" @click="mutualBannerUnFollow(user.myMutualBanner?.id)">{{ i18n.ts.unfollow }}</MkButton>
-						</div>
-					</div>
-					<div v-if="user?.mutualBanners && user?.mutualBanners.length > 0" class="fields">
-						{{ i18n.ts.mutualBanner }}
-						<div :class="$style.mutualBanner">
-							<div v-for="(mutualBanner, i) in mutualBanners?.slice(0, 9)" :key="i">
-								<MkLink :hideIcon="true" :url="mutualBanner.url">
-									<img :class="$style.mutualBannerImg" :src="mutualBanner.imgUrl" :alt="mutualBanner.description"/>
-								</MkLink>
-							</div>
-						</div>
-					</div>
 					<div class="status">
 						<MkA :to="userPage(user)">
 							<b>{{ number(user.notesCount) }}</b>
@@ -218,6 +209,7 @@ import { editNickname } from '@/scripts/edit-nickname.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
 import MkLink from '@/components/MkLink.vue';
+import MkContainer from '@/components/MkContainer.vue';
 
 function calcAge(birthdate: string): number {
 	const date = new Date(birthdate);
@@ -261,7 +253,6 @@ const editModerationNote = ref(false);
 
 const translation = ref<Misskey.entities.UsersTranslateResponse | null>(null);
 const translating = ref(false);
-const mutualBanners = ref(props.user.mutualBanners);
 
 watch(moderationNote, async () => {
 	await misskeyApi('admin/update-user-note', { userId: props.user.id, text: moderationNote.value });
@@ -315,23 +306,6 @@ function showMemoTextarea() {
 	isEditingMemo.value = true;
 	nextTick(() => {
 		memoTextareaEl.value?.focus();
-	});
-}
-
-function mutualBannerFollow(id: string) {
-	os.apiWithDialog('i/update', {
-		mutualBannerPining: [
-			...($i?.mutualBanners?.map(banner => banner.id) ?? []),
-			id,
-		],
-	});
-}
-
-function mutualBannerUnFollow(id:string) {
-	os.apiWithDialog('i/update', {
-		mutualBannerPining: [
-			...($i?.mutualBanners?.map(banner => banner.id) ?? []).filter(bannerId => bannerId !== id),
-		],
 	});
 }
 
@@ -831,27 +805,36 @@ onUnmounted(() => {
 	color: var(--success);
 }
 
-.myMutualBanner {
+.mutualLinkSections {
 	display: flex;
+	flex-wrap: wrap;
 	justify-content: space-around;
-	align-items: center;
-	flex-flow: column wrap;
-	padding: 16px;
+	flex-direction: column;
+	background: var(--panel);
+	gap: 8px;
+	margin-bottom: 8px;
+
 }
 
-.mutualBanner {
+.mutualLinks {
 	display: flex;
 	justify-content: space-around;
 	flex-wrap: wrap;
-	padding: 16px;
+	gap: 12px;
+	padding-top: 8px;
+	@media (max-width: 500px) {
+		gap: 8px;
+	}
 }
 
-.mutualBannerImg {
-	max-width: 300px;
-	min-width: 200px;
-	max-height: 60px;
-	min-height: 40px;
-	object-fit: contain;
+.mutualLink {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
 }
 
+.mutualLinkImg {
+	max-width: 150px;
+	max-height: 30px;
+}
 </style>

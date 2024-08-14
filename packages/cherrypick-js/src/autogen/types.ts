@@ -282,14 +282,14 @@ export type paths = {
      */
     post: operations['admin___unset-user-banner'];
   };
-  '/admin/unset-user-mutual-banner': {
+  '/admin/unset-user-mutual-link': {
     /**
-     * admin/unset-user-mutual-banner
+     * admin/unset-user-mutual-link
      * @description No description provided.
      *
-     * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-banner*
+     * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-link*
      */
-    post: operations['admin___unset-user-mutual-banner'];
+    post: operations['admin___unset-user-mutual-link'];
   };
   '/admin/drive/clean-remote-files': {
     /**
@@ -4014,6 +4014,16 @@ export type components = {
       roles: components['schemas']['RoleLite'][];
       memo: string | null;
       moderationNote?: string;
+      mutualLinkSections: ({
+          name: string | null;
+          mutualLinks: ({
+              url: string;
+              /** Format: misskey:id */
+              fileId: string;
+              description: string | null;
+              imgSrc: string;
+            })[];
+        })[];
       isFollowing?: boolean;
       isFollowed?: boolean;
       hasPendingFollowRequestFromYou?: boolean;
@@ -4025,30 +4035,6 @@ export type components = {
       /** @enum {string} */
       notify?: 'normal' | 'none';
       withReplies?: boolean;
-      mutualBanners: (({
-          /** Format: id */
-          id: string;
-          user: components['schemas']['UserLite'];
-          description: string | null;
-          /** Format: url */
-          imgUrl: string;
-          /** Format: url */
-          url: string;
-          /** Format: id */
-          fileId: string;
-        })[]) | null;
-      myMutualBanner: ({
-        /** Format: id */
-        id: string;
-        user: components['schemas']['UserLite'];
-        description: string | null;
-        /** Format: url */
-        imgUrl: string;
-        /** Format: url */
-        url: string;
-        /** Format: id */
-        fileId: string;
-      }) | null;
     };
     MeDetailedOnly: {
       /** Format: id */
@@ -4244,17 +4230,6 @@ export type components = {
     MeDetailed: components['schemas']['UserLite'] & components['schemas']['UserDetailedNotMeOnly'] & components['schemas']['MeDetailedOnly'];
     UserDetailed: components['schemas']['UserDetailedNotMe'] | components['schemas']['MeDetailed'];
     User: components['schemas']['UserLite'] | components['schemas']['UserDetailed'];
-    UserBanner: {
-      /** Format: id */
-      id: string;
-      user: components['schemas']['UserLite'];
-      description: string | null;
-      /** Format: url */
-      imgUrl: string;
-      url: string | null;
-      /** Format: id */
-      fileId: string;
-    };
     UserList: {
       /**
        * Format: id
@@ -5144,6 +5119,8 @@ export type components = {
       avatarDecorationLimit: number;
       fileSizeLimit: number;
       canEditNote: boolean;
+      mutualLinkSectionLimit: number;
+      mutualLinkLimit: number;
     };
     ReversiGameLite: {
       /** Format: id */
@@ -7229,12 +7206,12 @@ export type operations = {
     };
   };
   /**
-   * admin/unset-user-mutual-banner
+   * admin/unset-user-mutual-link
    * @description No description provided.
    *
-   * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-banner*
+   * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-link*
    */
-  'admin___unset-user-mutual-banner': {
+  'admin___unset-user-mutual-link': {
     requestBody: {
       content: {
         'application/json': {
@@ -20082,14 +20059,16 @@ export type operations = {
           };
           emailNotificationTypes?: string[];
           alsoKnownAs?: string[];
-          mutualBannerPining?: string[] | null;
-          myMutualBanner?: ({
-            /** Format: misskey:id */
-            fileId: string;
-            description?: string;
-            /** Format: url */
-            url?: string | null;
-          }) | null;
+          mutualLinkSections?: ({
+              name?: string | null;
+              mutualLinks: ({
+                  /** Format: url */
+                  url: string;
+                  /** Format: misskey:id */
+                  fileId: string;
+                  description?: string | null;
+                })[];
+            })[];
         };
       };
     };

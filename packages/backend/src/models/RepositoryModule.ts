@@ -84,8 +84,6 @@ import {
 	MiUserSecurityKey,
 	MiWebhook,
 	MiOfficialTag,
-	MiUserBannerPining,
-	MiUserBanner,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
@@ -231,18 +229,6 @@ const $userGroupInvitationsRepository: Provider = {
 const $userNotePiningsRepository: Provider = {
 	provide: DI.userNotePiningsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiUserNotePining),
-	inject: [DI.db],
-};
-
-const $userBannerRepository: Provider = {
-	provide: DI.userBannerRepository,
-	useFactory: (db: DataSource) => db.getRepository(MiUserBanner),
-	inject: [DI.db],
-};
-
-const $userBannerPiningRepository: Provider = {
-	provide: DI.userBannerPiningRepository,
-	useFactory: (db: DataSource) => db.getRepository(MiUserBannerPining),
 	inject: [DI.db],
 };
 
@@ -585,8 +571,6 @@ const $officialTagRepository: Provider = {
 		$userGroupJoiningsRepository,
 		$userGroupInvitationsRepository,
 		$userNotePiningsRepository,
-		$userBannerPiningRepository,
-		$userBannerRepository,
 		$userIpsRepository,
 		$usedUsernamesRepository,
 		$followingsRepository,
@@ -665,8 +649,6 @@ const $officialTagRepository: Provider = {
 		$userGroupJoiningsRepository,
 		$userGroupInvitationsRepository,
 		$userNotePiningsRepository,
-		$userBannerPiningRepository,
-		$userBannerRepository,
 		$userIpsRepository,
 		$usedUsernamesRepository,
 		$followingsRepository,

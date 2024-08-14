@@ -11,7 +11,6 @@ import {
 	packedUserDetailedSchema,
 	packedUserLiteSchema,
 	packedUserSchema,
-	packedUserBannerSchema,
 } from '@/models/json-schema/user.js';
 import { packedNoteSchema } from '@/models/json-schema/note.js';
 import { packedUserListSchema } from '@/models/json-schema/user-list.js';
@@ -71,7 +70,6 @@ export const refs = {
 	MeDetailed: packedMeDetailedSchema,
 	UserDetailed: packedUserDetailedSchema,
 	User: packedUserSchema,
-	UserBanner: packedUserBannerSchema,
 
 	UserList: packedUserListSchema,
 	UserGroup: packedUserGroupSchema,

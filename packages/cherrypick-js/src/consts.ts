@@ -69,7 +69,6 @@ export const permissions = [
 	'write:admin:suspend-user',
 	'write:admin:unset-user-avatar',
 	'write:admin:unset-user-banner',
-	'write:admin:unset-user-mutual-banner',
 	'write:admin:unsuspend-user',
 	'write:admin:meta',
 	'write:admin:user-note',
@@ -160,7 +159,6 @@ export const reversiUpdateKeys = [
 	'canPutEverywhere',
 	'loopedBoard',
 	'timeLimitForEachTurn',
-	'unsetUserMutualBanner',
 ] as const;
 
 export type ReversiUpdateKey = typeof reversiUpdateKeys[number];
@@ -388,12 +386,5 @@ export type ModerationLogPayloads = {
 	deleteAbuseReportNotificationRecipient: {
 		recipientId: string;
 		recipient: AbuseReportNotificationRecipient;
-	};
-	unsetUserMutualBanner: {
-		userId: string;
-		userUsername: string;
-		userBannerDescription: string | null;
-		userBannerUrl: string;
-		fileId: string;
 	};
 };
