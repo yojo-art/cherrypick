@@ -101,7 +101,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div v-for="(section, index) in user?.mutualLinkSections" :key="index" :class="$style.mutualLinkSections">
 							<span v-if="section.name">{{ section.name }}</span>
 							<div :class="$style.mutualLinks">
-								<div v-for="(mutualLink, i) in section.mutualLinks" :key="i">
+								<div v-for="mutualLink in section.mutualLinks" :key="mutualLink.id">
 									<MkLink :hideIcon="true" :url="mutualLink.url">
 										<img :class="$style.mutualLinkImg" :src="getProxiedImageUrl(mutualLink.imgSrc)" :alt="mutualLink.description"/>
 									</MkLink>
@@ -834,7 +834,7 @@ onUnmounted(() => {
 }
 
 .mutualLinkImg {
-	max-width: 150px;
-	max-height: 30px;
+	max-width: 200px;
+	max-height: 40px;
 }
 </style>

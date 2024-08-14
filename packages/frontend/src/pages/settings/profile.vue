@@ -183,7 +183,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, watch, defineAsyncComponent, Ref } from 'vue';
+import { computed, reactive, ref, watch, defineAsyncComponent } from 'vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -203,7 +203,6 @@ import { globalEvents } from '@/events.js';
 import { unisonReload } from '@/scripts/unison-reload.js';
 import MkInfo from '@/components/MkInfo.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
-import * as Misskey from "misskey-js";
 
 const $i = signinRequired();
 
@@ -226,7 +225,7 @@ watch(() => profile, () => {
 	deep: true,
 });
 
-const mutualLinkSections = ref($i.mutualLinkSections ?? []) as Ref<Misskey.entities.UserDetailed['mutualLinkSections']>;
+const mutualLinkSections = ref($i.mutualLinkSections.map(section => ({ ...section, id: Math.random().toString(), none: !section.name })) ?? []);
 const fields = ref($i.fields.map(field => ({ id: Math.random().toString(), name: field.name, value: field.value })) ?? []);
 const fieldEditMode = ref(false);
 const mutualLinkSectionEditMode = ref(false);
@@ -241,6 +240,7 @@ function addField() {
 
 function addMutualLinks(index:number) {
 	mutualLinkSections.value[index].mutualLinks.push({
+		id: Math.random().toString(),
 		fileId: '',
 		url: '',
 		imgSrc: '',
@@ -250,7 +250,9 @@ function addMutualLinks(index:number) {
 
 function addMutualLinkSections() {
 	mutualLinkSections.value.push({
+		id: Math.random().toString(),
 		name: 'New Section',
+		none: false,
 		mutualLinks: [],
 	});
 }
@@ -521,8 +523,8 @@ definePageMetadata(() => ({
 }
 
 .mutualLinkImg {
-	max-width: 150px;
-	max-height: 30px;
+	max-width: 200px;
+	max-height: 40px;
 	object-fit: contain;
 }
 
