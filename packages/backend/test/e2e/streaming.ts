@@ -307,6 +307,9 @@ describe('Streaming', () => {
 			});
 
 			test('withCats: true のときノートが流れる', async () => {
+				await api('i/update', {
+					isCat: true,
+				}, kyoko);
 				kyoko.isCat = true;
 				const fired = await waitFire(
 					ayano, 'homeTimeline',	// ayano:home
@@ -319,8 +322,9 @@ describe('Streaming', () => {
 			});
 
 			test('withCats: false のときノートが流れない', async () => {
-				kyoko.isCat = false;
-				const fired = await waitFire(
+				await api('i/update', {
+					isCat: false,
+				}, kyoko);				const fired = await waitFire(
 					ayano, 'homeTimeline',	// ayano:home
 					() => api('notes/create', { text: 'not cattest' }, kyoko),	// kyoko note
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
