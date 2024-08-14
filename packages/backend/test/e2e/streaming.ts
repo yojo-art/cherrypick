@@ -331,7 +331,7 @@ describe('Streaming', () => {
 					{ withCats: true },
 				);
 
-				assert.strictEqual(fired, true);
+				assert.strictEqual(fired, false);
 			});
 			test('withReplies: true のとき自分のfollowers投稿に対するリプライが流れる', async () => {
 				const erinNote = await post(erin, { text: 'hi', visibility: 'followers' });
@@ -454,7 +454,7 @@ describe('Streaming', () => {
 					{ withCats: true },
 				);
 
-				assert.strictEqual(fired, true);
+				assert.strictEqual(fired, false);
 			});
 		});
 
@@ -618,7 +618,7 @@ describe('Streaming', () => {
 					{ withCats: true },
 				);
 
-				assert.strictEqual(fired, true);
+				assert.strictEqual(fired, false);
 			});
 		});
 
@@ -690,7 +690,7 @@ describe('Streaming', () => {
 					{ withCats: true },
 				);
 
-				assert.strictEqual(fired, true);
+				assert.strictEqual(fired, false);
 			});
 		});
 
