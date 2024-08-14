@@ -23,7 +23,8 @@
 -
 
 ### Client
--
+- Fix: MFMでURLの表示文字列を変更した時にリモートクリップURLが書き換えられない
+- Enhance: リモートクリップのURLプレビューをリモートURLで生成
 
 ### Server
 -
