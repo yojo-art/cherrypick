@@ -52,6 +52,7 @@ export class MiUserProfile {
 			fileId: MiDriveFile['id'];
 			description: string | null;
 			imgSrc: string;
+			url: string;
 		}[];
 	}[] | [];
 
