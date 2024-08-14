@@ -27,6 +27,8 @@
 - Fix:デッキモードで通知カラムがあるとリロードするたびに毎回通知を消すか聞かれる問題を修正
 - Fix:通知を全削除できない問題を修正
 - Fix:通知ポップアップにも通知削除ボタンが表示される
+- Fix: MFMでURLの表示文字列を変更した時にリモートクリップURLが書き換えられない
+- Enhance: リモートクリップのURLプレビューをリモートURLで生成
 
 ### Server
 - Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正 [#323](https://github.com/yojo-art/cherrypick/pull/323)
