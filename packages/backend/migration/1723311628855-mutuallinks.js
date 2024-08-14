@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project MisskeyIO
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 export class Mutuallinks1723311628855 {
     name = 'Mutuallinks1723311628855'
 
