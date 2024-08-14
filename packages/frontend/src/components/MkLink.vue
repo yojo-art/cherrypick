@@ -5,9 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <component
-	:is="self ? 'MkA' : 'a'" ref="el" style="word-break: break-all;" class="_link" :[attr]="self ? url.substring(local.length) : url" :rel="rel ?? 'nofollow noopener'" :target="target"
+	:is="self ? 'MkA' : 'a'" ref="el" style="word-break: break-all;" class="_link" :[attr]="self ? url_string.substring(local.length) : url_string" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
-	:title="url"
+	:title="url_string"
 	@click.stop
 >
 	<slot></slot>
@@ -27,10 +27,17 @@ const props = withDefaults(defineProps<{
 	url: string;
 	rel?: null | string;
 	navigationBehavior?: MkABehavior;
+	host?: null | string;
 }>(), {
 });
 
-const self = props.url.startsWith(local);
+let self = props.url.startsWith(local);
+let requestUrl = new URL(props.url);
+if (props.host === requestUrl.host && requestUrl.pathname.startsWith('/clips/')) {
+	requestUrl = new URL(local + requestUrl.pathname + '@' + props.host);
+	self = true;
+}
+const url_string = requestUrl.toString();
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 

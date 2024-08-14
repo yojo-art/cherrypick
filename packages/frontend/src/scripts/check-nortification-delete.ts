@@ -6,7 +6,7 @@ import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 
 export async function flushNotification() {
-	const canceled = await os.confirm({
+	const { canceled } = await os.confirm({
 		type: 'warning',
 		title: i18n.ts._deleteConfirm.notificationDeleteTitle,
 		okText: i18n.ts._deleteConfirm.delete,
