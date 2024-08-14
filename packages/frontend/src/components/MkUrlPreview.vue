@@ -120,8 +120,8 @@ let url_string: string;
 if (props.host === requestUrl.host && requestUrl.pathname.startsWith('/clips/')) {
 	requestUrl = new URL(local + requestUrl.pathname + '@' + props.host);
 	self = true;
-	requestUrl = new URL(props.url);
 	url_string = requestUrl.toString();
+	requestUrl = new URL(props.url);
 } else {
 	url_string = requestUrl.toString();
 }
