@@ -388,6 +388,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.mutualLinkSections) {
+				const policy = await this.roleService.getUserPolicies(user.id);
 				if (ps.mutualLinkSections.length > policy.mutualLinkSectionLimit) {
 					throw new ApiError(meta.errors.restrictedByRole);
 				}
