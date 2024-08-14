@@ -29,7 +29,7 @@
 - Fix:通知ポップアップにも通知削除ボタンが表示される
 
 ### Server
-- Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正
+- Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正 [#323](https://github.com/yojo-art/cherrypick/pull/323)
 
 ### Misc
 
