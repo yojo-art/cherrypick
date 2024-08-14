@@ -680,7 +680,7 @@ describe('Streaming', () => {
 				await api('i/update', {
 					isCat: false,
 				}, kyoko);
-			});			});
+			});
 
 			test('withCats: true のときノートが流れない', async () => {
 				const fired = await waitFire(
