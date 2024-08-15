@@ -65,9 +65,9 @@ export class DirectMessageSearchService {
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 
-		this.queryService.generateVisibilityQuery(query, me);
-		if (me) this.queryService.generateMutedUserQuery(query, me);
-		if (me) this.queryService.generateBlockedUserQuery(query, me);
+		//this.queryService.generateVisibilityQuery(query, me);
+		//if (me) this.queryService.generateMutedUserQuery(query, me);
+		//if (me) this.queryService.generateBlockedUserQuery(query, me);
 
 		return await query.limit(pagination.limit).getMany();
 	}
