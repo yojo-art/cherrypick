@@ -1575,6 +1575,8 @@ declare namespace entities {
         MessagingMessagesCreateResponse,
         MessagingMessagesDeleteRequest,
         MessagingMessagesReadRequest,
+        MessagingMessagesSearchRequest,
+        MessagingMessagesSearchResponse,
         MetaRequest,
         MetaResponse,
         EmojisResponse,
@@ -2396,6 +2398,12 @@ type MessagingMessagesRequest = operations['messaging___messages']['requestBody'
 
 // @public (undocumented)
 type MessagingMessagesResponse = operations['messaging___messages']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type MessagingMessagesSearchRequest = operations['messaging___messages___search']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type MessagingMessagesSearchResponse = operations['messaging___messages___search']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type MetaDetailed = components['schemas']['MetaDetailed'];

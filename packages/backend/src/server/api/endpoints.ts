@@ -273,6 +273,7 @@ import * as ep___messaging_messages from './endpoints/messaging/messages.js';
 import * as ep___messaging_messages_create from './endpoints/messaging/messages/create.js';
 import * as ep___messaging_messages_delete from './endpoints/messaging/messages/delete.js';
 import * as ep___messaging_messages_read from './endpoints/messaging/messages/read.js';
+import * as ep___messaging_messages_search from './endpoints/messaging/messages/search.js';
 import * as ep___meta from './endpoints/meta.js';
 import * as ep___emojis from './endpoints/emojis.js';
 import * as ep___emoji from './endpoints/emoji.js';
@@ -680,6 +681,7 @@ const eps = [
 	['messaging/messages/create', ep___messaging_messages_create],
 	['messaging/messages/delete', ep___messaging_messages_delete],
 	['messaging/messages/read', ep___messaging_messages_read],
+	['messaging/messages/search', ep___messaging_messages_search],
 	['meta', ep___meta],
 	['emojis', ep___emojis],
 	['emoji', ep___emoji],
