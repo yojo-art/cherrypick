@@ -6,7 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { Brackets } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { MessagingMessagesRepository, UserGroupJoiningsRepository } from '@/models/_.js';
+import type { BlockingsRepository, MessagingMessagesRepository, MutingsRepository, UserGroupJoiningsRepository } from '@/models/_.js';
 import type { MiMessagingMessage } from '@/models/MessagingMessage.js';
 import type { MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
@@ -43,6 +43,12 @@ export class DirectMessageSearchService {
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
+		@Inject(DI.mutingsRepository)
+		private mutingsRepository: MutingsRepository,
+
+		@Inject(DI.blockingsRepository)
+		private blockingsRepository: BlockingsRepository,
+
 		private cacheService: CacheService,
 		private queryService: QueryService,
 		private userEntityService: UserEntityService,
@@ -63,12 +69,12 @@ export class DirectMessageSearchService {
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
 
 		query
-			.andWhere('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` })
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 
 		if (opts.groupId) {
-			query.where('message.groupId IN (:...groups)', { groups: [opts.groupId] });
+			query.where('message.groupId IN (:...groups)', { groups: [opts.groupId] })
+				.andWhere(':userId = ANY(message.reads)', { userId: me.id });
 		} else {
 			query.where(new Brackets(qb => {
 				qb
@@ -77,9 +83,19 @@ export class DirectMessageSearchService {
 			}));
 			query.andWhere('message.groupId IS NULL');
 		}
-		//this.queryService.generateVisibilityQuery(query, me);
-		//if (me) this.queryService.generateMutedUserQuery(query, me);
-		//if (me) this.queryService.generateBlockedUserQuery(query, me);
+		query.andWhere('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` });
+
+		const mutingQuery = this.mutingsRepository.createQueryBuilder('muting')
+			.select('muting.muteeId')
+			.where('muting.muterId = :muterId', { muterId: me.id });
+
+		query.andWhere(`message.userId NOT IN (${ mutingQuery.getQuery() })`);
+
+		const blockingQuery = this.blockingsRepository.createQueryBuilder('blocking')
+			.select('blocking.blockerId')
+			.where('blocking.blockeeId = :blockeeId', { blockeeId: me.id });
+
+		query.andWhere(`message.userId NOT IN (${ blockingQuery.getQuery() })`);
 
 		return await query.limit(pagination.limit).getMany();
 	}
