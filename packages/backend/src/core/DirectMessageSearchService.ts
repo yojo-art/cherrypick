@@ -85,18 +85,6 @@ export class DirectMessageSearchService {
 			query.andWhere('message.groupId IS NULL');
 		}
 
-		const mutingQuery = this.mutingsRepository.createQueryBuilder('muting')
-			.select('muting.muteeId')
-			.where('muting.muterId = :muterId', { muterId: me.id });
-
-		query.andWhere(`message.userId NOT IN (${ mutingQuery.getQuery() })`);
-
-		const blockingQuery = this.blockingsRepository.createQueryBuilder('blocking')
-			.select('blocking.blockerId')
-			.where('blocking.blockeeId = :blockeeId', { blockeeId: me.id });
-
-		query.andWhere(`message.userId NOT IN (${ blockingQuery.getQuery() })`);
-
 		return await query.limit(pagination.limit).getMany();
 	}
 }
