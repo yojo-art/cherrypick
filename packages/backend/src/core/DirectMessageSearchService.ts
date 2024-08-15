@@ -69,6 +69,7 @@ export class DirectMessageSearchService {
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
 
 		query
+			.where('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` })
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 
@@ -83,7 +84,6 @@ export class DirectMessageSearchService {
 			}));
 			query.andWhere('message.groupId IS NULL');
 		}
-		query.andWhere('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` });
 
 		const mutingQuery = this.mutingsRepository.createQueryBuilder('muting')
 			.select('muting.muteeId')
