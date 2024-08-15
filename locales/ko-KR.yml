@@ -2645,7 +2645,6 @@ _notification:
   youWereFollowed: "새로운 팔로워가 있어요!"
   youReceivedFollowRequest: "새로운 팔로우 요청이 있어요!"
   yourFollowRequestAccepted: "팔로우 요청이 수락됐어요!"
-
   pollEnded: "투표 결과가 발표됐어요!"
   newNote: "새 게시물"
   unreadAntennaNote: "안테나 {name}"

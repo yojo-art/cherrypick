@@ -2432,7 +2432,6 @@ _notification:
   youWereFollowed: "您有新的追隨者"
   youReceivedFollowRequest: "您有新的追隨請求"
   yourFollowRequestAccepted: "您的追隨請求已通過"
-  youWereInvitedToGroup: "{userName}將邀請您加入新群組。"
   pollEnded: "問卷調查已產生結果"
   newNote: "新的貼文"
   unreadAntennaNote: "天線 {name}"
