@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MessagingMessagesRepository, UserGroupJoiningsRepository } from '@/models/_.js';
 import type { MiMessagingMessage } from '@/models/MessagingMessage.js';
@@ -58,6 +59,7 @@ export class DirectMessageSearchService {
 		sinceId?: MiMessagingMessage['id'];
 		limit?: number;
 	}): Promise<MiMessagingMessage[]> {
+		if (me === null) return [];
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
 
 		query
@@ -65,6 +67,16 @@ export class DirectMessageSearchService {
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 
+		if (opts.groupId) {
+			query.where('message.groupId IN (:...groups)', { groups: [opts.groupId] });
+		} else {
+			query.where(new Brackets(qb => {
+				qb
+					.where('message.userId = :userId', { userId: me.id })
+					.orWhere('message.recipientId = :userId', { userId: me.id });
+			}));
+			query.andWhere('message.groupId IS NULL');
+		}
 		//this.queryService.generateVisibilityQuery(query, me);
 		//if (me) this.queryService.generateMutedUserQuery(query, me);
 		//if (me) this.queryService.generateBlockedUserQuery(query, me);
