@@ -2417,7 +2417,6 @@ _notification:
   youWereFollowed: "Adesso ti segue"
   youReceivedFollowRequest: "Hai ricevuto una richiesta di follow"
   yourFollowRequestAccepted: "La tua richiesta di follow è stata accettata"
-  youWereInvitedToGroup: "Invitat@ al gruppo"
   pollEnded: "Risultati del sondaggio."
   newNote: "Nuove Note"
   unreadAntennaNote: "Antenna {name}"
