@@ -67,6 +67,7 @@ export class DirectMessageSearchService {
 	}): Promise<MiMessagingMessage[]> {
 		if (me === null) return [];
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
+		console.log(q);
 
 		query
 			.where('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` })
