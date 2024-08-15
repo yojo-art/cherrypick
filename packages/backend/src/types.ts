@@ -99,6 +99,7 @@ export const moderationLogTypes = [
 	'updateAbuseReportNotificationRecipient',
 	'deleteAbuseReportNotificationRecipient',
 	'updateOfficialTags',
+	'unsetUserMutualLink',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -326,6 +327,11 @@ export type ModerationLogPayloads = {
 			priority: number,
 		}[];
 	};
+	unsetUserMutualLink: {
+		userId: string;
+		userUsername: string;
+		userMutualLinkSections: { name: string | null; mutualLinks: { fileId: string; description: string | null; imgSrc: string; }[]; }[] | []
+	}
 };
 
 export type Serialized<T> = {

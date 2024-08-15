@@ -44,6 +44,7 @@ import type {
 	AdminDeleteAllFilesOfAUserRequest,
 	AdminUnsetUserAvatarRequest,
 	AdminUnsetUserBannerRequest,
+	AdminUnsetUserMutualLinkRequest,
 	AdminDriveFilesRequest,
 	AdminDriveFilesResponse,
 	AdminDriveShowFileRequest,
@@ -634,6 +635,7 @@ export type Endpoints = {
 	'admin/delete-all-files-of-a-user': { req: AdminDeleteAllFilesOfAUserRequest; res: EmptyResponse };
 	'admin/unset-user-avatar': { req: AdminUnsetUserAvatarRequest; res: EmptyResponse };
 	'admin/unset-user-banner': { req: AdminUnsetUserBannerRequest; res: EmptyResponse };
+	'admin/unset-user-mutual-link': { req: AdminUnsetUserMutualLinkRequest; res: EmptyResponse };
 	'admin/drive/clean-remote-files': { req: EmptyRequest; res: EmptyResponse };
 	'admin/drive/cleanup': { req: EmptyRequest; res: EmptyResponse };
 	'admin/drive/files': { req: AdminDriveFilesRequest; res: AdminDriveFilesResponse };
@@ -1041,6 +1043,7 @@ export const endpointReqTypes: Record<keyof Endpoints, 'application/json' | 'mul
 	'admin/delete-all-files-of-a-user': 'application/json',
 	'admin/unset-user-avatar': 'application/json',
 	'admin/unset-user-banner': 'application/json',
+	'admin/unset-user-mutual-link': 'application/json',
 	'admin/drive/clean-remote-files': 'application/json',
 	'admin/drive/cleanup': 'application/json',
 	'admin/drive/files': 'application/json',

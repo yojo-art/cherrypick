@@ -20,7 +20,11 @@
 ### Release Date
 
 ### General
--
+- Feat: 相互リンク機能の追加 [#319](https://github.com/yojo-art/cherrypick/pull/319)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/675)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/684)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/690)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
 
 ### Client
 -
