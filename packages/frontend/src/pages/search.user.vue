@@ -59,7 +59,7 @@ async function search() {
 
 	if (query === null || query === '') return;
 	//#region AP lookup
-	if (query.startsWith('https://')) {
+	if (query.startsWith('https://') && !query.includes(' ')) {
 		const { canceled } = await os.confirm({
 			type: 'question',
 			text: i18n.ts._searchOrApShow.question,
