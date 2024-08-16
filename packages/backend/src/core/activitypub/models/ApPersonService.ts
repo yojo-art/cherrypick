@@ -770,8 +770,8 @@ export class ApPersonService implements OnModuleInit {
 			} else if (ap.sectionName) {
 				name = this.apMfmService.htmlToMfm(truncate(ap.sectionName, summaryLength), person.tag);
 			}
-			if (!Array.isArray(ap)) return null;
-			const entrys = ap.slice(0, role_policy.mutualLinkLimit + 1);
+			if (!Array.isArray(ap.entrys)) return null;
+			const entrys = ap.entrys.slice(0, role_policy.mutualLinkLimit + 1);
 			//セクション内に少なくとも一つの要素を含む必要があります
 			if (entrys.length < 1) return null;
 
