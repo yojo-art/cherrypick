@@ -91,10 +91,7 @@ async function search() {
 			okText: i18n.ts._searchOrApShow.lookup,
 			cancelText: i18n.ts._searchOrApShow.search,
 		});
-		if (canceled) {
-			router.push(`/${query}`);
-			return;
-		} else {
+		if (!canceled) {
 			const querys = query.split('@');
 			const promise = misskeyApi('users/show', {
 				username: querys[1],
