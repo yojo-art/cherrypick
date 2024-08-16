@@ -86,7 +86,9 @@ export function uploadFile(
 			if (folder) formData.append('folderId', folder);
 
 			const xhr = new XMLHttpRequest();
-			xhr.open('POST', apiUrl + '/drive/files/create', true);
+			let endpoint=localStorage.getItem("UPLOAD_SERVICE_CREATE");
+			if(endpoint===null||endpoint===undefined)endpoint=apiUrl + '/drive/files/create';
+			xhr.open('POST', endpoint, true);
 			xhr.onload = ((ev: ProgressEvent<XMLHttpRequest>) => {
 				if (xhr.status !== 200 || ev.target == null || ev.target.response == null) {
 					// TODO: 消すのではなくて(ネットワーク的なエラーなら)再送できるようにしたい
