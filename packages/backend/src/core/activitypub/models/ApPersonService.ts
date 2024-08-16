@@ -448,7 +448,6 @@ export class ApPersonService implements OnModuleInit {
 					birthday: bday?.[0] ?? null,
 					location: person['vcard:Address'] ?? null,
 					userHost: host,
-					mutualLinkSections: await this.mutualLinkSections(person, user),
 				}));
 
 				if (person.publicKey) {
@@ -506,6 +505,11 @@ export class ApPersonService implements OnModuleInit {
 			this.logger.error('error occurred while fetching user avatar/banner', { stack: err });
 		}
 		//#endregion
+
+		//相互リンク機能の画像をドライブに登録する
+		await this.userProfilesRepository.update({ userId: user.id }, {
+			mutualLinkSections: await this.mutualLinkSections(person, user),
+		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
 

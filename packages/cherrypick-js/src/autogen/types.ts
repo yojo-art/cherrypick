@@ -287,6 +287,7 @@ export type paths = {
      * admin/unset-user-mutual-link
      * @description No description provided.
      *
+     * **Internal Endpoint**: This endpoint is an API for the cherrypick mainframe and is not intended for use by third parties.
      * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-link*
      */
     post: operations['admin___unset-user-mutual-link'];
@@ -7220,6 +7221,7 @@ export type operations = {
    * admin/unset-user-mutual-link
    * @description No description provided.
    *
+   * **Internal Endpoint**: This endpoint is an API for the cherrypick mainframe and is not intended for use by third parties.
    * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-link*
    */
   'admin___unset-user-mutual-link': {
