@@ -14563,13 +14563,26 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
-          /** Format: misskey:id */
-          fileId: string;
-          /** Format: misskey:id */
+          upload_service_key?: string;
+          /**
+           * Format: misskey:id
+           * @default null
+           */
           folderId?: string | null;
+          /** @default null */
           name?: string;
-          isSensitive?: boolean;
+          /** @default null */
           comment?: string | null;
+          /** @default 0 */
+          size?: number;
+          /** @default null */
+          ext?: string | null;
+          /** @default false */
+          isLink?: boolean;
+          /** @default null */
+          url?: string | null;
+          /** @default null */
+          uri?: string | null;
         };
       };
     };

@@ -94,8 +94,6 @@ type UploadPreflightParms = {
 	url: string | null;
 	/** URL of source (リモートインスタンスのURLからアップロードされた場合の元URL) */
 	uri: string | null;
-	/** センシティブ設定はUI上から操作するので最初からわかる*/
-	sensitive: boolean;
 	isLink: boolean;
 	/** sizeはわかるかもしれない */
 	size: number | null;
