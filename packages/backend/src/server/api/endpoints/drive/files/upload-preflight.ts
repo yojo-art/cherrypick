@@ -64,7 +64,7 @@ export const paramDef = {
 		url: { type: 'string', default: null, nullable: true },
 		uri: { type: 'string', default: null, nullable: true },
 	},
-	required: ['fileId'],
+	required: ['upload_service_key'],
 } as const;
 
 @Injectable()

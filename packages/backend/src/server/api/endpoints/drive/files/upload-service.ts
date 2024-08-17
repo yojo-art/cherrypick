@@ -78,7 +78,7 @@ export const paramDef = {
 		isSensitive: { type: 'boolean', default: false },
 		force: { type: 'boolean', default: false },
 	},
-	required: [],
+	required: ['upload_service_key'],
 } as const;
 
 @Injectable()

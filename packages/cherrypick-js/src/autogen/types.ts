@@ -14491,7 +14491,7 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
-          upload_service_key?: string;
+          upload_service_key: string;
           /**
            * Format: misskey:id
            * @default null
@@ -14563,7 +14563,7 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
-          upload_service_key?: string;
+          upload_service_key: string;
           /**
            * Format: misskey:id
            * @default null
