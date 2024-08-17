@@ -5266,6 +5266,7 @@ export type components = {
        * @enum {string}
        */
       noteSearchableScope: 'local' | 'global';
+      uploadService: string | null;
     };
     MetaDetailedOnly: {
       features?: {

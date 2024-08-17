@@ -265,6 +265,10 @@ export const packedMetaLiteSchema = {
 			optional: false, nullable: false,
 			default: 'local',
 		},
+		uploadService: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
 	},
 } as const;
 

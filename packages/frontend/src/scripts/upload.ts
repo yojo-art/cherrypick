@@ -13,6 +13,7 @@ import { apiUrl } from '@/config.js';
 import { $i } from '@/account.js';
 import { alert } from '@/os.js';
 import { i18n } from '@/i18n.js';
+import { instance } from '@/instance.js';
 
 type Uploading = {
 	id: string;
@@ -86,8 +87,10 @@ export function uploadFile(
 			if (folder) formData.append('folderId', folder);
 
 			const xhr = new XMLHttpRequest();
-			let endpoint=localStorage.getItem("UPLOAD_SERVICE_CREATE");
-			if(endpoint===null||endpoint===undefined)endpoint=apiUrl + '/drive/files/create';
+			let endpoint = instance.uploadService;
+			if (endpoint === null) {
+				endpoint=apiUrl + '/drive/files/create';
+			}
 			xhr.open('POST', endpoint, true);
 			xhr.onload = ((ev: ProgressEvent<XMLHttpRequest>) => {
 				if (xhr.status !== 200 || ev.target == null || ev.target.response == null) {
