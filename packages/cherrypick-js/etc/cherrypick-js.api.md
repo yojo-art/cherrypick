@@ -1031,6 +1031,18 @@ type DriveFilesUpdateResponse = operations['drive___files___update']['responses'
 type DriveFilesUploadFromUrlRequest = operations['drive___files___upload-from-url']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type DriveFilesUploadPreflightRequest = operations['drive___files___upload-preflight']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type DriveFilesUploadPreflightResponse = operations['drive___files___upload-preflight']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type DriveFilesUploadServiceRequest = operations['drive___files___upload-service']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type DriveFilesUploadServiceResponse = operations['drive___files___upload-service']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type DriveFolder = components['schemas']['DriveFolder'];
 
 // @public (undocumented)
@@ -1410,6 +1422,10 @@ declare namespace entities {
         DriveFilesUpdateRequest,
         DriveFilesUpdateResponse,
         DriveFilesUploadFromUrlRequest,
+        DriveFilesUploadServiceRequest,
+        DriveFilesUploadServiceResponse,
+        DriveFilesUploadPreflightRequest,
+        DriveFilesUploadPreflightResponse,
         DriveFoldersRequest,
         DriveFoldersResponse,
         DriveFoldersCreateRequest,

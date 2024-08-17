@@ -337,3 +337,6 @@ signToActivityPubGet: true
 
 # PID File of master process
 #pidFile: /tmp/cherrypick.pid
+
+#upload_service_key: default-upload-service-password
+#upload_service_url: https://upload.example.tld/

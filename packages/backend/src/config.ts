@@ -116,6 +116,8 @@ type Source = {
 	perUserNotificationsMaxCount?: number;
 	deactivateAntennaThreshold?: number;
 	pidFile: string;
+	upload_service_key?: string;
+	upload_service_url?: string;
 };
 
 export type Config = {
@@ -216,6 +218,8 @@ export type Config = {
 	perUserNotificationsMaxCount: number;
 	deactivateAntennaThreshold: number;
 	pidFile: string;
+	upload_service_key?: string;
+	upload_service_url?: string;
 };
 
 const _filename = fileURLToPath(import.meta.url);
@@ -265,6 +269,16 @@ export function loadConfig(): Config {
 		: undefined;
 
 	const redis = convertRedisOptions(config.redis, host);
+
+	if (config.upload_service_url !== undefined) {
+		if (config.upload_service_key === undefined) {
+			console.error('upload_service_key required (security)');
+			process.exit(10518);
+		}else if (config.upload_service_key.includes('default')) {
+			console.error('upload_service_key \"default\" is invalid keyword (security)');
+			process.exit(10518);
+		}
+	}
 
 	return {
 		version,
@@ -329,6 +343,8 @@ export function loadConfig(): Config {
 		perUserNotificationsMaxCount: config.perUserNotificationsMaxCount ?? 500,
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
+		upload_service_key: config.upload_service_key,
+		upload_service_url: config.upload_service_url,
 	};
 }
 

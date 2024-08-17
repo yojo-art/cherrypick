@@ -1453,6 +1453,24 @@ export type paths = {
      */
     post: operations['drive___files___upload-from-url'];
   };
+  '/drive/files/upload-service': {
+    /**
+     * drive/files/upload-service
+     * @description Upload a new drive file.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:drive*
+     */
+    post: operations['drive___files___upload-service'];
+  };
+  '/drive/files/upload-preflight': {
+    /**
+     * drive/files/upload-preflight
+     * @description Update the properties of a drive file.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:drive*
+     */
+    post: operations['drive___files___upload-preflight'];
+  };
   '/drive/folders': {
     /**
      * drive/folders
@@ -14450,6 +14468,137 @@ export type operations = {
       };
       /** @description To many requests */
       429: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * drive/files/upload-service
+   * @description Upload a new drive file.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:drive*
+   */
+  'drive___files___upload-service': {
+    requestBody: {
+      content: {
+        'application/json': {
+          upload_service_key?: string;
+          /**
+           * Format: misskey:id
+           * @default null
+           */
+          folderId?: string | null;
+          /** @default null */
+          name?: string | null;
+          /** @default null */
+          comment?: string | null;
+          /** @default false */
+          isSensitive?: boolean;
+          /** @default false */
+          force?: boolean;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': components['schemas']['DriveFile'];
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description To many requests */
+      429: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * drive/files/upload-preflight
+   * @description Update the properties of a drive file.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:drive*
+   */
+  'drive___files___upload-preflight': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          fileId: string;
+          /** Format: misskey:id */
+          folderId?: string | null;
+          name?: string;
+          isSensitive?: boolean;
+          comment?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': Record<string, never>;
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
         content: {
           'application/json': components['schemas']['Error'];
         };

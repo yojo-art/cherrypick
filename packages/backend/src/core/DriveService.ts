@@ -87,6 +87,50 @@ type UploadFromUrlArgs = {
 	requestHeaders?: Record<string, string> | null;
 };
 
+type UploadPreflightParms = {
+	user: { id: MiUser['id']; host: MiUser['host'] } | null;
+	folderId: MiDriveFolder['id'] | null;
+	/** URL of source (URLからアップロードされた場合(ローカル/リモート)の元URL) */
+	url: string | null;
+	/** URL of source (リモートインスタンスのURLからアップロードされた場合の元URL) */
+	uri: string | null;
+	/** センシティブ設定はUI上から操作するので最初からわかる*/
+	sensitive: boolean;
+	isLink: boolean;
+	/** sizeはわかるかもしれない */
+	size: number | null;
+	/** Name */
+	name: string | null;
+	/** Extension */
+	ext: string | null;
+	comment: string | null;
+};
+type UploadServiceParms = {
+	user: { id: MiUser['id']; host: MiUser['host'] } | null;
+	folderId: MiDriveFolder['id'] | null;
+	/** アップロード先 */
+	path: string;
+	/** URL of source (URLからアップロードされた場合(ローカル/リモート)の元URL) */
+	url: string | null;
+	/** URL of source (リモートインスタンスのURLからアップロードされた場合の元URL) */
+	uri: string | null;
+	md5: string;
+	sensitive: boolean;
+	force: boolean;
+	isLink: boolean;
+	blurhash: string | null;
+	size: number | null;
+	width: number | null;
+	height: number | null;
+	/** Name */
+	name: string | null;
+	/** Extension */
+	ext: string | null;
+	comment: string | null;
+	requestIp: string | null;
+	requestHeaders: Record<string, string> | null;
+};
+
 @Injectable()
 export class DriveService {
 	public static NoSuchFolderError = class extends Error {};
@@ -484,7 +528,84 @@ export class DriveService {
 			this.deleteFile(file, true);
 		}
 	}
+	@bindThis
+	public async registerPreflight({
+		user,
+		size,
+		name,
+		ext,
+		isLink,
+	}: UploadPreflightParms): Promise<{
+		skipSensitiveDetection: boolean,
+		sensitiveThreshold: number,
+		enableSensitiveMediaDetectionForVideos: boolean,
+		detectedName: string,
+	}> {
+		let skipNsfwCheck = false;
+		const instance = await this.metaService.fetch();
+		const userRoleNSFW = user && (await this.roleService.getUserPolicies(user.id)).alwaysMarkNsfw;
+		if (user == null) {
+			skipNsfwCheck = true;
+		} else if (userRoleNSFW) {
+			skipNsfwCheck = true;
+		}
+		if (instance.sensitiveMediaDetection === 'none') skipNsfwCheck = true;
+		if (user && instance.sensitiveMediaDetection === 'local' && this.userEntityService.isRemoteUser(user)) skipNsfwCheck = true;
+		if (user && instance.sensitiveMediaDetection === 'remote' && this.userEntityService.isLocalUser(user)) skipNsfwCheck = true;
 
+		//ファイル単位の容量制限チェック
+		if (user == null) {
+			//system user skip
+		} else if (user.host !== null) {
+			//remote user skip
+		} else if (size !== null && size > (await this.roleService.getUserPolicies(user.id)).fileSizeLimit * 1024 * 1024) {
+			throw new IdentifiableError('e5989b6d-ae66-49ed-88af-516ded10ca0c', 'File size limit over');
+		}
+		if (ext !== null) {
+			if (ext.length > 50) {
+				throw new DriveService.InvalidFileNameError('ext too large');
+			}
+			if (ext.indexOf('.') === -1 || !this.driveFileEntityService.validateFileName(ext)) {
+				throw new DriveService.InvalidFileNameError('bad ext');
+			}
+		}
+		const detectedName = correctFilename(
+			// DriveFile.nameは256文字, validateFileNameは200文字制限であるため、
+			// extを付加してデータベースの文字数制限に当たることはまずない
+			(name && this.driveFileEntityService.validateFileName(name)) ? name : 'untitled',
+			ext,
+		);
+		//#region Check drive usage
+		if (user && !isLink) {
+			const usage = await this.driveFileEntityService.calcDriveUsageOf(user);
+
+			const policies = await this.roleService.getUserPolicies(user.id);
+			const driveCapacity = 1024 * 1024 * policies.driveCapacityMb;
+
+			// If usage limit exceeded
+			if (size && driveCapacity < usage + size) {
+				throw new IdentifiableError('c6244ed2-a39a-4e1c-bf93-f0fbd7764fa6', 'No free space.');
+			}
+		}
+		//#endregion
+
+		return {
+			skipSensitiveDetection: skipNsfwCheck,
+			sensitiveThreshold: // 感度が高いほどしきい値は低くすることになる
+			instance.sensitiveMediaDetectionSensitivity === 'veryHigh' ? 0.1 :
+			instance.sensitiveMediaDetectionSensitivity === 'high' ? 0.3 :
+			instance.sensitiveMediaDetectionSensitivity === 'low' ? 0.7 :
+			instance.sensitiveMediaDetectionSensitivity === 'veryLow' ? 0.9 :
+			0.5,
+			enableSensitiveMediaDetectionForVideos: instance.enableSensitiveMediaDetectionForVideos,
+			detectedName,
+		};
+	}
+	@bindThis
+	public async registerFile(args:UploadServiceParms): Promise<MiDriveFile> {
+		//wip
+		throw new IdentifiableError('c6244ed2-a39a-4e1c-bf93-f0fbd7764fa6', 'No free space.');
+	}
 	/**
 	 * Add file to drive
 	 *

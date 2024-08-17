@@ -1659,6 +1659,28 @@ declare module '../api.js' {
     ): Promise<SwitchCaseResponseType<E, P>>;
 
     /**
+     * Upload a new drive file.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:drive*
+     */
+    request<E extends 'drive/files/upload-service', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * Update the properties of a drive file.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:drive*
+     */
+    request<E extends 'drive/files/upload-preflight', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
      * No description provided.
      * 
      * **Credential required**: *Yes* / **Permission**: *read:drive*

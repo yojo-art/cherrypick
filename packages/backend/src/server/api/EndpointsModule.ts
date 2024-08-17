@@ -156,6 +156,8 @@ import * as ep___drive_files_find from './endpoints/drive/files/find.js';
 import * as ep___drive_files_show from './endpoints/drive/files/show.js';
 import * as ep___drive_files_update from './endpoints/drive/files/update.js';
 import * as ep___drive_files_uploadFromUrl from './endpoints/drive/files/upload-from-url.js';
+import * as ep___drive_files_uploadService from './endpoints/drive/files/upload-service.js';
+import * as ep___drive_files_uploadPreflight from './endpoints/drive/files/upload-preflight.js';
 import * as ep___drive_folders from './endpoints/drive/folders.js';
 import * as ep___drive_folders_create from './endpoints/drive/folders/create.js';
 import * as ep___drive_folders_delete from './endpoints/drive/folders/delete.js';
@@ -564,6 +566,8 @@ const $drive_files_find: Provider = { provide: 'ep:drive/files/find', useClass: 
 const $drive_files_show: Provider = { provide: 'ep:drive/files/show', useClass: ep___drive_files_show.default };
 const $drive_files_update: Provider = { provide: 'ep:drive/files/update', useClass: ep___drive_files_update.default };
 const $drive_files_uploadFromUrl: Provider = { provide: 'ep:drive/files/upload-from-url', useClass: ep___drive_files_uploadFromUrl.default };
+const $drive_files_uploadService: Provider = { provide: 'ep:drive/files/upload-from-url', useClass: ep___drive_files_uploadService.default };
+const $drive_files_uploadPreflight: Provider = { provide: 'ep:drive/files/upload-from-url', useClass: ep___drive_files_uploadPreflight.default };
 const $drive_folders: Provider = { provide: 'ep:drive/folders', useClass: ep___drive_folders.default };
 const $drive_folders_create: Provider = { provide: 'ep:drive/folders/create', useClass: ep___drive_folders_create.default };
 const $drive_folders_delete: Provider = { provide: 'ep:drive/folders/delete', useClass: ep___drive_folders_delete.default };
@@ -977,6 +981,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$drive_files_show,
 		$drive_files_update,
 		$drive_files_uploadFromUrl,
+		$drive_files_uploadService,
+		$drive_files_uploadPreflight,
 		$drive_folders,
 		$drive_folders_create,
 		$drive_folders_delete,
@@ -1383,6 +1389,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$drive_files_show,
 		$drive_files_update,
 		$drive_files_uploadFromUrl,
+		$drive_files_uploadService,
+		$drive_files_uploadPreflight,
 		$drive_folders,
 		$drive_folders_create,
 		$drive_folders_delete,

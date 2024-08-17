@@ -221,6 +221,10 @@ import type {
 	DriveFilesUpdateRequest,
 	DriveFilesUpdateResponse,
 	DriveFilesUploadFromUrlRequest,
+	DriveFilesUploadServiceRequest,
+	DriveFilesUploadServiceResponse,
+	DriveFilesUploadPreflightRequest,
+	DriveFilesUploadPreflightResponse,
 	DriveFoldersRequest,
 	DriveFoldersResponse,
 	DriveFoldersCreateRequest,
@@ -754,6 +758,8 @@ export type Endpoints = {
 	'drive/files/show': { req: DriveFilesShowRequest; res: DriveFilesShowResponse };
 	'drive/files/update': { req: DriveFilesUpdateRequest; res: DriveFilesUpdateResponse };
 	'drive/files/upload-from-url': { req: DriveFilesUploadFromUrlRequest; res: EmptyResponse };
+	'drive/files/upload-service': { req: DriveFilesUploadServiceRequest; res: DriveFilesUploadServiceResponse };
+	'drive/files/upload-preflight': { req: DriveFilesUploadPreflightRequest; res: DriveFilesUploadPreflightResponse };
 	'drive/folders': { req: DriveFoldersRequest; res: DriveFoldersResponse };
 	'drive/folders/create': { req: DriveFoldersCreateRequest; res: DriveFoldersCreateResponse };
 	'drive/folders/delete': { req: DriveFoldersDeleteRequest; res: EmptyResponse };
@@ -1161,6 +1167,8 @@ export const endpointReqTypes: Record<keyof Endpoints, 'application/json' | 'mul
 	'drive/files/show': 'application/json',
 	'drive/files/update': 'application/json',
 	'drive/files/upload-from-url': 'application/json',
+	'drive/files/upload-service': 'application/json',
+	'drive/files/upload-preflight': 'application/json',
 	'drive/folders': 'application/json',
 	'drive/folders/create': 'application/json',
 	'drive/folders/delete': 'application/json',
