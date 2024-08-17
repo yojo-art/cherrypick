@@ -55,7 +55,6 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		upload_service_key: { type: 'string', nullable: false },
-		fileId: { type: 'string', format: 'misskey:id' },
 		folderId: { type: 'string', format: 'misskey:id', default: null, nullable: true },
 		name: { type: 'string', default: null },
 		isSensitive: { type: 'boolean', default: false },
