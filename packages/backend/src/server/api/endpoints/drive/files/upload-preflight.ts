@@ -56,10 +56,15 @@ export const paramDef = {
 	properties: {
 		upload_service_key: { type: 'string', nullable: false },
 		fileId: { type: 'string', format: 'misskey:id' },
-		folderId: { type: 'string', format: 'misskey:id', nullable: true },
-		name: { type: 'string' },
-		isSensitive: { type: 'boolean' },
-		comment: { type: 'string', nullable: true, maxLength: 512 },
+		folderId: { type: 'string', format: 'misskey:id', default: null, nullable: true },
+		name: { type: 'string', default: null },
+		isSensitive: { type: 'boolean', default: false },
+		comment: { type: 'string', default: null, nullable: true, maxLength: 512 },
+		size: { type: 'number', default: 0, nullable: false },
+		ext: { type: 'string', default: null, nullable: true },
+		isLink: { type: 'boolean', default: false },
+		url: { type: 'string', default: null, nullable: true },
+		uri: { type: 'string', default: null, nullable: true },
 	},
 	required: ['fileId'],
 } as const;
@@ -81,15 +86,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			try {
 				return await this.driveService.registerPreflight({
 					user: me,
-					folderId: ps.folderId ? ps.folderId : null,
-					name: ps.name ? ps.name : null,
-					sensitive: ps.isSensitive ? ps.isSensitive : false,
-					comment: ps.comment ? ps.comment : null,
-					url: null,
-					uri: null,
-					isLink: false,
-					size: null,
-					ext: null,
+					folderId: ps.folderId,
+					name: ps.name,
+					sensitive: ps.isSensitive,
+					comment: ps.comment,
+					url: ps.url,
+					uri: ps.uri,
+					isLink: ps.isLink,
+					size: ps.size,
+					ext: ps.ext,
 				});
 			} catch (e) {
 				if (e instanceof DriveService.InvalidFileNameError) {
