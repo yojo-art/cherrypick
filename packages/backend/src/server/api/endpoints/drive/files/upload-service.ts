@@ -92,7 +92,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private driveService: DriveService,
 	) {
 		super(meta, paramDef, async (ps, me, _1, _2, _file, cleanup, ip, headers) => {
-			if (ps.upload_service_key === config.upload_service_key) throw new ApiError(meta.errors.badGateway);
+			if (ps.upload_service_key !== config.upload_service_key) throw new ApiError(meta.errors.badGateway);
 
 			//const instance = await this.metaService.fetch();
 			//instance.sensitiveMediaDetectionSensitivity

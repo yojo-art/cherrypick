@@ -80,7 +80,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private roleService: RoleService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			if (ps.upload_service_key === config.upload_service_key) throw new ApiError(meta.errors.badGateway);
+			if (ps.upload_service_key !== config.upload_service_key) throw new ApiError(meta.errors.badGateway);
 			try {
 				return await this.driveService.registerPreflight({
 					user: me,
