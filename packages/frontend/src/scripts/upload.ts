@@ -87,9 +87,11 @@ export function uploadFile(
 			if (folder) formData.append('folderId', folder);
 
 			const xhr = new XMLHttpRequest();
-			let endpoint = instance.uploadService;
-			if (endpoint === null) {
+			let endpoint: string;
+			if (instance.uploadService === null) {
 				endpoint=apiUrl + '/drive/files/create';
+			}else{
+				endpoint = instance.uploadService + '/create';
 			}
 			xhr.open('POST', endpoint, true);
 			xhr.onload = ((ev: ProgressEvent<XMLHttpRequest>) => {

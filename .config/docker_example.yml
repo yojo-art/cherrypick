@@ -249,5 +249,5 @@ signToActivityPubGet: true
 #maxFileSize: 262144000
 
 #upload_service_key: default-upload-service-password
-#upload_service_url: https://upload.example.tld/
+#upload_service_url: https://upload.example.tld
 
