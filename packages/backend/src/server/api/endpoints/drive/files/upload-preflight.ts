@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { DriveFilesRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
 import { DriveService } from '@/core/DriveService.js';
@@ -38,6 +39,11 @@ export const meta = {
 			code: 'RESTRICTED_BY_ROLE',
 			id: '7f59dccb-f465-75ab-5cf4-3ce44e3282f7',
 		},
+		badGateway: {
+			message: 'Bad Gateway.',
+			code: 'BAD_GATEWAY',
+			id: '91174406-bae7-40b6-a453-3e0cd21af342',
+		},
 	},
 	res: {
 		type: 'object',
@@ -48,6 +54,7 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
+		upload_service_key: { type: 'string', nullable: false },
 		fileId: { type: 'string', format: 'misskey:id' },
 		folderId: { type: 'string', format: 'misskey:id', nullable: true },
 		name: { type: 'string' },
@@ -60,6 +67,9 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
+
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
@@ -67,6 +77,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private roleService: RoleService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			if (ps.upload_service_key === config.upload_service_key) throw new ApiError(meta.errors.badGateway);
 			try {
 				return await this.driveService.registerPreflight({
 					user: me,
