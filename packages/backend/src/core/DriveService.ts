@@ -758,7 +758,7 @@ export class DriveService {
 			//const isRemote = user ? this.userEntityService.isRemoteUser(user) : false;
 			//file = await (this.save(file, path, detectedName, contentType, md5, size, isRemote));
 			file.url = baseUrl + accessKey;
-			file.thumbnailUrl = baseUrl + thumbnailKey;
+			file.thumbnailUrl = thumbnailKey ? baseUrl + thumbnailKey : null;
 			file.webpublicUrl = null;
 			file.accessKey = accessKey;
 			file.thumbnailAccessKey = thumbnailKey;
