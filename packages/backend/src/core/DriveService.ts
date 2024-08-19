@@ -115,10 +115,12 @@ type UploadServiceParms = {
 	md5: string;
 	sensitive: boolean;
 	maybeSensitive: boolean;
+	/** MD5が衝突してもアップロードする */
 	force: boolean;
 	isLink: boolean;
-	blurhash: string | null;
 	size: number;
+	/** 画像の場合 */
+	blurhash: string | null;
 	width: number | null;
 	height: number | null;
 	/** Name */
@@ -635,6 +637,7 @@ export class DriveService {
 		md5,
 		contentType,
 		size,
+		force,
 	}:UploadServiceParms): Promise<MiDriveFile> {
 		const userRoleNSFW = user && (await this.roleService.getUserPolicies(user.id)).alwaysMarkNsfw;
 		const instance = await this.metaService.fetch();
@@ -669,6 +672,24 @@ export class DriveService {
 		if (height) {
 			properties['height'] = height;
 		}
+		if (user && !force) {
+		// Check if there is a file with the same hash
+			const matched = await this.driveFilesRepository.findOneBy({
+				md5: md5,
+				userId: user.id,
+			});
+
+			if (matched) {
+				this.registerLogger.info(`file with same hash is found: ${matched.id}`);
+				if (sensitive && !matched.isSensitive) {
+					// The file is federated as sensitive for this time, but was federated as non-sensitive before.
+					// Therefore, update the file to sensitive.
+					await this.driveFilesRepository.update({ id: matched.id }, { isSensitive: true });
+					matched.isSensitive = true;
+				}
+				return matched;
+			}
+		}
 		let file = new MiDriveFile();
 		file.id = this.idService.gen();
 		file.userId = user ? user.id : null;
@@ -684,7 +705,7 @@ export class DriveService {
 		file.maybePorn = false;
 		file.isSensitive = sensitive;
 
-		if (user && profile && profile.alwaysMarkNsfw) file.isSensitive = true;
+		if (profile && profile.alwaysMarkNsfw) file.isSensitive = true;
 		if (user && this.utilityService.isMediaSilencedHost(instance.mediaSilencedHosts, user.host)) file.isSensitive = true;
 		if (maybeSensitive && profile?.autoSensitive) file.isSensitive = true;
 		if (maybeSensitive && instance.setSensitiveFlagAutomatically) file.isSensitive = true;
