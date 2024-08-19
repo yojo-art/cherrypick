@@ -74,7 +74,7 @@ export const paramDef = {
 		upload_service_key: { type: 'string', nullable: false },
 		path: { type: 'string', nullable: false },
 		md5: { type: 'string', nullable: false },
-		blurhash: { type: 'string', nullable: false },
+		blurhash: { type: 'string', default: null, nullable: true },
 		size: { type: 'number', default: 0 },
 		width: { type: 'number', default: 0 },
 		height: { type: 'number', default: 0 },
@@ -89,7 +89,7 @@ export const paramDef = {
 		contentType: { type: 'string', nullable: false },
 		force: { type: 'boolean', default: false },
 	},
-	required: ['upload_service_key', 'path', 'md5', 'blurhash', 'name', 'contentType'],
+	required: ['upload_service_key', 'path', 'md5', 'name', 'contentType'],
 } as const;
 
 @Injectable()
