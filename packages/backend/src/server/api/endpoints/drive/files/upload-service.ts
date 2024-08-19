@@ -152,7 +152,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 				throw new ApiError();
 			} finally {
-				cleanup!();
+				if (cleanup)cleanup();
 			}
 		});
 	}
