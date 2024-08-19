@@ -165,7 +165,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 										visibility: activityAudience.visibility,
 										visibleUsers: activityAudience.visibleUsers,
 										uri,
-									});
+									}, true );
 									created++;
 									continue;
 								} catch (err) {
@@ -190,7 +190,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (local) {
 							continue;
 						}
-						await this.apNoteService.createNote(id);
+						await this.apNoteService.createNote(id, undefined, true);
 						created++;
 					} else {
 						this.apLoggerService.logger.warn('Outbox activity type is not announce or create-note (type:' + activity.type + ')' );
