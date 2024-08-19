@@ -72,7 +72,9 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		upload_service_key: { type: 'string', nullable: false },
-		path: { type: 'string', nullable: false },
+		baseUrl: { type: 'string', nullable: false },
+		accessKey: { type: 'string', nullable: false },
+		thumbnailKey: { type: 'string', nullable: true, default: null },
 		md5: { type: 'string', nullable: false },
 		blurhash: { type: 'string', default: null, nullable: true },
 		size: { type: 'number', default: 0 },
@@ -89,7 +91,7 @@ export const paramDef = {
 		contentType: { type: 'string', nullable: false },
 		force: { type: 'boolean', default: false },
 	},
-	required: ['upload_service_key', 'path', 'md5', 'name', 'contentType'],
+	required: ['upload_service_key', 'baseUrl', 'accessKey', 'md5', 'name', 'contentType'],
 } as const;
 
 @Injectable()
@@ -121,7 +123,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				const instance = await this.metaService.fetch();
 				const driveFile = await this.driveService.registerFile({
 					user: me,
-					path: ps.path,
+					baseUrl: ps.baseUrl,
+					thumbnailKey: ps.thumbnailKey,
+					accessKey: ps.accessKey,
 					detectedName: name,
 					comment: ps.comment,
 					folderId: ps.folderId,

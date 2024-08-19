@@ -106,8 +106,10 @@ type UploadPreflightParms = {
 type UploadServiceParms = {
 	user: { id: MiUser['id']; host: MiUser['host'] } | null;
 	folderId: MiDriveFolder['id'] | null;
+	/** baseUrl + path = url; baseUrl + thumbnailKey = thumbnailUrl*/
+	baseUrl: string;
 	/** アップロード先 */
-	path: string;
+	accessKey: string;
 	/** URL of source (URLからアップロードされた場合(ローカル/リモート)の元URL) */
 	url: string | null;
 	/** URL of source (リモートインスタンスのURLからアップロードされた場合の元URL) */
@@ -121,6 +123,7 @@ type UploadServiceParms = {
 	size: number;
 	/** 画像の場合 */
 	blurhash: string | null;
+	thumbnailKey: string | null;
 	width: number | null;
 	height: number | null;
 	/** Name */
@@ -620,7 +623,7 @@ export class DriveService {
 	@bindThis
 	public async registerFile({
 		user,
-		path,
+		accessKey,
 		folderId,
 		comment,
 		blurhash,
@@ -638,6 +641,8 @@ export class DriveService {
 		contentType,
 		size,
 		force,
+		thumbnailKey,
+		baseUrl,
 	}:UploadServiceParms): Promise<MiDriveFile> {
 		const userRoleNSFW = user && (await this.roleService.getUserPolicies(user.id)).alwaysMarkNsfw;
 		const instance = await this.metaService.fetch();
@@ -704,6 +709,8 @@ export class DriveService {
 		file.maybeSensitive = maybeSensitive;
 		file.maybePorn = false;
 		file.isSensitive = sensitive;
+		file.md5 = md5;
+		file.size = size;
 
 		if (profile && profile.alwaysMarkNsfw) file.isSensitive = true;
 		if (user && this.utilityService.isMediaSilencedHost(instance.mediaSilencedHosts, user.host)) file.isSensitive = true;
@@ -713,14 +720,6 @@ export class DriveService {
 
 		if (url !== null) {
 			file.src = url;
-
-			if (isLink) {
-				file.url = url;
-				// ローカルプロキシ用
-				file.accessKey = randomUUID();
-				file.thumbnailAccessKey = 'thumbnail-' + randomUUID();
-				file.webpublicAccessKey = 'webpublic-' + randomUUID();
-			}
 		}
 
 		if (uri !== null) {
@@ -728,9 +727,14 @@ export class DriveService {
 		}
 
 		if (isLink) {
+			if (url !== null) {
+				file.url = url;
+				// ローカルプロキシ用
+				file.accessKey = randomUUID();
+				file.thumbnailAccessKey = 'thumbnail-' + randomUUID();
+				file.webpublicAccessKey = 'webpublic-' + randomUUID();
+			}
 			try {
-				file.size = 0;
-				file.md5 = md5;
 				file.name = detectedName;
 				file.type = contentType;
 				file.storedInternal = false;
@@ -751,8 +755,20 @@ export class DriveService {
 				}
 			}
 		} else {
-			const isRemote = user ? this.userEntityService.isRemoteUser(user) : false;
-			file = await (this.save(file, path, detectedName, contentType, md5, size, isRemote));
+			//const isRemote = user ? this.userEntityService.isRemoteUser(user) : false;
+			//file = await (this.save(file, path, detectedName, contentType, md5, size, isRemote));
+			file.url = baseUrl + accessKey;
+			file.thumbnailUrl = baseUrl + thumbnailKey;
+			file.webpublicUrl = null;
+			file.accessKey = accessKey;
+			file.thumbnailAccessKey = thumbnailKey;
+			file.webpublicAccessKey = null;
+			file.webpublicType = null;
+			file.name = detectedName;
+			file.type = contentType;
+			file.storedInternal = false;
+
+			file = await this.driveFilesRepository.insertOne(file);
 		}
 
 		this.registerLogger.succ(`drive file has been created ${file.id}`);
