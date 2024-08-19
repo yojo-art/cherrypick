@@ -72,13 +72,24 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		upload_service_key: { type: 'string', nullable: false },
+		path: { type: 'string', nullable: false },
+		md5: { type: 'string', nullable: false },
+		blurhash: { type: 'string', nullable: false },
+		size: { type: 'number', default: 0 },
+		width: { type: 'number', default: 0 },
+		height: { type: 'number', default: 0 },
+		sourceUrl: { type: 'string', nullable: true, default: null },
+		remoteUri: { type: 'string', nullable: true, default: null },
+		isLink: { type: 'boolean', default: false },
 		folderId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
-		name: { type: 'string', nullable: true, default: null },
+		name: { type: 'string', nullable: false },
 		comment: { type: 'string', nullable: true, maxLength: DB_MAX_IMAGE_COMMENT_LENGTH, default: null },
 		isSensitive: { type: 'boolean', default: false },
+		maybeSensitive: { type: 'boolean', default: false },
+		contentType: { type: 'string', nullable: false },
 		force: { type: 'boolean', default: false },
 	},
-	required: ['upload_service_key'],
+	required: ['upload_service_key', 'path', 'md5', 'blurhash', 'name', 'contentType'],
 } as const;
 
 @Injectable()
@@ -97,37 +108,39 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			//const instance = await this.metaService.fetch();
 			//instance.sensitiveMediaDetectionSensitivity
 
-			// Get 'name' parameter
-			let name = ps.name ?? null;
-			if (name != null) {
-				name = name.trim();
-				if (name.length === 0) {
-					name = null;
-				} else if (name === 'blob') {
-					name = null;
-				} else if (!this.driveFileEntityService.validateFileName(name)) {
-					throw new ApiError(meta.errors.invalidFileName);
-				}
+			let name = ps.name;
+			name = name.trim();
+			if (name.length === 0) {
+				throw new ApiError(meta.errors.invalidFileName);
+			} else if (!this.driveFileEntityService.validateFileName(name)) {
+				throw new ApiError(meta.errors.invalidFileName);
 			}
 
 			try {
 				// Create file
-				/*
-				後で作る
+				const instance = await this.metaService.fetch();
 				const driveFile = await this.driveService.registerFile({
 					user: me,
-					path: path,
-					name,
+					path: ps.path,
+					detectedName: name,
 					comment: ps.comment,
 					folderId: ps.folderId,
 					force: ps.force,
 					sensitive: ps.isSensitive,
-					requestIp: instance.enableIpLogging ? ip : null,
-					requestHeaders: instance.enableIpLogging ? headers : null,
+					requestIp: instance.enableIpLogging ? ip ? ip : null : null,
+					requestHeaders: instance.enableIpLogging ? headers ? headers : null : null,
+					url: ps.sourceUrl,
+					uri: ps.remoteUri,
+					md5: ps.md5,
+					isLink: ps.isLink,
+					blurhash: ps.blurhash,
+					size: ps.size,
+					width: ps.width,
+					height: ps.height,
+					maybeSensitive: ps.maybeSensitive,
+					contentType: ps.contentType,
 				});
 				return await this.driveFileEntityService.pack(driveFile, { self: true });
-				*/
-				throw new ApiError(meta.errors.noFreeSpace);
 			} catch (err) {
 				if (err instanceof Error || typeof err === 'string') {
 					console.error(err);

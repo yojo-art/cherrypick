@@ -114,16 +114,16 @@ type UploadServiceParms = {
 	uri: string | null;
 	md5: string;
 	sensitive: boolean;
+	maybeSensitive: boolean;
 	force: boolean;
 	isLink: boolean;
 	blurhash: string | null;
-	size: number | null;
+	size: number;
 	width: number | null;
 	height: number | null;
 	/** Name */
-	name: string | null;
-	/** Extension */
-	ext: string | null;
+	detectedName: string;
+	contentType: string;
 	comment: string | null;
 	requestIp: string | null;
 	requestHeaders: Record<string, string> | null;
@@ -533,6 +533,7 @@ export class DriveService {
 		name,
 		ext,
 		isLink,
+		folderId,
 	}: UploadPreflightParms): Promise<{
 		skipSensitiveDetection: boolean,
 		sensitiveThreshold: number,
@@ -587,6 +588,21 @@ export class DriveService {
 		}
 		//#endregion
 
+		const fetchFolder = async () => {
+			if (!folderId) {
+				return null;
+			}
+
+			const driveFolder = await this.driveFoldersRepository.findOneBy({
+				id: folderId,
+				userId: user ? user.id : IsNull(),
+			});
+
+			if (driveFolder == null) throw new Error('folder-not-found');
+
+			return driveFolder;
+		};
+		await fetchFolder();
 		return {
 			skipSensitiveDetection: skipNsfwCheck,
 			sensitiveThreshold: // 感度が高いほどしきい値は低くすることになる
@@ -600,9 +616,145 @@ export class DriveService {
 		};
 	}
 	@bindThis
-	public async registerFile(args:UploadServiceParms): Promise<MiDriveFile> {
-		//wip
-		throw new IdentifiableError('c6244ed2-a39a-4e1c-bf93-f0fbd7764fa6', 'No free space.');
+	public async registerFile({
+		user,
+		path,
+		folderId,
+		comment,
+		blurhash,
+		isLink,
+		width,
+		height,
+		maybeSensitive,
+		requestIp,
+		requestHeaders,
+		sensitive,
+		url,
+		uri,
+		detectedName,
+		md5,
+		contentType,
+		size,
+	}:UploadServiceParms): Promise<MiDriveFile> {
+		const userRoleNSFW = user && (await this.roleService.getUserPolicies(user.id)).alwaysMarkNsfw;
+		const instance = await this.metaService.fetch();
+		const fetchFolder = async () => {
+			if (!folderId) {
+				return null;
+			}
+
+			const driveFolder = await this.driveFoldersRepository.findOneBy({
+				id: folderId,
+				userId: user ? user.id : IsNull(),
+			});
+
+			if (driveFolder == null) throw new Error('folder-not-found');
+
+			return driveFolder;
+		};
+
+		const profile = user ? await this.userProfilesRepository.findOneBy({ userId: user.id }) : null;
+
+		const folder = await fetchFolder();
+
+		const properties: {
+			width?: number;
+			height?: number;
+			orientation?: number;
+		} = {};
+
+		if (width) {
+			properties['width'] = width;
+		}
+		if (height) {
+			properties['height'] = height;
+		}
+		let file = new MiDriveFile();
+		file.id = this.idService.gen();
+		file.userId = user ? user.id : null;
+		file.userHost = user ? user.host : null;
+		file.folderId = folder !== null ? folder.id : null;
+		file.comment = comment;
+		file.properties = properties;
+		file.blurhash = blurhash ?? null;
+		file.isLink = isLink;
+		file.requestIp = requestIp;
+		file.requestHeaders = requestHeaders;
+		file.maybeSensitive = maybeSensitive;
+		file.maybePorn = false;
+		file.isSensitive = sensitive;
+
+		if (user && profile && profile.alwaysMarkNsfw) file.isSensitive = true;
+		if (user && this.utilityService.isMediaSilencedHost(instance.mediaSilencedHosts, user.host)) file.isSensitive = true;
+		if (maybeSensitive && profile?.autoSensitive) file.isSensitive = true;
+		if (maybeSensitive && instance.setSensitiveFlagAutomatically) file.isSensitive = true;
+		if (userRoleNSFW) file.isSensitive = true;
+
+		if (url !== null) {
+			file.src = url;
+
+			if (isLink) {
+				file.url = url;
+				// ローカルプロキシ用
+				file.accessKey = randomUUID();
+				file.thumbnailAccessKey = 'thumbnail-' + randomUUID();
+				file.webpublicAccessKey = 'webpublic-' + randomUUID();
+			}
+		}
+
+		if (uri !== null) {
+			file.uri = uri;
+		}
+
+		if (isLink) {
+			try {
+				file.size = 0;
+				file.md5 = md5;
+				file.name = detectedName;
+				file.type = contentType;
+				file.storedInternal = false;
+
+				file = await this.driveFilesRepository.insertOne(file);
+			} catch (err) {
+			// duplicate key error (when already registered)
+				if (isDuplicateKeyValueError(err)) {
+					this.registerLogger.info(`already registered ${file.uri}`);
+
+					file = await this.driveFilesRepository.findOneBy({
+						url: file.url,
+						userId: user ? user.id : IsNull(),
+					}) as MiDriveFile;
+				} else {
+					this.registerLogger.error(err as Error);
+					throw err;
+				}
+			}
+		} else {
+			const isRemote = user ? this.userEntityService.isRemoteUser(user) : false;
+			file = await (this.save(file, path, detectedName, contentType, md5, size, isRemote));
+		}
+
+		this.registerLogger.succ(`drive file has been created ${file.id}`);
+
+		if (user) {
+			this.driveFileEntityService.pack(file, { self: true }).then(packedFile => {
+				// Publish driveFileCreated event
+				this.globalEventService.publishMainStream(user.id, 'driveFileCreated', packedFile);
+				this.globalEventService.publishDriveStream(user.id, 'fileCreated', packedFile);
+			});
+		}
+
+		this.driveChart.update(file, true);
+		if (file.userHost == null) {
+			// ローカルユーザーのみ
+			this.perUserDriveChart.update(file, true);
+		} else {
+			if ((await this.metaService.fetch()).enableChartsForFederatedInstances) {
+				this.instanceChart.updateDrive(file, true);
+			}
+		}
+
+		return file;
 	}
 	/**
 	 * Add file to drive
