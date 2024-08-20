@@ -138,7 +138,7 @@ const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
-	if (query === null || query === '') return;
+	if (query === '') return;
 
 	//#region AP lookup
 	if (query.startsWith('https://') && !query.includes(' ')) {
