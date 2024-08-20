@@ -30,7 +30,7 @@
 -
 
 ### Server
--
+- Fix: 翻訳にdeepl以外を利用していると翻訳できない問題を修正 [#355](https://github.com/yojo-art/cherrypick/pull/355)
 
 ### Misc
 
