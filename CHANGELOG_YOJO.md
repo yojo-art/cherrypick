@@ -27,7 +27,9 @@
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
 
 ### Client
--
+- Fix: 検索画面の不具合を修正
+  - リモートユーザー高度な検索画面で照会しますか？のダイアログが出ない問題
+  - ユーザー検索画面で照会しますか？のダイアログが2つ出る問題 
 
 ### Server
 - Fix: Outboxから投稿を所得する際にタイムラインに投稿が流れないように
