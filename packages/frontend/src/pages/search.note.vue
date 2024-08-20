@@ -150,9 +150,6 @@ async function search() {
 		});
 
 		if (!canceled) {
-			router.push(`/${query}`);
-			return;
-		} else {
 			const promise = misskeyApi('ap/show', {
 				uri: query,
 			});
@@ -164,7 +161,6 @@ async function search() {
 			} else if (res.type === 'Note') {
 				router.push(`/notes/${res.object.id}`);
 			}
-			return;
 		}
 	} else if (isApUserName.test(query)) {
 		const { canceled } = await os.confirm({

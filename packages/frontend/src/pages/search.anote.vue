@@ -150,10 +150,7 @@ async function search() {
 			cancelText: i18n.ts._searchOrApShow.search,
 		});
 
-		if (canceled) {
-			router.push(`/${query}`);
-			return;
-		} else {
+		if (!canceled) {
 			const promise = misskeyApi('ap/show', {
 				uri: query,
 			});
