@@ -11190,7 +11190,7 @@ export interface Locale extends ILocale {
          */
         "attachedNotes": string;
         /**
-         * このページは、このファイルをアップロードしたユーザーしか閲覧できません。
+         * このページは、このファイルをアップロードしたユーザーとモデレーターのみ閲覧できます。
          */
         "thisPageCanBeSeenFromTheAuthor": string;
     };
