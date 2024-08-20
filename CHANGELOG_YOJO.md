@@ -27,7 +27,7 @@
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
 
 ### Client
--
+- Enhance: `/about`で公式タグを表示できるように
 
 ### Server
 -

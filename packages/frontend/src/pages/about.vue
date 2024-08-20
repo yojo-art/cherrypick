@@ -19,8 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkSpacer v-else-if="tab === 'charts'" :contentMax="1000" :marginMin="20">
 			<MkInstanceStats/>
 		</MkSpacer>
-		<MkSpacer v-else-if="tab === 'officialTags'" :contentMax="1000" :marginMin="20" :disableHeader="true">
-			<XOfficialTag/>
+		<MkSpacer v-else-if="tab === 'officialTags'" :contentMax="1000" :marginMin="20">
+			<XOfficialTag :showHeader="false"/>
 		</MkSpacer>
 	</MkHorizontalSwipe>
 </MkStickyContainer>

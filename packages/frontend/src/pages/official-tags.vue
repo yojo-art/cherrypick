@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-	<template v-if="disableHeader" #header><MkPageHeader/></template>
+	<template v-if="showHeader" #header><MkPageHeader/></template>
 
 	<MkSpacer :contentMax="500">
 		<div class="_gaps">
@@ -23,9 +23,9 @@ import { i18n } from '@/i18n.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const props = withDefaults(defineProps<{
-	disableHeader?: boolean;
+	showHeader?: boolean;
 }>(), {
-	disableHeader: false,
+	showHeader: true,
 });
 
 const official_tags = ref<Misskey.entities.OfficialTagsShowResponse>([]);
