@@ -58,6 +58,21 @@ export function uploadFile(
 
 			uploads.value.push(ctx);
 
+			if ($i == null) throw new Error('Not logged in');
+			if (instance.uploadService !== null && file.size > 2*1024*1024) {
+				await uploadMultipart(
+					instance.uploadService,
+					file,
+					$i.token,
+					false,
+					folder,
+					null,
+					true,
+					ctx
+				);
+				return;
+			}
+
 			const config = !keepOriginal ? await getCompressionConfig(file) : undefined;
 			let resizedImage: Blob | undefined;
 			if (config) {
@@ -78,26 +93,11 @@ export function uploadFile(
 					console.error('Failed to resize image', err);
 				}
 			}
-			let upload_target=resizedImage ?? file;
-			if ($i == null) throw new Error('Not logged in');
-			if (instance.uploadService !== null && upload_target.size > 2*1024*1024) {
-				await uploadMultipart(
-					instance.uploadService,
-					upload_target,
-					$i.token,
-					false,
-					folder,
-					null,
-					true,
-					ctx
-				);
-				return;
-			}
 
 			const formData = new FormData();
 			formData.append('i', $i.token);
 			formData.append('force', 'true');
-			formData.append('file', upload_target);
+			formData.append('file', resizedImage ?? file);
 			formData.append('name', ctx.name);
 			if (folder) formData.append('folderId', folder);
 
