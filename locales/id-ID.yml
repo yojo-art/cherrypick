@@ -2545,7 +2545,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Diunggah pada"
   attachedNotes: "Catatan yang dilampirkan"
-  thisPageCanBeSeenFromTheAuthor: "Halaman ini hanya dapat dilihat oleh pengguna yang mengunggah bekas ini."
 _externalResourceInstaller:
   title: "Pasang dari situs eksternal"
   checkVendorBeforeInstall: "Pastikan sumber dari sumber daya ini terpercaya sebelum melakukan pemasangan."
