@@ -59,7 +59,7 @@ export function uploadFile(
 			uploads.value.push(ctx);
 
 			if ($i == null) throw new Error('Not logged in');
-			if (instance.uploadService !== null && file.size > 2*1024*1024) {
+			if (instance.uploadService !== null && file.size > 10*1024*1024) {
 				const driveFile = await uploadMultipart(
 					instance.uploadService,
 					file,
@@ -191,16 +191,13 @@ async function uploadMultipart(
 		img: string;
 	}
 ){
-	console.log("uploadMultipart");
-	let log=s=>console.log(s);
 	let request_split_size=10*1024*1024;//10MB
 	let content_length=upload_target.size;
-	let status=await fetch(baseurl+"/preflight",{
+	let preflight_status=await fetch(baseurl+"/preflight",{
 		method:"POST",
 		body:JSON.stringify({
 			content_length,
 			i,
-			split_size:request_split_size,
 			folderId,
 			name:ctx.name,
 			isSensitive,
@@ -208,19 +205,27 @@ async function uploadMultipart(
 			force,
 		})
 	});
-	let json=await status.json();
-	log(json);
+	let json=await preflight_status.json();
 	let allow_upload=json.allow_upload;//この要求が承認されたか否か。trueが返ってきた後で取り消す場合はabortリクエストする
 	if(!allow_upload)return;
-	let split_size=json.split_size;//要求したサイズで応答されるとは限らない。サーバーの都合で最小と最大を指示される。許容できない場合はabortリクエストする
+	let min_split_size=json.min_split_size;
+	let max_split_size=json.max_split_size;
+	let split_size=request_split_size;
 	let session_id=json.session_id;//upload-serviceサーバーが処理を管理するためのID。S3側とは無関係に振られる
 	let part_number=-1;//part_numberは0から振る
 	let offset=0;//ファイルのどこから送信するべきか
 	ctx.progressMax = content_length;
 	while(offset<content_length){
 		part_number++;
+		if(split_size>max_split_size){
+			split_size=max_split_size;
+		}
+		if(split_size<min_split_size){
+			split_size=min_split_size;
+		}
+		let start_ms=Date.now();
 		let part_blob=upload_target.slice(offset,offset+split_size);
-		let a:number=await new Promise((resolve,_) => {
+		let upload_status_code:number=await new Promise((resolve,_) => {
 			const xhr = new XMLHttpRequest()
 			xhr.onreadystatechange = function() {
 				if (xhr.readyState == 4) {
@@ -236,8 +241,9 @@ async function uploadMultipart(
 			};
 			xhr.send(part_blob);
 		});
-		if(a<200||a>=300){
-			let b=await fetch(baseurl+"/abort",{
+		let upload_ms=Date.now()-start_ms;
+		if(upload_status_code<200||upload_status_code>=300){
+			let wip=await fetch(baseurl+"/abort",{
 				method:"POST",
 				headers: {
 					Authorization: "Bearer "+session_id,
@@ -250,8 +256,21 @@ async function uploadMultipart(
 			break;
 		}
 		offset+=split_size;
+		if(upload_ms>1000){
+			if(upload_ms>3000){
+				split_size*=0.7;
+			}else{
+				split_size*=0.9;
+			}
+		}else if(upload_ms<1000){
+			if(upload_ms<300){
+				split_size*=1.5;
+			}else{
+				split_size*=1.1;
+			}
+		}
 	}
-	let b=await fetch(baseurl+"/finish-upload",{
+	let drive_file=await fetch(baseurl+"/finish-upload",{
 		method:"POST",
 		headers: {
 			Authorization: "Bearer "+session_id,
@@ -261,5 +280,5 @@ async function uploadMultipart(
 			i,
 		})
 	});
-	return await b.json();
+	return await drive_file.json();
 }
