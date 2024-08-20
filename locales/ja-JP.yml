@@ -1393,6 +1393,8 @@ _official_tag:
   title: "公式タグ"
   navbar: "公式タグ"
   adminTopInfo: "優先度の値が小さいものが上に表示されます"
+  adminTagName: "タグ名"
+  noTag: "公式タグはありません"
 mascotImageUrl: "マスコット画像のリンク"
 _checkR18:
   title: "成人指定のメディアです"

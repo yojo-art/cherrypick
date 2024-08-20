@@ -5588,6 +5588,14 @@ export interface Locale extends ILocale {
          * 優先度の値が小さいものが上に表示されます
          */
         "adminTopInfo": string;
+        /**
+         * タグ名
+         */
+        "adminTagName": string;
+        /**
+         * 公式タグはありません
+         */
+        "noTag": string;
     };
     /**
      * マスコット画像のリンク
