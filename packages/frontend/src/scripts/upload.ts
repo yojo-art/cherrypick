@@ -211,19 +211,18 @@ async function uploadMultipart(
 	let min_split_size=json.min_split_size;
 	let max_split_size=json.max_split_size;
 	let split_size=request_split_size;
+	if(split_size>max_split_size){
+		split_size=max_split_size;
+	}
+	if(split_size<min_split_size){
+		split_size=min_split_size;
+	}
 	let session_id=json.session_id;//upload-serviceサーバーが処理を管理するためのID。S3側とは無関係に振られる
 	let part_number=-1;//part_numberは0から振る
 	let offset=0;//ファイルのどこから送信するべきか
 	ctx.progressMax = content_length;
 	while(offset<content_length){
 		part_number++;
-		if(split_size>max_split_size){
-			split_size=max_split_size;
-		}
-		if(split_size<min_split_size){
-			split_size=min_split_size;
-		}
-		let start_ms=Date.now();
 		let part_blob=upload_target.slice(offset,offset+split_size);
 		let upload_status_code:number=await new Promise((resolve,_) => {
 			const xhr = new XMLHttpRequest()
@@ -241,7 +240,6 @@ async function uploadMultipart(
 			};
 			xhr.send(part_blob);
 		});
-		let upload_ms=Date.now()-start_ms;
 		if(upload_status_code<200||upload_status_code>=300){
 			let wip=await fetch(baseurl+"/abort",{
 				method:"POST",
@@ -256,19 +254,6 @@ async function uploadMultipart(
 			break;
 		}
 		offset+=split_size;
-		if(upload_ms>1000){
-			if(upload_ms>3000){
-				split_size*=0.7;
-			}else{
-				split_size*=0.9;
-			}
-		}else if(upload_ms<1000){
-			if(upload_ms<300){
-				split_size*=1.5;
-			}else{
-				split_size*=1.1;
-			}
-		}
 	}
 	let drive_file=await fetch(baseurl+"/finish-upload",{
 		method:"POST",
@@ -276,7 +261,6 @@ async function uploadMultipart(
 			Authorization: "Bearer "+session_id,
 		},
 		body:JSON.stringify({
-			part_length:part_number,
 			i,
 		})
 	});
