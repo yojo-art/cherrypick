@@ -5592,10 +5592,6 @@ export interface Locale extends ILocale {
          * タグ名
          */
         "adminTagName": string;
-        /**
-         * 公式タグはありません
-         */
-        "noTag": string;
     };
     /**
      * マスコット画像のリンク
