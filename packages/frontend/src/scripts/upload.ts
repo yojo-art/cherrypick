@@ -78,11 +78,26 @@ export function uploadFile(
 					console.error('Failed to resize image', err);
 				}
 			}
+			let upload_target=resizedImage ?? file;
+			if ($i == null) throw new Error('Not logged in');
+			if (instance.uploadService !== null && upload_target.size > 2*1024*1024) {
+				uploadMultipart(
+					instance.uploadService,
+					upload_target,
+					$i.token,
+					false,
+					folder,
+					null,
+					true,
+					ctx
+				);
+				return;
+			}
 
 			const formData = new FormData();
 			formData.append('i', $i.token);
 			formData.append('force', 'true');
-			formData.append('file', resizedImage ?? file);
+			formData.append('file', upload_target);
 			formData.append('name', ctx.name);
 			if (folder) formData.append('folderId', folder);
 
@@ -156,4 +171,91 @@ export function uploadFile(
 		};
 		reader.readAsArrayBuffer(file);
 	});
+}
+async function uploadMultipart(
+	baseurl:string,
+	upload_target:Blob,
+	i:string,
+	isSensitive:boolean,
+	folderId:string | null,
+	comment:string|null,
+	force:boolean,
+	ctx: {
+		id: string;
+		name: string;
+		progressMax: number | undefined;
+		progressValue: number | undefined;
+		img: string;
+	}
+){
+	let log=s=>console.log(s);
+	let request_split_size=10*1024*1024;//10MB
+	let content_length=upload_target.size;
+	let status=await fetch(baseurl+"/preflight",{
+		method:"POST",
+		body:JSON.stringify({
+			content_length,
+			i,
+			split_size:request_split_size,
+			folderId,
+			name:ctx.name,
+			isSensitive,
+			comment,
+			force,
+		})
+	});
+	let json=await status.json();
+	log(json);
+	let allow_upload=json.allow_upload;//この要求が承認されたか否か。trueが返ってきた後で取り消す場合はabortリクエストする
+	if(!allow_upload)return;
+	let split_size=json.split_size;//要求したサイズで応答されるとは限らない。サーバーの都合で最小と最大を指示される。許容できない場合はabortリクエストする
+	let session_id=json.session_id;//USサーバーが処理を管理するためのID。S3側とは無関係に振られる
+	let part_number=-1;//part_numberは0から振る
+	let offset=0;//ファイルのどこから送信するべきか
+	ctx.progressMax = content_length;
+	while(offset<content_length){
+		part_number++;
+		let part_blob=upload_target.slice(offset,offset+split_size);
+		let a:number=await new Promise((resolve,_) => {
+			const xhr = new XMLHttpRequest()
+			xhr.onreadystatechange = function() {
+				if (xhr.readyState == 4) {
+					resolve(xhr.status);
+				}
+			}
+			xhr.open('POST',baseurl+"/partial-upload?partnumber="+part_number, true);
+			xhr.setRequestHeader("Authorization","Bearer "+session_id);
+			xhr.upload.onprogress = ev => {
+				if (ev.lengthComputable) {
+					ctx.progressValue = offset+ev.loaded;
+				}
+			};
+			xhr.send(part_blob);
+		});
+		if(a<200||a>=300){
+			let b=await fetch(baseurl+"/abort",{
+				method:"POST",
+				headers: {
+					Authorization: "Bearer "+session_id,
+				},
+				body:JSON.stringify({
+					part_length:part_number,
+					i,
+				})
+			});
+			break;
+		}
+		offset+=split_size;
+	}
+	let b=await fetch(baseurl+"/finish-upload",{
+		method:"POST",
+		headers: {
+			Authorization: "Bearer "+session_id,
+		},
+		body:JSON.stringify({
+			part_length:part_number,
+			i,
+		})
+	});
+	return await b.json();
 }
