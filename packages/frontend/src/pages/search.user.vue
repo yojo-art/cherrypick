@@ -57,10 +57,9 @@ const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
-	if (query == null || query === '') return;
-
+	if (query === '') return;
 	//#region AP lookup
-	if (query.startsWith('https://') || isApUserName.test(query)) {
+	if (query.startsWith('https://') && !query.includes(' ')) {
 		const { canceled } = await os.confirm({
 			type: 'question',
 			text: i18n.ts._searchOrApShow.question,
@@ -69,57 +68,49 @@ async function search() {
 		});
 
 		if (!canceled) {
-			if (isApUserName.test(query)) {
-				const querys = query.split('@');
-				const promise = misskeyApi('users/show', {
-					username: querys[1],
-					host: querys[2],
-				});
-				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
-				const res = await promise;
-				if (typeof res.error === 'undefined') {
-					router.push(`/@${res.username}@${res.host}`);
-				}
-			} else {
-				const promise = misskeyApi('ap/show', {
-					uri: query,
-				});
-				os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
-				const res = await promise;
+			const promise = misskeyApi('ap/show', {
+				uri: query,
+			});
+			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+			const res = await promise;
 
-				if (res.type === 'User') {
-					router.push(`/@${res.object.username}@${res.object.host}`);
-				} else if (res.type === 'Note') {
-					router.push(`/notes/${res.object.id}`);
-				}
-
-				return;
+			if (res.type === 'User') {
+				router.push(`/@${res.object.username}@${res.object.host}`);
+			} else if (res.type === 'Note') {
+				router.push(`/notes/${res.object.id}`);
+			}
+			return;
+		}
+	} else if (isApUserName.test(query)) {
+		const { canceled } = await os.confirm({
+			type: 'question',
+			text: i18n.ts._searchOrApShow.question,
+			okText: i18n.ts._searchOrApShow.lookup,
+			cancelText: i18n.ts._searchOrApShow.search,
+		});
+		if (!canceled) {
+			const querys = query.split('@');
+			const promise = misskeyApi('users/show', {
+				username: querys[1],
+				host: querys[2],
+			});
+			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+			const res = await promise;
+			if (typeof res.error === 'undefined') {
+				router.push(`/@${res.username}@${res.host}`);
 			}
 		}
 	}
 	//#endregion
 
-	if (query.length > 1 && !query.includes(' ')) {
-		if (query.startsWith('@')) {
-			const confirm = await os.confirm({
-				type: 'info',
-				text: i18n.ts.lookupConfirm,
-			});
-			if (!confirm.canceled) {
-				router.push(`/${query}`);
-				return;
-			}
-		}
-
-		if (query.startsWith('#')) {
-			const confirm = await os.confirm({
-				type: 'info',
-				text: i18n.ts.openTagPageConfirm,
-			});
-			if (!confirm.canceled) {
-				router.push(`/user-tags/${encodeURIComponent(query.substring(1))}`);
-				return;
-			}
+	if (query.length > 1 && !query.includes(' ') && query.startsWith('#')) {
+		const confirm = await os.confirm({
+			type: 'info',
+			text: i18n.ts.openTagPageConfirm,
+		});
+		if (!confirm.canceled) {
+			router.push(`/user-tags/${encodeURIComponent(query.substring(1))}`);
+			return;
 		}
 	}
 
