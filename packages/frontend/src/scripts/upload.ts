@@ -81,7 +81,7 @@ export function uploadFile(
 			let upload_target=resizedImage ?? file;
 			if ($i == null) throw new Error('Not logged in');
 			if (instance.uploadService !== null && upload_target.size > 2*1024*1024) {
-				uploadMultipart(
+				await uploadMultipart(
 					instance.uploadService,
 					upload_target,
 					$i.token,
@@ -188,6 +188,7 @@ async function uploadMultipart(
 		img: string;
 	}
 ){
+	console.log("uploadMultipart");
 	let log=s=>console.log(s);
 	let request_split_size=10*1024*1024;//10MB
 	let content_length=upload_target.size;
@@ -209,7 +210,7 @@ async function uploadMultipart(
 	let allow_upload=json.allow_upload;//この要求が承認されたか否か。trueが返ってきた後で取り消す場合はabortリクエストする
 	if(!allow_upload)return;
 	let split_size=json.split_size;//要求したサイズで応答されるとは限らない。サーバーの都合で最小と最大を指示される。許容できない場合はabortリクエストする
-	let session_id=json.session_id;//USサーバーが処理を管理するためのID。S3側とは無関係に振られる
+	let session_id=json.session_id;//upload-serviceサーバーが処理を管理するためのID。S3側とは無関係に振られる
 	let part_number=-1;//part_numberは0から振る
 	let offset=0;//ファイルのどこから送信するべきか
 	ctx.progressMax = content_length;
