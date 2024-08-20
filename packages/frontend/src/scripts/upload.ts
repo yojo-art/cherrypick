@@ -60,7 +60,7 @@ export function uploadFile(
 
 			if ($i == null) throw new Error('Not logged in');
 			if (instance.uploadService !== null && file.size > 2*1024*1024) {
-				await uploadMultipart(
+				const driveFile = await uploadMultipart(
 					instance.uploadService,
 					file,
 					$i.token,
@@ -70,6 +70,9 @@ export function uploadFile(
 					true,
 					ctx
 				);
+				resolve(driveFile);
+
+				uploads.value = uploads.value.filter(x => x.id !== id);
 				return;
 			}
 
