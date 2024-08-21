@@ -60,7 +60,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkKeyValue>
 			<MkKeyValue :class="$style.fileMetaDataChildren">
 				<template #key>{{ i18n.ts._fileViewer.size }}</template>
-				<template #value>{{ bytes(file.size) }}</template>
+				<template #value>{{ bytes(file.size_long ?? file.size) }}</template>
 			</MkKeyValue>
 			<MkKeyValue :class="$style.fileMetaDataChildren" :copy="file.url">
 				<template #key>URL</template>
@@ -99,12 +99,12 @@ const file = ref<Misskey.entities.DriveFile>();
 const folderHierarchy = computed(() => {
 	if (!file.value) return [i18n.ts.drive];
 	const folderNames = [i18n.ts.drive];
-	
+
 	function get(folder: Misskey.entities.DriveFolder) {
 		if (folder.parent) get(folder.parent);
 		folderNames.push(folder.name);
 	}
-	
+
 	if (file.value.folder) get(file.value.folder);
 	return folderNames;
 });

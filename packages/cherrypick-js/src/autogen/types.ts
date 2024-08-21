@@ -4624,6 +4624,8 @@ export type components = {
       md5: string;
       /** @example 51469 */
       size: number;
+      /** @example 51469 */
+      size_long: number;
       isSensitive: boolean;
       blurhash: string | null;
       properties: {
@@ -14492,17 +14494,38 @@ export type operations = {
       content: {
         'application/json': {
           upload_service_key: string;
+          baseUrl: string;
+          accessKey: string;
+          /** @default null */
+          thumbnailKey?: string | null;
+          md5: string;
+          /** @default null */
+          blurhash?: string | null;
+          /** @default 0 */
+          size?: number;
+          /** @default 0 */
+          width?: number;
+          /** @default 0 */
+          height?: number;
+          /** @default null */
+          sourceUrl?: string | null;
+          /** @default null */
+          remoteUri?: string | null;
+          /** @default false */
+          isLink?: boolean;
           /**
            * Format: misskey:id
            * @default null
            */
           folderId?: string | null;
-          /** @default null */
-          name?: string | null;
+          name: string;
           /** @default null */
           comment?: string | null;
           /** @default false */
           isSensitive?: boolean;
+          /** @default false */
+          maybeSensitive?: boolean;
+          contentType: string;
           /** @default false */
           force?: boolean;
         };
