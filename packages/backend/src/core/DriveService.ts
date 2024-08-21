@@ -551,11 +551,14 @@ export class DriveService {
 			ext ?? info.type.ext,
 		);
 
-		if (user && !force) {
+		if (!force) {
 		// Check if there is a file with the same hash
-			const matched = await this.driveFilesRepository.findOneBy({
+			const matched = user ? await this.driveFilesRepository.findOneBy({
 				md5: info.md5,
 				userId: user.id,
+			}) : await this.driveFilesRepository.findOneBy({
+				md5: info.md5,
+				userId: undefined,
 			});
 
 			if (matched) {
@@ -922,7 +925,6 @@ export class DriveService {
 			if (comment !== null && name === comment) {
 				comment = null;
 			}
-
 			const driveFile = await this.addFile({ user, path, name, comment, folderId, force, isLink, url, uri, sensitive, requestIp, requestHeaders });
 			this.downloaderLogger.succ(`Got: ${driveFile.id}`);
 			return driveFile!;
