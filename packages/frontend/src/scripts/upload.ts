@@ -41,47 +41,54 @@ export function uploadFile(
 	if (folder && typeof folder === 'object') folder = folder.id;
 	console.log(file);
 
-	return new Promise((resolve, reject) => {
+	return new Promise(async (resolve, reject) => {
 		const id = uuid();
 
-		const reader = new FileReader();
-		reader.onload = async (): Promise<void> => {
+		if ($i == null) throw new Error('Not logged in');
+		if (instance.uploadService !== null && file.size > 50 * 1024 * 1024) {
 			const filename = name ?? file.name ?? 'untitled';
 			const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
-			let img = '';
-			try {
-				img = window.URL.createObjectURL(file);
-			} catch (err) {
-				console.log(err);
-			}
 			const ctx = reactive<Uploading>({
 				id,
 				name: defaultStore.state.keepOriginalFilename ? filename : id + extension,
 				progressMax: undefined,
 				progressValue: undefined,
-				img,
+				img: '',
 			});
-			console.log(file);
+
+			uploads.value.push(ctx);
+			uploadMultipart(
+				instance.uploadService,
+				file,
+				$i.token,
+				false,
+				folder,
+				null,
+				true,
+				ctx,
+			).then(driveFile => {
+				resolve(driveFile);
+			}, () => reject());
+
+			uploads.value = uploads.value.filter(x => x.id !== id);
+			return;
+		}
+
+		const reader = new FileReader();
+		reader.onload = async (): Promise<void> => {
+			const filename = name ?? file.name ?? 'untitled';
+			const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
+			const ctx = reactive<Uploading>({
+				id,
+				name: defaultStore.state.keepOriginalFilename ? filename : id + extension,
+				progressMax: undefined,
+				progressValue: undefined,
+				img: window.URL.createObjectURL(file),
+			});
 
 			uploads.value.push(ctx);
 
 			if ($i == null) throw new Error('Not logged in');
-			if (instance.uploadService !== null && file.size > 10 * 1024 * 1024) {
-				const driveFile = await uploadMultipart(
-					instance.uploadService,
-					file,
-					$i.token,
-					false,
-					folder,
-					null,
-					true,
-					ctx,
-				);
-				resolve(driveFile);
-
-				uploads.value = uploads.value.filter(x => x.id !== id);
-				return;
-			}
 
 			const config = !keepOriginal ? await getCompressionConfig(file) : undefined;
 			let resizedImage: Blob | undefined;
@@ -232,7 +239,7 @@ async function uploadMultipart(
 	while (offset < content_length) {
 		part_number++;
 		const part_blob = upload_target.slice(offset, offset + split_size);
-		const upload_status_code:number = await new Promise((resolve, _) => {
+		const upload_status_code:number = await new Promise((resolve) => {
 			const xhr = new XMLHttpRequest();
 			xhr.onreadystatechange = function() {
 				if (xhr.readyState === 4) {
