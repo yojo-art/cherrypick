@@ -710,7 +710,8 @@ export class DriveService {
 		file.maybePorn = false;
 		file.isSensitive = sensitive;
 		file.md5 = md5;
-		file.size = size;
+		file.size = size > 2147483647 ? 2147483647 : size;
+		file.size_long = size;
 
 		if (profile && profile.alwaysMarkNsfw) file.isSensitive = true;
 		if (user && this.utilityService.isMediaSilencedHost(instance.mediaSilencedHosts, user.host)) file.isSensitive = true;

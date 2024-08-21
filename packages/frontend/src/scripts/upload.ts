@@ -269,6 +269,11 @@ async function uploadMultipart(
 					i,
 				}),
 			});
+			alert({
+				type: 'error',
+				title: i18n.ts.failedToUpload,
+				text: `multipart part${part_number}`,
+			});
 			break;
 		}
 		offset += split_size;
