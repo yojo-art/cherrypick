@@ -48,14 +48,20 @@ export function uploadFile(
 		reader.onload = async (): Promise<void> => {
 			const filename = name ?? file.name ?? 'untitled';
 			const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
-
+			let img = '';
+			try {
+				img = window.URL.createObjectURL(file);
+			} catch (err) {
+				console.log(err);
+			}
 			const ctx = reactive<Uploading>({
 				id,
 				name: defaultStore.state.keepOriginalFilename ? filename : id + extension,
 				progressMax: undefined,
 				progressValue: undefined,
-				img: window.URL.createObjectURL(file),
+				img,
 			});
+			console.log(file);
 
 			uploads.value.push(ctx);
 
