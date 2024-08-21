@@ -25,6 +25,7 @@ const languages = [
 	'it-IT',
 	'ja-JP',
 	'ja-KS',
+	'ja-AP',
 	'kab-KAB',
 	'kn-IN',
 	'ko-KR',
