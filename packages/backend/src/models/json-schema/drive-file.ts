@@ -38,11 +38,6 @@ export const packedDriveFileSchema = {
 			optional: false, nullable: false,
 			example: 51469,
 		},
-		size_long: {
-			type: 'number',
-			optional: false, nullable: false,
-			example: 51469,
-		},
 		isSensitive: {
 			type: 'boolean',
 			optional: false, nullable: false,

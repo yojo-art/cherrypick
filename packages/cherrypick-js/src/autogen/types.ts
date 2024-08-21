@@ -4624,8 +4624,6 @@ export type components = {
       md5: string;
       /** @example 51469 */
       size: number;
-      /** @example 51469 */
-      size_long: number;
       isSensitive: boolean;
       blurhash: string | null;
       properties: {
