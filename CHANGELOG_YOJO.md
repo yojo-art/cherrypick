@@ -30,7 +30,7 @@
 -
 
 ### Server
-- Fix: ユーザーnull(System)の場合forceのオプションが適用されないのを修正
+- Fix: ユーザーnull(System)の場合forceがfalseでも新規追加されるのを修正
 
 ### Misc
 
