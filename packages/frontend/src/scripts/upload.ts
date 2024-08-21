@@ -41,24 +41,26 @@ export function uploadFile(
 	if (folder && typeof folder === 'object') folder = folder.id;
 	console.log(file);
 
-	return new Promise(async (resolve, reject) => {
+	if (instance.uploadService !== null && file.size > 50 * 1024 * 1024) {
 		const id = uuid();
+		const filename = name ?? file.name ?? 'untitled';
+		const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
+		const ctx = reactive<Uploading>({
+			id,
+			name: defaultStore.state.keepOriginalFilename ? filename : id + extension,
+			progressMax: undefined,
+			progressValue: undefined,
+			img: '',
+		});
 
-		if ($i == null) throw new Error('Not logged in');
-		if (instance.uploadService !== null && file.size > 50 * 1024 * 1024) {
-			const filename = name ?? file.name ?? 'untitled';
-			const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
-			const ctx = reactive<Uploading>({
-				id,
-				name: defaultStore.state.keepOriginalFilename ? filename : id + extension,
-				progressMax: undefined,
-				progressValue: undefined,
-				img: '',
-			});
+		uploads.value.push(ctx);
+		const uploadService = instance.uploadService;
 
-			uploads.value.push(ctx);
-			uploadMultipart(
-				instance.uploadService,
+		return new Promise(async (resolve) => {
+			console.log(file);
+			if ($i == null) throw new Error('Not logged in');
+			const driveFile = await uploadMultipart(
+				uploadService,
 				file,
 				$i.token,
 				false,
@@ -66,13 +68,14 @@ export function uploadFile(
 				null,
 				true,
 				ctx,
-			).then(driveFile => {
-				resolve(driveFile);
-			}, () => reject());
-
+			);
 			uploads.value = uploads.value.filter(x => x.id !== id);
-			return;
-		}
+			resolve(driveFile);
+		});
+	}
+
+	return new Promise(async (resolve, reject) => {
+		const id = uuid();
 
 		const reader = new FileReader();
 		reader.onload = async (): Promise<void> => {
