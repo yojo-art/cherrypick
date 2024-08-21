@@ -274,7 +274,7 @@ export function loadConfig(): Config {
 		if (config.upload_service_key === undefined) {
 			console.error('upload_service_key required (security)');
 			process.exit(10518);
-		}else if (config.upload_service_key.includes('default')) {
+		} else if (config.upload_service_key.includes('default')) {
 			console.error('upload_service_key \"default\" is invalid keyword (security)');
 			process.exit(10518);
 		}
