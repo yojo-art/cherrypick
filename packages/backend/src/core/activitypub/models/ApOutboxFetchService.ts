@@ -141,10 +141,13 @@ export class ApOutboxFetchService implements OnModuleInit {
 							if (isPost(target)) {
 								if (this.utilityService.isBlockedHost(meta.blockedHosts, this.utilityService.extractDbHost(targetUri))) continue;
 								try {
-									const renote = await this.apNoteService.resolveNote(targetUri);
-									if (renote == null) {
-										this.apLoggerService.logger.info('announce target is null');
-										continue;
+									let renote = await this.apNoteService.fetchNote(targetUri);
+									if (renote === null) {
+										renote = await this.apNoteService.createNote(targetUri, undefined, true);
+										if (renote === null) {
+											this.apLoggerService.logger.info('announce target is null');
+											continue;
+										}
 									}
 									this.logger.info(`Creating the (Re)Note: ${uri}`);
 
@@ -165,7 +168,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 										visibility: activityAudience.visibility,
 										visibleUsers: activityAudience.visibleUsers,
 										uri,
-									});
+									}, true );
 									created++;
 									continue;
 								} catch (err) {
@@ -190,7 +193,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (local) {
 							continue;
 						}
-						await this.apNoteService.createNote(id);
+						await this.apNoteService.createNote(id, undefined, true);
 						created++;
 					} else {
 						this.apLoggerService.logger.warn('Outbox activity type is not announce or create-note (type:' + activity.type + ')' );
