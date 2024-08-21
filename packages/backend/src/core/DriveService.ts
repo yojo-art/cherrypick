@@ -925,6 +925,7 @@ export class DriveService {
 			if (comment !== null && name === comment) {
 				comment = null;
 			}
+
 			const driveFile = await this.addFile({ user, path, name, comment, folderId, force, isLink, url, uri, sensitive, requestIp, requestHeaders });
 			this.downloaderLogger.succ(`Got: ${driveFile.id}`);
 			return driveFile!;
