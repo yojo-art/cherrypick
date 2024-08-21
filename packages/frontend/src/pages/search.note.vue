@@ -6,9 +6,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_gaps">
 	<div class="_gaps">
-		<MkSearchInput v-model="searchQuery" :autofocus="true" :large="true" type="search" @enter.prevent="search">
+		<MkInput v-model="searchQuery" :autofocus="true" :large="true" type="search" @enter.prevent="search">
 			<template #prefix><i class="ti ti-search"></i></template>
-		</MkSearchInput>
+		</MkInput>
 		<MkFoldableSection :expanded="true">
 			<template #header>{{ i18n.ts.options }}</template>
 			<div class="_gaps_m">
@@ -18,10 +18,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<option value="local">{{ i18n.ts.local }}</option>
 					<option v-if="noteSearchableScope === 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
 				</MkRadios>
-				<MkSearchInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="hostSelect !== 'specified'" :large="true" type="search">
+				<MkInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="hostSelect !== 'specified'" :large="true" type="search">
 					<template #prefix><i class="ti ti-server"></i></template>
-				</MkSearchInput>
-
+				</MkInput>
 				<MkFolder :defaultOpen="true">
 					<template #label>{{ i18n.ts.specifyUser }}</template>
 					<template v-if="user" #suffix>@{{ user.username }}{{ user.host ? `@${user.host}` : "" }}</template>
@@ -64,7 +63,7 @@ import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import MkRadios from '@/components/MkRadios.vue';
 import { $i } from '@/account.js';
 import { instance } from '@/instance.js';
-import MkSearchInput from '@/components/MkSearchInput.vue';
+import MkInput from '@/components/MkInput.vue';
 
 const props = withDefaults(defineProps<{
 		query?: string;
@@ -134,10 +133,12 @@ function removeUser() {
 	hostInput.value = '';
 }
 
+const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
+
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
-	if (query == null || query === '') return;
+	if (query === '') return;
 
 	//#region AP lookup
 	if (query.startsWith('https://') && !query.includes(' ')) {
@@ -152,9 +153,7 @@ async function search() {
 			const promise = misskeyApi('ap/show', {
 				uri: query,
 			});
-
 			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
-
 			const res = await promise;
 
 			if (res.type === 'User') {
@@ -162,36 +161,41 @@ async function search() {
 			} else if (res.type === 'Note') {
 				router.push(`/notes/${res.object.id}`);
 			}
-
-			return;
+		}
+	} else if (isApUserName.test(query)) {
+		const { canceled } = await os.confirm({
+			type: 'question',
+			text: i18n.ts._searchOrApShow.question,
+			okText: i18n.ts._searchOrApShow.lookup,
+			cancelText: i18n.ts._searchOrApShow.search,
+		});
+		if (!canceled) {
+			const querys = query.split('@');
+			const promise = misskeyApi('users/show', {
+				username: querys[1],
+				host: querys[2],
+			});
+			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
+			const res = await promise;
+			if (typeof res.error === 'undefined') {
+				router.push(`/@${res.username}@${res.host}`);
+			}
 		}
 	}
 	//#endregion
 
-	if (query.length > 1 && !query.includes(' ')) {
-		if (query.startsWith('@')) {
-			const confirm = await os.confirm({
-				type: 'info',
-				text: i18n.ts.lookupConfirm,
-			});
-			if (!confirm.canceled) {
-				router.push(`/${query}`);
-				return;
-			}
-		}
-
-		if (query.startsWith('#')) {
-			const confirm = await os.confirm({
-				type: 'info',
-				text: i18n.ts.openTagPageConfirm,
-			});
-			if (!confirm.canceled) {
-				router.push(`/tags/${encodeURIComponent(query.substring(1))}`);
-				return;
-			}
+	if (query.length > 1 && !query.includes(' ') && query.startsWith('#')) {
+		const confirm = await os.confirm({
+			type: 'info',
+			text: i18n.ts.openTagPageConfirm,
+			okText: i18n.ts.yes,
+			cancelText: i18n.ts.no,
+		});
+		if (!confirm.canceled) {
+			router.push(`/tags/${encodeURIComponent(query.substring(1))}`);
+			return;
 		}
 	}
-
 	notePagination.value = {
 		endpoint: 'notes/search',
 		limit: 10,
@@ -201,7 +205,6 @@ async function search() {
 			...(searchHost.value ? { host: searchHost.value } : {}),
 		},
 	};
-
 	key.value++;
 }
 </script>

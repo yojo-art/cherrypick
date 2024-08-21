@@ -20,13 +20,43 @@
 ### Release Date
 
 ### General
+- Feat: 相互リンク機能の追加 [#319](https://github.com/yojo-art/cherrypick/pull/319)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/675)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/684)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/690)
+  - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
+
+### Client
+- Fix: 検索画面の不具合を修正
+  - リモートユーザー高度な検索画面で照会しますか？のダイアログが出ない問題
+  - ユーザー検索画面で照会しますか？のダイアログが2つ出る問題 
+
+### Server
+- Fix: Outboxから投稿を所得する際にタイムラインに投稿が流れないように
+- Fix: 翻訳にdeepl以外を利用していると翻訳できない問題を修正 [#355](https://github.com/yojo-art/cherrypick/pull/355)
+
+### Misc
+
+
+## 0.5.2
+Cherrypick 4.10.0-rc.3
+
+### Release Date
+2024-08-15
+
+### General
 -
 
 ### Client
--
+- Enhance:メンションや引用、返信の通知も削除できるように [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix:デッキモードで通知カラムがあるとリロードするたびに毎回通知を消すか聞かれる問題を修正 [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix:通知を全削除できない問題を修正 [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix:通知ポップアップにも通知削除ボタンが表示される [#314](https://github.com/yojo-art/cherrypick/pull/314)
+- Fix: MFMでURLの表示文字列を変更した時にリモートクリップURLが書き換えられない [#324](https://github.com/yojo-art/cherrypick/pull/324)
+- Enhance: リモートクリップのURLプレビューをリモートURLで生成 [#324](https://github.com/yojo-art/cherrypick/pull/324)
 
 ### Server
--
+- Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正 [#323](https://github.com/yojo-art/cherrypick/pull/323)
 
 ### Misc
 
@@ -34,6 +64,7 @@
 Cherrypick 4.10.0-rc.3
 
 ### Release Date
+2024-08-13
 
 ### General
 -
@@ -42,7 +73,7 @@ Cherrypick 4.10.0-rc.3
 -
 
 ### Server
-- Fix: APリクエストannounceNoteを受け取れない問題を修正
+- Fix: APリクエストannounceNoteを受け取れない問題を修正  [#310](https://github.com/yojo-art/cherrypick/pull/310)
 
 ### Misc
 

@@ -1,22 +1,22 @@
-name: ✨ Feature Request
+name: ✨ 機能リクエスト(Feature Request)
 description: Suggest an idea for this project
-labels: ["Feature"]
+labels: ["✨enhancement"]
 
 body:
   - type: textarea
     attributes:
-      label: Summary
+      label: 概要(Summary)
       description: Tell us what the suggestion is
     validations:
       required: true
   - type: textarea
     attributes:
-      label: Purpose
+      label: なぜ必要なのか(Purpose)
       description: Describe the specific problem or need you think this feature will solve, and who it will help.
     validations:
       required: true
   - type: checkboxes
     attributes:
-      label: Do you want to implement this feature yourself?
+      label: 自分で実装しますか？(Do you want to implement this feature yourself?)
       options:
-        - label: Yes, I will implement this by myself and send a pull request
+        - label: 自分で実装しプルリクエストします(Yes, I will implement this by myself and send a pull request)
