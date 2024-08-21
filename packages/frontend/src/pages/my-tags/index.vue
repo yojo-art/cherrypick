@@ -1,0 +1,133 @@
+<!--
+SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
+
+<template>
+<MkStickyContainer>
+	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
+	<MkSpacer :contentMax="700" :class="$style.main">
+		<div class="_gaps_s">
+			<div v-for="tag in tags">
+				<div :class="$style.userItem">
+					<MkA :class="$style.userItemBody" :to="`/tags/${tag}`">
+						<p :title="tag">{{ tag }}</p>
+					</MkA>
+					<button class="_button" :class="$style.remove" @click="removeTag(tag, $event)"><i class="ti ti-x"></i></button>
+				</div>
+			</div>
+		</div>
+	</MkSpacer>
+</MkStickyContainer>
+</template>
+
+<script lang="ts" setup>
+import { computed } from 'vue';
+import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
+import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { i18n } from '@/i18n.js';
+
+const tags = await misskeyApi('i/registry/get', {
+	scope: ['client', 'base'],
+	key: 'hashTag',
+}) as string[];
+
+async function removeTag(item, ev) {
+	os.popupMenu([{
+		text: i18n.ts.remove,
+		icon: 'ti ti-x',
+		danger: true,
+		action: async () => {
+			await misskeyApi('i/registry/set', {
+				scope: ['client', 'base'],
+				key: 'hashTag',
+				value: tags.filter(x => item !== x),
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
+}
+
+//watch(() => props.listId, fetchList, { immediate: true });
+
+const headerActions = computed(() => [{
+	icon: 'ti ti-plus',
+	text: i18n.ts.create,
+	handler: addTag,
+}]);
+
+function addTag () {
+	os.inputText({
+		title: i18n.ts.enterListName,
+	}).then(({ canceled, result: temp }) => {
+		if (canceled) return;
+		const input = temp as string;
+		if (input.includes(' ') || input.startsWith('#') || tags.includes(input)) {
+			os.alert(
+				{
+					type: 'error',
+					title: i18n.ts.invalidParamErrorDescription,
+				},
+			);
+			return;
+		}
+		tags.push(input);
+		const promise = misskeyApi('i/registry/set', {
+			scope: ['client', 'base'],
+			key: 'hashTag',
+			value: tags,
+		});
+		os.promiseDialog(promise, null, null);
+	});
+}
+
+const headerTabs = computed(() => []);
+
+definePageMetadata(() => ({
+	title: i18n.ts.tags,
+	icon: 'ti ti-hash',
+}));
+</script>
+
+<style lang="scss" module>
+.main {
+	min-height: calc(100cqh - (var(--stickyTop, 0px) + var(--stickyBottom, 0px)));
+}
+
+.userItem {
+	display: flex;
+}
+
+.userItemBody {
+	flex: 1;
+	min-width: 0;
+	margin-right: 8px;
+
+	&:hover {
+		text-decoration: none;
+	}
+}
+
+.remove {
+	width: 32px;
+	height: 32px;
+	align-self: center;
+}
+
+.menu {
+	width: 32px;
+	height: 32px;
+	align-self: center;
+}
+
+.more {
+	margin-left: auto;
+	margin-right: auto;
+}
+
+.footer {
+	-webkit-backdrop-filter: var(--blur, blur(15px));
+	backdrop-filter: var(--blur, blur(15px));
+	border-top: solid 0.5px var(--divider);
+}
+</style>

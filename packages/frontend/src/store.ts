@@ -632,6 +632,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: true,
 	},
+	enableTagTimeline: {
+		where: 'device',
+		default: true,
+	},
 
 	// - Settings/Sounds & Vibrations
 	vibrate: {
