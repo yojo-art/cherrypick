@@ -33,6 +33,7 @@
   - ユーザー検索画面で照会しますか？のダイアログが2つ出る問題 
 
 ### Server
+- Fix: ユーザーnull(System)の場合forceがfalseでも新規追加されるのを修正
 - Fix: Outboxから投稿を所得する際にタイムラインに投稿が流れないように
 - Fix: 翻訳にdeepl以外を利用していると翻訳できない問題を修正 [#355](https://github.com/yojo-art/cherrypick/pull/355)
 
