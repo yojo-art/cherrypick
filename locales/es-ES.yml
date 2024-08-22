@@ -2524,7 +2524,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Subido el"
   attachedNotes: "Notas adjuntas"
-  thisPageCanBeSeenFromTheAuthor: "Esta página solo puede ser vista por el autor."
 _externalResourceInstaller:
   title: "Instalar desde sitio externo"
   checkVendorBeforeInstall: "Asegúrate de que el distribuidor de este recurso es de confianza antes de proceder a la instalación."
