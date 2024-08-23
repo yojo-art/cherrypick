@@ -2594,7 +2594,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "วันที่เข้าร่วม"
   attachedNotes: "โน้ตที่แนบมาด้วย"
-  thisPageCanBeSeenFromTheAuthor: "หน้าเพจนี้จะสามารถปรากฏได้โดยผู้ใช้ที่อัปโหลดไฟล์นี้เท่านั้น"
 _externalResourceInstaller:
   title: "ติดตั้งจากไซต์ภายนอก"
   checkVendorBeforeInstall: "โปรดตรวจสอบให้แน่ใจว่าแหล่งแจกหน่ายมีความน่าเชื่อถือก่อนทำการติดตั้ง"

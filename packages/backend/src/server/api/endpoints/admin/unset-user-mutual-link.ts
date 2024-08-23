@@ -18,6 +18,7 @@ export const meta = {
 	requireCredential: true,
 	requireModerator: true,
 	kind: 'write:admin:unset-user-mutual-link',
+	secure: true,
 } as const;
 
 export const paramDef = {
@@ -27,7 +28,7 @@ export const paramDef = {
 	},
 	required: ['userId'],
 } as const;
- 
+
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(

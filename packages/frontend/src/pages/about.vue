@@ -19,6 +19,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkSpacer v-else-if="tab === 'charts'" :contentMax="1000" :marginMin="20">
 			<MkInstanceStats/>
 		</MkSpacer>
+		<MkSpacer v-else-if="tab === 'officialTags'" :contentMax="1000" :marginMin="20">
+			<XOfficialTag :showHeader="false"/>
+		</MkSpacer>
 	</MkHorizontalSwipe>
 </MkStickyContainer>
 </template>
@@ -34,6 +37,7 @@ const XOverview = defineAsyncComponent(() => import('@/pages/about.overview.vue'
 const XEmojis = defineAsyncComponent(() => import('@/pages/about.emojis.vue'));
 const XFederation = defineAsyncComponent(() => import('@/pages/about.federation.vue'));
 const MkInstanceStats = defineAsyncComponent(() => import('@/components/MkInstanceStats.vue'));
+const XOfficialTag = defineAsyncComponent(() => import('@/pages/official-tags.vue'));
 
 const props = withDefaults(defineProps<{
 	initialTab?: string;
@@ -66,6 +70,10 @@ const headerTabs = computed(() => [{
 	key: 'charts',
 	title: i18n.ts.charts,
 	icon: 'ti ti-chart-line',
+}, {
+	key: 'officialTags',
+	title: i18n.ts._official_tag.title,
+	icon: 'ti ti-bookmarks',
 }]);
 
 definePageMetadata(() => ({

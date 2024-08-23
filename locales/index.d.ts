@@ -5588,6 +5588,10 @@ export interface Locale extends ILocale {
          * 優先度の値が小さいものが上に表示されます
          */
         "adminTopInfo": string;
+        /**
+         * タグ名
+         */
+        "adminTagName": string;
     };
     /**
      * マスコット画像のリンク
@@ -11190,7 +11194,7 @@ export interface Locale extends ILocale {
          */
         "attachedNotes": string;
         /**
-         * このページは、このファイルをアップロードしたユーザーしか閲覧できません。
+         * このページは、このファイルをアップロードしたユーザーとモデレーターのみ閲覧できます。
          */
         "thisPageCanBeSeenFromTheAuthor": string;
     };
