@@ -2203,7 +2203,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Date de téléversement"
   attachedNotes: "Notes avec ce fichier"
-  thisPageCanBeSeenFromTheAuthor: "Cette page ne peut être vue que par l'utilisateur qui a téléversé ce fichier."
 _externalResourceInstaller:
   title: "Installer depuis un site externe"
   checkVendorBeforeInstall: "Veuillez confirmer que le distributeur est fiable avant l'installation."
