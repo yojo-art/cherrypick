@@ -27,6 +27,7 @@
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
 
 ### Client
+- Enhance: 更新情報を確認の画面に幼女.artのチェンジログへのボタンを追加
 - Enhance: `/about`で公式タグを表示できるように
 - Fix: 検索画面の不具合を修正
   - リモートユーザー高度な検索画面で照会しますか？のダイアログが出ない問題
