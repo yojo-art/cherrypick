@@ -53,7 +53,7 @@ const whatIsNewMisskey = () => {
 
 const whatIsNewCherryPick = () => {
 	// modal.value?.close();
-	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '')}`, '_blank');
+	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '').replace(/-yojo.+/, '')}`, '_blank');
 };
 
 const close = async () => {
