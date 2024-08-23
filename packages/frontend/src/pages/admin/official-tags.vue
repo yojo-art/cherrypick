@@ -15,7 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkFolder>
 					<template #label>{{ tag.tag }}</template>
 					<MkInput v-model="tag.tag" class="input">
-						<template #label>タグ名</template>
+						<template #label>{{ i18n.ts._official_tag.adminTagName }}</template>
 					</MkInput>
 					<MkInput v-model="tag.bannerUrl" type="url" class="input">
 						<template #label>{{ i18n.ts.imageUrl }}</template>
