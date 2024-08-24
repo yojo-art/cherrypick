@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
 	<MkSpacer :contentMax="700" :class="$style.main">
 		<div class="_gaps_s">
-			<div v-for="tag in tags">
+			<div v-for="tag in tags" :key="tag">
 				<div :class="$style.userItem">
 					<MkA :class="$style.userItemBody" :to="`/tags/${tag}`">
 						<p :title="tag">{{ tag }}</p>
@@ -22,13 +22,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { i18n } from '@/i18n.js';
 
-const tags = await misskeyApi('i/registry/get', {
+const tags = ref<string[]>([]);
+
+tags.value = await misskeyApi('i/registry/get', {
 	scope: ['client', 'base'],
 	key: 'hashTag',
 }) as string[];
@@ -39,10 +41,11 @@ async function removeTag(item, ev) {
 		icon: 'ti ti-x',
 		danger: true,
 		action: async () => {
+			tags.value = tags.value.filter(x => item !== x);
 			await misskeyApi('i/registry/set', {
 				scope: ['client', 'base'],
 				key: 'hashTag',
-				value: tags.filter(x => item !== x),
+				value: tags.value,
 			});
 		},
 	}], ev.currentTarget ?? ev.target);
@@ -62,7 +65,7 @@ function addTag () {
 	}).then(({ canceled, result: temp }) => {
 		if (canceled) return;
 		const input = temp as string;
-		if (input.includes(' ') || input.startsWith('#') || tags.includes(input)) {
+		if (input.includes(' ') || input.startsWith('#') || tags.value.includes(input)) {
 			os.alert(
 				{
 					type: 'error',
@@ -71,7 +74,7 @@ function addTag () {
 			);
 			return;
 		}
-		tags.push(input);
+		tags.value.push(input);
 		const promise = misskeyApi('i/registry/set', {
 			scope: ['client', 'base'],
 			key: 'hashTag',
