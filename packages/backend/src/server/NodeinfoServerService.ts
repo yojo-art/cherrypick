@@ -14,7 +14,6 @@ import { bindThis } from '@/decorators.js';
 import NotesChart from '@/core/chart/charts/notes.js';
 import UsersChart from '@/core/chart/charts/users.js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
-import { ApGameService } from '@/core/activitypub/models/ApGameService.js';
 import type { FastifyInstance, FastifyPluginOptions } from 'fastify';
 
 const nodeinfo2_1path = '/nodeinfo/2.1';
@@ -23,6 +22,8 @@ const nodeinfo_homepage = 'https://misskey-hub.net';
 
 @Injectable()
 export class NodeinfoServerService {
+	//semverに従って割り当てる
+	static reversiVersion = '1.0.0-yojo';
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -132,7 +133,7 @@ export class NodeinfoServerService {
 					enableServiceWorker: meta.enableServiceWorker,
 					proxyAccountName: proxyAccount ? proxyAccount.username : null,
 					themeColor: meta.themeColor ?? '#ffbcdc',
-					reversiVersion: ApGameService.reversiVersion,
+					reversiVersion: NodeinfoServerService.reversiVersion,
 				},
 			};
 			if (version >= 21) {
