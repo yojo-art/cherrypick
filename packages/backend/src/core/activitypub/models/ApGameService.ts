@@ -13,6 +13,8 @@ import { NotificationService } from '@/core/NotificationService.js';
 import { ReversiService } from '@/core/ReversiService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import type { ReversiGamesRepository } from '@/models/_.js';
+import { FetchInstanceMetadataService } from '@/core/FetchInstanceMetadataService.js';
+import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
@@ -41,6 +43,8 @@ export class ApGameService {
 		private apLoggerService: ApLoggerService,
 		//ReversiServiceを先に初期化するのでReversiServiceからApGameServiceを利用してはいけない
 		private reversiService: ReversiService,
+		private federatedInstanceService: FederatedInstanceService,
+		private fetchInstanceMetadataService: FetchInstanceMetadataService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -91,10 +95,39 @@ export class ApGameService {
 			this.reversiService.cancelGame(id, remote_user);
 		}
 	}
+	async reversiVersion(host:string): Promise<string | null> {
+		const cache = await this.redisClient.get(`reversi:federation:version:${host}`);
+		if (cache !== null) {
+			return cache.length === 0 ? null : cache;
+		}
+		const instance = await this.federatedInstanceService.fetch(host);
+		const nodeinfo = await this.fetchInstanceMetadataService.fetchNodeinfo(instance);
+		const reversiVersion = nodeinfo.metadata?.reversiVersion;
+		if (typeof(reversiVersion) === 'string') {
+			//0.0.0-foo => 0.0.0
+			const version = reversiVersion.split('-')[0];
+			await this.redisClient.setex(`reversi:federation:version:${host}`, version, 5 * 60);
+			return version;
+		}
+		await this.redisClient.setex(`reversi:federation:version:${host}`, '', 5 * 60);
+		return null;
+	}
 	async reversiInboxJoin(local_user: MiUser, remote_user: MiRemoteUser, game: IApReversi) {
 		const targetUser = local_user;
 		const fromUser = remote_user;
 		if (!game.game_state.game_session_id) throw Error('bad session' + JSON.stringify(game));
+		let version = await this.reversiVersion(remote_user.host);
+		if (version === null) {
+			//初期の実装はバージョンを返さない
+			version = '1.0.0';
+		}
+		const versionElements = version.split('.');
+		if (versionElements.length === 3) {
+			if (versionElements[0] !== ApGameService.reversiVersion.split('-')[0].split('.')[0]) {
+				//メジャーバージョン不一致
+				return;
+			}
+		}
 		const redisPipeline = this.redisClient.pipeline();
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,
