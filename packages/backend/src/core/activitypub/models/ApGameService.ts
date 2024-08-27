@@ -24,7 +24,7 @@ import type { IApReversi } from '../type.js';
 export class ApGameService {
 	private logger: Logger;
 	//semverに従って割り当てる
-	static reversiVersion: string="1.0.0-yojo";
+	static reversiVersion = '1.0.0-yojo';
 
 	constructor(
 		@Inject(DI.config)
