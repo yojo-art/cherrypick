@@ -22,6 +22,8 @@ const nodeinfo_homepage = 'https://misskey-hub.net';
 
 @Injectable()
 export class NodeinfoServerService {
+	//semverに従って割り当てる
+	static reversiVersion = '1.0.0-yojo';
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -131,6 +133,7 @@ export class NodeinfoServerService {
 					enableServiceWorker: meta.enableServiceWorker,
 					proxyAccountName: proxyAccount ? proxyAccount.username : null,
 					themeColor: meta.themeColor ?? '#ffbcdc',
+					reversiVersion: NodeinfoServerService.reversiVersion,
 				},
 			};
 			if (version >= 21) {
