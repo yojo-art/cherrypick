@@ -2926,7 +2926,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *read:messaging*
      */
     request<E extends 'messaging/messages/search', P extends Endpoints[E]['req']>(
       endpoint: E,
