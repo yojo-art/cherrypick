@@ -39,8 +39,6 @@ const INVITATION_TIMEOUT_MS = 1000 * 20; // 20sec
 export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	private notificationService: NotificationService;
 	private logger: Logger;
-	//semverに従って割り当てる
-	static federationVersion = '1.0.0-yojo';
 
 	constructor(
 		private moduleRef: ModuleRef,
