@@ -2592,7 +2592,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "添加日期"
   attachedNotes: "附加到的帖子"
-  thisPageCanBeSeenFromTheAuthor: "此页只能被该文件的上传者查看。"
 _externalResourceInstaller:
   title: "从外部站点安装"
   checkVendorBeforeInstall: "请在安装前确保来源可靠"

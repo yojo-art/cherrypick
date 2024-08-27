@@ -34,6 +34,7 @@ type NodeInfo = {
 			email?: unknown;
 		};
 		themeColor?: unknown;
+		reversiVersion?: unknown;
 	};
 };
 
@@ -138,7 +139,7 @@ export class FetchInstanceMetadataService {
 	}
 
 	@bindThis
-	private async fetchNodeinfo(instance: MiInstance): Promise<NodeInfo> {
+	public async fetchNodeinfo(instance: MiInstance): Promise<NodeInfo> {
 		this.logger.info(`Fetching nodeinfo of ${instance.host} ...`);
 
 		try {

@@ -2576,7 +2576,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Caricato il"
   attachedNotes: "Note a cui è allegato"
-  thisPageCanBeSeenFromTheAuthor: "Questa pagina può essere vista solo da chi ha caricato il file."
 _externalResourceInstaller:
   title: "Installa da sito esterno"
   checkVendorBeforeInstall: "Prima di installare, assicurati che la fonte sia affidabile."

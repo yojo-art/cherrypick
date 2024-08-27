@@ -64,7 +64,7 @@ export const paramDef = {
 // TODO: ロジックをサービスに切り出す
 
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-next-line import/no-default-export
+export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
 		@Inject(DI.emojisRepository)
 		private emojisRepository: EmojisRepository,
@@ -88,7 +88,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			try {
 				// Create file
-				driveFile = await this.driveService.uploadFromUrl({ url: emoji.originalUrl, user: null, force: true });
+				driveFile = await this.driveService.uploadFromUrl({ url: emoji.originalUrl, user: null, force: false });
 			} catch (e) {
 				// TODO: need to return Drive Error
 				throw new ApiError();

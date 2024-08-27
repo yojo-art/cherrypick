@@ -2250,7 +2250,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Pujat el"
   attachedNotes: "Notes amb aquest fitxer"
-  thisPageCanBeSeenFromTheAuthor: "Aquesta pàgina només la pot veure l'usuari que ha pujat aquest fitxer."
 _externalResourceInstaller:
   title: "Instal·lar des d'un lloc extern"
   checkVendorBeforeInstall: "Assegura't que qui distribueix aquest recurs és fiable abans d'instal·lar-ho."
