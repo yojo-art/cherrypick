@@ -58,18 +58,19 @@ const headerActions = computed(() => [{
 	text: i18n.ts.create,
 	handler: addTag,
 }]);
+const invalidChars = [' ', '　', '#', ':', '\'', '"', '!'];
 
 function addTag () {
 	os.inputText({
-		title: i18n.ts.enterListName,
+		title: i18n.ts.enterTagName,
 	}).then(({ canceled, result: temp }) => {
 		if (canceled) return;
 		const input = temp as string;
-		if (input.includes(' ') || input.startsWith('#') || tags.value.includes(input)) {
+		if (input === '' || invalidChars.includes(input) || tags.value.includes(input)) {
 			os.alert(
 				{
 					type: 'error',
-					title: i18n.ts.invalidParamErrorDescription,
+					title: i18n.ts.invalidTagName,
 				},
 			);
 			return;
@@ -78,7 +79,7 @@ function addTag () {
 		const promise = misskeyApi('i/registry/set', {
 			scope: ['client', 'base'],
 			key: 'hashTag',
-			value: tags,
+			value: tags.value,
 		});
 		os.promiseDialog(promise, null, null);
 	});

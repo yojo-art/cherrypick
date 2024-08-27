@@ -1388,6 +1388,8 @@ additionalPermissionsForFlash: "Playへの追加許可"
 thisFlashRequiresTheFollowingPermissions: "このPlayは以下の権限を要求しています"
 doYouWantToAllowThisPlayToAccessYourAccount: "このPlayによるアカウントへのアクセスを許可しますか？"
 translateProfile: "プロフィールを翻訳する"
+enterTagName: "タグ名を入力"
+invalidTagName: "タグに使用できない文字が含まれています"
 
 _official_tag:
   title: "公式タグ"
