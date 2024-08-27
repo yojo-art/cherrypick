@@ -2527,7 +2527,7 @@ export type paths = {
      * messaging/messages/search
      * @description No description provided.
      *
-     * **Credential required**: *No*
+     * **Credential required**: *Yes*
      */
     post: operations['messaging___messages___search'];
   };
@@ -21060,7 +21060,7 @@ export type operations = {
    * messaging/messages/search
    * @description No description provided.
    *
-   * **Credential required**: *No*
+   * **Credential required**: *Yes*
    */
   messaging___messages___search: {
     requestBody: {
