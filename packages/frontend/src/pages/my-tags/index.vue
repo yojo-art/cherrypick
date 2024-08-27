@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -8,9 +8,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
 	<MkSpacer :contentMax="700" :class="$style.main">
 		<div class="_gaps_s">
-			<div v-for="tag in tags" :key="tag">
-				<div :class="$style.userItem">
-					<MkA :class="$style.userItemBody" :to="`/tags/${tag}`">
+			<div v-for="tag in tags" :key="tag" class="_panel" :class="$style.list">
+				<div :class="$style.tagItem">
+					<MkA :class="$style.tagItemBody" :to="`/tags/${tag}`">
 						<p :title="tag">{{ tag }}</p>
 					</MkA>
 					<button class="_button" :class="$style.remove" @click="removeTag(tag, $event)"><i class="ti ti-x"></i></button>
@@ -78,7 +78,7 @@ function addTag () {
 		const promise = misskeyApi('i/registry/set', {
 			scope: ['client', 'base'],
 			key: 'hashTag',
-			value: tags.value,
+			value: tags,
 		});
 		os.promiseDialog(promise, null, null);
 	});
@@ -97,11 +97,24 @@ definePageMetadata(() => ({
 	min-height: calc(100cqh - (var(--stickyTop, 0px) + var(--stickyBottom, 0px)));
 }
 
-.userItem {
+.list {
+	display: block;
+	padding: 4px;
+	border: solid 1px var(--divider);
+	border-radius: 6px;
+	margin-bottom: 8px;
+
+	&:hover {
+		border: solid 1px var(--accent);
+		text-decoration: none;
+	}
+}
+
+.tagItem {
 	display: flex;
 }
 
-.userItemBody {
+.tagItemBody {
 	flex: 1;
 	min-width: 0;
 	margin-right: 8px;
@@ -112,8 +125,8 @@ definePageMetadata(() => ({
 }
 
 .remove {
-	width: 32px;
-	height: 32px;
+	width: 38px;
+	height: 38px;
 	align-self: center;
 }
 
