@@ -5575,6 +5575,14 @@ export interface Locale extends ILocale {
      * プロフィールを翻訳する
      */
     "translateProfile": string;
+    /**
+     * タグ名を入力
+     */
+    "enterTagName": string;
+    /**
+     * タグに使用できない文字が含まれています
+     */
+    "invalidTagName": string;
     "_official_tag": {
         /**
          * 公式タグ

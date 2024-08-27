@@ -230,6 +230,47 @@ async function chooseAntenna(ev: MouseEvent): Promise<void> {
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
+async function chooseHashTag(ev: MouseEvent): Promise<void> {
+	let tags: string[];
+	try {
+		tags = await misskeyApi('i/registry/get', {
+			scope: ['client', 'base'],
+			key: 'hashTag',
+		});
+	} catch (err) {
+		if (err.code === 'NO_SUCH_KEY') {
+			tags = [];
+			await misskeyApi('i/registry/set', {
+				scope: ['client', 'base'],
+				key: 'hashTag',
+				value: [],
+			});
+			tags = await misskeyApi('i/registry/get', {
+				scope: ['client', 'base'],
+				key: 'hashTag',
+			});
+		} else {
+			throw err;
+		}
+	}
+
+	const items: MenuItem[] = [
+		...tags.map(tag => ({
+			type: 'link' as const,
+			text: tag,
+			to: `/tags/${encodeURIComponent(tag)}`,
+		})),
+		(tags.length === 0 ? undefined : { type: 'divider' }),
+		{
+			type: 'link' as const,
+			icon: 'ti ti-plus',
+			text: i18n.ts.createNew,
+			to: '/my/tags',
+		},
+	];
+	os.popupMenu(items, ev.currentTarget ?? ev.target);
+}
+
 async function chooseChannel(ev: MouseEvent): Promise<void> {
 	const channels = await favoritedChannelsCache.fetch();
 	const items: MenuItem[] = [
@@ -380,6 +421,11 @@ const headerTabs = computed(() => [...(defaultStore.reactiveState.pinnedUserList
 	title: i18n.ts.antennas,
 	iconOnly: true,
 	onClick: chooseAntenna,
+}] : []), ...(defaultStore.state.enableTagTimeline ? [{
+	icon: 'ti ti-hash',
+	title: i18n.ts.tags,
+	iconOnly: true,
+	onClick: chooseHashTag,
 }] : [])] as Tab[]);
 
 const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(tl => ({
