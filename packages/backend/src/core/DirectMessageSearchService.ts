@@ -68,16 +68,16 @@ export class DirectMessageSearchService {
 		if (me === null) return [];
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
 		query
-			.andWhere('message.text ILIKE :q', { q: `${ sqlLikeEscape(q)}` });
-		console.info(query.getQuery());
-
-		query
+			.andWhere('message.text ILIKE :q', { q: `${ sqlLikeEscape(q)}` })
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 
 		if (opts.groupId) {
-			query.andWhere('message.groupId IN (:...groups)', { groups: [opts.groupId] })
-				.andWhere(':userId = ANY(message.reads)', { userId: me.id });
+			query.andWhere(new Brackets(qb => {
+				qb
+					.where('message.groupId IN (:...groups)', { groups: [opts.groupId] })
+					.orWhere(':userId = ANY(message.reads)', { userId: me.id });
+			}));
 		} else {
 			query.andWhere(new Brackets(qb => {
 				qb
@@ -87,9 +87,6 @@ export class DirectMessageSearchService {
 			query.andWhere('message.groupId IS NULL');
 		}
 
-		console.info(q);
-		console.info(sqlLikeEscape(q));
-		console.info(query.getQuery());
 		return await query.limit(pagination.limit).getMany();
 	}
 }
