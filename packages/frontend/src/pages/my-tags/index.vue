@@ -78,7 +78,7 @@ function addTag () {
 		const promise = misskeyApi('i/registry/set', {
 			scope: ['client', 'base'],
 			key: 'hashTag',
-			value: tags,
+			value: tags.value,
 		});
 		os.promiseDialog(promise, null, null);
 	});
