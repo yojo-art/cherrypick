@@ -21,6 +21,7 @@ import type { IApReversi } from '../type.js';
 @Injectable()
 export class ApGameService {
 	private logger: Logger;
+	static reversiVersion: string="1.0-yojo";
 
 	constructor(
 		@Inject(DI.config)
