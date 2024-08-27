@@ -68,7 +68,7 @@ export class DirectMessageSearchService {
 		if (me === null) return [];
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
 		query
-			.andWhere('message.text ILIKE :q', { q: `${ sqlLikeEscape(q)}` })
+			.andWhere('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` })
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 

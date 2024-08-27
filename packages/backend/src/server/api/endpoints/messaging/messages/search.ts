@@ -10,7 +10,7 @@ import { DirectMessageSearchService } from '@/core/DirectMessageSearchService.js
 
 export const meta = {
 	tags: ['messaging'],
-	requireCredentail: false,
+	requireCredentail: true,
 	res: {
 		type: 'array',
 		optional: false, nullable: false,
