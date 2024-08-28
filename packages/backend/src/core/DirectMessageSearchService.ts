@@ -4,8 +4,9 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { MessagingMessagesRepository, UserGroupJoiningsRepository } from '@/models/_.js';
+import type { BlockingsRepository, MessagingMessagesRepository, MutingsRepository, UserGroupJoiningsRepository } from '@/models/_.js';
 import type { MiMessagingMessage } from '@/models/MessagingMessage.js';
 import type { MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
@@ -42,6 +43,12 @@ export class DirectMessageSearchService {
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
+		@Inject(DI.mutingsRepository)
+		private mutingsRepository: MutingsRepository,
+
+		@Inject(DI.blockingsRepository)
+		private blockingsRepository: BlockingsRepository,
+
 		private cacheService: CacheService,
 		private queryService: QueryService,
 		private userEntityService: UserEntityService,
@@ -58,16 +65,27 @@ export class DirectMessageSearchService {
 		sinceId?: MiMessagingMessage['id'];
 		limit?: number;
 	}): Promise<MiMessagingMessage[]> {
+		if (me === null) return [];
 		const query = this.queryService.makePaginationQuery(this.messagingMessagesRepository.createQueryBuilder('message'), pagination.sinceId, pagination.untilId);
-
 		query
 			.andWhere('message.text ILIKE :q', { q: `%${ sqlLikeEscape(q)}%` })
 			.innerJoinAndSelect('message.user', 'user')
 			.leftJoinAndSelect('message.group', 'group');
 
-		this.queryService.generateVisibilityQuery(query, me);
-		if (me) this.queryService.generateMutedUserQuery(query, me);
-		if (me) this.queryService.generateBlockedUserQuery(query, me);
+		if (opts.groupId) {
+			query.andWhere(new Brackets(qb => {
+				qb
+					.where('message.groupId IN (:...groups)', { groups: [opts.groupId] })
+					.orWhere(':userId = ANY(message.reads)', { userId: me.id });
+			}));
+		} else {
+			query.andWhere(new Brackets(qb => {
+				qb
+					.where('message.userId = :userId', { userId: me.id })
+					.orWhere('message.recipientId = :userId', { userId: me.id });
+			}));
+			query.andWhere('message.groupId IS NULL');
+		}
 
 		return await query.limit(pagination.limit).getMany();
 	}

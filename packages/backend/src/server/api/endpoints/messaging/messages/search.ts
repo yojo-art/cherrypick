@@ -4,16 +4,16 @@
  */
 
 import { Injectable } from '@nestjs/common';
-import { id } from 'date-fns/locale';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { MessagingMessageEntityService } from '@/core/entities/MessagingMessageEntityService.js';
 import { DirectMessageSearchService } from '@/core/DirectMessageSearchService.js';
-import { ApiError } from '@/server/api/error.js';
-import { GetterService } from '@/server/api/GetterService.js';
 
 export const meta = {
 	tags: ['messaging'],
-	requireCredentail: false,
+
+	requireCredential: true,
+	kind: 'read:messaging',
+
 	res: {
 		type: 'array',
 		optional: false, nullable: false,
@@ -47,11 +47,10 @@ export const paramDef = {
 } as const;
 
 @Injectable()
-export default class extends Endpoint<typeof meta, typeof paramDef> {
+export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
 		private messagingMessageEntityService: MessagingMessageEntityService,
 		private directMessageSearchService: DirectMessageSearchService,
-		private getterService: GetterService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const message = await this.directMessageSearchService.searchMessages(ps.query, me, {
