@@ -4939,6 +4939,7 @@ export type components = {
       /** Format: date-time */
       latestRequestReceivedAt: string | null;
       moderationNote?: string | null;
+      reversiVersion?: string | null;
     };
     GalleryPost: {
       /**
