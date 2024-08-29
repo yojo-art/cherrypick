@@ -52,7 +52,7 @@ jobs:
 
       # packages/cherrypick-js/generator/built/autogen
       - name: Upload Generated
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.6
         with:
           name: generated-cherrypick-js
           path: packages/cherrypick-js/generator/built/autogen
@@ -71,7 +71,7 @@ jobs:
           ref: refs/pull/${{ github.event.pull_request.number }}/merge
 
       - name: Upload From Merged
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v4.3.6
         with:
           name: actual-cherrypick-js
           path: packages/cherrypick-js/src/autogen
