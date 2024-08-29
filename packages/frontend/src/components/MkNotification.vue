@@ -249,6 +249,7 @@ const rejectGroupInvitation = () => {
 	width: 100%;
 	height: 100%;
 }
+
 .icon_noteGroup,
 .icon_reactionGroup,
 .icon_reactionGroupHeart,
