@@ -132,7 +132,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		}
 		const versionElements = version.split('.');
 		if (versionElements.length === 3) {
-			if (versionElements[0] !== NodeinfoServerService.reversiVersion.split('-')[0].split('.')[0]) {
+			if (versionElements[0] !== NodeinfoServerService.reversiVersion.split('.')[0]) {
 				//メジャーバージョン不一致
 				return false;
 			}
