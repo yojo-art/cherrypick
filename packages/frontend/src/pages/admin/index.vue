@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div ref="el" class="hiyeyicy" :class="{ wide: !narrow }">
 	<div v-if="!narrow || currentPage?.route.name == null" class="nav">
 		<MkSpacer :contentMax="700" :marginMin="16">
-			<div class="lxpfedzu">
+			<div class="lxpfedzu _gaps">
 				<div class="banner">
 					<img :src="instance.iconUrl || '/favicon.ico'" alt="" class="icon"/>
 				</div>
@@ -63,14 +63,14 @@ const narrow = ref(false);
 const view = ref(null);
 const el = ref<HTMLDivElement | null>(null);
 const pageProps = ref({});
-let noMaintainerInformation = isEmpty(instance.maintainerName) || isEmpty(instance.maintainerEmail);
-let noBotProtection = !instance.disableRegistration && !instance.enableHcaptcha && !instance.enableRecaptcha && !instance.enableTurnstile;
-let noEmailServer = !instance.enableEmail;
-let noInquiryUrl = isEmpty(instance.inquiryUrl);
+const noMaintainerInformation = computed(() => isEmpty(instance.maintainerName) || isEmpty(instance.maintainerEmail));
+const noBotProtection = computed(() => !instance.disableRegistration && !instance.enableHcaptcha && !instance.enableRecaptcha && !instance.enableTurnstile && !instance.enableMcaptcha);
+const noEmailServer = computed(() => !instance.enableEmail);
+const noInquiryUrl = computed(() => isEmpty(instance.inquiryUrl));
 const thereIsUnresolvedAbuseReport = ref(false);
 const currentPage = computed(() => router.currentRef.value.child);
 const updateAvailable = ref(false);
-const releasesCherryPick = ref();
+const releasesCherryPick = ref(null);
 
 misskeyApi('admin/abuse-user-reports', {
 	state: 'unresolved',
@@ -79,14 +79,19 @@ misskeyApi('admin/abuse-user-reports', {
 	if (reports.length > 0) thereIsUnresolvedAbuseReport.value = true;
 });
 
-fetch('https://api.github.com/repos/kokonect-link/cherrypick/releases', {
-	method: 'GET',
-}).then(res => res.json())
-	.then(async res => {
-		const meta = await misskeyApi('admin/meta');
-		if (meta.enableReceivePrerelease) releasesCherryPick.value = res;
-		else releasesCherryPick.value = res.filter(x => x.prerelease === false);
-		if ((version < releasesCherryPick.value[0].tag_name) && (meta.skipCherryPickVersion < releasesCherryPick.value[0].tag_name)) updateAvailable.value = true;
+misskeyApi('admin/meta')
+	.then(meta => {
+		return fetch('https://api.github.com/repos/kokonect-link/cherrypick/releases')
+			.then(res => res.json())
+			.then(cherryPickData => {
+				releasesCherryPick.value = meta.enableReceivePrerelease ? cherryPickData : cherryPickData.filter(x => !x.prerelease);
+				if ((compareVersions(version, releasesCherryPick.value[0].tag_name) < 0) && (compareVersions(meta.skipCherryPickVersion, releasesCherryPick.value[0].tag_name) < 0)) {
+					updateAvailable.value = true;
+				}
+			});
+	})
+	.catch(error => {
+		console.error('Failed to fetch CherryPick releases:', error);
 	});
 
 const NARROW_THRESHOLD = 600;
@@ -255,25 +260,22 @@ const menuDef = computed(() => [{
 	}],
 }]);
 
-watch(narrow.value, () => {
-	if (currentPage.value?.route.name == null && !narrow.value) {
-		router.push('/admin/overview');
-	}
-});
-
 onMounted(() => {
-	ro.observe(el.value);
-
-	narrow.value = el.value.offsetWidth < NARROW_THRESHOLD;
+	if (el.value != null) {
+		ro.observe(el.value);
+		narrow.value = el.value.offsetWidth < NARROW_THRESHOLD;
+	}
 	if (currentPage.value?.route.name == null && !narrow.value) {
-		router.push('/admin/overview');
+		router.replace('/admin/overview');
 	}
 });
 
 onActivated(() => {
-	narrow.value = el.value.offsetWidth < NARROW_THRESHOLD;
+	if (el.value != null) {
+		narrow.value = el.value.offsetWidth < NARROW_THRESHOLD;
+	}
 	if (currentPage.value?.route.name == null && !narrow.value) {
-		router.push('/admin/overview');
+		router.replace('/admin/overview');
 	}
 });
 
@@ -297,6 +299,20 @@ provideMetadataReceiver((metadataGetter) => {
 	}
 });
 provideReactiveMetadata(INFO);
+
+function compareVersions(v1: string, v2: string): number {
+	const v1Parts = v1.split('.').map(Number);
+	const v2Parts = v2.split('.').map(Number);
+
+	for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
+		const part1 = v1Parts[i] || 0;
+		const part2 = v2Parts[i] || 0;
+
+		if (part1 < part2) return -1;
+		if (part1 > part2) return 1;
+	}
+	return 0;
+}
 
 function invite() {
 	misskeyApi('admin/invite/create').then(x => {

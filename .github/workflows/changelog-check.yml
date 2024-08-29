@@ -1,4 +1,4 @@
-name: Check the description in CHANGELOG.md
+name: Check the description in CHANGELOG_CHERRYPICK.md
 
 on:
   pull_request:
@@ -32,7 +32,7 @@ jobs:
         run: cp CHANGELOG_YOJO.md scripts/changelog-checker/CHANGELOG-head.md
       - name: diff
         continue-on-error: true
-        run: diff -u CHANGELOG-base.md CHANGELOG-head.md
+        run: diff -u CHANGELOG_CHERRYPICK-base.md CHANGELOG_CHERRYPICK-head.md
         working-directory: scripts/changelog-checker
 
       - name: Setup Checker

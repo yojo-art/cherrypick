@@ -54,7 +54,9 @@ export class ApGameService {
 			const key = apgame.game_state.key;
 			const value = apgame.game_state.value;
 			if (key && value) {
-				await this.reversiService.updateSettings(id, remote_user, key, value);
+				if (this.reversiService.isValidReversiUpdateKey(key) && this.reversiService.isValidReversiUpdateValue(key, value)) {
+					await this.reversiService.updateSettings(id, remote_user, key, value);
+				}
 			} else {
 				this.logger.warn('skip ApReversi settings unknown key or value');
 			}
