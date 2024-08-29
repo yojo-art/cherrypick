@@ -11580,6 +11580,10 @@ export interface Locale extends ILocale {
          */
         "remoteVersionUnknown": string;
         /**
+         * 対応していない可能性があります
+         */
+        "remoteVersionUnknownCaption": string;
+        /**
          * リモートサーバーのバージョンが非互換です
          */
         "remoteVersionBad": string;

@@ -222,6 +222,7 @@ async function matchUser() {
 			const { canceled } = await os.confirm({
 				type: 'warning',
 				text: i18n.ts._reversi.remoteVersionUnknown,
+				caption: i18n.ts._reversi.remoteVersionUnknownCaption,
 			});
 			if (canceled) return;
 		}

@@ -3079,6 +3079,7 @@ _reversi:
   showBoardLabels: "盤面に行・列番号を表示"
   useAvatarAsStone: "石をアイコンにする"
   remoteVersionUnknown: "リモートサーバーのバージョンが不明です"
+  remoteVersionUnknownCaption: "対応していない可能性があります"
   remoteVersionBad: "リモートサーバーのバージョンが非互換です"
 
 _offlineScreen:
