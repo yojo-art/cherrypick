@@ -34,12 +34,14 @@
   - ユーザー検索画面で照会しますか？のダイアログが2つ出る問題 
 - Fix: 更新情報を確認のCherryPickの項目へのリンクを修正 
 - Feat: お気に入りのタグリストを作成できるように
+- Enhance: リバーシ連合の対応状況をサーバー一覧に表示するように
 
 ### Server
 - Fix: ユーザーnull(System)の場合forceがfalseでも新規追加されるのを修正
 - Fix: Outboxから投稿を所得する際にタイムラインに投稿が流れないように
 - Fix: 翻訳にdeepl以外を利用していると翻訳できない問題を修正 [#355](https://github.com/yojo-art/cherrypick/pull/355)
 - Fix: 絵文字インポート時にすでにファイルがあるならそれを使うように
+- Enhance: リバーシ連合の対応状況をnodeinfoに追加
 
 ### Misc
 
