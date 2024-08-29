@@ -2807,6 +2807,7 @@ _notification:
   reactedBySomeUsers: "{n}人がリアクションしました"
   likedBySomeUsers: "{n}人がいいねしました"
   renotedBySomeUsers: "{n}人がリノートしました"
+  notedBySomeUsers: "{n}件の新しい投稿"
   followedBySomeUsers: "{n}人にフォローされました"
   flushNotification: "通知の履歴をリセットする"
 

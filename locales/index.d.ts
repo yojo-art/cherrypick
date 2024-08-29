@@ -10626,6 +10626,10 @@ export interface Locale extends ILocale {
          */
         "renotedBySomeUsers": ParameterizedString<"n">;
         /**
+         * {n}件の新しい投稿
+         */
+        "notedBySomeUsers": ParameterizedString<"n">;
+        /**
          * {n}人にフォローされました
          */
         "followedBySomeUsers": ParameterizedString<"n">;
