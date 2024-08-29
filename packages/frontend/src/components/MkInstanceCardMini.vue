@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="body">
 		<span class="host">{{ instance.name ?? instance.host }}</span>
 		<span class="sub _monospace"><b>{{ instance.host }}</b> / {{ instance.softwareName || '?' }} {{ instance.softwareVersion }}</span>
-		<span class="sub _monospace"><b>{{ i18n.ts._reversi.reversi }}</b> / {{ instance.reversiVersion || `(${i18n.ts.unknown})` }} {{ instance.softwareVersion }}</span>
+		<span class="sub _monospace"><b>{{ i18n.ts._reversi.reversi }}</b> / {{ instance.reversiVersion || `(${i18n.ts.unknown})` }}</span>
 	</div>
 	<MkMiniChart v-if="chartValues" class="chart" :src="chartValues"/>
 </div>
