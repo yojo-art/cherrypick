@@ -5283,6 +5283,7 @@ export type components = {
        * @enum {string}
        */
       noteSearchableScope: 'local' | 'global';
+      reversiVersion: string;
     };
     MetaDetailedOnly: {
       features?: {
