@@ -736,12 +736,18 @@ export class ApPersonService implements OnModuleInit {
 		let filter_fields = fields;
 		for (const section of mutualLinkSections) {
 			for (const entry of section.mutualLinks) {
-				filter_fields = fields.filter(field => {
+				let flag_match = false;
+				filter_fields = filter_fields.filter(field => {
+					if (flag_match) return true;
 					if (field.name === (section.name ?? '')) {
 						const value = (entry.url.startsWith('http://') || entry.url.startsWith('https://'))
 							? this.mfmService.fromHtml(`<a href="${new URL(entry.url).href}" rel="me nofollow noopener" target="_blank">${entry.description ?? new URL(entry.url).href}</a>`)
 							: entry.description ?? '';
-						return field.value !== value;
+						if (field.value === value) {
+							flag_match = true;
+							return false;//初回一致のみ除外する
+						}
+						return true;
 					}
 					return true;
 				});
