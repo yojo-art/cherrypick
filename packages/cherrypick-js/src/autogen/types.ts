@@ -2540,6 +2540,15 @@ export type paths = {
      */
     post: operations['messaging___messages___read'];
   };
+  '/messaging/messages/search': {
+    /**
+     * messaging/messages/search
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:messaging*
+     */
+    post: operations['messaging___messages___search'];
+  };
   '/meta': {
     /**
      * meta
@@ -4948,6 +4957,7 @@ export type components = {
       /** Format: date-time */
       latestRequestReceivedAt: string | null;
       moderationNote?: string | null;
+      reversiVersion?: string | null;
     };
     GalleryPost: {
       /**
@@ -5010,6 +5020,8 @@ export type components = {
       title: string;
       summary: string;
       script: string;
+      /** @enum {string} */
+      visibility: 'private' | 'public';
       likedCount: number | null;
       isLiked?: boolean;
     };
@@ -5291,6 +5303,7 @@ export type components = {
        * @enum {string}
        */
       noteSearchableScope: 'local' | 'global';
+      reversiVersion: string;
       uploadService: string | null;
     };
     MetaDetailedOnly: {
@@ -21198,6 +21211,75 @@ export type operations = {
       /** @description OK (without any results) */
       204: {
         content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * messaging/messages/search
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:messaging*
+   */
+  messaging___messages___search: {
+    requestBody: {
+      content: {
+        'application/json': {
+          query: string;
+          /** Format: misskey:id */
+          sinceId?: string;
+          /** Format: misskey:id */
+          untilId?: string;
+          /** @default 10 */
+          limit?: number;
+          /**
+           * Format: misskey:id
+           * @default null
+           */
+          recipientId?: string | null;
+          /**
+           * Format: misskey:id
+           * @default null
+           */
+          groupId?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': components['schemas']['MessagingMessage'][];
+        };
       };
       /** @description Client error */
       400: {

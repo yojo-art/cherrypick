@@ -34,6 +34,7 @@ type NodeInfo = {
 			email?: unknown;
 		};
 		themeColor?: unknown;
+		reversiVersion?: unknown;
 	};
 };
 
@@ -119,6 +120,7 @@ export class FetchInstanceMetadataService {
 				updates.openRegistrations = info.openRegistrations;
 				updates.maintainerName = info.metadata ? info.metadata.maintainer ? (info.metadata.maintainer.name ?? null) : null : null;
 				updates.maintainerEmail = info.metadata ? info.metadata.maintainer ? (info.metadata.maintainer.email ?? null) : null : null;
+				updates.reversiVersion = info.metadata ? info.metadata.reversiVersion ?? null : null;
 			}
 
 			if (name) updates.name = name;
@@ -138,7 +140,7 @@ export class FetchInstanceMetadataService {
 	}
 
 	@bindThis
-	private async fetchNodeinfo(instance: MiInstance): Promise<NodeInfo> {
+	public async fetchNodeinfo(instance: MiInstance): Promise<NodeInfo> {
 		this.logger.info(`Fetching nodeinfo of ${instance.host} ...`);
 
 		try {

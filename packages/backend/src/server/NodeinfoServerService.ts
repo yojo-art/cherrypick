@@ -22,6 +22,8 @@ const nodeinfo_homepage = 'https://misskey-hub.net';
 
 @Injectable()
 export class NodeinfoServerService {
+	//semverに従って割り当てる
+	static reversiVersion = '1.0.0-yojo';
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -131,6 +133,7 @@ export class NodeinfoServerService {
 					enableServiceWorker: meta.enableServiceWorker,
 					proxyAccountName: proxyAccount ? proxyAccount.username : null,
 					themeColor: meta.themeColor ?? '#ffbcdc',
+					reversiVersion: NodeinfoServerService.reversiVersion,
 				},
 			};
 			if (version >= 21) {
@@ -140,7 +143,7 @@ export class NodeinfoServerService {
 			return document;
 		};
 
-		const cache = new MemorySingleCache<Awaited<ReturnType<typeof nodeinfo2>>>(1000 * 60 * 10);
+		const cache = new MemorySingleCache<Awaited<ReturnType<typeof nodeinfo2>>>(1000 * 60 * 10); // 10m
 
 		fastify.get(nodeinfo2_1path, async (request, reply) => {
 			const base = await cache.fetch(() => nodeinfo2(21));

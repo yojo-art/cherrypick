@@ -26,6 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.title" style="margin: 0 0 1.5em; font-weight: normal;">{{ i18n.ts.whatIsNew }}</div>
 		<MkButton rounded full @click="whatIsNewMisskey">Misskey</MkButton>
 		<MkButton rounded full style="margin: 8px 0 0;" @click="whatIsNewCherryPick">CherryPick</MkButton>
+		<MkButton rounded full style="margin: 8px 0 0;" @click="whatIsNewYojo">yojo-art</MkButton>
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.ok }}</MkButton>
 	</div>
 </MkModal>
@@ -53,7 +54,12 @@ const whatIsNewMisskey = () => {
 
 const whatIsNewCherryPick = () => {
 	// modal.value?.close();
-	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '')}`, '_blank');
+	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '').replace(/-yojo.+/, '')}`, '_blank');
+};
+
+const whatIsNewYojo = () => {
+	// modal.value?.close();
+	window.open(`https://github.com/yojo-art/cherrypick/blob/develop/CHANGELOG_YOJO.md#${version.replace(/\./g, '').replace(/.+-yojo/, '')}`, '_blank');
 };
 
 const close = async () => {

@@ -7,6 +7,7 @@ import { randomUUID } from 'crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import { ModuleRef } from '@nestjs/core';
+import { reversiUpdateKeys } from 'cherrypick-js';
 import * as Reversi from 'misskey-reversi';
 import { LessThan, MoreThan } from 'typeorm';
 import type {
@@ -24,6 +25,9 @@ import { NotificationService } from '@/core/NotificationService.js';
 import { Serialized } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import type Logger from '@/logger.js';
+import { FetchInstanceMetadataService } from '@/core/FetchInstanceMetadataService.js';
+import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
+import { NodeinfoServerService } from '@/server/NodeinfoServerService.js';
 import { ReversiGameEntityService } from './entities/ReversiGameEntityService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
 import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
@@ -54,6 +58,8 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		private apDeliverManagerService: ApDeliverManagerService,
 		private loggerService: LoggerService,
 		private idService: IdService,
+		private federatedInstanceService: FederatedInstanceService,
+		private fetchInstanceMetadataService: FetchInstanceMetadataService,
 	) {
 		this.logger = this.loggerService.getLogger('reversi');
 	}
@@ -98,6 +104,41 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			crc32: game.crc32,
 			noIrregularRules: game.noIrregularRules,
 		} satisfies Partial<MiReversiGame>;
+	}
+
+	@bindThis
+	public async remoteVersion(host:string): Promise<string | null> {
+		const cache = await this.redisClient.get(`reversi:federation:version:${host}`);
+		if (cache !== null) {
+			return cache.length === 0 ? null : cache;
+		}
+		const instance = await this.federatedInstanceService.fetch(host);
+		const nodeinfo = await this.fetchInstanceMetadataService.fetchNodeinfo(instance);
+		const reversiVersion = nodeinfo.metadata?.reversiVersion;
+		if (typeof(reversiVersion) === 'string') {
+			//0.0.0-foo => 0.0.0
+			const version = reversiVersion.split('-')[0];
+			await this.redisClient.setex(`reversi:federation:version:${host}`, 5 * 60, version);
+			return version;
+		}
+		await this.redisClient.setex(`reversi:federation:version:${host}`, 5 * 60, '');
+		return null;
+	}
+	@bindThis
+	public async federationAvailable(host:string): Promise<boolean | null> {
+		const version = await this.remoteVersion(host);
+		if (version === null) {
+			//初期の実装はバージョンを返さない
+			return null;
+		}
+		const versionElements = version.split('.');
+		if (versionElements.length === 3) {
+			if (versionElements[0] !== NodeinfoServerService.reversiVersion.split('.')[0]) {
+				//メジャーバージョン不一致
+				return false;
+			}
+		}
+		return true;
 	}
 
 	@bindThis
@@ -497,17 +538,39 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async updateSettings(gameId: MiReversiGame['id'], user: MiUser, key: string, value: any) {
+	public isValidReversiUpdateKey(key: unknown): key is typeof reversiUpdateKeys[number] {
+		if (typeof key !== 'string') return false;
+		return (reversiUpdateKeys as string[]).includes(key);
+	}
+
+	@bindThis
+	public isValidReversiUpdateValue<K extends typeof reversiUpdateKeys[number]>(key: K, value: unknown): value is MiReversiGame[K] {
+		switch (key) {
+			case 'map':
+				return Array.isArray(value) && value.every(row => typeof row === 'string');
+			case 'bw':
+				return typeof value === 'string' && ['random', '1', '2'].includes(value);
+			case 'isLlotheo':
+				return typeof value === 'boolean';
+			case 'canPutEverywhere':
+				return typeof value === 'boolean';
+			case 'loopedBoard':
+				return typeof value === 'boolean';
+			case 'timeLimitForEachTurn':
+				return typeof value === 'number' && value >= 0;
+			default:
+				return false;
+		}
+	}
+
+	@bindThis
+	public async updateSettings<K extends typeof reversiUpdateKeys[number]>(gameId: MiReversiGame['id'], user: MiUser, key: K, value: MiReversiGame[K]) {
 		const game = await this.get(gameId);
 		if (game == null) throw new Error('game not found');
 		if (game.isStarted) return;
 		if ((game.user1Id !== user.id) && (game.user2Id !== user.id)) return;
 		if ((game.user1Id === user.id) && game.user1Ready) return;
 		if ((game.user2Id === user.id) && game.user2Ready) return;
-
-		if (!['map', 'bw', 'isLlotheo', 'canPutEverywhere', 'loopedBoard', 'timeLimitForEachTurn'].includes(key)) return;
-
-		// TODO: より厳格なバリデーション
 
 		const updatedGame = {
 			...game,
