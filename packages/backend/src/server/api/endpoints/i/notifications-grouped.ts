@@ -167,7 +167,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						};
 						prevGroupedNotification = groupedNotifications.at(-1)!;
 					}
-					(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.push(notification.notifierId!);
+					if (!(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.includes(notification.notifierId)) {
+						(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.push(notification.notifierId!);
+					}
 					prevGroupedNotification.id = notification.id;
 					continue;
 				}
