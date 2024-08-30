@@ -483,13 +483,29 @@ export class ApRendererService {
 			this.userProfilesRepository.findOneByOrFail({ userId: user.id }),
 		]);
 
-		const attachment = profile.fields.map(field => ({
+		const attachment_mutual_links = [];
+
+		if (profile.mutualLinkSections.length > 0) {
+			for (const section of profile.mutualLinkSections) {
+				for (const entry of section.mutualLinks) {
+					if (!section.name && !entry.url.length && !entry.description) continue;
+					attachment_mutual_links.push({
+						type: 'PropertyValue',
+						name: section.name ?? '',
+						value: (entry.url.startsWith('http://') || entry.url.startsWith('https://'))
+							? `<a href="${new URL(entry.url).href}" rel="me nofollow noopener" target="_blank">${entry.description ?? new URL(entry.url).href}</a>`
+							: entry.description ?? '',
+					});
+				}
+			}
+		}
+		const attachment = attachment_mutual_links.concat(profile.fields.map(field => ({
 			type: 'PropertyValue',
 			name: field.name,
 			value: (field.value.startsWith('http://') || field.value.startsWith('https://'))
 				? `<a href="${new URL(field.value).href}" rel="me nofollow noopener" target="_blank">${new URL(field.value).href}</a>`
 				: field.value,
-		}));
+		})));
 
 		const emojis = await this.getEmojis(user.emojis);
 		const apemojis = emojis.filter(emoji => !emoji.localOnly).map(emoji => this.renderEmoji(emoji));

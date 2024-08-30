@@ -325,8 +325,8 @@ export class ApPersonService implements OnModuleInit {
 						this.logger.error('error occurred while fetching following/followers collection', { stack: err });
 					}
 					return 'private';
-				})
-			)
+				}),
+			),
 		);
 
 		const bday = person['vcard:bday']?.match(/^\d{4}-\d{2}-\d{2}/);
@@ -591,8 +591,8 @@ export class ApPersonService implements OnModuleInit {
 						return undefined;
 					}
 					return 'private';
-				})
-			)
+				}),
+			),
 		);
 
 		const bday = person['vcard:bday']?.match(/^\d{4}-\d{2}-\d{2}/);
@@ -731,16 +731,38 @@ export class ApPersonService implements OnModuleInit {
 		} else if (person.summary) {
 			_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
 		}
+		const mutualLinkSections = await this.mutualLinkSections(person, exist, role_policy);
+
+		let filter_fields = fields;
+		for (const section of mutualLinkSections) {
+			for (const entry of section.mutualLinks) {
+				let flag_match = false;
+				filter_fields = filter_fields.filter(field => {
+					if (flag_match) return true;
+					if (field.name === (section.name ?? '')) {
+						const value = (entry.url.startsWith('http://') || entry.url.startsWith('https://'))
+							? this.mfmService.fromHtml(`<a href="${new URL(entry.url).href}" rel="me nofollow noopener" target="_blank">${entry.description ?? new URL(entry.url).href}</a>`)
+							: entry.description ?? '';
+						if (field.value === value) {
+							flag_match = true;
+							return false;//初回一致のみ除外する
+						}
+						return true;
+					}
+					return true;
+				});
+			}
+		}
 
 		await this.userProfilesRepository.update({ userId: exist.id }, {
 			url,
-			fields,
+			fields: filter_fields,
 			description: _description,
 			followingVisibility,
 			followersVisibility,
 			birthday: bday?.[0] ?? null,
 			location: person['vcard:Address'] ?? null,
-			mutualLinkSections: await this.mutualLinkSections(person, exist, role_policy),
+			mutualLinkSections,
 		});
 
 		this.globalEventService.publishInternalEvent('remoteUserUpdated', { id: exist.id });
