@@ -741,9 +741,9 @@ export class ApPersonService implements OnModuleInit {
 						const value = (entry.url.startsWith('http://') || entry.url.startsWith('https://'))
 							? this.mfmService.fromHtml(`<a href="${new URL(entry.url).href}" rel="me nofollow noopener" target="_blank">${entry.description ?? new URL(entry.url).href}</a>`)
 							: entry.description ?? '';
-						return field.value === value;
+						return field.value !== value;
 					}
-					return false;
+					return true;
 				});
 			}
 		}
