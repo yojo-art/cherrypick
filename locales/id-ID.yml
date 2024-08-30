@@ -2407,7 +2407,6 @@ _notification:
   youWereFollowed: "Mengikuti kamu"
   youReceivedFollowRequest: "Kamu menerima permintaan mengikuti"
   yourFollowRequestAccepted: "Permintaan mengikuti kamu telah diterima"
-  youWereInvitedToGroup: "Telah diundang ke grup"
   pollEnded: "Hasil Kuesioner telah keluar"
   newNote: "Catatan baru"
   unreadAntennaNote: "Antena {name}"
@@ -2546,7 +2545,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Diunggah pada"
   attachedNotes: "Catatan yang dilampirkan"
-  thisPageCanBeSeenFromTheAuthor: "Halaman ini hanya dapat dilihat oleh pengguna yang mengunggah bekas ini."
 _externalResourceInstaller:
   title: "Pasang dari situs eksternal"
   checkVendorBeforeInstall: "Pastikan sumber dari sumber daya ini terpercaya sebelum melakukan pemasangan."

@@ -22,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 
-				<MkInfo v-if="user.username.includes('.')">{{ i18n.ts.isSystemAccount }}</MkInfo>
+				<MkInfo v-if="['instance.actor', 'relay.actor'].includes(user.username)">{{ i18n.ts.isSystemAccount }}</MkInfo>
 
 				<FormLink v-if="user.host" :to="`/instance-info/${user.host}`">{{ i18n.ts.instanceInfo }}</FormLink>
 
@@ -95,6 +95,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<div>
 							<MkButton v-if="user.host == null" inline style="margin-right: 8px;" @click="resetPassword"><i class="ti ti-key"></i> {{ i18n.ts.resetPassword }}</MkButton>
+							<MkButton inline danger @click="unsetUserAvatar"><i class="ti ti-user-circle"></i> {{ i18n.ts.unsetUserAvatar }}</MkButton>
+							<MkButton inline danger @click="unsetUserBanner"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserBanner }}</MkButton>
+							<MkButton inline danger @click="unsetUserMutualLink"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserMutualLink }}</MkButton>
 						</div>
 
 						<MkFolder>
@@ -360,6 +363,18 @@ async function unsetUserBanner() {
 		});
 	});
 	refreshUser();
+}
+
+async function unsetUserMutualLink() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unsetUserMutualLinkConfirm,
+	});
+	if (confirm.canceled) return;
+
+	await os.apiWithDialog('admin/unset-user-mutual-banner', {
+		userId: user.value.id,
+	}).then(refreshUser);
 }
 
 async function deleteAllFiles() {

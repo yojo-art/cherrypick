@@ -40,6 +40,7 @@ import * as ep___admin_avatarDecorations_update from './endpoints/admin/avatar-d
 import * as ep___admin_deleteAllFilesOfAUser from './endpoints/admin/delete-all-files-of-a-user.js';
 import * as ep___admin_unsetUserAvatar from './endpoints/admin/unset-user-avatar.js';
 import * as ep___admin_unsetUserBanner from './endpoints/admin/unset-user-banner.js';
+import * as ep___admin_unsetUserMutualLink from './endpoints/admin/unset-user-mutual-link.js';
 import * as ep___admin_drive_cleanRemoteFiles from './endpoints/admin/drive/clean-remote-files.js';
 import * as ep___admin_drive_cleanup from './endpoints/admin/drive/cleanup.js';
 import * as ep___admin_drive_files from './endpoints/admin/drive/files.js';
@@ -272,6 +273,7 @@ import * as ep___messaging_messages from './endpoints/messaging/messages.js';
 import * as ep___messaging_messages_create from './endpoints/messaging/messages/create.js';
 import * as ep___messaging_messages_delete from './endpoints/messaging/messages/delete.js';
 import * as ep___messaging_messages_read from './endpoints/messaging/messages/read.js';
+import * as ep___messaging_messages_search from './endpoints/messaging/messages/search.js';
 import * as ep___meta from './endpoints/meta.js';
 import * as ep___emojis from './endpoints/emojis.js';
 import * as ep___emoji from './endpoints/emoji.js';
@@ -447,6 +449,7 @@ const eps = [
 	['admin/delete-all-files-of-a-user', ep___admin_deleteAllFilesOfAUser],
 	['admin/unset-user-avatar', ep___admin_unsetUserAvatar],
 	['admin/unset-user-banner', ep___admin_unsetUserBanner],
+	['admin/unset-user-mutual-link', ep___admin_unsetUserMutualLink],
 	['admin/drive/clean-remote-files', ep___admin_drive_cleanRemoteFiles],
 	['admin/drive/cleanup', ep___admin_drive_cleanup],
 	['admin/drive/files', ep___admin_drive_files],
@@ -678,6 +681,7 @@ const eps = [
 	['messaging/messages/create', ep___messaging_messages_create],
 	['messaging/messages/delete', ep___messaging_messages_delete],
 	['messaging/messages/read', ep___messaging_messages_read],
+	['messaging/messages/search', ep___messaging_messages_search],
 	['meta', ep___meta],
 	['emojis', ep___emojis],
 	['emoji', ep___emoji],

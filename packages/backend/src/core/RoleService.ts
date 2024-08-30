@@ -61,6 +61,8 @@ export type RolePolicies = {
 	rateLimitFactor: number;
 	avatarDecorationLimit: number;
 	fileSizeLimit: number;
+	mutualLinkSectionLimit: number;
+	mutualLinkLimit: number;
 };
 
 export const DEFAULT_POLICIES: RolePolicies = {
@@ -93,6 +95,8 @@ export const DEFAULT_POLICIES: RolePolicies = {
 	rateLimitFactor: 1,
 	avatarDecorationLimit: 1,
 	fileSizeLimit: 50,
+	mutualLinkSectionLimit: 1,
+	mutualLinkLimit: 15,
 };
 
 @Injectable()
@@ -135,8 +139,8 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 	) {
 		//this.onMessage = this.onMessage.bind(this);
 
-		this.rolesCache = new MemorySingleCache<MiRole[]>(1000 * 60 * 60);
-		this.roleAssignmentByUserIdCache = new MemoryKVCache<MiRoleAssignment[]>(1000 * 60 * 60);
+		this.rolesCache = new MemorySingleCache<MiRole[]>(1000 * 60 * 60); // 1h
+		this.roleAssignmentByUserIdCache = new MemoryKVCache<MiRoleAssignment[]>(1000 * 60 * 5); // 5m
 
 		this.redisForSub.on('message', this.onMessage);
 	}
@@ -398,6 +402,8 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			rateLimitFactor: calc('rateLimitFactor', vs => Math.max(...vs)),
 			avatarDecorationLimit: calc('avatarDecorationLimit', vs => Math.max(...vs)),
 			fileSizeLimit: calc('fileSizeLimit', vs => Math.max(...vs)),
+			mutualLinkSectionLimit: calc('mutualLinkSectionLimit', vs => Math.max(...vs)),
+			mutualLinkLimit: calc('mutualLinkLimit', vs => Math.max(...vs)),
 		};
 	}
 

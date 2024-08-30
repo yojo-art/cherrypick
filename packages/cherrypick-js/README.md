@@ -154,5 +154,5 @@ stream.on('_disconnected_', () => {
 ---
 
 <div align="center">
-	<a href="https://github.com/kokonect-link/cherrypick/blob/develop/CONTRIBUTING.md"><img src="https://assets.misskey-hub.net/public/i-want-you.png" width="300"></a>
+	<a href="https://github.com/yojo-art/cherrypick/blob/develop/CONTRIBUTING.md"><img src="https://assets.misskey-hub.net/public/i-want-you.png" width="300"></a>
 </div>

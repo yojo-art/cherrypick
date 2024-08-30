@@ -73,6 +73,7 @@ describe('ユーザー', () => {
 			lang: user.lang,
 			fields: user.fields,
 			verifiedLinks: user.verifiedLinks,
+			mutualLinkSections: user.mutualLinkSections,
 			followersCount: user.followersCount,
 			followingCount: user.followingCount,
 			notesCount: user.notesCount,

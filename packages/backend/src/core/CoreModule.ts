@@ -38,6 +38,7 @@ import { ImageProcessingService } from './ImageProcessingService.js';
 import { InstanceActorService } from './InstanceActorService.js';
 import { InternalStorageService } from './InternalStorageService.js';
 import { MessagingService } from './MessagingService.js';
+import { DirectMessageSearchService } from './DirectMessageSearchService.js';
 import { MetaService } from './MetaService.js';
 import { MfmService } from './MfmService.js';
 import { ModerationLogService } from './ModerationLogService.js';
@@ -189,6 +190,7 @@ const $ImageProcessingService: Provider = { provide: 'ImageProcessingService', u
 const $InstanceActorService: Provider = { provide: 'InstanceActorService', useExisting: InstanceActorService };
 const $InternalStorageService: Provider = { provide: 'InternalStorageService', useExisting: InternalStorageService };
 const $MessagingService: Provider = { provide: 'MessagingService', useExisting: MessagingService };
+const $DirectMessageSearchService: Provider = { provide: 'DirectMessageSearchService', useExisting: DirectMessageSearchService };
 const $MetaService: Provider = { provide: 'MetaService', useExisting: MetaService };
 const $MfmService: Provider = { provide: 'MfmService', useExisting: MfmService };
 const $ModerationLogService: Provider = { provide: 'ModerationLogService', useExisting: ModerationLogService };
@@ -346,6 +348,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		InstanceActorService,
 		InternalStorageService,
 		MessagingService,
+		DirectMessageSearchService,
 		MetaService,
 		MfmService,
 		ModerationLogService,
@@ -499,6 +502,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$InstanceActorService,
 		$InternalStorageService,
 		$MessagingService,
+		$DirectMessageSearchService,
 		$MetaService,
 		$MfmService,
 		$ModerationLogService,
@@ -653,6 +657,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		InstanceActorService,
 		InternalStorageService,
 		MessagingService,
+		DirectMessageSearchService,
 		MetaService,
 		MfmService,
 		ModerationLogService,
@@ -805,6 +810,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$InstanceActorService,
 		$InternalStorageService,
 		$MessagingService,
+		$DirectMessageSearchService,
 		$MetaService,
 		$MfmService,
 		$ModerationLogService,

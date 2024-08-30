@@ -1,32 +1,34 @@
-name: 🐛 Bug Report
+name: 🐛 バグ報告(bug report)
 description: Create a report to help us improve
-labels: ["bug?"]
+labels: ["🐛bug"]
 
 body:
   - type: markdown
     attributes:
       value: |
+        報告ありがとうございます！
+        他のサーバーでも発生しているか、同じissueが無いか確認をお願いします
         Thanks for reporting!
         First, in order to avoid duplicate Issues, please search to see if the problem you found has already been reported.
         Also, If you are NOT owner/admin of server, PLEASE DONT REPORT SERVER SPECIFIC ISSUES TO HERE! (e.g. feature XXX is not working in cherrypick.example) Please try with another CherryPick servers, and if your issue is only reproducible with specific server, contact your server's owner/admin first.
 
   - type: textarea
     attributes:
-      label: 💡 Summary
+      label: 💡 概要(Summary)
       description: Tell us what the bug is
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: 🥰 Expected Behavior
+      label: 🥰 期待する動作(Expected Behavior)
       description: Tell us what should happen
     validations:
       required: true
 
   - type: textarea
     attributes:
-      label: 🤬 Actual Behavior
+      label: 🤬 実際の動作(Actual Behavior)
       description: |
         Tell us what happens instead of the expected behavior.
         Please include errors from the developer console and/or server log files if you have access to them.
@@ -35,7 +37,7 @@ body:
 
   - type: textarea
     attributes:
-      label: 📝 Steps to Reproduce
+      label: 📝 再現手順(Steps to Reproduce)
       placeholder: |
         1.
         2.
@@ -45,7 +47,7 @@ body:
 
   - type: textarea
     attributes:
-      label: 💻 Frontend Environment
+      label: 💻 動作環境(Frontend Environment)
       description: |
         Tell us where on the platform it happens
         DO NOT WRITE "latest". Please provide the specific version.
@@ -54,7 +56,7 @@ body:
           * Model and OS of the device(s): MacBook Pro (14inch, 2021), macOS Ventura 13.4
           * Browser: Chrome 113.0.5672.126
           * Server URL: cherrypick.example.com
-          * CherryPick: 4.x.x (Misskey: 2024.x.x)
+          * CherryPick: 4.x.x-yojox.x.x (Misskey: 2024.x.x)
       value: |
         * Model and OS of the device(s):
         * Browser:
@@ -66,7 +68,7 @@ body:
 
   - type: textarea
     attributes:
-      label: 🛰 Backend Environment (for server admin)
+      label: 🛰 動作環境(サーバー管理者向け)(Backend Environment (for server admin))
       description: |
         Tell us where on the platform it happens
         DO NOT WRITE "latest". Please provide the specific version.
@@ -74,7 +76,7 @@ body:
 
         Examples:
           * Installation Method or Hosting Service: docker compose, k8s/docker, systemd, "CherryPick install shell script", development environment
-          * CherryPick: 4.x.x (Misskey: 2024.x.x)
+          * CherryPick: 4.x.x-yojox.x.x (Misskey: 2024.x.x)
           * Node: 20.x.x
           * PostgreSQL: 15.x.x
           * Redis: 7.x.x
@@ -92,6 +94,6 @@ body:
 
   - type: checkboxes
     attributes:
-      label: Do you want to address this bug yourself?
+      label: このバグを自分で修正しますか？(Do you want to address this bug yourself?)
       options:
-        - label: Yes, I will patch the bug myself and send a pull request
+        - label: パッチを作成しプルリクエストします(Yes, I will patch the bug myself and send a pull request)

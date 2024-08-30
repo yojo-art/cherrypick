@@ -282,6 +282,16 @@ export type paths = {
      */
     post: operations['admin___unset-user-banner'];
   };
+  '/admin/unset-user-mutual-link': {
+    /**
+     * admin/unset-user-mutual-link
+     * @description No description provided.
+     *
+     * **Internal Endpoint**: This endpoint is an API for the cherrypick mainframe and is not intended for use by third parties.
+     * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-link*
+     */
+    post: operations['admin___unset-user-mutual-link'];
+  };
   '/admin/drive/clean-remote-files': {
     /**
      * admin/drive/clean-remote-files
@@ -2512,6 +2522,15 @@ export type paths = {
      */
     post: operations['messaging___messages___read'];
   };
+  '/messaging/messages/search': {
+    /**
+     * messaging/messages/search
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *read:messaging*
+     */
+    post: operations['messaging___messages___search'];
+  };
   '/meta': {
     /**
      * meta
@@ -3948,6 +3967,7 @@ export type components = {
           name: string;
           iconUrl: string | null;
           displayOrder: number;
+          behavior?: string;
         })[];
     };
     UserDetailedNotMeOnly: {
@@ -4004,6 +4024,18 @@ export type components = {
       roles: components['schemas']['RoleLite'][];
       memo: string | null;
       moderationNote?: string;
+      mutualLinkSections: ({
+          name: string | null;
+          mutualLinks: ({
+              /** Format: misskey:id */
+              id: string;
+              url: string;
+              /** Format: misskey:id */
+              fileId: string;
+              description: string | null;
+              imgSrc: string;
+            })[];
+        })[];
       isFollowing?: boolean;
       isFollowed?: boolean;
       hasPendingFollowRequestFromYou?: boolean;
@@ -4907,6 +4939,7 @@ export type components = {
       /** Format: date-time */
       latestRequestReceivedAt: string | null;
       moderationNote?: string | null;
+      reversiVersion?: string | null;
     };
     GalleryPost: {
       /**
@@ -4969,6 +5002,8 @@ export type components = {
       title: string;
       summary: string;
       script: string;
+      /** @enum {string} */
+      visibility: 'private' | 'public';
       likedCount: number | null;
       isLiked?: boolean;
     };
@@ -5099,6 +5134,8 @@ export type components = {
       avatarDecorationLimit: number;
       fileSizeLimit: number;
       canEditNote: boolean;
+      mutualLinkSectionLimit: number;
+      mutualLinkLimit: number;
     };
     ReversiGameLite: {
       /** Format: id */
@@ -5248,6 +5285,7 @@ export type components = {
        * @enum {string}
        */
       noteSearchableScope: 'local' | 'global';
+      reversiVersion: string;
     };
     MetaDetailedOnly: {
       features?: {
@@ -7138,6 +7176,59 @@ export type operations = {
    * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-banner*
    */
   'admin___unset-user-banner': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          userId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * admin/unset-user-mutual-link
+   * @description No description provided.
+   *
+   * **Internal Endpoint**: This endpoint is an API for the cherrypick mainframe and is not intended for use by third parties.
+   * **Credential required**: *Yes* / **Permission**: *write:admin:unset-user-mutual-link*
+   */
+  'admin___unset-user-mutual-link': {
     requestBody: {
       content: {
         'application/json': {
@@ -19985,6 +20076,16 @@ export type operations = {
           };
           emailNotificationTypes?: string[];
           alsoKnownAs?: string[];
+          mutualLinkSections?: ({
+              name?: string | null;
+              mutualLinks: ({
+                  /** Format: url */
+                  url: string;
+                  /** Format: misskey:id */
+                  fileId: string;
+                  description?: string | null;
+                })[];
+            })[];
         };
       };
     };
@@ -20926,6 +21027,75 @@ export type operations = {
       /** @description OK (without any results) */
       204: {
         content: never;
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * messaging/messages/search
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *read:messaging*
+   */
+  messaging___messages___search: {
+    requestBody: {
+      content: {
+        'application/json': {
+          query: string;
+          /** Format: misskey:id */
+          sinceId?: string;
+          /** Format: misskey:id */
+          untilId?: string;
+          /** @default 10 */
+          limit?: number;
+          /**
+           * Format: misskey:id
+           * @default null
+           */
+          recipientId?: string | null;
+          /**
+           * Format: misskey:id
+           * @default null
+           */
+          groupId?: string | null;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': components['schemas']['MessagingMessage'][];
+        };
       };
       /** @description Client error */
       400: {

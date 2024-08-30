@@ -2,7 +2,7 @@
 PR을 보내주셔서 감사합니다! PR을 작성하기 전에 기여 가이드를 먼저 확인해 주세요:
 PRありがとうございます！ PRを作成する前に、コントリビューションガイドをご確認ください:
 Thank you for your PR! Before creating a PR, please check the contribution guide:
-https://github.com/kokonect-link/cherrypick/blob/develop/CONTRIBUTING.md
+https://github.com/yojo-art/cherrypick/blob/develop/CONTRIBUTING.md
 -->
 
 ## What
@@ -21,7 +21,7 @@ https://github.com/kokonect-link/cherrypick/blob/develop/CONTRIBUTING.md
 <!-- Test perspective, etc -->
 
 ## Checklist
-- [ ] Read the [contribution guide](https://github.com/kokonect-link/cherrypick/blob/develop/CONTRIBUTING.md)
-- [ ] Test working in a local environment
-- [ ] (If needed) Update CHANGELOG_CHERRYPICK.md
-- [ ] (If possible) Add tests
+- [ ] [コントリビューションガイド](https://github.com/yojo-art/cherrypick/blob/develop/CONTRIBUTING.md)を読みました( Read the [contribution guide](https://github.com/yojo-art/cherrypick/blob/develop/CONTRIBUTING.md))
+- [ ] ローカル環境で動作しました(Test working in a local environment)
+- [ ] (必要なら)CHANGELOG_YOJO.mdの更新((If needed) Update CHANGELOG_YOJO.md)
+- [ ] (必要なら)テストの追加((If possible) Add tests)

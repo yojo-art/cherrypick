@@ -252,7 +252,7 @@ const routes: RouteDef[] = [{
 		origin: 'origin',
 	},
 }, {
-	// Legacy Compatibility	
+	// Legacy Compatibility
 	path: '/authorize-follow',
 	redirect: '/lookup',
 	loginRequired: true,
@@ -551,6 +551,10 @@ const routes: RouteDef[] = [{
 }, {
 	path: '/my/clips',
 	component: page(() => import('@/pages/my-clips/index.vue')),
+	loginRequired: true,
+}, {
+	path: '/my/tags',
+	component: page(() => import('@/pages/my-tags/index.vue')),
 	loginRequired: true,
 }, {
 	path: '/my/antennas/create',

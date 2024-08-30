@@ -36,6 +36,7 @@ import * as ep___admin_avatarDecorations_update from './endpoints/admin/avatar-d
 import * as ep___admin_deleteAllFilesOfAUser from './endpoints/admin/delete-all-files-of-a-user.js';
 import * as ep___admin_unsetUserAvatar from './endpoints/admin/unset-user-avatar.js';
 import * as ep___admin_unsetUserBanner from './endpoints/admin/unset-user-banner.js';
+import * as ep___admin_unsetUserMutualLink from './endpoints/admin/unset-user-mutual-link.js';
 import * as ep___admin_drive_cleanRemoteFiles from './endpoints/admin/drive/clean-remote-files.js';
 import * as ep___admin_drive_cleanup from './endpoints/admin/drive/cleanup.js';
 import * as ep___admin_drive_files from './endpoints/admin/drive/files.js';
@@ -267,6 +268,7 @@ import * as ep___messaging_messages from './endpoints/messaging/messages.js';
 import * as ep___messaging_messages_create from './endpoints/messaging/messages/create.js';
 import * as ep___messaging_messages_delete from './endpoints/messaging/messages/delete.js';
 import * as ep___messaging_messages_read from './endpoints/messaging/messages/read.js';
+import * as ep___messaging_messages_search from './endpoints/messaging/messages/search.js';
 import * as ep___meta from './endpoints/meta.js';
 import * as ep___emojis from './endpoints/emojis.js';
 import * as ep___emoji from './endpoints/emoji.js';
@@ -444,6 +446,7 @@ const $admin_avatarDecorations_update: Provider = { provide: 'ep:admin/avatar-de
 const $admin_deleteAllFilesOfAUser: Provider = { provide: 'ep:admin/delete-all-files-of-a-user', useClass: ep___admin_deleteAllFilesOfAUser.default };
 const $admin_unsetUserAvatar: Provider = { provide: 'ep:admin/unset-user-avatar', useClass: ep___admin_unsetUserAvatar.default };
 const $admin_unsetUserBanner: Provider = { provide: 'ep:admin/unset-user-banner', useClass: ep___admin_unsetUserBanner.default };
+const $admin_unsetUserMutualLink: Provider = { provide: 'ep:admin/unset-user-mutual-link', useClass: ep___admin_unsetUserMutualLink.default };
 const $admin_drive_cleanRemoteFiles: Provider = { provide: 'ep:admin/drive/clean-remote-files', useClass: ep___admin_drive_cleanRemoteFiles.default };
 const $admin_drive_cleanup: Provider = { provide: 'ep:admin/drive/cleanup', useClass: ep___admin_drive_cleanup.default };
 const $admin_drive_files: Provider = { provide: 'ep:admin/drive/files', useClass: ep___admin_drive_files.default };
@@ -675,6 +678,7 @@ const $messaging_messages: Provider = { provide: 'ep:messaging/messages', useCla
 const $messaging_messages_create: Provider = { provide: 'ep:messaging/messages/create', useClass: ep___messaging_messages_create.default };
 const $messaging_messages_delete: Provider = { provide: 'ep:messaging/messages/delete', useClass: ep___messaging_messages_delete.default };
 const $messaging_messages_read: Provider = { provide: 'ep:messaging/messages/read', useClass: ep___messaging_messages_read.default };
+const $messaging_messages_search: Provider = { provide: 'ep:messaging/messages/search', useClass: ep___messaging_messages_search.default };
 const $meta: Provider = { provide: 'ep:meta', useClass: ep___meta.default };
 const $emojis: Provider = { provide: 'ep:emojis', useClass: ep___emojis.default };
 const $emoji: Provider = { provide: 'ep:emoji', useClass: ep___emoji.default };
@@ -857,6 +861,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_deleteAllFilesOfAUser,
 		$admin_unsetUserAvatar,
 		$admin_unsetUserBanner,
+		$admin_unsetUserMutualLink,
 		$admin_drive_cleanRemoteFiles,
 		$admin_drive_cleanup,
 		$admin_drive_files,
@@ -1088,6 +1093,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$messaging_messages_create,
 		$messaging_messages_delete,
 		$messaging_messages_read,
+		$messaging_messages_search,
 		$meta,
 		$emojis,
 		$emoji,
@@ -1263,6 +1269,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_deleteAllFilesOfAUser,
 		$admin_unsetUserAvatar,
 		$admin_unsetUserBanner,
+		$admin_unsetUserMutualLink,
 		$admin_drive_cleanRemoteFiles,
 		$admin_drive_cleanup,
 		$admin_drive_files,
@@ -1493,6 +1500,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$messaging_messages_create,
 		$messaging_messages_delete,
 		$messaging_messages_read,
+		$messaging_messages_search,
 		$meta,
 		$emojis,
 		$emoji,

@@ -2827,6 +2827,14 @@ export interface Locale extends ILocale {
      */
     "unsetUserBannerConfirm": string;
     /**
+     * 相互リンクを削除
+     */
+    "unsetUserMutualLink": string;
+    /**
+     * 相互リンクを削除しますか？
+     */
+    "unsetUserMutualLinkConfirm": string;
+    /**
      * すべてのファイルを削除
      */
     "deleteAllFiles": string;
@@ -3243,7 +3251,7 @@ export interface Locale extends ILocale {
      */
     "reportAbuseOf": ParameterizedString<"name">;
     /**
-     * 通報理由の詳細を記入してください。対象のノートがある場合はそのURLも記入してください。
+     * 通報理由の詳細を記入してください。対象のノートやページなどがある場合はそのURLも記入してください。
      */
     "fillAbuseReportDescription": string;
     /**
@@ -5567,6 +5575,14 @@ export interface Locale extends ILocale {
      * プロフィールを翻訳する
      */
     "translateProfile": string;
+    /**
+     * タグ名を入力
+     */
+    "enterTagName": string;
+    /**
+     * タグに使用できない文字が含まれています
+     */
+    "invalidTagName": string;
     "_official_tag": {
         /**
          * 公式タグ
@@ -5580,6 +5596,10 @@ export interface Locale extends ILocale {
          * 優先度の値が小さいものが上に表示されます
          */
         "adminTopInfo": string;
+        /**
+         * タグ名
+         */
+        "adminTagName": string;
     };
     /**
      * マスコット画像のリンク
@@ -5683,6 +5703,18 @@ export interface Locale extends ILocale {
             "autoSuspendedForNotResponding": string;
         };
     };
+    /**
+     * 相互リンク
+     */
+    "mutualLink": string;
+    /**
+     * このユーザーのバナー
+     */
+    "mutualBannerThisUser": string;
+    /**
+     * 最大
+     */
+    "maximum": string;
     "_bubbleGame": {
         /**
          * 遊び方
@@ -7732,6 +7764,14 @@ export interface Locale extends ILocale {
              * アイコンデコレーションの最大取付個数
              */
             "avatarDecorationLimit": string;
+            /**
+             * 相互リンクのセクションの最大数
+             */
+            "mutualLinkSectionLimit": string;
+            /**
+             * セクション内の相互リンクの最大数
+             */
+            "mutualLinkLimit": string;
         };
         "_condition": {
             /**
@@ -9416,6 +9456,10 @@ export interface Locale extends ILocale {
          */
         "write:admin:unset-user-banner": string;
         /**
+         * ユーザーの相互リンクを削除する
+         */
+        "write:admin:unset-user-mutual-link": string;
+        /**
          * ユーザーの凍結を解除する
          */
         "write:admin:unsuspend-user": string;
@@ -10017,6 +10061,50 @@ export interface Locale extends ILocale {
          * 最大{max}つまでデコレーションを付けられます。
          */
         "avatarDecorationMax": ParameterizedString<"max">;
+        /**
+         * 相互リンクを編集
+         */
+        "mutualLinksEdit": string;
+        /**
+         * 相互リンクのバナー
+         */
+        "mutualLinksBanner": string;
+        /**
+         * 説明
+         */
+        "mutualLinksDescriptionEdit": string;
+        /**
+         * リンク先のURL
+         */
+        "mutualLinksUrl": string;
+        /**
+         * このセクションをプロフィールにピン留め
+         */
+        "mutualLinkPining": string;
+        /**
+         * 相互リンクを設定すると、あなたのプロフィールにバナーが表示されます。
+         */
+        "mutualLinksDescription": string;
+        /**
+         * 相互リンクを追加
+         */
+        "addMutualLink": string;
+        /**
+         * セクションを追加
+         */
+        "addMutualLinkSection": string;
+        /**
+         * セクション名
+         */
+        "sectionName": string;
+        /**
+         * セクション名を表示しないようにする
+         */
+        "sectionNameNoneDescription": string;
+        /**
+         * 名前が表示されないセクション
+         */
+        "sectionNameNone": string;
     };
     "_exportOrImport": {
         /**
@@ -10377,6 +10465,10 @@ export interface Locale extends ILocale {
          * ブロックを追加
          */
         "chooseBlock": string;
+        /**
+         * セクションタイトルを入力
+         */
+        "enterSectionTitle": string;
         /**
          * 種類を選択
          */
@@ -11084,6 +11176,22 @@ export interface Locale extends ILocale {
          */
         "deleteAbuseReportNotificationRecipient": string;
         /**
+         * アカウントを削除
+         */
+        "deleteAccount": string;
+        /**
+         * ページを削除
+         */
+        "deletePage": string;
+        /**
+         * Playを削除
+         */
+        "deleteFlash": string;
+        /**
+         * ギャラリーの投稿を削除
+         */
+        "deleteGalleryPost": string;
+        /**
          * 公式タグ一覧を更新
          */
         "updateOfficialTags": string;
@@ -11114,7 +11222,7 @@ export interface Locale extends ILocale {
          */
         "attachedNotes": string;
         /**
-         * このページは、このファイルをアップロードしたユーザーしか閲覧できません。
+         * このページは、このファイルをアップロードしたユーザーとモデレーターのみ閲覧できます。
          */
         "thisPageCanBeSeenFromTheAuthor": string;
     };
@@ -11487,6 +11595,18 @@ export interface Locale extends ILocale {
          * 石をアイコンにする
          */
         "useAvatarAsStone": string;
+        /**
+         * リモートサーバーのバージョンが不明です
+         */
+        "remoteVersionUnknown": string;
+        /**
+         * 対応していない可能性があります
+         */
+        "remoteVersionUnknownCaption": string;
+        /**
+         * リモートサーバーのバージョンが非互換です
+         */
+        "remoteVersionBad": string;
     };
     "_offlineScreen": {
         /**

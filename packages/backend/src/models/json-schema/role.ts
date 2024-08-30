@@ -284,6 +284,14 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		mutualLinkSectionLimit: {
+			type: 'integer',
+			optional: false, nullable: false,
+		},
+		mutualLinkLimit: {
+			type: 'integer',
+			optional: false, nullable: false,
+		},
 	},
 } as const;
 

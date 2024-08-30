@@ -2417,7 +2417,6 @@ _notification:
   youWereFollowed: "Adesso ti segue"
   youReceivedFollowRequest: "Hai ricevuto una richiesta di follow"
   yourFollowRequestAccepted: "La tua richiesta di follow è stata accettata"
-  youWereInvitedToGroup: "Invitat@ al gruppo"
   pollEnded: "Risultati del sondaggio."
   newNote: "Nuove Note"
   unreadAntennaNote: "Antenna {name}"
@@ -2577,7 +2576,6 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Caricato il"
   attachedNotes: "Note a cui è allegato"
-  thisPageCanBeSeenFromTheAuthor: "Questa pagina può essere vista solo da chi ha caricato il file."
 _externalResourceInstaller:
   title: "Installa da sito esterno"
   checkVendorBeforeInstall: "Prima di installare, assicurati che la fonte sia affidabile."

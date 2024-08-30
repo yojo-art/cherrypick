@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-	<template #header><MkPageHeader/></template>
+	<template v-if="showHeader" #header><MkPageHeader/></template>
 
 	<MkSpacer :contentMax="500">
 		<div class="_gaps">
@@ -21,6 +21,12 @@ import * as Misskey from 'cherrypick-js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { i18n } from '@/i18n.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
+
+const props = withDefaults(defineProps<{
+	showHeader?: boolean;
+}>(), {
+	showHeader: true,
+});
 
 const official_tags = ref<Misskey.entities.OfficialTagsShowResponse>([]);
 (async () => {

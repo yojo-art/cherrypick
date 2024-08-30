@@ -20,8 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<option value="files">{{ i18n.ts.withFiles }}</option>
 		</MkTab>
 	</template>
-	<XReactions v-if="tab === 'reactions'" :user="user"/>
-	<MkNotes v-else :noGap="true" :pagination="pagination" :class="$style.tl"/>
+	<MkNotes :noGap="true" :pagination="pagination" :class="$style.tl"/>
 </MkStickyContainer>
 </template>
 
@@ -32,7 +31,6 @@ import MkNotes from '@/components/MkNotes.vue';
 import MkTab from '@/components/MkTab.vue';
 import XReactions from '@/pages/user/reactions.vue';
 import { i18n } from '@/i18n.js';
-import { $i } from '@/account.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;

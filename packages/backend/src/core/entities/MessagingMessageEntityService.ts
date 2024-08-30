@@ -60,5 +60,18 @@ export class MessagingMessageEntityService {
 			reads: message.reads,
 		};
 	}
+	@bindThis
+	public async packMany(
+		messages: MiMessagingMessage[],
+		me: MiUser | null,
+		options?: {
+			populateRecipient?: boolean,
+			populateGroup?: boolean,
+		},
+	) : Promise<Packed<'MessagingMessage'>[]> {
+		return (await Promise.allSettled(messages.map(x => this.pack(x, me, options))))
+			.filter(result => result.status === 'fulfilled')
+			.map(result => (result as PromiseFulfilledResult<Packed<'MessagingMessage'>>).value);
+	}
 }
 

@@ -556,6 +556,10 @@ const extension_context_definition = {
 	'_misskey_summary': 'misskey:_misskey_summary',
 	'_misskey_talk': 'misskey:_misskey_talk',
 	'isCat': 'misskey:isCat',
+	// yojo-art
+	yojoart: 'https://yojoart.kzkr.xyz/ns#',
+	'banner': 'yojoart:banner',
+	'Game': 'yojoart:Game',
 	// vcard
 	vcard: 'http://www.w3.org/2006/vcard/ns#',
 } satisfies Context;

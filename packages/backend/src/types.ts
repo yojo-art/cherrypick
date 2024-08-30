@@ -98,7 +98,12 @@ export const moderationLogTypes = [
 	'createAbuseReportNotificationRecipient',
 	'updateAbuseReportNotificationRecipient',
 	'deleteAbuseReportNotificationRecipient',
+	'deleteAccount',
+	'deletePage',
+	'deleteFlash',
+	'deleteGalleryPost',
 	'updateOfficialTags',
+	'unsetUserMutualLink',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -317,6 +322,29 @@ export type ModerationLogPayloads = {
 		recipientId: string;
 		recipient: any;
 	};
+	deleteAccount: {
+		userId: string;
+		userUsername: string;
+		userHost: string | null;
+	};
+	deletePage: {
+		pageId: string;
+		pageUserId: string;
+		pageUserUsername: string;
+		page: any;
+	};
+	deleteFlash: {
+		flashId: string;
+		flashUserId: string;
+		flashUserUsername: string;
+		flash: any;
+	};
+	deleteGalleryPost: {
+		postId: string;
+		postUserId: string;
+		postUserUsername: string;
+		post: any;
+	};
 	updateOfficialTags: {
 		insert_data: {
 			id: string;
@@ -326,6 +354,11 @@ export type ModerationLogPayloads = {
 			priority: number,
 		}[];
 	};
+	unsetUserMutualLink: {
+		userId: string;
+		userUsername: string;
+		userMutualLinkSections: { name: string | null; mutualLinks: { fileId: string; description: string | null; imgSrc: string; }[]; }[] | []
+	}
 };
 
 export type Serialized<T> = {

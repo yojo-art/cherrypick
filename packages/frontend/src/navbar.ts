@@ -93,6 +93,12 @@ export const navbarItemDef = reactive({
 		show: computed(() => $i != null),
 		to: '/my/antennas',
 	},
+	tags: {
+		title: i18n.ts.tags,
+		icon: 'ti ti-hash',
+		show: computed(() => $i != null),
+		to: '/my/tags',
+	},
 	favorites: {
 		title: i18n.ts.favorites,
 		icon: 'ti ti-star',

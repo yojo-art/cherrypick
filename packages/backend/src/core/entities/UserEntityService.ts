@@ -51,7 +51,6 @@ import type { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NoteEntityService } from './NoteEntityService.js';
-import type { DriveFileEntityService } from './DriveFileEntityService.js';
 import type { PageEntityService } from './PageEntityService.js';
 
 const Ajv = _Ajv.default;
@@ -492,12 +491,12 @@ export class UserEntityService implements OnModuleInit {
 		}
 
 		const followingCount = profile == null ? null :
-			(profile.followingVisibility === 'public') || isMe ? user.followingCount :
+			(profile.followingVisibility === 'public') || isMe || iAmModerator ? user.followingCount :
 			(profile.followingVisibility === 'followers') && (relation && relation.isFollowing) ? user.followingCount :
 			null;
 
 		const followersCount = profile == null ? null :
-			(profile.followersVisibility === 'public') || isMe ? user.followersCount :
+			(profile.followersVisibility === 'public') || isMe || iAmModerator ? user.followersCount :
 			(profile.followersVisibility === 'followers') && (relation && relation.isFollowing) ? user.followersCount :
 			null;
 
@@ -573,6 +572,7 @@ export class UserEntityService implements OnModuleInit {
 				lang: profile!.lang,
 				fields: profile!.fields,
 				verifiedLinks: profile!.verifiedLinks,
+				mutualLinkSections: profile!.mutualLinkSections,
 				followersCount: followersCount ?? '?',
 				followingCount: followingCount ?? '?',
 				notesCount: user.notesCount,
