@@ -47,8 +47,8 @@ importers:
         version: 5.5.4
     optionalDependencies:
       '@tensorflow/tfjs-core':
-        specifier: 4.4.0
-        version: 4.4.0(encoding@0.1.13)
+        specifier: 4.20.0
+        version: 4.20.0(encoding@0.1.13)
     devDependencies:
       '@misskey-dev/eslint-plugin':
         specifier: 2.0.3
@@ -331,7 +331,7 @@ importers:
         version: 6.9.14
       nsfwjs:
         specifier: 2.4.2
-        version: 2.4.2(@tensorflow/tfjs@4.4.0(encoding@0.1.13)(seedrandom@3.0.5))
+        version: 2.4.2(@tensorflow/tfjs@4.20.0(encoding@0.1.13)(seedrandom@3.0.5))
       oauth:
         specifier: 0.10.0
         version: 0.10.0
@@ -490,11 +490,11 @@ importers:
         specifier: 1.3.56
         version: 1.3.56
       '@tensorflow/tfjs':
-        specifier: 4.4.0
-        version: 4.4.0(encoding@0.1.13)(seedrandom@3.0.5)
+        specifier: 4.20.0
+        version: 4.20.0(encoding@0.1.13)(seedrandom@3.0.5)
       '@tensorflow/tfjs-node':
-        specifier: 4.4.0
-        version: 4.4.0(encoding@0.1.13)(seedrandom@3.0.5)
+        specifier: 4.20.0
+        version: 4.20.0(encoding@0.1.13)(seedrandom@3.0.5)
       bufferutil:
         specifier: 4.0.7
         version: 4.0.7
@@ -835,7 +835,7 @@ importers:
         version: 3.4.37
       aiscript-vscode:
         specifier: github:aiscript-dev/aiscript-vscode#v0.1.11
-        version: https://codeload.github.com/aiscript-dev/aiscript-vscode/tar.gz/e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9
+        version: git+https://git@github.com:aiscript-dev/aiscript-vscode.git#e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9
       astring:
         specifier: 1.8.6
         version: 1.8.6
@@ -1157,7 +1157,7 @@ importers:
         version: 8.2.6(@babel/preset-env@7.24.7(@babel/core@7.24.7))(bufferutil@4.0.7)(utf-8-validate@6.0.3)
       storybook-addon-misskey-theme:
         specifier: github:misskey-dev/storybook-addon-misskey-theme
-        version: https://codeload.github.com/misskey-dev/storybook-addon-misskey-theme/tar.gz/cf583db098365b2ccc81a82f63ca9c93bc32b640(n5ig4kxlpkmvofe3l23foe7eiq)
+        version: git+https://git@github.com:misskey-dev/storybook-addon-misskey-theme.git#cf583db098365b2ccc81a82f63ca9c93bc32b640(n5ig4kxlpkmvofe3l23foe7eiq)
       vite-plugin-turbosnap:
         specifier: 1.0.3
         version: 1.0.3
@@ -4616,44 +4616,44 @@ packages:
   '@tabler/icons@3.3.0':
     resolution: {integrity: sha512-PLVe9d7b59sKytbx00KgeGhQG3N176Ezv8YMmsnSz4s0ifDzMWlp/h2wEfQZ0ZNe8e377GY2OW6kovUe3Rnd0g==}
 
-  '@tensorflow/tfjs-backend-cpu@4.4.0':
-    resolution: {integrity: sha512-d4eln500/qNym78z9IrUUzF0ITBoJGLrxV8xd92kLVoXhg35Mm+zqUXShjFcrH8joOHOFuST0qZ0TbDDqcPzPA==}
+  '@tensorflow/tfjs-backend-cpu@4.20.0':
+    resolution: {integrity: sha512-1QRQ6AqAa/VB8JOArf5nY3Dc/QQHXbfuxgdIdQhKrABEHgvlaWt2Vv696UhIlVl75YoNY+vWlCwBdGQIKYfFGw==}
     engines: {yarn: '>= 1.3.2'}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.4.0
+      '@tensorflow/tfjs-core': 4.20.0
 
-  '@tensorflow/tfjs-backend-webgl@4.4.0':
-    resolution: {integrity: sha512-TzQKvfAPgGt9cMG+5bVoTckoG1xr/PVJM/uODkPvzcMqi3j97kuWDXwkYJIgXldStmfiKkU7f5CmyD3Cq3E6BA==}
+  '@tensorflow/tfjs-backend-webgl@4.20.0':
+    resolution: {integrity: sha512-M03fJonJGxm2u3SCzRNA2JLh0gxaAye64SEmGAXOehizowxy42l+lMsPWU8xU7r7mN6PEilBNkuKAf5YJ7Xumg==}
     engines: {yarn: '>= 1.3.2'}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.4.0
+      '@tensorflow/tfjs-core': 4.20.0
 
-  '@tensorflow/tfjs-converter@4.4.0':
-    resolution: {integrity: sha512-JUjpRStrAuw37tgPd5UENu0UjQVuJT09yF7KpOur4BriJ0uQqrbEZHMPHmvUtr5nYzkqlXJTuXIyxvEY/olNpg==}
+  '@tensorflow/tfjs-converter@4.20.0':
+    resolution: {integrity: sha512-UJ2ntQ1TNtVHB5qGMwB0j306bs3KH1E1HKJ9Dxvrc6PUaivOV+CPKqmbidOFG5LylXeRC36JBdhe+gVT2nFHNw==}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.4.0
+      '@tensorflow/tfjs-core': 4.20.0
 
-  '@tensorflow/tfjs-core@4.4.0':
-    resolution: {integrity: sha512-Anxpc7cAOA0Q7EUXdTbQKMg3reFvrdkgDlaYzH9ZfkMq2CgLV4Au6E/s6HmbYn/VrAtWy9mLY5c/lLJqh4764g==}
+  '@tensorflow/tfjs-core@4.20.0':
+    resolution: {integrity: sha512-m/cc9qDc63al9UhdbXRUYTLGfJJlhuN5tylAX/2pJMLj32c8a6ThGDJYoKzpf32n5g3MQGYLchjClDxeGdXMPQ==}
     engines: {yarn: '>= 1.3.2'}
 
-  '@tensorflow/tfjs-data@4.4.0':
-    resolution: {integrity: sha512-aY4eq4cgrsrXeBU6ABZAAN3tV0fG4YcHd0z+cYuNXnCo+VEQLJnPmhn+xymZ4VQZQH4GXbVS4dV9pXMclFNRFw==}
+  '@tensorflow/tfjs-data@4.20.0':
+    resolution: {integrity: sha512-k6S8joXhoXkatcoT6mYCxBzRCsnrLfnl6xjLe46SnXO0oEEy4Vuzbmp5Ydl1uU2hHr73zL91EdAC1k8Hng/+oA==}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.4.0
+      '@tensorflow/tfjs-core': 4.20.0
       seedrandom: ^3.0.5
 
-  '@tensorflow/tfjs-layers@4.4.0':
-    resolution: {integrity: sha512-OGC7shfiD9Gc698hINHK4y9slOJvu5m54tVNm4xf+WSNrw/avvgpar6yyoL5bakYIZNQvFNK75Yr8VRPR7oPeQ==}
+  '@tensorflow/tfjs-layers@4.20.0':
+    resolution: {integrity: sha512-SCHZH29Vyw+Y9eoaJHiaNo6yqM9vD3XCKncoczonRRywejm3FFqddg1AuWAfSE9XoNPE21o9PsknvKLl/Uh+Cg==}
     peerDependencies:
-      '@tensorflow/tfjs-core': 4.4.0
+      '@tensorflow/tfjs-core': 4.20.0
 
-  '@tensorflow/tfjs-node@4.4.0':
-    resolution: {integrity: sha512-+JSAddsupjSQUDZeb7QGOFkL3Tty3kjPHx8ethiYFzwTZJHCMvM7wZJd0Fqnjxym6A0KpsmB7SPZgwRRXVIlPA==}
+  '@tensorflow/tfjs-node@4.20.0':
+    resolution: {integrity: sha512-pVSOlzsVqh5ck3aiNPJCltB3ASKjsLqNPvJ28lXn9Xg648U4eHDk8G47m9w4uf0FdVcWDfjPM3hDCbBZ/E2KXg==}
     engines: {node: '>=8.11.0'}
 
-  '@tensorflow/tfjs@4.4.0':
-    resolution: {integrity: sha512-EmCsnzdvawyk4b+4JKaLLuicHcJQRZtL1zSy9AWJLiiHTbDDseYgLxfaCEfLk8v2bUe7SBXwl3n3B7OjgvH11Q==}
+  '@tensorflow/tfjs@4.20.0':
+    resolution: {integrity: sha512-+ZLfJq2jyIOE2/+yKPoyD/gfy3RZypbfMrlzvBDgodTK5jnexprihhX38hxilh9HPWvWQXJqiUjKJP5ECCikrw==}
     hasBin: true
 
   '@testing-library/dom@10.1.0':
@@ -5109,9 +5109,6 @@ packages:
   '@types/web-push@3.6.3':
     resolution: {integrity: sha512-v3oT4mMJsHeJ/rraliZ+7TbZtr5bQQuxcgD7C3/1q/zkAj29c8RE0F9lVZVu3hiQe5Z9fYcBreV7TLnfKR+4mg==}
 
-  '@types/webgl-ext@0.0.30':
-    resolution: {integrity: sha512-LKVgNmBxN0BbljJrVUwkxwRYqzsAEPcZOe6S2T6ZaBDIrFp0qu4FNlpc5sM1tGbXUYFgdVQIoeLk1Y1UoblyEg==}
-
   '@types/wrap-ansi@3.0.0':
     resolution: {integrity: sha512-ltIpx+kM7g/MLRZfkbL7EsCEjfzCcScLpkg37eXEtx5kmrAKBkTJwd1GIAjDSL8wTpM6Hzn5YO4pSb91BEwu1g==}
 
@@ -5443,8 +5440,8 @@ packages:
   '@vue/test-utils@2.4.6':
     resolution: {integrity: sha512-FMxEjOpYNYiFe0GkaHsnJPXFHxQ6m4t8vI/ElPGpMWxZKpmRvQ33OIrvRXemy6yha03RxhOlQuy+gZMC3CQSow==}
 
-  '@webgpu/types@0.1.30':
-    resolution: {integrity: sha512-9AXJSmL3MzY8ZL//JjudA//q+2kBRGhLBFpkdGksWIuxrMy81nFrCzj2Am+mbh8WoU6rXmv7cY5E3rdlyru2Qg==}
+  '@webgpu/types@0.1.38':
+    resolution: {integrity: sha512-7LrhVKz2PRh+DD7+S+PVaFd5HxaWQvoMqBbsV9fNJO1pjUs1P8bM2vQVNfk+3URTqbuTI7gkXi0rfsN0IadoBA==}
 
   '@yarnpkg/esbuild-plugin-pnp@3.0.0-rc.15':
     resolution: {integrity: sha512-kYzDJO5CA9sy+on/s2aIW0411AklfCi8Ck/4QDivOqsMKpStZA2SsR+X27VTggGwpStWaLrjJcDcdDMowtG8MA==}
@@ -5539,8 +5536,8 @@ packages:
     resolution: {integrity: sha512-gOsf2YwSlleG6IjRYG2A7k0HmBMEo6qVNk9Bp/EaLgAJT5ngH6PXbqa4ItvnEwCm/velL5jAnQgsHsWnjhGmvw==}
     engines: {node: '>=18'}
 
-  aiscript-vscode@https://codeload.github.com/aiscript-dev/aiscript-vscode/tar.gz/e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9:
-    resolution: {tarball: https://codeload.github.com/aiscript-dev/aiscript-vscode/tar.gz/e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9}
+  aiscript-vscode@git+https://git@github.com:aiscript-dev/aiscript-vscode.git#e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9:
+    resolution: {commit: e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9, repo: git@github.com:aiscript-dev/aiscript-vscode.git, type: git}
     version: 0.1.11
     engines: {vscode: ^1.83.0}
 
@@ -6139,9 +6136,6 @@ packages:
   chokidar@3.5.3:
     resolution: {integrity: sha512-Dr3sfKRP6oTcjf2JmUmFJfeVMvXBdegxB0iVQ5eb2V10uFJUCAS8OByZdVAyVb8xXNz3GjjTgj9kLWsZTqE6kw==}
     engines: {node: '>= 8.10.0'}
-
-  chownr@1.1.4:
-    resolution: {integrity: sha512-jJ0bqzaylmJtVnNgzTeSOs8DPavpbYgEr/b0YL8/2GO3xJEhInFmhKMUnEJQjZumK7KXGFhUy89PrsJWlakBVg==}
 
   chownr@2.0.0:
     resolution: {integrity: sha512-bIomtDF5KGpdogkLd9VspvFzk9KfpyyGlS8YFVZl7TGPBHL5snIOnxeshwVgPteQ9b4Eydl+pVbIyE1DcvCWgQ==}
@@ -7405,9 +7399,6 @@ packages:
     resolution: {integrity: sha512-hcg3ZmepS30/7BSFqRvoo3DOMQu7IjqxO5nCDt+zM9XWjb33Wg7ziNT+Qvqbuc3+gWpzO02JubVyk2G4Zvo1OQ==}
     engines: {node: '>=10'}
 
-  fs-minipass@1.2.7:
-    resolution: {integrity: sha512-GWSSJGFy4e9GUeCcbIkED+bgAoFyj7XF1mV8rma3QW4NIqX9Kyx79N/PF61H5udOV3aY1IaMLs6pGbH71nlCTA==}
-
   fs-minipass@2.1.0:
     resolution: {integrity: sha512-V/JgOLFCS+R6Vcq0slCuaeWEdNC3ouDlJMNIsacH2VtALiu9mV4LPrHc5cDl8k5aw6J8jwgWWpiTo5RYhmIzvg==}
     engines: {node: '>= 8'}
@@ -7606,6 +7597,7 @@ packages:
   google-p12-pem@4.0.1:
     resolution: {integrity: sha512-WPkN4yGtz05WZ5EhtlxNDWPhC4JIic6G8ePitwUWy4l+XPVYec+a0j0Ts47PDtW59y3RwAhUd9/h9ZZ63px6RQ==}
     engines: {node: '>=12.0.0'}
+    deprecated: Package is no longer maintained
     hasBin: true
 
   google-protobuf@3.21.2:
@@ -9080,9 +9072,6 @@ packages:
     resolution: {integrity: sha512-MbkQQ2CTiBMlA2Dm/5cY+9SWFEN8pzzOXi6rlM5Xxq0Yqbda5ZQy9sU75a673FE9ZK0Zsbr6Y5iP6u9nktfg2g==}
     engines: {node: '>=8'}
 
-  minipass@2.9.0:
-    resolution: {integrity: sha512-wxfUjg9WebH+CUDX/CdbRlh5SmfZiy/hpkxaRI16Y9W56Pa75sWgd/rvFilSgrauD9NyFymP/+JFV3KwzIsJeg==}
-
   minipass@3.3.6:
     resolution: {integrity: sha512-DxiNidxSEK+tHG6zOIklvNOwm3hvCrbUrdtzY74U6HKTJxvIDfOUL5W5P2Ghd3DTkhhKPYGqeNUIh5qcM4YBfw==}
     engines: {node: '>=8'}
@@ -9094,9 +9083,6 @@ packages:
   minipass@7.1.2:
     resolution: {integrity: sha512-qOOzS1cBTWYF4BH8fVePDBOO9iptMnGUEZwNc/cMWnTV2nVLZ7VoNWEPHkYczZA0pdoA7dl6e7FL659nX9S2aw==}
     engines: {node: '>=16 || 14 >=14.17'}
-
-  minizlib@1.3.3:
-    resolution: {integrity: sha512-6ZYMOEnmVsdCeTJVE0W9ZD+pVnE8h9Hma/iOwwRDsdQoePpoX56/8B6z3P9VNwppJuBKNRuFDRNRqRWexT9G9Q==}
 
   minizlib@2.1.2:
     resolution: {integrity: sha512-bAxsR8BVfj60DWXHE3u30oHzfl4G7khkSuPW+qvpd7jFRHm7dLxOjUk1EHACJ/hxLY8phGJ0YhYHZo7jil7Qdg==}
@@ -10969,8 +10955,8 @@ packages:
   store2@2.14.3:
     resolution: {integrity: sha512-4QcZ+yx7nzEFiV4BMLnr/pRa5HYzNITX2ri0Zh6sT9EyQHbBHacC6YigllUPU9X3D0f/22QCgfokpKs52YRrUg==}
 
-  storybook-addon-misskey-theme@https://codeload.github.com/misskey-dev/storybook-addon-misskey-theme/tar.gz/cf583db098365b2ccc81a82f63ca9c93bc32b640:
-    resolution: {tarball: https://codeload.github.com/misskey-dev/storybook-addon-misskey-theme/tar.gz/cf583db098365b2ccc81a82f63ca9c93bc32b640}
+  storybook-addon-misskey-theme@git+https://git@github.com:misskey-dev/storybook-addon-misskey-theme.git#cf583db098365b2ccc81a82f63ca9c93bc32b640:
+    resolution: {commit: cf583db098365b2ccc81a82f63ca9c93bc32b640, repo: git@github.com:misskey-dev/storybook-addon-misskey-theme.git, type: git}
     version: 0.0.0
     peerDependencies:
       '@storybook/blocks': ^7.0.0-rc.4
@@ -11175,10 +11161,6 @@ packages:
   tar-stream@3.1.7:
     resolution: {integrity: sha512-qJj60CXt7IU1Ffyc3NJMjh6EkuCFej46zUqJ4J7pqYlThyd9bO0XBTmcOIhSzZJVWfsLks0+nle/j538YAW9RQ==}
 
-  tar@4.4.19:
-    resolution: {integrity: sha512-a20gEsvHnWe0ygBY8JbxoM4w3SJdhc7ZAuxkLqh+nvNQN2IOt0B5lLgM490X5Hl8FF0dl0tOf2ewFYAlIFgzVA==}
-    engines: {node: '>=4.5'}
-
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
@@ -11357,7 +11339,6 @@ packages:
 
   ts-case-convert@2.0.2:
     resolution: {integrity: sha512-vdKfx1VAdpvEBOBv5OpVu5ZFqRg9HdTI4sYt6qqMeICBeNyXvitrarCnFWNDAki51IKwCyx+ZssY46Q9jH5otA==}
-    bundledDependencies: []
 
   ts-dedent@2.2.0:
     resolution: {integrity: sha512-q5W7tVM71e2xjHZTlgfTDoPF/SmqKG5hddq9SzR49CH2hayqRKJtQ4mtRlSxKaJlR/+9rEM+mnBHf7I2/BQcpQ==}
@@ -11823,8 +11804,8 @@ packages:
   vscode-languageserver-protocol@3.17.5:
     resolution: {integrity: sha512-mb1bvRJN8SVznADSGWM9u/b07H7Ecg0I3OgXDuLdn307rl/J3A9YD6/eYOssqhecL27hK1IPZAsaqh00i/Jljg==}
 
-  vscode-languageserver-textdocument@1.0.11:
-    resolution: {integrity: sha512-X+8T3GoiwTVlJbicx/sIAF+yuJAqz8VvwJyoMVhwEMoEKE/fkDmrqUgDMyBECcM2A2frVZIUj5HI/ErRXCfOeA==}
+  vscode-languageserver-textdocument@1.0.12:
+    resolution: {integrity: sha512-cxWNPesCnQCcMPeenjKKsOCKQZ/L6Tv19DTRIGuLWe32lyzWhihGVJ/rcckZXJxfdKCFvRLS3fpBIsV/ZGX4zA==}
 
   vscode-languageserver-types@3.17.5:
     resolution: {integrity: sha512-Ld1VelNuX9pdF39h2Hgaeb5hEZM2Z3jUrrMgWQAu82jMtZp7p3vJT3BzToKtZI7NgQssZje5o0zryOrhQvzQAg==}
@@ -11850,8 +11831,8 @@ packages:
   vue-component-type-helpers@2.0.29:
     resolution: {integrity: sha512-58i+ZhUAUpwQ+9h5Hck0D+jr1qbYl4voRt5KffBx8qzELViQ4XdT/Tuo+mzq8u63teAG8K0lLaOiL5ofqW38rg==}
 
-  vue-component-type-helpers@2.1.2:
-    resolution: {integrity: sha512-URuxnrOhO9lUG4LOAapGWBaa/WOLDzzyAbL+uKZqT7RS+PFy0cdXI2mUSh7GaMts6vtHaeVbGk7trd0FPJi65Q==}
+  vue-component-type-helpers@2.1.4:
+    resolution: {integrity: sha512-aVqB3KxwpM76cYRkpnezl1J62E/1omzHQfx1yuz7zcbxmzmP/PeSgI20NEmkdeGnjZPVzm0V9fB4ZyRu5BBj4A==}
 
   vue-demi@0.14.8:
     resolution: {integrity: sha512-Uuqnk9YE9SsWeReYqK2alDI5YzciATE0r2SkA6iMAtuXvNTMNACJLJEXNXaEy94ECuBe4Sk6RzRU80kjdbIo1Q==}
@@ -12168,7 +12149,7 @@ snapshots:
       stringz: 2.1.0
       uuid: 9.0.1
       vscode-languageserver: 9.0.1
-      vscode-languageserver-textdocument: 1.0.11
+      vscode-languageserver-textdocument: 1.0.12
 
   '@ampproject/remapping@2.3.0':
     dependencies:
@@ -14787,7 +14768,7 @@ snapshots:
     dependencies:
       agent-base: 7.1.1
       http-proxy-agent: 7.0.2
-      https-proxy-agent: 7.0.4
+      https-proxy-agent: 7.0.5
       lru-cache: 10.2.2
       socks-proxy-agent: 8.0.3
     transitivePeerDependencies:
@@ -16399,7 +16380,7 @@ snapshots:
       ts-dedent: 2.2.0
       type-fest: 2.19.0
       vue: 3.4.37(typescript@5.5.4)
-      vue-component-type-helpers: 2.1.2
+      vue-component-type-helpers: 2.1.4
     transitivePeerDependencies:
       - encoding
       - prettier
@@ -16418,7 +16399,7 @@ snapshots:
       ts-dedent: 2.2.0
       type-fest: 2.19.0
       vue: 3.4.37(typescript@5.5.4)
-      vue-component-type-helpers: 2.1.2
+      vue-component-type-helpers: 2.1.4
 
   '@swc/cli@0.3.12(@swc/core@1.6.6)(chokidar@3.5.3)':
     dependencies:
@@ -16557,41 +16538,39 @@ snapshots:
 
   '@tabler/icons@3.3.0': {}
 
-  '@tensorflow/tfjs-backend-cpu@4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-backend-cpu@4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-core': 4.4.0(encoding@0.1.13)
+      '@tensorflow/tfjs-core': 4.20.0(encoding@0.1.13)
       '@types/seedrandom': 2.4.34
       seedrandom: 3.0.5
 
-  '@tensorflow/tfjs-backend-webgl@4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-backend-webgl@4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-backend-cpu': 4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))
-      '@tensorflow/tfjs-core': 4.4.0(encoding@0.1.13)
+      '@tensorflow/tfjs-backend-cpu': 4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))
+      '@tensorflow/tfjs-core': 4.20.0(encoding@0.1.13)
       '@types/offscreencanvas': 2019.3.0
       '@types/seedrandom': 2.4.34
-      '@types/webgl-ext': 0.0.30
       seedrandom: 3.0.5
 
-  '@tensorflow/tfjs-converter@4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-converter@4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-core': 4.4.0(encoding@0.1.13)
+      '@tensorflow/tfjs-core': 4.20.0(encoding@0.1.13)
 
-  '@tensorflow/tfjs-core@4.4.0(encoding@0.1.13)':
+  '@tensorflow/tfjs-core@4.20.0(encoding@0.1.13)':
     dependencies:
       '@types/long': 4.0.2
       '@types/offscreencanvas': 2019.7.3
       '@types/seedrandom': 2.4.34
-      '@types/webgl-ext': 0.0.30
-      '@webgpu/types': 0.1.30
+      '@webgpu/types': 0.1.38
       long: 4.0.0
       node-fetch: 2.6.13(encoding@0.1.13)
       seedrandom: 3.0.5
     transitivePeerDependencies:
       - encoding
 
-  '@tensorflow/tfjs-data@4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)':
+  '@tensorflow/tfjs-data@4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)':
     dependencies:
-      '@tensorflow/tfjs-core': 4.4.0(encoding@0.1.13)
+      '@tensorflow/tfjs-core': 4.20.0(encoding@0.1.13)
       '@types/node-fetch': 2.6.11
       node-fetch: 2.6.13(encoding@0.1.13)
       seedrandom: 3.0.5
@@ -16599,34 +16578,34 @@ snapshots:
     transitivePeerDependencies:
       - encoding
 
-  '@tensorflow/tfjs-layers@4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))':
+  '@tensorflow/tfjs-layers@4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))':
     dependencies:
-      '@tensorflow/tfjs-core': 4.4.0(encoding@0.1.13)
+      '@tensorflow/tfjs-core': 4.20.0(encoding@0.1.13)
 
-  '@tensorflow/tfjs-node@4.4.0(encoding@0.1.13)(seedrandom@3.0.5)':
+  '@tensorflow/tfjs-node@4.20.0(encoding@0.1.13)(seedrandom@3.0.5)':
     dependencies:
       '@mapbox/node-pre-gyp': 1.0.9(encoding@0.1.13)
-      '@tensorflow/tfjs': 4.4.0(encoding@0.1.13)(seedrandom@3.0.5)
+      '@tensorflow/tfjs': 4.20.0(encoding@0.1.13)(seedrandom@3.0.5)
       adm-zip: 0.5.14
       google-protobuf: 3.21.2
       https-proxy-agent: 2.2.4
       progress: 2.0.3
       rimraf: 2.7.1
-      tar: 4.4.19
+      tar: 6.2.1
     transitivePeerDependencies:
       - encoding
       - seedrandom
       - supports-color
     optional: true
 
-  '@tensorflow/tfjs@4.4.0(encoding@0.1.13)(seedrandom@3.0.5)':
+  '@tensorflow/tfjs@4.20.0(encoding@0.1.13)(seedrandom@3.0.5)':
     dependencies:
-      '@tensorflow/tfjs-backend-cpu': 4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))
-      '@tensorflow/tfjs-backend-webgl': 4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))
-      '@tensorflow/tfjs-converter': 4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))
-      '@tensorflow/tfjs-core': 4.4.0(encoding@0.1.13)
-      '@tensorflow/tfjs-data': 4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)
-      '@tensorflow/tfjs-layers': 4.4.0(@tensorflow/tfjs-core@4.4.0(encoding@0.1.13))
+      '@tensorflow/tfjs-backend-cpu': 4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))
+      '@tensorflow/tfjs-backend-webgl': 4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))
+      '@tensorflow/tfjs-converter': 4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))
+      '@tensorflow/tfjs-core': 4.20.0(encoding@0.1.13)
+      '@tensorflow/tfjs-data': 4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))(encoding@0.1.13)(seedrandom@3.0.5)
+      '@tensorflow/tfjs-layers': 4.20.0(@tensorflow/tfjs-core@4.20.0(encoding@0.1.13))
       argparse: 1.0.10
       chalk: 4.1.2
       core-js: 3.29.1
@@ -17099,8 +17078,6 @@ snapshots:
   '@types/web-push@3.6.3':
     dependencies:
       '@types/node': 20.14.12
-
-  '@types/webgl-ext@0.0.30': {}
 
   '@types/wrap-ansi@3.0.0': {}
 
@@ -17606,7 +17583,7 @@ snapshots:
       js-beautify: 1.15.1
       vue-component-type-helpers: 2.0.29
 
-  '@webgpu/types@0.1.30': {}
+  '@webgpu/types@0.1.38': {}
 
   '@yarnpkg/esbuild-plugin-pnp@3.0.0-rc.15(esbuild@0.19.11)':
     dependencies:
@@ -17698,7 +17675,7 @@ snapshots:
       clean-stack: 5.2.0
       indent-string: 5.0.0
 
-  aiscript-vscode@https://codeload.github.com/aiscript-dev/aiscript-vscode/tar.gz/e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9:
+  aiscript-vscode@git+https://git@github.com:aiscript-dev/aiscript-vscode.git#e1e1b27f2f72cd28a473e004b6da0d8fc0bd40d9:
     dependencies:
       '@aiscript-dev/aiscript-languageserver': https://github.com/aiscript-dev/aiscript-languageserver/releases/download/0.1.6/aiscript-dev-aiscript-languageserver-0.1.6.tgz
       vscode-languageclient: 9.0.1
@@ -18430,9 +18407,6 @@ snapshots:
       readdirp: 3.6.0
     optionalDependencies:
       fsevents: 2.3.3
-
-  chownr@1.1.4:
-    optional: true
 
   chownr@2.0.0: {}
 
@@ -20064,11 +20038,6 @@ snapshots:
       graceful-fs: 4.2.11
       jsonfile: 6.1.0
       universalify: 2.0.1
-
-  fs-minipass@1.2.7:
-    dependencies:
-      minipass: 2.9.0
-    optional: true
 
   fs-minipass@2.1.0:
     dependencies:
@@ -22230,12 +22199,6 @@ snapshots:
     dependencies:
       minipass: 3.3.6
 
-  minipass@2.9.0:
-    dependencies:
-      safe-buffer: 5.2.1
-      yallist: 3.1.1
-    optional: true
-
   minipass@3.3.6:
     dependencies:
       yallist: 4.0.0
@@ -22243,11 +22206,6 @@ snapshots:
   minipass@5.0.0: {}
 
   minipass@7.1.2: {}
-
-  minizlib@1.3.3:
-    dependencies:
-      minipass: 2.9.0
-    optional: true
 
   minizlib@2.1.2:
     dependencies:
@@ -22556,10 +22514,10 @@ snapshots:
       set-blocking: 2.0.0
     optional: true
 
-  nsfwjs@2.4.2(@tensorflow/tfjs@4.4.0(encoding@0.1.13)(seedrandom@3.0.5)):
+  nsfwjs@2.4.2(@tensorflow/tfjs@4.20.0(encoding@0.1.13)(seedrandom@3.0.5)):
     dependencies:
       '@nsfw-filter/gif-frames': 1.0.2
-      '@tensorflow/tfjs': 4.4.0(encoding@0.1.13)(seedrandom@3.0.5)
+      '@tensorflow/tfjs': 4.20.0(encoding@0.1.13)(seedrandom@3.0.5)
 
   nth-check@2.1.1:
     dependencies:
@@ -24273,7 +24231,7 @@ snapshots:
 
   store2@2.14.3: {}
 
-  storybook-addon-misskey-theme@https://codeload.github.com/misskey-dev/storybook-addon-misskey-theme/tar.gz/cf583db098365b2ccc81a82f63ca9c93bc32b640(n5ig4kxlpkmvofe3l23foe7eiq):
+  storybook-addon-misskey-theme@git+https://git@github.com:misskey-dev/storybook-addon-misskey-theme.git#cf583db098365b2ccc81a82f63ca9c93bc32b640(n5ig4kxlpkmvofe3l23foe7eiq):
     dependencies:
       '@storybook/blocks': 8.2.6(react-dom@18.3.1(react@18.3.1))(react@18.3.1)(storybook@8.2.6(@babel/preset-env@7.24.7(@babel/core@7.24.7))(bufferutil@4.0.7)(utf-8-validate@6.0.3))
       '@storybook/components': 8.2.6(storybook@8.2.6(@babel/preset-env@7.24.7(@babel/core@7.24.7))(bufferutil@4.0.7)(utf-8-validate@6.0.3))
@@ -24507,17 +24465,6 @@ snapshots:
       b4a: 1.6.6
       fast-fifo: 1.3.2
       streamx: 2.18.0
-
-  tar@4.4.19:
-    dependencies:
-      chownr: 1.1.4
-      fs-minipass: 1.2.7
-      minipass: 2.9.0
-      minizlib: 1.3.3
-      mkdirp: 0.5.6
-      safe-buffer: 5.2.1
-      yallist: 3.1.1
-    optional: true
 
   tar@6.2.1:
     dependencies:
@@ -25115,7 +25062,7 @@ snapshots:
       vscode-jsonrpc: 8.2.0
       vscode-languageserver-types: 3.17.5
 
-  vscode-languageserver-textdocument@1.0.11: {}
+  vscode-languageserver-textdocument@1.0.12: {}
 
   vscode-languageserver-types@3.17.5: {}
 
@@ -25138,7 +25085,7 @@ snapshots:
 
   vue-component-type-helpers@2.0.29: {}
 
-  vue-component-type-helpers@2.1.2: {}
+  vue-component-type-helpers@2.1.4: {}
 
   vue-demi@0.14.8(vue@3.4.37(typescript@5.5.4)):
     dependencies:
