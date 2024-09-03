@@ -8,10 +8,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 800px;">
 		<div :class="$style.tl">
 			<MkStreamingNotesTimeline
-				ref="tlEl" :key="listId"
+				ref="tlEl" :key="listId + withRenotes + onlyFiles"
 				src="list"
 				:list="listId"
+				:withRenotes="withRenotes"
 				:withSensitive="withSensitive"
+				:onlyFiles="onlyFiles"
 				:sound="true"
 			/>
 		</div>
@@ -37,13 +39,22 @@ const props = defineProps<{
 
 const list = ref<Misskey.entities.UserList | null>(null);
 
+const tlEl = useTemplateRef('tlEl');
+
 const withSensitive = ref(false);
 
-watch(() => props.listId, async () => {
+const withRenotes = ref(true);
+const onlyFiles = ref(false);
+
+watch(withRenotes, fetch, { immediate: true });
+watch(onlyFiles, fetch, { immediate: true });
+watch(() => props.listId, fetch, { immediate: true });
+
+async function fetch() {
 	list.value = await misskeyApi('users/lists/show', {
 		listId: props.listId,
 	});
-}, { immediate: true });
+}
 
 function settings() {
 	router.push('/my/lists/:listId', {
@@ -55,6 +66,12 @@ function settings() {
 
 const headerActions = computed(() => list.value ? [
 	{
+		icon: 'ti ti-refresh',
+		text: i18n.ts.reload,
+		handler: () => {
+			tlEl.value?.reloadTimeline();
+		},
+	}, {
 		icon: 'ti ti-dots',
 		text: i18n.ts.options,
 		handler: (ev) => {
@@ -63,6 +80,14 @@ const headerActions = computed(() => list.value ? [
 					icon: 'ti ti-settings',
 					text: i18n.ts.editList,
 					action: settings,
+				}, {
+					type: 'switch',
+					text: i18n.ts.showRenotes,
+					ref: withRenotes,
+				}, {
+					type: 'switch',
+					text: i18n.ts.fileAttachedOnly,
+					ref: onlyFiles,
 				}, {
 					type: 'switch',
 					text: i18n.ts.withSensitive,
