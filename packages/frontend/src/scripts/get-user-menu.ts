@@ -217,6 +217,13 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 			if (user.url == null) return;
 			window.open(user.url, '_blank', 'noopener');
 		},
+	}] : []), ...(user.host != null ? [{
+		icon: 'ti ti-server',
+		text: i18n.ts.instanceInfo,
+		action: () => {
+			if (user.host == null) return;
+			router.push(`/instance-info/${user.host}`);
+		},
 	}] : []), {
 		icon: 'ti ti-share',
 		text: i18n.ts.copyProfileUrl,
