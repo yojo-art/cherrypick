@@ -444,8 +444,15 @@ async function translate(): Promise<void> {
 	const res = await misskeyApi('notes/translate', {
 		noteId: props.note.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).catch((err) => {
+		translating.value = false;
+		os.alert(
+			{
+				type: 'error',
+				title: err.message,
+				text: err.id,
+			});
 	});
-	translating.value = false;
 	translation.value = res;
 
 	vibrate(defaultStore.state.vibrateSystem ? [5, 5, 10] : []);

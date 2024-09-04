@@ -37,6 +37,7 @@ export const meta = {
 			message: 'Translate of notes unavailable.',
 			code: 'UNAVAILABLE',
 			id: '50a70314-2d8a-431b-b433-efa5cc56444c',
+			httpStatusCode: 403,
 		},
 		noSuchNote: {
 			message: 'No such note.',
