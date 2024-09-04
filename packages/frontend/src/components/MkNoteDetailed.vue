@@ -924,6 +924,7 @@ onMounted(() => {
 .noteContent {
 	container-type: inline-size;
 	overflow-wrap: break-word;
+	z-index: 2;
 }
 
 .cw {
