@@ -278,6 +278,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
+import { error } from 'console';
 import { computed, inject, onMounted, provide, ref, shallowRef } from 'vue';
 import * as mfm from 'cherrypick-mfm-js';
 import * as Misskey from 'cherrypick-js';
@@ -670,8 +671,15 @@ async function translate(): Promise<void> {
 	const res = await misskeyApi('notes/translate', {
 		noteId: appearNote.value.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).catch((err) => {
+		translating.value = false;
+		os.alert(
+			{
+				type: 'error',
+				title: err.message,
+				text: err.id,
+			});
 	});
-	translating.value = false;
 	translation.value = res;
 
 	vibrate(defaultStore.state.vibrateSystem ? [5, 5, 10] : []);
@@ -924,6 +932,8 @@ onMounted(() => {
 .noteContent {
 	container-type: inline-size;
 	overflow-wrap: break-word;
+	z-index: 2;
+	position: relative;
 }
 
 .cw {
