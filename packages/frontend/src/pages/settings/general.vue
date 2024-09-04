@@ -85,7 +85,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="infoButtonForNoteActionsEnabled">{{ i18n.ts.infoButtonForNoteActions }}<template #caption>{{ i18n.ts.infoButtonForNoteActionsDescription }}</template> <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="showReplyInNotification">{{ i18n.ts.showReplyInNotification }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="renoteQuoteButtonSeparation">{{ i18n.ts.renoteQuoteButtonSeparation }} <span class="_beta">CherryPick</span></MkSwitch>
-				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">CherryPick</span></MkSwitch>
+				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">yojo-art</span></MkSwitch>
 				<MkSwitch v-model="renoteVisibilitySelection">{{ i18n.ts.showRenoteVisibilitySelector }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSelect v-if="!renoteVisibilitySelection" v-model="forceRenoteVisibilitySelection">
 					<template #label>{{ i18n.ts.forceRenoteVisibilitySelector }}</template>
