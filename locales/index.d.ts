@@ -57,6 +57,10 @@ export interface Locale extends ILocale {
      */
     "cherrypickMigratedCacheClear": string;
     /**
+     * 同じノートを連続してリノートしようとしたときに警告する
+     */
+    "showMultipleRenoteWarning": string;
+    /**
      * リノートの公開範囲オプションを表示
      */
     "showRenoteVisibilitySelector": string;
@@ -11931,6 +11935,20 @@ export interface Locale extends ILocale {
          * 通知を削除しますか？
          */
         "notificationDeleteTitle": string;
+    };
+    "_renoteConfirm": {
+        /**
+         * このノートはリノートしたばかりです
+         */
+        "title": string;
+        /**
+         * リノートしますか？
+         */
+        "caption": string;
+        /**
+         * リノートする
+         */
+        "confirm": string;
     };
 }
 declare const locales: {
