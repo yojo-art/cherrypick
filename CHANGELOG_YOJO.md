@@ -26,6 +26,7 @@
 - Fix: 非ログインでリバーシの戦績が見れない不具合の修正 [#404](https://github.com/yojo-art/cherrypick/pull/404)
 - Fix: 翻訳に失敗したとき読み込み中のままになるのを修正
 - Enhance: ユーザー概要の...からサーバー情報にリンクを追加 [#406](https://github.com/yojo-art/cherrypick/pull/406)
+- Fix: ノート詳細の本文表示優先度を変更
 
 ### Server
 -
