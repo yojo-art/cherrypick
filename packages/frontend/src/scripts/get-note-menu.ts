@@ -847,6 +847,9 @@ export async function getRenoteOnly(props: {
 		}
 
 		if (!props.mock && defaultStore.state.renoteVisibilitySelection) {
+			const result = await confirmRenote(appearNote.id);
+			if (result) return;
+
 			misskeyApi('notes/create', {
 				localOnly,
 				visibility,
@@ -861,6 +864,8 @@ export async function getRenoteOnly(props: {
 			!defaultStore.state.renoteVisibilitySelection &&
 			appearNote.visibility !== 'specified'
 		) {
+			const result = await confirmRenote(appearNote.id);
+			if (result) return;
 			if (defaultStore.state.forceRenoteVisibilitySelection !== 'none') {
 				if (appearNote.visibility === 'public' && defaultStore.state.forceRenoteVisibilitySelection === 'public') { // renote to public
 					misskeyApi('notes/create', {

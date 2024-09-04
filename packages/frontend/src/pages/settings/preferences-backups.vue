@@ -131,6 +131,7 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'useEnterToSend',
 	'postFormVisibilityHotkey',
 	'showRenoteConfirmPopup',
+	'checkMultipleRenote',
 	'displayHeaderNavBarWhenScroll',
 	'infoButtonForNoteActionsEnabled',
 	'reactableRemoteReactionEnabled',
