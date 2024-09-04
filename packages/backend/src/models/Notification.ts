@@ -135,5 +135,6 @@ export type MiGroupedNotification = MiNotification | {
 	type: 'note:grouped';
 	id: string;
 	createdAt: string;
+	noteIds: string[];
 	notifierIds: MiUser['id'][];
 };

@@ -163,6 +163,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 							type: 'note:grouped',
 							id: '',
 							createdAt: notification.createdAt,
+							noteIds: [notification.noteId],
 							notifierIds: [prev.notifierId!],
 						};
 						prevGroupedNotification = groupedNotifications.at(-1)!;
@@ -170,6 +171,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					if (!(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.includes(notification.notifierId)) {
 						(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.push(notification.notifierId!);
 					}
+					(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).noteIds.push(notification.noteId!);
 					prevGroupedNotification.id = notification.id;
 					continue;
 				}

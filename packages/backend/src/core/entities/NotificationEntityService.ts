@@ -161,7 +161,7 @@ export class NotificationEntityService implements OnModuleInit {
 				id: notification.id,
 				createdAt: new Date(notification.createdAt).toISOString(),
 				type: notification.type,
-				note: noteIfNeed,
+				noteIds: notification.noteIds,
 				users,
 			});
 		}
