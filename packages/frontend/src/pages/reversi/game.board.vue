@@ -154,7 +154,6 @@ import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import { deepClone } from '@/scripts/clone.js';
 import { useInterval } from '@/scripts/use-interval.js';
-import { signinRequired } from '@/account.js';
 import { url } from '@/config.js';
 import { i18n } from '@/i18n.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
@@ -164,8 +163,7 @@ import * as os from '@/os.js';
 import { confetti } from '@/scripts/confetti.js';
 import { defaultStore } from '@/store.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
-
-const $i = signinRequired();
+import { $i } from '@/account.js';
 
 const props = defineProps<{
 	game: Misskey.entities.ReversiGameDetailed;
@@ -187,13 +185,13 @@ const engine = shallowRef<Reversi.Game>(Reversi.Serializer.restoreGame({
 }));
 
 const iAmPlayer = computed(() => {
-	return game.value.user1Id === $i.id || game.value.user2Id === $i.id;
+	return game.value.user1Id === $i?.id || game.value.user2Id === $i?.id;
 });
 
 const myColor = computed(() => {
 	if (!iAmPlayer.value) return null;
-	if (game.value.user1Id === $i.id && game.value.black === 1) return true;
-	if (game.value.user2Id === $i.id && game.value.black === 2) return true;
+	if (game.value.user1Id === $i?.id && game.value.black === 1) return true;
+	if (game.value.user2Id === $i?.id && game.value.black === 2) return true;
 	return false;
 });
 
@@ -224,7 +222,7 @@ const isMyTurn = computed(() => {
 	if (!iAmPlayer.value) return false;
 	const u = turnUser.value;
 	if (u == null) return false;
-	return u.id === $i.id;
+	return u.id === $i?.id;
 });
 
 const isFederation = computed(() => {
@@ -376,7 +374,7 @@ async function onStreamLog(log) {
 function onStreamEnded(x) {
 	game.value = deepClone(x.game);
 
-	if (game.value.winnerId === $i.id) {
+	if (game.value.winnerId === $i?.id) {
 		confetti({
 			duration: 1000 * 3,
 		});
