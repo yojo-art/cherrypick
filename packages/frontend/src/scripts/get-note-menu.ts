@@ -6,6 +6,7 @@
 import { defineAsyncComponent, Ref, ShallowRef } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { claimAchievement } from './achievements.js';
+import { confirmRenote } from './check-last-renote.js';
 import { $i } from '@/account.js';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
@@ -669,7 +670,7 @@ export function getRenoteMenu(props: {
 		normalRenoteItems.push({
 			text: i18n.ts.renote,
 			icon: 'ti ti-repeat',
-			action: () => {
+			action: async () => {
 				const el = props.renoteButton.value;
 				if (el) {
 					const rect = el.getBoundingClientRect();
@@ -688,6 +689,9 @@ export function getRenoteMenu(props: {
 				if (appearNote.channel?.isSensitive) {
 					visibility = smallerVisibility(visibility, 'home');
 				}
+
+				const result = await confirmRenote(appearNote.id);
+				if (result) return;
 
 				if (!props.mock) {
 					misskeyApi('notes/create', {
@@ -726,7 +730,10 @@ export function getRenoteMenu(props: {
 				visibilityRenoteItems.push({
 					text: `${i18n.ts.renote} (${i18n.ts._visibility.public})`,
 					icon: 'ti ti-world',
-					action: () => {
+					action: async () => {
+						const result =	await confirmRenote(appearNote.id);
+						if (result) return;
+
 						misskeyApi('notes/create', {
 							localOnly,
 							visibility: 'public',
@@ -743,7 +750,9 @@ export function getRenoteMenu(props: {
 				visibilityRenoteItems.push({
 					text: `${i18n.ts.renote} (${i18n.ts._visibility.home})`,
 					icon: 'ti ti-home',
-					action: () => {
+					action: async () => {
+						const result =	await confirmRenote(appearNote.id);
+						if (result) return;
 						misskeyApi('notes/create', {
 							localOnly,
 							visibility: 'home',
@@ -759,7 +768,9 @@ export function getRenoteMenu(props: {
 			visibilityRenoteItems.push({
 				text: `${i18n.ts.renote} (${i18n.ts._visibility.followers})`,
 				icon: 'ti ti-lock',
-				action: () => {
+				action: async () => {
+					const result =	await confirmRenote(appearNote.id);
+					if (result) return;
 					misskeyApi('notes/create', {
 						localOnly,
 						visibility: 'followers',
