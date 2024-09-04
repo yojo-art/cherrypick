@@ -57,14 +57,16 @@ export class InstanceEntityService {
 			infoUpdatedAt: instance.infoUpdatedAt ? instance.infoUpdatedAt.toISOString() : null,
 			latestRequestReceivedAt: instance.latestRequestReceivedAt ? instance.latestRequestReceivedAt.toISOString() : null,
 			moderationNote: iAmModerator ? instance.moderationNote : null,
+			reversiVersion: instance.reversiVersion,
 		};
 	}
 
 	@bindThis
 	public packMany(
 		instances: MiInstance[],
+		me?: { id: MiUser['id']; } | null | undefined,
 	) {
-		return Promise.all(instances.map(x => this.pack(x)));
+		return Promise.all(instances.map(x => this.pack(x, me)));
 	}
 }
 

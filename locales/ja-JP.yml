@@ -807,7 +807,7 @@ abuseReports: "通報"
 reportAbuse: "通報"
 reportAbuseRenote: "リノートを通報"
 reportAbuseOf: "{name}を通報する"
-fillAbuseReportDescription: "通報理由の詳細を記入してください。対象のノートがある場合はそのURLも記入してください。"
+fillAbuseReportDescription: "通報理由の詳細を記入してください。対象のノートやページなどがある場合はそのURLも記入してください。"
 abuseReported: "内容が送信されました。ご報告ありがとうございました。"
 reporter: "通報者"
 reporteeOrigin: "通報先"
@@ -1388,11 +1388,14 @@ additionalPermissionsForFlash: "Playへの追加許可"
 thisFlashRequiresTheFollowingPermissions: "このPlayは以下の権限を要求しています"
 doYouWantToAllowThisPlayToAccessYourAccount: "このPlayによるアカウントへのアクセスを許可しますか？"
 translateProfile: "プロフィールを翻訳する"
+enterTagName: "タグ名を入力"
+invalidTagName: "タグに使用できない文字が含まれています"
 
 _official_tag:
   title: "公式タグ"
   navbar: "公式タグ"
   adminTopInfo: "優先度の値が小さいものが上に表示されます"
+  adminTagName: "タグ名"
 mascotImageUrl: "マスコット画像のリンク"
 _checkR18:
   title: "成人指定のメディアです"
@@ -2759,6 +2762,7 @@ _pages:
   eyeCatchingImageSet: "アイキャッチ画像を設定"
   eyeCatchingImageRemove: "アイキャッチ画像を削除"
   chooseBlock: "ブロックを追加"
+  enterSectionTitle: "セクションタイトルを入力"
   selectType: "種類を選択"
   contentBlocks: "コンテンツ"
   inputBlocks: "入力"
@@ -2959,6 +2963,10 @@ _moderationLogTypes:
   createAbuseReportNotificationRecipient: "通報の通知先を作成"
   updateAbuseReportNotificationRecipient: "通報の通知先を更新"
   deleteAbuseReportNotificationRecipient: "通報の通知先を削除"
+  deleteAccount: "アカウントを削除"
+  deletePage: "ページを削除"
+  deleteFlash: "Playを削除"
+  deleteGalleryPost: "ギャラリーの投稿を削除"
   updateOfficialTags: "公式タグ一覧を更新"
 
 _fileViewer:
@@ -2968,7 +2976,7 @@ _fileViewer:
   url: "URL"
   uploadedAt: "追加日"
   attachedNotes: "添付されているノート"
-  thisPageCanBeSeenFromTheAuthor: "このページは、このファイルをアップロードしたユーザーしか閲覧できません。"
+  thisPageCanBeSeenFromTheAuthor: "このページは、このファイルをアップロードしたユーザーとモデレーターのみ閲覧できます。"
 
 _externalResourceInstaller:
   title: "外部サイトからインストール"
@@ -3076,6 +3084,9 @@ _reversi:
   disallowIrregularRules: "変則なし"
   showBoardLabels: "盤面に行・列番号を表示"
   useAvatarAsStone: "石をアイコンにする"
+  remoteVersionUnknown: "リモートサーバーのバージョンが不明です"
+  remoteVersionUnknownCaption: "対応していない可能性があります"
+  remoteVersionBad: "リモートサーバーのバージョンが非互換です"
 
 _offlineScreen:
   title: "オフライン - サーバーに接続できません"

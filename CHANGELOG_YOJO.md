@@ -20,6 +20,26 @@
 ### Release Date
 
 ### General
+-
+
+### Client
+- Fix: 非ログインでリバーシの戦績が見れない不具合の修正 [#404](https://github.com/yojo-art/cherrypick/pull/404)
+- Fix: 翻訳に失敗したとき読み込み中のままになるのを修正
+- Enhance: ユーザー概要の...からサーバー情報にリンクを追加 [#406](https://github.com/yojo-art/cherrypick/pull/406)
+- Fix: ノート詳細の本文表示優先度を変更
+
+### Server
+-
+
+### Misc
+
+## 0.6.0
+Cherrypick 4.11.1
+
+### Release Date
+2024-08-31
+
+### General
 - Feat: 相互リンク機能の追加 [#319](https://github.com/yojo-art/cherrypick/pull/319)
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/675)
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/684)
@@ -27,10 +47,21 @@
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
 
 ### Client
--
+- Enhance: 更新情報を確認の画面に幼女.artのチェンジログへのボタンを追加 [#374](https://github.com/yojo-art/cherrypick/pull/374)
+- Enhance: `/about`で公式タグを表示できるように [#357](https://github.com/yojo-art/cherrypick/pull/357)
+- Fix: 検索画面の不具合を修正 [#346](https://github.com/yojo-art/cherrypick/pull/346)
+  - リモートユーザー高度な検索画面で照会しますか？のダイアログが出ない問題
+  - ユーザー検索画面で照会しますか？のダイアログが2つ出る問題 
+- Fix: 更新情報を確認のCherryPickの項目へのリンクを修正 [#372](https://github.com/yojo-art/cherrypick/pull/372)
+- Feat: お気に入りのタグリストを作成できるように [#358](https://github.com/yojo-art/cherrypick/pull/358)
+- Enhance: リバーシ連合の対応状況をサーバー一覧に表示するように [#384](https://github.com/yojo-art/cherrypick/pull/384)
 
 ### Server
--
+- Fix: ユーザーnull(System)の場合forceがfalseでも新規追加されるのを修正 [#363](https://github.com/yojo-art/cherrypick/pull/363)
+- Fix: Outboxから投稿を所得する際にタイムラインに投稿が流れないように [#348](https://github.com/yojo-art/cherrypick/pull/348)
+- Fix: 翻訳にdeepl以外を利用していると翻訳できない問題を修正 [#355](https://github.com/yojo-art/cherrypick/pull/355)
+- Fix: 絵文字インポート時にすでにファイルがあるならそれを使うように [#362](https://github.com/yojo-art/cherrypick/pull/362)
+- Enhance: リバーシ連合の対応状況をnodeinfoに追加 [#379](https://github.com/yojo-art/cherrypick/pull/379)
 
 ### Misc
 

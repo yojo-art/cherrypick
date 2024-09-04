@@ -17,6 +17,7 @@ import { InstanceActorService } from '@/core/InstanceActorService.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
+import { NodeinfoServerService } from '@/server/NodeinfoServerService.js';
 
 @Injectable()
 export class MetaEntityService {
@@ -122,7 +123,7 @@ export class MetaEntityService {
 			enableEmail: instance.enableEmail,
 			enableServiceWorker: instance.enableServiceWorker,
 
-			translatorAvailable: instance.deeplAuthKey != null,
+			translatorAvailable: instance.translatorType != null,
 
 			serverRules: instance.serverRules,
 
@@ -132,6 +133,7 @@ export class MetaEntityService {
 			enableUrlPreview: instance.urlPreviewEnabled,
 			noteSearchableScope: (this.config.meilisearch == null || this.config.meilisearch.scope !== 'local') ? 'global' : 'local',
 			urlPreviewEndpoint: instance.directSummalyProxy ? (instance.urlPreviewSummaryProxyUrl || `${this.config.url}/url` ) : `${this.config.url}/url`,
+			reversiVersion: NodeinfoServerService.reversiVersion,
 		};
 
 		return packed;

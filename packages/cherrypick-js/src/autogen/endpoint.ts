@@ -383,6 +383,8 @@ import type {
 	MessagingMessagesCreateResponse,
 	MessagingMessagesDeleteRequest,
 	MessagingMessagesReadRequest,
+	MessagingMessagesSearchRequest,
+	MessagingMessagesSearchResponse,
 	MetaRequest,
 	MetaResponse,
 	EmojisResponse,
@@ -867,6 +869,7 @@ export type Endpoints = {
 	'messaging/messages/create': { req: MessagingMessagesCreateRequest; res: MessagingMessagesCreateResponse };
 	'messaging/messages/delete': { req: MessagingMessagesDeleteRequest; res: EmptyResponse };
 	'messaging/messages/read': { req: MessagingMessagesReadRequest; res: EmptyResponse };
+	'messaging/messages/search': { req: MessagingMessagesSearchRequest; res: MessagingMessagesSearchResponse };
 	'meta': { req: MetaRequest; res: MetaResponse };
 	'emojis': { req: EmptyRequest; res: EmojisResponse };
 	'emoji': { req: EmojiRequest; res: EmojiResponse };
@@ -1275,6 +1278,7 @@ export const endpointReqTypes: Record<keyof Endpoints, 'application/json' | 'mul
 	'messaging/messages/create': 'application/json',
 	'messaging/messages/delete': 'application/json',
 	'messaging/messages/read': 'application/json',
+	'messaging/messages/search': 'application/json',
 	'meta': 'application/json',
 	'emojis': 'application/json',
 	'emoji': 'application/json',

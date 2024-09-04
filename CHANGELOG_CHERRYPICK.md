@@ -23,13 +23,42 @@ Misskey의 전체 변경 사항을 확인하려면, [CHANGELOG.md#2024xx](CHANGE
 # 릴리즈 노트
 이 문서는 CherryPick의 변경 사항만 포함합니다.
 
-## 4.x.x
-출시일: unreleased<br>
-기반 Misskey 버전: 2024.x.x<br>
-Misskey의 전체 변경 사항을 확인하려면, [CHANGELOG.md#2024xx](CHANGELOG.md#2024xx) 문서를 참고하십시오.
+## 4.11.1
+출시일: 2024/8/30<br>
+기반 Misskey 버전: 2024.8.0<br>
+Misskey의 전체 변경 사항을 확인하려면, [CHANGELOG.md#202480](CHANGELOG.md#202480) 문서를 참고하십시오.
+
+### Client
+- Fix: 노트의 세부 옵션을 표시하는 `더 보기!` 버튼을 누를 수 없음
+
+---
+
+## 4.11.0
+출시일: 2024/8/28<br>
+기반 Misskey 버전: 2024.8.0<br>
+Misskey의 전체 변경 사항을 확인하려면, [CHANGELOG.md#202480](CHANGELOG.md#202480) 문서를 참고하십시오.
+
+### Client
+- Fix: 노트를 인용했을 때 `더 보기` 버튼이 보이지 않거나 잘려서 표시될 수 있음
+- Fix: 클라이언트 업데이트 페이지에서 Misskey의 버전 정보를 불러오지 못할 수 있음
+
+---
+
+## 4.10.0
+출시일: 2024/8/26<br>
+기반 Misskey 버전: 2024.7.0<br>
+Misskey의 전체 변경 사항을 확인하려면, [CHANGELOG.md#202470](CHANGELOG.md#202470) 문서를 참고하십시오.
+
+### Client
+- Fix: CherryPick 클라이언트 업데이트를 올바르게 확인하지 못할 수 있음
+  - 일부 버전에서 버전 확인 오류가 발생할 수 있음
+    - 예: `4.9.0 < 4.10.0` 계산 시 `4.9.0`이 더 큰 것으로 계산됨
+  - CherryPick 클라이언트 업데이트 페이지에서 버전 알림이 작동하지 않을 수 있음
 
 ### Server
-- `Announce`를 사용하는 릴레이 서버의 노트를 가져올 수 없음 (kokonect-link/cherrypick#483)
+- Fix: `Announce`를 사용하는 릴레이 서버의 노트를 가져올 수 없음 (kokonect-link/cherrypick#483)
+- Fix: 번역 기능을 사용할 수 없을 수 있음 (kokonect-link/cherrypick#486)
+- Fix: withCats 상태인 사용자가 작성하는 노트가 streaming에서 필터링되지 않을 수 있음 (kokonect-link/cherrypick#485)
 
 ---
 

@@ -551,11 +551,11 @@ export class DriveService {
 			ext ?? info.type.ext,
 		);
 
-		if (user && !force) {
+		if (!force) {
 		// Check if there is a file with the same hash
 			const matched = await this.driveFilesRepository.findOneBy({
 				md5: info.md5,
-				userId: user.id,
+				userId: user ? user.id : undefined,
 			});
 
 			if (matched) {

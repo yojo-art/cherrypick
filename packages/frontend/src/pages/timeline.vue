@@ -57,8 +57,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, watch, shallowRef, ref, provide, onMounted } from 'vue';
+import { computed, watch, provide, shallowRef, ref, onMounted, onActivated } from 'vue';
 import type { Tab } from '@/components/global/MkPageHeader.tabs.vue';
+import type { BasicTimelineType } from '@/timelines.js';
 import MkTimeline from '@/components/MkTimeline.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
@@ -94,9 +95,11 @@ if (!isFriendly.value) provide('shouldOmitHeaderTitle', true);
 const tlComponent = shallowRef<InstanceType<typeof MkTimeline>>();
 const rootEl = shallowRef<HTMLElement>();
 
+type TimelinePageSrc = BasicTimelineType | `list:${string}`;
+
 const queue = ref(0);
 const srcWhenNotSignin = ref<'local' | 'global' | 'media'>(isAvailableBasicTimeline('local') ? 'local' : 'global');
-const src = computed<'home' | 'local' | 'social' | 'global' | 'media' | `list:${string}`>({
+const src = computed<TimelinePageSrc>({
 	get: () => ($i ? defaultStore.reactiveState.tl.value.src : srcWhenNotSignin.value),
 	set: (x) => saveSrc(x),
 });
@@ -230,6 +233,47 @@ async function chooseAntenna(ev: MouseEvent): Promise<void> {
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
+async function chooseHashTag(ev: MouseEvent): Promise<void> {
+	let tags: string[];
+	try {
+		tags = await misskeyApi('i/registry/get', {
+			scope: ['client', 'base'],
+			key: 'hashTag',
+		});
+	} catch (err) {
+		if (err.code === 'NO_SUCH_KEY') {
+			tags = [];
+			await misskeyApi('i/registry/set', {
+				scope: ['client', 'base'],
+				key: 'hashTag',
+				value: [],
+			});
+			tags = await misskeyApi('i/registry/get', {
+				scope: ['client', 'base'],
+				key: 'hashTag',
+			});
+		} else {
+			throw err;
+		}
+	}
+
+	const items: MenuItem[] = [
+		...tags.map(tag => ({
+			type: 'link' as const,
+			text: tag,
+			to: `/tags/${encodeURIComponent(tag)}`,
+		})),
+		(tags.length === 0 ? undefined : { type: 'divider' }),
+		{
+			type: 'link' as const,
+			icon: 'ti ti-plus',
+			text: i18n.ts.createNew,
+			to: '/my/tags',
+		},
+	];
+	os.popupMenu(items, ev.currentTarget ?? ev.target);
+}
+
 async function chooseChannel(ev: MouseEvent): Promise<void> {
 	const channels = await favoritedChannelsCache.fetch();
 	const items: MenuItem[] = [
@@ -255,7 +299,7 @@ async function chooseChannel(ev: MouseEvent): Promise<void> {
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
-function saveSrc(newSrc: 'home' | 'local' | 'media' | 'social' | 'global' | 'media' | `list:${string}`): void {
+function saveSrc(newSrc: TimelinePageSrc): void {
 	const out = deepMerge({ src: newSrc }, defaultStore.state.tl);
 
 	if (newSrc.startsWith('userList:')) {
@@ -285,17 +329,6 @@ async function timetravel(): Promise<void> {
 	tlComponent.value.timetravel(date);
 }
 
-function focus(): void {
-	tlComponent.value.focus();
-}
-
-function closeTutorial(): void {
-	if (!isBasicTimeline(src.value)) return;
-	const before = defaultStore.state.timelineTutorials;
-	before[src.value] = true;
-	defaultStore.set('timelineTutorials', before);
-}
-
 async function reloadAsk() {
 	if (defaultStore.state.requireRefreshBehavior === 'dialog') {
 		const { canceled } = await os.confirm({
@@ -307,6 +340,30 @@ async function reloadAsk() {
 		unisonReload();
 	} else globalEvents.emit('hasRequireRefresh', true);
 }
+
+function focus(): void {
+	tlComponent.value.focus();
+}
+
+function closeTutorial(): void {
+	if (!isBasicTimeline(src.value)) return;
+	const before = defaultStore.state.timelineTutorials;
+	before[src.value] = true;
+	defaultStore.set('timelineTutorials', before);
+}
+
+function switchTlIfNeeded() {
+	if (isBasicTimeline(src.value) && !isAvailableBasicTimeline(src.value)) {
+		src.value = availableBasicTimelines()[0];
+	}
+}
+
+onMounted(() => {
+	switchTlIfNeeded();
+});
+onActivated(() => {
+	switchTlIfNeeded();
+});
 
 const headerActions = computed(() => {
 	const tmp = [
@@ -380,6 +437,11 @@ const headerTabs = computed(() => [...(defaultStore.reactiveState.pinnedUserList
 	title: i18n.ts.antennas,
 	iconOnly: true,
 	onClick: chooseAntenna,
+}] : []), ...(defaultStore.state.enableTagTimeline ? [{
+	icon: 'ti ti-hash',
+	title: i18n.ts.tags,
+	iconOnly: true,
+	onClick: chooseHashTag,
 }] : [])] as Tab[]);
 
 const headerTabsWhenNotLogin = computed(() => [...availableBasicTimelines().map(tl => ({

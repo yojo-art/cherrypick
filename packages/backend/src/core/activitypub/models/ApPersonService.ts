@@ -34,7 +34,7 @@ import { StatusError } from '@/misc/status-error.js';
 import type { UtilityService } from '@/core/UtilityService.js';
 import type { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
-import { RoleService } from '@/core/RoleService.js';
+import { RolePolicies, RoleService } from '@/core/RoleService.js';
 import { MetaService } from '@/core/MetaService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
@@ -49,7 +49,7 @@ import type { ApResolverService, Resolver } from '../ApResolverService.js';
 import type { ApLoggerService } from '../ApLoggerService.js';
 
 import type { ApImageService } from './ApImageService.js';
-import type { IActor, IObject } from '../type.js';
+import type { IActor, ICollection, IObject, IOrderedCollection } from '../type.js';
 
 const nameLength = 128;
 const summaryLength = 2048;
@@ -246,7 +246,7 @@ export class ApPersonService implements OnModuleInit {
 		return null;
 	}
 
-	private async resolveAvatarAndBanner(user: MiRemoteUser, icon: any, image: any): Promise<Partial<Pick<MiRemoteUser, 'avatarId' | 'bannerId' | 'avatarUrl' | 'bannerUrl' | 'avatarBlurhash' | 'bannerBlurhash'>>> {
+	private async resolveAvatarAndBanner(user: MiRemoteUser, icon: any, image: any, role_policy:RolePolicies): Promise<Partial<Pick<MiRemoteUser, 'avatarId' | 'bannerId' | 'avatarUrl' | 'bannerUrl' | 'avatarBlurhash' | 'bannerBlurhash'>>> {
 		if (user == null) throw new Error('failed to create user: user is null');
 
 		const [avatar, banner] = await Promise.all([icon, image].map(img => {
@@ -260,7 +260,7 @@ export class ApPersonService implements OnModuleInit {
 		}));
 
 		if (((avatar != null && avatar.id != null) || (banner != null && banner.id != null))
-				&& !(await this.roleService.getUserPolicies(user.id)).canUpdateBioMedia) {
+				&& !role_policy.canUpdateBioMedia) {
 			return {};
 		}
 
@@ -313,6 +313,21 @@ export class ApPersonService implements OnModuleInit {
 		const tags = extractApHashtags(person.tag).map(normalizeForSearch).splice(0, 32);
 
 		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application';
+
+		const [followingVisibility, followersVisibility] = await Promise.all(
+			[
+				this.isPublicCollection(person.following, resolver),
+				this.isPublicCollection(person.followers, resolver),
+			].map((p): Promise<'public' | 'private'> => p
+				.then(isPublic => isPublic ? 'public' : 'private')
+				.catch(err => {
+					if (!(err instanceof StatusError) || err.isRetryable) {
+						this.logger.error('error occurred while fetching following/followers collection', { stack: err });
+					}
+					return 'private';
+				}),
+			),
+		);
 
 		const bday = person['vcard:bday']?.match(/^\d{4}-\d{2}-\d{2}/);
 
@@ -445,10 +460,11 @@ export class ApPersonService implements OnModuleInit {
 					description: _description,
 					url,
 					fields,
+					followingVisibility,
+					followersVisibility,
 					birthday: bday?.[0] ?? null,
 					location: person['vcard:Address'] ?? null,
 					userHost: host,
-					mutualLinkSections: await this.mutualLinkSections(person, user),
 				}));
 
 				if (person.publicKey) {
@@ -494,9 +510,11 @@ export class ApPersonService implements OnModuleInit {
 
 		this.avatarDecorationService.remoteUserUpdate(user);
 
+		const role_policy = await this.roleService.getUserPolicies(user.id);
+
 		//#region アバターとヘッダー画像をフェッチ
 		try {
-			const updates = await this.resolveAvatarAndBanner(user, person.icon, person.image);
+			const updates = await this.resolveAvatarAndBanner(user, person.icon, person.image, role_policy);
 			await this.usersRepository.update(user.id, updates);
 			user = { ...user, ...updates };
 
@@ -506,6 +524,11 @@ export class ApPersonService implements OnModuleInit {
 			this.logger.error('error occurred while fetching user avatar/banner', { stack: err });
 		}
 		//#endregion
+
+		//相互リンク機能の画像をドライブに登録する
+		await this.userProfilesRepository.update({ userId: user.id }, {
+			mutualLinkSections: await this.mutualLinkSections(person, user, role_policy),
+		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
 
@@ -554,6 +577,23 @@ export class ApPersonService implements OnModuleInit {
 		const fields = this.analyzeAttachments(person.attachment ?? []);
 
 		const tags = extractApHashtags(person.tag).map(normalizeForSearch).splice(0, 32);
+
+		const [followingVisibility, followersVisibility] = await Promise.all(
+			[
+				this.isPublicCollection(person.following, resolver),
+				this.isPublicCollection(person.followers, resolver),
+			].map((p): Promise<'public' | 'private' | undefined> => p
+				.then(isPublic => isPublic ? 'public' : 'private')
+				.catch(err => {
+					if (!(err instanceof StatusError) || err.isRetryable) {
+						this.logger.error('error occurred while fetching following/followers collection', { stack: err });
+						// Do not update the visibiility on transient errors.
+						return undefined;
+					}
+					return 'private';
+				}),
+			),
+		);
 
 		const bday = person['vcard:bday']?.match(/^\d{4}-\d{2}-\d{2}/);
 
@@ -607,6 +647,7 @@ export class ApPersonService implements OnModuleInit {
 				notesCount = undefined;
 			}
 		}
+		const role_policy = await this.roleService.getUserPolicies(exist.id);
 
 		const updates = {
 			lastFetchedAt: new Date(),
@@ -648,7 +689,7 @@ export class ApPersonService implements OnModuleInit {
 			movedToUri: person.movedTo ?? null,
 			alsoKnownAs: person.alsoKnownAs ?? null,
 			isExplorable: person.discoverable,
-			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image).catch(() => ({}))),
+			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;
 
 		const moving = ((): boolean => {
@@ -690,14 +731,38 @@ export class ApPersonService implements OnModuleInit {
 		} else if (person.summary) {
 			_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
 		}
+		const mutualLinkSections = await this.mutualLinkSections(person, exist, role_policy);
+
+		let filter_fields = fields;
+		for (const section of mutualLinkSections) {
+			for (const entry of section.mutualLinks) {
+				let flag_match = false;
+				filter_fields = filter_fields.filter(field => {
+					if (flag_match) return true;
+					if (field.name === (section.name ?? '')) {
+						const value = (entry.url.startsWith('http://') || entry.url.startsWith('https://'))
+							? this.mfmService.fromHtml(`<a href="${new URL(entry.url).href}" rel="me nofollow noopener" target="_blank">${entry.description ?? new URL(entry.url).href}</a>`)
+							: entry.description ?? '';
+						if (field.value === value) {
+							flag_match = true;
+							return false;//初回一致のみ除外する
+						}
+						return true;
+					}
+					return true;
+				});
+			}
+		}
 
 		await this.userProfilesRepository.update({ userId: exist.id }, {
 			url,
-			fields,
+			fields: filter_fields,
 			description: _description,
+			followingVisibility,
+			followersVisibility,
 			birthday: bday?.[0] ?? null,
 			location: person['vcard:Address'] ?? null,
-			mutualLinkSections: await this.mutualLinkSections(person, exist),
+			mutualLinkSections,
 		});
 
 		this.globalEventService.publishInternalEvent('remoteUserUpdated', { id: exist.id });
@@ -738,7 +803,7 @@ export class ApPersonService implements OnModuleInit {
 
 		return 'skip';
 	}
-	async mutualLinkSections(person: IActor, actor: MiRemoteUser) : Promise<[] | {
+	async mutualLinkSections(person: IActor, actor: MiRemoteUser, role_policy:RolePolicies) : Promise<[] | {
 		name: string | null;
 		mutualLinks: {
 				fileId: MiDriveFile['id'];
@@ -750,35 +815,46 @@ export class ApPersonService implements OnModuleInit {
 		const apMutualLinkSections = person.banner;
 
 		if (apMutualLinkSections === undefined) return [];
+		if (!Array.isArray(apMutualLinkSections)) return [];
 
-		return await Promise.all(apMutualLinkSections.map(async ap => {
+		const sections = apMutualLinkSections.slice(0, role_policy.mutualLinkSectionLimit + 1);
+
+		if (sections.length < 1) return [];
+
+		return (await Promise.all(sections.map(async ap => {
 			let name = null;
 			if (ap._misskey_sectionName) {
 				name = truncate(ap._misskey_sectionName, summaryLength);
 			} else if (ap.sectionName) {
 				name = this.apMfmService.htmlToMfm(truncate(ap.sectionName, summaryLength), person.tag);
 			}
+			if (!Array.isArray(ap.entrys)) return null;
+			const entrys = ap.entrys.slice(0, role_policy.mutualLinkLimit + 1);
+			//セクション内に少なくとも一つの要素を含む必要があります
+			if (entrys.length < 1) return null;
+
+			const mutualLinks = await Promise.all(entrys.map(async entry => {
+				if (entry.url === null) return null;
+				const image = entry.image ? await this.apImageService.resolveImage(actor, entry.image).catch(() => null) : null;
+				if (image === null) return null;
+				let description = null;
+				if (entry._misskey_description) {
+					description = truncate(entry._misskey_description, summaryLength);
+				} else if (entry.description) {
+					description = this.apMfmService.htmlToMfm(truncate(entry.description, summaryLength), person.tag);
+				}
+				return {
+					fileId: image.id,
+					imgSrc: image.url,
+					url: entry.url,
+					description,
+				};
+			}));
 			return {
 				name,
-				mutualLinks: (await Promise.all(ap.entrys.map(async entry => {
-					if (entry.url === null) return null;
-					const image = entry.image ? await this.apImageService.resolveImage(actor, entry.image).catch(() => null) : null;
-					if (image === null) return null;
-					let description = null;
-					if (entry._misskey_description) {
-						description = truncate(entry._misskey_description, summaryLength);
-					} else if (entry.description) {
-						description = this.apMfmService.htmlToMfm(truncate(entry.description, summaryLength), person.tag);
-					}
-					return {
-						fileId: image.id,
-						imgSrc: image.url,
-						url: entry.url,
-						description,
-					};
-				}))).filter(e => e !== null),
+				mutualLinks: mutualLinks.filter(e => e !== null),
 			};
-		}));
+		}))).filter(e => e !== null);
 	}
 
 	/**
@@ -908,5 +984,17 @@ export class ApPersonService implements OnModuleInit {
 		await this.accountMoveService.postMoveProcess(src, dst);
 
 		return 'ok';
+	}
+
+	@bindThis
+	private async isPublicCollection(collection: string | ICollection | IOrderedCollection | undefined, resolver: Resolver): Promise<boolean> {
+		if (collection) {
+			const resolved = await resolver.resolveCollection(collection);
+			if (resolved.first || (resolved as ICollection).items || (resolved as IOrderedCollection).orderedItems) {
+				return true;
+			}
+		}
+
+		return false;
 	}
 }
