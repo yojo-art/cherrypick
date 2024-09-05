@@ -680,6 +680,7 @@ async function translate(): Promise<void> {
 				text: err.id,
 			});
 	});
+	translating.value = false;
 	translation.value = res;
 
 	vibrate(defaultStore.state.vibrateSystem ? [5, 5, 10] : []);

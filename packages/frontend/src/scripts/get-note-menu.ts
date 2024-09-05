@@ -340,6 +340,14 @@ export function getNoteMenu(props: {
 		const res = await misskeyApi('notes/translate', {
 			noteId: appearNote.id,
 			targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+		}).catch((err) => {
+			props.translating.value = false;
+			os.alert(
+				{
+					type: 'error',
+					title: err.message,
+					text: err.id,
+				});
 		});
 		props.translating.value = false;
 		props.translation.value = res;

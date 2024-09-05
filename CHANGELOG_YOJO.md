@@ -1,15 +1,17 @@
-## x.x.x (unreleased)
+## 1.0.1
+Cherrypick 4.11.1
 
 ### Release Date
+2024-09-06
 
 ### General
 -
 
 ### Client
--
+- Fix: 翻訳が成功しても翻訳中のままになるのを修正 [#415](https://github.com/yojo-art/cherrypick/pull/415)
 
 ### Server
--
+- Change: 溢れそうなチャートの型を大きいものに変更 [#417](https://github.com/yojo-art/cherrypick/pull/417)
 
 ### Misc
 
