@@ -6,7 +6,7 @@
 -
 
 ### Client
--
+- Fix: 翻訳が成功しても翻訳中のままになるのを修正 [#415](https://github.com/yojo-art/cherrypick/pull/415)
 
 ### Server
 -
