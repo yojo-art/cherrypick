@@ -11,6 +11,10 @@ export class ChartRangeUpscale1725547203459 {
         await queryRunner.query(`ALTER TABLE "__chart__instance" ALTER COLUMN "___requests_succeeded" TYPE integer`);
         await queryRunner.query(`ALTER TABLE "__chart__instance" ALTER COLUMN "___requests_received" TYPE integer`);
         await queryRunner.query(`ALTER TABLE "__chart__instance" ALTER COLUMN "___notes_total" TYPE bigint`);
+        await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___requests_failed" TYPE integer`);
+        await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___requests_succeeded" TYPE integer`);
+        await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___requests_received" TYPE integer`);
+        await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___notes_total" TYPE bigint`);
     }
 
     async down(queryRunner) {
@@ -18,5 +22,9 @@ export class ChartRangeUpscale1725547203459 {
 			await queryRunner.query(`ALTER TABLE "__chart__instance" ALTER COLUMN "___requests_succeeded" TYPE smallint`);
 			await queryRunner.query(`ALTER TABLE "__chart__instance" ALTER COLUMN "___requests_received" TYPE smallint`);
 			await queryRunner.query(`ALTER TABLE "__chart__instance" ALTER COLUMN "___notes_total" TYPE integer`);
+			await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___requests_failed" TYPE smallint`);
+			await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___requests_succeeded" TYPE smallint`);
+			await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___requests_received" TYPE smallint`);
+			await queryRunner.query(`ALTER TABLE "__chart_day__instance" ALTER COLUMN "___notes_total" TYPE integer`);
     }
 }
