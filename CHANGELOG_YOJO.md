@@ -1,4 +1,3 @@
-<!--
 ## x.x.x (unreleased)
 
 ### Release Date
@@ -14,19 +13,21 @@
 
 ### Misc
 
--->
-## x.x.x (unreleased)
+## 1.0.0
+Cherrypick 4.11.1
 
 ### Release Date
+2024-09-05
 
 ### General
 -
 
 ### Client
 - Fix: 非ログインでリバーシの戦績が見れない不具合の修正 [#404](https://github.com/yojo-art/cherrypick/pull/404)
-- Fix: 翻訳に失敗したとき読み込み中のままになるのを修正
+- Fix: 翻訳に失敗したとき読み込み中のままになるのを修正 [#407](https://github.com/yojo-art/cherrypick/pull/407)
+- Fix: ノート詳細の本文表示優先度を変更 [#408](https://github.com/yojo-art/cherrypick/pull/408)
+- Feat: 同じノートを連続してリノートしようとしたときに警告する設定を追加(設定→全般) [#409](https://github.com/yojo-art/cherrypick/pull/409)
 - Enhance: ユーザー概要の...からサーバー情報にリンクを追加 [#406](https://github.com/yojo-art/cherrypick/pull/406)
-- Fix: ノート詳細の本文表示優先度を変更
 
 ### Server
 -
