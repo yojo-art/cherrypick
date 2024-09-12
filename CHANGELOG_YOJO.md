@@ -48,6 +48,11 @@ Cherrypick 4.11.1
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/684)
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/690)
   - (Cherry-picked from https://github.com/MisskeyIO/misskey/pull/696)
+- Feat: 外部アップロード処理サーバーの追加 [#359](https://github.com/yojo-art/cherrypick/pull/359)
+  - cherrypick外のサーバーでファイルのアップロード処理を行います
+  - 大きなファイルのアップロードや高速な動画のサムネイル生成などが行えます
+  - 転送帯域を分散することができます
+  - 2GBを超えるファイルのアップロードに対応します
 
 ### Client
 - Enhance: 更新情報を確認の画面に幼女.artのチェンジログへのボタンを追加 [#374](https://github.com/yojo-art/cherrypick/pull/374)

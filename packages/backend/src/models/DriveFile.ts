@@ -188,4 +188,9 @@ export class MiDriveFile {
 		length: 128, nullable: true,
 	})
 	public requestIp: string | null;
+
+	@Column('bigint', {
+		comment: 'The file size (bytes) of the DriveFile. 64bit int',
+	})
+	public size_long: number;
 }
