@@ -1,3 +1,19 @@
+## x.x.x
+Cherrypick 4.11.1
+
+### Release Date
+
+### General
+-
+
+### Client
+- Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
+
+### Server
+- 
+
+### Misc
+
 ## 1.0.1
 Cherrypick 4.11.1
 
