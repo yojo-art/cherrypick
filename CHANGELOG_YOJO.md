@@ -1,3 +1,19 @@
+## 2.0.0
+
+### Release Date
+
+### General
+-
+
+### Client
+- Feat: ある程度大きなファイルを分割アップロードする
+
+### Server
+- Enhance: 2GBを超えるファイルのアップロードに対応
+
+### Misc
+- 外部に専用ソフトウェアが必要に
+
 ## x.x.x
 Cherrypick 4.11.1
 

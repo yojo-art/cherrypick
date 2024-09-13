@@ -232,7 +232,8 @@ export class DriveService {
 			file.name = name;
 			file.type = type;
 			file.md5 = hash;
-			file.size = size;
+			file.size = size > 2147483647 ? 2147483647 : size;
+			file.size_long = size;
 			file.storedInternal = false;
 
 			return await this.driveFilesRepository.insertOne(file);
@@ -267,7 +268,8 @@ export class DriveService {
 			file.name = name;
 			file.type = type;
 			file.md5 = hash;
-			file.size = size;
+			file.size = size > 2147483647 ? 2147483647 : size;
+			file.size_long = size;
 
 			return await this.driveFilesRepository.insertOne(file);
 		}
@@ -484,7 +486,6 @@ export class DriveService {
 			this.deleteFile(file, true);
 		}
 	}
-
 	/**
 	 * Add file to drive
 	 *
@@ -667,6 +668,7 @@ export class DriveService {
 		if (isLink) {
 			try {
 				file.size = 0;
+				file.size_long = 0;
 				file.md5 = info.md5;
 				file.name = detectedName;
 				file.type = info.type.mime;
