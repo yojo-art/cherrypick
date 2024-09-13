@@ -4,7 +4,7 @@ Cherrypick 4.11.1
 ### Release Date
 
 ### General
--
+- Enhance: 連合一覧のソートにリバーシのバージョンを追加
 
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
