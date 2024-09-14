@@ -7,7 +7,7 @@ import { onUnmounted, onDeactivated, ref } from 'vue';
 import * as os from '@/os.js';
 import MkChartTooltip from '@/components/MkChartTooltip.vue';
 
-export function useChartTooltip(opts: { position: 'top' | 'middle' } = { position: 'top' }) {
+export function useChartTooltip(opts: { position: 'top' | 'middle', total?:number} = { position: 'top' }) {
 	const tooltipShowing = ref(false);
 	const tooltipX = ref(0);
 	const tooltipY = ref(0);
@@ -38,13 +38,18 @@ export function useChartTooltip(opts: { position: 'top' | 'middle' } = { positio
 			tooltipShowing.value = false;
 			return;
 		}
-
 		tooltipTitle.value = context.tooltip.title[0];
-		tooltipSeries.value = context.tooltip.body.map((b, i) => ({
-			backgroundColor: context.tooltip.labelColors[i].backgroundColor,
-			borderColor: context.tooltip.labelColors[i].borderColor,
-			text: b.lines[0],
-		}));
+		tooltipSeries.value = context.tooltip.body.map((b, i) => {
+			let ratio = '';
+			if (typeof b.lines[0] === 'number' && opts.total !== undefined) {
+				ratio = '(' + String(b.lines[0] / opts.total * 100) + '%)';
+			}
+			({
+				backgroundColor: context.tooltip.labelColors[i].backgroundColor,
+				borderColor: context.tooltip.labelColors[i].borderColor,
+				text: b.lines[0] + ratio,
+			});
+		});
 
 		const rect = context.chart.canvas.getBoundingClientRect();
 
