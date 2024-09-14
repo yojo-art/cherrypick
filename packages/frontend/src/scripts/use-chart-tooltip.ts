@@ -42,7 +42,7 @@ export function useChartTooltip(opts: { position: 'top' | 'middle', total?:numbe
 		tooltipSeries.value = context.tooltip.body.map((b, i) => {
 			let ratio = '';
 			if (opts.total !== undefined) {
-				ratio = '(' + String(b.lines[0] / opts.total * 100) + '%)';
+				ratio = '(' + String(Number(b.lines[0]) / opts.total * 100) + '%)';
 			}
 			return ({
 				backgroundColor: context.tooltip.labelColors[i].backgroundColor,
