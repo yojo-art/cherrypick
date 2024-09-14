@@ -4,10 +4,11 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { ClipsRepository, ClipFavoritesRepository } from '@/models/_.js';
+import type { ClipsRepository, ClipFavoritesRepository, ClipFavoritesRemoteRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
+import { ClipService } from '@/core/ClipService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -36,6 +37,11 @@ export const meta = {
 			code: 'UNIMPLEMENTED',
 			id: '37561aed-4ba4-4a53-9efe-a0aa255e9bb3',
 		},
+		failedToResolveRemoteUser: {
+			message: 'failedToResolveRemoteUser.',
+			code: 'FAILED_TO_RESOLVE_REMOTE_USER',
+			id: '56d5e552-d55a-47e3-9f37-6dc85a93ecf9',
+		},
 	},
 } as const;
 
@@ -55,12 +61,41 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.clipFavoritesRepository)
 		private clipFavoritesRepository: ClipFavoritesRepository,
+		@Inject(DI.clipFavoritesRemoteRepository)
+		private clipFavoritesRemoteRepository: ClipFavoritesRemoteRepository,
 
+		private clipService: ClipService,
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			if (ps.clipId.split('@').length > 1) {
+			const clipIdArray = ps.clipId.split('@');
+			if (clipIdArray.length > 2) {
 				throw new ApiError(meta.errors.unimplemented);
+			}
+			const host = clipIdArray.length > 1 ? clipIdArray[1] : null;
+			if (host) {
+				const clipId = clipIdArray[0];
+				await clipService.showRemote(clipId, host);
+
+				const exist = await this.clipFavoritesRemoteRepository.exists({
+					where: {
+						clipId: clipId,
+						host: host,
+						userId: me.id,
+					},
+				});
+
+				if (exist) {
+					throw new ApiError(meta.errors.alreadyFavorited);
+				}
+
+				await this.clipFavoritesRemoteRepository.insert({
+					id: this.idService.gen(),
+					clipId: clipId,
+					host: host,
+					userId: me.id,
+				});
+				return;
 			}
 			const clip = await this.clipsRepository.findOneBy({ id: ps.clipId });
 			if (clip == null) {

@@ -27,6 +27,7 @@ import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiClip } from '@/models/Clip.js';
 import { MiClipNote } from '@/models/ClipNote.js';
 import { MiClipFavorite } from '@/models/ClipFavorite.js';
+import { MiClipFavoriteRemote } from '@/models/ClipFavoriteRemote.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
 import { MiDriveFolder } from '@/models/DriveFolder.js';
 import { MiEmoji } from '@/models/Emoji.js';
@@ -149,6 +150,7 @@ export {
 	MiClip,
 	MiClipNote,
 	MiClipFavorite,
+	MiClipFavoriteRemote,
 	MiDriveFile,
 	MiDriveFolder,
 	MiEmoji,
@@ -227,6 +229,7 @@ export type ChannelFavoritesRepository = Repository<MiChannelFavorite> & MiRepos
 export type ClipsRepository = Repository<MiClip> & MiRepository<MiClip>;
 export type ClipNotesRepository = Repository<MiClipNote> & MiRepository<MiClipNote>;
 export type ClipFavoritesRepository = Repository<MiClipFavorite> & MiRepository<MiClipFavorite>;
+export type ClipFavoritesRemoteRepository = Repository<MiClipFavoriteRemote> & MiRepository<MiClipFavoriteRemote>;
 export type DriveFilesRepository = Repository<MiDriveFile> & MiRepository<MiDriveFile>;
 export type DriveFoldersRepository = Repository<MiDriveFolder> & MiRepository<MiDriveFolder>;
 export type EmojisRepository = Repository<MiEmoji> & MiRepository<MiEmoji>;

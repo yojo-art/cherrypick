@@ -72,6 +72,7 @@ export const DI = {
 	clipsRepository: Symbol('clipsRepository'),
 	clipNotesRepository: Symbol('clipNotesRepository'),
 	clipFavoritesRepository: Symbol('clipFavoritesRepository'),
+	clipFavoritesRemoteRepository: Symbol('clipFavoritesRemoteRepository'),
 	antennasRepository: Symbol('antennasRepository'),
 	promoNotesRepository: Symbol('promoNotesRepository'),
 	promoReadsRepository: Symbol('promoReadsRepository'),
