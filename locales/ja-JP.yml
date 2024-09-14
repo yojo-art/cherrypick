@@ -876,6 +876,8 @@ thisIsExperimentalFeature: "これは実験的な機能です。仕様が変更�
 developer: "開発者"
 makeExplorable: "アカウントを見つけやすくする"
 makeExplorableDescription: "オフにすると、「みつける」にアカウントが載らなくなります。"
+makeIndexable: "ノート検索の許可"
+makeIndexableDescription: "オフにすると、あなたのノートが検索で表示されなくなります。"
 showGapBetweenNotesInTimeline: "タイムラインのノートを離して表示"
 duplicate: "複製"
 left: "左"

@@ -19916,6 +19916,7 @@ export type operations = {
             }[];
           isLocked?: boolean;
           isExplorable?: boolean;
+          isIndexable?: boolean;
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;

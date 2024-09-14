@@ -3528,6 +3528,14 @@ export interface Locale extends ILocale {
      */
     "makeExplorableDescription": string;
     /**
+     * ノート検索の許可
+     */
+    "makeIndexable": string;
+    /**
+     * オフにすると、あなたのノートが検索で表示されなくなります。
+     */
+    "makeIndexableDescription": string;
+    /**
      * タイムラインのノートを離して表示
      */
     "showGapBetweenNotesInTimeline": string;
