@@ -539,6 +539,7 @@ export class ApRendererService {
 			tag,
 			manuallyApprovesFollowers: user.isLocked,
 			discoverable: user.isExplorable,
+			isIndexable: user.isIndexable,
 			publicKey: this.renderKey(user, keypair, '#main-key'),
 			isCat: user.isCat,
 			attachment: attachment.length ? attachment : undefined,
