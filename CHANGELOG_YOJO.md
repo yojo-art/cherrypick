@@ -8,6 +8,7 @@ Cherrypick 4.11.1
 
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
+- Enhance: チャートの連合グラフで割合を表示
 
 ### Server
 - 
