@@ -107,6 +107,13 @@ const heatmapSrc = ref<HeatmapSource>('active-users');
 const subDoughnutEl = shallowRef<HTMLCanvasElement>();
 const pubDoughnutEl = shallowRef<HTMLCanvasElement>();
 
+const { handler: externalTooltipHandler1 } = useChartTooltip({
+	position: 'middle',
+});
+const { handler: externalTooltipHandler2 } = useChartTooltip({
+	position: 'middle',
+});
+
 function createDoughnut(chartEl, tooltip, data) {
 	const chartInstance = new Chart(chartEl, {
 		type: 'doughnut',
@@ -167,14 +174,6 @@ onMounted(() => {
 		let totalFollowersCount = fedStats.topSubInstances.reduce((partialSum, a) => partialSum + a.followersCount, 0);
 		let totalFollowingCount = fedStats.topPubInstances.reduce((partialSum, a) => partialSum + a.followingCount, 0);
 
-		const { handler: externalTooltipHandler1 } = useChartTooltip({
-			position: 'middle',
-			total: totalFollowersCount,
-		});
-		const { handler: externalTooltipHandler2 } = useChartTooltip({
-			position: 'middle',
-			total: totalFollowingCount,
-		});
 		const subs: ChartData = fedStats.topSubInstances.map(x => ({
 			name: x.host,
 			color: x.themeColor,
