@@ -40,6 +40,7 @@ export function useChartTooltip(opts: { position: 'top' | 'middle', total?:numbe
 		}
 		tooltipTitle.value = context.tooltip.title[0];
 		tooltipSeries.value = context.tooltip.body.map((b, i) => {
+			console.log(opts);
 			let ratio = '';
 			if (typeof b.lines[0] === 'number' && opts.total !== undefined) {
 				ratio = '(' + String(b.lines[0] / opts.total * 100) + '%)';
