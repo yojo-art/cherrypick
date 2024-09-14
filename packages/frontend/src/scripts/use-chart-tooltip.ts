@@ -45,7 +45,7 @@ export function useChartTooltip(opts: { position: 'top' | 'middle'} = { position
 			if (typeof b.lines[0] === 'number' && typeof total === 'number') {
 				ratio = '(' + String(b.lines[0] / total * 100) + '%)';
 			}
-			({
+			return ({
 				backgroundColor: context.tooltip.labelColors[i].backgroundColor,
 				borderColor: context.tooltip.labelColors[i].borderColor,
 				text: b.lines[0] + ratio,
