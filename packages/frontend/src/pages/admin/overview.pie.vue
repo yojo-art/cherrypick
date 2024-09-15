@@ -24,17 +24,18 @@ initChart();
 
 const props = defineProps<{
 	data: InstanceForPie[];
+	total?:number;
 }>();
 
 const chartEl = shallowRef<HTMLCanvasElement>(null);
 
-const { handler: externalTooltipHandler } = useChartTooltip({
-	position: 'middle',
-});
-
 let chartInstance: Chart;
 
 onMounted(() => {
+	const { handler: externalTooltipHandler } = useChartTooltip({
+		position: 'middle',
+		total: props.total,
+	});
 	chartInstance = new Chart(chartEl.value, {
 		type: 'doughnut',
 		data: {

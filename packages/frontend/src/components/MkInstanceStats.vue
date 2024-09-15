@@ -164,8 +164,8 @@ onMounted(() => {
 			value: number,
 			onClick?: () => void,
 		}[];
-		let totalFollowersCount = fedStats.topSubInstances.reduce((partialSum, a) => partialSum + a.followersCount, 0);
-		let totalFollowingCount = fedStats.topPubInstances.reduce((partialSum, a) => partialSum + a.followingCount, 0);
+		let totalFollowersCount = fedStats.topSubInstances.reduce((partialSum, a) => partialSum + a.followersCount, 0) + fedStats.otherFollowersCount;
+		let totalFollowingCount = fedStats.topPubInstances.reduce((partialSum, a) => partialSum + a.followingCount, 0) + fedStats.otherFollowingCount;
 
 		const { handler: externalTooltipHandler1 } = useChartTooltip({
 			position: 'middle',
