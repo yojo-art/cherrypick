@@ -32,6 +32,7 @@ import {
 	MiEvent,
 	MiFlash,
 	MiFlashLike,
+	MiFlashLikeRemote,
 	MiFollowing,
 	MiFollowRequest,
 	MiGalleryLike,
@@ -506,6 +507,12 @@ const $flashsRepository: Provider = {
 const $flashLikesRepository: Provider = {
 	provide: DI.flashLikesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiFlashLike).extend(miRepository as MiRepository<MiFlashLike>),
+	inject: [DI.db],
+};
+
+const $flashLikesRemoteRepository: Provider = {
+	provide: DI.flashLikesRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiFlashLikeRemote).extend(miRepository as MiRepository<MiFlashLikeRemote>),
 	inject: [DI.db],
 };
 

@@ -70,4 +70,23 @@ export class IdService {
 			default: throw new Error('unrecognized id generation method');
 		}
 	}
+	@bindThis
+	public tryParse(id: string): { date: Date; } {
+		switch (id.length) {
+			case 10: return parseAid(id);
+			case 16: return parseAidx(id);
+			case 24: {
+				if (id.startsWith('g')) {
+					return parseMeidg(id);
+				}
+				//meidとしてparseして負になるならたぶんObjectId
+				if (parseInt(id.slice(0, 12), 16) - 0x800000000000 < 0) {
+					return parseObjectId(id);
+				}
+				return parseMeid(id);
+			};
+			case 26: return parseUlid(id);
+			default: throw new Error('unrecognized id generation method');
+		}
+	}
 }

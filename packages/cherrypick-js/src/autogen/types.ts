@@ -25021,7 +25021,6 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
-          /** Format: misskey:id */
           flashId: string;
         };
       };
@@ -25255,6 +25254,10 @@ export type operations = {
           sinceId?: string;
           /** Format: misskey:id */
           untilId?: string;
+          /** @default true */
+          withLocal?: boolean;
+          /** @default true */
+          withRemote?: boolean;
         };
       };
     };
@@ -28185,9 +28188,7 @@ export type operations = {
           userId: string;
           /** @default 10 */
           limit?: number;
-          /** Format: misskey:id */
           sinceId?: string;
-          /** Format: misskey:id */
           untilId?: string;
         };
       };

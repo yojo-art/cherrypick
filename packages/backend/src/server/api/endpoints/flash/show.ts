@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { FlashsRepository } from '@/models/_.js';
+import type { FlashLikesRemoteRepository, FlashsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { FlashEntityService } from '@/core/entities/FlashEntityService.js';
 import { DI } from '@/di-symbols.js';
@@ -54,6 +54,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.flashsRepository)
 		private flashsRepository: FlashsRepository,
+		@Inject(DI.flashLikesRemoteRepository)
+		private flashLikesRemoteRepository: FlashLikesRemoteRepository,
 
 		private flashService: FlashService,
 		private flashEntityService: FlashEntityService,
@@ -64,6 +66,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				const flash = await flashService.showRemote(parsed_id[0], parsed_id[1]).catch(err => {
 					throw new ApiError(meta.errors.failedToResolveRemoteUser);
 				});
+
+				if (me) {
+					const exist = await this.flashLikesRemoteRepository.exists({
+						where: {
+							flashId: parsed_id[0],
+							host: parsed_id[1],
+							userId: me.id,
+						},
+					});
+					if (exist) {
+						flash.isLiked = true;
+					}
+				}
 				return flash;
 			}
 			if (parsed_id.length !== 1 ) {//is not local
