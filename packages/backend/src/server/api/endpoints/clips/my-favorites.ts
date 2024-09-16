@@ -67,7 +67,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					.leftJoinAndSelect('favorite.author', 'author');
 
 				const favorites = await query.getMany();
-				const remoteFavorites = await Promise.all(favorites.map(e => clipService.showRemoteOrDummy(e.clipId, e.author)));
+				let remoteFavorites = await Promise.all(favorites.map(e => clipService.showRemoteOrDummy(e.clipId, e.author)));
+				remoteFavorites = remoteFavorites.map(clip => {
+					clip.isFavorited = true;
+					return clip;
+				});
 				myFavorites = myFavorites.concat(remoteFavorites);
 			}
 			return myFavorites.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
