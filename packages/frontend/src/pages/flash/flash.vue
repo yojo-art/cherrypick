@@ -97,7 +97,7 @@ function fetchFlash() {
 		flashId: props.id,
 	}).then(_flash => {
 		flash.value = _flash;
-		author.value = '@' + _flash.user.username + _flash.user.host ? ('@' + _flash.user.host) : '';
+		author.value = '@' + _flash.user.username + (_flash.user.host ? ('@' + _flash.user.host) : '');
 	}).catch(err => {
 		error.value = err;
 	});
