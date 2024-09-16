@@ -36,7 +36,7 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		flashId: { type: 'string', format: 'misskey:id' },
+		flashId: { type: 'string' },
 	},
 	required: ['flashId'],
 } as const;
