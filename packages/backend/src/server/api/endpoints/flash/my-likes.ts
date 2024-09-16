@@ -81,8 +81,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 			if (ps.withRemote) {
 				const query = this.queryService.makePaginationQuery(this.flashLikesRemoteRepository.createQueryBuilder('like'), ps.sinceId, ps.untilId)
-					.andWhere('like.userId = :meId', { meId: me.id })
-					.leftJoinAndSelect('like.flash', 'flash');
+					.andWhere('like.userId = :meId', { meId: me.id });
 
 				const likes = await query
 					.limit(ps.limit)
