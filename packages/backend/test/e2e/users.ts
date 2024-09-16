@@ -7,9 +7,9 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { inspect } from 'node:util';
-import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 import { api, post, role, signup, successfulApiCall, uploadFile } from '../utils.js';
 import type * as misskey from 'cherrypick-js';
+import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 
 describe('ユーザー', () => {
 	// エンティティとしてのユーザーを主眼においたテストを記述する
@@ -431,6 +431,8 @@ describe('ユーザー', () => {
 		{ parameters: () => ({ isLocked: false }) },
 		{ parameters: () => ({ isExplorable: false }) },
 		{ parameters: () => ({ isExplorable: true }) },
+		{ parameters: () => ({ isIndexable: false }) },
+		{ parameters: () => ({ isIndexable: true }) },
 		{ parameters: () => ({ hideOnlineStatus: true }) },
 		{ parameters: () => ({ hideOnlineStatus: false }) },
 		{ parameters: () => ({ publicReactions: false }) },
