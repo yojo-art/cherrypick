@@ -3532,7 +3532,9 @@ export interface Locale extends ILocale {
      */
     "makeIndexable": string;
     /**
-     * オフにすると、あなたのノートが検索で表示されなくなります。
+     * オフにすると、あなたのノートが検索で表示にくくなります。
+     * Renote 返信 投票 お気に入り クリップ リアクション
+     * されている場合は相手に表示されます
      */
     "makeIndexableDescription": string;
     /**
