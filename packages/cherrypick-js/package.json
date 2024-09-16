@@ -36,7 +36,7 @@
 		"directory": "packages/cherrypick-js"
 	},
 	"devDependencies": {
-		"@microsoft/api-extractor": "7.47.4",
+		"@microsoft/api-extractor": "7.47.9",
 		"@swc/jest": "0.2.36",
 		"@types/jest": "29.5.12",
 		"@types/node": "20.14.12",
