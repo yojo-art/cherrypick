@@ -511,7 +511,7 @@ const $flashLikesRepository: Provider = {
 };
 
 const $flashLikesRemoteRepository: Provider = {
-	provide: DI.flashLikesRepository,
+	provide: DI.flashLikesRemoteRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiFlashLikeRemote).extend(miRepository as MiRepository<MiFlashLikeRemote>),
 	inject: [DI.db],
 };
