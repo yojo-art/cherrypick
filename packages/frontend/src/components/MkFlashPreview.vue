@@ -8,8 +8,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<article>
 		<header>
 			<h1 :title="flash.title">{{ flash.title }}</h1>
-			<MkButton v-if="isLiked" v-tooltip="i18n.ts.unlike" asLike class="button" rounded primary @click.stop="unlike()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
-			<MkButton v-else v-tooltip="i18n.ts.like" asLike class="button" rounded @click.stop="like()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
+			<MkButton v-if="isLiked" v-tooltip="i18n.ts.unlike" asLike class="button" rounded primary @click.stop.prevent="unlike()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
+			<MkButton v-else v-tooltip="i18n.ts.like" asLike class="button" rounded @click.stop.prevent="like()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
 		</header>
 		<p v-if="flash.summary" :title="flash.summary">
 			<Mfm class="summaryMfm" :text="flash.summary" :plain="true" :nowrap="true"/>
