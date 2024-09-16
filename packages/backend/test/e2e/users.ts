@@ -126,6 +126,7 @@ describe('ユーザー', () => {
 			noCrawle: user.noCrawle,
 			preventAiLearning: user.preventAiLearning,
 			isExplorable: user.isExplorable,
+			isIndexable: user.isIndexable,
 			isDeleted: user.isDeleted,
 			twoFactorBackupCodesStock: user.twoFactorBackupCodesStock,
 			hideOnlineStatus: user.hideOnlineStatus,
