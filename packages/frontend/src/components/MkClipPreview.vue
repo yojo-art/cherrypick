@@ -43,7 +43,7 @@ const props = withDefaults(defineProps<{
 
 const favorited = ref(false);
 
-watch(() => props.clip.id, async () => {
+watch(() => props.clip, async () => {
 	favorited.value = props.clip.isFavorited ?? true;
 });
 const remaining = computed(() => {
