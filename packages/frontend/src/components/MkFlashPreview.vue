@@ -17,17 +17,51 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<p>{{ userName(flash.user) }}</p>
 		</footer>
 	</article>
+	<MkButton v-if="isLiked" v-tooltip="i18n.ts.unlike" asLike class="button" rounded primary @click="unlike()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
+	<MkButton v-else v-tooltip="i18n.ts.like" asLike class="button" rounded @click="like()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
 </MkA>
 </template>
 
 <script lang="ts" setup>
-import { } from 'vue';
+import { ref, watchEffect } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { userName } from '@/filters/user.js';
+import * as os from '@/os.js';
+import { i18n } from '@/i18n.js';
+import { pleaseLogin } from '@/scripts/please-login.js';
 
 const props = defineProps<{
 	flash: Misskey.entities.Flash;
 }>();
+const isLiked = ref<boolean>(false);
+watchEffect(() => {
+	isLiked.value = props.flash.isLiked ?? false;
+});
+
+function like() {
+	pleaseLogin();
+
+	os.apiWithDialog('flash/like', {
+		flashId: props.flash.id,
+	}).then(() => {
+		isLiked.value = true;
+	});
+}
+
+async function unlike() {
+	pleaseLogin();
+
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unlikeConfirm,
+	});
+	if (confirm.canceled) return;
+	os.apiWithDialog('flash/unlike', {
+		flashId: props.flash.id,
+	}).then(() => {
+		isLiked.value = false;
+	});
+}
 </script>
 
 <style lang="scss" scoped>
@@ -132,4 +166,8 @@ const props = defineProps<{
 	}
 }
 
+.button {
+	min-width: 48px;
+	min-height: 48px;
+}
 </style>
