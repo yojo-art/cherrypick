@@ -68,7 +68,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const host = flashIdArray.length > 1 ? flashIdArray[1] : null;
 			if (host) {
 				const flashId = flashIdArray[0];
-				await flashService.showRemote(flashId, host);
+				const flash = await flashService.showRemote(flashId, host);
 
 				const exist = await this.flashLikesRemoteRepository.exists({
 					where: {
@@ -87,6 +87,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					flashId,
 					host,
 					userId: me.id,
+					authorId: flash.userId,
 				});
 				return;
 			}
