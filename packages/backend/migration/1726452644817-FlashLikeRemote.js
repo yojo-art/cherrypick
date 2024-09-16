@@ -11,9 +11,11 @@ export class flashLikeRemote1726452644817 {
 			await queryRunner.query(`CREATE INDEX "IDX_ade312aad367a2902ed415abbc" ON "flash_like_remote" ("userId") `);
 			await queryRunner.query(`CREATE UNIQUE INDEX "IDX_f7c8a8fd916efed73a05bc1ea0" ON "flash_like_remote" ("userId", "flashId","host") `);
 			await queryRunner.query(`ALTER TABLE "flash_like_remote" ADD CONSTRAINT "FK_8c14417c4cc57f04b4d7376707a" FOREIGN KEY ("userId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
+			await queryRunner.query(`ALTER TABLE "flash_like_remote" ADD CONSTRAINT "FK_75f247337676468f6bd6f22eb24" FOREIGN KEY ("authorId") REFERENCES "user"("id") ON DELETE CASCADE ON UPDATE NO ACTION`);
 	}
 
 	async down(queryRunner) {
+			await queryRunner.query(`ALTER TABLE "flash_like_remote" DROP CONSTRAINT "FK_75f247337676468f6bd6f22eb24"`);
 			await queryRunner.query(`ALTER TABLE "flash_like_remote" DROP CONSTRAINT "FK_8c14417c4cc57f04b4d7376707a"`);
 			await queryRunner.query(`DROP INDEX "public"."IDX_f7c8a8fd916efed73a05bc1ea0"`);
 			await queryRunner.query(`DROP INDEX "public"."IDX_ade312aad367a2902ed415abbc"`);
