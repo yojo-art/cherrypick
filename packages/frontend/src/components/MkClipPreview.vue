@@ -6,7 +6,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <MkA :to="`/clips/${clip.id}`" :class="$style.link">
 	<div :class="$style.root" class="_panel _gaps_s">
-		<b>{{ clip.name }}</b>
+		<header>
+			<b>{{ clip.name }}</b>
+			<MkButton v-if="favorited" v-tooltip="i18n.ts.unfavorite" asLike rounded primary @click.stop.prevent="unfavorite()"><i class="ti ti-heart-off"></i><span v-if="clip.favoritedCount > 0" style="margin-left: 6px;">{{ clip.favoritedCount }}</span></MkButton>
+			<MkButton v-else v-tooltip="i18n.ts.favorite" asLike rounded @click.stop.prevent="favorite()"><i class="ti ti-heart"></i><span v-if="clip.favoritedCount > 0" style="margin-left: 6px;">{{ clip.favoritedCount }}</span></MkButton>
+		</header>
 		<div :class="$style.description">
 			<div v-if="clip.description"><Mfm :text="clip.description" :plain="true" :nowrap="true"/></div>
 			<div v-if="clip.lastClippedAt">{{ i18n.ts.updatedAt }}: <MkTime :time="clip.lastClippedAt" mode="detail"/></div>
@@ -24,7 +28,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import * as Misskey from 'cherrypick-js';
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
+import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/account.js';
 import number from '@/filters/number.js';
@@ -36,12 +41,40 @@ const props = withDefaults(defineProps<{
 	noUserInfo: false,
 });
 
+const favorited = ref(false);
+
 const remaining = computed(() => {
 	return ($i?.policies && props.clip.notesCount != null) ? ($i.policies.noteEachClipsLimit - props.clip.notesCount) : i18n.ts.unknown;
 });
+
+function favorite() {
+	os.apiWithDialog('clips/favorite', {
+		clipId: props.clip.id,
+	}).then(() => {
+		favorited.value = true;
+	});
+}
+
+async function unfavorite() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unfavoriteConfirm,
+	});
+	if (confirm.canceled) return;
+	os.apiWithDialog('clips/unfavorite', {
+		clipId: props.clip.id,
+	}).then(() => {
+		favorited.value = false;
+	});
+}
 </script>
 
 <style lang="scss" module>
+
+> header {
+	display: flex;
+	justify-content: space-between;
+}
 .link {
 	display: block;
 
