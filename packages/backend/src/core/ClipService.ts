@@ -18,7 +18,7 @@ import { bindThis } from '@/decorators.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
-import type { MiLocalUser } from '@/models/User.js';
+import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
 
 @Injectable()
@@ -170,6 +170,32 @@ export class ClipService {
 		});
 
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);
+	}
+	@bindThis
+	async showRemoteOrDummy(clipId: string, author: MiUser|null) : Promise<Packed<'Clip'>> {
+		if (author == null) {
+			throw new Error();
+		}
+		try {
+			if (author.host == null) {
+				throw new Error();
+			}
+			return await this.showRemote(clipId, author.host);
+		} catch {
+			return await awaitAll({
+				id: clipId + '@' + (author.host ? author.host : ''),
+				createdAt: new Date(0).toISOString(),
+				lastClippedAt: new Date(0).toISOString(),
+				userId: author.id,
+				user: this.userEntityService.pack(author),
+				name: 'Unavailable',
+				description: '',
+				isPublic: true,
+				favoritedCount: 0,
+				isFavorited: false,
+				notesCount: 0,
+			});
+		}
 	}
 	@bindThis
 	public async showRemote(
