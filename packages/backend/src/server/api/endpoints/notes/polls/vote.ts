@@ -15,6 +15,7 @@ import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
+import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -95,6 +96,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private apRendererService: ApRendererService,
 		private globalEventService: GlobalEventService,
 		private userBlockingService: UserBlockingService,
+		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const createdAt = new Date();
@@ -144,11 +146,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			// Create vote
+			const id = this.idService.gen(createdAt.getTime());
 			const vote = await this.pollVotesRepository.insertOne({
-				id: this.idService.gen(createdAt.getTime()),
+				id: id,
 				noteId: note.id,
 				userId: me.id,
 				choice: ps.choice,
+			});
+			this.advancedSearchService.indexVote(id, {
+				noteId: note.id,
+				userId: me.id,
 			});
 
 			// Increment votes count

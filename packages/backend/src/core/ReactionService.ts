@@ -30,6 +30,7 @@ import { RoleService } from '@/core/RoleService.js';
 import { FeaturedService } from '@/core/FeaturedService.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { AdvancedSearchService } from './AdvancedSearchService.js';
 
 const FALLBACK = '\u2764';
 const PER_NOTE_REACTION_USER_PAIR_CACHE_MAX = 16;
@@ -100,6 +101,7 @@ export class ReactionService {
 		private apDeliverManagerService: ApDeliverManagerService,
 		private notificationService: NotificationService,
 		private perUserReactionsChart: PerUserReactionsChart,
+		private advancedSearchService: AdvancedSearchService,
 	) {
 	}
 
@@ -177,6 +179,12 @@ export class ReactionService {
 		// Create reaction
 		try {
 			await this.noteReactionsRepository.insert(record);
+			await this.advancedSearchService.indexReacted({
+				id: record.id,
+				noteId: record.noteId,
+				userId: record.userId,
+				reaction: record.reaction,
+			});
 		} catch (e) {
 			if (isDuplicateKeyValueError(e)) {
 				const exists = await this.noteReactionsRepository.findOneByOrFail({
@@ -299,6 +307,7 @@ export class ReactionService {
 
 		// Delete reaction
 		const result = await this.noteReactionsRepository.delete(exist.id);
+		await this.advancedSearchService.unindexReaction(exist.id);
 
 		if (result.affected !== 1) {
 			throw new IdentifiableError('60527ec9-b4cb-4a88-a6bd-32d3ad26817d', 'not reacted');
