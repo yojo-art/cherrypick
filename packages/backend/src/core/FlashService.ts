@@ -45,10 +45,10 @@ export class FlashService {
 	}
 	@bindThis
 	public async showRemote(
-		clipId:string,
+		flashId:string,
 		host:string,
 	) : Promise<Packed<'Flash'>> {
-		const cache_key = 'flash:show:' + clipId + '@' + host;
+		const cache_key = 'flash:show:' + flashId + '@' + host;
 		const cache_value = await this.redisForRemoteApis.get(cache_key);
 		let remote_json = null;
 		if (cache_value === null) {
@@ -79,7 +79,7 @@ export class FlashService {
 				},
 				enableUnixSockets: false,
 				body: JSON.stringify({
-					clipId,
+					flashId,
 				}),
 			});
 			remote_json = await res.text();
@@ -98,7 +98,7 @@ export class FlashService {
 			throw new FlashService.FailedToResolveRemoteUserError();
 		});
 		return await awaitAll({
-			id: clipId + '@' + host,
+			id: flashId + '@' + host,
 			createdAt: remote.createdAt ? new Date(remote.createdAt).toISOString() : new Date(0).toISOString(),
 			updatedAt: remote.updatedAt ? new Date(remote.updatedAt).toISOString() : new Date(0).toISOString(),
 			userId: user.id,

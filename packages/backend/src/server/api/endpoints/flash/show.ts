@@ -61,10 +61,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.flashId.split('@');
 			if (parsed_id.length === 2 ) {//is remote
-				const clip = await flashService.showRemote(parsed_id[0], parsed_id[1]).catch(err => {
+				const flash = await flashService.showRemote(parsed_id[0], parsed_id[1]).catch(err => {
 					throw new ApiError(meta.errors.failedToResolveRemoteUser);
 				});
-				return clip;
+				return flash;
 			}
 			if (parsed_id.length !== 1 ) {//is not local
 				throw new ApiError(meta.errors.invalidIdFormat);
