@@ -84,6 +84,8 @@ async function unlike() {
 		> header {
 			margin-bottom: 8px;
 
+			display: flex;
+			justify-content: space-between;
 			> h1 {
 				margin: 0;
 				font-size: 1em;
@@ -166,8 +168,4 @@ async function unlike() {
 	}
 }
 
-.button {
-	min-width: 48px;
-	min-height: 48px;
-}
 </style>
