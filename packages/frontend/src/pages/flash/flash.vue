@@ -45,7 +45,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkCode :code="flash.script" lang="is" class="_monospace"/>
 				</MkFolder>
 				<div :class="$style.footer">
-					<Mfm :text="`By @${flash.user.username}`"/>
+					<Mfm :text="`By ${author}`"/>
 					<div class="date">
 						<div v-if="flash.createdAt != flash.updatedAt"><i class="ti ti-clock"></i> {{ i18n.ts.updatedAt }}: <MkTime :time="flash.updatedAt" mode="detail"/></div>
 						<div><i class="ti ti-clock"></i> {{ i18n.ts.createdAt }}: <MkTime :time="flash.createdAt" mode="detail"/></div>
@@ -88,6 +88,7 @@ const props = defineProps<{
 }>();
 
 const flash = ref<Misskey.entities.Flash | null>(null);
+const author = ref<string>('');
 const error = ref<any>(null);
 
 function fetchFlash() {
@@ -96,6 +97,7 @@ function fetchFlash() {
 		flashId: props.id,
 	}).then(_flash => {
 		flash.value = _flash;
+		author.value = '@' + _flash.user.username + _flash.user.host ? ('@' + _flash.user.host) : '';
 	}).catch(err => {
 		error.value = err;
 	});
