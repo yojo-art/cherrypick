@@ -8,6 +8,7 @@ import type { FlashsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { FlashEntityService } from '@/core/entities/FlashEntityService.js';
 import { DI } from '@/di-symbols.js';
+import { FlashService } from '@/core/FlashService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -27,13 +28,23 @@ export const meta = {
 			code: 'NO_SUCH_FLASH',
 			id: 'f0d34a1a-d29a-401d-90ba-1982122b5630',
 		},
+		invalidIdFormat: {
+			message: 'Invalid id format.',
+			code: 'INVALID_ID_FORMAT',
+			id: 'df45c7d1-cd15-4a35-b3e1-8c9f987c4f5c',
+		},
+		failedToResolveRemoteUser: {
+			message: 'failedToResolveRemoteUser.',
+			code: 'FAILED_TO_RESOLVE_REMOTE_USER',
+			id: '56d5e552-d55a-47e3-9f37-6dc85a93ecf9',
+		},
 	},
 } as const;
 
 export const paramDef = {
 	type: 'object',
 	properties: {
-		flashId: { type: 'string', format: 'misskey:id' },
+		flashId: { type: 'string' },
 	},
 	required: ['flashId'],
 } as const;
@@ -44,9 +55,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.flashsRepository)
 		private flashsRepository: FlashsRepository,
 
+		private flashService: FlashService,
 		private flashEntityService: FlashEntityService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			const parsed_id = ps.flashId.split('@');
+			if (parsed_id.length === 2 ) {//is remote
+				const clip = await flashService.showRemote(parsed_id[0], parsed_id[1]).catch(err => {
+					throw new ApiError(meta.errors.failedToResolveRemoteUser);
+				});
+				return clip;
+			}
+			if (parsed_id.length !== 1 ) {//is not local
+				throw new ApiError(meta.errors.invalidIdFormat);
+			}
 			const flash = await this.flashsRepository.findOneBy({ id: ps.flashId });
 
 			if (flash == null) {
