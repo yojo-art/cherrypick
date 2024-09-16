@@ -3534,7 +3534,8 @@ export interface Locale extends ILocale {
     /**
      * オフにすると、あなたのノートが検索で表示にくくなります。
      * Renote 返信 投票 お気に入り クリップ リアクション
-     * されている場合は相手に表示されます
+     * されている場合は相手に表示されます。
+     * リモートのサーバーも対応している必要があります。
      */
     "makeIndexableDescription": string;
     /**
