@@ -25248,7 +25248,9 @@ export type operations = {
         'application/json': {
           /** @default 10 */
           limit?: number;
+          /** Format: misskey:id */
           sinceId?: string;
+          /** Format: misskey:id */
           untilId?: string;
           /** @default true */
           withLocal?: boolean;

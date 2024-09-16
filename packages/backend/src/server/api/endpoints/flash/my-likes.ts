@@ -46,8 +46,8 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-		sinceId: { type: 'string' },
-		untilId: { type: 'string' },
+		sinceId: { type: 'string', format: 'misskey:id' },
+		untilId: { type: 'string', format: 'misskey:id' },
 		withLocal: { type: 'boolean', default: true },
 		withRemote: { type: 'boolean', default: true },
 	},
@@ -69,27 +69,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			let myFavorites: {id:string, flash:Packed<'Flash'>}[] = [];
-
-			//sinceId/untilIdがローカル形式とは限らないから推測して時刻に変換する
-			function tryParse(id?:string):number|undefined {
-				if (!id) return undefined;
-				const idArray = id.split('@');
-				if (idArray.length === 1 ) {
-					//ローカル
-					return idService.parse(id).date.getTime();
-				}
-				if (idArray.length === 2 ) {
-					//リモート
-					return idService.tryParse(idArray[0]).date.getTime();
-				}
-				//謎
-				return undefined;
-			}
-
-			const sinceDate = tryParse(ps.sinceId);
-			const untilDate = tryParse(ps.untilId);
 			if (ps.withLocal) {
-				const query = this.queryService.makePaginationQuery(this.flashLikesRepository.createQueryBuilder('like'), undefined, undefined, sinceDate, untilDate)
+				const query = this.queryService.makePaginationQuery(this.flashLikesRepository.createQueryBuilder('like'), ps.sinceId, ps.untilId)
 					.andWhere('like.userId = :meId', { meId: me.id })
 					.leftJoinAndSelect('like.flash', 'flash');
 
@@ -99,8 +80,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				myFavorites = myFavorites.concat(await this.flashLikeEntityService.packMany(likes, me));
 			}
 			if (ps.withRemote) {
-				const query = this.queryService.makePaginationQuery(this.flashLikesRemoteRepository.createQueryBuilder('like'), undefined, undefined, sinceDate, untilDate)
-					.andWhere('like.userId = :meId', { meId: me.id });
+				const query = this.queryService.makePaginationQuery(this.flashLikesRemoteRepository.createQueryBuilder('like'), ps.sinceId, ps.untilId)
+					.andWhere('like.userId = :meId', { meId: me.id })
+					.leftJoinAndSelect('like.flash', 'flash');
 
 				const likes = await query
 					.limit(ps.limit)
