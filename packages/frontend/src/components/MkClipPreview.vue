@@ -28,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import * as Misskey from 'cherrypick-js';
-import { computed, ref, watch } from 'vue';
+import { computed, ref, watchEffect } from 'vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/account.js';
@@ -43,7 +43,7 @@ const props = withDefaults(defineProps<{
 
 const favorited = ref(false);
 
-watch(() => props.clip, async () => {
+watchEffect(async () => {
 	favorited.value = props.clip.isFavorited ?? true;
 });
 const remaining = computed(() => {
