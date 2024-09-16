@@ -202,20 +202,6 @@ export class MiUser {
 	})
 	public isIndexable: boolean;
 
-	/**
-	 * public ... だれでも
-	 * followers ... フォロワーのみ
-	 * reacted ... 返信かリアクションしたユーザーのみ
-	 * null ... isIndexableを見る
-	 */
-
-	@Index()
-	@Column('enum', {
-		enum: searchableTypes,
-		nullable: true,
-	})
-	public searchableBy: typeof searchableTypes[number] | null;
-
 	@Column('boolean', {
 		default: false,
 	})

@@ -233,6 +233,52 @@ export class QueryService {
 	}
 
 	@bindThis
+	public generateSearchableQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null): void {
+		//検索許可に基づいたクエリ生成
+		if (me == null) {
+			//検索許可が必要
+			 q.andWhere('(SELECT "isIndexable" FROM "user" WHERE id = note."userId")');
+		} else {
+			q.andWhere(new Brackets(qb => {
+				qb
+					//自分の投稿か、
+					.where('note.userId = :meId')
+					//検索許可されている
+					.orWhere('(SELECT "isIndexable" FROM "user" WHERE id = note."userId")')
+					/*
+					* mastodonの検索の同じ動作をするように
+
+					> 「公開」で送信された投稿がMastodonの検索結果にヒットするようになります。
+					> ここのチェック状態にかかわらず、ほかのユーザーにブーストやお気に入り登録された投稿はそのユーザーから検索されることがあります。
+					mastodonでの自分以外の indexable:false で検索可能な条件
+					→ ブースト済み,返信済み,投票した投稿,ブックマーク済み,お気に入り済み,ブックマーク済み
+
+					お気に入り == APLike == リアクション
+					ブックマーク == クリップ | お気に入り
+
+					*	検索は許可されていないが、
+					*/
+					//リアクションしている
+					.orWhere('(1 = (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+					//投票している
+					.orWhere(new Brackets(qb => {
+						qb
+							.where('note."hasPoll" IS TRUE')
+							.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
+					}))
+					//お気に入りしている
+					.orWhere('(1 = (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+					//クリップしている
+					.orWhere('(1 = (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+					//リノートしている
+					.orWhere('(1 = (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+					//返信している
+					.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
+			}));
+		}
+	}
+
+	@bindThis
 	public generateMutedUserRenotesQueryForNotes(q: SelectQueryBuilder<any>, me: { id: MiUser['id'] }): void {
 		const mutingQuery = this.renoteMutingsRepository.createQueryBuilder('renote_muting')
 			.select('renote_muting.muteeId')
