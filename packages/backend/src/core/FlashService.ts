@@ -12,7 +12,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
 import { DI } from '@/di-symbols.js';
-import type { ClipsRepository, ClipNotesRepository, NotesRepository } from '@/models/_.js';
+import type { ClipsRepository, ClipNotesRepository, NotesRepository, MiUser } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
@@ -42,6 +42,33 @@ export class FlashService {
 		private roleService: RoleService,
 		private idService: IdService,
 	) {
+	}
+	@bindThis
+	async showRemoteOrDummy(flashId: string, author: MiUser|null) : Promise<Packed<'Flash'>> {
+		if (author == null) {
+			throw new Error();
+		}
+		try {
+			if (author.host == null) {
+				throw new Error();
+			}
+			return await this.showRemote(flashId, author.host);
+		} catch {
+			return await awaitAll({
+				id: flashId + '@' + (author.host ? author.host : ''),
+				createdAt: new Date(0).toISOString(),
+				updatedAt: new Date(0).toISOString(),
+				userId: author.id,
+				user: this.userEntityService.pack(author),
+				title: 'Unavailable',
+				summary: '',
+				script: '',
+				favoritedCount: 0,
+				visibility: 'public',
+				likedCount: 0,
+				isLiked: false, //後でLike対応する
+			});
+		}
 	}
 	@bindThis
 	public async showRemote(
@@ -107,7 +134,7 @@ export class FlashService {
 			summary: String(remote.summary),
 			script: String(remote.script),
 			favoritedCount: remote.favoritedCount,
-			visibility: remote.visibility ?? false,
+			visibility: remote.visibility ?? 'public',
 			likedCount: remote.likedCount ?? 0,
 			isLiked: false, //後でLike対応する
 		});

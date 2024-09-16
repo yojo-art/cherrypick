@@ -81,12 +81,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 			if (ps.withRemote) {
 				const query = this.queryService.makePaginationQuery(this.flashLikesRemoteRepository.createQueryBuilder('like'), ps.sinceId, ps.untilId)
-					.andWhere('like.userId = :meId', { meId: me.id });
+					.andWhere('like.userId = :meId', { meId: me.id })
+					.leftJoinAndSelect('like.author', 'author');
 
 				const likes = await query
 					.limit(ps.limit)
 					.getMany();
-				const remoteLikes = await Promise.all(likes.map(e => awaitAll({ id: e.id, flash: flashService.showRemote(e.flashId, e.host) })));
+				const remoteLikes = await Promise.all(likes.map(e => awaitAll({ id: e.id, flash: flashService.showRemoteOrDummy(e.flashId, e.author) })));
 				myFavorites = myFavorites.concat(remoteLikes);
 			}
 			return myFavorites.sort((a, b) => new Date(a.flash.createdAt).getTime() - new Date(b.flash.createdAt).getTime());

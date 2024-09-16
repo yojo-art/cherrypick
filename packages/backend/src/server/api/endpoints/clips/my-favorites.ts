@@ -63,10 +63,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 			if (ps.withRemote) {
 				const query = this.clipFavoritesRemoteRepository.createQueryBuilder('favorite')
-					.andWhere('favorite.userId = :meId', { meId: me.id });
+					.andWhere('favorite.userId = :meId', { meId: me.id })
+					.leftJoinAndSelect('like.author', 'author');
 
 				const favorites = await query.getMany();
-				const remoteFavorites = await Promise.all(favorites.map(e => clipService.showRemote(e.clipId, e.host)));
+				const remoteFavorites = await Promise.all(favorites.map(e => clipService.showRemoteOrDummy(e.clipId, e.author)));
 				myFavorites = myFavorites.concat(remoteFavorites);
 			}
 			return myFavorites.sort((a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime());
