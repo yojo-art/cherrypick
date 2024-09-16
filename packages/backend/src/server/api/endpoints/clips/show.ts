@@ -7,14 +7,10 @@ import { Inject, Injectable } from '@nestjs/common';
 import got, * as Got from 'got';
 import * as Redis from 'ioredis';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { ClipsRepository } from '@/models/_.js';
+import type { ClipFavoritesRemoteRepository, ClipsRepository } from '@/models/_.js';
 import { ClipEntityService } from '@/core/entities/ClipEntityService.js';
 import { DI } from '@/di-symbols.js';
-import type { Config } from '@/config.js';
-import { HttpRequestService } from '@/core/HttpRequestService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { awaitAll } from '@/misc/prelude/await-all.js';
-import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
+import { ClipService } from '@/core/ClipService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -60,24 +56,33 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
-		@Inject(DI.config)
-		private config: Config,
 		@Inject(DI.clipsRepository)
 		private clipsRepository: ClipsRepository,
-		@Inject(DI.redisForRemoteApis)
-		private redisForRemoteApis: Redis.Redis,
+		@Inject(DI.clipFavoritesRemoteRepository)
+		private clipFavoritesRemoteRepository: ClipFavoritesRemoteRepository,
 
-		private httpRequestService: HttpRequestService,
-		private userEntityService: UserEntityService,
-		private remoteUserResolveService: RemoteUserResolveService,
+		private clipService: ClipService,
 		private clipEntityService: ClipEntityService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.clipId.split('@');
 			if (parsed_id.length === 2 ) {//is remote
-				const url = 'https://' + parsed_id[1] + '/api/clips/show';
-				console.log(url);
-				return remote(config, httpRequestService, userEntityService, remoteUserResolveService, redisForRemoteApis, url, parsed_id[0], parsed_id[1], ps.clipId);
+				const clip = await clipService.showRemote(parsed_id[0], parsed_id[1]).catch(err => {
+					throw new ApiError(meta.errors.failedToResolveRemoteUser);
+				});
+				if (me) {
+					const exist = await this.clipFavoritesRemoteRepository.exists({
+						where: {
+							clipId: parsed_id[0],
+							host: parsed_id[1],
+							userId: me.id,
+						},
+					});
+					if (exist) {
+						clip.isFavorited = true;
+					}
+				}
+				return clip;
 			}
 			if (parsed_id.length !== 1 ) {//is not local
 				throw new ApiError(meta.errors.invalidIdFormat);
@@ -100,76 +105,3 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	}
 }
 
-async function remote(
-	config:Config,
-	httpRequestService: HttpRequestService,
-	userEntityService: UserEntityService,
-	remoteUserResolveService: RemoteUserResolveService,
-	redisForRemoteApis: Redis.Redis,
-	url:string,
-	clipId:string,
-	host:string,
-	local_id:string,
-) {
-	const cache_key = 'clip:show:' + local_id;
-	const cache_value = await redisForRemoteApis.get(cache_key);
-	let remote_json = null;
-	if (cache_value === null) {
-		const timeout = 30 * 1000;
-		const operationTimeout = 60 * 1000;
-		const res = got.post(url, {
-			headers: {
-				'User-Agent': config.userAgent,
-				'Content-Type': 'application/json; charset=utf-8',
-			},
-			timeout: {
-				lookup: timeout,
-				connect: timeout,
-				secureConnect: timeout,
-				socket: timeout,	// read timeout
-				response: timeout,
-				send: timeout,
-				request: operationTimeout,	// whole operation timeout
-			},
-			agent: {
-				http: httpRequestService.httpAgent,
-				https: httpRequestService.httpsAgent,
-			},
-			http2: true,
-			retry: {
-				limit: 1,
-			},
-			enableUnixSockets: false,
-			body: JSON.stringify({
-				clipId,
-			}),
-		});
-		remote_json = await res.text();
-		const redisPipeline = redisForRemoteApis.pipeline();
-		redisPipeline.set(cache_key, remote_json);
-		redisPipeline.expire(cache_key, 10 * 60);
-		await redisPipeline.exec();
-	} else {
-		remote_json = cache_value;
-	}
-	const remote_clip = JSON.parse(remote_json);
-	if (remote_clip.user == null || remote_clip.user.username == null) {
-		throw new ApiError(meta.errors.failedToResolveRemoteUser);
-	}
-	const user = await remoteUserResolveService.resolveUser(remote_clip.user.username, host).catch(err => {
-		throw new ApiError(meta.errors.failedToResolveRemoteUser);
-	});
-	return await awaitAll({
-		id: local_id,
-		createdAt: remote_clip.createdAt ? remote_clip.createdAt : null,
-		lastClippedAt: remote_clip.lastClippedAt ? remote_clip.lastClippedAt : null,
-		userId: user.id,
-		user: userEntityService.pack(user),
-		name: remote_clip.name,
-		description: remote_clip.description,
-		isPublic: true,
-		favoritedCount: remote_clip.favoritedCount,
-		isFavorited: false,
-		notesCount: remote_clip.notesCount,
-	});
-}

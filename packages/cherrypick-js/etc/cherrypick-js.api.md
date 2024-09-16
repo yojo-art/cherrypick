@@ -947,6 +947,9 @@ type ClipsFavoriteRequest = operations['clips___favorite']['requestBody']['conte
 type ClipsListResponse = operations['clips___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type ClipsMyFavoritesRequest = operations['clips___my-favorites']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type ClipsMyFavoritesResponse = operations['clips___my-favorites']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1395,6 +1398,7 @@ declare namespace entities {
         ClipsUpdateResponse,
         ClipsFavoriteRequest,
         ClipsUnfavoriteRequest,
+        ClipsMyFavoritesRequest,
         ClipsMyFavoritesResponse,
         DriveResponse,
         DriveFilesRequest,

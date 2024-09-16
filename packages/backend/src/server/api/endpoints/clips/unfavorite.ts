@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { ClipsRepository, ClipFavoritesRepository } from '@/models/_.js';
+import type { ClipsRepository, ClipFavoritesRepository, ClipFavoritesRemoteRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '../../error.js';
@@ -36,7 +36,7 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		clipId: { type: 'string', format: 'misskey:id' },
+		clipId: { type: 'string' },
 	},
 	required: ['clipId'],
 } as const;
@@ -49,8 +49,26 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.clipFavoritesRepository)
 		private clipFavoritesRepository: ClipFavoritesRepository,
+		@Inject(DI.clipFavoritesRemoteRepository)
+		private clipFavoritesRemoteRepository: ClipFavoritesRemoteRepository,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			const clipIdArray = ps.clipId.split('@');
+			const host = clipIdArray.length > 1 ? clipIdArray[1] : null;
+			if (host) {
+				const exist = await this.clipFavoritesRemoteRepository.findOneBy({
+					clipId: clipIdArray[0],
+					host: host,
+					userId: me.id,
+				});
+
+				if (exist == null) {
+					throw new ApiError(meta.errors.notFavorited);
+				}
+
+				await this.clipFavoritesRemoteRepository.delete(exist.id);
+				return;
+			}
 			const clip = await this.clipsRepository.findOneBy({ id: ps.clipId });
 			if (clip == null) {
 				throw new ApiError(meta.errors.noSuchClip);

@@ -205,6 +205,7 @@ export type ClipsUpdateRequest = operations['clips___update']['requestBody']['co
 export type ClipsUpdateResponse = operations['clips___update']['responses']['200']['content']['application/json'];
 export type ClipsFavoriteRequest = operations['clips___favorite']['requestBody']['content']['application/json'];
 export type ClipsUnfavoriteRequest = operations['clips___unfavorite']['requestBody']['content']['application/json'];
+export type ClipsMyFavoritesRequest = operations['clips___my-favorites']['requestBody']['content']['application/json'];
 export type ClipsMyFavoritesResponse = operations['clips___my-favorites']['responses']['200']['content']['application/json'];
 export type DriveResponse = operations['drive']['responses']['200']['content']['application/json'];
 export type DriveFilesRequest = operations['drive___files']['requestBody']['content']['application/json'];
