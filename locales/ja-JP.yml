@@ -3176,8 +3176,8 @@ _searchOrApShow:
   lookup: "照会"
 
 _reIndexOpenSearch:
-  title: "全てのノートを再インデックスする"
-  quesion: "全てのノートを再インデックスしますか？"
+  title: "再インデックスする"
+  quesion: "再インデックス対象"
 
 _reCreateOpenSearchIndex:
   title: "現在のインデックスを破棄して再インデックスする"

@@ -235,7 +235,6 @@ export class AdvancedSearchService {
 							mappings: {
 								properties: {
 									noteId: { type: 'keyword' },
-									noteUserId: { type: 'keyword' },
 									userId: { type: 'keyword' },
 									createdAt: { type: 'date' },
 									reaction: { type: 'keyword' },
@@ -346,13 +345,11 @@ export class AdvancedSearchService {
 	public async indexReaction(opts: {
 		id: string,
 		noteId: string,
-		noteUserId?: string,
 		userId: string,
 		reaction: string,
 	}) {
 		await this.index(this.reactionIndex, opts.id, {
 			noteId: opts.noteId,
-			noteUserId: opts.noteUserId,
 			userId: opts.userId,
 			reaction: opts.reaction,
 			createdAt: this.idService.parse(opts.id).date.getTime(),
@@ -510,7 +507,6 @@ export class AdvancedSearchService {
 			const reactions = await this.noteReactionsRepository
 				.createQueryBuilder('reac')
 				.where('reac.id > :latestid', { latestid })
-				.leftJoinAndSelect('reac.note', 'note')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -518,7 +514,6 @@ export class AdvancedSearchService {
 				this.indexReaction({
 					id: reac.id,
 					noteId: reac.noteId,
-					noteUserId: reac.note ? reac.note.userId : undefined,
 					userId: reac.userId,
 					reaction: reac.reaction,
 				});

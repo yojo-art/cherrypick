@@ -11905,11 +11905,11 @@ export interface Locale extends ILocale {
     };
     "_reIndexOpenSearch": {
         /**
-         * 全てのノートを再インデックスする
+         * 再インデックスする
          */
         "title": string;
         /**
-         * 全てのノートを再インデックスしますか？
+         * 再インデックス対象
          */
         "quesion": string;
     };

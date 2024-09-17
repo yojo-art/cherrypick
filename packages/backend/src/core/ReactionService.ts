@@ -182,7 +182,6 @@ export class ReactionService {
 			await this.advancedSearchService.indexReaction({
 				id: record.id,
 				noteId: record.noteId,
-				noteUserId: note.userId,
 				userId: record.userId,
 				reaction: record.reaction,
 			});
