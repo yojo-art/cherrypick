@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
 	<MkSpacer :contentMax="700">
+		<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn" :class="$style.remote_caution"/>
 		<Transition :name="defaultStore.state.animation ? 'fade' : ''" mode="out-in">
 			<div v-if="flash" :key="flash.id">
 				<Transition :name="defaultStore.state.animation ? 'zoom' : ''" mode="out-in">
@@ -90,6 +91,14 @@ const props = defineProps<{
 const flash = ref<Misskey.entities.Flash | null>(null);
 const author = ref<string>('');
 const error = ref<any>(null);
+
+const remoteUrl = ref<string | null>(null);
+(() => {
+	let remote_split = props.id.split('@');
+	if (remote_split.length === 2 ) {
+		remoteUrl.value = 'https://' + remote_split[1] + '/play/' + remote_split[0];
+	}
+})();
 
 function fetchFlash() {
 	flash.value = null;
