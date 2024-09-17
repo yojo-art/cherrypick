@@ -5,6 +5,7 @@ Cherrypick 4.11.1
 
 ### General
 - Enhance: 連合一覧のソートにリバーシのバージョンを追加
+<<<<<<< indexable
 - Feat: mastodonのindexableに対応
   - 検索で表示される条件を制限できるようになります
   - 設定→プライバシーより設定できます
@@ -15,9 +16,14 @@ Cherrypick 4.11.1
   	- お気に入り
   	- 返信
   	- 投票
+=======
+- Enhance: リモートのクリップをお気に入りに登録できるように
+
+>>>>>>> develop
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
+- Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
 
 ### Server
 - 
