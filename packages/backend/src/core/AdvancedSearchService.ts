@@ -346,7 +346,7 @@ export class AdvancedSearchService {
 	public async indexReaction(opts: {
 		id: string,
 		noteId: string,
-		noteUserId: string,
+		noteUserId?: string,
 		userId: string,
 		reaction: string,
 	}) {
@@ -507,16 +507,18 @@ export class AdvancedSearchService {
 		for (let index = 0; index < reactionsCount; index += limit) {
 			this.logger.info('indexing' + index + '/' + reactionsCount);
 
-			const notes = await this.noteReactionsRepository
+			const reactions = await this.noteReactionsRepository
 				.createQueryBuilder('reac')
 				.where('reac.id > :latestid', { latestid })
+				.leftJoinAndSelect('reac.note', 'note')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
-			notes.forEach(reac => {
-				this.indexReacted({
+			reactions.forEach(reac => {
+				this.indexReaction({
 					id: reac.id,
 					noteId: reac.noteId,
+					noteUserId: reac.note ? reac.note.userId : undefined,
 					userId: reac.userId,
 					reaction: reac.reaction,
 				});
@@ -534,13 +536,13 @@ export class AdvancedSearchService {
 		for (let index = 0; index < pollVotesCount; index += limit) {
 			this.logger.info('indexing' + index + '/' + pollVotesCount);
 
-			const notes = await this.pollVotesRepository
+			const votes = await this.pollVotesRepository
 				.createQueryBuilder('pv')
 				.where('pv.id > :latestid', { latestid })
 				.orderBy('pv.id', 'ASC')
 				.limit(limit)
 				.getMany();
-			notes.forEach(pollVote => {
+			votes.forEach(pollVote => {
 				this.indexVote(pollVote.id, {
 					noteId: pollVote.noteId,
 					userId: pollVote.userId,
@@ -548,7 +550,7 @@ export class AdvancedSearchService {
 				latestid = pollVote.id;
 			});
 		}
-		this.logger.info('All pollvote has been indexed.');
+		this.logger.info('All pollvotes has been indexed.');
 	}
 
 	@bindThis
@@ -1007,24 +1009,21 @@ export class AdvancedSearchService {
 
 			//リアクションしているか、
 			let res = await this.opensearch.search(Option);
-			let hits = res.body.hits.hits as OpenSearchHit[];
-			if (hits.length > 0) {
+			if (res.body.hits.total.value > 0) {
 				return Note;
 			}
 
 			//投票しているか、
 			Option.index = this.pollVoteIndex;
 			res = await this.opensearch.search(Option);
-			hits = res.body.hits.hits as OpenSearchHit[];
-			if (hits.length > 0) {
+			if (res.body.hits.total.value > 0) {
 				return Note;
 			}
 
 			//クリップもしくはお気に入りしてるか、
 			Option.index = this.favoriteIndex;
 			res = await this.opensearch.search(Option);
-			hits = res.body.hits.hits as OpenSearchHit[];
-			if (hits.length > 0) {
+			if (res.body.hits.total.value > 0) {
 				return Note;
 			}
 
@@ -1035,8 +1034,7 @@ export class AdvancedSearchService {
 				{ term: { userId: meUserId } },
 			];
 			res = await this.opensearch.search(Option);
-			hits = res.body.hits.hits as OpenSearchHit[];
-			if (hits.length > 0) {
+			if (res.body.hits.total.value > 0) {
 				return Note;
 			}
 			//返信している
@@ -1047,8 +1045,7 @@ export class AdvancedSearchService {
 			];
 
 			res = await this.opensearch.search(Option);
-			hits = res.body.hits.hits as OpenSearchHit[];
-			if (hits.length > 0) {
+			if (res.body.hits.total.value > 0) {
 				return Note;
 			}
 
