@@ -75,7 +75,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const host = clipIdArray.length > 1 ? clipIdArray[1] : null;
 			if (host) {
 				const clipId = clipIdArray[0];
-				await clipService.showRemote(clipId, host);
+				const clip = await clipService.showRemote(clipId, host);
 
 				const exist = await this.clipFavoritesRemoteRepository.exists({
 					where: {
@@ -94,6 +94,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					clipId: clipId,
 					host: host,
 					userId: me.id,
+					authorId: clip.userId,
 				});
 				return;
 			}
