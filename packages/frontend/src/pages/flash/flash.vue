@@ -67,6 +67,7 @@ import { computed, onDeactivated, onUnmounted, Ref, ref, watch, shallowRef, defi
 import * as Misskey from 'cherrypick-js';
 import { Interpreter, Parser, values } from '@syuilo/aiscript';
 import MkButton from '@/components/MkButton.vue';
+import MkRemoteCaution from '@/components/MkRemoteCaution.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { url } from '@/config.js';
@@ -320,6 +321,9 @@ definePageMetadata(() => ({
 </script>
 
 <style lang="scss" module>
+.remote_caution{
+	margin-bottom: 10px;
+}
 .ready {
 	&:global {
 		> .main {
