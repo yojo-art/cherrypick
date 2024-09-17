@@ -9561,6 +9561,14 @@ export type operations = {
    * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
    */
   'admin___full-index': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          index: 'notes' | 'reaction' | 'pollVote';
+        };
+      };
+    };
     responses: {
       /** @description OK (without any results) */
       204: {

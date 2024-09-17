@@ -98,6 +98,7 @@ export type AdminResetPasswordRequest = operations['admin___reset-password']['re
 export type AdminResetPasswordResponse = operations['admin___reset-password']['responses']['200']['content']['application/json'];
 export type AdminResolveAbuseUserReportRequest = operations['admin___resolve-abuse-user-report']['requestBody']['content']['application/json'];
 export type AdminSendEmailRequest = operations['admin___send-email']['requestBody']['content']['application/json'];
+export type AdminFullIndexRequest = operations['admin___full-index']['requestBody']['content']['application/json'];
 export type AdminServerInfoResponse = operations['admin___server-info']['responses']['200']['content']['application/json'];
 export type AdminShowModerationLogsRequest = operations['admin___show-moderation-logs']['requestBody']['content']['application/json'];
 export type AdminShowModerationLogsResponse = operations['admin___show-moderation-logs']['responses']['200']['content']['application/json'];

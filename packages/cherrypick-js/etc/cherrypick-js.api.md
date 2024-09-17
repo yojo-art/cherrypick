@@ -242,6 +242,9 @@ type AdminFederationRemoveAllFollowingRequest = operations['admin___federation__
 type AdminFederationUpdateInstanceRequest = operations['admin___federation___update-instance']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type AdminFullIndexRequest = operations['admin___full-index']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type AdminGetIndexStatsResponse = operations['admin___get-index-stats']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1291,6 +1294,7 @@ declare namespace entities {
         AdminResetPasswordResponse,
         AdminResolveAbuseUserReportRequest,
         AdminSendEmailRequest,
+        AdminFullIndexRequest,
         AdminServerInfoResponse,
         AdminShowModerationLogsRequest,
         AdminShowModerationLogsResponse,
