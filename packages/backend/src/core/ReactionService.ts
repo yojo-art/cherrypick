@@ -179,9 +179,10 @@ export class ReactionService {
 		// Create reaction
 		try {
 			await this.noteReactionsRepository.insert(record);
-			await this.advancedSearchService.indexReacted({
+			await this.advancedSearchService.indexReaction({
 				id: record.id,
 				noteId: record.noteId,
+				noteUserId: note.userId,
 				userId: record.userId,
 				reaction: record.reaction,
 			});

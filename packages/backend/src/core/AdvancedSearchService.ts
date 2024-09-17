@@ -12,7 +12,7 @@ import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 import { MiNote } from '@/models/Note.js';
 import { MiUser } from '@/models/_.js';
-import type { NotesRepository, UsersRepository, PollsRepository } from '@/models/_.js';
+import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
@@ -85,7 +85,7 @@ export class AdvancedSearchService {
 	private opensearchNoteIndex: string | null = null;
 	private renoteIndex: string;
 	private reactionIndex: string;
-	private polledIndex: string;
+	private pollVoteIndex: string;
 	private favoriteIndex: string;
 
 	private logger: Logger;
@@ -106,6 +106,12 @@ export class AdvancedSearchService {
 		@Inject(DI.pollsRepository)
 		private pollsRepository: PollsRepository,
 
+		@Inject(DI.pollVotesRepository)
+		private pollVotesRepository: PollVotesRepository,
+
+		@Inject(DI.noteReactionsRepository)
+		private noteReactionsRepository: NoteReactionsRepository,
+
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
@@ -120,7 +126,7 @@ export class AdvancedSearchService {
 			const notesIndexname = `${config.opensearch.index}---notes`;
 			this.renoteIndex = `${config.opensearch.index}---renotes`;//単純Renoteだけここ
 			this.reactionIndex = `${config.opensearch.index}---reaction`;
-			this.polledIndex = `${config.opensearch.index}---polled`;//
+			this.pollVoteIndex = `${config.opensearch.index}---pollvote`;//
 			this.favoriteIndex = `${config.opensearch.index}---favorite`;//お気に入りとclip
 
 			this.opensearchNoteIndex = notesIndexname;
@@ -229,6 +235,7 @@ export class AdvancedSearchService {
 							mappings: {
 								properties: {
 									noteId: { type: 'keyword' },
+									noteUserId: { type: 'keyword' },
 									userId: { type: 'keyword' },
 									createdAt: { type: 'date' },
 									reaction: { type: 'keyword' },
@@ -259,13 +266,13 @@ export class AdvancedSearchService {
 				];
 			}).catch((error) => this.logger.error(error));
 
-			//polledIndex
+			//pollVoteIndex
 			this.opensearch?.indices.exists({
-				index: this.polledIndex,
+				index: this.pollVoteIndex,
 			}).then((indexExists) => {
 				if (indexExists.statusCode === 404) [
 					this.opensearch?.indices.create({
-						index: this.polledIndex,
+						index: this.pollVoteIndex,
 						body: {
 							mappings: {
 								properties: {
@@ -320,6 +327,7 @@ export class AdvancedSearchService {
 		};
 		this.index(this.opensearchNoteIndex as string, note.id, body);
 	}
+
 	@bindThis
 	private async index(index: string, id: string, body: any ) {
 		if (!this.opensearch) return;
@@ -335,14 +343,16 @@ export class AdvancedSearchService {
 	 * リアクション
 	 */
 	@bindThis
-	public async indexReacted(opts: {
+	public async indexReaction(opts: {
 		id: string,
 		noteId: string,
+		noteUserId: string,
 		userId: string,
 		reaction: string,
 	}) {
 		await this.index(this.reactionIndex, opts.id, {
 			noteId: opts.noteId,
+			noteUserId: opts.noteUserId,
 			userId: opts.userId,
 			reaction: opts.reaction,
 			createdAt: this.idService.parse(opts.id).date.getTime(),
@@ -356,7 +366,7 @@ export class AdvancedSearchService {
 			noteId: string;
 			userId: string;
 	}) {
-		await this.index(this.polledIndex, id, {
+		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
 			userId: opts.userId,
 		});
@@ -488,6 +498,60 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
+	public async fullIndexReaction(): Promise<void> {
+		if (!this.opensearch) return;
+
+		const reactionsCount = await this.noteReactionsRepository.createQueryBuilder('reac').getCount();
+		const limit = 100;
+		let latestid = '';
+		for (let index = 0; index < reactionsCount; index += limit) {
+			this.logger.info('indexing' + index + '/' + reactionsCount);
+
+			const notes = await this.noteReactionsRepository
+				.createQueryBuilder('reac')
+				.where('reac.id > :latestid', { latestid })
+				.orderBy('reac.id', 'ASC')
+				.limit(limit)
+				.getMany();
+			notes.forEach(reac => {
+				this.indexReacted({
+					id: reac.id,
+					noteId: reac.noteId,
+					userId: reac.userId,
+					reaction: reac.reaction,
+				});
+				latestid = reac.id;
+			});
+		}
+		this.logger.info('All reactions has been indexed.');
+	}
+
+	@bindThis
+	public async fullIndexPollVote(): Promise<void> {
+		const pollVotesCount = await this.pollVotesRepository.createQueryBuilder('pv').getCount();
+		const limit = 100;
+		let latestid = '';
+		for (let index = 0; index < pollVotesCount; index += limit) {
+			this.logger.info('indexing' + index + '/' + pollVotesCount);
+
+			const notes = await this.pollVotesRepository
+				.createQueryBuilder('pv')
+				.where('pv.id > :latestid', { latestid })
+				.orderBy('pv.id', 'ASC')
+				.limit(limit)
+				.getMany();
+			notes.forEach(pollVote => {
+				this.indexVote(pollVote.id, {
+					noteId: pollVote.noteId,
+					userId: pollVote.userId,
+				});
+				latestid = pollVote.id;
+			});
+		}
+		this.logger.info('All pollvote has been indexed.');
+	}
+
+	@bindThis
 	private async unindexById(index: string, id: string) {
 		if (!this.opensearch) return;
 		this.opensearch.delete({
@@ -495,6 +559,7 @@ export class AdvancedSearchService {
 			id: id,
 		}).catch((error) => {	console.error(error);});
 	}
+
 	@bindThis
 	private async unindexByQuery(index: string, query: any) {
 		if (!this.opensearch) return;
@@ -505,16 +570,50 @@ export class AdvancedSearchService {
 			},
 		}).catch((error) => {	console.error(error);});
 	}
+
 	@bindThis
 	public async unindexNote(note: MiNote): Promise<void> {
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
 		}
 		if (note.text == null && note.cw == null) {
+			//Renoteを消しとく
 			await this.unindexById(this.renoteIndex, note.id);
 			return;
 		}
 		this.unindexById(this.opensearchNoteIndex as string, note.id);
+		//Renoteの削除
+		this.unindexByQuery(this.opensearchNoteIndex as string, {
+			term: {
+				renoteId: {
+					 value: note.id,
+				},
+			},
+		});
+		//クリップとお気に入りの削除
+		this.unindexByQuery(this.favoriteIndex, {
+			term: {
+				noteId: {
+					 value: note.id,
+				},
+			},
+		});
+		//投票の削除
+		this.unindexByQuery(this.pollVoteIndex, {
+			term: {
+				noteId: {
+					 value: note.id,
+				},
+			},
+		});
+		//リアクションの削除
+		this.unindexByQuery(this.reactionIndex, {
+			term: {
+				noteId: {
+					 value: note.id,
+				},
+			},
+		});
 	}
 
 	@bindThis
@@ -874,98 +973,96 @@ export class AdvancedSearchService {
 		Filter: string[],
 		Followings: string[],
 		meUserId?: string): Promise<OpenSearchHit| null> {
-		if (meUserId) {
+		if (meUserId) {//ミュートしているか、ブロックされている
 			if (Filter.includes(Note._source.userId) ) return null;
 			if (Note._source.referenceUserId) {
 				if (Filter.includes(Note._source.referenceUserId)) return null;
 			}
+			if (Note._source.userId === meUserId) {//自分のノート
+				return Note;
+			}
 		}
 
 		const user = await this.cacheService.findUserById(Note._source.userId);
-		if (user.id === meUserId) {
-			return Note;
-		} else {
-			if (!user.isIndexable) { //検索許可されていないが、
-				if (!this.opensearch) {
-					return null;
-				}
-
-				const Option = {
-					index: this.reactionIndex,
-					body: {
-						query: {
-							bool: {
-								must: [
-									{ term: { noteId: Note._id } },
-									{ term: { userId: meUserId } },
-								],
-							},
-						},
-					},
-					_source: ['id', 'userId'],
-					size: 1,
-				} as any;
-
-				//リアクションしているか、
-				let res = await this.opensearch.search(Option);
-				let hits = res.body.hits.hits as OpenSearchHit[];
-				if (hits.length > 0) {
-					return Note;
-				}
-
-				//投票しているか、
-				Option.index = this.polledIndex;
-				res = await this.opensearch.search(Option);
-				hits = res.body.hits.hits as OpenSearchHit[];
-				if (hits.length > 0) {
-					return Note;
-				}
-
-				//クリップもしくはお気に入りしてるか、
-				Option.index = this.favoriteIndex;
-				res = await this.opensearch.search(Option);
-				hits = res.body.hits.hits as OpenSearchHit[];
-				if (hits.length > 0) {
-					return Note;
-				}
-
-				//Renoteしている
-				Option.index = this.renoteIndex;
-				Option.body.query.bool.must = [
-					{ term: { renoteId: Note._id } },
-					{ term: { userId: meUserId } },
-				];
-				res = await this.opensearch.search(Option);
-				hits = res.body.hits.hits as OpenSearchHit[];
-				if (hits.length > 0) {
-					return Note;
-				}
-				//返信している
-				Option.index = this.opensearchNoteIndex as string;
-				Option.body.query.bool.must = [
-					{ term: { replyId: Note._id } },
-					{ term: { userId: meUserId } },
-				];
-
-				res = await this.opensearch.search(Option);
-				hits = res.body.hits.hits as OpenSearchHit[];
-				if (hits.length > 0) {
-					return Note;
-				}
-
+ 		if (!user.isIndexable) { //検索許可されていないが、
+			if (!this.opensearch || !meUserId) {
 				return null;
 			}
+
+			const Option = {
+				index: this.reactionIndex,
+				body: {
+					query: {
+						bool: {
+							must: [
+								{ term: { noteId: Note._id } },
+								{ term: { userId: meUserId } },
+							],
+						},
+					},
+				},
+				_source: ['id', 'userId'],
+				size: 1,
+			} as any;
+
+			//リアクションしているか、
+			let res = await this.opensearch.search(Option);
+			let hits = res.body.hits.hits as OpenSearchHit[];
+			if (hits.length > 0) {
+				return Note;
+			}
+
+			//投票しているか、
+			Option.index = this.pollVoteIndex;
+			res = await this.opensearch.search(Option);
+			hits = res.body.hits.hits as OpenSearchHit[];
+			if (hits.length > 0) {
+				return Note;
+			}
+
+			//クリップもしくはお気に入りしてるか、
+			Option.index = this.favoriteIndex;
+			res = await this.opensearch.search(Option);
+			hits = res.body.hits.hits as OpenSearchHit[];
+			if (hits.length > 0) {
+				return Note;
+			}
+
+			//Renoteしている
+			Option.index = this.renoteIndex;
+			Option.body.query.bool.must = [
+				{ term: { renoteId: Note._id } },
+				{ term: { userId: meUserId } },
+			];
+			res = await this.opensearch.search(Option);
+			hits = res.body.hits.hits as OpenSearchHit[];
+			if (hits.length > 0) {
+				return Note;
+			}
+			//返信している
+			Option.index = this.opensearchNoteIndex as string;
+			Option.body.query.bool.must = [
+				{ term: { replyId: Note._id } },
+				{ term: { userId: meUserId } },
+			];
+
+			res = await this.opensearch.search(Option);
+			hits = res.body.hits.hits as OpenSearchHit[];
+			if (hits.length > 0) {
+				return Note;
+			}
+
+			return null;
 		}
 
 		if (['public', 'home'].includes(Note._source.visibility)) return Note;//誰でも見れる
 
 		if (meUserId) {
-			if (Note._source.visibility === 'followers') { //鍵だけどフォローしてるか自分
-				if (Note._source.userId === meUserId || Followings.includes(Note._source.userId)) return Note;
+			if (Note._source.visibility === 'followers') { //鍵だけどフォローしてる
+				if (Followings.includes(Note._source.userId)) return Note;
 			}
 
-			if (Note._source.visibility === 'specified') {
-				if (Note._source.userId === meUserId) return Note;//自分の投稿したダイレクトか自分が宛先に含まれている
+			if (Note._source.visibility === 'specified') {//自分が宛先に含まれている
 				if (Note._source.visibleUserIds) {
 					if (Note._source.visibleUserIds.includes(meUserId)) return Note;
 				}

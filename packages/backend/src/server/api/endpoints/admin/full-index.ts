@@ -17,8 +17,13 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
-	required: [],
+	properties: {
+		index: {
+			type: 'string',
+			enum: ['notes', 'reaction', 'pollVote'],
+		 },
+	},
+	required: ['index'],
 } as const;
 
 @Injectable()
@@ -28,7 +33,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			await this.advancedSearchService.fullIndexNote();
+			if (ps.index === 'notes') {
+				this.advancedSearchService.fullIndexNote();
+			} else if (ps.index === 'reaction') {
+				this.advancedSearchService.fullIndexReaction();
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			} else if (ps.index === 'pollVote') {
+				this.advancedSearchService.fullIndexPollVote();
+			}
 		});
 	}
 }

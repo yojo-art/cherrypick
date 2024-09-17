@@ -221,8 +221,7 @@ export class SearchService {
 				.leftJoinAndSelect('note.reply', 'reply')
 				.leftJoinAndSelect('note.renote', 'renote')
 				.leftJoinAndSelect('reply.user', 'replyUser')
-				.leftJoinAndSelect('renote.user', 'renoteUser')
-				.andWhere('(SELECT "isIndexable" FROM "user" where id = note."userId")');
+				.leftJoinAndSelect('renote.user', 'renoteUser');
 
 			if (opts.host) {
 				if (opts.host === '.') {
@@ -233,6 +232,7 @@ export class SearchService {
 			}
 
 			this.queryService.generateVisibilityQuery(query, me);
+			this.queryService.generateSearchableQuery(query, me);
 			if (me) this.queryService.generateMutedUserQuery(query, me);
 			if (me) this.queryService.generateBlockedUserQuery(query, me);
 
