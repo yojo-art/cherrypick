@@ -155,6 +155,7 @@ export class AdvancedSearchService {
 									visibility: { type: 'keyword' },
 									visibleUserIds: { type: 'keyword' },
 									replyId: { type: 'keyword' },
+									renoteId: { type: 'keyword' },
 									pollChoices: {
 										type: 'text',
 										analyzer: 'sudachi_analyzer',
@@ -164,7 +165,6 @@ export class AdvancedSearchService {
 											},
 										},
 									},
-									isQuote: { type: 'boolean' },
 									referenceUserId: { type: 'keyword' },
 									sensitiveFileCount: { type: 'byte' },
 									nonSensitiveFileCount: { type: 'byte' },
@@ -736,7 +736,7 @@ export class AdvancedSearchService {
 			}
 			if (opts.excludeReply) osFilter.bool.must_not.push({ exists: { field: 'replyId' } });
 			if (opts.excludeCW) osFilter.bool.must_not.push({ exists: { field: 'cw' } });
-			if (opts.excludeQuote) osFilter.bool.must.push({ term: { isQuote: false } });
+			if (opts.excludeQuote) osFilter.bool.must.push({ term: { field: 'renoteId' } });
 			if (opts.fileOption) {
 				if (opts.fileOption === 'file-only') {
 					osFilter.bool.must.push({ exists: { field: 'fileIds' } });
