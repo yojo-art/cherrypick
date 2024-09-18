@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
 let self = props.url.startsWith(local);
 let requestUrl = new URL(props.url);
 if (props.host === requestUrl.host && requestUrl.pathname.startsWith('/clips/')) {
-	requestUrl = new URL(local + requestUrl.pathname + '@' + props.host);
+	requestUrl = new URL(local + requestUrl.pathname.split('@')[0] + '@' + props.host);
 	self = true;
 }
 const url_string = requestUrl.toString();
