@@ -11,6 +11,7 @@ Cherrypick 4.11.1
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
+- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
 
 ### Server
 - 
