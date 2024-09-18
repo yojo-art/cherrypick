@@ -118,7 +118,8 @@ let self = props.url.startsWith(local);
 let requestUrl = new URL(props.url);
 let url_string: string;
 if (props.host === requestUrl.host && requestUrl.pathname.startsWith('/clips/')) {
-	requestUrl = new URL(local + requestUrl.pathname + '@' + props.host);
+	let split = requestUrl.pathname.split('@');
+	requestUrl = new URL(local + split[0] + '@' + (split.length >= 2 ? split[1] : props.host));
 	self = true;
 	url_string = requestUrl.toString();
 	requestUrl = new URL(props.url);
