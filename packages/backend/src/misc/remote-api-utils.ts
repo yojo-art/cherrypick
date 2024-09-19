@@ -26,6 +26,7 @@ export async function emojis(
 ):Promise<Map<string, string>> {
 	const emojis = new Map<string, string>();
 	const remote_emojis = await fetch_remote_emojis(config, httpRequestService, redisForRemoteApis, host);
+	console.log(remote_emojis);
 	for (const [key, value] of remote_emojis) {
 		const name = ':' + key + ':';
 		if (text.indexOf(name) !== -1) {
@@ -50,7 +51,6 @@ export async function fetch_remote_emojis(
 			//未定義のステータス
 			return new Map();
 		}
-		console.log(cache_value);
 		return new Map(Object.entries(JSON.parse(cache_value)));
 	}
 	const url = 'https://' + host + '/api/emojis';
