@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div class="_panel">
 				<div class="_gaps_s" :class="$style.description">
 					<div v-if="clip.description">
-						<Mfm :text="clip.description" :isNote="false"/>
+						<Mfm :text="clip.description" :isNote="false" :author="clip.user" :emojiUrls="clip.emojis"/>
 					</div>
 					<div v-else>({{ i18n.ts.noDescription }})</div>
 					<div>

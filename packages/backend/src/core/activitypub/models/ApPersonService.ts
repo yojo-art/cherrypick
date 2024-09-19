@@ -810,6 +810,7 @@ export class ApPersonService implements OnModuleInit {
 				description: string | null;
 				imgSrc: string;
 				url: string;
+				id: string;
 		}[];
 }[]> {
 		const apMutualLinkSections = person.banner;
@@ -848,6 +849,7 @@ export class ApPersonService implements OnModuleInit {
 					imgSrc: image.url,
 					url: entry.url,
 					description,
+					id: this.idService.gen(),
 				};
 			}));
 			return {
