@@ -42,6 +42,7 @@ export async function fetch_remote_emojis(
 	host: string,
 ):Promise<Map<string, string>> {
 	const cache_key = 'emojis:' + host;
+	/*
 	const cache_value = await redisForRemoteApis.get(cache_key);
 	if (cache_value !== null) {
 		//ステータス格納
@@ -50,8 +51,9 @@ export async function fetch_remote_emojis(
 			//未定義のステータス
 			return new Map();
 		}
-		return JSON.parse(cache_value);
+		return new Map(Object.entries(JSON.parse(cache_value)));
 	}
+	*/
 	const url = 'https://' + host + '/api/emojis';
 	const timeout = 30 * 1000;
 	const operationTimeout = 60 * 1000;
@@ -87,7 +89,7 @@ export async function fetch_remote_emojis(
 		}
 	}
 	const redisPipeline = redisForRemoteApis.pipeline();
-	redisPipeline.set(cache_key, JSON.stringify(parsed));
+	redisPipeline.set(cache_key, JSON.stringify(Object.fromEntries(parsed)));
 	redisPipeline.expire(cache_key, 60 * 60);
 	await redisPipeline.exec();
 	return parsed;
