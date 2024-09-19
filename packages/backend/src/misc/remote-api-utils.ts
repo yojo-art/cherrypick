@@ -23,17 +23,16 @@ export async function emojis(
 	redisForRemoteApis: Redis.Redis,
 	host: string,
 	text:string,
-):Promise<Map<string, string>> {
+):Promise<{[k: string]: string}> {
 	const emojis = new Map<string, string>();
 	const remote_emojis = await fetch_remote_emojis(config, httpRequestService, redisForRemoteApis, host);
 	for (const [key, value] of remote_emojis) {
 		const name = ':' + key + ':';
 		if (text.indexOf(name) !== -1) {
-			console.log(key);
 			emojis.set(key, value);
 		}
 	}
-	return emojis;
+	return Object.fromEntries(emojis);
 }
 
 export async function fetch_remote_emojis(
