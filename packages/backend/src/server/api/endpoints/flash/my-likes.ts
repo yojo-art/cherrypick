@@ -87,7 +87,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				const likes = await query
 					.limit(ps.limit)
 					.getMany();
-				let remoteLikes = await Promise.all(likes.map(e => awaitAll({ id: e.id, flash: flashService.showRemoteOrDummy(e.flashId, e.author) })));
+				let remoteLikes = await Promise.all(likes.map(e => awaitAll({ id: e.id, flash: flashService.showRemoteOrDummy(e.flashId, e.author, true) })));
 				remoteLikes = remoteLikes.map(flash => {
 					flash.flash.isLiked = true;
 					return flash;

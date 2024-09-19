@@ -45,7 +45,11 @@ export class FlashService {
 	) {
 	}
 	@bindThis
-	async showRemoteOrDummy(flashId: string, author: MiUser|null) : Promise<Packed<'Flash'>> {
+	async showRemoteOrDummy(
+		flashId: string,
+		author: MiUser|null,
+		fetch_emoji = false,
+	) : Promise<Packed<'Flash'>> {
 		if (author == null) {
 			throw new Error();
 		}
@@ -53,7 +57,7 @@ export class FlashService {
 			if (author.host == null) {
 				throw new Error();
 			}
-			return await this.showRemote(flashId, author.host);
+			return await this.showRemote(flashId, author.host, fetch_emoji);
 		} catch {
 			return await awaitAll({
 				id: flashId + '@' + (author.host ? author.host : ''),
