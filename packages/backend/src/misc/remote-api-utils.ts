@@ -26,10 +26,10 @@ export async function emojis(
 ):Promise<Map<string, string>> {
 	const emojis = new Map<string, string>();
 	const remote_emojis = await fetch_remote_emojis(config, httpRequestService, redisForRemoteApis, host);
-	for (const entry of remote_emojis.entries()) {
-		const name = ':' + entry[0] + ':';
+	for (const [key, value] of remote_emojis) {
+		const name = ':' + key + ':';
 		if (text.indexOf(name) !== -1) {
-			emojis.set(entry[0], entry[1]);
+			emojis.set(key, value);
 		}
 	}
 	return emojis;
