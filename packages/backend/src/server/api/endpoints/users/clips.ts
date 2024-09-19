@@ -14,7 +14,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
-import { fetch_remote_api, fetch_remote_user_id } from '@/misc/remote-api-utils.js';
+import { emojis, fetch_remote_api, fetch_remote_user_id } from '@/misc/remote-api-utils.js';
 import type { FindOptionsWhere } from 'typeorm';
 
 export const meta = {
@@ -127,6 +127,7 @@ async function remote(
 			favoritedCount: remote_clip.favoritedCount,
 			isFavorited: false,
 			notesCount: remote_clip.notesCount,
+			emojis: remote_clip.description ? emojis(config, httpRequestService, redisForRemoteApis, user.host, remote_clip.description) : {},
 		});
 		clips.push(clip);
 	}

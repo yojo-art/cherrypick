@@ -67,7 +67,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.clipId.split('@');
 			if (parsed_id.length === 2 ) {//is remote
-				const clip = await clipService.showRemote(parsed_id[0], parsed_id[1]).catch(err => {
+				const clip = await clipService.showRemote(parsed_id[0], parsed_id[1], true).catch(err => {
 					throw new ApiError(meta.errors.failedToResolveRemoteUser);
 				});
 				if (me) {

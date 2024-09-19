@@ -17,6 +17,81 @@ export type FetchRemoteApiOpts={
 	untilId?:string,
 };
 
+export async function emojis(
+	config: Config,
+	httpRequestService: HttpRequestService,
+	redisForRemoteApis: Redis.Redis,
+	host: string,
+	text:string,
+):Promise<Map<string, string>> {
+	const emojis = new Map<string, string>();
+	const remote_emojis = await fetch_remote_emojis(config, httpRequestService, redisForRemoteApis, host);
+	for (const entry of remote_emojis.entries()) {
+		const name = ':' + entry[0] + ':';
+		if (text.indexOf(name) !== -1) {
+			emojis.set(entry[0], entry[1]);
+		}
+	}
+	return emojis;
+}
+
+export async function fetch_remote_emojis(
+	config: Config,
+	httpRequestService: HttpRequestService,
+	redisForRemoteApis: Redis.Redis,
+	host: string,
+):Promise<Map<string, string>> {
+	const cache_key = 'emojis:' + host;
+	const cache_value = await redisForRemoteApis.get(cache_key);
+	if (cache_value !== null) {
+		//ステータス格納
+		if (cache_value.startsWith('__')) {
+			if (cache_value === '__SKIP_FETCH') return new Map();
+			//未定義のステータス
+			return new Map();
+		}
+		return JSON.parse(cache_value);
+	}
+	const url = 'https://' + host + '/api/emojis';
+	const timeout = 30 * 1000;
+	const operationTimeout = 60 * 1000;
+	const res = got.get(url, {
+		headers: {
+			'User-Agent': config.userAgent,
+		},
+		timeout: {
+			lookup: timeout,
+			connect: timeout,
+			secureConnect: timeout,
+			socket: timeout,	// read timeout
+			response: timeout,
+			send: timeout,
+			request: operationTimeout,	// whole operation timeout
+		},
+		agent: {
+			http: httpRequestService.httpAgent,
+			https: httpRequestService.httpsAgent,
+		},
+		http2: true,
+		retry: {
+			limit: 2,
+		},
+		enableUnixSockets: false,
+	});
+	const text = await res.text();
+	const array = JSON.parse(text)?.emojis;
+	const parsed = new Map<string, string>();
+	if (Array.isArray(array)) {
+		for (const entry of array) {
+			parsed.set(entry.name, entry.url);
+		}
+	}
+	const redisPipeline = redisForRemoteApis.pipeline();
+	redisPipeline.set(cache_key, JSON.stringify(parsed));
+	redisPipeline.expire(cache_key, 60 * 60);
+	await redisPipeline.exec();
+	return parsed;
+}
 export async function fetch_remote_api(
 	config: Config, httpRequestService: HttpRequestService, host: string, endpoint: string, opts: FetchRemoteApiOpts,
 ) {
