@@ -15,7 +15,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import type { Config } from '@/config.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
-import { fetch_remote_api, fetch_remote_user_id } from '@/misc/remote-api-utils.js';
+import { emojis, fetch_remote_api, fetch_remote_user_id } from '@/misc/remote-api-utils.js';
 
 export const meta = {
 	tags: ['users', 'flashs'],
@@ -127,6 +127,7 @@ async function remote(
 			visibility: remote.visibility ?? false,
 			likedCount: remote.likedCount ?? 0,
 			isLiked: false, //後でLike対応する
+			emojis: remote.summary ? emojis(config, httpRequestService, redisForRemoteApis, user.host, remote.summary) : {},
 		});
 		flashs.push(flash);
 	}

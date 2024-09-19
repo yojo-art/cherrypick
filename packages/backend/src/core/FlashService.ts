@@ -17,6 +17,7 @@ import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
 import { Packed } from '@/misc/json-schema.js';
+import { emojis } from '@/misc/remote-api-utils.js';
 
 @Injectable()
 export class FlashService {
@@ -74,6 +75,7 @@ export class FlashService {
 	public async showRemote(
 		flashId:string,
 		host:string,
+		fetch_emoji = false,
 	) : Promise<Packed<'Flash'>> {
 		const cache_key = 'flash:show:' + flashId + '@' + host;
 		const cache_value = await this.redisForRemoteApis.get(cache_key);
@@ -137,6 +139,7 @@ export class FlashService {
 			visibility: remote.visibility ?? 'public',
 			likedCount: remote.likedCount ?? 0,
 			isLiked: false, //後でLike対応する
+			emojis: (remote.summary && fetch_emoji) ? emojis(this.config, this.httpRequestService, this.redisForRemoteApis, host, remote.summary) : {},
 		});
 	}
 }

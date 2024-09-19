@@ -5009,6 +5009,9 @@ export type components = {
       visibility: 'private' | 'public';
       likedCount: number | null;
       isLiked?: boolean;
+      emojis?: {
+        [key: string]: string;
+      };
     };
     Signin: {
       id: string;
