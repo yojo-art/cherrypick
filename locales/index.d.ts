@@ -611,6 +611,10 @@ export interface Locale extends ILocale {
      */
     "mentions": string;
     /**
+     * 新規投稿
+     */
+    "newNotes": string;
+    /**
      * ダイレクト投稿
      */
     "directNotes": string;

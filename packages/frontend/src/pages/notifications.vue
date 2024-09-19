@@ -109,7 +109,7 @@ const headerTabs = computed(() => [{
 	icon: 'ti ti-point',
 }, {
 	key: 'newNote',
-	title: i18n.ts.notifyNotes,
+	title: i18n.ts.newNotes,
 	icon: 'ti ti-pencil',
 }, {
 	key: 'mentions',
