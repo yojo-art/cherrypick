@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-else-if="notification.type === 'reaction:grouped' && notification.note.reactionAcceptance === 'likeOnly'" :class="[$style.icon, $style.icon_reactionGroupHeart]"><i class="ti ti-heart" style="line-height: 1;"></i></div>
 		<div v-else-if="notification.type === 'reaction:grouped'" :class="[$style.icon, $style.icon_reactionGroup]"><i class="ti ti-plus" style="line-height: 1;"></i></div>
 		<div v-else-if="notification.type === 'renote:grouped'" :class="[$style.icon, $style.icon_renoteGroup]"><i class="ti ti-repeat" style="line-height: 1;"></i></div>
+		<div v-else-if="notification.type === 'note:grouped'" :class="[$style.icon, $style.icon_noteGroup]"><i class="ti ti-pencil" style="line-height: 1;"></i></div>
 		<img v-else-if="notification.type === 'test'" :class="$style.icon" :src="infoImageUrl"/>
 		<MkAvatar v-else-if="'user' in notification" :class="$style.icon" :user="notification.user" link preview/>
 		<img v-else-if="'icon' in notification" :class="[$style.icon, $style.icon_app]" :src="notification.icon" alt=""/>
@@ -62,6 +63,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkA v-else-if="notification.type === 'follow' || notification.type === 'mention' || notification.type === 'reply' || notification.type === 'renote' || notification.type === 'quote' || notification.type === 'reaction' || notification.type === 'receiveFollowRequest' || notification.type === 'followRequestAccepted'" v-user-preview="notification.user.id" :class="$style.headerName" :to="userPage(notification.user)"><MkUserName :user="notification.user"/></MkA>
 			<span v-else-if="notification.type === 'reaction:grouped' && notification.note.reactionAcceptance === 'likeOnly'">{{ i18n.tsx._notification.likedBySomeUsers({ n: getActualReactedUsersCount(notification) }) }}</span>
 			<span v-else-if="notification.type === 'reaction:grouped'">{{ i18n.tsx._notification.reactedBySomeUsers({ n: getActualReactedUsersCount(notification) }) }}</span>
+			<span v-else-if="notification.type === 'note:grouped'">{{ i18n.tsx._notification.notedBySomeUsers({ n: notification.noteIds.length }) }}</span>
 			<span v-else-if="notification.type === 'renote:grouped'">{{ i18n.tsx._notification.renotedBySomeUsers({ n: notification.users.length }) }}</span>
 			<span v-else-if="notification.type === 'app'">{{ notification.header }}</span>
 			<MkTime v-if="withTime" :time="notification.createdAt" :class="$style.headerTime" :mode="defaultStore.state.enableAbsoluteTime ? 'absolute' : 'relative'"/>
@@ -143,6 +145,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 			<div v-else-if="notification.type === 'renote:grouped'">
+				<div v-for="user of notification.users" :key="user.id" :class="$style.reactionsItem">
+					<MkAvatar :class="$style.reactionsItemAvatar" :user="user" link preview/>
+				</div>
+			</div>
+			<div v-else-if="notification.type === 'note:grouped'">
 				<div v-for="user of notification.users" :key="user.id" :class="$style.reactionsItem">
 					<MkAvatar :class="$style.reactionsItemAvatar" :user="user" link preview/>
 				</div>
@@ -243,6 +250,7 @@ const rejectGroupInvitation = () => {
 	height: 100%;
 }
 
+.icon_noteGroup,
 .icon_reactionGroup,
 .icon_reactionGroupHeart,
 .icon_renoteGroup {
@@ -265,6 +273,11 @@ const rejectGroupInvitation = () => {
 }
 
 .icon_renoteGroup {
+	background: var(--eventRenote);
+}
+
+.icon_noteGroup {
+
 	background: var(--eventRenote);
 }
 

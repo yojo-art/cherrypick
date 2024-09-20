@@ -21,6 +21,7 @@ import { IdService } from '@/core/IdService.js';
 import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
+import { emojis } from '@/misc/remote-api-utils.js';
 
 @Injectable()
 export class ClipService {
@@ -215,6 +216,7 @@ export class ClipService {
 	public async showRemote(
 		clipId:string,
 		host:string,
+		fetch_emoji = false,
 	) : Promise<Packed<'Clip'>> {
 		const cache_key = 'clip:show:' + clipId + '@' + host;
 		const cache_value = await this.redisForRemoteApis.get(cache_key);
@@ -277,6 +279,7 @@ export class ClipService {
 			favoritedCount: remote_clip.favoritedCount,
 			isFavorited: false,
 			notesCount: remote_clip.notesCount,
+			emojis: (remote_clip.description && fetch_emoji) ? emojis(this.config, this.httpRequestService, this.redisForRemoteApis, host, remote_clip.description) : {},
 		});
 	}
 }
