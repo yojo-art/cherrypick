@@ -259,7 +259,7 @@ export class QueryService {
 					*	検索は許可されていないが、
 					*/
 					//リアクションしている
-					.orWhere('(1 = (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+					.orWhere('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
 					//投票している
 					.orWhere(new Brackets(qb => {
 						qb
@@ -267,11 +267,11 @@ export class QueryService {
 							.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
 					}))
 					//お気に入りしている
-					.orWhere('(1 = (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+					.orWhere('(EXISTS (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
 					//クリップしている
-					.orWhere('(1 = (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+					.orWhere('(EXISTS (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
 					//リノートしている
-					.orWhere('(1 = (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+					.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
 					//返信している
 					.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
 			}));
