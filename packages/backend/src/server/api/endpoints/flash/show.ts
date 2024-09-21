@@ -62,35 +62,39 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.flashId.split('@');
-			if (parsed_id.length === 2 ) {//is remote
-				const flash = await flashService.showRemote(parsed_id[0], parsed_id[1], true).catch(err => {
-					throw new ApiError(meta.errors.failedToResolveRemoteUser);
-				});
-
-				if (me) {
-					const exist = await this.flashLikesRemoteRepository.exists({
-						where: {
-							flashId: parsed_id[0],
-							host: parsed_id[1],
-							userId: me.id,
-						},
+			switch (parsed_id.length) {
+				case 2:{//is remote
+					const flash = await flashService.showRemote(parsed_id[0], parsed_id[1], true).catch(err => {
+						throw new ApiError(meta.errors.failedToResolveRemoteUser);
 					});
-					if (exist) {
-						flash.isLiked = true;
+
+					if (me) {
+						const exist = await this.flashLikesRemoteRepository.exists({
+							where: {
+								flashId: parsed_id[0],
+								host: parsed_id[1],
+								userId: me.id,
+							},
+						});
+						if (exist) {
+							flash.isLiked = true;
+						}
 					}
+					return flash;
 				}
-				return flash;
-			}
-			if (parsed_id.length !== 1 ) {//is not local
-				throw new ApiError(meta.errors.invalidIdFormat);
-			}
-			const flash = await this.flashsRepository.findOneBy({ id: ps.flashId });
+				case 1:{//is local
+					const flash = await this.flashsRepository.findOneBy({ id: ps.flashId });
 
-			if (flash == null) {
-				throw new ApiError(meta.errors.noSuchFlash);
-			}
+					if (flash == null) {
+						throw new ApiError(meta.errors.noSuchFlash);
+					}
 
-			return await this.flashEntityService.pack(flash, me);
+					return await this.flashEntityService.pack(flash, me);
+				}
+				default:{
+					throw new ApiError(meta.errors.invalidIdFormat);
+				}
+			}
 		});
 	}
 }
