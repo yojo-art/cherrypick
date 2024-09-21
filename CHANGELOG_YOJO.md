@@ -6,6 +6,8 @@ Cherrypick 4.11.1
 ### General
 - Enhance: 連合一覧のソートにリバーシのバージョンを追加
 - Enhance: リモートのクリップをお気に入りに登録できるように
+- Enhance: リモートのPlayを遊べるように
+- Enhance: リモートのPlayをお気に入りに登録できるように
 
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
