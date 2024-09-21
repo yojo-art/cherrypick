@@ -910,13 +910,7 @@ export class AdvancedSearchService {
 			 Followings = Object.keys(FollowingsCache);
 		}
 
-		const resultPromises = [];
-
-		for (const note of notes) {
-    	const userResult = this.filter(note, Filter, Followings, meUserId);
-   	 	resultPromises.push(userResult);
-		}
-
+		const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
 		const FilterdNotes = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
 
 		let retry = false;
@@ -939,10 +933,7 @@ export class AdvancedSearchService {
 
 				if (notes.length === 0) break;//これ以上探してもない
 
-				for (const note of notes) {
-					const userResult = this.filter(note, Filter, Followings, meUserId);
-					resultPromises.push(userResult);
-				}
+				const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
 				const Filterd = (await Promise.all(resultPromises)).filter( (x) => x !== null);
 
 				for (let i = 0; i < notes.length - FilterdNotes.length && i < Filterd.length; i++) {

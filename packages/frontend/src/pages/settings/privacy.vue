@@ -46,6 +46,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSwitch v-model="isIndexable" @update:modelValue="save()">
 		{{ i18n.ts.makeIndexable }}
 		<template #caption>{{ i18n.ts.makeIndexableDescription }}</template>
+		<span class="_beta">yojo-art</span>
 	</MkSwitch>
 
 	<FormSection>
