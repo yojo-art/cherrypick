@@ -125,21 +125,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				favoritedCount: remote.favoritedCount,
 				visibility: remote.visibility ?? false,
 				likedCount: remote.likedCount ?? 0,
-				isLiked: false,
 				emojis: remote.summary ? emojis(this.config, this.httpRequestService, this.redisForRemoteApis, user.host, remote.summary) : {},
 			});
-			if (me) {
-				const exist = await this.flashLikesRemoteRepository.exists({
-					where: {
-						flashId: remote.id,
-						host: user.host,
-						userId: me.id,
-					},
-				});
-				if (exist) {
-					flash.isLiked = true;
-				}
-			}
 			flashs.push(flash);
 		}
 		const redisPipeline = this.redisForRemoteApis.pipeline();

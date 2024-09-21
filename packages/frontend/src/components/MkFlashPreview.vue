@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<article>
 		<header>
 			<h1 :title="flash.title">{{ flash.title }}</h1>
-			<div v-if="flash.userId!==$i?.id">
+			<div v-if="flash.userId!==$i?.id&&isLiked!==null">
 				<MkButton v-if="isLiked" v-tooltip="i18n.ts.unlike" asLike class="button" rounded primary @click.stop.prevent="unlike()"><i class="ti ti-heart-off"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
 				<MkButton v-else v-tooltip="i18n.ts.like" asLike class="button" rounded @click.stop.prevent="like()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
 			</div>
@@ -36,9 +36,9 @@ import { $i } from '@/account';
 const props = defineProps<{
 	flash: Misskey.entities.Flash;
 }>();
-const isLiked = ref<boolean>(false);
+const isLiked = ref<boolean|null>(false);
 watchEffect(() => {
-	isLiked.value = props.flash.isLiked ?? false;
+	isLiked.value = props.flash.isLiked ?? null;
 });
 
 function like() {
