@@ -9,6 +9,8 @@ Cherrypick 4.11.1
 
 - Enhance: 連合一覧のソートにリバーシのバージョンを追加
 - Enhance: リモートのクリップをお気に入りに登録できるように
+- Enhance: リモートのPlayを遊べるように
+- Enhance: リモートのPlayをお気に入りに登録できるように
 - Feat: mastodonのindexableに対応
   - 検索で表示される条件を制限できるようになります
   - 設定→プライバシーより設定できます
