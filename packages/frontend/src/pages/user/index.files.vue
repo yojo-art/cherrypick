@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkLoading v-if="fetching"/>
 		<div v-if="!fetching && files.length > 0" :class="$style.stream">
 			<template v-for="file in files" :key="file.note.id + file.file.id">
-				<div v-if="!showingFiles.includes(file.file.id)" :class="$style.img" @click="onClick" @dblclick="onDblClick">
+				<div v-if="!showingFiles.includes(file.file.id)" :class="$style.img" @click="e=>onClick(e,file.file)" @dblclick="e=>onDblClick(file.file)">
 					<!-- TODO: 画像以外のファイルに対応 -->
 					<ImgWithBlurhash :class="$style.sensitiveImg" :hash="file.file.blurhash" :src="thumbnail(file.file)" :title="file.file.name" :forceBlurhash="true"/>
 					<div :class="$style.hiddenTextWrapper">
