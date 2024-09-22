@@ -16,7 +16,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<ImgWithBlurhash :class="$style.sensitiveImg" :hash="file.file.blurhash" :src="thumbnail(file.file)" :title="file.file.name" :forceBlurhash="true"/>
 					<div :class="$style.sensitive">
 						<div>
-							<div><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}</div>
+							<div v-if="file.file.isSensitive"><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}{{ defaultStore.state.dataSaver.media ? ` (${i18n.ts.image}${file.file.size ? ' ' + bytes(file.file.size) : ''})` : '' }}</div>
+							<div v-else><i class="ti ti-photo"></i> {{ defaultStore.state.dataSaver.media && file.file.size ? bytes(file.file.size) : i18n.ts.image }}</div>
 							<div>{{ i18n.ts.clickToShow }}</div>
 						</div>
 					</div>
@@ -43,6 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import bytes from '@/filters/bytes.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { notePage } from '@/filters/note.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
