@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkLoading v-if="fetching"/>
 		<div v-if="!fetching && files.length > 0" :class="$style.stream">
 			<template v-for="file in files" :key="file.note.id + file.file.id">
-				<div v-if="file.file.isSensitive && !showingFiles.includes(file.file.id)" :class="$style.img" @click="showingFiles.push(file.file.id)">
+				<div v-if="!showingFiles.includes(file.file.id)" :class="$style.img" @click="showingFiles.push(file.file.id)">
 					<!-- TODO: 画像以外のファイルに対応 -->
 					<ImgWithBlurhash :class="$style.sensitiveImg" :hash="file.file.blurhash" :src="thumbnail(file.file)" :title="file.file.name" :forceBlurhash="true"/>
 					<div :class="$style.sensitive">
@@ -41,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { notePage } from '@/filters/note.js';
@@ -52,6 +52,7 @@ import MkA from '@/components/global/MkA.vue';
 import MkLoading from '@/components/global/MkLoading.vue';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
+import { wasConfirmR18 } from '@/scripts/check-r18';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -63,6 +64,26 @@ const files = ref<{
 	file: Misskey.entities.DriveFile;
 }[]>([]);
 const showingFiles = ref<string[]>([]);
+watch(() => files, () => {
+	for (const file of files.value) {
+		if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
+			//nop
+		} else if (file.file.isSensitive) {
+			if (defaultStore.state.nsfw !== 'ignore') {
+				//nop
+			} else {
+				if (wasConfirmR18()) {
+					showingFiles.value.push(file.file.id);
+				}
+			}
+		} else {
+			showingFiles.value.push(file.file.id);
+		}
+	}
+}, {
+	deep: true,
+	immediate: true,
+});
 
 const playAnimation = ref(true);
 if (defaultStore.state.showingAnimatedImages === 'interaction') playAnimation.value = false;
