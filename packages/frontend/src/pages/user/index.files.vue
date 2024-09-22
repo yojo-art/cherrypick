@@ -11,14 +11,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkLoading v-if="fetching"/>
 		<div v-if="!fetching && files.length > 0" :class="$style.stream">
 			<template v-for="file in files" :key="file.note.id + file.file.id">
-				<div v-if="!showingFiles.includes(file.file.id)" :class="$style.img" @click="showingFiles.push(file.file.id)">
+				<div v-if="!showingFiles.includes(file.file.id)" :class="$style.img" @click="onClick" @dblclick="onDblClick">
 					<!-- TODO: 画像以外のファイルに対応 -->
 					<ImgWithBlurhash :class="$style.sensitiveImg" :hash="file.file.blurhash" :src="thumbnail(file.file)" :title="file.file.name" :forceBlurhash="true"/>
 					<div :class="$style.hiddenTextWrapper">
 						<div>
 							<div v-if="file.file.isSensitive"><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}{{ defaultStore.state.dataSaver.media ? ` (${i18n.ts.image}${file.file.size ? ' ' + bytes(file.file.size) : ''})` : '' }}</div>
 							<div v-else><i class="ti ti-photo"></i> {{ defaultStore.state.dataSaver.media && file.file.size ? bytes(file.file.size) : i18n.ts.image }}</div>
-							<div>{{ i18n.ts.clickToShow }}</div>
+							<div>{{ clickToShowMessage }}</div>
 						</div>
 					</div>
 				</div>
@@ -42,7 +42,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import bytes from '@/filters/bytes.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
@@ -54,7 +54,9 @@ import MkA from '@/components/global/MkA.vue';
 import MkLoading from '@/components/global/MkLoading.vue';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
-import { wasConfirmR18 } from '@/scripts/check-r18';
+import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18';
+import MkRippleEffect from '@/components/MkRippleEffect.vue';
+import * as os from '@/os.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -87,6 +89,13 @@ watch(() => files, () => {
 	immediate: true,
 });
 
+const clickToShowMessage = computed(() => defaultStore.state.nsfwOpenBehavior === 'click'
+	? i18n.ts.clickToShow
+	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+	: defaultStore.state.nsfwOpenBehavior === 'doubleClick'
+		? i18n.ts.doubleClickToShow
+		: '',
+);
 const playAnimation = ref(true);
 if (defaultStore.state.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = setTimeout(() => playAnimation.value = false, 5000);
@@ -116,6 +125,7 @@ onMounted(() => {
 		limit: 15,
 	}).then(notes => {
 		for (const note of notes) {
+			if (!note.files) continue;
 			for (const file of note.files) {
 				files.value.push({
 					note,
@@ -134,6 +144,34 @@ onUnmounted(() => {
 		window.removeEventListener('touchend', resetTimer);
 	}
 });
+
+async function onClick(ev: MouseEvent, file: Misskey.entities.DriveFile) {
+	const isShow = showingFiles.value.includes(file.id);
+	if (!isShow) {
+		ev.stopPropagation();
+		if (file.isSensitive && !await confirmR18()) return;
+		if (file.isSensitive && defaultStore.state.confirmWhenRevealingSensitiveMedia) {
+			const { canceled } = await os.confirm({
+				type: 'question',
+				text: i18n.ts.sensitiveMediaRevealConfirm,
+			});
+			if (canceled) return;
+			showingFiles.value.push(file.id);
+		}
+	}
+
+	if (defaultStore.state.nsfwOpenBehavior === 'doubleClick') os.popup(MkRippleEffect, { x: ev.clientX, y: ev.clientY }, {});
+	if (!isShow && defaultStore.state.nsfwOpenBehavior === 'click') {
+		showingFiles.value.push(file.id);
+	}
+}
+
+async function onDblClick(file: Misskey.entities.DriveFile) {
+	if (file.isSensitive && !await confirmR18()) return;
+	if (!showingFiles.value.includes(file.id) && defaultStore.state.nsfwOpenBehavior === 'doubleClick') {
+		showingFiles.value.push(file.id);
+	};
+}
 </script>
 
 <style lang="scss" module>
