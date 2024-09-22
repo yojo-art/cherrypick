@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-if="!showingFiles.includes(file.file.id)" :class="$style.img" @click="showingFiles.push(file.file.id)">
 					<!-- TODO: 画像以外のファイルに対応 -->
 					<ImgWithBlurhash :class="$style.sensitiveImg" :hash="file.file.blurhash" :src="thumbnail(file.file)" :title="file.file.name" :forceBlurhash="true"/>
-					<div :class="$style.sensitive">
+					<div :class="$style.hiddenTextWrapper">
 						<div>
 							<div v-if="file.file.isSensitive"><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}{{ defaultStore.state.dataSaver.media ? ` (${i18n.ts.image}${file.file.size ? ' ' + bytes(file.file.size) : ''})` : '' }}</div>
 							<div v-else><i class="ti ti-photo"></i> {{ defaultStore.state.dataSaver.media && file.file.size ? bytes(file.file.size) : i18n.ts.image }}</div>
@@ -168,14 +168,16 @@ onUnmounted(() => {
 	height: 100%;
 	filter: brightness(0.7);
 }
-.sensitive {
+.hiddenTextWrapper {
 	position: absolute;
 	top: 0;
 	left: 0;
 	width: 100%;
 	height: 100%;
-	display: grid;
-  place-items: center;
+	display: flex;
+	text-align: center;
+	align-items: center;
+	justify-content: center;
 	font-size: 0.8em;
 	color: #fff;
 	cursor: pointer;
