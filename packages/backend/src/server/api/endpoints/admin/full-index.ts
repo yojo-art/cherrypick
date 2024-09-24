@@ -33,14 +33,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			if (ps.index === 'notes') {
-				this.advancedSearchService.fullIndexNote();
-			} else if (ps.index === 'reaction') {
-				this.advancedSearchService.fullIndexReaction();
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
-			} else if (ps.index === 'pollVote') {
-				this.advancedSearchService.fullIndexPollVote();
+			switch (ps.index) {
+				case 'notes':
+					this.advancedSearchService.fullIndexNote();
+					break;
+				case 'reaction':
+					this.advancedSearchService.fullIndexReaction();
+					break;
+				case 'pollVote':
+					this.advancedSearchService.fullIndexPollVote();
+					break;
 			}
-		});
+		},
+		);
 	}
 }

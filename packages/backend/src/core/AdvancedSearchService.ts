@@ -84,10 +84,12 @@ const noteIndexBody = {
 		properties: {
 			text: {
 				type: 'text',
-				analyzer: 'sudachi_analyzer' },
+				analyzer: 'sudachi_analyzer',
+			},
 			cw: {
 				type: 'text',
-				analyzer: 'sudachi_analyzer' },
+				analyzer: 'sudachi_analyzer',
+			},
 			userId: { type: 'keyword' },
 			userHost: { type: 'keyword' },
 			createdAt: { type: 'date' },
@@ -499,7 +501,7 @@ export class AdvancedSearchService {
 		this.opensearch.delete({
 			index: index,
 			id: id,
-		}).catch((error) => {	console.error(error);});
+		}).catch((error) => {	this.logger.error(error);});
 	}
 
 	@bindThis
@@ -510,7 +512,7 @@ export class AdvancedSearchService {
 			body: {
 				query: query,
 			},
-		}).catch((error) => {	console.error(error);});
+		}).catch((error) => {	this.logger.error(error);});
 	}
 
 	@bindThis
@@ -845,7 +847,7 @@ export class AdvancedSearchService {
 
 		/*ブロックされている or ミュートしているフィルタ*/
 		const userIdsWhoMeMuting = meUserId ? await this.cacheService.userMutingsCache.fetch(meUserId) : new Set<string>;
-		const	userIdsWhoMeBlockingMe = meUserId ? await this.cacheService.userBlockingCache.fetch(meUserId) : new Set<string>;
+		const	userIdsWhoMeBlockingMe = meUserId ? await this.cacheService.userBlockedCache.fetch(meUserId) : new Set<string>;
 		const Filter = Array.from(userIdsWhoMeMuting).concat(Array.from(userIdsWhoMeBlockingMe));
 
 		let Followings: string[];
@@ -917,11 +919,11 @@ export class AdvancedSearchService {
 		}
 
 		const user = await this.cacheService.findUserById(Note._source.userId);
- 		if (!user.isIndexable) { //検索許可されていないが、
-			if (!this.opensearch || !meUserId) {
+		if (!user) return null;
+ 		if (user.isIndexable === false) { //検索許可されていないが、
+			if (meUserId === undefined || this.opensearch === null) {
 				return null;
 			}
-
 			const Option = {
 				index: this.reactionIndex,
 				body: {
