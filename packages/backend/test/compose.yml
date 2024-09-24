@@ -11,20 +11,3 @@ services:
     environment:
       POSTGRES_DB: "test-cherrypick"
       POSTGRES_HOST_AUTH_METHOD: trust
-
-  ostest:
-    build: ../../../opensearch
-    environment:
-      - "server.ssl.enabled:false"
-      - "discovery.type=single-node"
-      - "OPENSEARCH_INITIAL_ADMIN_PASSWORD=LPeSXAbkGxivJGsPR2Yj"
-      - "plugins.security.disabled=true"
-    ulimits:
-      memlock:
-        soft: -1
-        hard: -1
-      nofile:
-        soft: 65536
-        hard: 65536
-    ports:
-      - 127.0.0.1:59200:59200

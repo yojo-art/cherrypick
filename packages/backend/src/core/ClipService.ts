@@ -20,8 +20,8 @@ import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
 import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
-import { AdvancedSearchService } from './AdvancedSearchService.js';
 import { emojis } from '@/misc/remote-api-utils.js';
+import { AdvancedSearchService } from './AdvancedSearchService.js';
 
 @Injectable()
 export class ClipService {
@@ -134,7 +134,7 @@ export class ClipService {
 				clipId: clip.id,
 			});
 
-			this.advancedSearchService.indexFavorite(
+			await this.advancedSearchService.indexFavorite(
 				ID,
 				{
 					clipId: clip.id,

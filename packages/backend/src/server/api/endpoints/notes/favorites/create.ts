@@ -88,7 +88,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 			});
 
-			this.advancedSearchService.indexFavorite(id, {
+			await	this.advancedSearchService.indexFavorite(id, {
 				userId: me.id,
 				noteId: note.id,
 			});

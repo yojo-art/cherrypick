@@ -69,7 +69,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			// Delete favorite
 			await this.noteFavoritesRepository.delete(exist.id);
-			this.advancedSearchService.unindexFavorite(exist.id, note.id, undefined, me.id);
+			await this.advancedSearchService.unindexFavorite(exist.id, note.id, undefined, me.id);
 		});
 	}
 }

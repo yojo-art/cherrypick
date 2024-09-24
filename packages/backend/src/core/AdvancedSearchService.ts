@@ -79,7 +79,64 @@ function compileQuery(q: Q): string {
 }
 
 const retryLimit = 2;
-
+const noteIndexBody = {
+	mappings: {
+		properties: {
+			text: {
+				type: 'text',
+				analyzer: 'sudachi_analyzer' },
+			cw: {
+				type: 'text',
+				analyzer: 'sudachi_analyzer' },
+			userId: { type: 'keyword' },
+			userHost: { type: 'keyword' },
+			createdAt: { type: 'date' },
+			tags: { type: 'keyword' },
+			fileIds: { type: 'keyword' },
+			visibility: { type: 'keyword' },
+			visibleUserIds: { type: 'keyword' },
+			replyId: { type: 'keyword' },
+			renoteId: { type: 'keyword' },
+			pollChoices: {
+				type: 'text',
+				analyzer: 'sudachi_analyzer',
+				fields: {
+					keyword: {
+						type: 'keyword',
+					},
+				},
+			},
+			referenceUserId: { type: 'keyword' },
+			sensitiveFileCount: { type: 'byte' },
+			nonSensitiveFileCount: { type: 'byte' },
+		},
+	},
+	settings: {
+		index: {
+			analysis: {
+				analyzer: {
+					sudachi_analyzer: {
+						filter: [
+							'sudachi_baseform',
+							'sudachi_readingform',
+							'sudachi_normalizedform',
+						],
+						tokenizer: 'sudachi_a_tokenizer',
+						type: 'custom',
+					},
+				},
+				tokenizer: {
+					sudachi_a_tokenizer: {
+						type: 'sudachi_tokenizer',
+						additional_settings: '{"systemDict":"system_full.dic"}',
+						split_mode: 'A',
+						discard_punctuation: true,
+					},
+				},
+			},
+		},
+	},
+};
 @Injectable()
 export class AdvancedSearchService {
 	private opensearchNoteIndex: string | null = null;
@@ -138,64 +195,7 @@ export class AdvancedSearchService {
 				if (indexExists.statusCode === 404) [
 					this.opensearch?.indices.create({
 						index: notesIndexname,
-						body: {
-							mappings: {
-								properties: {
-									text: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer' },
-									cw: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer' },
-									userId: { type: 'keyword' },
-									userHost: { type: 'keyword' },
-									createdAt: { type: 'date' },
-									tags: { type: 'keyword' },
-									fileIds: { type: 'keyword' },
-									visibility: { type: 'keyword' },
-									visibleUserIds: { type: 'keyword' },
-									replyId: { type: 'keyword' },
-									renoteId: { type: 'keyword' },
-									pollChoices: {
-										type: 'text',
-										analyzer: 'sudachi_analyzer',
-										fields: {
-											keyword: {
-												type: 'keyword',
-											},
-										},
-									},
-									referenceUserId: { type: 'keyword' },
-									sensitiveFileCount: { type: 'byte' },
-									nonSensitiveFileCount: { type: 'byte' },
-								},
-							},
-							settings: {
-								index: {
-									analysis: {
-										analyzer: {
-											sudachi_analyzer: {
-												filter: [
-													'sudachi_baseform',
-													'sudachi_readingform',
-													'sudachi_normalizedform',
-												],
-												tokenizer: 'sudachi_a_tokenizer',
-												type: 'custom',
-											},
-										},
-										tokenizer: {
-											sudachi_a_tokenizer: {
-												type: 'sudachi_tokenizer',
-												additional_settings: '{"systemDict":"system_full.dic"}',
-												split_mode: 'A',
-												discard_punctuation: true,
-											},
-										},
-									},
-								},
-							},
-						},
+						body: noteIndexBody,
 					}).catch((error) => {
 						this.logger.error(error);
 					}),
@@ -393,65 +393,9 @@ export class AdvancedSearchService {
 
 			await this.opensearch.indices.create({
 				index: this.opensearchNoteIndex as string,
-				body: {
-					mappings: {
-						properties: {
-							text: {
-								type: 'text',
-								analyzer: 'sudachi_analyzer' },
-							cw: {
-								type: 'text',
-								analyzer: 'sudachi_analyzer' },
-							userId: { type: 'keyword' },
-							userHost: { type: 'keyword' },
-							createdAt: { type: 'date' },
-							tags: { type: 'keyword' },
-							fileIds: { type: 'keyword' },
-							visibility: { type: 'keyword' },
-							visibleUserIds: { type: 'keyword' },
-							replyId: { type: 'keyword' },
-							pollChoices: {
-								type: 'text',
-								analyzer: 'sudachi_analyzer',
-								fields: {
-									keyword: {
-										type: 'keyword',
-									},
-								},
-							},
-							isQuote: { type: 'boolean' },
-							referenceUserId: { type: 'keyword' },
-							sensitiveFileCount: { type: 'byte' },
-							nonSensitiveFileCount: { type: 'byte' },
-						},
-					},
-					settings: {
-						index: {
-							analysis: {
-								analyzer: {
-									sudachi_analyzer: {
-										filter: [
-											'sudachi_baseform',
-											'sudachi_readingform',
-											'sudachi_normalizedform',
-										],
-										tokenizer: 'sudachi_a_tokenizer',
-										type: 'custom',
-									},
-								},
-								tokenizer: {
-									sudachi_a_tokenizer: {
-										type: 'sudachi_tokenizer',
-										additional_settings: '{"systemDict":"system_full.dic"}',
-										split_mode: 'A',
-										discard_punctuation: true,
-									},
-								},
-							},
-						},
-					},
-				},
-			}).catch((error) => {
+				body: noteIndexBody,
+			},
+			).catch((error) => {
 				this.logger.error(error);
 				return;
 			});
@@ -486,8 +430,9 @@ export class AdvancedSearchService {
 					this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
 						this.indexNote(note, poll ? poll.choices : undefined);
 					});
+				} else {
+					this.indexNote(note, undefined);
 				}
-				this.indexNote(note, undefined);
 				latestid = note.id;
 			});
 		}
@@ -622,15 +567,13 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	public async unindexFavorite(id?: string, noteId?: string, clipId?: string, userId?: string) {
-		if (id) {
+		if (clipId) {
 			this.unindexByQuery(this.favoriteIndex, {
 				bool: {
 					must: [
-						{ term: { userId: { value: userId } } },
 						{ term: { noteId: { value: noteId } } },
-					],
-					must_not: [
-						{ exists: { field: 'clipId' } },
+						{ term: { clipId: { value: clipId } } },
+						{ term: { userId: { value: userId } } },
 					],
 				},
 			});
@@ -638,8 +581,10 @@ export class AdvancedSearchService {
 			this.unindexByQuery(this.favoriteIndex, {
 				bool: {
 					must: [
+						{ term: { userId: { value: userId } } },
 						{ term: { noteId: { value: noteId } } },
-						{ term: { clipId: { value: clipId } } },
+					],
+					must_not: [
 						{ exists: { field: 'clipId' } },
 					],
 				},
