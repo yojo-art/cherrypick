@@ -8,9 +8,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<article>
 		<header>
 			<h1 :title="flash.title">{{ flash.title }}</h1>
+			<div v-if="flash.userId!==$i?.id&&isLiked!==null">
+				<MkButton v-if="isLiked" v-tooltip="i18n.ts.unlike" asLike class="button" rounded primary @click.stop.prevent="unlike()"><i class="ti ti-heart-off"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
+				<MkButton v-else v-tooltip="i18n.ts.like" asLike class="button" rounded @click.stop.prevent="like()"><i class="ti ti-heart"></i><span v-if="flash?.likedCount && flash.likedCount > 0" style="margin-left: 6px;">{{ flash.likedCount }}</span></MkButton>
+			</div>
 		</header>
 		<p v-if="flash.summary" :title="flash.summary">
-			<Mfm class="summaryMfm" :text="flash.summary" :plain="true" :nowrap="true"/>
+			<Mfm class="summaryMfm" :text="flash.summary" :plain="true" :nowrap="true" :author="flash.user" :emojiUrls="flash.emojis"/>
 		</p>
 		<footer>
 			<img class="icon" :src="flash.user.avatarUrl"/>
@@ -21,13 +25,46 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { } from 'vue';
+import { ref, watchEffect } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { userName } from '@/filters/user.js';
+import * as os from '@/os.js';
+import { i18n } from '@/i18n.js';
+import { pleaseLogin } from '@/scripts/please-login.js';
+import { $i } from '@/account';
 
 const props = defineProps<{
 	flash: Misskey.entities.Flash;
 }>();
+const isLiked = ref<boolean|null>(false);
+watchEffect(() => {
+	isLiked.value = props.flash.isLiked ?? null;
+});
+
+function like() {
+	pleaseLogin();
+
+	os.apiWithDialog('flash/like', {
+		flashId: props.flash.id,
+	}).then(() => {
+		isLiked.value = true;
+	});
+}
+
+async function unlike() {
+	pleaseLogin();
+
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unlikeConfirm,
+	});
+	if (confirm.canceled) return;
+	os.apiWithDialog('flash/unlike', {
+		flashId: props.flash.id,
+	}).then(() => {
+		isLiked.value = false;
+	});
+}
 </script>
 
 <style lang="scss" scoped>
@@ -50,6 +87,8 @@ const props = defineProps<{
 		> header {
 			margin-bottom: 8px;
 
+			display: flex;
+			justify-content: space-between;
 			> h1 {
 				margin: 0;
 				font-size: 1em;

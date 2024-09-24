@@ -7,6 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkStickyContainer>
 	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
 	<MkSpacer :contentMax="700">
+		<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn" :class="$style.remote_caution"/>
 		<Transition :name="defaultStore.state.animation ? 'fade' : ''" mode="out-in">
 			<div v-if="flash" :key="flash.id">
 				<Transition :name="defaultStore.state.animation ? 'zoom' : ''" mode="out-in">
@@ -30,7 +31,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div v-else :class="$style.ready">
 						<div class="_panel main">
 							<div class="title">{{ flash.title }}</div>
-							<div class="summary"><Mfm :text="flash.summary"/></div>
+							<div class="summary"><Mfm :text="flash.summary" :author="flash.user" :emojiUrls="flash.emojis"/></div>
 							<MkButton class="start" gradate rounded large @click="start">Play</MkButton>
 							<div class="info">
 								<span v-tooltip="i18n.ts.numberOfLikes"><i class="ti ti-heart"></i> {{ flash.likedCount }}</span>
@@ -45,7 +46,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkCode :code="flash.script" lang="is" class="_monospace"/>
 				</MkFolder>
 				<div :class="$style.footer">
-					<Mfm :text="`By @${flash.user.username}`"/>
+					<Mfm :text="`By ${author}`"/>
 					<div class="date">
 						<div v-if="flash.createdAt != flash.updatedAt"><i class="ti ti-clock"></i> {{ i18n.ts.updatedAt }}: <MkTime :time="flash.updatedAt" mode="detail"/></div>
 						<div><i class="ti ti-clock"></i> {{ i18n.ts.createdAt }}: <MkTime :time="flash.createdAt" mode="detail"/></div>
@@ -66,6 +67,7 @@ import { computed, onDeactivated, onUnmounted, Ref, ref, watch, shallowRef, defi
 import * as Misskey from 'cherrypick-js';
 import { Interpreter, Parser, values } from '@syuilo/aiscript';
 import MkButton from '@/components/MkButton.vue';
+import MkRemoteCaution from '@/components/MkRemoteCaution.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { url } from '@/config.js';
@@ -88,7 +90,16 @@ const props = defineProps<{
 }>();
 
 const flash = ref<Misskey.entities.Flash | null>(null);
+const author = ref<string>('');
 const error = ref<any>(null);
+
+const remoteUrl = ref<string | null>(null);
+(() => {
+	let remote_split = props.id.split('@');
+	if (remote_split.length === 2 ) {
+		remoteUrl.value = 'https://' + remote_split[1] + '/play/' + remote_split[0];
+	}
+})();
 
 function fetchFlash() {
 	flash.value = null;
@@ -96,6 +107,7 @@ function fetchFlash() {
 		flashId: props.id,
 	}).then(_flash => {
 		flash.value = _flash;
+		author.value = '@' + _flash.user.username + (_flash.user.host ? ('@' + _flash.user.host) : '');
 	}).catch(err => {
 		error.value = err;
 	});
@@ -309,6 +321,9 @@ definePageMetadata(() => ({
 </script>
 
 <style lang="scss" module>
+.remote_caution{
+	margin-bottom: 10px;
+}
 .ready {
 	&:global {
 		> .main {
