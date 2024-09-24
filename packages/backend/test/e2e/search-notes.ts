@@ -18,6 +18,8 @@ describe('検索', () => {
 	let dave: misskey.entities.SignupResponse;
 	let tom: misskey.entities.SignupResponse;
 	let root: misskey.entities.SignupResponse;
+	let aliceBlocking: misskey.entities.SignupResponse;
+	let aliceMuting: misskey.entities.SignupResponse;
 	let sensitiveFile0_1Note: misskey.entities.Note;
 	let sensitiveFile1_2Note: misskey.entities.Note;
 	let sensitiveFile2_2Note: misskey.entities.Note;
@@ -25,12 +27,18 @@ describe('検索', () => {
 	let sensitive2Id: string;
 	let file_Attached: misskey.entities.Note;
 	let nofile_Attached: misskey.entities.Note;
+	let daveNote: misskey.entities.Note;
+	let daveNoteDirect: misskey.entities.Note;
+	let tomNote: misskey.entities.Note;
+	let tomNoteDirect: misskey.entities.Note;
 	let reactedNote: misskey.entities.Note;
 	let votedNote: misskey.entities.Note;
 	let clipedNote: misskey.entities.Note;
 	let favoritedNote: misskey.entities.Note;
 	let renotedNote: misskey.entities.Note;
 	let replyedNote: misskey.entities.Note;
+	let mutingNote: misskey.entities.Note;
+	let blockingNote: misskey.entities.Note;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
@@ -39,6 +47,13 @@ describe('検索', () => {
 		carol = await signup({ username: 'carol' });
 		dave = await signup({ username: 'dave' });
 		tom = await signup({ username: 'tom' });
+
+		aliceBlocking = await signup({ username: 'aliceBlocking' });
+		aliceMuting = await signup({ username: 'aliceMuting' });
+		await api('blocking/create', { userId: alice.id }, aliceBlocking);
+		await api('mute/create', { userId: aliceMuting.id }, alice);
+		blockingNote = await post(aliceBlocking, { text: 'blocking' });
+		mutingNote = await post(aliceMuting, { text: 'muting' });
 		const sensitive1 = await uploadUrl(bob, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.jpg');
 		const sensitive2 = await uploadUrl(bob, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.png');
 		const notSensitive = await uploadUrl(bob, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/rotate.jpg');
@@ -52,6 +67,7 @@ describe('検索', () => {
 		nofile_Attached = await post(bob, {
 			text: 'filetest',
 		});
+
 		sensitiveFile0_1Note = await post(bob, {
 			text: 'test_sensitive',
 			fileIds: [notSensitive.id],
@@ -64,6 +80,14 @@ describe('検索', () => {
 			text: 'test_sensitive',
 			fileIds: [sensitive1.id, sensitive2.id],
 		});
+
+		daveNote = await post(dave, { text: 'ff_test', visibility: 'followers' });
+		daveNoteDirect = await post(dave, { text: 'ff_test', visibility: 'specified', visibleUserIds: [] });
+
+		await api('following/create', { userId: tom.id }, alice);
+		tomNote = await post(tom, { text: 'ff_test', visibility: 'followers' });
+		tomNoteDirect = await post(tom, { text: '@alice ff_test', visibility: 'specified', visibleUserIds: [alice.id] });
+
 		reactedNote = await post(carol, { text: 'indexable_text' });
 		votedNote = await post(carol, {
 			text: 'indexable_text',
@@ -76,6 +100,8 @@ describe('検索', () => {
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
+
+		await new Promise(resolve => setTimeout(resolve, 5000));
 	}, 1000 * 60 * 2);
 
 	test('権限がないのでエラー', async () => {
@@ -189,6 +215,36 @@ describe('検索', () => {
 		assert.strictEqual(Array.isArray(res.body), true);
 		assert.strictEqual(res.body.length, 3);
 	});
+	test('可視性 followers, specified', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'ff_test',
+		}, alice);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+
+		const ids = asres0.body.map((x) => x.id);
+		assert.strictEqual(ids.includes(tomNote.id), true);
+		assert.strictEqual(ids.includes(tomNoteDirect.id), true);
+		assert.strictEqual(ids.includes(daveNote.id), false);
+		assert.strictEqual(ids.includes(daveNoteDirect.id), false);
+		assert.strictEqual(asres0.body.length, 2);
+	});
+	test('ミュートしてたら出ない', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'muting',
+		}, alice);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 0);
+	});
+	test('ブロックされてたら出ない', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'blocking',
+		}, alice);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 0);
+	});
 	/*
 	DB検索では未実装 別PRで出す
 	test('センシティブオプション:含む', async() => {
@@ -273,12 +329,14 @@ describe('検索', () => {
 		const asnids1 = asres1.body.map( x => x.id);
 		assert.strictEqual(asnids1.includes(reactedNote.id), true);
 	});
+	let rnId: string;
 	test('indexable false リノートしたら出てくる', async() => {
 		const rnres = await api('notes/create', {
 			renoteId: renotedNote.id,
 		}, alice);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 		assert.strictEqual(rnres.status, 200);
+		rnId = rnres.body.createdNote.id;
 		const asres2 = await api('notes/advanced-search', {
 			query: 'indexable_text',
 		}, alice);
@@ -289,13 +347,16 @@ describe('検索', () => {
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), true);
 	});
+	let replyId: string;
 	test('indexable false 返信したら出てくる', async() => {
 		const rpres = await api('notes/create', {
 			text: 'test',
 			replyId: replyedNote.id,
 		}, alice);
 		assert.strictEqual(rpres.status, 200);
+		replyId = rpres.body.createdNote.id;
 		await new Promise(resolve => setTimeout(resolve, 5000));
+
 		const asres3 = await api('notes/advanced-search', {
 			query: 'indexable_text',
 		}, alice);
@@ -323,6 +384,7 @@ describe('検索', () => {
 		const asnids4 = asres4.body.map( x => x.id);
 		assert.strictEqual(asnids4.includes(favoritedNote.id), true);
 	});
+	let clpId: string;
 	test('indexable false クリップしたら出てくる', async() => {
 		const clpres = await api('clips/create', {
 			noteId: renotedNote.id,
@@ -330,6 +392,7 @@ describe('検索', () => {
 			name: 'test',
 		}, alice);
 		assert.strictEqual(clpres.status, 200);
+		clpId = clpres.body.id;
 		const clpaddres = await api('clips/add-note', {
 			clipId: clpres.body.id,
 			noteId: clipedNote.id,
@@ -363,4 +426,86 @@ describe('検索', () => {
 		const asnids6 = asres6.body.map( x => x.id);
 		assert.strictEqual(asnids6.includes(votedNote.id), true);
 	});
+	//
+	test('indexable false リアクション外したらでない', async() => {
+		const rres = await api('notes/reactions/delete', {
+			noteId: reactedNote.id,
+		}, alice);
+		assert.strictEqual(rres.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+		const asres1 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres1.status, 200);
+		assert.strictEqual(Array.isArray(asres1.body), true);
+		assert.strictEqual(asres1.body.length, 5);
+
+		const asnids1 = asres1.body.map( x => x.id);
+		assert.strictEqual(asnids1.includes(reactedNote.id), false);
+	});
+	test('indexable false リノート消したらでない', async() => {
+		const rnres = await api('notes/delete', {
+			noteId: rnId,
+		}, alice);
+		assert.strictEqual(rnres.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+		const asres2 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres2.status, 200);
+		assert.strictEqual(Array.isArray(asres2.body), true);
+		assert.strictEqual(asres2.body.length, 4);
+
+		const asnids2 = asres2.body.map( x => x.id);
+		assert.strictEqual(asnids2.includes(renotedNote.id), false);
+	});
+	test('indexable false リプライ消したらでない', async() => {
+		const rnres = await api('notes/delete', {
+			noteId: replyId,
+		}, alice);
+		assert.strictEqual(rnres.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+		const asres2 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres2.status, 200);
+		assert.strictEqual(Array.isArray(asres2.body), true);
+		assert.strictEqual(asres2.body.length, 3);
+
+		const asnids2 = asres2.body.map( x => x.id);
+		assert.strictEqual(asnids2.includes(renotedNote.id), false);
+	});
+	test('indexable false クリップ消したらでない', async() => {
+		const clpaddres = await api('clips/remove-note', {
+			clipId: clpId,
+			noteId: clipedNote.id,
+		}, alice);
+		assert.strictEqual(clpaddres.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+		const asres5 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres5.status, 200);
+		assert.strictEqual(Array.isArray(asres5.body), true);
+		assert.strictEqual(asres5.body.length, 2);
+
+		const asnids5 = asres5.body.map( x => x.id);
+		assert.strictEqual(asnids5.includes(clipedNote.id), false);
+	});
+	test('indexable false お気に入り消したらでない', async() => {
+		const fvres = await api('notes/favorites/delete', { noteId: favoritedNote.id }, alice);
+		assert.strictEqual(fvres.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		const asres4 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres4.status, 200);
+		assert.strictEqual(Array.isArray(asres4.body), true);
+		assert.strictEqual(asres4.body.length, 1);
+
+		const asnids4 = asres4.body.map( x => x.id);
+		assert.strictEqual(asnids4.includes(favoritedNote.id), false);
+	});
+	//投票は消せないので対象外
 });
