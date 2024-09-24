@@ -25,10 +25,12 @@ describe('検索', () => {
 	let sensitive2Id: string;
 	let file_Attached: misskey.entities.Note;
 	let nofile_Attached: misskey.entities.Note;
-	let polledNote: misskey.entities.Note;
+	let reactedNote: misskey.entities.Note;
+	let votedNote: misskey.entities.Note;
 	let clipedNote: misskey.entities.Note;
 	let favoritedNote: misskey.entities.Note;
-	let carolNote: misskey.entities.Note;
+	let renotedNote: misskey.entities.Note;
+	let replyedNote: misskey.entities.Note;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
@@ -62,6 +64,18 @@ describe('検索', () => {
 			text: 'test_sensitive',
 			fileIds: [sensitive1.id, sensitive2.id],
 		});
+		reactedNote = await post(carol, { text: 'unindexableUserTest' });
+		votedNote = await post(carol, {
+			text: 'unindexableUserTest',
+			poll: {
+				choices: ['1', '2'],
+				multiple: false,
+			},
+		 });
+		clipedNote = await post(carol, { text: 'unindexableUserTest' });
+		favoritedNote = await post(carol, { text: 'unindexableUserTest' });
+		renotedNote = await post(carol, { text: 'unindexableUserTest' });
+		replyedNote = await post(carol, { text: 'unindexableUserTest' });
 	}, 1000 * 60 * 2);
 
 	test('権限がないのでエラー', async () => {
@@ -230,32 +244,19 @@ describe('検索', () => {
 		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), true);
 	});
 	*/
-	test('indexable', async() => {
+	test('indexable false ユーザーのノートは出てこない', async() => {
 		const ires = await api('i/update', {
 			isIndexable: false,
 		}, carol);
 		assert.strictEqual(ires.status, 200);
-		const reactedNote = await post(carol, { text: 'unindexableUserTest' });
-		const votedNote = await post(carol, {
-			text: 'unindexableUserTest',
-			poll: {
-				choices: ['1', '2'],
-				multiple: false,
-			},
-		 });
-		const clipedNote = await post(carol, { text: 'unindexableUserTest' });
-		const favoritedNote = await post(carol, { text: 'unindexableUserTest' });
-		const renotedNote = await post(carol, { text: 'unindexableUserTest' });
-		const replyedNote = await post(carol, { text: 'unindexableUserTest' });
-		//無効のユーザーのノートは出てこない
 		const asres0 = await api('notes/advanced-search', {
 			query: 'unindexableUserTest',
 		}, alice);
 		assert.strictEqual(asres0.status, 200);
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 0);
-
-		//リアクションしたら出てくる
+	});
+	test('indexable false リアクションしたら出てくる', async() => {
 		const rres = await api('notes/reactions/create', {
 			reaction: '❤',
 			noteId: reactedNote.id,
@@ -270,7 +271,8 @@ describe('検索', () => {
 
 		const asnids1 = asres1.body.map( x => x.id);
 		assert.strictEqual(asnids1.includes(reactedNote.id), true);
-		//リノートしたら出てくる
+	});
+	test('indexable false リノートしたら出てくる', async() => {
 		const rnres = await api('notes/create', {
 			renoteId: renotedNote.id,
 		}, alice);
@@ -284,8 +286,8 @@ describe('検索', () => {
 
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), true);
-
-		//返信したら出てくる
+	});
+	test('indexable false 返信したら出てくる', async() => {
 		const rpres = await api('notes/create', {
 			text: 'test',
 			replyId: replyedNote.id,
@@ -300,8 +302,8 @@ describe('検索', () => {
 
 		const asnids3 = asres3.body.map( x => x.id);
 		assert.strictEqual(asnids3.includes(replyedNote.id), true);
-
-		//お気に入りしたら出てくる
+	});
+	test('indexable false お気に入りしたら出てくる', async() => {
 		const fvres = await api('notes/favorites/create', {
 			noteId: favoritedNote.id,
 		}, alice);
@@ -316,8 +318,8 @@ describe('検索', () => {
 
 		const asnids4 = asres4.body.map( x => x.id);
 		assert.strictEqual(asnids4.includes(favoritedNote.id), true);
-
-		//クリップしたら出てくる
+	});
+	test('indexable false クリップしたら出てくる', async() => {
 		const clpres = await api('clips/create', {
 			noteId: renotedNote.id,
 			isPublic: false,
@@ -338,8 +340,8 @@ describe('検索', () => {
 
 		const asnids5 = asres5.body.map( x => x.id);
 		assert.strictEqual(asnids5.includes(clipedNote.id), true);
-
-		//投票したら出てくる
+	});
+	test('indexable false 投票したら出てくる', async() => {
 		const vres = await api('notes/polls/vote', {
 			noteId: votedNote.id,
 			choice: 0,
