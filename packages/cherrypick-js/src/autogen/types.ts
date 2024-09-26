@@ -9571,7 +9571,7 @@ export type operations = {
       content: {
         'application/json': {
           /** @enum {string} */
-          index: 'notes' | 'reaction' | 'pollVote';
+          index: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
         };
       };
     };
