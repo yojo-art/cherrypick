@@ -104,6 +104,10 @@ async function fullIndex() {
 			value: 'reaction', text: i18n.ts.reaction,
 		}, {
 			value: 'pollVote', text: i18n.ts.poll,
+		}, {
+			value: 'clipNotes', text: i18n.ts.clip,
+		}, {
+			value: 'Favorites', text: i18n.ts.favorite,
 		}],
 		default: 'reaction',
 	});

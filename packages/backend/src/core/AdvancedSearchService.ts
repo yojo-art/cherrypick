@@ -12,7 +12,7 @@ import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 import { MiNote } from '@/models/Note.js';
 import { MiUser } from '@/models/_.js';
-import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository } from '@/models/_.js';
+import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
@@ -171,6 +171,12 @@ export class AdvancedSearchService {
 		@Inject(DI.noteReactionsRepository)
 		private noteReactionsRepository: NoteReactionsRepository,
 
+		@Inject(DI.clipNotesRepository)
+		private clipNotesRepository: ClipNotesRepository,
+
+		@Inject(DI.noteFavoritesRepository)
+		private noteFavoritesRepository: NoteFavoritesRepository,
+
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
@@ -295,6 +301,7 @@ export class AdvancedSearchService {
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
 		if (note.text == null && note.cw == null) {
+			if (note.userHost !== null) return;//リノートであり、ローカルユーザー
 			await this.index(this.renoteIndex, note.id, {
 				renoteId: note.renoteId,
 				userId: note.userId,
@@ -349,13 +356,16 @@ export class AdvancedSearchService {
 		noteId: string,
 		userId: string,
 		reaction: string,
+		remote: boolean,
 	}) {
-		await this.index(this.reactionIndex, opts.id, {
-			noteId: opts.noteId,
-			userId: opts.userId,
-			reaction: opts.reaction,
-			createdAt: this.idService.parse(opts.id).date.getTime(),
-		});
+		if (!opts.remote) {
+			await this.index(this.reactionIndex, opts.id, {
+				noteId: opts.noteId,
+				userId: opts.userId,
+				reaction: opts.reaction,
+				createdAt: this.idService.parse(opts.id).date.getTime(),
+			});
+		}
 	}
 
 	@bindThis
@@ -454,6 +464,8 @@ export class AdvancedSearchService {
 			const reactions = await this.noteReactionsRepository
 				.createQueryBuilder('reac')
 				.where('reac.id > :latestid', { latestid })
+				.innerJoin('reac.user', 'user')
+				.select(['reac', 'user.host'])
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -463,6 +475,7 @@ export class AdvancedSearchService {
 					noteId: reac.noteId,
 					userId: reac.userId,
 					reaction: reac.reaction,
+					remote: reac.user === null ? false : true, //user.host===nullなら userがnullになる
 				});
 				latestid = reac.id;
 			});
@@ -481,9 +494,13 @@ export class AdvancedSearchService {
 			const votes = await this.pollVotesRepository
 				.createQueryBuilder('pv')
 				.where('pv.id > :latestid', { latestid })
+				.innerJoin('pv.user', 'user')
+				.select(['pv', 'user.host'])
+				.andWhere('user.host IS NULL')
 				.orderBy('pv.id', 'ASC')
 				.limit(limit)
 				.getMany();
+			if (votes.length === 0) { break; }
 			votes.forEach(pollVote => {
 				this.indexVote(pollVote.id, {
 					noteId: pollVote.noteId,
@@ -494,7 +511,54 @@ export class AdvancedSearchService {
 		}
 		this.logger.info('All pollvotes has been indexed.');
 	}
+	@bindThis
+	public async fullIndexClipNotes(): Promise<void> {
+		const clipsCount = await this.clipNotesRepository.createQueryBuilder('clipnote').getCount();
+		const limit = 100;
+		let latestid = '';
+		for (let index = 0; index < clipsCount; index += limit) {
+			this.logger.info('indexing' + index + '/' + clipsCount);
 
+			const clipNotes = await this.clipNotesRepository
+				.createQueryBuilder('clipnote')
+				.innerJoin('clipnote.clip', 'clip')
+				.select(['clipnote', 'clip.userId'])
+				.where('clipnote.id > :latestid', { latestid })
+				.orderBy('clipnote.id', 'ASC')
+				.limit(limit)
+				.getMany();
+			clipNotes.forEach(clipNote => {
+				this.indexFavorite(clipNote.id, {
+					noteId: clipNote.noteId,
+					userId: clipNote.clip?.userId as string,
+					clipId: clipNote.clipId,
+				});
+				latestid = clipNote.id;
+			});
+		}
+	}
+	public async fullIndexFavorites(): Promise<void> {
+		const clipsCount = await this.noteFavoritesRepository.createQueryBuilder('fv').getCount();
+		const limit = 100;
+		let latestid = '';
+		for (let index = 0; index < clipsCount; index += limit) {
+			this.logger.info('indexing' + index + '/' + clipsCount);
+
+			const favorites = await this.noteFavoritesRepository
+				.createQueryBuilder('fv')
+				.orderBy('fv.id', 'ASC')
+				.where('fv.id > :latestid', { latestid })
+				.limit(limit)
+				.getMany();
+			favorites.forEach(favorite => {
+				this.indexFavorite(favorite.id, {
+					noteId: favorite.noteId,
+					userId: favorite.userId,
+				});
+				latestid = favorite.id;
+			});
+		}
+	}
 	@bindThis
 	private async unindexById(index: string, id: string) {
 		if (!this.opensearch) return;
@@ -561,8 +625,8 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async unindexReaction(id: string): Promise<void> {
-		this.unindexById(this.reactionIndex, id);
+	public async unindexReaction(id: string, remote: boolean): Promise<void> {
+		if (!remote) this.unindexById(this.reactionIndex, id);
 	}
 	/**
 	 * Favoriteだけどクリップもここ

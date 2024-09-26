@@ -20,7 +20,7 @@ export const paramDef = {
 	properties: {
 		index: {
 			type: 'string',
-			enum: ['notes', 'reaction', 'pollVote'],
+			enum: ['notes', 'reaction', 'pollVote', 'clipNotes', 'Favorites'],
 		 },
 	},
 	required: ['index'],
@@ -42,6 +42,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					break;
 				case 'pollVote':
 					this.advancedSearchService.fullIndexPollVote();
+					break;
+				case 'clipNotes':
+					this.advancedSearchService.fullIndexClipNotes();
+					break;
+				case 'Favorites':
+					this.advancedSearchService.fullIndexFavorites();
 					break;
 			}
 		},
