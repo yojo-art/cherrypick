@@ -42,6 +42,10 @@ export const paramDef = {
 			type: 'string',
 			description: '指定した文字列を含むノートを返します',
 		},
+		reaction: {
+			type: 'string',
+			description: '指定したリアクションがつけられたノートを探します',
+		},
 		sinceId: {
 			type: 'string',
 			description: '指定されたID以降のノートを返します',
@@ -109,7 +113,6 @@ export const paramDef = {
 			description: 'ノートを作成したユーザーのID',
 		},
 	},
-	required: ['query'],
 } as const;
 
 // Todo: スリムにする
@@ -128,6 +131,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			}
 
 			const notes = await this.advancedSearchService.searchNote(ps.query, me, {
+				reaction: ps.reaction,
 				userId: ps.userId,
 				host: ps.host,
 				origin: ps.origin,

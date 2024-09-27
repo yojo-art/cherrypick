@@ -67,6 +67,7 @@ type Source = {
 		ssl?: boolean;
 		rejectUnauthorized?: boolean;
 		index: string;
+		reactionSearchScope?: string;
 	} | undefined;
 	sentryForBackend?: { options: Partial<Sentry.NodeOptions>; enableNodeProfiling: boolean; };
 	sentryForFrontend?: { options: Partial<Sentry.NodeOptions> };
@@ -158,6 +159,7 @@ export type Config = {
 		ssl?: boolean;
 		rejectUnauthorized?: boolean;
 		index: string;
+		reactionSearchScope: string;
 	} | undefined;
 	proxy: string | undefined;
 	proxySmtp: string | undefined;
