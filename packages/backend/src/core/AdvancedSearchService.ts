@@ -111,6 +111,13 @@ const noteIndexBody = {
 			referenceUserId: { type: 'keyword' },
 			sensitiveFileCount: { type: 'byte' },
 			nonSensitiveFileCount: { type: 'byte' },
+			reactions: {
+				type: 'nested',
+				properties: {
+					emoji: { type: 'keyword' },
+					count: { type: 'short' },
+				},
+			},
 		},
 	},
 	settings: {
@@ -366,6 +373,27 @@ export class AdvancedSearchService {
 				createdAt: this.idService.parse(opts.id).date.getTime(),
 			});
 		}
+		await this.opensearch?.update({
+			id: opts.noteId,
+			index: this.opensearchNoteIndex as string,
+			body: {
+				script: {
+					lang: 'painless',
+					source: 'if (ctx._source.containsKey("reactions")) {' +
+										'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
+										' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji).forEach(r -> r.count += 1); }' +
+										' else { ctx._source.reactions.add(params.record); }' +
+									'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
+					params: {
+						emoji: opts.reaction,
+						record: {
+							emoji: opts.reaction,
+							count: 1,
+						},
+					},
+				},
+			},
+		}).catch((err) => this.logger.error(err));
 	}
 
 	@bindThis
@@ -625,8 +653,27 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async unindexReaction(id: string, remote: boolean): Promise<void> {
+	public async unindexReaction(id: string, remote: boolean, noteId: string, emoji:string): Promise<void> {
 		if (!remote) this.unindexById(this.reactionIndex, id);
+		await this.opensearch?.update({
+			id: noteId,
+			index: this.opensearchNoteIndex as string,
+			body: {
+				script: {
+					lang: 'painless',
+					source: 'if (ctx._source.containsKey("reactions")) {' +
+										'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
+										' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
+										' if (ctx._source.reactions[i].count == 0) { ctx._source.reactions.remove(i) }' +
+										'break; }' +
+										'}' +
+									'}',
+					params: {
+						emoji: emoji,
+					},
+				},
+			},
+		}).catch((err) => this.logger.error(err));
 	}
 	/**
 	 * Favoriteだけどクリップもここ
@@ -694,6 +741,7 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	public async searchNote(q: string, me: MiUser | null, opts: {
+		reaction?: string | null;
 		userId?: MiNote['userId'] | null;
 		host?: string | null;
 		origin?: string | null;
@@ -719,6 +767,16 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
+			if (opts.reaction) {
+				osFilter.bool.must.push({
+					nested: {
+						path: 'reactions',
+						query: {
+							 wildcard: { 'reactions.emoji': { value: opts.reaction } },
+						},
+					},
+				});
+			}
 			if (opts.userId) {
 				osFilter.bool.must.push({ term: { userId: opts.userId } });
 				const user = await this.usersRepository.findOneBy({ id: opts.userId });

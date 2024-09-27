@@ -11895,6 +11895,10 @@ export interface Locale extends ILocale {
              */
             "sensitiveOnly": string;
         };
+        /**
+         * リアクション検索
+         */
+        "reactionSearch": string;
     };
     "_searchOrApShow": {
         /**

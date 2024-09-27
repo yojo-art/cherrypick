@@ -56,6 +56,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</FormSection>
 					<FormSection>
+						<template #label>{{ i18n.ts._advancedSearch.reactionSearch }}</template>
+						<button class="_button" :class="$style.button" @click="updateEmoji"><i class="ti ti-mood-happy"></i></button>
+						<MkInput v-model="emojiSearchQuery" :large="true" type="search" @enter.prevent="search"></MkInput>
+					</FormSection>
+					<FormSection>
 						<template #label>{{ i18n.ts.other }}</template>
 						<template #caption>{{ i18n.ts._advancedSearch._description.other }}</template>
 						<template #prefix></template>
@@ -98,6 +103,7 @@ import MkInput from '@/components/MkInput.vue';
 import FormSection from '@/components/form/section.vue';
 import { $i } from '@/account.js';
 import { instance } from '@/instance.js';
+import { emojiPicker } from '@/scripts/emoji-picker';
 
 const router = useRouter();
 
@@ -113,7 +119,7 @@ const excludeReply = ref(false);
 const excludeQuote = ref(false);
 const sensitiveFilter = ref('combined');
 const hostInput = ref('');
-
+const emojiSearchQuery = ref('');
 const noteSearchableScope = instance.noteSearchableScope ?? 'local';
 
 function selectUser() {
@@ -140,7 +146,6 @@ const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
-	if (query === '') return;
 	//#region AP lookup
 	if (query.startsWith('https://')) {
 		const { canceled } = await os.confirm({
@@ -204,6 +209,7 @@ async function search() {
 		limit: 10,
 		params: {
 			query: searchQuery.value,
+			reaction: emojiSearchQuery.value,
 			userId: user.value ? user.value.id : null,
 			...(searchOrigin.value === 'specified' ? { host: hostInput.value } : { origin: searchOrigin.value }),
 			fileOption: isfileOnly.value,
@@ -214,6 +220,15 @@ async function search() {
 		},
 	};
 	key.value++;
+}
+
+async function updateEmoji(ev: MouseEvent) {
+	emojiPicker.show(
+		ev.currentTarget ?? ev.target,
+		emoji => {
+			emojiSearchQuery.value = emoji.replaceAll(':', '*');
+		},
+	);
 }
 </script>
 <style lang="scss" module>
