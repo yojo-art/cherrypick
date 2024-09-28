@@ -2947,13 +2947,17 @@ export interface Locale extends ILocale {
      */
     "poll": string;
     /**
-     * 予約
+     * 予約投稿
      */
-    "schedule": string;
+    "schedulePost": string;
     /**
      * 内容を隠す
      */
     "useCw": string;
+    /**
+     * 予約投稿一覧
+     */
+    "schedulePostList": string;
     /**
      * プレイヤーを開く
      */

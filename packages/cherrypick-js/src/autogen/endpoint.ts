@@ -414,8 +414,10 @@ import type {
 	NotesCreateRequest,
 	NotesCreateResponse,
 	NotesCreateScheduleRequest,
+	NotesListScheduleResponse,
 	NotesDeleteRequest,
 	NotesUpdateRequest,
+	NotesDeleteScheduleRequest,
 	NotesFavoritesCreateRequest,
 	NotesFavoritesDeleteRequest,
 	NotesFeaturedRequest,
@@ -889,8 +891,10 @@ export type Endpoints = {
 	'notes/conversation': { req: NotesConversationRequest; res: NotesConversationResponse };
 	'notes/create': { req: NotesCreateRequest; res: NotesCreateResponse };
 	'notes/create-schedule': { req: NotesCreateScheduleRequest; res: EmptyResponse };
+	'notes/list-schedule': { req: EmptyRequest; res: NotesListScheduleResponse };
 	'notes/delete': { req: NotesDeleteRequest; res: EmptyResponse };
 	'notes/update': { req: NotesUpdateRequest; res: EmptyResponse };
+	'notes/delete-schedule': { req: NotesDeleteScheduleRequest; res: EmptyResponse };
 	'notes/favorites/create': { req: NotesFavoritesCreateRequest; res: EmptyResponse };
 	'notes/favorites/delete': { req: NotesFavoritesDeleteRequest; res: EmptyResponse };
 	'notes/featured': { req: NotesFeaturedRequest; res: NotesFeaturedResponse };
@@ -1299,8 +1303,10 @@ export const endpointReqTypes: Record<keyof Endpoints, 'application/json' | 'mul
 	'notes/conversation': 'application/json',
 	'notes/create': 'application/json',
 	'notes/create-schedule': 'application/json',
+	'notes/list-schedule': 'application/json',
 	'notes/delete': 'application/json',
 	'notes/update': 'application/json',
+	'notes/delete-schedule': 'application/json',
 	'notes/favorites/create': 'application/json',
 	'notes/favorites/delete': 'application/json',
 	'notes/featured': 'application/json',

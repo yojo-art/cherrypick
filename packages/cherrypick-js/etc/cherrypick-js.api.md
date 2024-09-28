@@ -1610,8 +1610,10 @@ declare namespace entities {
         NotesCreateRequest,
         NotesCreateResponse,
         NotesCreateScheduleRequest,
+        NotesListScheduleResponse,
         NotesDeleteRequest,
         NotesUpdateRequest,
+        NotesDeleteScheduleRequest,
         NotesFavoritesCreateRequest,
         NotesFavoritesDeleteRequest,
         NotesFeaturedRequest,
@@ -2675,6 +2677,9 @@ type NotesCreateScheduleRequest = operations['notes___create-schedule']['request
 type NotesDeleteRequest = operations['notes___delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type NotesDeleteScheduleRequest = operations['notes___delete-schedule']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type NotesEventsSearchRequest = operations['notes___events___search']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -2703,6 +2708,9 @@ type NotesHybridTimelineRequest = operations['notes___hybrid-timeline']['request
 
 // @public (undocumented)
 type NotesHybridTimelineResponse = operations['notes___hybrid-timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesListScheduleResponse = operations['notes___list-schedule']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesLocalTimelineRequest = operations['notes___local-timeline']['requestBody']['content']['application/json'];

@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :class="$style.root" :style="{ cursor: expandOnNoteClick && enableNoteClick ? 'pointer' : '' }" @click.stop="noteClick" @dblclick.stop="noteDblClick">
+<div v-show="!isDeleted" :class="$style.root" :tabindex="!isDeleted ? '-1' : undefined" :style="{ cursor: expandOnNoteClick && enableNoteClick ? 'pointer' : '' }" @click.stop="noteClick" @dblclick.stop="noteDblClick">
 	<div style="display: flex; padding-bottom: 10px;">
 		<MkAvatar v-if="!defaultStore.state.hideAvatarsInNote" :class="[$style.avatar, { [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>defaultStore.state.displayHeaderNavBarWhenScroll)) && mainRouter.currentRoute.value.name === 'index', [$style.showElTab]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>defaultStore.state.displayHeaderNavBarWhenScroll)) && mainRouter.currentRoute.value.name !== 'index' }]" :user="note.user" link preview noteClick/>
 		<div :class="$style.main">
@@ -19,6 +19,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</p>
 		<div v-show="note.cw == null || showContent">
 			<MkSubNoteContent :class="$style.text" :note="note" :showSubNoteFooterButton="false"/>
+			<div v-if="note.isSchedule" style="margin-top: 10px;">
+				<MkButton :class="$style.button" inline @click="editScheduleNote(note.id)">{{ i18n.ts.edit }}</MkButton>
+				<MkButton :class="$style.button" inline danger @click="deleteScheduleNote()">{{ i18n.ts.delete }}</MkButton>
+			</div>
 		</div>
 	</div>
 </div>
@@ -27,6 +31,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import { i18n } from '../i18n.js';
 import MkNoteHeader from '@/components/MkNoteHeader.vue';
 import MkSubNoteContent from '@/components/MkSubNoteContent.vue';
 import MkCwButton from '@/components/MkCwButton.vue';
@@ -38,13 +43,27 @@ import { defaultStore } from '@/store.js';
 import { notePage } from '@/filters/note.js';
 
 const props = withDefaults(defineProps<{
-	note: Misskey.entities.Note;
+  note: Misskey.entities.Note & {isSchedule? : boolean};
 	enableNoteClick?: boolean,
 }>(), {
 	enableNoteClick: true,
 });
 
 const showEl = ref(false);
+import MkButton from '@/components/MkButton.vue';
+import * as os from '@/os.js';
+const isDeleted = ref(false);
+
+async function deleteScheduleNote() {
+	await os.apiWithDialog('notes/delete-schedule', { noteId: props.note.id })
+		.then(() => {
+			isDeleted.value = true;
+		});
+}
+
+function editScheduleNote(id) {
+
+}
 
 const showContent = ref(false);
 const expandOnNoteClick = defaultStore.state.expandOnNoteClick;
@@ -73,8 +92,12 @@ function noteDblClick(ev: MouseEvent) {
 	padding: 0;
 	font-size: 0.95em;
 	-webkit-tap-highlight-color: transparent;
+  border-bottom: solid 0.5px var(--divider);
 }
-
+.button{
+  margin-right: var(--margin);
+  margin-bottom: var(--margin);
+}
 .avatar {
 	flex-shrink: 0;
 	display: block;

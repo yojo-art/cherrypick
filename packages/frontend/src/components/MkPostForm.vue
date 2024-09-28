@@ -19,6 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</button>
 		</div>
 		<div :class="$style.headerRight">
+			<button v-tooltip="i18n.ts.schedulePost" class="_button" :class="[$style.headerRightItem, { [$style.headerRightButtonActive]: schedule }]" @click="toggleSchedule"><i class="ti ti-calendar-time"></i></button>
+			<button v-tooltip="i18n.ts.schedulePostList" class="_button" :class="[$style.headerRightItem]" @click="listSchedulePost"><i class="ti ti-calendar-event"></i></button>
 			<template v-if="!(channel != null && fixed)">
 				<button v-if="channel == null" ref="visibilityButton" v-click-anime v-tooltip="i18n.ts.visibility" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setVisibility">
 					<span v-if="visibility === 'public'"><i class="ti ti-world"></i></span>
@@ -80,7 +82,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.footerLeft">
 			<button v-tooltip="i18n.ts.attachFile" class="_button" :class="$style.footerButton" @click="chooseFileFrom"><i class="ti ti-photo-plus"></i></button>
 			<button v-tooltip="i18n.ts.poll" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: poll }]" @click="togglePoll"><i class="ti ti-chart-arrows"></i></button>
-			<button v-tooltip="i18n.ts.schedule" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: schedule }]" @click="toggleSchedule"><i class="ti ti-calendar-event"></i></button>
 			<button v-tooltip="i18n.ts.event" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: event }]" @click="toggleEvent"><i class="ti ti-calendar"></i></button>
 			<button v-tooltip="i18n.ts.useCw" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: useCw }]" @click="useCw = !useCw"><i class="ti ti-eye-off"></i></button>
 			<button v-tooltip="i18n.ts.mention" class="_button" :class="$style.footerButton" @click="insertMention"><i class="ti ti-at"></i></button>
@@ -135,6 +136,7 @@ import { vibrate } from '@/scripts/vibrate.js';
 import * as sound from '@/scripts/sound.js';
 import { mfmFunctionPicker } from '@/scripts/mfm-function-picker.js';
 import MkScheduleEditor from '@/components/MkScheduleEditor.vue';
+import { listSchedulePost } from '@/os.js';
 
 const $i = signinRequired();
 
@@ -1223,6 +1225,10 @@ defineExpose({
 		background: none;
 	}
 
+  &.headerRightButtonActive {
+    color: var(--accent);
+  }
+
 	&.danger {
 		color: #ff2a2a;
 	}
@@ -1399,6 +1405,7 @@ defineExpose({
 	grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
 	grid-auto-rows: 40px;
 	direction: rtl;
+
 }
 
 .footerButton {
