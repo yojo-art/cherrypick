@@ -193,7 +193,7 @@ const event = ref<{
 	end: string | null;
 	metadata: Record<string, string>;
 } | null>(null);
-let schedule = ref<{
+const schedule = ref<{
   expiresAt: string | null;
 }| null>(null);
 const useCw = ref<boolean>(!!props.initialCw);
@@ -558,6 +558,7 @@ function removeVisibleUser(user) {
 
 function clear() {
 	text.value = '';
+	schedule.value = null;
 	files.value = [];
 	poll.value = null;
 	event.value = null;
@@ -859,7 +860,7 @@ async function post(ev?: MouseEvent) {
 			if (notesCount === 1) {
 				claimAchievement('notes1');
 			}
-
+			poll.value = null;
 			const text = postData.text ?? '';
 			const lowerCase = text.toLowerCase();
 			if ((lowerCase.includes('love') || lowerCase.includes('❤')) && lowerCase.includes('cherrypick')) {
