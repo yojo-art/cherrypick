@@ -36,8 +36,10 @@ const emit = defineEmits<{
 
 const atDate = ref(formatDateTimeString(addTime(new Date(), 1, 'day'), 'yyyy-MM-dd'));
 const atTime = ref('00:00');
-if ( props.modelValue && props.modelValue.expiresAt) {
-	atDate.value = atTime.value = props.modelValue.expiresAt;
+if (props.modelValue.expiresAt) {
+	const date = new Date(props.modelValue.expiresAt);
+	atDate.value = formatDateTimeString(date, 'yyyy-MM-dd');
+	atTime.value = formatDateTimeString(date, 'HH:mm');
 }
 
 function get() {

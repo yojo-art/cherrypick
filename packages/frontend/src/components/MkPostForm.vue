@@ -153,7 +153,7 @@ const props = withDefaults(defineProps<{
 	initialVisibility?: (typeof Misskey.noteVisibilities)[number];
 	initialFiles?: Misskey.entities.DriveFile[];
 	initialVisibleUsers?: Misskey.entities.UserDetailed[];
-	initialNote?: Misskey.entities.Note;
+	initialNote?: Misskey.entities.Note & {isSchedule?:boolean};
 	instant?: boolean;
 	fixed?: boolean;
 	autofocus?: boolean;
@@ -194,7 +194,7 @@ const event = ref<{
 	metadata: Record<string, string>;
 } | null>(null);
 const schedule = ref<{
-  expiresAt: string | null;
+  expiresAt: number | null;
 }| null>(null);
 const useCw = ref<boolean>(!!props.initialCw);
 const showPreview = ref(defaultStore.state.showPreview);
@@ -1060,6 +1060,11 @@ onMounted(() => {
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
 			files.value = init.files ?? [];
+			if (init.isSchedule) {
+				schedule.value = {
+					expiresAt: new Date(init.createdAt).getTime(),
+				};
+			}
 			if (init.poll) {
 				poll.value = {
 					choices: init.poll.choices.map(x => x.text),

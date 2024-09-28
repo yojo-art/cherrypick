@@ -20,8 +20,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-show="note.cw == null || showContent">
 			<MkSubNoteContent :class="$style.text" :note="note" :showSubNoteFooterButton="false"/>
 			<div v-if="note.isSchedule" style="margin-top: 10px;">
-				<MkButton :class="$style.button" inline @click="editScheduleNote(note.id)">{{ i18n.ts.edit }}</MkButton>
-				<MkButton :class="$style.button" inline danger @click="deleteScheduleNote()">{{ i18n.ts.delete }}</MkButton>
+				<MkButton :class="$style.button" inline @click.stop.prevent="editScheduleNote()">{{ i18n.ts.deleteAndEdit }}</MkButton>
+				<MkButton :class="$style.button" inline danger @click.stop.prevent="deleteScheduleNote()">{{ i18n.ts.delete }}</MkButton>
 			</div>
 		</div>
 	</div>
@@ -43,7 +43,7 @@ import { defaultStore } from '@/store.js';
 import { notePage } from '@/filters/note.js';
 
 const props = withDefaults(defineProps<{
-  note: Misskey.entities.Note & {isSchedule? : boolean};
+  note: Misskey.entities.Note & {isSchedule? : boolean, scheduledNoteId?:string};
 	enableNoteClick?: boolean,
 }>(), {
 	enableNoteClick: true,
@@ -52,7 +52,12 @@ const props = withDefaults(defineProps<{
 const showEl = ref(false);
 import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/scripts/misskey-api';
 const isDeleted = ref(false);
+
+const emit = defineEmits<{
+  (ev: 'editScheduleNote'): void;
+}>();
 
 async function deleteScheduleNote() {
 	await os.apiWithDialog('notes/delete-schedule', { noteId: props.note.id })
@@ -61,8 +66,15 @@ async function deleteScheduleNote() {
 		});
 }
 
-function editScheduleNote(id) {
+async function editScheduleNote() {
+	await misskeyApi('notes/delete-schedule', { noteId: props.note.id })
+		.then(() => {
+			isDeleted.value = true;
+		});
 
+	await os.post({ initialNote: props.note, renote: props.note.renote, reply: props.note.reply, channel: props.note.channel });
+
+	emit('editScheduleNote');
 }
 
 const showContent = ref(false);

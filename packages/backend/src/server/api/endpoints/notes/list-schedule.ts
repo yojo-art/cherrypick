@@ -9,11 +9,13 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import type { NoteScheduleRepository } from '@/models/_.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { QueryService } from '@/core/QueryService.js';
 
 export const meta = {
 	tags: ['notes'],
 
 	requireCredential: true,
+	kind: 'read:account',
 	res: {
 		type: 'array',
 		optional: false, nullable: false,
@@ -57,6 +59,12 @@ export const meta = {
 } as const;
 
 export const paramDef = {
+	type: 'object',
+	properties: {
+		sinceId: { type: 'string', format: 'misskey:id' },
+		untilId: { type: 'string', format: 'misskey:id' },
+		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+	},
 } as const;
 
 @Injectable()
@@ -64,10 +72,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.noteScheduleRepository)
 		private noteScheduleRepository: NoteScheduleRepository,
+
 		private userEntityService: UserEntityService,
+		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const scheduleNotes = await this.noteScheduleRepository.findBy({ userId: me.id });
+			const query = this.queryService.makePaginationQuery(this.noteScheduleRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
+				.andWhere('note.userId = :userId', { userId: me.id });
+			const scheduleNotes = await query.limit(ps.limit).getMany();
 			const user = await this.userEntityService.pack(me, me);
 			const scheduleNotesPack: {
 				id: string;

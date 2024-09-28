@@ -414,6 +414,7 @@ import type {
 	NotesCreateRequest,
 	NotesCreateResponse,
 	NotesCreateScheduleRequest,
+	NotesListScheduleRequest,
 	NotesListScheduleResponse,
 	NotesDeleteRequest,
 	NotesUpdateRequest,
@@ -891,7 +892,7 @@ export type Endpoints = {
 	'notes/conversation': { req: NotesConversationRequest; res: NotesConversationResponse };
 	'notes/create': { req: NotesCreateRequest; res: NotesCreateResponse };
 	'notes/create-schedule': { req: NotesCreateScheduleRequest; res: EmptyResponse };
-	'notes/list-schedule': { req: EmptyRequest; res: NotesListScheduleResponse };
+	'notes/list-schedule': { req: NotesListScheduleRequest; res: NotesListScheduleResponse };
 	'notes/delete': { req: NotesDeleteRequest; res: EmptyResponse };
 	'notes/update': { req: NotesUpdateRequest; res: EmptyResponse };
 	'notes/delete-schedule': { req: NotesDeleteScheduleRequest; res: EmptyResponse };

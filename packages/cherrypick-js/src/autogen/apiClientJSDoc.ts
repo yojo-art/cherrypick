@@ -3125,7 +3125,7 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *read:account*
      */
     request<E extends 'notes/list-schedule', P extends Endpoints[E]['req']>(
       endpoint: E,

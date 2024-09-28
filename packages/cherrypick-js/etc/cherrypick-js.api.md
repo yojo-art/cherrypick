@@ -1610,6 +1610,7 @@ declare namespace entities {
         NotesCreateRequest,
         NotesCreateResponse,
         NotesCreateScheduleRequest,
+        NotesListScheduleRequest,
         NotesListScheduleResponse,
         NotesDeleteRequest,
         NotesUpdateRequest,
@@ -2708,6 +2709,9 @@ type NotesHybridTimelineRequest = operations['notes___hybrid-timeline']['request
 
 // @public (undocumented)
 type NotesHybridTimelineResponse = operations['notes___hybrid-timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesListScheduleRequest = operations['notes___list-schedule']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesListScheduleResponse = operations['notes___list-schedule']['responses']['200']['content']['application/json'];

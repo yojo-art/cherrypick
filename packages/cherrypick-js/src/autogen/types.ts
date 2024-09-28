@@ -2704,7 +2704,7 @@ export type paths = {
      * notes/list-schedule
      * @description No description provided.
      *
-     * **Credential required**: *Yes*
+     * **Credential required**: *Yes* / **Permission**: *read:account*
      */
     post: operations['notes___list-schedule'];
   };
@@ -22216,14 +22216,42 @@ export type operations = {
    * notes/list-schedule
    * @description No description provided.
    *
-   * **Credential required**: *Yes*
+   * **Credential required**: *Yes* / **Permission**: *read:account*
    */
   'notes___list-schedule': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          sinceId?: string;
+          /** Format: misskey:id */
+          untilId?: string;
+          /** @default 10 */
+          limit?: number;
+        };
+      };
+    };
     responses: {
       /** @description OK (with results) */
       200: {
         content: {
-          'application/json': components['schemas']['Note'][];
+          'application/json': {
+              id: string;
+              note: {
+                id: string;
+                text: string;
+                files: Record<string, never>[];
+                localOnly: boolean;
+                visibility: string;
+                visibleUsers: Record<string, never>[];
+                reactionAcceptance: string;
+                user: components['schemas']['User'];
+                createdAt: string;
+                isSchedule: boolean;
+              };
+              userId: string;
+              expiresAt: string;
+            }[];
         };
       };
       /** @description Client error */
