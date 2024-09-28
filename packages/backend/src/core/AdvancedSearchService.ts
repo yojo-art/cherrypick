@@ -322,6 +322,7 @@ export class AdvancedSearchService {
 		const IsQuote = isRenote(note) && isQuote(note);
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+		const reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
 
 		const body = {
 			text: note.text,
@@ -339,6 +340,7 @@ export class AdvancedSearchService {
 			referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
 			sensitiveFileCount: sensitiveCount,
 			nonSensitiveFileCount: nonSensitiveCount,
+			reactions: reactions,
 		};
 		this.index(this.opensearchNoteIndex as string, note.id, body);
 	}
@@ -364,6 +366,7 @@ export class AdvancedSearchService {
 		userId: string,
 		reaction: string,
 		remote: boolean,
+		reactionIncrement?: boolean,
 	}) {
 		if (!opts.remote) {
 			await this.index(this.reactionIndex, opts.id, {
@@ -373,6 +376,7 @@ export class AdvancedSearchService {
 				createdAt: this.idService.parse(opts.id).date.getTime(),
 			});
 		}
+		if (opts.reactionIncrement === false) return;
 		await this.opensearch?.update({
 			id: opts.noteId,
 			index: this.opensearchNoteIndex as string,
@@ -504,6 +508,7 @@ export class AdvancedSearchService {
 					userId: reac.userId,
 					reaction: reac.reaction,
 					remote: reac.user === null ? false : true, //user.host===nullなら userがnullになる
+					reactionIncrement: false,
 				});
 				latestid = reac.id;
 			});
@@ -664,7 +669,8 @@ export class AdvancedSearchService {
 					source: 'if (ctx._source.containsKey("reactions")) {' +
 										'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
 										' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
-										' if (ctx._source.reactions[i].count == 0) { ctx._source.reactions.remove(i) }' +
+										//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
+										//' if (ctx._source.reactions[i].count == 0) { ctx._source.reactions.remove(i) }' +
 										'break; }' +
 										'}' +
 									'}',
@@ -772,7 +778,12 @@ export class AdvancedSearchService {
 					nested: {
 						path: 'reactions',
 						query: {
-							 wildcard: { 'reactions.emoji': { value: opts.reaction } },
+							bool: {
+								must: [
+									{ wildcard: { 'reactions.emoji': { value: opts.reaction } } },
+									{ range: { 'reactions.count': { gte: 1 } } },
+								],
+							},
 						},
 					},
 				});
