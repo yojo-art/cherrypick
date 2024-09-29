@@ -7677,6 +7677,10 @@ export interface Locale extends ILocale {
              */
             "canEditNote": string;
             /**
+             * ノートの予約投稿
+             */
+            "canScheduleNote": string;
+            /**
              * ノート内の最大メンション数
              */
             "mentionMax": string;
@@ -9331,6 +9335,10 @@ export interface Locale extends ILocale {
          * ノートを作成・削除する
          */
         "write:notes": string;
+        /**
+         * 予約投稿を見る
+         */
+        "read:notes-schedule": string;
         /**
          * 通知を見る
          */

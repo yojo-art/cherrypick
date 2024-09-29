@@ -30,6 +30,7 @@ export const meta = {
 	tags: ['notes'],
 
 	requireCredential: true,
+	requireRolePolicy: 'canScheduleNote',
 
 	prohibitMoved: true,
 
@@ -211,7 +212,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private queueService: QueueService,
     private idService: IdService,
 	) {
-		super(meta, paramDef, async (ps, me) => {
+		super({
+			...meta,
+			requireRolePolicy: 'canScheduleNote',
+		}, paramDef, async (ps, me) => {
 			let visibleUsers: MiUser[] = [];
 			if (ps.visibleUserIds) {
 				visibleUsers = await this.usersRepository.findBy({

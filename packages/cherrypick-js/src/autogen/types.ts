@@ -2704,7 +2704,7 @@ export type paths = {
      * notes/schedule/list
      * @description No description provided.
      *
-     * **Credential required**: *Yes* / **Permission**: *read:account*
+     * **Credential required**: *Yes* / **Permission**: *read:notes-schedule*
      */
     post: operations['notes___schedule___list'];
   };
@@ -5167,6 +5167,7 @@ export type components = {
       avatarDecorationLimit: number;
       fileSizeLimit: number;
       canEditNote: boolean;
+      canScheduleNote: boolean;
       mutualLinkSectionLimit: number;
       mutualLinkLimit: number;
     };
@@ -22214,7 +22215,7 @@ export type operations = {
    * notes/schedule/list
    * @description No description provided.
    *
-   * **Credential required**: *Yes* / **Permission**: *read:account*
+   * **Credential required**: *Yes* / **Permission**: *read:notes-schedule*
    */
   notes___schedule___list: {
     requestBody: {

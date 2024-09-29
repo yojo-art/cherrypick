@@ -19,8 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</button>
 		</div>
 		<div :class="$style.headerRight">
-			<button v-tooltip="i18n.ts.schedulePost" class="_button" :class="[$style.headerRightItem, { [$style.headerRightButtonActive]: schedule }]" @click="toggleSchedule"><i class="ti ti-calendar-time"></i></button>
-			<button v-tooltip="i18n.ts.schedulePostList" class="_button" :class="[$style.headerRightItem]" @click="listSchedulePost"><i class="ti ti-calendar-event"></i></button>
+			<button v-if="$i.policies.canScheduleNote" v-tooltip="i18n.ts.schedulePost" class="_button" :class="[$style.headerRightItem, { [$style.headerRightButtonActive]: schedule }]" @click="toggleSchedule"><i class="ti ti-calendar-time"></i></button>
+			<button v-if="$i.policies.canScheduleNote" v-tooltip="i18n.ts.schedulePostList" class="_button" :class="[$style.headerRightItem]" @click="listSchedulePost"><i class="ti ti-calendar-event"></i></button>
 			<template v-if="!(channel != null && fixed)">
 				<button v-if="channel == null" ref="visibilityButton" v-click-anime v-tooltip="i18n.ts.visibility" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setVisibility">
 					<span v-if="visibility === 'public'"><i class="ti ti-world"></i></span>

@@ -16,7 +16,7 @@ export const meta = {
 	tags: ['notes'],
 
 	requireCredential: true,
-	kind: 'read:account',
+	kind: 'read:notes-schedule',
 	res: {
 		type: 'array',
 		optional: false, nullable: false,
