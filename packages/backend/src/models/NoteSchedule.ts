@@ -9,7 +9,48 @@ import { MiNote } from '@/models/Note.js';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiChannel } from './Channel.js';
+import { EventSchema } from './Event.js';
 import type { MiDriveFile } from './DriveFile.js';
+
+type MinimumUser = {
+	id: MiUser['id'];
+	host: MiUser['host'];
+	username: MiUser['username'];
+	uri: MiUser['uri'];
+};
+
+export type MiScheduleNoteType={
+	/** Date.toISOString() */
+	createdAt: string;
+	visibility: 'public' | 'home' | 'followers' | 'specified';
+	visibleUsers: MinimumUser[];
+	channel?: MiChannel['id'];
+	poll: {
+		multiple: boolean;
+		choices: string[];
+		/** Date.toISOString() */
+		expiresAt: string | null
+	} | undefined;
+	renote?: MiNote['id'];
+	localOnly: boolean;
+	cw?: string|null;
+	reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
+	files: MiDriveFile['id'][];
+	text?: string|null;
+	reply?: MiNote['id'];
+	event?: {
+		/** Date.toISOString() */
+		start: string;
+		/** Date.toISOString() */
+		end: string | null;
+		title: string;
+		metadata: EventSchema;
+	} | null;
+	disableRightClick:boolean,
+	apMentions?: MinimumUser[] | null;
+	apHashtags?: string[] | null;
+	apEmojis?: string[] | null;
+}
 
 @Entity('note_schedule')
 export class MiNoteSchedule {
@@ -17,27 +58,7 @@ export class MiNoteSchedule {
 	public id: string;
 
 	@Column('jsonb')
-	public note:{
-		id: MiNote['id'];
-		apEmojis?: any[];
-		visibility: 'public' | 'home' | 'followers' | 'specified';
-		apMentions?: any[];
-		visibleUsers: MiUser[];
-		channel: null | MiChannel;
-		poll: {
-			multiple: boolean;
-			choices: string[];
-			expiresAt: Date | null
-		} | undefined;
-		renote: null | MiNote;
-		localOnly: boolean;
-		cw?: string|null;
-		apHashtags?: string[];
-		reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
-		files: MiDriveFile[];
-		text: string;
-		reply: null | MiNote
-	};
+	public note:MiScheduleNoteType;
 
 	@Index()
 	@Column('varchar', {

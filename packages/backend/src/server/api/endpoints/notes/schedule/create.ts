@@ -15,6 +15,7 @@ import type {
 	DriveFilesRepository,
 	ChannelsRepository,
 	NoteScheduleRepository,
+	MiNoteSchedule,
 } from '@/models/_.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiNote } from '@/models/Note.js';
@@ -24,6 +25,8 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
+import { IEvent } from '@/models/Event.js';
+import { MiScheduleNoteType } from '@/models/NoteSchedule.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -123,6 +126,7 @@ export const paramDef = {
 		} },
 		cw: { type: 'string', nullable: true, minLength: 1, maxLength: 100 },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
+		disableRightClick: { type: 'boolean', default: false },
 		noExtractMentions: { type: 'boolean', default: false },
 		noExtractHashtags: { type: 'boolean', default: false },
 		noExtractEmojis: { type: 'boolean', default: false },
@@ -168,6 +172,16 @@ export const paramDef = {
 				expiredAfter: { type: 'integer', nullable: true, minimum: 1 },
 			},
 			required: ['choices'],
+		},
+		event: {
+			type: 'object',
+			nullable: true,
+			properties: {
+				title: { type: 'string', minLength: 1, maxLength: 128, nullable: false },
+				start: { type: 'integer', nullable: false },
+				end: { type: 'integer', nullable: true },
+				metadata: { type: 'object' },
+			},
 		},
 		schedule: {
 			type: 'object',
@@ -333,48 +347,36 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (ps.schedule.expiresAt < Date.now()) {
 					throw new ApiError(meta.errors.cannotCreateAlreadyExpiredSchedule);
 				}
+			} else {
+				throw new ApiError(meta.errors.cannotCreateAlreadyExpiredSchedule);
 			}
-			type NoteType = {
-				id:MiNote['id'];
-				apEmojis: any[] | undefined;
-				visibility: 'public' | 'home' | 'followers' | 'specified';
-				apMentions: any[] | undefined;
-				visibleUsers: MiUser[];
-				channel: null | MiChannel;
-				poll: {
-					multiple: boolean;
-					choices: string[];
-					expiresAt: Date | null;
-				} | undefined;
-				renote: null | MiNote;
-				localOnly: boolean;
-				cw?: string|null;
-				apHashtags: any[] | undefined;
-				reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
-				files: MiDriveFile[];
-				text?: string;
-				reply: null | MiNote;
-			};
-			const note:NoteType = {
-				id: this.idService.gen(ps.schedule.expiresAt),
-				files: files,
+			const note:MiScheduleNoteType = {
+				createdAt: new Date(ps.schedule.expiresAt!).toISOString(),
+				files: files.map(f => f.id),
 				poll: ps.poll ? {
 					choices: ps.poll.choices,
 					multiple: ps.poll.multiple ?? false,
-					expiresAt: ps.poll.expiresAt ? new Date(ps.poll.expiresAt) : null,
+					expiresAt: ps.poll.expiresAt ? new Date(ps.poll.expiresAt).toISOString() : null,
 				} : undefined,
 				text: ps.text ?? undefined,
-				reply,
-				renote,
+				reply: reply?.id,
+				renote: renote?.id,
 				cw: ps.cw,
 				localOnly: false,
 				reactionAcceptance: ps.reactionAcceptance,
 				visibility: ps.visibility,
 				visibleUsers,
-				channel,
+				channel: channel?.id,
 				apMentions: ps.noExtractMentions ? [] : undefined,
 				apHashtags: ps.noExtractHashtags ? [] : undefined,
 				apEmojis: ps.noExtractEmojis ? [] : undefined,
+				event: ps.event ? {
+					start: new Date(ps.event.start!).toISOString(),
+					end: ps.event.end ? new Date(ps.event.end).toISOString() : null,
+					title: ps.event.title!,
+					metadata: ps.event.metadata ?? {},
+				} : undefined,
+				disableRightClick: ps.disableRightClick,
 			};
 
 			if (ps.schedule.expiresAt) {

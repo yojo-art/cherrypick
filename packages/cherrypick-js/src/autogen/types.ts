@@ -22142,6 +22142,8 @@ export type operations = {
            */
           reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
           /** @default false */
+          disableRightClick?: boolean;
+          /** @default false */
           noExtractMentions?: boolean;
           /** @default false */
           noExtractHashtags?: boolean;
@@ -22161,6 +22163,12 @@ export type operations = {
             multiple?: boolean;
             expiresAt?: number | null;
             expiredAfter?: number | null;
+          }) | null;
+          event?: ({
+            title?: string;
+            start?: number;
+            end?: number | null;
+            metadata?: Record<string, never>;
           }) | null;
           schedule: {
             expiresAt?: number;
@@ -22238,8 +22246,8 @@ export type operations = {
               /** Format: misskey:id */
               id: string;
               note: {
-                id: string;
-                text: string;
+                createdAt: string;
+                text?: string;
                 cw?: string | null;
                 fileIds: string[];
                 /** @enum {string} */
@@ -22251,8 +22259,6 @@ export type operations = {
                  * @enum {string|null}
                  */
                 reactionAcceptance: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
-                /** Format: misskey:id */
-                createdAt: string;
                 isSchedule: boolean;
               };
               userId: string;

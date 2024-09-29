@@ -7,10 +7,11 @@ import ms from 'ms';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
-import type { MiNoteSchedule, NoteScheduleRepository } from '@/models/_.js';
+import type { MiNote, MiNoteSchedule, NoteScheduleRepository } from '@/models/_.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { Packed } from '@/misc/json-schema.js';
+import { noteVisibilities } from '@/types.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -29,8 +30,8 @@ export const meta = {
 					type: 'object',
 					optional: false, nullable: false,
 					properties: {
-						id: { type: 'string', optional: false, nullable: false },
-						text: { type: 'string', optional: false, nullable: false },
+						createdAt: { type: 'string', optional: false, nullable: false },
+						text: { type: 'string', optional: true, nullable: false },
 						cw: { type: 'string', optional: true, nullable: true },
 						fileIds: { type: 'array', optional: false, nullable: false, items: { type: 'string', format: 'misskey:id', optional: false, nullable: false } },
 						visibility: { type: 'string', enum: ['public', 'home', 'followers', 'specified'], optional: false, nullable: false },
@@ -47,7 +48,6 @@ export const meta = {
 							ref: 'User',
 						},
 						reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
-						createdAt: { type: 'string', format: 'misskey:id', optional: false, nullable: false },
 						isSchedule: { type: 'boolean', optional: false, nullable: false },
 					},
 				},
@@ -91,13 +91,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const scheduleNotesPack: {
 				id: string;
 				note: {
-					id: string;
-					text: string;
+					text?: string;
 					cw?: string|null;
 					fileIds: string[];
-					visibility: 'public' | 'home' | 'followers' | 'specified';
+					visibility: typeof noteVisibilities[number];
 					visibleUsers: Packed<'UserLite'>[];
-					reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
+					reactionAcceptance: MiNote['reactionAcceptance'];
 					user: Packed<'User'>;
 					createdAt: string;
 					isSchedule: boolean;
@@ -110,9 +109,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					expiresAt: item.expiresAt.toISOString(),
 					note: {
 						...item.note,
+						text: item.note.text ?? '',
 						user: user,
-						visibleUsers: await userEntityService.packMany(item.note.visibleUsers, me),
-						fileIds: item.note.files.map(f => f.id),
+						visibility: item.note.visibility ?? 'public',
+						reactionAcceptance: item.note.reactionAcceptance ?? null,
+						visibleUsers: item.note.visibleUsers ? await userEntityService.packMany(item.note.visibleUsers.map(u => u.id), me) : [],
+						fileIds: item.note.files ? item.note.files : [],
 						createdAt: item.expiresAt.toISOString(),
 						isSchedule: true,
 						id: item.id,
