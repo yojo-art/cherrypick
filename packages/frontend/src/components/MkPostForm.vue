@@ -834,7 +834,7 @@ async function post(ev?: MouseEvent) {
 	}
 
 	posting.value = true;
-	misskeyApi(props.updateMode ? 'notes/update' : (postData.schedule ? 'notes/create-schedule' : 'notes/create'), postData, token).then(() => {
+	misskeyApi(props.updateMode ? 'notes/update' : (postData.schedule ? 'notes/schedule/create' : 'notes/create'), postData, token).then(() => {
 		if (props.freezeAfterPosted) {
 			posted.value = true;
 		} else {

@@ -413,12 +413,12 @@ import type {
 	NotesConversationResponse,
 	NotesCreateRequest,
 	NotesCreateResponse,
-	NotesCreateScheduleRequest,
-	NotesListScheduleRequest,
-	NotesListScheduleResponse,
+	NotesScheduleCreateRequest,
+	NotesScheduleListRequest,
+	NotesScheduleListResponse,
+	NotesScheduleDeleteRequest,
 	NotesDeleteRequest,
 	NotesUpdateRequest,
-	NotesDeleteScheduleRequest,
 	NotesFavoritesCreateRequest,
 	NotesFavoritesDeleteRequest,
 	NotesFeaturedRequest,
@@ -891,11 +891,11 @@ export type Endpoints = {
 	'notes/clips': { req: NotesClipsRequest; res: NotesClipsResponse };
 	'notes/conversation': { req: NotesConversationRequest; res: NotesConversationResponse };
 	'notes/create': { req: NotesCreateRequest; res: NotesCreateResponse };
-	'notes/create-schedule': { req: NotesCreateScheduleRequest; res: EmptyResponse };
-	'notes/list-schedule': { req: NotesListScheduleRequest; res: NotesListScheduleResponse };
+	'notes/schedule/create': { req: NotesScheduleCreateRequest; res: EmptyResponse };
+	'notes/schedule/list': { req: NotesScheduleListRequest; res: NotesScheduleListResponse };
+	'notes/schedule/delete': { req: NotesScheduleDeleteRequest; res: EmptyResponse };
 	'notes/delete': { req: NotesDeleteRequest; res: EmptyResponse };
 	'notes/update': { req: NotesUpdateRequest; res: EmptyResponse };
-	'notes/delete-schedule': { req: NotesDeleteScheduleRequest; res: EmptyResponse };
 	'notes/favorites/create': { req: NotesFavoritesCreateRequest; res: EmptyResponse };
 	'notes/favorites/delete': { req: NotesFavoritesDeleteRequest; res: EmptyResponse };
 	'notes/featured': { req: NotesFeaturedRequest; res: NotesFeaturedResponse };
@@ -1303,11 +1303,11 @@ export const endpointReqTypes: Record<keyof Endpoints, 'application/json' | 'mul
 	'notes/clips': 'application/json',
 	'notes/conversation': 'application/json',
 	'notes/create': 'application/json',
-	'notes/create-schedule': 'application/json',
-	'notes/list-schedule': 'application/json',
+	'notes/schedule/create': 'application/json',
+	'notes/schedule/list': 'application/json',
+	'notes/schedule/delete': 'application/json',
 	'notes/delete': 'application/json',
 	'notes/update': 'application/json',
-	'notes/delete-schedule': 'application/json',
 	'notes/favorites/create': 'application/json',
 	'notes/favorites/delete': 'application/json',
 	'notes/featured': 'application/json',

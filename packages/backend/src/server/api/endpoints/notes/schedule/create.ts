@@ -27,7 +27,7 @@ import { DI } from '@/di-symbols.js';
 import { QueueService } from '@/core/QueueService.js';
 import { MiNoteSchedule } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
-import { ApiError } from '../../error.js';
+import { ApiError } from '../../../error.js';
 
 export const meta = {
 	tags: ['notes'],

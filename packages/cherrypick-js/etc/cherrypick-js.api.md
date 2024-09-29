@@ -1609,12 +1609,12 @@ declare namespace entities {
         NotesConversationResponse,
         NotesCreateRequest,
         NotesCreateResponse,
-        NotesCreateScheduleRequest,
-        NotesListScheduleRequest,
-        NotesListScheduleResponse,
+        NotesScheduleCreateRequest,
+        NotesScheduleListRequest,
+        NotesScheduleListResponse,
+        NotesScheduleDeleteRequest,
         NotesDeleteRequest,
         NotesUpdateRequest,
-        NotesDeleteScheduleRequest,
         NotesFavoritesCreateRequest,
         NotesFavoritesDeleteRequest,
         NotesFeaturedRequest,
@@ -2672,13 +2672,7 @@ type NotesCreateRequest = operations['notes___create']['requestBody']['content']
 type NotesCreateResponse = operations['notes___create']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
-type NotesCreateScheduleRequest = operations['notes___create-schedule']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
 type NotesDeleteRequest = operations['notes___delete']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type NotesDeleteScheduleRequest = operations['notes___delete-schedule']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type NotesEventsSearchRequest = operations['notes___events___search']['requestBody']['content']['application/json'];
@@ -2709,12 +2703,6 @@ type NotesHybridTimelineRequest = operations['notes___hybrid-timeline']['request
 
 // @public (undocumented)
 type NotesHybridTimelineResponse = operations['notes___hybrid-timeline']['responses']['200']['content']['application/json'];
-
-// @public (undocumented)
-type NotesListScheduleRequest = operations['notes___list-schedule']['requestBody']['content']['application/json'];
-
-// @public (undocumented)
-type NotesListScheduleResponse = operations['notes___list-schedule']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesLocalTimelineRequest = operations['notes___local-timeline']['requestBody']['content']['application/json'];
@@ -2766,6 +2754,18 @@ type NotesRequest = operations['notes']['requestBody']['content']['application/j
 
 // @public (undocumented)
 type NotesResponse = operations['notes']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type NotesScheduleCreateRequest = operations['notes___schedule___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesScheduleDeleteRequest = operations['notes___schedule___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesScheduleListRequest = operations['notes___schedule___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type NotesScheduleListResponse = operations['notes___schedule___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type NotesSearchByTagRequest = operations['notes___search-by-tag']['requestBody']['content']['application/json'];

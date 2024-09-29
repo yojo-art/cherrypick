@@ -2690,23 +2690,32 @@ export type paths = {
      */
     post: operations['notes___create'];
   };
-  '/notes/create-schedule': {
+  '/notes/schedule/create': {
     /**
-     * notes/create-schedule
+     * notes/schedule/create
      * @description No description provided.
      *
      * **Credential required**: *Yes* / **Permission**: *write:notes*
      */
-    post: operations['notes___create-schedule'];
+    post: operations['notes___schedule___create'];
   };
-  '/notes/list-schedule': {
+  '/notes/schedule/list': {
     /**
-     * notes/list-schedule
+     * notes/schedule/list
      * @description No description provided.
      *
      * **Credential required**: *Yes* / **Permission**: *read:account*
      */
-    post: operations['notes___list-schedule'];
+    post: operations['notes___schedule___list'];
+  };
+  '/notes/schedule/delete': {
+    /**
+     * notes/schedule/delete
+     * @description No description provided.
+     *
+     * **Credential required**: *Yes* / **Permission**: *write:notes*
+     */
+    post: operations['notes___schedule___delete'];
   };
   '/notes/delete': {
     /**
@@ -2725,15 +2734,6 @@ export type paths = {
      * **Credential required**: *Yes* / **Permission**: *write:notes*
      */
     post: operations['notes___update'];
-  };
-  '/notes/delete-schedule': {
-    /**
-     * notes/delete-schedule
-     * @description No description provided.
-     *
-     * **Credential required**: *Yes*
-     */
-    post: operations['notes___delete-schedule'];
   };
   '/notes/favorites/create': {
     /**
@@ -22119,12 +22119,12 @@ export type operations = {
     };
   };
   /**
-   * notes/create-schedule
+   * notes/schedule/create
    * @description No description provided.
    *
    * **Credential required**: *Yes* / **Permission**: *write:notes*
    */
-  'notes___create-schedule': {
+  notes___schedule___create: {
     requestBody: {
       content: {
         'application/json': {
@@ -22213,12 +22213,12 @@ export type operations = {
     };
   };
   /**
-   * notes/list-schedule
+   * notes/schedule/list
    * @description No description provided.
    *
    * **Credential required**: *Yes* / **Permission**: *read:account*
    */
-  'notes___list-schedule': {
+  notes___schedule___list: {
     requestBody: {
       content: {
         'application/json': {
@@ -22253,6 +22253,64 @@ export type operations = {
               expiresAt: string;
             }[];
         };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description To many requests */
+      429: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
+   * notes/schedule/delete
+   * @description No description provided.
+   *
+   * **Credential required**: *Yes* / **Permission**: *write:notes*
+   */
+  notes___schedule___delete: {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** Format: misskey:id */
+          noteId: string;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (without any results) */
+      204: {
+        content: never;
       };
       /** @description Client error */
       400: {
@@ -22374,64 +22432,6 @@ export type operations = {
           cw: string | null;
           /** @default false */
           disableRightClick?: boolean;
-        };
-      };
-    };
-    responses: {
-      /** @description OK (without any results) */
-      204: {
-        content: never;
-      };
-      /** @description Client error */
-      400: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description Authentication error */
-      401: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description Forbidden error */
-      403: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description I'm Ai */
-      418: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description To many requests */
-      429: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-      /** @description Internal server error */
-      500: {
-        content: {
-          'application/json': components['schemas']['Error'];
-        };
-      };
-    };
-  };
-  /**
-   * notes/delete-schedule
-   * @description No description provided.
-   *
-   * **Credential required**: *Yes*
-   */
-  'notes___delete-schedule': {
-    requestBody: {
-      content: {
-        'application/json': {
-          /** Format: misskey:id */
-          noteId: string;
         };
       };
     };

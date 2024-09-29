@@ -50,7 +50,7 @@ const cancel = () => {
 };
 const paginationEl = ref();
 const pagination: Paging = {
-	endpoint: 'notes/list-schedule',
+	endpoint: 'notes/schedule/list',
 	limit: 10,
 };
 
