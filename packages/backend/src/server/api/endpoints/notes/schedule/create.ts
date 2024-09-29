@@ -4,7 +4,7 @@
  */
 
 import ms from 'ms';
-import { DataSource, In } from 'typeorm';
+import { In } from 'typeorm';
 import { Inject, Injectable } from '@nestjs/common';
 import { isPureRenote } from 'cherrypick-js/note.js';
 import type { MiUser } from '@/models/User.js';
@@ -21,11 +21,8 @@ import type { MiNote } from '@/models/Note.js';
 import type { MiChannel } from '@/models/Channel.js';
 import { MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { DI } from '@/di-symbols.js';
 import { QueueService } from '@/core/QueueService.js';
-import { MiNoteSchedule } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { ApiError } from '../../../error.js';
 
@@ -124,7 +121,6 @@ export const paramDef = {
 			type: 'string', format: 'misskey:id',
 		} },
 		cw: { type: 'string', nullable: true, minLength: 1, maxLength: 100 },
-		localOnly: { type: 'boolean', default: false },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
 		noExtractMentions: { type: 'boolean', default: false },
 		noExtractHashtags: { type: 'boolean', default: false },
@@ -187,8 +183,8 @@ export const paramDef = {
 		{ required: ['fileIds'] },
 		{ required: ['mediaIds'] },
 		{ required: ['poll'] },
-		{ required: ['schedule'] },
 	],
+	required: ['schedule'],
 } as const;
 
 @Injectable()
@@ -329,35 +325,34 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw new ApiError(meta.errors.noSuchChannel);
 				}
 			}
-			if (ps.schedule) {
-				if (typeof ps.schedule.expiresAt === 'number') {
-					if (ps.schedule.expiresAt < Date.now()) {
-						throw new ApiError(meta.errors.cannotCreateAlreadyExpiredSchedule);
-					}
+			if (typeof ps.schedule.expiresAt === 'number') {
+				if (ps.schedule.expiresAt < Date.now()) {
+					throw new ApiError(meta.errors.cannotCreateAlreadyExpiredSchedule);
 				}
 			}
 			type NoteType = {
-				createdAt?: Date | undefined;
+				id:MiNote['id'];
 				apEmojis: any[] | undefined;
-				visibility: any;
+				visibility: 'public' | 'home' | 'followers' | 'specified';
 				apMentions: any[] | undefined;
 				visibleUsers: MiUser[];
 				channel: null | MiChannel;
 				poll: {
-					multiple: any;
-					choices: any;
+					multiple: boolean;
+					choices: string[];
 					expiresAt: Date | null;
 				} | undefined;
 				renote: null | MiNote;
-				localOnly: any;
-				cw: any;
+				localOnly: boolean;
+				cw?: string|null;
 				apHashtags: any[] | undefined;
-				reactionAcceptance: any;
+				reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
 				files: MiDriveFile[];
-				text: any;
+				text?: string;
 				reply: null | MiNote;
 			};
 			const note:NoteType = {
+				id: this.idService.gen(ps.schedule.expiresAt),
 				files: files,
 				poll: ps.poll ? {
 					choices: ps.poll.choices,
@@ -368,7 +363,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				reply,
 				renote,
 				cw: ps.cw,
-				localOnly: ps.localOnly,
+				localOnly: false,
 				reactionAcceptance: ps.reactionAcceptance,
 				visibility: ps.visibility,
 				visibleUsers,
@@ -378,7 +373,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				apEmojis: ps.noExtractEmojis ? [] : undefined,
 			};
 
-			if (ps.schedule && ps.schedule.expiresAt) {
+			if (ps.schedule.expiresAt) {
 				me.token = null;
 				const noteId = this.idService.gen(new Date().getTime());
 				await this.noteScheduleRepository.insert({

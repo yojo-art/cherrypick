@@ -7,9 +7,10 @@ import ms from 'ms';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
-import type { NoteScheduleRepository } from '@/models/_.js';
+import type { MiNoteSchedule, NoteScheduleRepository } from '@/models/_.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { QueryService } from '@/core/QueryService.js';
+import { Packed } from '@/misc/json-schema.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -23,24 +24,30 @@ export const meta = {
 			type: 'object',
 			optional: false, nullable: false,
 			properties: {
-				id: { type: 'string', optional: false, nullable: false },
+				id: { type: 'string', format: 'misskey:id', optional: false, nullable: false },
 				note: {
 					type: 'object',
 					optional: false, nullable: false,
 					properties: {
 						id: { type: 'string', optional: false, nullable: false },
 						text: { type: 'string', optional: false, nullable: false },
-						files: { type: 'array', optional: false, nullable: false, items: { type: 'any' } },
-						localOnly: { type: 'boolean', optional: false, nullable: false },
-						visibility: { type: 'string', optional: false, nullable: false },
-						visibleUsers: { type: 'array', optional: false, nullable: false, items: { type: 'any' } },
-						reactionAcceptance: { type: 'string', optional: false, nullable: false },
+						cw: { type: 'string', optional: true, nullable: true },
+						fileIds: { type: 'array', optional: false, nullable: false, items: { type: 'string', format: 'misskey:id', optional: false, nullable: false } },
+						visibility: { type: 'string', enum: ['public', 'home', 'followers', 'specified'], optional: false, nullable: false },
+						visibleUsers: {
+							type: 'array', optional: false, nullable: false, items: {
+								type: 'object',
+								optional: false, nullable: false,
+								ref: 'UserLite',
+							},
+						},
 						user: {
 							type: 'object',
 							optional: false, nullable: false,
 							ref: 'User',
 						},
-						createdAt: { type: 'string', optional: false, nullable: false },
+						reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
+						createdAt: { type: 'string', format: 'misskey:id', optional: false, nullable: false },
 						isSchedule: { type: 'boolean', optional: false, nullable: false },
 					},
 				},
@@ -86,29 +93,32 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				note: {
 					id: string;
 					text: string;
-					files: any[];
-					localOnly: boolean;
-					visibility: string;
-					visibleUsers: any[];
-					reactionAcceptance: string;
-					user: any;
+					cw?: string|null;
+					fileIds: string[];
+					visibility: 'public' | 'home' | 'followers' | 'specified';
+					visibleUsers: Packed<'UserLite'>[];
+					reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
+					user: Packed<'User'>;
 					createdAt: string;
 					isSchedule: boolean;
 				};
 				userId: string;
 				expiresAt: string;
-			}[] = scheduleNotes.map((item: any) => {
+			}[] = await Promise.all(scheduleNotes.map(async (item: MiNoteSchedule) => {
 				return {
 					...item,
+					expiresAt: item.expiresAt.toISOString(),
 					note: {
 						...item.note,
 						user: user,
-						createdAt: new Date(item.expiresAt),
+						visibleUsers: await userEntityService.packMany(item.note.visibleUsers, me),
+						fileIds: item.note.files.map(f => f.id),
+						createdAt: item.expiresAt.toISOString(),
 						isSchedule: true,
 						id: item.id,
 					},
 				};
-			});
+			}));
 
 			return scheduleNotesPack;
 		});

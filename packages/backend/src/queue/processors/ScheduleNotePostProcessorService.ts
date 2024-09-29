@@ -36,7 +36,6 @@ export class ScheduleNotePostProcessorService {
 			if (!data) {
 				this.logger.warn(`Schedule note ${job.data.scheduleNoteId} not found`);
 			} else {
-				data.note.createdAt = new Date();
 				const me = await this.usersRepository.findOneByOrFail({ id: data.userId });
 				await this.noteCreateService.create(me, data.note);
 				await this.noteScheduleRepository.remove(data);

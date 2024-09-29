@@ -17,7 +17,27 @@ export class MiNoteSchedule {
 	public id: string;
 
 	@Column('jsonb')
-	public note:{createdAt?: Date | undefined ; apEmojis: any[] | undefined; visibility: any; apMentions: any[] | undefined; visibleUsers: MiUser[]; channel: null | MiChannel; poll: { multiple: any; choices: any; expiresAt: Date | null } | undefined; renote: null | MiNote; localOnly: any; cw: any; apHashtags: any[] | undefined; reactionAcceptance: any; files: MiDriveFile[]; text: any; reply: null | MiNote };
+	public note:{
+		id: MiNote['id'];
+		apEmojis?: any[];
+		visibility: 'public' | 'home' | 'followers' | 'specified';
+		apMentions?: any[];
+		visibleUsers: MiUser[];
+		channel: null | MiChannel;
+		poll: {
+			multiple: boolean;
+			choices: string[];
+			expiresAt: Date | null
+		} | undefined;
+		renote: null | MiNote;
+		localOnly: boolean;
+		cw?: string|null;
+		apHashtags?: string[];
+		reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
+		files: MiDriveFile[];
+		text: string;
+		reply: null | MiNote
+	};
 
 	@Index()
 	@Column('varchar', {

@@ -22135,8 +22135,6 @@ export type operations = {
           visibility?: 'public' | 'home' | 'followers' | 'specified';
           visibleUserIds?: string[];
           cw?: string | null;
-          /** @default false */
-          localOnly?: boolean;
           /**
            * @default null
            * @enum {string|null}
@@ -22163,7 +22161,7 @@ export type operations = {
             expiresAt?: number | null;
             expiredAfter?: number | null;
           }) | null;
-          schedule?: {
+          schedule: {
             expiresAt?: number;
           };
         };
@@ -22235,23 +22233,30 @@ export type operations = {
       /** @description OK (with results) */
       200: {
         content: {
-          'application/json': {
+          'application/json': ({
+              /** Format: misskey:id */
               id: string;
               note: {
                 id: string;
                 text: string;
-                files: Record<string, never>[];
-                localOnly: boolean;
-                visibility: string;
-                visibleUsers: Record<string, never>[];
-                reactionAcceptance: string;
+                cw?: string | null;
+                fileIds: string[];
+                /** @enum {string} */
+                visibility: 'public' | 'home' | 'followers' | 'specified';
+                visibleUsers: components['schemas']['UserLite'][];
                 user: components['schemas']['User'];
+                /**
+                 * @default null
+                 * @enum {string|null}
+                 */
+                reactionAcceptance: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
+                /** Format: misskey:id */
                 createdAt: string;
                 isSchedule: boolean;
               };
               userId: string;
               expiresAt: string;
-            }[];
+            })[];
         };
       };
       /** @description Client error */
