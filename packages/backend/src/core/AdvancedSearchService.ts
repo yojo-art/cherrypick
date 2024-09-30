@@ -1041,7 +1041,7 @@ export class AdvancedSearchService {
 		}
 
 		if (retry) {
-			while (FilterdNotes.length < res.body.hits.total.value) {
+			for (let i = 0; i < retryLimit; i++) {
 				res = await this.opensearch.search(OpenSearchOption);
 				notes = res.body.hits.hits as OpenSearchHit[];
 
