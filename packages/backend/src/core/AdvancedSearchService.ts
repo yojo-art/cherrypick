@@ -19,6 +19,7 @@ import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
 import { DriveService } from './DriveService.js';
 
@@ -746,8 +747,9 @@ export class AdvancedSearchService {
 	 * エンドポイントから呼ばれるところ
 	 */
 	@bindThis
-	public async searchNote(q: string, me: MiUser | null, opts: {
-		reaction?: string | null;
+	public async searchNote(me: MiUser | null, opts: {
+		reactions?: string[] | null;
+		reactionsExclude?: string[] | null;
 		userId?: MiNote['userId'] | null;
 		host?: string | null;
 		origin?: string | null;
@@ -762,7 +764,8 @@ export class AdvancedSearchService {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
 		limit?: number;
-	}): Promise<MiNote[]> {
+	},
+	q?: string): Promise<MiNote[]> {
 		if (this.opensearch) {
 			const osFilter: any = {
 				bool: {
@@ -773,21 +776,45 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
-			if (opts.reaction) {
-				osFilter.bool.must.push({
+			if (opts.reactions) {
+				const reactionsQuery = {
 					nested: {
 						path: 'reactions',
 						query: {
 							bool: {
-								must: [
-									{ wildcard: { 'reactions.emoji': { value: opts.reaction } } },
+								should: [
 									{ range: { 'reactions.count': { gte: 1 } } },
 								],
+								minimum_should_match: 2,
 							},
 						},
 					},
+				} as any;
+				opts.reactions.forEach( (reaction) => {
+					reactionsQuery.nested.query.bool.should.push({ wildcard: { 'reactions.emoji': { value: reaction } } });
 				});
+				osFilter.bool.must.push(reactionsQuery);
 			}
+			if (opts.reactionsExclude) {
+				const reactionsExcludeQuery = {
+					nested: {
+						path: 'reactions',
+						query: {
+							bool: {
+								should: [
+									{ range: { 'reactions.count': { gte: 1 } } },
+								],
+								minimum_should_match: 2,
+							},
+						},
+					},
+				} as any;
+				opts.reactionsExclude.forEach( (reaction) => {
+					reactionsExcludeQuery.nested.query.bool.should.push({ wildcard: { 'reactions.emoji': { value: reaction } } });
+				});
+				osFilter.bool.must_not.push(reactionsExcludeQuery);
+			}
+
 			if (opts.userId) {
 				osFilter.bool.must.push({ term: { userId: opts.userId } });
 				const user = await this.usersRepository.findOneBy({ id: opts.userId });
@@ -835,7 +862,7 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (q !== '') {
+			if (q !== undefined && q !== '') {
 				if (opts.excludeCW) {
 					osFilter.bool.must.push({
 						bool: {
@@ -898,6 +925,11 @@ export class AdvancedSearchService {
 				id: In(noteIds),
 			})).sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
+			if (opts.reactions) {
+				throw new IdentifiableError('084b2eec-7b60-4382-ae49-3da182d27a9a', 'Unimplemented');
+			} else if (opts.reactionsExclude) {
+				throw new IdentifiableError('084b2eec-7b60-4382-ae49-3da182d27a9a', 'Unimplemented');
+			}
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
 			if (opts.userId) {
@@ -910,10 +942,12 @@ export class AdvancedSearchService {
 				query.andWhere('note.userHost IS NOT NULL');
 			}
 
-			if (this.config.pgroonga) {
-				query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
-			} else {
-				query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+			if (q) {
+				if (this.config.pgroonga) {
+					query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+				} else {
+					query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+				}
 			}
 
 			query
@@ -992,7 +1026,7 @@ export class AdvancedSearchService {
 
 		const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
 		const FilterdNotes = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
-
+		this.logger.info(JSON.stringify(res));
 		let retry = false;
 
 		//フィルタされたノートが1件以上、最初のヒット件数が指定された数ではない
@@ -1007,7 +1041,7 @@ export class AdvancedSearchService {
 		}
 
 		if (retry) {
-			for (let i = 0; i < retryLimit; i++) {
+			while (FilterdNotes.length < res.body.hits.total.value) {
 				res = await this.opensearch.search(OpenSearchOption);
 				notes = res.body.hits.hits as OpenSearchHit[];
 
