@@ -56,9 +56,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</FormSection>
 					<FormSection>
-						<template #label>{{ i18n.ts._advancedSearch.reactionSearch }}</template>
-						<button class="_button" :class="$style.button" @click="updateEmoji"><i class="ti ti-mood-happy"></i></button>
-						<MkInput v-model="emojiSearchQuery" :large="true" type="search" @enter.prevent="search"></MkInput>
+						<template #label>{{ i18n.ts._advancedSearch._reactionSearch.title }}</template>
+						<div class="_gaps">
+							<MkInput v-model="emojiSearchQuery" :large="true" type="search" @enter.prevent="search"><template #prefix><i class="ti ti-mood-heart"></i></template></MkInput>
+							<MkInput v-model="emojiExcludeSearchQuery" :large="true" type="search" @enter.prevent="search"><template #prefix><i class="ti ti-mood-off"></i></template></MkInput>
+							<div class="_gaps_m">
+								<MkButton @click="updateEmoji">{{ i18n.ts._advancedSearch._reactionSearch.include }}</MkButton>
+								<MkButton @click="updateEmojiExclude">{{ i18n.ts._advancedSearch._reactionSearch.exclude }}</MkButton>
+							</div>
+						</div>
 					</FormSection>
 					<FormSection>
 						<template #label>{{ i18n.ts.other }}</template>
@@ -120,6 +126,7 @@ const excludeQuote = ref(false);
 const sensitiveFilter = ref('combined');
 const hostInput = ref('');
 const emojiSearchQuery = ref('');
+const emojiExcludeSearchQuery = ref('');
 const noteSearchableScope = instance.noteSearchableScope ?? 'local';
 
 function selectUser() {
@@ -203,13 +210,15 @@ async function search() {
 			return;
 		}
 	}
-
+	const reactionsQuery = emojiSearchQuery.value.split(',').filter( item => item !== '');
+	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(',').filter( item => item !== '');
 	notePagination.value = {
 		endpoint: 'notes/advanced-search',
 		limit: 10,
 		params: {
 			query: searchQuery.value,
-			reaction: emojiSearchQuery.value,
+			...(0 < reactionsQuery.length && { reactions: reactionsQuery }),
+			...(0 < excludeReactionsQuery.length && { reactionsExclude: excludeReactionsQuery }),
 			userId: user.value ? user.value.id : null,
 			...(searchOrigin.value === 'specified' ? { host: hostInput.value } : { origin: searchOrigin.value }),
 			fileOption: isfileOnly.value,
@@ -226,7 +235,20 @@ async function updateEmoji(ev: MouseEvent) {
 	emojiPicker.show(
 		ev.currentTarget ?? ev.target,
 		emoji => {
-			emojiSearchQuery.value = emoji.replaceAll(':', '*');
+			const reaction = 2 === emoji.length ? emoji : emoji.slice(0, -1) + '*';
+			const value = 0 < emojiSearchQuery.value.length ? ',' + reaction : reaction;
+			emojiSearchQuery.value += value;
+		},
+	);
+}
+
+async function updateEmojiExclude(ev: MouseEvent) {
+	emojiPicker.show(
+		ev.currentTarget ?? ev.target,
+		emoji => {
+			const reaction = 2 === emoji.length ? emoji : emoji.slice(0, -1) + '*';
+			const value = 0 < emojiSearchQuery.value.length ? ',' + reaction : reaction;
+			emojiExcludeSearchQuery.value += value;
 		},
 	);
 }

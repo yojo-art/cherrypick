@@ -3171,7 +3171,11 @@ _advancedSearch:
     withOutSensitive: "除外"
     includeSensitive: "含むもの"
     sensitiveOnly: "全てセンシティブ"
-  reactionSearch: "リアクション検索"
+  _reactionSearch:
+    title: "リアクション検索"
+    include: "リアクションピッカー"
+    exclude: "除外リアクションピッカー"
+
 
 _searchOrApShow:
   question: "照会を行いますか？"
