@@ -64,6 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkSwitch v-model="excludeReply">{{ i18n.ts._advancedSearch._searchOption.toggleReply }}</MkSwitch>
 							<MkSwitch v-model="excludeCW">{{ i18n.ts._advancedSearch._searchOption.toggleCW }}</MkSwitch>
 							<MkSwitch v-model="excludeQuote">{{ i18n.ts._advancedSearch._searchOption.toggleQuote }}</MkSwitch>
+							<MkSwitch v-model="strictSearch">{{ i18n.ts._advancedSearch._searchOption.toggleStrictSearch }}</MkSwitch>
 						</div>
 					</FormSection>
 				</MkFolder>
@@ -113,7 +114,7 @@ const excludeReply = ref(false);
 const excludeQuote = ref(false);
 const sensitiveFilter = ref('combined');
 const hostInput = ref('');
-
+const strictSearch = ref(false);
 const noteSearchableScope = instance.noteSearchableScope ?? 'local';
 
 function selectUser() {
@@ -211,6 +212,7 @@ async function search() {
 			excludeReply: excludeReply.value,
 			excludeQuote: excludeQuote.value,
 			sensitiveFilter: sensitiveFilter.value,
+			useStrictSearch: strictSearch.value,
 		},
 	};
 	key.value++;

@@ -108,6 +108,13 @@ export const paramDef = {
 			default: null,
 			description: 'ノートを作成したユーザーのID',
 		},
+		useStrictSearch: {
+			type: 'boolean',
+			format: 'misskey:id',
+			nullable: true,
+			default: false,
+			description: 'あいまい検索を無効にします',
+		},
 	},
 	required: ['query'],
 } as const;
@@ -137,6 +144,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				excludeReply: ps.excludeReply,
 				excludeQuote: ps.excludeQuote,
 				offset: ps.offset,
+				useStrictSearch: ps.useStrictSearch,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,

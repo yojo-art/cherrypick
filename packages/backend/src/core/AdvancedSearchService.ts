@@ -7,6 +7,7 @@ import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
+import { string } from '@tensorflow/tfjs-core';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
@@ -85,10 +86,22 @@ const noteIndexBody = {
 			text: {
 				type: 'text',
 				analyzer: 'sudachi_analyzer',
+				fields: {
+					keyword: {
+						type: 'keyword',
+						ignore_above: 5120,
+					},
+				},
 			},
 			cw: {
 				type: 'text',
 				analyzer: 'sudachi_analyzer',
+				fields: {
+					keyword: {
+						type: 'keyword',
+						ignore_above: 128,
+					},
+				},
 			},
 			userId: { type: 'keyword' },
 			userHost: { type: 'keyword' },
@@ -704,6 +717,7 @@ export class AdvancedSearchService {
 		excludeQuote?: boolean;
 		sensitiveFilter?: string | null;
 		offset?: number | null;
+		useStrictSearch?: boolean | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -767,28 +781,9 @@ export class AdvancedSearchService {
 			}
 
 			if (q !== '') {
-				if (opts.excludeCW) {
-					osFilter.bool.must.push({
-						bool: {
-							should: [
-								{ wildcard: { 'text': { value: q } } },
-								{ simple_query_string: { fields: ['text'], 'query': q, default_operator: 'and' } },
-							],
-							minimum_should_match: 1,
-						},
-					});
-				} else {
-					osFilter.bool.must.push({
-						bool: {
-							should: [
-								{ wildcard: { 'text': { value: q } } },
-								{ wildcard: { 'cw': { value: q } } },
-								{ simple_query_string: { fields: ['text', 'cw'], 'query': q, default_operator: 'and' } },
-							],
-							minimum_should_match: 1,
-						},
-					});
-				}
+				const fields = [opts.useStrictSearch ? 'text.keyword' : 'text'];
+				if (opts.excludeCW) {	fields.push(opts.useStrictSearch ? 'cw.keyword' : 'cw' );}
+				osFilter.bool.must.push({ query_string: { fields: fields, 'query': q, default_operator: 'and' } });
 			}
 
 			const Option = {
