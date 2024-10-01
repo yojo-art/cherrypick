@@ -776,7 +776,7 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
-			if (opts.reactions) {
+			if (opts.reactions && 0 < opts.reactions.length ) {
 				const reactionsQuery = {
 					nested: {
 						path: 'reactions',
@@ -795,7 +795,7 @@ export class AdvancedSearchService {
 				});
 				osFilter.bool.must.push(reactionsQuery);
 			}
-			if (opts.reactionsExclude) {
+			if (opts.reactionsExclude && 0 < opts.reactionsExclude.length) {
 				const reactionsExcludeQuery = {
 					nested: {
 						path: 'reactions',
@@ -862,7 +862,7 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (q !== undefined && q !== '') {
+			if (q && q !== '') {
 				if (opts.excludeCW) {
 					osFilter.bool.must.push({
 						bool: {
