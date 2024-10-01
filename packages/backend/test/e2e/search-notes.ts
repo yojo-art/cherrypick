@@ -329,6 +329,17 @@ describe('検索', () => {
 		const asnids1 = asres1.body.map( x => x.id);
 		assert.strictEqual(asnids1.includes(reactedNote.id), true);
 	});
+	test('indexable false(通常検索) リアクションしたら出てくる', async() => {
+		const sres1 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(sres1.status, 200);
+		assert.strictEqual(Array.isArray(sres1.body), true);
+		assert.strictEqual(sres1.body.length, 1);
+
+		const snids1 = sres1.body.map( x => x.id);
+		assert.strictEqual(snids1.includes(reactedNote.id), true);
+	});
 	let rnId: string;
 	test('indexable false リノートしたら出てくる', async() => {
 		const rnres = await api('notes/create', {
@@ -346,6 +357,17 @@ describe('検索', () => {
 
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), true);
+	});
+	test('indexable false(通常検索) リノートしたら出てくる', async() => {
+		const sres2 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(sres2.status, 200);
+		assert.strictEqual(Array.isArray(sres2.body), true);
+		assert.strictEqual(sres2.body.length, 2);
+
+		const snids2 = sres2.body.map( x => x.id);
+		assert.strictEqual(snids2.includes(renotedNote.id), true);
 	});
 	let replyId: string;
 	test('indexable false 返信したら出てくる', async() => {
@@ -367,6 +389,17 @@ describe('検索', () => {
 		const asnids3 = asres3.body.map( x => x.id);
 		assert.strictEqual(asnids3.includes(replyedNote.id), true);
 	});
+	test('indexable false(通常検索) 返信したら出てくる', async() => {
+		const sres3 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(sres3.status, 200);
+		assert.strictEqual(Array.isArray(sres3.body), true);
+		assert.strictEqual(sres3.body.length, 3);
+
+		const snids3 = sres3.body.map( x => x.id);
+		assert.strictEqual(snids3.includes(replyedNote.id), true);
+	});
 	test('indexable false お気に入りしたら出てくる', async() => {
 		const fvres = await api('notes/favorites/create', {
 			noteId: favoritedNote.id,
@@ -383,6 +416,17 @@ describe('検索', () => {
 
 		const asnids4 = asres4.body.map( x => x.id);
 		assert.strictEqual(asnids4.includes(favoritedNote.id), true);
+	});
+	test('indexable false(通常検索) お気に入りしたら出てくる', async() => {
+		const sres4 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(sres4.status, 200);
+		assert.strictEqual(Array.isArray(sres4.body), true);
+		assert.strictEqual(sres4.body.length, 4);
+
+		const snids4 = sres4.body.map( x => x.id);
+		assert.strictEqual(snids4.includes(favoritedNote.id), true);
 	});
 	let clpId: string;
 	test('indexable false クリップしたら出てくる', async() => {
@@ -409,6 +453,17 @@ describe('検索', () => {
 		const asnids5 = asres5.body.map( x => x.id);
 		assert.strictEqual(asnids5.includes(clipedNote.id), true);
 	});
+	test('indexable false(通常検索) クリップしたら出てくる', async() => {
+		const sres5 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(sres5.status, 200);
+		assert.strictEqual(Array.isArray(sres5.body), true);
+		assert.strictEqual(sres5.body.length, 5);
+
+		const snids5 = sres5.body.map( x => x.id);
+		assert.strictEqual(snids5.includes(clipedNote.id), true);
+	});
 	test('indexable false 投票したら出てくる', async() => {
 		const vres = await api('notes/polls/vote', {
 			noteId: votedNote.id,
@@ -417,6 +472,17 @@ describe('検索', () => {
 		assert.strictEqual(vres.status, 204);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 		const asres6 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres6.status, 200);
+		assert.strictEqual(Array.isArray(asres6.body), true);
+		assert.strictEqual(asres6.body.length, 6);
+
+		const asnids6 = asres6.body.map( x => x.id);
+		assert.strictEqual(asnids6.includes(votedNote.id), true);
+	});
+	test('indexable false(通常検索) 投票したら出てくる', async() => {
+		const asres6 = await api('notes/search', {
 			query: 'indexable_text',
 		}, alice);
 		assert.strictEqual(asres6.status, 200);
@@ -443,6 +509,17 @@ describe('検索', () => {
 		const asnids1 = asres1.body.map( x => x.id);
 		assert.strictEqual(asnids1.includes(reactedNote.id), false);
 	});
+	test('indexable false(通常検索) リアクション外したらでない', async() => {
+		const asres1 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres1.status, 200);
+		assert.strictEqual(Array.isArray(asres1.body), true);
+		assert.strictEqual(asres1.body.length, 5);
+
+		const asnids1 = asres1.body.map( x => x.id);
+		assert.strictEqual(asnids1.includes(reactedNote.id), false);
+	});
 	test('indexable false リノート消したらでない', async() => {
 		const rnres = await api('notes/delete', {
 			noteId: rnId,
@@ -459,6 +536,17 @@ describe('検索', () => {
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), false);
 	});
+	test('indexable false(通常検索) リノート消したらでない', async() => {
+		const asres2 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres2.status, 200);
+		assert.strictEqual(Array.isArray(asres2.body), true);
+		assert.strictEqual(asres2.body.length, 4);
+
+		const asnids2 = asres2.body.map( x => x.id);
+		assert.strictEqual(asnids2.includes(renotedNote.id), false);
+	});
 	test('indexable false リプライ消したらでない', async() => {
 		const rnres = await api('notes/delete', {
 			noteId: replyId,
@@ -466,6 +554,17 @@ describe('検索', () => {
 		assert.strictEqual(rnres.status, 204);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 		const asres2 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres2.status, 200);
+		assert.strictEqual(Array.isArray(asres2.body), true);
+		assert.strictEqual(asres2.body.length, 3);
+
+		const asnids2 = asres2.body.map( x => x.id);
+		assert.strictEqual(asnids2.includes(renotedNote.id), false);
+	});
+	test('indexable false(通常検索) リプライ消したらでない', async() => {
+		const asres2 = await api('notes/search', {
 			query: 'indexable_text',
 		}, alice);
 		assert.strictEqual(asres2.status, 200);
@@ -492,12 +591,34 @@ describe('検索', () => {
 		const asnids5 = asres5.body.map( x => x.id);
 		assert.strictEqual(asnids5.includes(clipedNote.id), false);
 	});
+	test('indexable false(通常検索) クリップ消したらでない', async() => {
+		const asres5 = await api('notes/search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres5.status, 200);
+		assert.strictEqual(Array.isArray(asres5.body), true);
+		assert.strictEqual(asres5.body.length, 2);
+
+		const asnids5 = asres5.body.map( x => x.id);
+		assert.strictEqual(asnids5.includes(clipedNote.id), false);
+	});
 	test('indexable false お気に入り消したらでない', async() => {
 		const fvres = await api('notes/favorites/delete', { noteId: favoritedNote.id }, alice);
 		assert.strictEqual(fvres.status, 204);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 
 		const asres4 = await api('notes/advanced-search', {
+			query: 'indexable_text',
+		}, alice);
+		assert.strictEqual(asres4.status, 200);
+		assert.strictEqual(Array.isArray(asres4.body), true);
+		assert.strictEqual(asres4.body.length, 1);
+
+		const asnids4 = asres4.body.map( x => x.id);
+		assert.strictEqual(asnids4.includes(favoritedNote.id), false);
+	});
+	test('indexable false(通常検索) お気に入り消したらでない', async() => {
+		const asres4 = await api('notes/search', {
 			query: 'indexable_text',
 		}, alice);
 		assert.strictEqual(asres4.status, 200);
