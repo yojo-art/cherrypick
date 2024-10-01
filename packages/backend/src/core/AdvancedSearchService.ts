@@ -926,7 +926,7 @@ export class AdvancedSearchService {
 			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
 			const Filterd = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
 
-			for (let i = 0; i < notes.length - FilterdNotes.length && i < Filterd.length; i++) {
+			for (let i = 0; FilterdNotes.length < OpenSearchOption.size && i < Filterd.length; i++) {
 				FilterdNotes.push(Filterd[i]);
 			}
 			//until指定
@@ -956,7 +956,6 @@ export class AdvancedSearchService {
 		}
 
 		const user = await this.cacheService.findUserById(Note._source.userId);
-		if (!user) return null;
  		if (user.isIndexable === false) { //検索許可されていないが、
 			if (meUserId === undefined || this.opensearch === null) {
 				return null;
