@@ -231,11 +231,13 @@ async function search() {
 	key.value++;
 }
 
+const customEmoji = /^:[a-zA-Z0-9_]+:$/;
+
 async function updateEmoji(ev: MouseEvent) {
 	emojiPicker.show(
 		ev.currentTarget ?? ev.target,
 		emoji => {
-			const reaction = 2 === emoji.length ? emoji : emoji.slice(0, -1) + '*';
+			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
 			const value = 0 < emojiSearchQuery.value.length ? ',' + reaction : reaction;
 			emojiSearchQuery.value += value;
 		},
@@ -246,7 +248,7 @@ async function updateEmojiExclude(ev: MouseEvent) {
 	emojiPicker.show(
 		ev.currentTarget ?? ev.target,
 		emoji => {
-			const reaction = 2 === emoji.length ? emoji : emoji.slice(0, -1) + '*';
+			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
 			const value = 0 < emojiSearchQuery.value.length ? ',' + reaction : reaction;
 			emojiExcludeSearchQuery.value += value;
 		},
