@@ -797,7 +797,7 @@ export class AdvancedSearchService {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
 				},
-				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId'] : ['visibility'],
+				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId'] : ['userId', 'visibility'],
 				size: pagination.limit,
 			} as any;
 
@@ -909,8 +909,7 @@ export class AdvancedSearchService {
 		const	userIdsWhoMeBlockingMe = meUserId ? await this.cacheService.userBlockedCache.fetch(meUserId) : new Set<string>;
 		const Filter = Array.from(userIdsWhoMeMuting).concat(Array.from(userIdsWhoMeBlockingMe));
 
-		let Followings: string[];
-		Followings = [];
+		let Followings = [] as string[];
 		if (meUserId) {
 			const FollowingsCache = await this.cacheService.userFollowingsCache.fetch(meUserId);
 			 Followings = Object.keys(FollowingsCache);
@@ -957,7 +956,7 @@ export class AdvancedSearchService {
 
 		const user = await this.cacheService.findUserById(Note._source.userId);
  		if (user.isIndexable === false) { //検索許可されていないが、
-			if (meUserId === undefined || this.opensearch === null) {
+			if (!meUserId || !this.opensearch) {
 				return null;
 			}
 			const Option = {
