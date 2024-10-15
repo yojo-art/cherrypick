@@ -2713,7 +2713,7 @@ export type paths = {
      * notes/schedule/delete
      * @description No description provided.
      *
-     * **Credential required**: *Yes* / **Permission**: *write:notes*
+     * **Credential required**: *Yes* / **Permission**: *write:notes-schedule*
      */
     post: operations['notes___schedule___delete'];
   };
@@ -22308,7 +22308,7 @@ export type operations = {
    * notes/schedule/delete
    * @description No description provided.
    *
-   * **Credential required**: *Yes* / **Permission**: *write:notes*
+   * **Credential required**: *Yes* / **Permission**: *write:notes-schedule*
    */
   notes___schedule___delete: {
     requestBody: {

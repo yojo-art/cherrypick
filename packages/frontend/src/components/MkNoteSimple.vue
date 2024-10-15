@@ -60,6 +60,13 @@ const emit = defineEmits<{
 }>();
 
 async function deleteScheduleNote() {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.deleteConfirm,
+		okText: i18n.ts.delete,
+		cancelText: i18n.ts.cancel,
+	});
+	if (canceled) return;
 	await os.apiWithDialog('notes/schedule/delete', { noteId: props.note.id })
 		.then(() => {
 			isDeleted.value = true;
