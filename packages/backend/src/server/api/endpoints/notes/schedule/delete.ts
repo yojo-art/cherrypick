@@ -29,7 +29,7 @@ export const meta = {
 			id: 'a58056ba-8ba1-4323-8ebf-e0b585bc244f',
 		},
 		permissionDenied: {
-			message: 'No such note.',
+			message: 'Permission denied.',
 			code: 'PERMISSION_DENIED',
 			id: 'c0da2fed-8f61-4c47-a41d-431992607b5c',
 			httpStatusCode: 403,
