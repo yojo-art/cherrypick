@@ -5167,7 +5167,7 @@ export type components = {
       avatarDecorationLimit: number;
       fileSizeLimit: number;
       canEditNote: boolean;
-      canScheduleNote: boolean;
+      scheduleNoteMax: number;
       mutualLinkSectionLimit: number;
       mutualLinkLimit: number;
     };

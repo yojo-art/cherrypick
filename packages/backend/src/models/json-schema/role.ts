@@ -284,8 +284,8 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
-		canScheduleNote: {
-			type: 'boolean',
+		scheduleNoteMax: {
+			type: 'integer',
 			optional: false, nullable: false,
 		},
 		mutualLinkSectionLimit: {

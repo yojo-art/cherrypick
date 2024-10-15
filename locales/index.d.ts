@@ -7677,9 +7677,9 @@ export interface Locale extends ILocale {
              */
             "canEditNote": string;
             /**
-             * ノートの予約投稿
+             * 予約投稿の最大数
              */
-            "canScheduleNote": string;
+            "scheduleNoteMax": string;
             /**
              * ノート内の最大メンション数
              */

@@ -1993,7 +1993,7 @@ _role:
     ltlAvailable: "ローカルタイムラインの閲覧"
     canPublicNote: "パブリック投稿の許可"
     canEditNote: "ノートの編集"
-    canScheduleNote: "ノートの予約投稿"
+    scheduleNoteMax: "予約投稿の最大数"
     mentionMax: "ノート内の最大メンション数"
     canInvite: "サーバー招待コードの発行"
     inviteLimit: "招待コードの作成可能数"

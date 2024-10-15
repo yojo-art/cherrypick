@@ -27,13 +27,13 @@ import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
 import { IEvent } from '@/models/Event.js';
 import { MiScheduleNoteType } from '@/models/NoteSchedule.js';
+import { RoleService } from '@/core/RoleService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
 	tags: ['notes'],
 
 	requireCredential: true,
-	requireRolePolicy: 'canScheduleNote',
 
 	prohibitMoved: true,
 
@@ -45,6 +45,11 @@ export const meta = {
 	kind: 'write:notes-schedule',
 
 	errors: {
+		scheduleNoteMax: {
+			message: 'Schedule note max.',
+			code: 'SCHEDULE_NOTE_MAX',
+			id: '168707c3-e7da-4031-989e-f42aa3a274b2',
+		},
 		noSuchRenoteTarget: {
 			message: 'No such renote target.',
 			code: 'NO_SUCH_RENOTE_TARGET',
@@ -224,12 +229,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private channelsRepository: ChannelsRepository,
 
 		private queueService: QueueService,
+		private roleService: RoleService,
     private idService: IdService,
 	) {
 		super({
 			...meta,
-			requireRolePolicy: 'canScheduleNote',
 		}, paramDef, async (ps, me) => {
+			const scheduleNoteCount = await this.noteScheduleRepository.countBy({ userId: me.id });
+			const scheduleNoteMax = (await this.roleService.getUserPolicies(me.id)).scheduleNoteMax;
+			if (scheduleNoteCount >= scheduleNoteMax) {
+				throw new ApiError(meta.errors.scheduleNoteMax);
+			}
 			let visibleUsers: MiUser[] = [];
 			if (ps.visibleUserIds) {
 				visibleUsers = await this.usersRepository.findBy({
