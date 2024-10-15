@@ -88,11 +88,17 @@ onMounted(() => {
 });
 
 function noteClick(ev: MouseEvent) {
+	if (props.note.isSchedule) {
+		return;
+	}
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || defaultStore.state.expandOnNoteClickBehavior === 'doubleClick') ev.stopPropagation();
 	else router.push(notePage(props.note));
 }
 
 function noteDblClick(ev: MouseEvent) {
+	if (props.note.isSchedule) {
+		return;
+	}
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || defaultStore.state.expandOnNoteClickBehavior === 'click') ev.stopPropagation();
 	else router.push(notePage(props.note));
 }
