@@ -920,18 +920,25 @@ export class AdvancedSearchService {
 			const res = await this.opensearch.search(OpenSearchOption);
 			notes = res.body.hits.hits as OpenSearchHit[];
 			if (notes.length === 0) break;//これ以上探してもない
+
 			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
 			const Results = (await Promise.all(resultPromises)).filter( (x) => x !== null);
+
 			if (Results.length > 0) {
 				const Filterd = Results.sort((a, b) => a._id > b._id ? -1 : 1);
 
 				for (let i = 0; FilterdNotes.length < OpenSearchOption.size && i < Filterd.length; i++) {
 					FilterdNotes.push(Filterd[i]);
 				}
-			}
+			} else break;
+
+			if ( FilterdNotes.length === OpenSearchOption.size) break;
+
 			//until指定
 			if (untilAvail === 1) {
 				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
+			} else if (untilAvail === 0) {
+				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } });
 			} else {
 				OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1 ] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
 			}
