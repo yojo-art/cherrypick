@@ -942,7 +942,7 @@ export class AdvancedSearchService {
 				query.andWhere('note.userHost IS NOT NULL');
 			}
 
-			if (q) {
+			if (q && q !== '') {
 				if (this.config.pgroonga) {
 					query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
 				} else {
