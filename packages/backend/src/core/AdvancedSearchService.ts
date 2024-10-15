@@ -904,11 +904,6 @@ export class AdvancedSearchService {
 		meUserId?: string,
 	): Promise<any[]> {
 		if (!this.opensearch) throw new Error();
-		let res = await this.opensearch.search(OpenSearchOption);
-		let notes = res.body.hits.hits as OpenSearchHit[];
-
-		if (notes.length === 0) return [];
-
 		/*ブロックされている or ミュートしているフィルタ*/
 		const userIdsWhoMeMuting = meUserId ? await this.cacheService.userMutingsCache.fetch(meUserId) : new Set<string>;
 		const	userIdsWhoMeBlockingMe = meUserId ? await this.cacheService.userBlockedCache.fetch(meUserId) : new Set<string>;
@@ -919,47 +914,24 @@ export class AdvancedSearchService {
 			const FollowingsCache = await this.cacheService.userFollowingsCache.fetch(meUserId);
 			 Followings = Object.keys(FollowingsCache);
 		}
+		let notes = [] as OpenSearchHit[];
+		const FilterdNotes = [] as OpenSearchHit[];
+		while ( FilterdNotes.length < OpenSearchOption.size) {
+			const res = await this.opensearch.search(OpenSearchOption);
+			if (res.body.hits.hits.length === 0) break;//これ以上探してもない
+			notes = res.body.hits.hits as OpenSearchHit[];
 
-		const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
-		const FilterdNotes = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
+			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
+			const Filterd = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
 
-		let retry = false;
-
-		//フィルタされたノートが1件以上、最初のヒット件数が指定された数ではない
-		if (0 < (notes.length - FilterdNotes.length) && !(notes.length < OpenSearchOption.size)) {
-			retry = true;
+			for (let i = 0; FilterdNotes.length < OpenSearchOption.size && i < Filterd.length; i++) {
+				FilterdNotes.push(Filterd[i]);
+			}
+			//until指定
 			if (untilAvail === 1) {
 				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
 			} else {
-				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } });
-				untilAvail = 0;
-			}
-		}
-
-		if (retry) {
-			for (let i = 0; i < retryLimit; i++) {
-				res = await this.opensearch.search(OpenSearchOption);
-				notes = res.body.hits.hits as OpenSearchHit[];
-
-				if (notes.length === 0) break;//これ以上探してもない
-
-				const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
-				const Filterd = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
-
-				for (let i = 0; i < notes.length - FilterdNotes.length && i < Filterd.length; i++) {
-					FilterdNotes.push(Filterd[i]);
-				}
-
-				if (OpenSearchOption.size === FilterdNotes.length) {
-					break;
-				}
-
-				//until指定
-				if (untilAvail === 1) {
-					OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
-				} else {
-					OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1 ] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
-				}
+				OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1 ] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
 			}
 		}
 		return FilterdNotes;
