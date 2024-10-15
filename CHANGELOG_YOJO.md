@@ -28,6 +28,7 @@ Cherrypick 4.11.1
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
 - Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
