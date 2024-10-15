@@ -922,10 +922,13 @@ export class AdvancedSearchService {
 			notes = res.body.hits.hits as OpenSearchHit[];
 
 			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
-			const Filterd = (await Promise.all(resultPromises)).filter( (x) => x !== null).sort((a, b) => a._id > b._id ? -1 : 1);
+			const Results = (await Promise.all(resultPromises)).filter( (x) => x !== null);
+			if (Results.length > 0) {
+				const Filterd = Results.sort((a, b) => a._id > b._id ? -1 : 1);
 
-			for (let i = 0; FilterdNotes.length < OpenSearchOption.size && i < Filterd.length; i++) {
-				FilterdNotes.push(Filterd[i]);
+				for (let i = 0; FilterdNotes.length < OpenSearchOption.size && i < Filterd.length; i++) {
+					FilterdNotes.push(Filterd[i]);
+				}
 			}
 			//until指定
 			if (untilAvail === 1) {
