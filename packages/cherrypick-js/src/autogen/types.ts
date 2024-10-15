@@ -9567,6 +9567,14 @@ export type operations = {
    * **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
    */
   'admin___full-index': {
+    requestBody: {
+      content: {
+        'application/json': {
+          /** @enum {string} */
+          index: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+        };
+      };
+    };
     responses: {
       /** @description OK (without any results) */
       204: {
@@ -19931,6 +19939,7 @@ export type operations = {
             }[];
           isLocked?: boolean;
           isExplorable?: boolean;
+          isIndexable?: boolean;
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;

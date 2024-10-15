@@ -96,15 +96,25 @@ function save() {
 }
 
 async function fullIndex() {
-	const { canceled } = await os.confirm({
-		type: 'warning',
-		text: i18n.ts._reIndexOpenSearch.quesion,
-		okText: i18n.ts.yes,
-		cancelText: i18n.ts.no,
+	const { canceled, result: select } = await os.select({
+		title: i18n.ts._reIndexOpenSearch.title,
+		items: [{
+			value: 'notes', text: i18n.ts.note,
+		}, {
+			value: 'reaction', text: i18n.ts.reaction,
+		}, {
+			value: 'pollVote', text: i18n.ts.poll,
+		}, {
+			value: 'clipNotes', text: i18n.ts.clip,
+		}, {
+			value: 'Favorites', text: i18n.ts.favorite,
+		}],
+		default: 'reaction',
 	});
-
 	if (!canceled) {
-		os.apiWithDialog('admin/full-index' );
+		os.apiWithDialog('admin/full-index', {
+			index: select,
+		});
 	}
 }
 

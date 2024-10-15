@@ -143,7 +143,7 @@ type Option = {
 	reactionAcceptance?: MiNote['reactionAcceptance'];
 	disableRightClick?: boolean | null;
 	cw?: string | null;
-	visibility?: string;
+	visibility?: string | null;
 	visibleUsers?: MinimumUser[] | null;
 	channel?: MiChannel | null;
 	apMentions?: MinimumUser[] | null;
@@ -441,7 +441,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 					? data.visibleUsers.map(u => u.id)
 					: []
 				: [],
-
 			attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
 
 			// 以下非正規化データ
@@ -753,7 +752,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 
 		// Register to search database
-		this.index(note);
+		if (note.text !== null && note.cw !== null) this.searchService.indexNote(note);//MeiliSearch
+		this.advancedSearchService.indexNote(note, data.poll?.choices ?? undefined); //OpenSearch
 	}
 
 	@bindThis
@@ -843,14 +843,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			: this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 
 		return this.apRendererService.addContext(content);
-	}
-
-	@bindThis
-	private index(note: MiNote) {
-		if (note.text == null && note.cw == null) return;
-
-		this.searchService.indexNote(note);
-		this.advancedSearchService.indexNote(note);
 	}
 
 	@bindThis

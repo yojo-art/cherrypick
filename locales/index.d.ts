@@ -3532,6 +3532,16 @@ export interface Locale extends ILocale {
      */
     "makeExplorableDescription": string;
     /**
+     * ノート検索の許可
+     */
+    "makeIndexable": string;
+    /**
+     * オフにすると、あなたのノートが検索で表示されにくくなります。
+     * リノートやリアクションされているノートは表示されます。
+     * リモートのサーバーが対応していない場合設定は無視されます。
+     */
+    "makeIndexableDescription": string;
+    /**
      * タイムラインのノートを離して表示
      */
     "showGapBetweenNotesInTimeline": string;
@@ -11902,11 +11912,11 @@ export interface Locale extends ILocale {
     };
     "_reIndexOpenSearch": {
         /**
-         * 全てのノートを再インデックスする
+         * 再インデックスする
          */
         "title": string;
         /**
-         * 全てのノートを再インデックスしますか？
+         * 再インデックス対象
          */
         "quesion": string;
     };

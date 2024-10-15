@@ -877,6 +877,8 @@ thisIsExperimentalFeature: "これは実験的な機能です。仕様が変更�
 developer: "開発者"
 makeExplorable: "アカウントを見つけやすくする"
 makeExplorableDescription: "オフにすると、「みつける」にアカウントが載らなくなります。"
+makeIndexable: "ノート検索の許可"
+makeIndexableDescription: "オフにすると、あなたのノートが検索で表示されにくくなります。\nリノートやリアクションされているノートは表示されます。\nリモートのサーバーが対応していない場合設定は無視されます。"
 showGapBetweenNotesInTimeline: "タイムラインのノートを離して表示"
 duplicate: "複製"
 left: "左"
@@ -3176,8 +3178,8 @@ _searchOrApShow:
   lookup: "照会"
 
 _reIndexOpenSearch:
-  title: "全てのノートを再インデックスする"
-  quesion: "全てのノートを再インデックスしますか？"
+  title: "再インデックスする"
+  quesion: "再インデックス対象"
 
 _reCreateOpenSearchIndex:
   title: "現在のインデックスを破棄して再インデックスする"

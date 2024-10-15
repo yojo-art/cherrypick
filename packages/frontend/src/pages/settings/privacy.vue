@@ -43,6 +43,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 		{{ i18n.ts.makeExplorable }}
 		<template #caption>{{ i18n.ts.makeExplorableDescription }}</template>
 	</MkSwitch>
+	<MkSwitch v-model="isIndexable" @update:modelValue="save()">
+		{{ i18n.ts.makeIndexable }}
+		<template #caption>{{ i18n.ts.makeIndexableDescription }}</template>
+		<span class="_beta">yojo-art</span>
+	</MkSwitch>
 
 	<FormSection>
 		<div class="_gaps_m">
@@ -90,6 +95,7 @@ const autoAcceptFollowed = ref($i.autoAcceptFollowed);
 const noCrawle = ref($i.noCrawle);
 const preventAiLearning = ref($i.preventAiLearning);
 const isExplorable = ref($i.isExplorable);
+const isIndexable = ref($i.isIndexable);
 const hideOnlineStatus = ref($i.hideOnlineStatus);
 const publicReactions = ref($i.publicReactions);
 const followingVisibility = ref($i.followingVisibility);
@@ -107,6 +113,7 @@ function save() {
 		noCrawle: !!noCrawle.value,
 		preventAiLearning: !!preventAiLearning.value,
 		isExplorable: !!isExplorable.value,
+		isIndexable: !!isIndexable.value,
 		hideOnlineStatus: !!hideOnlineStatus.value,
 		publicReactions: !!publicReactions.value,
 		followingVisibility: followingVisibility.value,

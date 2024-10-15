@@ -194,6 +194,13 @@ export class MiUser {
 	})
 	public isExplorable: boolean;
 
+	@Index()
+	@Column('boolean', {
+		default: true,
+		comment: '',
+	})
+	public isIndexable: boolean;
+
 	@Column('boolean', {
 		default: false,
 	})

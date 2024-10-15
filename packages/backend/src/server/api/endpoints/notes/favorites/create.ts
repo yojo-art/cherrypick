@@ -11,6 +11,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { GetterService } from '@/server/api/GetterService.js';
 import { DI } from '@/di-symbols.js';
 import { AchievementService } from '@/core/AchievementService.js';
+import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -58,6 +59,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 		private getterService: GetterService,
 		private achievementService: AchievementService,
+		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Get favoritee
@@ -79,10 +81,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			// Create favorite
+			const id = this.idService.gen();
 			await this.noteFavoritesRepository.insert({
-				id: this.idService.gen(),
+				id: id,
 				noteId: note.id,
 				userId: me.id,
+			});
+
+			await this.advancedSearchService.indexFavorite(id, {
+				userId: me.id,
+				noteId: note.id,
 			});
 
 			if (note.userHost == null && note.userId !== me.id) {

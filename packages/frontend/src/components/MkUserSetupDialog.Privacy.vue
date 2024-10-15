@@ -16,6 +16,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</MkFolder>
 
 	<MkFolder>
+		<template #label>{{ i18n.ts.makeIndexable }}</template>
+		<template #icon><i class="ti ti-search"></i></template>
+		<template #suffix>{{ isIndexable ? i18n.ts.on : i18n.ts.off }}</template>
+
+		<MkSwitch v-model="isIndexable">{{ i18n.ts.makeIndexable }}<template #caption>{{ i18n.ts.makeIndexableDescription }}</template></MkSwitch>
+	</MkFolder>
+
+	<MkFolder>
 		<template #label>{{ i18n.ts.hideOnlineStatus }}</template>
 		<template #icon><i class="ti ti-eye-off"></i></template>
 		<template #suffix>{{ hideOnlineStatus ? i18n.ts.on : i18n.ts.off }}</template>
@@ -52,6 +60,7 @@ import MkFolder from '@/components/MkFolder.vue';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const isLocked = ref(false);
+const isIndexable = ref(true);
 const hideOnlineStatus = ref(false);
 const noCrawle = ref(false);
 const preventAiLearning = ref(true);
@@ -59,6 +68,7 @@ const preventAiLearning = ref(true);
 watch([isLocked, hideOnlineStatus, noCrawle, preventAiLearning], () => {
 	misskeyApi('i/update', {
 		isLocked: !!isLocked.value,
+		isIndexable: !!isIndexable.value,
 		hideOnlineStatus: !!hideOnlineStatus.value,
 		noCrawle: !!noCrawle.value,
 		preventAiLearning: !!preventAiLearning.value,

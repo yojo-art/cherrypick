@@ -17,8 +17,13 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
-	required: [],
+	properties: {
+		index: {
+			type: 'string',
+			enum: ['notes', 'reaction', 'pollVote', 'clipNotes', 'Favorites'],
+		 },
+	},
+	required: ['index'],
 } as const;
 
 @Injectable()
@@ -28,7 +33,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			await this.advancedSearchService.fullIndexNote();
-		});
+			switch (ps.index) {
+				case 'notes':
+					this.advancedSearchService.fullIndexNote();
+					break;
+				case 'reaction':
+					this.advancedSearchService.fullIndexReaction();
+					break;
+				case 'pollVote':
+					this.advancedSearchService.fullIndexPollVote();
+					break;
+				case 'clipNotes':
+					this.advancedSearchService.fullIndexClipNotes();
+					break;
+				case 'Favorites':
+					this.advancedSearchService.fullIndexFavorites();
+					break;
+			}
+		},
+		);
 	}
 }

@@ -408,6 +408,7 @@ export class ApPersonService implements OnModuleInit {
 					movedAt: person.movedTo ? new Date() : null,
 					alsoKnownAs: person.alsoKnownAs,
 					isExplorable: person.discoverable,
+					isIndexable: person.indexable ?? true,
 					username: person.preferredUsername,
 					usernameLower: person.preferredUsername?.toLowerCase(),
 					host,
@@ -651,6 +652,7 @@ export class ApPersonService implements OnModuleInit {
 
 		const updates = {
 			lastFetchedAt: new Date(),
+			isIndexable: person.indexable ?? true,
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox,
 			outbox: typeof person.outbox === 'string' ? person.outbox : null,

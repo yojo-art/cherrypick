@@ -192,6 +192,7 @@ export interface IActor extends IObject {
 	movedTo?: string;
 	alsoKnownAs?: string[];
 	discoverable?: boolean;
+	indexable?: boolean;
 	inbox: string;
 	sharedInbox?: string;	// 後方互換性のため
 	publicKey?: {
