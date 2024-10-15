@@ -9340,6 +9340,10 @@ export interface Locale extends ILocale {
          */
         "read:notes-schedule": string;
         /**
+         * 予約投稿を作成・削除する
+         */
+        "write:notes-schedule": string;
+        /**
          * 通知を見る
          */
         "read:notifications": string;

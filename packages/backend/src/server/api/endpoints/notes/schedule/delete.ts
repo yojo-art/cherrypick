@@ -8,6 +8,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { NoteScheduleRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
+import { ApiError } from '@/server/api/error.js';
+import { QueueService } from '@/core/QueueService.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -24,7 +26,13 @@ export const meta = {
 		noSuchNote: {
 			message: 'No such note.',
 			code: 'NO_SUCH_NOTE',
-			id: '490be23f-8c1f-4796-819f-94cb4f9d1630',
+			id: 'a58056ba-8ba1-4323-8ebf-e0b585bc244f',
+		},
+		permissionDenied: {
+			message: 'No such note.',
+			code: 'PERMISSION_DENIED',
+			id: 'c0da2fed-8f61-4c47-a41d-431992607b5c',
+			httpStatusCode: 403,
 		},
 	},
 } as const;
@@ -42,9 +50,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.noteScheduleRepository)
 		private noteScheduleRepository: NoteScheduleRepository,
+		@Inject(DI.noteScheduleRepository)
+		private queueService: QueueService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			const note = await this.noteScheduleRepository.findOneBy({ id: ps.noteId });
+			if (note === null) {
+				throw new ApiError(meta.errors.noSuchNote);
+			}
+			if (note.userId !== me.id) {
+				throw new ApiError(meta.errors.permissionDenied);
+			}
 			await this.noteScheduleRepository.delete({ id: ps.noteId });
+			await this.queueService.ScheduleNotePostQueue.remove(ps.noteId);
 		});
 	}
 }
