@@ -323,7 +323,16 @@ export class AdvancedSearchService {
 		const IsQuote = isRenote(note) && isQuote(note);
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
-		const reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
+		let reactions: {
+			emoji: string;
+			count: number;
+	}[];
+
+		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
+			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
+		} else {
+			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
+		}
 
 		const body = {
 			text: note.text,
@@ -378,6 +387,7 @@ export class AdvancedSearchService {
 			});
 		}
 		if (opts.reactionIncrement === false) return;
+		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && opts.remote && opts.reaction.includes('@')) return;
 		await this.opensearch?.update({
 			id: opts.noteId,
 			index: this.opensearchNoteIndex as string,
@@ -661,6 +671,7 @@ export class AdvancedSearchService {
 	@bindThis
 	public async unindexReaction(id: string, remote: boolean, noteId: string, emoji:string): Promise<void> {
 		if (!remote) this.unindexById(this.reactionIndex, id);
+		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && remote && emoji.includes('@')) return;
 		await this.opensearch?.update({
 			id: noteId,
 			index: this.opensearchNoteIndex as string,
@@ -671,7 +682,7 @@ export class AdvancedSearchService {
 										'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
 										' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
 										//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
-										//' if (ctx._source.reactions[i].count == 0) { ctx._source.reactions.remove(i) }' +
+										//' if (ctx._source.reactions[i].count <= 0) { ctx._source.reactions.remove(i) }' +
 										'break; }' +
 										'}' +
 									'}',
