@@ -43,6 +43,7 @@ export const permissions = [
 	'write:mutes',
 	'write:notes',
 	'read:notes-schedule',
+	'write:notes-schedule',
 	'read:notifications',
 	'write:notifications',
 	'read:reactions',

@@ -2457,6 +2457,7 @@ _permissions:
   "write:mutes": "ミュートを操作する"
   "write:notes": "ノートを作成・削除する"
   "read:notes-schedule": "予約投稿を見る"
+  "write:notes-schedule": "予約投稿を作成・削除する"
   "read:notifications": "通知を見る"
   "write:notifications": "通知を操作する"
   "read:reactions": "リアクションを見る"

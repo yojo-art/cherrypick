@@ -42,7 +42,7 @@ export const meta = {
 		max: 300,
 	},
 
-	kind: 'write:notes',
+	kind: 'write:notes-schedule',
 
 	errors: {
 		noSuchRenoteTarget: {
