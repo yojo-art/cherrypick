@@ -135,7 +135,7 @@ export const paramDef = {
 			type: 'boolean',
 			nullable: true,
 			default: false,
-			description: 'あいまい検索を無効にします',
+			description: '表記ゆれ検索を無効にする',
 		},
 	},
 } as const;
@@ -179,7 +179,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 							throw new ApiError(meta.errors.unimplemented);
 						}
 					}
-					throw new ApiError();
+					throw err;
 				},
 			);
 

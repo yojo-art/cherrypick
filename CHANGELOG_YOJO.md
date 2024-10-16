@@ -25,7 +25,7 @@ Cherrypick 4.11.1
 - Enhance: ノートにつけられたリアクションを対象にした検索ができるように
   - Opensearchのみ対応 
   - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
-- Enhance(Opensearch): あいまい検索を無効化できるように
+- Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加
 
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)

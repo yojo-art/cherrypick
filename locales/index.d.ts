@@ -11877,7 +11877,7 @@ export interface Locale extends ILocale {
              */
             "toggleQuote": string;
             /**
-             * あいまい検索を無効にする
+             * 表記ゆれ検索を無効にする
              */
             "toggleStrictSearch": string;
         };

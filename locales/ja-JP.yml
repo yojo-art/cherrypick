@@ -3165,7 +3165,7 @@ _advancedSearch:
     toggleDate: "日時を指定する"
     toggleAdvancedSearch: "高度な検索を有効にする"
     toggleQuote: "引用を除外する"
-    toggleStrictSearch: "あいまい検索を無効にする"
+    toggleStrictSearch: "表記ゆれ検索を無効にする"
   _specifyDate:
     startDate: "から"
     endDate: "まで"
