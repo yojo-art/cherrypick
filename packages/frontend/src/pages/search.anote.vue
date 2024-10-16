@@ -210,8 +210,8 @@ async function search() {
 			return;
 		}
 	}
-	const reactionsQuery = emojiSearchQuery.value.split(',').filter( item => item !== '');
-	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(',').filter( item => item !== '');
+	const reactionsQuery = emojiSearchQuery.value.split(' ').filter( item => item !== '');
+	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(' ').filter( item => item !== '');
 	notePagination.value = {
 		endpoint: 'notes/advanced-search',
 		limit: 10,
@@ -238,7 +238,7 @@ async function updateEmoji(ev: MouseEvent) {
 		ev.currentTarget ?? ev.target,
 		emoji => {
 			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
-			const value = 0 < emojiSearchQuery.value.length ? ',' + reaction : reaction;
+			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;
 			emojiSearchQuery.value += value;
 		},
 	);
@@ -249,7 +249,7 @@ async function updateEmojiExclude(ev: MouseEvent) {
 		ev.currentTarget ?? ev.target,
 		emoji => {
 			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
-			const value = 0 < emojiSearchQuery.value.length ? ',' + reaction : reaction;
+			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;
 			emojiExcludeSearchQuery.value += value;
 		},
 	);
