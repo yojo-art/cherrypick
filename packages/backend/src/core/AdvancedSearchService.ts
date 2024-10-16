@@ -396,7 +396,7 @@ export class AdvancedSearchService {
 					lang: 'painless',
 					source: 'if (ctx._source.containsKey("reactions")) {' +
 										'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
-										' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji).forEach(r -> r.count += 1); }' +
+										' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji && r.count < 32700).forEach(r -> r.count += 1); }' +
 										' else { ctx._source.reactions.add(params.record); }' +
 									'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
 					params: {
