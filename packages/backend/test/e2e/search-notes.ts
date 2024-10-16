@@ -245,8 +245,7 @@ describe('検索', () => {
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 0);
 	});
-	/*
-	DB検索では未実装 別PRで出す
+
 	test('センシティブオプション:含む', async() => {
 		const res = await api('notes/advanced-search', {
 			query: 'test_sensitive',
@@ -299,7 +298,7 @@ describe('検索', () => {
 		//センシティブなファイルのみなノートがある
 		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), true);
 	});
-	*/
+
 	test('indexable false ユーザーのノートは出てこない', async() => {
 		const ires = await api('i/update', {
 			isIndexable: false,

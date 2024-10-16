@@ -955,9 +955,15 @@ export class AdvancedSearchService {
 
 			if (q && q !== '') {
 				if (this.config.pgroonga) {
-					query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+					query.andWhere(qb => {
+						qb.where('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+						qb.orWhere('note.cw &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+					});
 				} else {
-					query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+					query.andWhere(qb => {
+						qb.where('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+						qb.orWhere('note.cw ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+					});
 				}
 			}
 
@@ -986,6 +992,11 @@ export class AdvancedSearchService {
 				}
 			}
 
+			if (opts.excludeQuote) {
+				query.andWhere('note.renoteId IS NULL');
+				query.andWhere('note.text IS NOT NULL');
+			}
+
 			if (opts.excludeCW) {
 				query.andWhere('note.cw IS NULL');
 			}
@@ -999,6 +1010,16 @@ export class AdvancedSearchService {
 					query.andWhere('note.fileIds != \'{}\'');
 				} else if (opts.fileOption === 'no-file') {
 					query.andWhere('note.fileIds = :fIds', { fIds: '{}' });
+				}
+			}
+
+			if (opts.sensitiveFilter) {
+				if (opts.sensitiveFilter === 'withOutSensitive') {
+					query.andWhere('(SELECT COUNT(*) FROM drive_file WHERE id=ANY(note.fileIds) AND "isSensitive"=true) = 0');
+				} else if (opts.sensitiveFilter === 'includeSensitive') {
+					query.andWhere('(SELECT COUNT(*) FROM drive_file WHERE id=ANY(note.fileIds) AND "isSensitive"=true) > 0');
+				} else if (opts.sensitiveFilter === 'sensitiveOnly') {
+					query.andWhere('(SELECT COUNT(*) FROM drive_file WHERE id=ANY(note.fileIds) AND "isSensitive"=true) = (array_length(note.fileIds,1))');
 				}
 			}
 
