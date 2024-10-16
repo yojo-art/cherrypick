@@ -23583,7 +23583,11 @@ export type operations = {
       content: {
         'application/json': {
           /** @description 指定した文字列を含むノートを返します */
-          query: string;
+          query?: string;
+          /** @description 指定したリアクションがつけられたノートを探します */
+          reactions?: string[];
+          /** @description 指定したリアクションがつけられていないノートを探します */
+          reactionsExclude?: string[];
           /**
            * Format: misskey:id
            * @description 指定されたID以降のノートを返します

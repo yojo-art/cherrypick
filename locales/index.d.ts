@@ -11915,6 +11915,20 @@ export interface Locale extends ILocale {
              */
             "sensitiveOnly": string;
         };
+        "_reactionSearch": {
+            /**
+             * リアクション検索
+             */
+            "title": string;
+            /**
+             * リアクションピッカー
+             */
+            "include": string;
+            /**
+             * 除外リアクションピッカー
+             */
+            "exclude": string;
+        };
     };
     "_searchOrApShow": {
         /**

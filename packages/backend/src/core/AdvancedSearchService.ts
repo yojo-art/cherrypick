@@ -19,6 +19,7 @@ import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
 import { DriveService } from './DriveService.js';
 
@@ -111,6 +112,13 @@ const noteIndexBody = {
 			referenceUserId: { type: 'keyword' },
 			sensitiveFileCount: { type: 'byte' },
 			nonSensitiveFileCount: { type: 'byte' },
+			reactions: {
+				type: 'nested',
+				properties: {
+					emoji: { type: 'keyword' },
+					count: { type: 'short' },
+				},
+			},
 		},
 	},
 	settings: {
@@ -315,6 +323,16 @@ export class AdvancedSearchService {
 		const IsQuote = isRenote(note) && isQuote(note);
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
 		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+		let reactions: {
+			emoji: string;
+			count: number;
+	}[];
+
+		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
+			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
+		} else {
+			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
+		}
 
 		const body = {
 			text: note.text,
@@ -332,6 +350,7 @@ export class AdvancedSearchService {
 			referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
 			sensitiveFileCount: sensitiveCount,
 			nonSensitiveFileCount: nonSensitiveCount,
+			reactions: reactions,
 		};
 		this.index(this.opensearchNoteIndex as string, note.id, body);
 	}
@@ -357,6 +376,7 @@ export class AdvancedSearchService {
 		userId: string,
 		reaction: string,
 		remote: boolean,
+		reactionIncrement?: boolean,
 	}) {
 		if (!opts.remote) {
 			await this.index(this.reactionIndex, opts.id, {
@@ -366,6 +386,29 @@ export class AdvancedSearchService {
 				createdAt: this.idService.parse(opts.id).date.getTime(),
 			});
 		}
+		if (opts.reactionIncrement === false) return;
+		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && opts.remote && opts.reaction.includes('@')) return;
+		await this.opensearch?.update({
+			id: opts.noteId,
+			index: this.opensearchNoteIndex as string,
+			body: {
+				script: {
+					lang: 'painless',
+					source: 'if (ctx._source.containsKey("reactions")) {' +
+										'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
+										' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji && r.count < 32700).forEach(r -> r.count += 1); }' +
+										' else { ctx._source.reactions.add(params.record); }' +
+									'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
+					params: {
+						emoji: opts.reaction,
+						record: {
+							emoji: opts.reaction,
+							count: 1,
+						},
+					},
+				},
+			},
+		}).catch((err) => this.logger.error(err));
 	}
 
 	@bindThis
@@ -476,6 +519,7 @@ export class AdvancedSearchService {
 					userId: reac.userId,
 					reaction: reac.reaction,
 					remote: reac.user === null ? false : true, //user.host===nullなら userがnullになる
+					reactionIncrement: false,
 				});
 				latestid = reac.id;
 			});
@@ -625,8 +669,29 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async unindexReaction(id: string, remote: boolean): Promise<void> {
+	public async unindexReaction(id: string, remote: boolean, noteId: string, emoji:string): Promise<void> {
 		if (!remote) this.unindexById(this.reactionIndex, id);
+		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && remote && emoji.includes('@')) return;
+		await this.opensearch?.update({
+			id: noteId,
+			index: this.opensearchNoteIndex as string,
+			body: {
+				script: {
+					lang: 'painless',
+					source: 'if (ctx._source.containsKey("reactions")) {' +
+										'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
+										' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
+										//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
+										//' if (ctx._source.reactions[i].count <= 0) { ctx._source.reactions.remove(i) }' +
+										'break; }' +
+										'}' +
+									'}',
+					params: {
+						emoji: emoji,
+					},
+				},
+			},
+		}).catch((err) => this.logger.error(err));
 	}
 	/**
 	 * Favoriteだけどクリップもここ
@@ -693,7 +758,9 @@ export class AdvancedSearchService {
 	 * エンドポイントから呼ばれるところ
 	 */
 	@bindThis
-	public async searchNote(q: string, me: MiUser | null, opts: {
+	public async searchNote(me: MiUser | null, opts: {
+		reactions?: string[] | null;
+		reactionsExclude?: string[] | null;
 		userId?: MiNote['userId'] | null;
 		host?: string | null;
 		origin?: string | null;
@@ -708,7 +775,8 @@ export class AdvancedSearchService {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
 		limit?: number;
-	}): Promise<MiNote[]> {
+	},
+	q?: string): Promise<MiNote[]> {
 		if (this.opensearch) {
 			const osFilter: any = {
 				bool: {
@@ -719,6 +787,45 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
+			if (opts.reactions && 0 < opts.reactions.length ) {
+				const reactionsQuery = {
+					nested: {
+						path: 'reactions',
+						query: {
+							bool: {
+								should: [
+									{ range: { 'reactions.count': { gte: 1 } } },
+								],
+								minimum_should_match: 2,
+							},
+						},
+					},
+				} as any;
+				opts.reactions.forEach( (reaction) => {
+					reactionsQuery.nested.query.bool.should.push({ wildcard: { 'reactions.emoji': { value: reaction } } });
+				});
+				osFilter.bool.must.push(reactionsQuery);
+			}
+			if (opts.reactionsExclude && 0 < opts.reactionsExclude.length) {
+				const reactionsExcludeQuery = {
+					nested: {
+						path: 'reactions',
+						query: {
+							bool: {
+								should: [
+									{ range: { 'reactions.count': { gte: 1 } } },
+								],
+								minimum_should_match: 2,
+							},
+						},
+					},
+				} as any;
+				opts.reactionsExclude.forEach( (reaction) => {
+					reactionsExcludeQuery.nested.query.bool.should.push({ wildcard: { 'reactions.emoji': { value: reaction } } });
+				});
+				osFilter.bool.must_not.push(reactionsExcludeQuery);
+			}
+
 			if (opts.userId) {
 				osFilter.bool.must.push({ term: { userId: opts.userId } });
 				const user = await this.usersRepository.findOneBy({ id: opts.userId });
@@ -766,7 +873,7 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (q !== '') {
+			if (q && q !== '') {
 				if (opts.excludeCW) {
 					osFilter.bool.must.push({
 						bool: {
@@ -829,6 +936,11 @@ export class AdvancedSearchService {
 				id: In(noteIds),
 			})).sort((a, b) => a.id > b.id ? -1 : 1);
 		} else {
+			if (opts.reactions) {
+				throw new IdentifiableError('084b2eec-7b60-4382-ae49-3da182d27a9a', 'Unimplemented');
+			} else if (opts.reactionsExclude) {
+				throw new IdentifiableError('084b2eec-7b60-4382-ae49-3da182d27a9a', 'Unimplemented');
+			}
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), pagination.sinceId, pagination.untilId);
 
 			if (opts.userId) {
@@ -841,10 +953,12 @@ export class AdvancedSearchService {
 				query.andWhere('note.userHost IS NOT NULL');
 			}
 
-			if (this.config.pgroonga) {
-				query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
-			} else {
-				query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+			if (q && q !== '') {
+				if (this.config.pgroonga) {
+					query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+				} else {
+					query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+				}
 			}
 
 			query

@@ -56,6 +56,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</FormSection>
 					<FormSection>
+						<template #label>{{ i18n.ts._advancedSearch._reactionSearch.title }}</template>
+						<div class="_gaps">
+							<MkInput v-model="emojiSearchQuery" :large="true" type="search" @enter.prevent="search"><template #prefix><i class="ti ti-mood-heart"></i></template></MkInput>
+							<MkInput v-model="emojiExcludeSearchQuery" :large="true" type="search" @enter.prevent="search"><template #prefix><i class="ti ti-mood-off"></i></template></MkInput>
+							<div class="_gaps_m">
+								<MkButton @click="updateEmoji">{{ i18n.ts._advancedSearch._reactionSearch.include }}</MkButton>
+								<MkButton @click="updateEmojiExclude">{{ i18n.ts._advancedSearch._reactionSearch.exclude }}</MkButton>
+							</div>
+						</div>
+					</FormSection>
+					<FormSection>
 						<template #label>{{ i18n.ts.other }}</template>
 						<template #caption>{{ i18n.ts._advancedSearch._description.other }}</template>
 						<template #prefix></template>
@@ -98,6 +109,7 @@ import MkInput from '@/components/MkInput.vue';
 import FormSection from '@/components/form/section.vue';
 import { $i } from '@/account.js';
 import { instance } from '@/instance.js';
+import { emojiPicker } from '@/scripts/emoji-picker';
 
 const router = useRouter();
 
@@ -113,7 +125,8 @@ const excludeReply = ref(false);
 const excludeQuote = ref(false);
 const sensitiveFilter = ref('combined');
 const hostInput = ref('');
-
+const emojiSearchQuery = ref('');
+const emojiExcludeSearchQuery = ref('');
 const noteSearchableScope = instance.noteSearchableScope ?? 'local';
 
 function selectUser() {
@@ -140,7 +153,6 @@ const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
 async function search() {
 	const query = searchQuery.value.toString().trim();
 
-	if (query === '') return;
 	//#region AP lookup
 	if (query.startsWith('https://')) {
 		const { canceled } = await os.confirm({
@@ -198,12 +210,15 @@ async function search() {
 			return;
 		}
 	}
-
+	const reactionsQuery = emojiSearchQuery.value.split(' ').filter( item => item !== '');
+	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(' ').filter( item => item !== '');
 	notePagination.value = {
 		endpoint: 'notes/advanced-search',
 		limit: 10,
 		params: {
 			query: searchQuery.value,
+			...(0 < reactionsQuery.length && { reactions: reactionsQuery }),
+			...(0 < excludeReactionsQuery.length && { reactionsExclude: excludeReactionsQuery }),
 			userId: user.value ? user.value.id : null,
 			...(searchOrigin.value === 'specified' ? { host: hostInput.value } : { origin: searchOrigin.value }),
 			fileOption: isfileOnly.value,
@@ -214,6 +229,30 @@ async function search() {
 		},
 	};
 	key.value++;
+}
+
+const customEmoji = /^:[a-zA-Z0-9_]+:$/;
+
+async function updateEmoji(ev: MouseEvent) {
+	emojiPicker.show(
+		ev.currentTarget ?? ev.target,
+		emoji => {
+			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
+			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;
+			emojiSearchQuery.value += value;
+		},
+	);
+}
+
+async function updateEmojiExclude(ev: MouseEvent) {
+	emojiPicker.show(
+		ev.currentTarget ?? ev.target,
+		emoji => {
+			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
+			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;
+			emojiExcludeSearchQuery.value += value;
+		},
+	);
 }
 </script>
 <style lang="scss" module>

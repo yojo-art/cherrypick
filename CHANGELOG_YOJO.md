@@ -22,6 +22,10 @@ Cherrypick 4.11.1
     - 返信
     - 投票
 	- コントロールパネル→その他で(クリップ、お気に入り、投票が)再インデックスできるようになりました
+- Enhance: ノートにつけられたリアクションを対象にした検索ができるように
+  - Opensearchのみ対応 
+  - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
+
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
@@ -33,6 +37,7 @@ Cherrypick 4.11.1
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Change: `notes/advanced-search`で`query`が必須ではなくなりました
 
 ### Misc
 
