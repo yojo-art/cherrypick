@@ -7,7 +7,6 @@ import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
-import { string } from '@tensorflow/tfjs-core';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
