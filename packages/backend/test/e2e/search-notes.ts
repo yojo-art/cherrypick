@@ -191,6 +191,59 @@ describe('検索', () => {
 		assert.strictEqual(noteIds.includes(nofile_Attached.id), true);//添付なしがある
 		assert.strictEqual(noteIds.includes(file_Attached.id), false);//添付ありがない
 	});
+
+	test('センシティブオプション:含む', async() => {
+		const res = await api('notes/advanced-search', {
+			query: 'test_sensitive',
+			sensitiveFilter: 'includeSensitive',
+		}, alice);
+
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 2);
+
+		const noteIds = res.body.map( x => x.id);
+
+		assert.strictEqual(noteIds.includes(sensitiveFile0_1Note.id), false);//センシティブなファイルがないノートがない
+		//センシティブなファイルがあるノートがある
+		assert.strictEqual(noteIds.includes(sensitiveFile1_2Note.id), true);
+		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), true);
+	});
+	test('センシティブオプション:除外', async() => {
+		const res = await api('notes/advanced-search', {
+			query: 'test_sensitive',
+			sensitiveFilter: 'withOutSensitive',
+		}, alice);
+
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 1);
+
+		const noteIds = res.body.map( x => x.id);
+		//センシティブなファイルがないノートがある
+		assert.strictEqual(noteIds.includes(sensitiveFile0_1Note.id), true);
+		//センシティブなファイルがあるノートがない
+		assert.strictEqual(noteIds.includes(sensitiveFile1_2Note.id), false);
+		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), false);
+	});
+	test('センシティブオプション:全センシティブ', async() => {
+		const res = await api('notes/advanced-search', {
+			query: 'test_sensitive',
+			sensitiveFilter: 'withOutSensitive',
+		}, alice);
+
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 1);
+
+		const noteIds = res.body.map( x => x.id);
+		//センシティブなファイルがないノートがない
+		assert.strictEqual(noteIds.includes(sensitiveFile0_1Note.id), false);
+		//センシティブなファイルを含むノートがない
+		assert.strictEqual(noteIds.includes(sensitiveFile1_2Note.id), false);
+		//センシティブなファイルのみなノートがある
+		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), true);
+	});
 	test('センシティブオプション:フラグ付与', async() => {
 		//ファイルへセンシティブフラグの付与
 		const res1 = await	api('drive/files/update', {
@@ -244,59 +297,6 @@ describe('検索', () => {
 		assert.strictEqual(asres0.status, 200);
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 0);
-	});
-
-	test('センシティブオプション:含む', async() => {
-		const res = await api('notes/advanced-search', {
-			query: 'test_sensitive',
-			sensitiveFilter: 'includeSensitive',
-		}, alice);
-
-		assert.strictEqual(res.status, 200);
-		assert.strictEqual(Array.isArray(res.body), true);
-		assert.strictEqual(res.body.length, 2);
-
-		const noteIds = res.body.map( x => x.id);
-
-		assert.strictEqual(noteIds.includes(sensitiveFile0_1Note.id), false);//センシティブなファイルがないノートがない
-		//センシティブなファイルがあるノートがある
-		assert.strictEqual(noteIds.includes(sensitiveFile1_2Note.id), true);
-		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), true);
-	});
-	test('センシティブオプション:除外', async() => {
-		const res = await api('notes/advanced-search', {
-			query: 'test_sensitive',
-			sensitiveFilter: 'withOutSensitive',
-		}, alice);
-
-		assert.strictEqual(res.status, 200);
-		assert.strictEqual(Array.isArray(res.body), true);
-		assert.strictEqual(res.body.length, 1);
-
-		const noteIds = res.body.map( x => x.id);
-		//センシティブなファイルがないノートがある
-		assert.strictEqual(noteIds.includes(sensitiveFile0_1Note.id), true);
-		//センシティブなファイルがあるノートがない
-		assert.strictEqual(noteIds.includes(sensitiveFile1_2Note.id), false);
-		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), false);
-	});
-	test('センシティブオプション:全センシティブ', async() => {
-		const res = await api('notes/advanced-search', {
-			query: 'test_sensitive',
-			sensitiveFilter: 'withOutSensitive',
-		}, alice);
-
-		assert.strictEqual(res.status, 200);
-		assert.strictEqual(Array.isArray(res.body), true);
-		assert.strictEqual(res.body.length, 1);
-
-		const noteIds = res.body.map( x => x.id);
-		//センシティブなファイルがないノートがない
-		assert.strictEqual(noteIds.includes(sensitiveFile0_1Note.id), false);
-		//センシティブなファイルを含むノートがない
-		assert.strictEqual(noteIds.includes(sensitiveFile1_2Note.id), false);
-		//センシティブなファイルのみなノートがある
-		assert.strictEqual(noteIds.includes(sensitiveFile2_2Note.id), true);
 	});
 
 	test('indexable false ユーザーのノートは出てこない', async() => {
