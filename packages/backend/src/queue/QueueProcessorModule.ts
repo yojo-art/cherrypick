@@ -10,6 +10,7 @@ import { QueueLoggerService } from './QueueLoggerService.js';
 import { QueueProcessorService } from './QueueProcessorService.js';
 import { DeliverProcessorService } from './processors/DeliverProcessorService.js';
 import { EndedPollNotificationProcessorService } from './processors/EndedPollNotificationProcessorService.js';
+import { ScheduleNotePostProcessorService } from './processors/ScheduleNotePostProcessorService.js';
 import { InboxProcessorService } from './processors/InboxProcessorService.js';
 import { UserWebhookDeliverProcessorService } from './processors/UserWebhookDeliverProcessorService.js';
 import { SystemWebhookDeliverProcessorService } from './processors/SystemWebhookDeliverProcessorService.js';
@@ -77,6 +78,7 @@ import { RelationshipProcessorService } from './processors/RelationshipProcessor
 		UserWebhookDeliverProcessorService,
 		SystemWebhookDeliverProcessorService,
 		EndedPollNotificationProcessorService,
+		ScheduleNotePostProcessorService,
 		DeliverProcessorService,
 		InboxProcessorService,
 		AggregateRetentionProcessorService,
