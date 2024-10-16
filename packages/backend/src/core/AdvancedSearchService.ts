@@ -956,13 +956,13 @@ export class AdvancedSearchService {
 			if (q && q !== '') {
 				if (this.config.pgroonga) {
 					query.andWhere(qb => {
-						qb.where('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
-						qb.orWhere('note.cw &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+						qb.where('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` })
+							.orWhere('note.cw &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
 					});
 				} else {
 					query.andWhere(qb => {
-						qb.where('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
-						qb.orWhere('note.cw ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+						qb.where('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` })
+							.orWhere('note.cw ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
 					});
 				}
 			}
