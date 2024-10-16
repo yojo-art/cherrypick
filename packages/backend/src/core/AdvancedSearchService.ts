@@ -957,12 +957,12 @@ export class AdvancedSearchService {
 				if (this.config.pgroonga) {
 					query.andWhere(qb => {
 						qb.where('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` })
-							.orWhere('note.cw &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
+							.orWhere('note.cw &@~ :q');
 					});
 				} else {
 					query.andWhere(qb => {
 						qb.where('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` })
-							.orWhere('note.cw ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+							.orWhere('note.cw ILIKE :q');
 					});
 				}
 			}
