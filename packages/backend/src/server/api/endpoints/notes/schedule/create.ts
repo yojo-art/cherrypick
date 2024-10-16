@@ -336,12 +336,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.poll) {
+				let schedule_expiresAt = Date.now();
+				if (typeof ps.schedule.expiresAt === 'number') {
+					schedule_expiresAt = ps.schedule.expiresAt;
+				}
 				if (typeof ps.poll.expiresAt === 'number') {
-					if (ps.poll.expiresAt < Date.now()) {
+					if (ps.poll.expiresAt < schedule_expiresAt) {
 						throw new ApiError(meta.errors.cannotCreateAlreadyExpiredPoll);
 					}
 				} else if (typeof ps.poll.expiredAfter === 'number') {
-					ps.poll.expiresAt = Date.now() + ps.poll.expiredAfter;
+					ps.poll.expiresAt = schedule_expiresAt + ps.poll.expiredAfter;
 				}
 			}
 
