@@ -200,7 +200,7 @@ function saveDraft() {
 
 	drafts[draftKey.value] = {
 		updatedAt: new Date(),
-		// eslint-disable-next-line id-denylist
+		 
 		data: {
 			text: text.value,
 			file: file.value,
@@ -222,7 +222,7 @@ async function insertEmoji(ev: MouseEvent) {
 	emojiPicker.show(
 		ev.currentTarget ?? ev.target,
 		emoji => {
-			insertTextAtCursor(textEl.value, emoji);
+			text.value += emoji;
 		},
 		() => {
 			focus();

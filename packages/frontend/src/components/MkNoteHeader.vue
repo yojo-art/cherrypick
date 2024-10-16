@@ -39,6 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div v-if="mock">
 				<MkTime :time="note.createdAt" colored/>
 			</div>
+			<MkTime v-else-if="note.isSchedule" mode="absolute" :time="note.createdAt" colored/>
 			<MkA v-else :class="$style.time" :to="notePage(note)">
 				<MkTime :time="note.createdAt" :mode="defaultStore.state.enableAbsoluteTime ? 'absolute' : 'relative'" colored/>
 			</MkA>
@@ -63,7 +64,8 @@ import MkInstanceTicker from '@/components/MkInstanceTicker.vue';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const props = defineProps<{
-	note: Misskey.entities.Note;
+	note: Misskey.entities.Note & {isSchedule? : boolean};
+  scheduled?: boolean;
 	notificationId?: string;
 }>();
 
@@ -74,7 +76,7 @@ const router = useRouter();
 
 function showOnRemote() {
 	if (props.note.user.instance === undefined) router.push(notePage(props.note));
-	 
+
 	else window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
 

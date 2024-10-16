@@ -2947,9 +2947,17 @@ export interface Locale extends ILocale {
      */
     "poll": string;
     /**
+     * 予約投稿
+     */
+    "schedulePost": string;
+    /**
      * 内容を隠す
      */
     "useCw": string;
+    /**
+     * 予約投稿一覧
+     */
+    "schedulePostList": string;
     /**
      * プレイヤーを開く
      */
@@ -7679,6 +7687,10 @@ export interface Locale extends ILocale {
              */
             "canEditNote": string;
             /**
+             * 予約投稿の最大数
+             */
+            "scheduleNoteMax": string;
+            /**
              * ノート内の最大メンション数
              */
             "mentionMax": string;
@@ -9333,6 +9345,14 @@ export interface Locale extends ILocale {
          * ノートを作成・削除する
          */
         "write:notes": string;
+        /**
+         * 予約投稿を見る
+         */
+        "read:notes-schedule": string;
+        /**
+         * 予約投稿を作成・削除する
+         */
+        "write:notes-schedule": string;
         /**
          * 通知を見る
          */
@@ -11898,6 +11918,20 @@ export interface Locale extends ILocale {
              * 全てセンシティブ
              */
             "sensitiveOnly": string;
+        };
+        "_reactionSearch": {
+            /**
+             * リアクション検索
+             */
+            "title": string;
+            /**
+             * リアクションピッカー
+             */
+            "include": string;
+            /**
+             * 除外リアクションピッカー
+             */
+            "exclude": string;
         };
     };
     "_searchOrApShow": {

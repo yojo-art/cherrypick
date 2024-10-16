@@ -135,6 +135,8 @@ redis:
 
 # You can use OpenSearch when you enabled AdvancedSearch.
 
+# reactionSearchLocalOnly: ローカルユーザーが付けたリアクションのみインデックスするか
+
 #opensearch:
 #  host: opensearch
 #  port: 9200
@@ -142,6 +144,7 @@ redis:
 #  pass: 'opensearch-adminpassword' #強めのパスワードじゃないと怒られる
 #  ssl: false
 #  index: 'instancename' #なんでもいい
+#  reactionSearchLocalOnly: false
 
 #   ┌───────────────┐
 #───┘ ID generation └───────────────────────────────────────────

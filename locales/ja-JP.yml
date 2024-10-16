@@ -731,7 +731,9 @@ invisibleNote: "非公開の投稿"
 enableInfiniteScroll: "自動でもっと見る"
 visibility: "公開範囲"
 poll: "アンケート"
+schedulePost: "予約投稿"
 useCw: "内容を隠す"
+schedulePostList: "予約投稿一覧"
 enablePlayer: "プレイヤーを開く"
 disablePlayer: "プレイヤーを閉じる"
 expandTweet: "ポストを展開する"
@@ -1993,6 +1995,7 @@ _role:
     ltlAvailable: "ローカルタイムラインの閲覧"
     canPublicNote: "パブリック投稿の許可"
     canEditNote: "ノートの編集"
+    scheduleNoteMax: "予約投稿の最大数"
     mentionMax: "ノート内の最大メンション数"
     canInvite: "サーバー招待コードの発行"
     inviteLimit: "招待コードの作成可能数"
@@ -2455,6 +2458,8 @@ _permissions:
   "read:mutes": "ミュートを見る"
   "write:mutes": "ミュートを操作する"
   "write:notes": "ノートを作成・削除する"
+  "read:notes-schedule": "予約投稿を見る"
+  "write:notes-schedule": "予約投稿を作成・削除する"
   "read:notifications": "通知を見る"
   "write:notifications": "通知を操作する"
   "read:reactions": "リアクションを見る"
@@ -3172,6 +3177,11 @@ _advancedSearch:
     withOutSensitive: "除外"
     includeSensitive: "含むもの"
     sensitiveOnly: "全てセンシティブ"
+  _reactionSearch:
+    title: "リアクション検索"
+    include: "リアクションピッカー"
+    exclude: "除外リアクションピッカー"
+
 
 _searchOrApShow:
   question: "照会を行いますか？"

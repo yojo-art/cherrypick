@@ -86,6 +86,7 @@ import {
 	MiUserSecurityKey,
 	MiWebhook,
 	MiOfficialTag,
+	MiNoteSchedule,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
@@ -99,6 +100,12 @@ const $usersRepository: Provider = {
 const $notesRepository: Provider = {
 	provide: DI.notesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiNote).extend(miRepository as MiRepository<MiNote>),
+	inject: [DI.db],
+};
+
+const $noteScheduleRepository: Provider = {
+	provide: DI.noteScheduleRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiNoteSchedule).extend(miRepository as MiRepository<MiNoteSchedule>),
 	inject: [DI.db],
 };
 
@@ -563,6 +570,7 @@ const $officialTagRepository: Provider = {
 	providers: [
 		$usersRepository,
 		$notesRepository,
+		$noteScheduleRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
 		$appsRepository,
@@ -643,6 +651,7 @@ const $officialTagRepository: Provider = {
 	exports: [
 		$usersRepository,
 		$notesRepository,
+		$noteScheduleRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
 		$appsRepository,
