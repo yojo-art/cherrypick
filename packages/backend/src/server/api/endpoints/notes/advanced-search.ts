@@ -133,7 +133,6 @@ export const paramDef = {
 		},
 		useStrictSearch: {
 			type: 'boolean',
-			format: 'misskey:id',
 			nullable: true,
 			default: false,
 			description: 'あいまい検索を無効にします',
