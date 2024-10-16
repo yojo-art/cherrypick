@@ -214,9 +214,12 @@ export class SearchService {
 			} else if (opts.channelId) {
 				query.andWhere('note.channelId = :channelId', { channelId: opts.channelId });
 			}
+			query.andWhere(qb => {
+				qb.where('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+				qb.orWhere('note.cw ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
+			});
 
 			query
-				.andWhere('note.text ILIKE :q', { q: `%${ sqlLikeEscape(q) }%` })
 				.innerJoinAndSelect('note.user', 'user')
 				.leftJoinAndSelect('note.reply', 'reply')
 				.leftJoinAndSelect('note.renote', 'renote')
