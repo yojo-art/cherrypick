@@ -554,7 +554,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.saveReply(data.reply, note);
 		}
 
-		if (data.reply == null) {
+		if (data.reply == null && !silent) {
 			// TODO: キャッシュ
 			this.followingsRepository.findBy({
 				followeeId: user.id,
