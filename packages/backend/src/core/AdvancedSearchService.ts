@@ -995,7 +995,7 @@ export class AdvancedSearchService {
 			if (opts.excludeQuote) {
 				query.andWhere('note.renoteId IS NULL');
 				query.andWhere('note.text IS NOT NULL');
-			} else {
+			} else if (q === undefined || q === '') {
 				query.andWhere('note.renoteId IS NULL');
 			}
 
