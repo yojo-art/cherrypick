@@ -50,7 +50,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.noteScheduleRepository)
 		private noteScheduleRepository: NoteScheduleRepository,
-		@Inject(DI.noteScheduleRepository)
 		private queueService: QueueService,
 	) {
 		super(meta, paramDef, async (ps, me) => {

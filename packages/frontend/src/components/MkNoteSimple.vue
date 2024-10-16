@@ -74,10 +74,14 @@ async function deleteScheduleNote() {
 }
 
 async function editScheduleNote() {
-	await misskeyApi('notes/schedule/delete', { noteId: props.note.id })
-		.then(() => {
-			isDeleted.value = true;
-		});
+	try {
+		await misskeyApi('notes/schedule/delete', { noteId: props.note.id })
+			.then(() => {
+				isDeleted.value = true;
+			});
+	} catch (err) {
+		console.error(err);
+	}
 
 	await os.post({ initialNote: props.note, renote: props.note.renote, reply: props.note.reply, channel: props.note.channel });
 
