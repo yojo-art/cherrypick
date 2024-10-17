@@ -23650,7 +23650,7 @@ export type operations = {
            */
           userId?: string | null;
           /**
-           * @description あいまい検索を無効にします
+           * @description 表記ゆれ検索を無効にする
            * @default false
            */
           useStrictSearch?: boolean | null;
