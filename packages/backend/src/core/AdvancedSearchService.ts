@@ -1060,19 +1060,19 @@ export class AdvancedSearchService {
 		Note: OpenSearchHit,
 		Filter: string[],
 		Followings: string[],
-		meUserId?: string): Promise<OpenSearchHit| null> {
+		followingFilter: string,
+		meUserId?: string ): Promise<OpenSearchHit| null> {
 		if (meUserId) {//ミュートしているか、ブロックされている
 			if (Filter.includes(Note._source.userId) ) return null;
 			if (Note._source.referenceUserId) {
 				if (Filter.includes(Note._source.referenceUserId)) return null;
 			}
-			if (Note._source.userId === meUserId) {//自分のノート
-				return Note;
-			}
+			if (followingFilter === 'following' && !Followings.includes(Note._source.userId)) return null;
+			if (followingFilter === 'notFollowing' && Followings.includes(Note._source.userId)) return null;
 		}
 
 		const user = await this.cacheService.findUserById(Note._source.userId);
- 		if (user.isIndexable === false) { //検索許可されていないが、
+ 		if (user.isIndexable === false && meUserId !== undefined && user.id !== meUserId) { //検索許可されていないが、
 			if (!meUserId || !this.opensearch) {
 				return null;
 			}
@@ -1142,11 +1142,13 @@ export class AdvancedSearchService {
 		if (meUserId) {
 			if (Note._source.visibility === 'followers') { //鍵だけどフォローしてる
 				if (Followings.includes(Note._source.userId)) return Note;
+				if (Note._source.userId === meUserId) return Note;//または自分
 			}
 
 			if (Note._source.visibility === 'specified') {//自分が宛先に含まれている
 				if (Note._source.visibleUserIds) {
 					if (Note._source.visibleUserIds.includes(meUserId)) return Note;
+					if (Note._source.userId === meUserId) return Note;//または自分
 				}
 			}
 		}
