@@ -359,17 +359,16 @@ export class AdvancedSearchService {
 	public async updateNoteSensitive(fileId: string) {
 		if (!this.opensearch) return;
 
-		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'));
-		query.andWhere(':file <@ note.fileIds', { file: [fileId] });
-		const notesCount = await query.getCount();
 		const limit = 100;
 		let latestid = undefined;
 
-		for (let index = 0; index < notesCount; index += limit) {
+		while (true) {
 			const notes = await this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), latestid, undefined)
 				.andWhere(':file <@ note.fileIds', { file: [fileId] })
 				.limit(limit)
 				.getMany();
+
+			if (notes.length === 0 ) break;
 
 			notes.forEach((note) => {
 				this.driveService.getSensitiveFileCount(note.fileIds)
