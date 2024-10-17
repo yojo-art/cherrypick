@@ -172,7 +172,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 							throw new ApiError(meta.errors.unimplemented);
 						}
 					}
-					throw new ApiError();
+					throw err;
 				},
 			);
 

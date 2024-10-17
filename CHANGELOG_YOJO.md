@@ -39,7 +39,8 @@ Cherrypick 4.11.1
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
-- Fix: 高度な検索でリプライ除外にするとエラーがでる
+- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
+- Fix: (Opensearch利用時)高度な検索で引用除外にするとエラーがでる
 
 ### Misc
 
