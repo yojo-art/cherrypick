@@ -11891,6 +11891,24 @@ export interface Locale extends ILocale {
              */
             "endDate": string;
         };
+        "_followingFilter": {
+            /**
+             * フォローフィルター
+             */
+            "title": string;
+            /**
+             * フィルタしない
+             */
+            "combined": string;
+            /**
+             * フォロー中
+             */
+            "following": string;
+            /**
+             * フォロー外
+             */
+            "notFollowing": string;
+        };
         "_description": {
             /**
              * その他の設定
