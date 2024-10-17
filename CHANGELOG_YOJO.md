@@ -25,6 +25,7 @@ Cherrypick 4.11.1
 - Enhance: ノートにつけられたリアクションを対象にした検索ができるように
   - Opensearchのみ対応 
   - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
+- Enhance: 高度な検索でフォロー中/フォロー外を検索条件にできるように 
 - Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
 - Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加
 
@@ -39,6 +40,7 @@ Cherrypick 4.11.1
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 

@@ -188,7 +188,7 @@ export class QueryService {
 	}
 
 	@bindThis
-	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null): void {
+	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, followingFilter?: string): void {
 		// This code must always be synchronized with the checks in Notes.isVisibleForMe.
 		if (me == null) {
 			q.andWhere(new Brackets(qb => {
@@ -200,6 +200,11 @@ export class QueryService {
 			const followingQuery = this.followingsRepository.createQueryBuilder('following')
 				.select('following.followeeId')
 				.where('following.followerId = :meId');
+
+			if (followingFilter) {
+				if (followingFilter === 'following') q.andWhere(`note.userId IN (${ followingQuery.getQuery() })`);
+				if (followingFilter === 'notFollowing') q.andWhere(`note.userId NOT IN (${ followingQuery.getQuery() })`);
+			}
 
 			q.andWhere(new Brackets(qb => {
 				qb

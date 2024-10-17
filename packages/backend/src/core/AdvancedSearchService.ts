@@ -368,6 +368,41 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
+	public async updateNoteSensitive(fileId: string) {
+		if (!this.opensearch) return;
+
+		const limit = 100;
+		let latestid = undefined;
+
+		while (true) {
+			const notes = await this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), latestid, undefined)
+				.andWhere(':file <@ note.fileIds', { file: [fileId] })
+				.limit(limit)
+				.getMany();
+
+			if (notes.length === 0 ) break;
+
+			notes.forEach((note) => {
+				this.driveService.getSensitiveFileCount(note.fileIds)
+					.then((sensitiveCount) => {
+						const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+						const body = {
+							fileIds: note.fileIds,
+							sensitiveFileCount: sensitiveCount,
+							nonSensitiveFileCount: nonSensitiveCount,
+						};
+						this.opensearch?.update({
+							id: note.id,
+							index: this.opensearchNoteIndex as string,
+							body: { doc: body },
+						});
+					});
+				latestid = note.id;
+			});
+		}
+	}
+
+	@bindThis
 	private async index(index: string, id: string, body: any ) {
 		if (!this.opensearch) return;
 		await this.opensearch.index({
@@ -782,6 +817,7 @@ export class AdvancedSearchService {
 		excludeReply?: boolean;
 		excludeQuote?: boolean;
 		sensitiveFilter?: string | null;
+		followingFilter?: string | null;
 		offset?: number | null;
 		useStrictSearch?: boolean | null;
 	}, pagination: {
@@ -920,7 +956,7 @@ export class AdvancedSearchService {
 				});
 			}
 
-			const Result = await this.search(Option, pagination.untilId ? 1 : 0, me ? me.id : undefined);
+			const Result = await this.search(Option, pagination.untilId ? 1 : 0, opts.followingFilter ?? 'combined', me ? me.id : undefined);
 			if (Result.length === 0) {
 				return [];
 			}
@@ -997,7 +1033,11 @@ export class AdvancedSearchService {
 				}
 			}
 
-			this.queryService.generateVisibilityQuery(query, me);
+			if (opts.followingFilter) {
+				this.queryService.generateVisibilityQuery(query, me, opts.followingFilter);
+			} else {
+				this.queryService.generateVisibilityQuery(query, me);
+			}
 			this.queryService.generateSearchableQuery(query, me);
 			if (me) this.queryService.generateMutedUserQuery(query, me);
 			if (me) this.queryService.generateBlockedUserQuery(query, me);
@@ -1010,6 +1050,7 @@ export class AdvancedSearchService {
 	private async search(
 		OpenSearchOption: any,
 		untilAvail: number,
+		followingFilter: string,
 		meUserId?: string,
 	): Promise<any[]> {
 		if (!this.opensearch) throw new Error();
@@ -1030,7 +1071,7 @@ export class AdvancedSearchService {
 			notes = res.body.hits.hits as OpenSearchHit[];
 			if (notes.length === 0) break;//これ以上探してもない
 
-			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
+			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, followingFilter, meUserId));
 			const Results = (await Promise.all(resultPromises)).filter( (x) => x !== null);
 
 			if (Results.length > 0) {
