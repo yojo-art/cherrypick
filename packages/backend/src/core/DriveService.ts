@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
+import { ModuleRef } from '@nestjs/core';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import { IsNull } from 'typeorm';
@@ -45,6 +46,7 @@ import { isMimeImage } from '@/misc/is-mime-image.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { RegistryApiService } from '@/core/RegistryApiService.js';
+import { AdvancedSearchService } from './AdvancedSearchService.js';
 
 type AddFileArgs = {
 	/** User who wish to add file */
@@ -95,6 +97,7 @@ export class DriveService {
 	private registerLogger: Logger;
 	private downloaderLogger: Logger;
 	private deleteLogger: Logger;
+	private advancedSearchService: AdvancedSearchService;
 
 	constructor(
 		@Inject(DI.config)
@@ -131,11 +134,16 @@ export class DriveService {
 		private instanceChart: InstanceChart,
 		private utilityService: UtilityService,
 		private registryApiService: RegistryApiService,
+		private moduleRef: ModuleRef,
 	) {
 		const logger = new Logger('drive', 'blue');
 		this.registerLogger = logger.createSubLogger('register', 'yellow');
 		this.downloaderLogger = logger.createSubLogger('downloader');
 		this.deleteLogger = logger.createSubLogger('delete');
+	}
+
+	onModuleInit() {
+		this.advancedSearchService = this.moduleRef.get('AdvancedSearchService');
 	}
 
 	/***
@@ -767,6 +775,7 @@ export class DriveService {
 				}
 			}
 		}
+		this.advancedSearchService.updateNoteSensitive(file.id);
 
 		return fileObj;
 	}
