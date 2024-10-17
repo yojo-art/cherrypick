@@ -3168,6 +3168,11 @@ _advancedSearch:
   _specifyDate:
     startDate: "から"
     endDate: "まで"
+  _followingFilter:
+    title: "フォローフィルター"
+    combined: "フィルタしない"
+    following: "フォロー中"
+    notFollowing: "フォロー外"
   _description:
     other: "その他の設定"
   _fileNsfwOption:

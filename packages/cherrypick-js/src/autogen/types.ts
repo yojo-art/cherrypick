@@ -23622,6 +23622,12 @@ export type operations = {
            */
           sensitiveFilter?: 'includeSensitive' | 'withOutSensitive' | 'sensitiveOnly' | 'combined';
           /**
+           * @description ユーザーのフォロー状態
+           * @default combined
+           * @enum {string}
+           */
+          followingFilter?: 'following' | 'notFollowing' | 'combined';
+          /**
            * @description 指定された件数の以降のノートを返します
            * @default 0
            */

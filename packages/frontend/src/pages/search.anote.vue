@@ -67,6 +67,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 					</FormSection>
 					<FormSection>
+						<template #label>{{ i18n.ts._advancedSearch._followingFilter.title }}</template>
+						<div style="text-align: center;" class="_gaps_m">
+							<MkRadios v-model="followingFilter" @update:modelValue="search()">
+								<option value="combined">{{ i18n.ts._advancedSearch._followingFilter.combined }}</option>
+								<option value="following">{{ i18n.ts._advancedSearch._followingFilter.following }}</option>
+								<option value="notFollowing">{{ i18n.ts._advancedSearch._followingFilter.notFollowing }}</option>
+							</MkRadios>
+						</div>
+					</FormSection>
+					<FormSection>
 						<template #label>{{ i18n.ts.other }}</template>
 						<template #caption>{{ i18n.ts._advancedSearch._description.other }}</template>
 						<template #prefix></template>
@@ -124,6 +134,7 @@ const excludeCW = ref(false);
 const excludeReply = ref(false);
 const excludeQuote = ref(false);
 const sensitiveFilter = ref('combined');
+const followingFilter = ref('combined');
 const hostInput = ref('');
 const emojiSearchQuery = ref('');
 const emojiExcludeSearchQuery = ref('');
@@ -226,6 +237,7 @@ async function search() {
 			excludeReply: excludeReply.value,
 			excludeQuote: excludeQuote.value,
 			sensitiveFilter: sensitiveFilter.value,
+			followingFilter: followingFilter.value,
 		},
 	};
 	key.value++;

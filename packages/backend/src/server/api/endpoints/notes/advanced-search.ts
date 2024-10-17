@@ -100,6 +100,12 @@ export const paramDef = {
 			default: 'combined',
 			description: '添付ファイルのセンシティブ状態',
 		},
+		followingFilter: {
+			type: 'string',
+			enum: ['following', 'notFollowing', 'combined'],
+			default: 'combined',
+			description: 'ユーザーのフォロー状態',
+		},
 		offset: {
 			type: 'integer',
 			default: 0,
@@ -157,6 +163,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				origin: ps.origin,
 				fileOption: ps.fileOption,
 				sensitiveFilter: ps.sensitiveFilter,
+				followingFilter: ps.followingFilter,
 				excludeCW: ps.excludeCW,
 				excludeReply: ps.excludeReply,
 				excludeQuote: ps.excludeQuote,
@@ -172,7 +179,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 							throw new ApiError(meta.errors.unimplemented);
 						}
 					}
-					throw new ApiError();
+					throw err;
 				},
 			);
 

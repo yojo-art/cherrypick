@@ -770,6 +770,7 @@ export class AdvancedSearchService {
 		excludeReply?: boolean;
 		excludeQuote?: boolean;
 		sensitiveFilter?: string | null;
+		followingFilter?: string | null;
 		offset?: number | null;
 	}, pagination: {
 		untilId?: MiNote['id'];
@@ -925,7 +926,7 @@ export class AdvancedSearchService {
 				});
 			}
 
-			const Result = await this.search(Option, pagination.untilId ? 1 : 0, me ? me.id : undefined);
+			const Result = await this.search(Option, pagination.untilId ? 1 : 0, opts.followingFilter ?? 'combined', me ? me.id : undefined);
 			if (Result.length === 0) {
 				return [];
 			}
@@ -1002,7 +1003,11 @@ export class AdvancedSearchService {
 				}
 			}
 
-			this.queryService.generateVisibilityQuery(query, me);
+			if (opts.followingFilter) {
+				this.queryService.generateVisibilityQuery(query, me, opts.followingFilter);
+			} else {
+				this.queryService.generateVisibilityQuery(query, me);
+			}
 			this.queryService.generateSearchableQuery(query, me);
 			if (me) this.queryService.generateMutedUserQuery(query, me);
 			if (me) this.queryService.generateBlockedUserQuery(query, me);
@@ -1015,6 +1020,7 @@ export class AdvancedSearchService {
 	private async search(
 		OpenSearchOption: any,
 		untilAvail: number,
+		followingFilter: string,
 		meUserId?: string,
 	): Promise<any[]> {
 		if (!this.opensearch) throw new Error();
@@ -1035,7 +1041,7 @@ export class AdvancedSearchService {
 			notes = res.body.hits.hits as OpenSearchHit[];
 			if (notes.length === 0) break;//これ以上探してもない
 
-			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, meUserId));
+			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, followingFilter, meUserId));
 			const Results = (await Promise.all(resultPromises)).filter( (x) => x !== null);
 
 			if (Results.length > 0) {
@@ -1065,12 +1071,16 @@ export class AdvancedSearchService {
 		Note: OpenSearchHit,
 		Filter: string[],
 		Followings: string[],
-		meUserId?: string): Promise<OpenSearchHit| null> {
+		followingFilter: string,
+		meUserId?: string ): Promise<OpenSearchHit| null> {
 		if (meUserId) {//ミュートしているか、ブロックされている
 			if (Filter.includes(Note._source.userId) ) return null;
 			if (Note._source.referenceUserId) {
 				if (Filter.includes(Note._source.referenceUserId)) return null;
 			}
+			if (followingFilter === 'following' && !Followings.includes(Note._source.userId)) return null;
+			if (followingFilter === 'notFollowing' && Followings.includes(Note._source.userId)) return null;
+
 			if (Note._source.userId === meUserId) {//自分のノート
 				return Note;
 			}
