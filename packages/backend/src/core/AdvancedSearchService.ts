@@ -357,25 +357,38 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async updateNoteSensitive(fileId: string) {
+		if (!this.opensearch) return;
+
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'));
 		query.andWhere(':file <@ note.fileIds', { file: [fileId] });
-		const notes = await query.getMany();
+		const notesCount = await query.getCount();
+		const limit = 100;
+		let latestid = undefined;
 
-		notes.forEach((note) => {
-			this.driveService.getSensitiveFileCount(note.fileIds).then((sensitiveCount) => {
-				const nonSensitiveCount = note.fileIds.length - sensitiveCount;
-				const body = {
-					fileIds: note.fileIds,
-					sensitiveFileCount: sensitiveCount,
-					nonSensitiveFileCount: nonSensitiveCount,
-				};
-				this.opensearch?.update({
-					id: note.id,
-					index: this.opensearchNoteIndex as string,
-					body: { doc: body },
-				});
+		for (let index = 0; index < notesCount; index += limit) {
+			const notes = await this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), latestid, undefined)
+				.andWhere(':file <@ note.fileIds', { file: [fileId] })
+				.limit(limit)
+				.getMany();
+
+			notes.forEach((note) => {
+				this.driveService.getSensitiveFileCount(note.fileIds)
+					.then((sensitiveCount) => {
+						const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+						const body = {
+							fileIds: note.fileIds,
+							sensitiveFileCount: sensitiveCount,
+							nonSensitiveFileCount: nonSensitiveCount,
+						};
+						this.opensearch?.update({
+							id: note.id,
+							index: this.opensearchNoteIndex as string,
+							body: { doc: body },
+						});
+					});
+				latestid = note.id;
 			});
-		});
+		}
 	}
 
 	@bindThis
