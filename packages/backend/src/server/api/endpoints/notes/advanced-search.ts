@@ -131,6 +131,12 @@ export const paramDef = {
 			default: null,
 			description: 'ノートを作成したユーザーのID',
 		},
+		useStrictSearch: {
+			type: 'boolean',
+			nullable: true,
+			default: false,
+			description: '表記ゆれ検索を無効にする',
+		},
 	},
 } as const;
 
@@ -161,6 +167,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				excludeReply: ps.excludeReply,
 				excludeQuote: ps.excludeQuote,
 				offset: ps.offset,
+				useStrictSearch: ps.useStrictSearch,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,
@@ -172,7 +179,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 							throw new ApiError(meta.errors.unimplemented);
 						}
 					}
-					throw new ApiError();
+					throw err;
 				},
 			);
 

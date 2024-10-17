@@ -23649,6 +23649,11 @@ export type operations = {
            * @default null
            */
           userId?: string | null;
+          /**
+           * @description 表記ゆれ検索を無効にする
+           * @default false
+           */
+          useStrictSearch?: boolean | null;
         };
       };
     };

@@ -26,6 +26,7 @@ Cherrypick 4.11.1
   - Opensearchのみ対応 
   - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
 - Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
+- Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加
 
 ### Client
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)

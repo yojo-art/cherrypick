@@ -11876,6 +11876,10 @@ export interface Locale extends ILocale {
              * 引用を除外する
              */
             "toggleQuote": string;
+            /**
+             * 表記ゆれ検索を無効にする
+             */
+            "toggleStrictSearch": string;
         };
         "_specifyDate": {
             /**
