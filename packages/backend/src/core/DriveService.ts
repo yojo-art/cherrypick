@@ -47,7 +47,6 @@ import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { RegistryApiService } from '@/core/RegistryApiService.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
-import { AdvancedSearchService } from './AdvancedSearchService.js';
 
 type AddFileArgs = {
 	/** User who wish to add file */
