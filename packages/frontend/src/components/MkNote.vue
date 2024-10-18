@@ -84,6 +84,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						:emojiUrls="appearNote.emojis"
 						:enableEmojiMenu="true"
 						:enableEmojiMenuReaction="true"
+						:enableAnimatedMfm="enableAnimatedMfm"
 					/>
 					<div v-if="defaultStore.state.showTranslateButtonInNote && instance.translatorAvailable && $i && appearNote.text && isForeignLanguage" style="padding-top: 5px; color: var(--accent);">
 						<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click.stop="translate()">{{ i18n.ts.translateNote }}</button>
@@ -124,9 +125,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 				</button>
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
-				<MkButton :small="true" inline @click.stop="console.log('test')">
-					<i class="ti ti-player-play"></i> {{ i18n.ts.enableAnimatedMfm }}
-				</MkButton>
+				<div v-if="!$i && isMFM" :class="$style.play_mfm_action">
+					<MkButton :small="true" inline @click.stop="enableAnimatedMfm=!enableAnimatedMfm">
+						<i class="ti ti-player-play"></i> {{ i18n.ts.enableAnimatedMfm }}
+					</MkButton>
+				</div>
 			</div>
 		</div>
 		<div>
@@ -260,6 +263,7 @@ import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
 
 const showEl = ref(false);
+const enableAnimatedMfm = ref<boolean|undefined>(undefined);
 
 const props = withDefaults(defineProps<{
 	note: Misskey.entities.Note;
@@ -1306,5 +1310,12 @@ function emitUpdReaction(emoji: string, delta: number) {
 	margin-left: 8px;
 	opacity: .8;
 	font-size: 95%;
+}
+
+.play_mfm_action {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 6px;
 }
 </style>
