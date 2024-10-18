@@ -127,7 +127,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
 			</div>
 		</div>
-		<div v-if="!$i && isMFM" :class="$style.play_mfm_action">
+		<div v-if="!$i && isAnimatedMfm" :class="$style.play_mfm_action">
 			<MkSwitch v-model="enableAnimatedMfm">
 				<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
 			</MkSwitch>
@@ -248,7 +248,7 @@ import { getNoteSummary } from '@/scripts/get-note-summary.js';
 import { MenuItem } from '@/types/menu.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { showMovedDialog } from '@/scripts/show-moved-dialog.js';
-import { shouldCollapsed, shouldMfmCollapsed } from '@/scripts/collapsed.js';
+import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@/scripts/collapsed.js';
 import { host } from '@/config.js';
 import { isEnabledUrlPreview, instance } from '@/instance.js';
 import { type Keymap } from '@/scripts/hotkey.js';
@@ -327,6 +327,7 @@ const parsed = computed(() => appearNote.value.text ? mfm.parse(appearNote.value
 const urls = computed(() => parsed.value ? extractUrlFromMfm(parsed.value).filter((url) => appearNote.value.renote?.url !== url && appearNote.value.renote?.uri !== url) : null);
 const isLong = shouldCollapsed(appearNote.value, urls.value ?? []);
 const isMFM = shouldMfmCollapsed(appearNote.value);
+const isAnimatedMfm = $i ? undefined : shouldAnimatedMfm(appearNote.value);
 const collapsed = ref(appearNote.value.cw == null && (isLong || (isMFM && defaultStore.state.collapseDefault) || (appearNote.value.files.length > 0 && defaultStore.state.allMediaNoteCollapse)));
 const isDeleted = ref(false);
 const muted = ref(checkMute(appearNote.value, $i?.mutedWords));

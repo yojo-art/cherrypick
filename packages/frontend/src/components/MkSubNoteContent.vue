@@ -18,6 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:emojiUrls="note.emojis"
 			:enableEmojiMenu="true"
 			:enableEmojiMenuReaction="true"
+			:enableAnimatedMfm="enableAnimatedMfm"
 		/>
 		<MkA v-if="note.renoteId" :class="$style.rp" :to="`/notes/${note.renoteId}`">RN: ...</MkA>
 		<div v-if="defaultStore.state.showTranslateButtonInNote && instance.translatorAvailable && $i && note.text && isForeignLanguage" style="padding-top: 5px; color: var(--accent);">
@@ -59,6 +60,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<button v-else-if="(isLong || (isMFM && defaultStore.state.collapseDefault) || note.files.length > 0 || note.poll) && !collapsed" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" :class="$style.showLess" class="_button" @click.stop="collapsed = true;">
 		<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 	</button>
+	<div v-if="!$i && isAnimatedMfm" :class="$style.play_mfm_action">
+		<MkSwitch v-model="enableAnimatedMfm">
+			<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
+		</MkSwitch>
+	</div>
 	<div v-if="showSubNoteFooterButton">
 		<MkReactionsViewer v-show="note.cw == null || showContent" :note="note" :maxNumber="16" @click.stop @contextmenu.prevent.stop @mockUpdateMyReaction="emitUpdReaction">
 			<template #more>
@@ -128,7 +134,7 @@ import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import MkReactionsViewer from '@/components/MkReactionsViewer.vue';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/account.js';
-import { shouldCollapsed, shouldMfmCollapsed } from '@/scripts/collapsed.js';
+import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@/scripts/collapsed.js';
 import { defaultStore } from '@/store.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { instance } from '@/instance.js';
@@ -165,6 +171,8 @@ const emit = defineEmits<{
 
 const note = ref(deepClone(props.note));
 
+const enableAnimatedMfm = ref<boolean>(defaultStore.state.advancedMfm && defaultStore.state.animatedMfm);
+
 const rootEl = shallowRef<HTMLElement>();
 const menuButton = shallowRef<HTMLElement>();
 const renoteButton = shallowRef<HTMLElement>();
@@ -187,6 +195,7 @@ const parsed = props.note.text ? mfm.parse(props.note.text) : null;
 
 const isLong = shouldCollapsed(props.note, []);
 const isMFM = shouldMfmCollapsed(props.note);
+const isAnimatedMfm = $i ? undefined : shouldAnimatedMfm(props.note);
 
 const collapsed = ref(isLong || (isMFM && defaultStore.state.collapseDefault) || (props.note.files && props.note.files.length > 0) || props.note.poll);
 
