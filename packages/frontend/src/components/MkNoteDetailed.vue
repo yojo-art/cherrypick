@@ -289,6 +289,7 @@ import { computed, inject, onMounted, provide, ref, shallowRef } from 'vue';
 import * as mfm from 'cherrypick-mfm-js';
 import * as Misskey from 'cherrypick-js';
 import { CodeDiff } from 'v-code-diff';
+import MkSwitch from '@/components/MkSwitch.vue';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
 import MkReactionsViewer from '@/components/MkReactionsViewer.vue';
