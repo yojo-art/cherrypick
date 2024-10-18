@@ -117,6 +117,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				} else if (excludeTypes && excludeTypes.length > 0) {
 					notifications = notifications.filter(notification => !excludeTypes.includes(notification.type));
 				}
+				if (ps.untilId ?? ps.sinceId) {
+					notifications = notifications.filter(notification => ps.untilId !== notification.id && ps.sinceId !== notification.id);
+				}
 
 				if (notifications.length !== 0) {
 					// 通知が１件以上ある場合は返す
