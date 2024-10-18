@@ -263,7 +263,7 @@ import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
 
 const showEl = ref(false);
-const enableAnimatedMfm = ref<boolean|undefined>(undefined);
+const enableAnimatedMfm = ref<boolean>(defaultStore.state.advancedMfm && defaultStore.state.animatedMfm);
 
 const props = withDefaults(defineProps<{
 	note: Misskey.entities.Note;
