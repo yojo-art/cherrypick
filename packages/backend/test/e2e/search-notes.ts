@@ -215,7 +215,15 @@ describe('検索', () => {
 		assert.strictEqual(Array.isArray(res.body), true);
 		assert.strictEqual(res.body.length, 3);
 	});
-	test('可視性 followers, specified', async() => {
+	test('可視性 followers, specified でてこない', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'ff_test',
+		}, bob);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 0);
+	});
+	test('可視性 followers, specified でてくる', async() => {
 		const asres0 = await api('notes/advanced-search', {
 			query: 'ff_test',
 		}, alice);
@@ -229,6 +237,55 @@ describe('検索', () => {
 		assert.strictEqual(ids.includes(daveNoteDirect.id), false);
 		assert.strictEqual(asres0.body.length, 2);
 	});
+	test('可視性 followers, specified indexable:falseでてこない', async() => {
+		const ires = await api('i/update', {
+			isIndexable: false,
+		}, tom);
+		assert.strictEqual(ires.status, 200);
+		const ires2 = await api('i/update', {
+			isIndexable: false,
+		}, dave);
+		assert.strictEqual(ires2.status, 200);
+
+		const asres0 = await api('notes/advanced-search', {
+			query: 'ff_test',
+		}, bob);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 0);
+	});
+	test('可視性 followers, specified indexable:falseでてくる', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'ff_test',
+		}, alice);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+
+		const ids = asres0.body.map((x) => x.id);
+		assert.strictEqual(ids.includes(tomNote.id), true);
+		assert.strictEqual(ids.includes(tomNoteDirect.id), true);
+		assert.strictEqual(ids.includes(daveNote.id), false);
+		assert.strictEqual(ids.includes(daveNoteDirect.id), false);
+		assert.strictEqual(asres0.body.length, 2);
+		const ires = await api('i/update', {
+			isIndexable: true,
+		}, tom);
+		assert.strictEqual(ires.status, 200);
+		const ires2 = await api('i/update', {
+			isIndexable: true,
+		}, dave);
+		assert.strictEqual(ires2.status, 200);
+	});
+	test('ミュートのノート普通に出る', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'muting',
+		});
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 1);
+		const asnids0 = asres0.body.map( x => x.id);
+		assert.strictEqual(asnids0.includes(mutingNote.id), true);
+	});
 	test('ミュートしてたら出ない', async() => {
 		const asres0 = await api('notes/advanced-search', {
 			query: 'muting',
@@ -236,6 +293,16 @@ describe('検索', () => {
 		assert.strictEqual(asres0.status, 200);
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 0);
+	});
+	test('ブロックのノート普通に出る', async() => {
+		const asres0 = await api('notes/advanced-search', {
+			query: 'blocking',
+		}, alice);
+		assert.strictEqual(asres0.status, 200);
+		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 1);
+		const asnids0 = asres0.body.map( x => x.id);
+		assert.strictEqual(asnids0.includes(blockingNote.id), true);
 	});
 	test('ブロックされてたら出ない', async() => {
 		const asres0 = await api('notes/advanced-search', {
@@ -245,6 +312,7 @@ describe('検索', () => {
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 0);
 	});
+
 	/*
 	DB検索では未実装 別PRで出す
 	test('センシティブオプション:含む', async() => {

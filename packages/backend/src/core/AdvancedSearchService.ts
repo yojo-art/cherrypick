@@ -1103,7 +1103,9 @@ export class AdvancedSearchService {
 		Followings: string[],
 		followingFilter: string,
 		meUserId?: string ): Promise<OpenSearchHit| null> {
-		if (meUserId) {//ミュートしているか、ブロックされている
+		if (meUserId) {
+			if (Note._source.userId === meUserId) return Note;//自分のノート
+			//ミュートしているか、ブロックされている
 			if (Filter.includes(Note._source.userId) ) return null;
 			if (Note._source.referenceUserId) {
 				if (Filter.includes(Note._source.referenceUserId)) return null;
@@ -1114,9 +1116,10 @@ export class AdvancedSearchService {
 
 		const user = await this.cacheService.findUserById(Note._source.userId);
  		if (user.isIndexable === false && meUserId !== undefined && user.id !== meUserId) { //検索許可されていないが、
-			if (!meUserId || !this.opensearch) {
-				return null;
-			}
+			if (!this.opensearch) return null;
+			if (Note._source.visibility === 'followers' && !Followings.includes(Note._source.userId)) return null;//鍵でフォローしてない
+			if (Note._source.visibility === 'specified' && Note._source.visibleUserIds && Note._source.visibleUserIds.includes(meUserId)) return null; //ダイレクトで自分が宛先に含まれていない
+
 			const Option = {
 				index: this.reactionIndex,
 				body: {
@@ -1176,21 +1179,12 @@ export class AdvancedSearchService {
 			}
 
 			return null;
-		}
+		} else {
+			if (['public', 'home'].includes(Note._source.visibility)) return Note;//誰でも見れる
 
-		if (['public', 'home'].includes(Note._source.visibility)) return Note;//誰でも見れる
-
-		if (meUserId) {
-			if (Note._source.visibility === 'followers') { //鍵だけどフォローしてる
-				if (Followings.includes(Note._source.userId)) return Note;
-				if (Note._source.userId === meUserId) return Note;//または自分
-			}
-
-			if (Note._source.visibility === 'specified') {//自分が宛先に含まれている
-				if (Note._source.visibleUserIds) {
-					if (Note._source.visibleUserIds.includes(meUserId)) return Note;
-					if (Note._source.userId === meUserId) return Note;//または自分
-				}
+			if (meUserId) {
+				if (Note._source.visibility === 'followers' && Followings.includes(Note._source.userId)) return Note;//鍵だけどフォローしてる
+				if (Note._source.visibility === 'specified' && Note._source.visibleUserIds && Note._source.visibleUserIds.includes(meUserId)) return Note;//自分が宛先に含まれている
 			}
 		}
 		return null;
