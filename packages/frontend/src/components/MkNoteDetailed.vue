@@ -104,6 +104,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:emojiUrls="appearNote.emojis"
 					:enableEmojiMenu="true"
 					:enableEmojiMenuReaction="true"
+					:enableAnimatedMfm="enableAnimatedMfm"
 				/>
 				<a v-if="appearNote.renote != null" :class="$style.rn">RN:</a>
 				<div v-if="defaultStore.state.showTranslateButtonInNote && instance.translatorAvailable && $i && appearNote.text && isForeignLanguage" style="padding-top: 5px; color: var(--accent);">
@@ -137,6 +138,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
 			</div>
 			<MkA v-if="appearNote.channel && !inChannel" :class="$style.channel" :to="`/channels/${appearNote.channel.id}`"><i class="ti ti-device-tv"></i> {{ appearNote.channel.name }}</MkA>
+		</div>
+		<div v-if="!$i && isAnimatedMfm" :class="$style.play_mfm_action">
+			<MkSwitch v-model="enableAnimatedMfm">
+				<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
+			</MkSwitch>
 		</div>
 		<footer>
 			<div :class="$style.noteFooterInfo">
@@ -283,6 +289,7 @@ import { computed, inject, onMounted, provide, ref, shallowRef } from 'vue';
 import * as mfm from 'cherrypick-mfm-js';
 import * as Misskey from 'cherrypick-js';
 import { CodeDiff } from 'v-code-diff';
+import MkSwitch from '@/components/MkSwitch.vue';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
 import MkReactionsViewer from '@/components/MkReactionsViewer.vue';
@@ -305,6 +312,7 @@ import { defaultStore, noteViewInterruptors } from '@/store.js';
 import { reactionPicker } from '@/scripts/reaction-picker.js';
 import { extractUrlFromMfm } from '@/scripts/extract-url-from-mfm.js';
 import { $i } from '@/account.js';
+import { shouldAnimatedMfm } from '@/scripts/collapsed.js';
 import { i18n } from '@/i18n.js';
 import { host } from '@/config.js';
 import { getAbuseNoteMenu, getNoteClipMenu, getNoteMenu, getRenoteMenu, getRenoteOnly } from '@/scripts/get-note-menu.js';
@@ -362,6 +370,8 @@ if (noteViewInterruptors.length > 0) {
 
 const isRenote = Misskey.note.isPureRenote(note.value);
 
+const enableAnimatedMfm = $i ? undefined : computed(defaultStore.makeGetterSetter('animatedMfm'));
+
 const rootEl = shallowRef<HTMLElement>();
 const menuButton = shallowRef<HTMLElement>();
 const renoteButton = shallowRef<HTMLElement>();
@@ -375,6 +385,7 @@ const galleryEl = shallowRef<InstanceType<typeof MkMediaList>>();
 const isMyRenote = $i && ($i.id === note.value.userId);
 const showContent = ref(false);
 const isDeleted = ref(false);
+const isAnimatedMfm = $i ? undefined : shouldAnimatedMfm(appearNote.value);
 const muted = ref($i ? checkWordMute(appearNote.value, $i, $i.mutedWords) : false);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
 const translating = ref(false);
@@ -1167,5 +1178,12 @@ onMounted(() => {
 	& + .badgeRole {
 		margin-left: 0.2em;
 	}
+}
+
+.play_mfm_action {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 6px;
 }
 </style>
