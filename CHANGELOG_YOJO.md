@@ -45,7 +45,8 @@ Cherrypick 4.11.1
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
- 
+- Fix: 通知APIがページ境界で重複する問題の修正
+
 ### Misc
 
 ## 1.0.1
