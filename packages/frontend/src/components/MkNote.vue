@@ -124,6 +124,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 				</button>
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
+				<MkButton :small="true" inline @click.stop="console.log('test')">
+					<i class="ti ti-player-play"></i> {{ i18n.ts.enableAnimatedMfm }}
+				</MkButton>
 			</div>
 		</div>
 		<div>
