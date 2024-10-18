@@ -110,15 +110,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					return [];
 				}
 
-				notifications = notificationsRes.map(x => JSON.parse(x[1][1])) as MiNotification[];
+				notifications = notificationsRes.map(x => JSON.parse(x[1][1])).filter(x => x.id !== ps.untilId && x.id !== ps.sinceId) as MiNotification[];
 
 				if (includeTypes && includeTypes.length > 0) {
 					notifications = notifications.filter(notification => includeTypes.includes(notification.type));
 				} else if (excludeTypes && excludeTypes.length > 0) {
 					notifications = notifications.filter(notification => !excludeTypes.includes(notification.type));
-				}
-				if (ps.untilId ?? ps.sinceId) {
-					notifications = notifications.filter(notification => ps.untilId !== notification.id && ps.sinceId !== notification.id);
 				}
 
 				if (notifications.length !== 0) {
