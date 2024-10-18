@@ -260,6 +260,18 @@ describe('検索', () => {
 		assert.strictEqual(asres0.body.length, 0);
 	});
 	test('可視性 followers, specified indexable:falseでてくる', async() => {
+		const rres = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: tomNote.id,
+		}, alice);
+		assert.strictEqual(rres.status, 204);
+		const rres2 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: tomNoteDirect.id,
+		}, alice);
+		assert.strictEqual(rres2.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+
 		const asres0 = await api('notes/advanced-search', {
 			query: 'ff_test',
 		}, alice);
