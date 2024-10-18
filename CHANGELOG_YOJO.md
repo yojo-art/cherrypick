@@ -43,7 +43,8 @@ Cherrypick 4.11.1
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
-
+- Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
+ 
 ### Misc
 
 ## 1.0.1
