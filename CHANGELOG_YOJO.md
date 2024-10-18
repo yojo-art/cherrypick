@@ -63,7 +63,7 @@ Cherrypick 4.11.1
 - Fix: 通知APIがページ境界で重複する問題の修正
 - Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように  
   (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
-
+- Enhance: `api/emoji`で`host`を指定できるように
 ### Misc
 
 ## 1.0.1
