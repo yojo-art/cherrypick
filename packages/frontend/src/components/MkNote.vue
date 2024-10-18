@@ -264,7 +264,6 @@ import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
 
 const showEl = ref(false);
-const enableAnimatedMfm = ref<boolean>(defaultStore.state.advancedMfm && defaultStore.state.animatedMfm);
 
 const props = withDefaults(defineProps<{
 	note: Misskey.entities.Note;
@@ -310,6 +309,8 @@ if (noteViewInterruptors.length > 0) {
 }
 
 const isRenote = Misskey.note.isPureRenote(note.value);
+
+const enableAnimatedMfm = $i ? undefined : computed(defaultStore.makeGetterSetter('animatedMfm'));
 
 const rootEl = shallowRef<HTMLElement>();
 const menuButton = shallowRef<HTMLElement>();

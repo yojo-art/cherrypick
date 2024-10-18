@@ -172,7 +172,7 @@ const emit = defineEmits<{
 
 const note = ref(deepClone(props.note));
 
-const enableAnimatedMfm = ref<boolean>(defaultStore.state.advancedMfm && defaultStore.state.animatedMfm);
+const enableAnimatedMfm = $i ? undefined : computed(defaultStore.makeGetterSetter('animatedMfm'));
 
 const rootEl = shallowRef<HTMLElement>();
 const menuButton = shallowRef<HTMLElement>();

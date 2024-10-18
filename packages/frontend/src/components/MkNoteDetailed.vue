@@ -370,7 +370,7 @@ if (noteViewInterruptors.length > 0) {
 
 const isRenote = Misskey.note.isPureRenote(note.value);
 
-const enableAnimatedMfm = ref<boolean>(defaultStore.state.advancedMfm && defaultStore.state.animatedMfm);
+const enableAnimatedMfm = $i ? undefined : computed(defaultStore.makeGetterSetter('animatedMfm'));
 
 const rootEl = shallowRef<HTMLElement>();
 const menuButton = shallowRef<HTMLElement>();
