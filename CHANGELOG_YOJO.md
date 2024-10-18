@@ -46,6 +46,8 @@ Cherrypick 4.11.1
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
 - Fix: 通知APIがページ境界で重複する問題の修正
+- Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように  
+  (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
 
 ### Misc
 
