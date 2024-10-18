@@ -121,6 +121,7 @@ import FormSection from '@/components/form/section.vue';
 import { $i } from '@/account.js';
 import { instance } from '@/instance.js';
 import { emojiPicker } from '@/scripts/emoji-picker';
+import { Paging } from '@/components/MkPagination.vue';
 
 const props = withDefaults(defineProps<{
 		query?: string;
