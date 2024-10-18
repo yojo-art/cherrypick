@@ -124,7 +124,7 @@ function onClick(ev: MouseEvent) {
 				react(`:${props.name}:`);
 				sound.playMisskeySfx('reaction');
 			},
-		}] : []), {
+		}] : []), ...(isLocal.value ? [{
 			text: i18n.ts.info,
 			icon: 'ti ti-info-circle',
 			action: async () => {
@@ -136,7 +136,7 @@ function onClick(ev: MouseEvent) {
 					closed: () => dispose(),
 				});
 			},
-		}], ev.currentTarget ?? ev.target);
+		}] : [])], ev.currentTarget ?? ev.target);
 	}
 }
 

@@ -37,6 +37,7 @@ Cherrypick 4.11.1
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
 - Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正
+- Fix: リモートのカスタム絵文字の場合ポップアップに`情報`を表示しないように
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
