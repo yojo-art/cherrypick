@@ -45,6 +45,7 @@ type MfmProps = {
 	enableEmojiMenu?: boolean;
 	enableEmojiMenuReaction?: boolean;
 	linkNavigationBehavior?: MkABehavior;
+	enableAnimatedMfm?: boolean;
 };
 
 type MfmEvents = {
@@ -74,7 +75,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 		return c.match(/^[0-9a-f]{3,6}$/i) ? c : null;
 	};
 
-	const useAnim = defaultStore.state.advancedMfm && defaultStore.state.animatedMfm;
+	const useAnim = props.enableAnimatedMfm ?? (defaultStore.state.advancedMfm && defaultStore.state.animatedMfm);
 
 	/**
 	 * Gen Vue Elements from MFM AST
