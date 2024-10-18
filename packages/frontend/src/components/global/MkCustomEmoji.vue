@@ -124,19 +124,20 @@ function onClick(ev: MouseEvent) {
 				react(`:${props.name}:`);
 				sound.playMisskeySfx('reaction');
 			},
-		}] : []), ...(isLocal.value ? [{
+		}] : []), {
 			text: i18n.ts.info,
 			icon: 'ti ti-info-circle',
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
 					emoji: await misskeyApiGet('emoji', {
 						name: customEmojiName.value,
+						...(props.host ? { host: props.host } : {}),
 					}),
 				}, {
 					closed: () => dispose(),
 				});
 			},
-		}] : [])], ev.currentTarget ?? ev.target);
+		}], ev.currentTarget ?? ev.target);
 	}
 }
 
