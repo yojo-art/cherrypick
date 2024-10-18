@@ -126,9 +126,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</button>
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
 				<div v-if="!$i && isMFM" :class="$style.play_mfm_action">
-					<MkButton :small="true" inline @click.stop="enableAnimatedMfm=!enableAnimatedMfm">
-						<i class="ti ti-player-play"></i> {{ i18n.ts.enableAnimatedMfm }}
-					</MkButton>
+					<MkSwitch v-model="enableAnimatedMfm">
+						<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
+					</MkSwitch>
 				</div>
 			</div>
 		</div>
