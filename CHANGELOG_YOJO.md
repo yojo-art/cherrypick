@@ -33,6 +33,20 @@ Cherrypick 4.11.1
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
+- Enhance: 高度な検索でもクエリ文字列を使えるように
+  - `/search?type=anote`
+  - `q` 通常検索と同じ
+  - `userId` 通常検索と同じ
+  - `username` 通常検索と同じ
+  - `host` 通常検索と同じ
+  - `fileAttach`添付ファイル有無 あり:`file-only`なし:`no-file`
+  - `fileSensitive`添付ファイルセンシティブ状態 あり:`includeSensitive` なし:`withOutSensitive`　センシティブのみ`sensitiveOnly`
+  - `reactions` リアクション検索ボックス
+  - `reactionsExclude` リアクション検索ボックス(除外)
+  - `excludeReply` リプライ除外 true/false
+  - `excludeCw` CW除外 true/false
+  - `excludeQuote` 引用除外 true/false
+  - `strictSearch` 表記ゆれ検索有効 true/false
 - Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)

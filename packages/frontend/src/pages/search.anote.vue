@@ -103,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref } from 'vue';
+import { ref, toRef } from 'vue';
 import type { UserDetailed } from 'cherrypick-js/entities.js';
 import MkNotes from '@/components/MkNotes.vue';
 import MkRadios from '@/components/MkRadios.vue';
@@ -122,24 +122,53 @@ import { $i } from '@/account.js';
 import { instance } from '@/instance.js';
 import { emojiPicker } from '@/scripts/emoji-picker';
 
+const props = withDefaults(defineProps<{
+		query?: string;
+		userId?: string;
+		username?: string;
+		host?: string | null;
+		fileAttach?: string;
+		fileSensitive?: string;
+		reactions?: string;
+		reactionsExclude?: string;
+		following?: string;
+		excludeReply?: boolean;
+		excludeCw?: boolean;
+		excludeQuote?: boolean;
+		strictSearch?: boolean;
+	}>(), {
+	query: '',
+	userId: undefined,
+	username: undefined,
+	host: '',
+	fileAttach: 'combined',
+	fileSensitive: 'combined',
+	reactions: '',
+	reactionsExclude: '',
+	following: 'combined',
+	excludeReply: false,
+	excludeCw: false,
+	excludeQuote: false,
+	strictSearch: false,
+});
 const router = useRouter();
 
 const key = ref(0);
-const searchQuery = ref('');
+const searchQuery = ref(toRef(props, 'query').value);
+const notePagination = ref<Paging>();
+const user = ref<UserDetailed | null>(null);
+const hostInput = ref(toRef(props, 'host').value);
 const searchOrigin = ref('combined');
-const notePagination = ref();
-const user = ref<any>(null);
 const isLocalOnly = ref(false);
-const isfileOnly = ref('combined');
-const excludeCW = ref(false);
-const excludeReply = ref(false);
-const excludeQuote = ref(false);
-const sensitiveFilter = ref('combined');
-const followingFilter = ref('combined');
-const hostInput = ref('');
-const emojiSearchQuery = ref('');
-const emojiExcludeSearchQuery = ref('');
-const strictSearch = ref(false);
+const isfileOnly = ref(toRef(props, 'fileAttach').value);
+const sensitiveFilter = ref(toRef(props, 'fileSensitive').value);
+const emojiSearchQuery = ref(toRef(props, 'reactions').value);
+const emojiExcludeSearchQuery = ref(toRef(props, 'reactionsExclude').value);
+const followingFilter = ref(toRef(props, 'following').value);
+const excludeReply = ref(toRef(props, 'excludeReply').value);
+const excludeCW = ref(toRef(props, 'excludeCw').value);
+const excludeQuote = ref(toRef(props, 'excludeQuote').value);
+const strictSearch = ref(toRef(props, 'strictSearch').value);
 const noteSearchableScope = instance.noteSearchableScope ?? 'local';
 
 function selectUser() {
