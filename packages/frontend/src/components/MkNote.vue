@@ -125,12 +125,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 				</button>
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
-				<div v-if="!$i && isMFM" :class="$style.play_mfm_action">
-					<MkSwitch v-model="enableAnimatedMfm">
-						<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
-					</MkSwitch>
-				</div>
 			</div>
+		</div>
+		<div v-if="!$i && isMFM" :class="$style.play_mfm_action">
+			<MkSwitch v-model="enableAnimatedMfm">
+				<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
+			</MkSwitch>
 		</div>
 		<div>
 			<MkReactionsViewer v-if="appearNote.reactionAcceptance !== 'likeOnly'" :note="appearNote" :maxNumber="16" @click.stop @contextmenu.prevent.stop @mockUpdateMyReaction="emitUpdReaction">
