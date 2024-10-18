@@ -150,6 +150,11 @@ describe('検索', () => {
 			roleId: roleres.body.id,
 		}, root);
 		assert.strictEqual(assign.status, 204);
+		const assign2 = await api('admin/roles/assign', {
+			userId: bob.id,
+			roleId: roleres.body.id,
+		}, root);
+		assert.strictEqual(assign2.status, 204);
 	});
 	test('ファイルオプション:フィルタなし', async() => {
 		const res = await api('notes/advanced-search', {
@@ -260,13 +265,13 @@ describe('検索', () => {
 		}, alice);
 		assert.strictEqual(asres0.status, 200);
 		assert.strictEqual(Array.isArray(asres0.body), true);
+		assert.strictEqual(asres0.body.length, 2);
 
 		const ids = asres0.body.map((x) => x.id);
 		assert.strictEqual(ids.includes(tomNote.id), true);
 		assert.strictEqual(ids.includes(tomNoteDirect.id), true);
 		assert.strictEqual(ids.includes(daveNote.id), false);
 		assert.strictEqual(ids.includes(daveNoteDirect.id), false);
-		assert.strictEqual(asres0.body.length, 2);
 		const ires = await api('i/update', {
 			isIndexable: true,
 		}, tom);
@@ -279,7 +284,7 @@ describe('検索', () => {
 	test('ミュートのノート普通に出る', async() => {
 		const asres0 = await api('notes/advanced-search', {
 			query: 'muting',
-		});
+		}, bob);
 		assert.strictEqual(asres0.status, 200);
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 1);
@@ -297,7 +302,7 @@ describe('検索', () => {
 	test('ブロックのノート普通に出る', async() => {
 		const asres0 = await api('notes/advanced-search', {
 			query: 'blocking',
-		}, alice);
+		}, bob);
 		assert.strictEqual(asres0.status, 200);
 		assert.strictEqual(Array.isArray(asres0.body), true);
 		assert.strictEqual(asres0.body.length, 1);
