@@ -1179,4 +1179,11 @@ onMounted(() => {
 		margin-left: 0.2em;
 	}
 }
+
+.play_mfm_action {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 6px;
+}
 </style>
