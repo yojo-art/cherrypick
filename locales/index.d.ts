@@ -579,6 +579,10 @@ export interface Locale extends ILocale {
      */
     "searchThisUsersNotes": string;
     /**
+     * このリアクションで検索
+     */
+    "searchThisReaction": string;
+    /**
      * 返信
      */
     "reply": string;
