@@ -1118,7 +1118,7 @@ export class AdvancedSearchService {
  		if (user.isIndexable === false && meUserId !== undefined && user.id !== meUserId) { //検索許可されていないが、
 			if (!this.opensearch) return null;
 			if (Note._source.visibility === 'followers' && !Followings.includes(Note._source.userId)) return null;//鍵でフォローしてない
-			if (Note._source.visibility === 'specified' && Note._source.visibleUserIds && Note._source.visibleUserIds.includes(meUserId)) return null; //ダイレクトで自分が宛先に含まれていない
+			if (Note._source.visibility === 'specified' && Note._source.visibleUserIds && !Note._source.visibleUserIds.includes(meUserId)) return null; //ダイレクトで自分が宛先に含まれていない
 
 			const Option = {
 				index: this.reactionIndex,
