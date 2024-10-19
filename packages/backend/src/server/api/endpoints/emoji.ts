@@ -30,11 +30,6 @@ export const paramDef = {
 		name: {
 			type: 'string',
 		},
-		host: {
-			type: 'string',
-			nullable: true,
-			default: null,
-		},
 	},
 	required: ['name'],
 } as const;
@@ -51,7 +46,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const emoji = await this.emojisRepository.findOneOrFail({
 				where: {
 					name: ps.name,
-					host: ps.host ?? IsNull(),
+					host: IsNull(),
 				},
 			});
 
