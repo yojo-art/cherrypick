@@ -33,10 +33,25 @@ Cherrypick 4.11.1
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
+- Enhance: 高度な検索でもクエリ文字列を使えるように
+  - `/search?type=anote`
+  - `q` 通常検索と同じ
+  - `userId` 通常検索と同じ
+  - `username` 通常検索と同じ
+  - `host` 通常検索と同じ
+  - `fileAttach`添付ファイル有無 あり:`file-only`なし:`no-file`
+  - `fileSensitive`添付ファイルセンシティブ状態 あり:`includeSensitive` なし:`withOutSensitive`　センシティブのみ`sensitiveOnly`
+  - `reactions` リアクション検索ボックス
+  - `reactionsExclude` リアクション検索ボックス(除外)
+  - `excludeReply` リプライ除外 true/false
+  - `excludeCw` CW除外 true/false
+  - `excludeQuote` 引用除外 true/false
+  - `strictSearch` 表記ゆれ検索有効 true/false
 - Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
 - Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正
+- Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
@@ -44,6 +59,10 @@ Cherrypick 4.11.1
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Enhance: `api/emoji`で`host`を指定できるように
+- Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
+- Fix: 通知APIがページ境界で重複する問題の修正
+- Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように  
+  (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
 
 ### Misc
 

@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<MkSpacer v-if="tab === 'anote'" key="anote" :contentMax="800">
 			<div v-if="advanccedNotesSearchAvailable">
-				<XAnote/>
+				<XAnote v-bind="props"/>
 			</div>
 			<div v-else>
 				<MkInfo warn>{{ i18n.ts.notesAdvancedSearchNotAvailable }}</MkInfo>
@@ -50,6 +50,15 @@ const props = withDefaults(defineProps<{
 	userId?: string,
 	username?: string,
 	host?: string | null,
+	fileAttach?: string;
+	fileSensitive?: string;
+	reactions?: string;
+	reactionsExclude?: string;
+	following?: string;
+	excludeReply?: boolean;
+	excludeCw?: boolean;
+	excludeQuote?: boolean;
+	strictSearch?: boolean;
 	type?: 'note' | 'user' | 'anote' | 'event',
 	origin?: 'combined' | 'local' | 'remote',
 	// For storybook only
@@ -59,6 +68,15 @@ const props = withDefaults(defineProps<{
 	userId: undefined,
 	username: undefined,
 	host: undefined,
+	fileAttach: 'combined',
+	fileSensitive: 'combined',
+	reactions: '',
+	reactionsExclude: '',
+	following: 'combined',
+	excludeReply: false,
+	excludeCw: false,
+	excludeQuote: false,
+	strictSearch: false,
 	type: 'note',
 	origin: 'combined',
 	ignoreNotesSearchAvailable: false,
