@@ -29,16 +29,16 @@ dockerでノートレコードが多数ある場合**一時的に** comoose.yml`
     - 返信
     - 投票
 	- コントロールパネル→その他で(クリップ、お気に入り、投票が)再インデックスできるようになりました
-- Feat: 予約投稿 [#449](https://github.com/yojo-art/cherrypick/pull/449)
+- Feat: 予約投稿 [#483](https://github.com/yojo-art/cherrypick/pull/483)
 	- based-on
- 	- https://github.com/Type4ny-Project/Type4ny/commit/e133a6b6a4bee78c2598deaad087712b2e8e26ed
-  - https://github.com/Type4ny-Project/Type4ny/commit/387faf55cf8b98918bc6c83fd8377d75408d7d1a
-  - https://github.com/Type4ny-Project/Type4ny/commit/540f531b6d10e5419e63012ad63a637d4d7d084a
-  - https://github.com/Type4ny-Project/Type4ny/commit/12b7ec30461eee0c80abf7ecc965ed904bb0edee
-  - https://github.com/Type4ny-Project/Type4ny/commit/d6fb3c3342da111520eda6b18837f17fb3b50b5e
-  - https://github.com/Type4ny-Project/Type4ny/commit/9bc6d8024fcab8855fb3e2aa86bb1d74d853eb70
-  - https://github.com/Type4ny-Project/Type4ny/commit/28ee4d47c0b240db6eb30e14291e44862b1f7484
-- Enhance: 連合一覧のソートにリバーシのバージョンを追加 [#472](https://github.com/yojo-art/cherrypick/pull/472)
+ 		- https://github.com/Type4ny-Project/Type4ny/commit/e133a6b6a4bee78c2598deaad087712b2e8e26ed
+  		- https://github.com/Type4ny-Project/Type4ny/commit/387faf55cf8b98918bc6c83fd8377d75408d7d1a
+  		- https://github.com/Type4ny-Project/Type4ny/commit/540f531b6d10e5419e63012ad63a637d4d7d084a
+  		- https://github.com/Type4ny-Project/Type4ny/commit/12b7ec30461eee0c80abf7ecc965ed904bb0edee
+  		- https://github.com/Type4ny-Project/Type4ny/commit/d6fb3c3342da111520eda6b18837f17fb3b50b5e
+  		- https://github.com/Type4ny-Project/Type4ny/commit/9bc6d8024fcab8855fb3e2aa86bb1d74d853eb70
+  		- https://github.com/Type4ny-Project/Type4ny/commit/28ee4d47c0b240db6eb30e14291e44862b1f7484
+- Enhance: 連合一覧のソートにリバーシのバージョンを追加 [#436](https://github.com/yojo-art/cherrypick/pull/436)
 - Enhance: リモートのクリップをお気に入りに登録できるように [#438](https://github.com/yojo-art/cherrypick/pull/438)
 - Enhance: リモートのPlayを遊べるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
 - Enhance: リモートのPlayをお気に入りに登録できるように [#448](https://github.com/yojo-art/cherrypick/pull/448)
