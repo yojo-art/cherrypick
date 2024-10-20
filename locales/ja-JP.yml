@@ -3214,3 +3214,10 @@ _renoteConfirm:
   title: "このノートはリノートしたばかりです"
   caption: "リノートしますか？"
   confirm: 'リノートする'
+_searchbility:
+    tooltip: "検索可能範囲"
+    canSearch: "が検索できます"
+    public: "すべてのユーザー"
+    followersAndReacted: "フォロワーと反応した人"
+    reactedOnly: "反応した人"
+    private: "あなただけ"

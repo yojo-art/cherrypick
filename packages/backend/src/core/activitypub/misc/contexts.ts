@@ -544,6 +544,12 @@ const extension_context_definition = {
 	featured: 'toot:featured',
 	discoverable: 'toot:discoverable',
 	indexable: 'toot:indexable',
+	// Fefibird
+	fedibird: 'http://fedibird.com/ns#',
+	searchableBy: {
+		'@id': 'fedibird:searchableBy',
+		'@type': '@id',
+	},
 	// schema
 	schema: 'http://schema.org#',
 	PropertyValue: 'schema:PropertyValue',

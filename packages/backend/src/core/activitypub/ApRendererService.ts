@@ -28,6 +28,7 @@ import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFil
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
+import { searchableTypes } from '@/types.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
@@ -378,7 +379,18 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
-
+		let searchableBy: string[]| undefined = [];
+		if (note.searchableBy === null) {
+			searchableBy = undefined;
+		} else	if (note.searchableBy === searchableTypes[0]) {
+			searchableBy = ['https://www.w3.org/ns/activitystreams#Public'];
+		} else if (note.searchableBy === searchableTypes[1]) {
+			searchableBy = [`${this.config.url}/users/${note.userId}/followers`];
+		} else if (note.searchableBy === searchableTypes[2]) {
+			searchableBy = [`${this.config.url}/users/${note.userId}`];
+		} else { // if (note.searchableBy === searchableTypes[3])
+			searchableBy = ['as:Limited', 'kmyblue:Limited'];
+		}
 		const mentionedUsers = note.mentions.length > 0 ? await this.usersRepository.findBy({
 			id: In(note.mentions),
 		}) : [];
@@ -462,6 +474,7 @@ export class ApRendererService {
 			updated: note.updatedAt?.toISOString() ?? undefined,
 			to,
 			cc,
+			...(searchableBy ? { searchableBy: searchableBy } : {}),
 			inReplyTo,
 			attachment: files.map(x => this.renderDocument(x)),
 			sensitive: note.cw != null || files.some(file => file.isSensitive),
@@ -540,6 +553,7 @@ export class ApRendererService {
 			manuallyApprovesFollowers: user.isLocked,
 			discoverable: user.isExplorable,
 			indexable: user.isIndexable,
+			searchableBy: [`${this.config.url}/users/${user.id}`],
 			publicKey: this.renderKey(user, keypair, '#main-key'),
 			isCat: user.isCat,
 			attachment: attachment.length ? attachment : undefined,

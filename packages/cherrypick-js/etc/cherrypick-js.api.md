@@ -2679,6 +2679,9 @@ type NotesCreateResponse = operations['notes___create']['responses']['200']['con
 type NotesDeleteRequest = operations['notes___delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+export const noteSearchbility: readonly ["public", "followersAndReacted", "reactedOnly", "private"];
+
+// @public (undocumented)
 type NotesEventsSearchRequest = operations['notes___events___search']['requestBody']['content']['application/json'];
 
 // @public (undocumented)

@@ -140,6 +140,7 @@ export interface IPost extends IObject {
 	_misskey_content?: string;
 	quoteUrl?: string;
 	_misskey_talk?: boolean;
+	searchableBy?: string[];
 }
 
 export interface IQuestion extends IObject {

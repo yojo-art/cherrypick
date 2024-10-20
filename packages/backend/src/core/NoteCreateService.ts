@@ -64,6 +64,7 @@ import { isReply } from '@/misc/is-reply.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { MiNoteSchedule } from '@/models/_.js';
+import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -146,6 +147,7 @@ type Option = {
 	disableRightClick?: boolean | null;
 	cw?: string | null;
 	visibility?: string | null;
+	searchableBy: string | null,
 	visibleUsers?: MinimumUser[] | null;
 	channel?: MiChannel | null;
 	apMentions?: MinimumUser[] | null;
@@ -423,6 +425,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			reactionAcceptance: data.reactionAcceptance,
 			disableRightClick: data.disableRightClick!,
 			visibility: data.visibility as any,
+			searchableBy: data.searchableBy as any,
 			visibleUserIds: data.visibility === 'specified'
 				? data.visibleUsers
 					? data.visibleUsers.map(u => u.id)

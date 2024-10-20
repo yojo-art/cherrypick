@@ -12024,6 +12024,32 @@ export interface Locale extends ILocale {
          */
         "confirm": string;
     };
+    "_searchbility": {
+        /**
+         * 検索可能範囲
+         */
+        "tooltip": string;
+        /**
+         * が検索できます
+         */
+        "canSearch": string;
+        /**
+         * すべてのユーザー
+         */
+        "public": string;
+        /**
+         * フォロワーと反応した人
+         */
+        "followersAndReacted": string;
+        /**
+         * 反応した人
+         */
+        "reactedOnly": string;
+        /**
+         * あなただけ
+         */
+        "private": string;
+    };
 }
 declare const locales: {
     [lang: string]: Locale;
