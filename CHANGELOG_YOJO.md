@@ -4,6 +4,16 @@ Cherrypick 4.11.1
 ### Release Date
 
 ### General
+ノートが多数ある場合**マイグレーションに長時間かかることがあります**  
+dockerでノートレコードが多数ある場合**一時的に** comoose.yml`healthcheck`に`start_period`を大きめに指定してください
+```
+#サービスのwebに追記
+    healthcheck:
+      test: ["/bin/bash", "/misskey/healthcheck.sh"]
+      interval: "5s"
+      retries: 20
+      start_period: "300s"#5分
+```
 インデックス構造が変わったため破棄して再インデックスが必要です。
 リアクションや投票が途中からインデックスにされるので再インデックスをおすすめします。
 
