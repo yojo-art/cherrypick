@@ -53,6 +53,7 @@ export const mutedNoteReasons = ['word', 'manual', 'spam', 'other'] as const;
 
 export const followingVisibilities = ['public', 'followers', 'private'] as const;
 export const followersVisibilities = ['public', 'followers', 'private'] as const;
+export const searchableTypes = ['public', 'followersAndReacted', 'reactedOnly', 'private'] as const;
 
 export const moderationLogTypes = [
 	'updateServerSettings',

@@ -208,6 +208,9 @@ export class ApNoteService {
 		}
 
 		const noteAudience = await this.apAudienceService.parseAudience(actor, note.to, note.cc, resolver);
+		const searchableBy = await this.apAudienceService.parseSearchableBy(actor, note.searchableBy);
+		this.logger.info(JSON.stringify(note.searchableBy));
+		this.logger.info(actor.uri);
 		let visibility = noteAudience.visibility;
 		const visibleUsers = noteAudience.visibleUsers;
 
@@ -341,6 +344,7 @@ export class ApNoteService {
 				disableRightClick: false,
 				visibility,
 				visibleUsers,
+				searchableBy: searchableBy,
 				apMentions,
 				apHashtags,
 				apEmojis,

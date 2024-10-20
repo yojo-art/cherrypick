@@ -109,7 +109,7 @@ export class ActivityPubServerService {
 			reply.code(401);
 			return;
 		}
-
+		console.info(JSON.stringify(request));
 		if (signature.params.headers.indexOf('host') === -1
 			|| request.headers.host !== this.config.host) {
 			// Host not specified or not match.

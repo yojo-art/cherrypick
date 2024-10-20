@@ -40,6 +40,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { searchableTypes } from '@/types.js';
 import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -409,6 +410,7 @@ export class ApPersonService implements OnModuleInit {
 					alsoKnownAs: person.alsoKnownAs,
 					isExplorable: person.discoverable,
 					isIndexable: person.indexable ?? true,
+					searchableBy: this.getSearchableType(tags),
 					username: person.preferredUsername,
 					usernameLower: person.preferredUsername?.toLowerCase(),
 					host,
@@ -649,10 +651,10 @@ export class ApPersonService implements OnModuleInit {
 			}
 		}
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
-
+		this.logger.info(JSON.stringify(tags));
 		const updates = {
 			lastFetchedAt: new Date(),
-			isIndexable: person.indexable ?? true,
+			searchableBy: this.getSearchableType(tags),
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox,
 			outbox: typeof person.outbox === 'string' ? person.outbox : null,
@@ -1000,5 +1002,14 @@ export class ApPersonService implements OnModuleInit {
 		}
 
 		return false;
+	}
+
+	@bindThis
+	private getSearchableType(tags: string[]): 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null {
+		if (tags.includes('searchable_by_all_users')) return searchableTypes[0];
+		if (tags.includes('searchable_by_followers_only')) return searchableTypes[1];
+		if (tags.includes('searchable_by_reacted_users_only')) return searchableTypes[2];
+		if (tags.includes('searchable_by_nobody')) return searchableTypes[3];
+		return null;
 	}
 }
