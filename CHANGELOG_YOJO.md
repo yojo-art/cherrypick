@@ -5,7 +5,8 @@ Cherrypick 4.11.1
 
 ### General
 ノートが多数ある場合**マイグレーションに長時間かかることがあります**  
-dockerでノートレコードが多数ある場合**一時的に** comoose.yml`healthcheck`に`start_period`を大きめに指定してください
+
+docker環境でノートレコードが多数(数百万件)ある場合**一時的に** compose.ymlの`healthcheck`の`start_period`を大きめに指定してください
 ```
 #サービスのwebに追記
     healthcheck:
@@ -49,7 +50,7 @@ dockerでノートレコードが多数ある場合**一時的に** comoose.yml`
 - Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加 [#498](https://github.com/yojo-art/cherrypick/pull/498)
 
 ### Client
-- Fix: ユーザーページでリアクション履歴が閲覧できる状態の時ユーザーの投稿が表示されてしまうの修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
+- Fix: ユーザーページでリアクション履歴が閲覧できる状態の時にリアクションを選択するとユーザーの投稿が表示されてしまうの修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
@@ -75,7 +76,7 @@ dockerでノートレコードが多数ある場合**一時的に** comoose.yml`
 ### Server
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました [#496](https://github.com/yojo-art/cherrypick/pull/496)
 - Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように   [#510](https://github.com/yojo-art/cherrypick/pull/510)
-  (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
+  - (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように [#501](https://github.com/yojo-art/cherrypick/pull/501)
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる [#449](https://github.com/yojo-art/cherrypick/pull/449)
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正 [#505](https://github.com/yojo-art/cherrypick/pull/505)
