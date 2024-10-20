@@ -49,7 +49,7 @@ dockerでノートレコードが多数ある場合**一時的に** comoose.yml`
 - Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加 [#498](https://github.com/yojo-art/cherrypick/pull/498)
 
 ### Client
-- Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
+- Fix: ユーザーページでリアクション履歴が閲覧できる状態の時ユーザーの投稿が表示されてしまうの修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
