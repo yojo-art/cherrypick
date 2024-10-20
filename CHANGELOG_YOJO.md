@@ -41,7 +41,7 @@ dockerでノートレコードが多数ある場合**一時的に** comoose.yml`
 - Enhance: 連合一覧のソートにリバーシのバージョンを追加 [#436](https://github.com/yojo-art/cherrypick/pull/436)
 - Enhance: リモートのクリップをお気に入りに登録できるように [#438](https://github.com/yojo-art/cherrypick/pull/438)
 - Enhance: リモートのPlayを遊べるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
-- Enhance: リモートのPlayをお気に入りに登録できるように [#448](https://github.com/yojo-art/cherrypick/pull/448)
+- Enhance: リモートのPlayをお気に入りに登録できるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
 - Enhance: ノートにつけられたリアクションを対象にした検索ができるように [#496](https://github.com/yojo-art/cherrypick/pull/496)
   - Opensearchのみ対応 
   - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
