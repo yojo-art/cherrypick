@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	class="_button"
 	:class="[$style.root, { [$style.reacted]: note.myReaction == reaction, [$style.canToggle]: (canToggle || alternative), [$style.small]: defaultStore.state.reactionsDisplaySize === 'small', [$style.large]: defaultStore.state.reactionsDisplaySize === 'large' }]"
 	@click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"
+	@contextmenu.stop="onContextmenu"
 	@contextmenu.prevent.stop="menu"
 >
 	<MkReactionIcon :class="defaultStore.state.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction" :emojiUrl="note.reactionEmojis[reaction.substring(1, reaction.length - 1)]" @click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"/>
@@ -37,6 +38,9 @@ import { checkReactionPermissions } from '@/scripts/check-reaction-permissions.j
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import { getUnicodeEmoji } from '@/scripts/emojilist.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
+import { useRouter } from '@/router/supplier.js';
+import { MenuItem } from '@/types/menu.js';
+import { advanccedNotesSearchAvailable } from '@/scripts/check-permissions.js';
 
 const props = defineProps<{
 	reaction: string;
@@ -66,7 +70,22 @@ const reactionName = computed(() => {
 	return r.slice(0, r.indexOf('@'));
 });
 
+const router = useRouter();
+
 const alternative: ComputedRef<string | null> = computed(() => defaultStore.state.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
+
+function onContextmenu(ev: MouseEvent) {
+	if (!advanccedNotesSearchAvailable) return;
+	let menu: MenuItem[];
+	menu = [{
+		text: i18n.ts.searchThisReaction,
+		icon: 'ti ti-search',
+		action: () => {
+			router.push(`/search?type=anote&reactions=${encodeURIComponent(':' + reactionName.value + '*')}`);
+		},
+	}];
+	os.contextMenu(menu, ev);
+}
 
 async function toggleReaction(ev: MouseEvent) {
 	if (!canToggle.value) {
