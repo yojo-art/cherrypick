@@ -22157,6 +22157,11 @@ export type operations = {
            * @enum {string|null}
            */
           reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
+          /**
+           * @default public
+           * @enum {string|null}
+           */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
           /** @default false */
           disableRightClick?: boolean;
           /** @default false */
