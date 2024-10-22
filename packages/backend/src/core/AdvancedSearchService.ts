@@ -31,6 +31,7 @@ type OpenSearchHit = {
     id: string
     userId: string
     visibility: string
+    searchbility: string
     visibleUserIds?: string[]
 		referenceUserId?: string
 		noteId?: string
@@ -109,6 +110,7 @@ const noteIndexBody = {
 			tags: { type: 'keyword' },
 			fileIds: { type: 'keyword' },
 			visibility: { type: 'keyword' },
+			searchbility: { type: 'keyword' },
 			visibleUserIds: { type: 'keyword' },
 			replyId: { type: 'keyword' },
 			renoteId: { type: 'keyword' },
@@ -321,7 +323,8 @@ export class AdvancedSearchService {
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
 		if (note.text == null && note.cw == null) {
-			if (note.userHost !== null) return;//リノートであり、ローカルユーザー
+			if (note.userHost !== null) return;
+			//リノートであり、ローカルユーザー
 			await this.index(this.renoteIndex, note.id, {
 				renoteId: note.renoteId,
 				userId: note.userId,
@@ -935,7 +938,7 @@ export class AdvancedSearchService {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
 				},
-				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId'] : ['userId', 'visibility'],
+				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId', 'searchbility'] : ['userId', 'visibility'],
 				size: pagination.limit,
 			} as any;
 
@@ -954,6 +957,9 @@ export class AdvancedSearchService {
 						minimum_should_match: 1,
 					},
 				});
+				osFilter.bool.must_not.push({ term: { searchbility: 'followersAndReacted' } });
+				osFilter.bool.must_not.push({ term: { searchbility: 'reactedOnly' } });
+				osFilter.bool.must_not.push({ term: { searchbility: 'private' } });
 			}
 
 			const Result = await this.search(Option, pagination.untilId ? 1 : 0, opts.followingFilter ?? 'combined', me ? me.id : undefined);
@@ -1033,15 +1039,14 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (opts.followingFilter) {
-				this.queryService.generateVisibilityQuery(query, me, opts.followingFilter);
-			} else {
-				this.queryService.generateVisibilityQuery(query, me);
-			}
-			this.queryService.generateSearchableQuery(query, me);
 			if (me) this.queryService.generateMutedUserQuery(query, me);
 			if (me) this.queryService.generateBlockedUserQuery(query, me);
-
+			if (opts.followingFilter) {
+				this.queryService.generateVisibilityQuery(query, me, true, opts.followingFilter);
+			} else {
+				this.queryService.generateVisibilityQuery(query, me, true);
+			}
+			this.logger.info(query.getQuery());
 			return await query.limit(pagination.limit).getMany();
 		}
 	}
@@ -1110,82 +1115,121 @@ export class AdvancedSearchService {
 			if (Note._source.referenceUserId) {
 				if (Filter.includes(Note._source.referenceUserId)) return null;
 			}
-			if (followingFilter === 'following' && !Followings.includes(Note._source.userId)) return null;
-			if (followingFilter === 'notFollowing' && Followings.includes(Note._source.userId)) return null;
-		}
 
-		const user = await this.cacheService.findUserById(Note._source.userId);
- 		if (user.isIndexable === false && meUserId !== undefined && user.id !== meUserId) { //検索許可されていないが、
-			if (!this.opensearch) return null;
-			if (Note._source.visibility === 'followers' && !Followings.includes(Note._source.userId)) return null;//鍵でフォローしてない
+			const followed = Followings.includes(Note._source.userId);
+			if (Note._source.visibility === 'followers' && !followed) return null;//鍵でフォローしてない
 			if (Note._source.visibility === 'specified' && Note._source.visibleUserIds && !Note._source.visibleUserIds.includes(meUserId)) return null; //ダイレクトで自分が宛先に含まれていない
 
-			const Option = {
-				index: this.reactionIndex,
-				body: {
-					query: {
-						bool: {
-							must: [
-								{ term: { noteId: Note._id } },
-								{ term: { userId: meUserId } },
-							],
+			if (followingFilter === 'following' && !followed) return null;
+			if (followingFilter === 'notFollowing' && followed) return null;
+
+			let requireReaction = false;
+			const user = await this.cacheService.findUserById(Note._source.userId);
+			switch (Note._source.searchbility) {
+				case 'public':
+					return Note;
+				case 'private':
+					return null;
+				case 'followersAndReacted':
+					if (followed) return Note;
+					requireReaction = true;
+					break;
+				case 'reactedOnly':
+					requireReaction = true;
+					break;
+			}
+
+			if (!requireReaction) {
+				if (user.searchableBy) {
+					switch (user.searchableBy) {
+						case 'public':
+							return Note;
+						case 'private':
+							return null;
+						case 'followersAndReacted':
+							if (followed) return Note;
+							requireReaction = true;
+							break;
+						case 'reactedOnly':
+							requireReaction = true;
+							break;
+					}
+				} else {
+					if (user.isIndexable) return Note;
+					requireReaction = true;
+				}
+			}
+
+			//↑の条件分岐で変わるため
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
+			if (requireReaction) { //検索許可されていないが、
+				if (!this.opensearch) return null;
+
+				const Option = {
+					index: this.reactionIndex,
+					body: {
+						query: {
+							bool: {
+								must: [
+									{ term: { noteId: Note._id } },
+									{ term: { userId: meUserId } },
+								],
+							},
 						},
 					},
-				},
-				_source: ['id', 'userId'],
-				size: 1,
-			} as any;
+					_source: ['id', 'userId'],
+					size: 1,
+				} as any;
 
-			//リアクションしているか、
-			let res = await this.opensearch.search(Option);
-			if (res.body.hits.total.value > 0) {
-				return Note;
+				//リアクションしているか、
+				let res = await this.opensearch.search(Option);
+				if (res.body.hits.total.value > 0) {
+					return Note;
+				}
+
+				//投票しているか、
+				Option.index = this.pollVoteIndex;
+				res = await this.opensearch.search(Option);
+				if (res.body.hits.total.value > 0) {
+					return Note;
+				}
+
+				//クリップもしくはお気に入りしてるか、
+				Option.index = this.favoriteIndex;
+				res = await this.opensearch.search(Option);
+				if (res.body.hits.total.value > 0) {
+					return Note;
+				}
+
+				//Renoteしている
+				Option.index = this.renoteIndex;
+				Option.body.query.bool.must = [
+					{ term: { renoteId: Note._id } },
+					{ term: { userId: meUserId } },
+				];
+				res = await this.opensearch.search(Option);
+				if (res.body.hits.total.value > 0) {
+					return Note;
+				}
+				//返信している
+				Option.index = this.opensearchNoteIndex as string;
+				Option.body.query.bool.must = [
+					{ term: { replyId: Note._id } },
+					{ term: { userId: meUserId } },
+				];
+
+				res = await this.opensearch.search(Option);
+				if (res.body.hits.total.value > 0) {
+					return Note;
+				}
+
+				return null;
 			}
-
-			//投票しているか、
-			Option.index = this.pollVoteIndex;
-			res = await this.opensearch.search(Option);
-			if (res.body.hits.total.value > 0) {
-				return Note;
-			}
-
-			//クリップもしくはお気に入りしてるか、
-			Option.index = this.favoriteIndex;
-			res = await this.opensearch.search(Option);
-			if (res.body.hits.total.value > 0) {
-				return Note;
-			}
-
-			//Renoteしている
-			Option.index = this.renoteIndex;
-			Option.body.query.bool.must = [
-				{ term: { renoteId: Note._id } },
-				{ term: { userId: meUserId } },
-			];
-			res = await this.opensearch.search(Option);
-			if (res.body.hits.total.value > 0) {
-				return Note;
-			}
-			//返信している
-			Option.index = this.opensearchNoteIndex as string;
-			Option.body.query.bool.must = [
-				{ term: { replyId: Note._id } },
-				{ term: { userId: meUserId } },
-			];
-
-			res = await this.opensearch.search(Option);
-			if (res.body.hits.total.value > 0) {
-				return Note;
-			}
-
-			return null;
 		} else {
-			if (['public', 'home'].includes(Note._source.visibility)) return Note;//誰でも見れる
-
-			if (meUserId) {
-				if (Note._source.visibility === 'followers' && Followings.includes(Note._source.userId)) return Note;//鍵だけどフォローしてる
-				if (Note._source.visibility === 'specified' && Note._source.visibleUserIds && Note._source.visibleUserIds.includes(meUserId)) return Note;//自分が宛先に含まれている
-			}
+			if (Note._source.searchbility === 'public') return Note;
+			const user = await this.cacheService.findUserById(Note._source.userId);
+			if (user.searchableBy === 'public') return Note;
+			if (user.isIndexable) return Note;
 		}
 		return null;
 	}

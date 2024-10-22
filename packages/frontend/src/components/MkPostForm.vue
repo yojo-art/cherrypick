@@ -29,12 +29,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span v-if="visibility === 'specified'"><i class="ti ti-mail"></i></span>
 					<span :class="$style.headerRightButtonText">{{ i18n.ts._visibility[visibility] }}</span>
 				</button>
-				<button v-if="channel == null" ref="searchbilityButton" v-click-anime :class="['_button', $style.headerRightItem, $style.visibility]" @click="setSearchbility">
-					<span v-if="visibility === 'public'"><i class="ti ti-world-search"></i></span>
-					<span v-if="visibility === 'followersAndReacted'"><i class="ti ti-user-search"></i></span>
-					<span v-if="visibility === 'reactedOnly'"><i class="ti ti-lock-search"></i></span>
-					<span v-if="visibility === 'private'"><i class="ti ti-mail-search"></i></span>
-					<span :class="$style.headerRightButtonText">{{ i18n.ts._visibility[visibility] }}</span>
+				<button v-if="channel == null" ref="searchbilityButton" v-click-anime v-tooltip="i18n.ts._searchbility.tooltip" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setSearchbility">
+					<span v-if="searchbility === 'public'"><i class="ti ti-world-search"></i></span>
+					<span v-if="searchbility === 'followersAndReacted'"><i class="ti ti-user-search"></i></span>
+					<span v-if="searchbility === 'reactedOnly'"><i class="ti ti-lock-search"></i></span>
+					<span v-if="searchbility === 'private'"><i class="ti ti-mail-search"></i></span>
+					<span :class="$style.headerRightButtonText">{{ i18n.ts._searchbility[searchbility] }}</span>
 				</button>
 				<button v-else class="_button" :class="[$style.headerRightItem, $style.visibility]" disabled>
 					<span><i class="ti ti-device-tv"></i></span>
@@ -213,7 +213,7 @@ const showAddMfmFunction = ref(defaultStore.state.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => defaultStore.set('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
 const visibility = ref(props.initialVisibility ?? (defaultStore.state.rememberNoteVisibility ? defaultStore.state.visibility : defaultStore.state.defaultNoteVisibility));
-const searchbility = ref(props.initialVisibility ?? (defaultStore.state.rememberNoteSearchbility ? defaultStore.state.searchbility : defaultStore.state.defaultNoteSearchbility));
+const searchbility = ref(defaultStore.state.rememberNoteSearchbility ? defaultStore.state.searchbility : defaultStore.state.defaultNoteSearchbility);
 const visibleUsers = ref<Misskey.entities.UserDetailed[]>([]);
 if (props.initialVisibleUsers) {
 	props.initialVisibleUsers.forEach(u => pushVisibleUser(u));
@@ -534,8 +534,8 @@ function setSearchbility() {
 		currentSearchbility: searchbility.value,
 		src: searchbilityButton.value,
 	}, {
-		changeVisibility: v => {
-			visibility.value = v;
+		changeSearchbility: v => {
+			searchbility.value = v;
 			if (defaultStore.state.rememberNoteSearchbility) {
 				defaultStore.set('searchbility', searchbility.value);
 			}
@@ -1059,6 +1059,7 @@ onMounted(() => {
 				cw.value = draft.data.cw;
 				disableRightClick.value = draft.data.disableRightClick;
 				visibility.value = draft.data.visibility;
+				searchbility.value = draft.data.searchbility;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1083,6 +1084,7 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
+			searchbility.value = init.searchbility;
 			files.value = init.files ?? [];
 			if (init.isSchedule) {
 				schedule.value = {

@@ -162,10 +162,12 @@ export class ApOutboxFetchService implements OnModuleInit {
 										this.apLoggerService.logger.info('skip: invalid actor for this activity');
 										continue;
 									}
+
 									await this.noteCreateService.create(user, {
 										createdAt,
 										renote,
 										visibility: activityAudience.visibility,
+										searchableBy: await this.apAudienceService.parseSearchableBy(user, (activity as any).searchableBy),
 										visibleUsers: activityAudience.visibleUsers,
 										uri,
 									}, true );
