@@ -6,6 +6,7 @@
 import { Entity, Index, JoinColumn, Column, PrimaryColumn, ManyToOne } from 'typeorm';
 import { noteVisibilities } from '@/types.js';
 import { MiNote } from '@/models/Note.js';
+import { searchableTypes } from '@/types.js';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiChannel } from './Channel.js';
@@ -24,6 +25,7 @@ export type MiScheduleNoteType={
 	createdAt: string;
 	visibility: 'public' | 'home' | 'followers' | 'specified';
 	visibleUsers: MinimumUser[];
+	searchableBy: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
 	channel?: MiChannel['id'];
 	poll: {
 		multiple: boolean;

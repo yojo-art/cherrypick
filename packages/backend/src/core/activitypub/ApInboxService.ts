@@ -374,6 +374,7 @@ export class ApInboxService {
 			this.logger.info(`Creating the (Re)Note: ${uri}`);
 
 			const activityAudience = await this.apAudienceService.parseAudience(actor, activity.to, activity.cc);
+			const searchableBy = await this.apAudienceService.parseSearchableBy(actor, (activity as any).searchableBy);
 			const createdAt = activity.published ? new Date(activity.published) : null;
 
 			if (createdAt && createdAt < this.idService.parse(renote.id).date) {
@@ -384,6 +385,7 @@ export class ApInboxService {
 				createdAt,
 				renote,
 				visibility: activityAudience.visibility,
+				searchableBy: searchableBy,
 				visibleUsers: activityAudience.visibleUsers,
 				uri,
 			});
