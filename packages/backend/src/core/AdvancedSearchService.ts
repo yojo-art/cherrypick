@@ -943,7 +943,7 @@ export class AdvancedSearchService {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
 				},
-				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId', 'searchbility'] : ['userId', 'visibility'],
+				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId', 'searchableBy'] : ['userId', 'visibility'],
 				size: pagination.limit,
 			} as any;
 
