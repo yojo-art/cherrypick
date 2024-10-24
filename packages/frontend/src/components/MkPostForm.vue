@@ -158,6 +158,7 @@ const props = withDefaults(defineProps<{
 	initialText?: string;
 	initialCw?: string;
 	initialVisibility?: (typeof Misskey.noteVisibilities)[number];
+	initialSearchableBy?: string;
 	initialFiles?: Misskey.entities.DriveFile[];
 	initialVisibleUsers?: Misskey.entities.UserDetailed[];
 	initialNote?: Misskey.entities.Note & {isSchedule?:boolean};
@@ -1059,7 +1060,7 @@ onMounted(() => {
 				cw.value = draft.data.cw;
 				disableRightClick.value = draft.data.disableRightClick;
 				visibility.value = draft.data.visibility;
-				searchbility.value = draft.data.searchbility;
+				searchableBy.value = draft.data.searchbility;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1084,7 +1085,6 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
-			searchbility.value = init.searchbility;
 			files.value = init.files ?? [];
 			if (init.isSchedule) {
 				schedule.value = {

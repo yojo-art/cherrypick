@@ -439,7 +439,6 @@ describe('ユーザー', () => {
 		{ parameters: () => ({ searchableBy: 'followersAndReacted' }) },
 		{ parameters: () => ({ searchableBy: 'reactedOnly' }) },
 		{ parameters: () => ({ searchableBy: 'private' }) },
-		{ parameters: () => ({ searchableBy: null }) },
 		{ parameters: () => ({ hideOnlineStatus: true }) },
 		{ parameters: () => ({ hideOnlineStatus: false }) },
 		{ parameters: () => ({ publicReactions: false }) },

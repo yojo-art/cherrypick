@@ -19968,6 +19968,8 @@ export type operations = {
           isLocked?: boolean;
           isExplorable?: boolean;
           isIndexable?: boolean;
+          /** @enum {string} */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;

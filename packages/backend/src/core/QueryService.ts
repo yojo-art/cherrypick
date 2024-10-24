@@ -277,7 +277,7 @@ export class QueryService {
 								.orWhere(new Brackets(qb2 => {
 									qb2.where('note.searchableBy IS NULL')
 										.andWhere('user.searchableBy IS NULL')
-										.andWhere('user.isIndexable = FALSE')
+										.andWhere('user.isIndexable IS FALSE')
 										.andWhere(new Brackets(qb3 => {
 											//リアクションしている
 											qb3.where('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
