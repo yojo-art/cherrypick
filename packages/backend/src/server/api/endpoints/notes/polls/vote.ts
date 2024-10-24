@@ -153,10 +153,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 				choice: ps.choice,
 			});
-			this.advancedSearchService.indexVote(id, {
-				noteId: note.id,
-				userId: me.id,
-			});
+			if (note.userHost !== null && note.searchableBy !== 'private') {
+				this.advancedSearchService.indexVote(id, {
+					noteId: note.id,
+					userId: me.id,
+				});
+			}
 
 			// Increment votes count
 			const index = ps.choice + 1; // In SQL, array index is 1 based

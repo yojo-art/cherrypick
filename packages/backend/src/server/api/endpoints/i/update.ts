@@ -15,7 +15,7 @@ import type { UsersRepository, DriveFilesRepository, UserProfilesRepository, Pag
 import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { birthdaySchema, descriptionSchema, locationSchema, nameSchema } from '@/models/User.js';
 import type { MiUserProfile } from '@/models/UserProfile.js';
-import { notificationTypes } from '@/types.js';
+import { notificationTypes, searchableTypes } from '@/types.js';
 import { normalizeForSearch } from '@/misc/normalize-for-search.js';
 import { langmap } from '@/misc/langmap.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
@@ -181,6 +181,7 @@ export const paramDef = {
 		isLocked: { type: 'boolean' },
 		isExplorable: { type: 'boolean' },
 		isIndexable: { type: 'boolean' },
+		searchableBy: { type: 'string', enum: ['public', 'followersAndReacted', 'reactedOnly', 'private'] },
 		hideOnlineStatus: { type: 'boolean' },
 		publicReactions: { type: 'boolean' },
 		carefulBot: { type: 'boolean' },
@@ -312,6 +313,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.birthday !== undefined) profileUpdates.birthday = ps.birthday;
 			if (ps.followingVisibility !== undefined) profileUpdates.followingVisibility = ps.followingVisibility;
 			if (ps.followersVisibility !== undefined) profileUpdates.followersVisibility = ps.followersVisibility;
+			if (ps.searchableBy !== undefined) updates.searchableBy = ps.searchableBy;
 
 			function checkMuteWordCount(mutedWords: (string[] | string)[], limit: number) {
 				// TODO: ちゃんと数える

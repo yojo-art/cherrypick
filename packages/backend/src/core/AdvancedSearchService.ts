@@ -31,7 +31,7 @@ type OpenSearchHit = {
     id: string
     userId: string
     visibility: string
-    searchbility: string
+    searchableBy: string
     visibleUserIds?: string[]
 		referenceUserId?: string
 		noteId?: string
@@ -110,7 +110,7 @@ const noteIndexBody = {
 			tags: { type: 'keyword' },
 			fileIds: { type: 'keyword' },
 			visibility: { type: 'keyword' },
-			searchbility: { type: 'keyword' },
+			searchableBy: { type: 'keyword' },
 			visibleUserIds: { type: 'keyword' },
 			replyId: { type: 'keyword' },
 			renoteId: { type: 'keyword' },
@@ -322,6 +322,7 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
+		if (note.searchableBy === 'private' && note.userHost !== null ) return;
 		if (note.text == null && note.cw == null) {
 			if (note.userHost !== null) return;
 			//リノートであり、ローカルユーザー
@@ -358,6 +359,7 @@ export class AdvancedSearchService {
 			tags: note.tags,
 			fileIds: note.fileIds,
 			visibility: note.visibility,
+			searchableBy: note.searchableBy,
 			visibleUserIds: note.visibleUserIds,
 			replyId: note.replyId,
 			renoteId: note.renoteId,
@@ -427,6 +429,7 @@ export class AdvancedSearchService {
 		reaction: string,
 		remote: boolean,
 		reactionIncrement?: boolean,
+		searchableBy?: string,
 	}) {
 		if (!opts.remote) {
 			await this.index(this.reactionIndex, opts.id, {
@@ -437,7 +440,9 @@ export class AdvancedSearchService {
 			});
 		}
 		if (opts.reactionIncrement === false) return;
+		if (opts.remote && opts.searchableBy === 'private') return;
 		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && opts.remote && opts.reaction.includes('@')) return;
+
 		await this.opensearch?.update({
 			id: opts.noteId,
 			index: this.opensearchNoteIndex as string,
@@ -957,9 +962,9 @@ export class AdvancedSearchService {
 						minimum_should_match: 1,
 					},
 				});
-				osFilter.bool.must_not.push({ term: { searchbility: 'followersAndReacted' } });
-				osFilter.bool.must_not.push({ term: { searchbility: 'reactedOnly' } });
-				osFilter.bool.must_not.push({ term: { searchbility: 'private' } });
+				osFilter.bool.must_not.push({ term: {searchableBy : 'followersAndReacted' } });
+				osFilter.bool.must_not.push({ term: {searchableBy : 'reactedOnly' } });
+				osFilter.bool.must_not.push({ term: {searchableBy : 'private' } });
 			}
 
 			const Result = await this.search(Option, pagination.untilId ? 1 : 0, opts.followingFilter ?? 'combined', me ? me.id : undefined);
@@ -1125,7 +1130,7 @@ export class AdvancedSearchService {
 
 			let requireReaction = false;
 			const user = await this.cacheService.findUserById(Note._source.userId);
-			switch (Note._source.searchbility) {
+			switch (Note._source.searchableBy) {
 				case 'public':
 					return Note;
 				case 'private':
@@ -1160,8 +1165,6 @@ export class AdvancedSearchService {
 				}
 			}
 
-			//↑の条件分岐で変わるため
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (requireReaction) { //検索許可されていないが、
 				if (!this.opensearch) return null;
 
@@ -1226,7 +1229,7 @@ export class AdvancedSearchService {
 				return null;
 			}
 		} else {
-			if (Note._source.searchbility === 'public') return Note;
+			if (Note._source.searchableBy === 'public') return Note;
 			const user = await this.cacheService.findUserById(Note._source.userId);
 			if (user.searchableBy === 'public') return Note;
 			if (user.isIndexable) return Note;
