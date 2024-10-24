@@ -70,8 +70,8 @@ const rememberNoteSearchbility = computed(defaultStore.makeGetterSetter('remembe
 const v = ref(props.currentSearchbility);
 
 function choose(searchbility: typeof Misskey.noteSearchbility[number]): void {
-	v.value =searchableBy ;
-	emit('changeSearchbility',searchableBy );
+	v.value = searchbility;
+	emit('changeSearchbility', searchbility);
 	nextTick(() => {
 		if (modal.value) modal.value.close();
 	});

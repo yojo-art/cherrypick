@@ -962,9 +962,9 @@ export class AdvancedSearchService {
 						minimum_should_match: 1,
 					},
 				});
-				osFilter.bool.must_not.push({ term: {searchableBy : 'followersAndReacted' } });
-				osFilter.bool.must_not.push({ term: {searchableBy : 'reactedOnly' } });
-				osFilter.bool.must_not.push({ term: {searchableBy : 'private' } });
+				osFilter.bool.must_not.push({ term: { searchableBy: 'followersAndReacted' } });
+				osFilter.bool.must_not.push({ term: { searchableBy: 'reactedOnly' } });
+				osFilter.bool.must_not.push({ term: { searchableBy: 'private' } });
 			}
 
 			const Result = await this.search(Option, pagination.untilId ? 1 : 0, opts.followingFilter ?? 'combined', me ? me.id : undefined);

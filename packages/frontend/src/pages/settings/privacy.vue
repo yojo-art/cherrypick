@@ -133,8 +133,8 @@ const followersVisibility = ref($i.followersVisibility);
 const searchableBy = ref($i.searchableBy);
 
 const defaultNoteVisibility = computed(defaultStore.makeGetterSetter('defaultNoteVisibility'));
-const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchbility'));
-const remenberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchbility'));
+const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchableBy'));
+const remenberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchableBy'));
 const defaultNoteLocalOnly = computed(defaultStore.makeGetterSetter('defaultNoteLocalOnly'));
 const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
