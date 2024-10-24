@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkModal ref="modal" v-slot="{ type }" :zPriority="'high'" :src="src" @click="modal?.close()" @closed="emit('closed')" @esc="modal?.close()">
 	<div :class="{ [$style.root]: true, [$style.asDrawer]: type === 'drawer', _popup: !defaultStore.state.useBlurEffect || !defaultStore.state.useBlurEffectForModal || !defaultStore.state.removeModalBgColorForBlur, _popupAcrylic: defaultStore.state.useBlurEffect && defaultStore.state.useBlurEffectForModal && defaultStore.state.removeModalBgColorForBlur }">
 		<div :class="[$style.label, $style.item]">
-			{{ i18n.ts.visibility }}
+			{{ i18n.ts._searchbility.tooltip }}
 		</div>
 		<button key="public" class="_button" :class="[$style.item, { [$style.active]: v === 'public' }]" data-index="1" @click="choose('public')">
 			<div :class="$style.icon"><i class="ti ti-world-search"></i></div>
@@ -37,7 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkDivider style="margin: 5px 0;"/>
 
 		<div :class="$style.item">
-			<MkSwitch v-model="rememberNoteSearchbility">{{ i18n.ts.rememberNoteVisibility }}</MkSwitch>
+			<MkSwitch v-model="rememberNoteSearchbility">{{ i18n.ts.rememberNoteSearchbility }}</MkSwitch>
 		</div>
 	</div>
 </MkModal>
@@ -70,8 +70,8 @@ const rememberNoteSearchbility = computed(defaultStore.makeGetterSetter('remembe
 const v = ref(props.currentSearchbility);
 
 function choose(searchbility: typeof Misskey.noteSearchbility[number]): void {
-	v.value = searchbility;
-	emit('changeSearchbility', searchbility);
+	v.value =searchableBy ;
+	emit('changeSearchbility',searchableBy );
 	nextTick(() => {
 		if (modal.value) modal.value.close();
 	});

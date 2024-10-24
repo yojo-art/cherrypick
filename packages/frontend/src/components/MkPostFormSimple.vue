@@ -201,7 +201,7 @@ const textareaEl = shallowRef<HTMLTextAreaElement | null>(null);
 const cwInputEl = shallowRef<HTMLInputElement | null>(null);
 const hashtagsInputEl = shallowRef<HTMLInputElement | null>(null);
 const visibilityButton = shallowRef<HTMLElement | null>(null);
-const searchbilityButton = shallowRef<HTMLElement | null>();
+constsearchableBy Button = shallowRef<HTMLElement | null>();
 
 const showForm = ref(false);
 
@@ -225,7 +225,7 @@ const showAddMfmFunction = ref(defaultStore.state.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => defaultStore.set('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
 const visibility = ref(props.initialVisibility ?? (defaultStore.state.rememberNoteVisibility ? defaultStore.state.visibility : defaultStore.state.defaultNoteVisibility) as typeof Misskey.noteVisibilities[number]);
-const searchbility = ref(defaultStore.state.rememberNoteSearchbility ? defaultStore.state.searchbility : defaultStore.state.defaultNoteSearchbility);
+constsearchableBy  = ref(defaultStore.state.rememberNoteSearchbility ? defaultStore.state.searchbility : defaultStore.state.defaultNoteSearchbility);
 const visibleUsers = ref<Misskey.entities.UserDetailed[]>([]);
 if (props.initialVisibleUsers) {
 	props.initialVisibleUsers.forEach(u => pushVisibleUser(u));
@@ -507,13 +507,13 @@ function setVisibility() {
 
 function setSearchbility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/CPSearchbilityPicker.vue')), {
-		currentSearchbility: searchbility.value,
-		src: searchbilityButton.value,
+		currentSearchbility:searchableBy .value,
+		src:searchableBy Button.value,
 	}, {
 		changeSearchbility: v => {
 			searchbility.value = v;
 			if (defaultStore.state.rememberNoteSearchbility) {
-				defaultStore.set('searchbility', searchbility.value);
+				defaultStore.set('searchbility',searchableBy .value);
 			}
 		},
 		closed: () => dispose(),
