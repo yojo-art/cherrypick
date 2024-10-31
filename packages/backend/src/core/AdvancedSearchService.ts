@@ -440,7 +440,7 @@ export class AdvancedSearchService {
 			});
 		}
 		if (opts.reactionIncrement === false) return;
-		if (opts.remote && opts.searchableBy === 'private') return;
+		if (opts.remote && opts.searchableBy && opts.searchableBy === 'private') return;
 		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && opts.remote && opts.reaction.includes('@')) return;
 
 		await this.opensearch?.update({
