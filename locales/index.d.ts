@@ -10691,6 +10691,12 @@ export interface Locale extends ILocale {
          * 通知の履歴をリセットする
          */
         "flushNotification": string;
+        "_scheduleNote": {
+            /**
+             * 添付ファイルが不足しました
+             */
+            "invalidFilesCount": string;
+        };
         "_types": {
             /**
              * すべて

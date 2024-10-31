@@ -59,6 +59,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<span v-else-if="notification.type === 'note'">{{ i18n.ts._notification.newNote }}: <MkUserName :user="notification.note.user"/></span>
 			<span v-else-if="notification.type === 'roleAssigned'">{{ i18n.ts._notification.roleAssigned }}</span>
 			<span v-else-if="notification.type === 'achievementEarned'">{{ i18n.ts._notification.achievementEarned }}</span>
+			<span v-else-if="notification.type === 'scheduleNote'">{{ i18n.ts.schedulePost }}</span>
 			<span v-else-if="notification.type === 'test'">{{ i18n.ts._notification.testNotification }}</span>
 			<MkA v-else-if="notification.type === 'follow' || notification.type === 'mention' || notification.type === 'reply' || notification.type === 'renote' || notification.type === 'quote' || notification.type === 'reaction' || notification.type === 'receiveFollowRequest' || notification.type === 'followRequestAccepted'" v-user-preview="notification.user.id" :class="$style.headerName" :to="userPage(notification.user)"><MkUserName :user="notification.user"/></MkA>
 			<span v-else-if="notification.type === 'reaction:grouped' && notification.note.reactionAcceptance === 'likeOnly'">{{ i18n.tsx._notification.likedBySomeUsers({ n: getActualReactedUsersCount(notification) }) }}</span>
@@ -107,6 +108,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkA v-else-if="notification.type === 'achievementEarned'" :class="$style.text" to="/my/achievements">
 				{{ i18n.ts._achievements._types['_' + notification.achievement].title }}
 			</MkA>
+			<span v-else-if="notification.type === 'scheduleNote'" :class="$style.text">{{ i18n.ts._notification._scheduleNote[notification.errorType] }}</span>
 			<template v-else-if="notification.type === 'follow'">
 				<span :class="$style.text" style="opacity: 0.6;">{{ i18n.ts.youGotNewFollower }}</span>
 				<div v-if="full"><MkFollowButton :user="notification.user" :full="true" :disableIfFollowing="defaultStore.reactiveState.showFollowingMessageInsteadOfButtonEnabled.value"/></div>

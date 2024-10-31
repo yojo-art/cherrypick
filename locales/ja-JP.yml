@@ -2823,6 +2823,8 @@ _notification:
   notedBySomeUsers: "{n}件の新しい投稿"
   followedBySomeUsers: "{n}人にフォローされました"
   flushNotification: "通知の履歴をリセットする"
+  _scheduleNote:
+    invalidFilesCount: "添付ファイルが不足しました"
 
   _types:
     all: "すべて"
