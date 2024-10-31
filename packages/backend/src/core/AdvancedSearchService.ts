@@ -568,10 +568,13 @@ export class AdvancedSearchService {
 				.where('reac.id > :latestid', { latestid })
 				.innerJoin('reac.user', 'user')
 				.select(['reac', 'user.host'])
+				.leftJoin('reac.note', 'note')
+				.select(['reac', 'note.searchableBy'])
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
 			reactions.forEach(reac => {
+				const s = reac.note?.searchableBy === undefined ? null : (reac.note.searchableBy as ( string | null));
 				this.indexReaction({
 					id: reac.id,
 					noteId: reac.noteId,
@@ -579,6 +582,7 @@ export class AdvancedSearchService {
 					reaction: reac.reaction,
 					remote: reac.user === null ? false : true, //user.host===nullなら userがnullになる
 					reactionIncrement: false,
+					searchableBy: reac.note?.searchableBy === null ? undefined : reac.note?.searchableBy,
 				});
 				latestid = reac.id;
 			});
