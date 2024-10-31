@@ -2824,6 +2824,10 @@ _notification:
   followedBySomeUsers: "{n}人にフォローされました"
   flushNotification: "通知の履歴をリセットする"
   _scheduleNote:
+    unknown: "原因は不明です"
+    renoteTargetNotFound: "引用元が消滅しました"
+    channelTargetNotFound: "対象のチャンネルが消滅しました"
+    replyTargetNotFound: "返信先が消滅しました"
     invalidFilesCount: "添付ファイルが不足しました"
 
   _types:
@@ -2841,6 +2845,7 @@ _notification:
     groupInvited: "グループに招待された"
     roleAssigned: "ロールが付与された"
     achievementEarned: "実績の獲得"
+    scheduleNote: "予約投稿に失敗"
     app: "連携アプリからの通知"
 
   _actions:
