@@ -322,7 +322,7 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
-		if (note.searchableBy === 'private' && note.userHost !== null ) return;
+		if (note.searchableBy && note.searchableBy === 'private' && note.userHost !== null ) return;
 		if (note.text == null && note.cw == null) {
 			if (note.userHost !== null) return;
 			//リノートであり、ローカルユーザー
