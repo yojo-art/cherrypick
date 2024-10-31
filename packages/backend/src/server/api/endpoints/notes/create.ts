@@ -133,6 +133,7 @@ export const meta = {
 		},
 	},
 } as const;
+const searchableTypesForTest = ['public', 'followersAndReacted', 'reactedOnly', 'private', null] as const;
 export const paramDef = {
 	type: 'object',
 	properties: {
@@ -144,7 +145,7 @@ export const paramDef = {
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
 		searchableBy: {
 			type: 'string', nullable: true,
-			enum: process.env.NODE_ENV === 'test' ? [searchableTypes, null] : searchableTypes,
+			enum: process.env.NODE_ENV === 'test' ? searchableTypesForTest : searchableTypes,
 			default: process.env.NODE_ENV === 'test' ? null : 'public' },
 		disableRightClick: { type: 'boolean', default: false },
 		noExtractMentions: { type: 'boolean', default: false },
