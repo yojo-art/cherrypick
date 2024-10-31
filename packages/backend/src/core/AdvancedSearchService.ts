@@ -415,6 +415,7 @@ export class AdvancedSearchService {
 			id: id,
 			body: body,
 		}).catch((error) => {
+			if (error.type === 'version_conflict_engine_exception') this.index(index, id, body);
 			this.logger.error(error);
 		});
 	}
