@@ -10693,6 +10693,22 @@ export interface Locale extends ILocale {
         "flushNotification": string;
         "_scheduleNote": {
             /**
+             * 原因は不明です
+             */
+            "unknown": string;
+            /**
+             * 引用元が消滅しました
+             */
+            "renoteTargetNotFound": string;
+            /**
+             * 対象のチャンネルが消滅しました
+             */
+            "channelTargetNotFound": string;
+            /**
+             * 返信先が消滅しました
+             */
+            "replyTargetNotFound": string;
+            /**
              * 添付ファイルが不足しました
              */
             "invalidFilesCount": string;
@@ -10754,6 +10770,10 @@ export interface Locale extends ILocale {
              * 実績の獲得
              */
             "achievementEarned": string;
+            /**
+             * 予約投稿に失敗
+             */
+            "scheduleNote": string;
             /**
              * 連携アプリからの通知
              */
