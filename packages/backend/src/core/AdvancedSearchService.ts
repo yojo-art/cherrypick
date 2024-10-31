@@ -1051,7 +1051,6 @@ export class AdvancedSearchService {
 			} else {
 				this.queryService.generateVisibilityQuery(query, me, true);
 			}
-			this.logger.info(query.getQuery());
 			return await query.limit(pagination.limit).getMany();
 		}
 	}
