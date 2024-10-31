@@ -68,6 +68,7 @@ export const notificationTypes = [
 	'groupInvited',
 	'roleAssigned',
 	'achievementEarned',
+	'scheduleNote',
 	'app',
 	'test',
 	'pollVote',

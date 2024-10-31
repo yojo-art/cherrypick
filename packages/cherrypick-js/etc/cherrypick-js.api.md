@@ -2838,7 +2838,7 @@ type NotificationsCreateRequest = operations['notifications___create']['requestB
 type NotificationsDeleteRequest = operations['notifications___delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollVote", "pollEnded", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "achievementEarned"];
+export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollVote", "pollEnded", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "achievementEarned", "scheduleNote"];
 
 // @public (undocumented)
 type OfficialTagsShowResponse = operations['official-tags___show']['responses']['200']['content']['application/json'];
