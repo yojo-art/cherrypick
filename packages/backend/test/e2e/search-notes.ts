@@ -73,6 +73,19 @@ describe('検索', () => {
 			text: 'filetest',
 		});
 
+		//ファイルへセンシティブフラグの付与
+		const res1 = await	api('drive/files/update', {
+			fileId: sensitive1Id,
+			isSensitive: true,
+		}, bob);
+		assert.strictEqual(res1.status, 200);
+
+		const res2 = await api('drive/files/update', {
+			fileId: sensitive2Id,
+			isSensitive: true,
+		}, bob);
+		assert.strictEqual(res2.status, 200);
+
 		sensitiveFile0_1Note = await post(bob, {
 			text: 'test_sensitive',
 			fileIds: [notSensitive.id],
@@ -207,21 +220,6 @@ describe('検索', () => {
 
 		assert.strictEqual(noteIds.includes(nofile_Attached.id), true);//添付なしがある
 		assert.strictEqual(noteIds.includes(file_Attached.id), false);//添付ありがない
-	});
-	test('センシティブオプション:フラグ付与', async() => {
-		//ファイルへセンシティブフラグの付与
-		const res1 = await	api('drive/files/update', {
-			fileId: sensitive1Id,
-			isSensitive: true,
-		}, bob);
-		assert.strictEqual(res1.status, 200);
-
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const res2 = await api('drive/files/update', {
-			fileId: sensitive2Id,
-			isSensitive: true,
-		}, bob);
-		assert.strictEqual(res2.status, 200);
 	});
 	test('センシティブオプション:フィルタなし', async() => {
 		const res = await api('notes/advanced-search', {
