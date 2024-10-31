@@ -39,6 +39,11 @@ describe('検索', () => {
 	let replyedNote: misskey.entities.Note;
 	let mutingNote: misskey.entities.Note;
 	let blockingNote: misskey.entities.Note;
+	let noteSearchableByNull: misskey.entities.Note;
+	let noteSearchableByPublic: misskey.entities.Note;
+	let noteSearchableByFollowersAndReacted: misskey.entities.Note;
+	let noteSearchableByReacted: misskey.entities.Note;
+	let noteSearchableByPrivate: misskey.entities.Note;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
@@ -100,7 +105,14 @@ describe('検索', () => {
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
-		 console.log(JSON.stringify(reactedNote));
+
+		console.log(JSON.stringify(reactedNote));
+
+		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: null });
+		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });
+		noteSearchableByFollowersAndReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'followersAndReacted' });
+		noteSearchableByReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'reactedOnly' });
+		noteSearchableByPrivate = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'private' });
 		await new Promise(resolve => setTimeout(resolve, 5000));
 	}, 1000 * 60 * 2);
 
@@ -714,4 +726,58 @@ describe('検索', () => {
 		assert.strictEqual(asnids4.includes(favoritedNote.id), false);
 	});
 	//投票は消せないので対象外
+
+	//nullとpublicだけ出てくるはず
+	test('searchableBy(note null,user: null, indexable true)', async () =>	{
+		const ires = await api('i/update', {
+			isIndexable: true,
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.length, 2);
+	});
+
+	//publicだけ出てくる
+	test('searchableBy(note null,user: null, indexable false)', async () =>	{
+		const ires = await api('i/update', {
+			isIndexable: false,
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.length, 1);
+	});
+
+	//nullとpublicだけ出てくる
+	test('searchableBy(note null,user: public, indexable false)', async () =>	{
+		const ires = await api('i/update', {
+			searchableBy: 'public',
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.length, 2);
+	});
 });
