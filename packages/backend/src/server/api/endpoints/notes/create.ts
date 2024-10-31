@@ -133,7 +133,6 @@ export const meta = {
 		},
 	},
 } as const;
-const searchableByDefaultValue = process.env.NODE_ENV === 'test' ? null : 'public';
 export const paramDef = {
 	type: 'object',
 	properties: {
@@ -143,7 +142,10 @@ export const paramDef = {
 		} },
 		cw: { type: 'string', nullable: true, minLength: 1, maxLength: 100 },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
-		searchableBy: { type: 'string', nullable: true, enum: searchableTypes, default: searchableByDefaultValue },
+		searchableBy: {
+			type: 'string', nullable: true,
+			enum: process.env.NODE_ENV === 'test' ? [searchableTypes, null] : searchableTypes,
+			default: process.env.NODE_ENV === 'test' ? null : 'public' },
 		disableRightClick: { type: 'boolean', default: false },
 		noExtractMentions: { type: 'boolean', default: false },
 		noExtractHashtags: { type: 'boolean', default: false },
