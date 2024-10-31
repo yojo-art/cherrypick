@@ -415,8 +415,11 @@ export class AdvancedSearchService {
 			id: id,
 			body: body,
 		}).catch((error) => {
-			if (error.type === 'version_conflict_engine_exception') this.index(index, id, body);
-			this.logger.error(error);
+			if (error.type === 'version_conflict_engine_exception') {
+				this.index(index, id, body);
+			} else {
+				this.logger.error(error);
+			}
 		});
 	}
 	/**
@@ -665,7 +668,13 @@ export class AdvancedSearchService {
 		this.opensearch.delete({
 			index: index,
 			id: id,
-		}).catch((error) => {	this.logger.error(error);});
+		}).catch((error) => {
+			if (error.type === 'version_conflict_engine_exception') {
+				this.unindexById(index, id);
+			} else {
+				this.logger.error(error);
+			}
+		});
 	}
 
 	@bindThis
@@ -676,7 +685,13 @@ export class AdvancedSearchService {
 			body: {
 				query: query,
 			},
-		}).catch((error) => {	this.logger.error(error);});
+		}).catch((error) => {
+			if (error.type === 'version_conflict_engine_exception') {
+				this.unindexByQuery(index, query);
+			} else {
+				this.logger.error(error);
+			}
+		});
 	}
 
 	@bindThis
