@@ -100,7 +100,7 @@ describe('検索', () => {
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
-
+		 console.log(JSON.stringify(reactedNote));
 		await new Promise(resolve => setTimeout(resolve, 5000));
 	}, 1000 * 60 * 2);
 
