@@ -431,7 +431,7 @@ export class AdvancedSearchService {
 		reactionIncrement?: boolean,
 		searchableBy?: string,
 	}) {
-		if (!opts.remote) {
+		if (!opts.remote && opts.searchableBy === 'private') {
 			await this.index(this.reactionIndex, opts.id, {
 				noteId: opts.noteId,
 				userId: opts.userId,
