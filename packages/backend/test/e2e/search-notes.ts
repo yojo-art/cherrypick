@@ -216,6 +216,7 @@ describe('検索', () => {
 		}, bob);
 		assert.strictEqual(res1.status, 200);
 
+		await new Promise(resolve => setTimeout(resolve, 5000));
 		const res2 = await api('drive/files/update', {
 			fileId: sensitive2Id,
 			isSensitive: true,
