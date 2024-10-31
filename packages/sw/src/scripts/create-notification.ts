@@ -231,7 +231,7 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 					}];
 				case 'scheduleNote':
 					return [t('_notification.scheduleNote'), {
-						body: data.body.errorType ?? '',
+						body: data.body.errorType,
 						data,
 					}];
 
