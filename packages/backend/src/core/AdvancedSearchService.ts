@@ -642,8 +642,6 @@ export class AdvancedSearchService {
 				.innerJoin('clipnote.clip', 'clip')
 				.select(['clipnote', 'clip.userId'])
 				.where('clipnote.id > :latestid', { latestid })
-				.leftJoin('clipnote.note', 'note')
-				.andWhere('note.searchableBy != \'private\'')
 				.orderBy('clipnote.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -669,7 +667,6 @@ export class AdvancedSearchService {
 				.orderBy('fv.id', 'ASC')
 				.where('fv.id > :latestid', { latestid })
 				.innerJoin('reac.note', 'note')
-				.andWhere('note.searchableBy != \'private\'')
 				.limit(limit)
 				.getMany();
 			favorites.forEach(favorite => {
