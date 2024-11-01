@@ -30,7 +30,7 @@ import type { ApResolverService, Resolver } from '../ApResolverService.js';
 import type { ApLoggerService } from '../ApLoggerService.js';
 
 const pagelimit = 1;
-
+const createLimit = 20;
 @Injectable()
 export class ApOutboxFetchService implements OnModuleInit {
 	private utilityService: UtilityService;
@@ -46,13 +46,14 @@ export class ApOutboxFetchService implements OnModuleInit {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
-		private apDbResolverService: ApDbResolverService,
-		private noteEntityService: NoteEntityService,
-		private noteCreateService: NoteCreateService,
-		private appLockService: AppLockService,
-		private apAudienceService: ApAudienceService,
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
+
+		private apAudienceService: ApAudienceService,
+		private apDbResolverService: ApDbResolverService,
+		private appLockService: AppLockService,
+		private noteCreateService: NoteCreateService,
+		private noteEntityService: NoteEntityService,
 	) {
 	}
 
@@ -90,13 +91,13 @@ export class ApOutboxFetchService implements OnModuleInit {
 
 		let nextUrl = cache ? (outbox as IOrderedCollectionPage).next : outbox.first;
 		let page = 0;
-
+		const created = 0;
 		if (typeof(nextUrl) !== 'string') {
 			const first = (nextUrl as any);
 			if (first.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
 
 			const activityes = first.orderedItems ?? first.items;
-			await this.fetchObjects(user, activityes, includeAnnounce);
+			await this.fetchObjects(user, activityes, includeAnnounce, created);
 
 			page = 1;
 			if (!first.next) return;
@@ -107,12 +108,12 @@ export class ApOutboxFetchService implements OnModuleInit {
 			const collectionPage = (typeof(nextUrl) === 'string' ? await Resolver.resolveOrderedCollectionPage(nextUrl) : nextUrl) as IOrderedCollectionPage;
 			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'Object is not collectionPage');
 			if (collectionPage.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
-			nextUrl = collectionPage.next;
 
 			const activityes = (collectionPage.orderedItems ?? collectionPage.items);
+			nextUrl = collectionPage.next;
 			if (!activityes) continue;
-			await this.fetchObjects(user, activityes, includeAnnounce);
-
+			const limit = await this.fetchObjects(user, activityes, includeAnnounce, created);
+			if (limit) break;
 			if (!nextUrl) {
 				break;
 			}
@@ -123,8 +124,9 @@ export class ApOutboxFetchService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean) {
+	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<boolean> {
 		for (const activity of activityes) {
+			if (created < createLimit) return true;
 			try {
 				if (includeAnnounce && activity.type === 'Announce') {
 					const object = await	this.apDbResolverService.getNoteFromApId(activity.id);
@@ -197,6 +199,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 					throw err;
 				}
 			}
+			created ++;
 		}
+		return false;
 	}
 }
