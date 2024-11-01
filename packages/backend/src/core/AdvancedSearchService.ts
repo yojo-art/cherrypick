@@ -536,6 +536,7 @@ export class AdvancedSearchService {
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
 				.where('note.id > :latestid', { latestid })
+				.andWhere('note.searchableBy != private')
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -570,11 +571,11 @@ export class AdvancedSearchService {
 				.select(['reac', 'user.host'])
 				.leftJoin('reac.note', 'note')
 				.select(['reac', 'note.searchableBy'])
+				.andWhere('note.searchableBy != private')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
 			reactions.forEach(reac => {
-				const s = reac.note?.searchableBy === undefined ? null : (reac.note.searchableBy as ( string | null));
 				this.indexReaction({
 					id: reac.id,
 					noteId: reac.noteId,
@@ -631,6 +632,9 @@ export class AdvancedSearchService {
 				.innerJoin('clipnote.clip', 'clip')
 				.select(['clipnote', 'clip.userId'])
 				.where('clipnote.id > :latestid', { latestid })
+				.leftJoin('reac.note', 'note')
+				.select(['reac', 'note.searchableBy'])
+				.andWhere('note.searchableBy != private')
 				.orderBy('clipnote.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -655,6 +659,9 @@ export class AdvancedSearchService {
 				.createQueryBuilder('fv')
 				.orderBy('fv.id', 'ASC')
 				.where('fv.id > :latestid', { latestid })
+				.innerJoin('reac.note', 'note')
+				.select(['reac', 'note.searchableBy'])
+				.andWhere('note.searchableBy != private')
 				.limit(limit)
 				.getMany();
 			favorites.forEach(favorite => {

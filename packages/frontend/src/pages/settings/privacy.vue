@@ -49,16 +49,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</MkSwitch>
 	<MkInfo>{{ i18n.ts.makeIndexableDescription }}</MkInfo>
 
-	<span class="_beta">yojo-art</span>
-	<MkSelect v-model="searchableBy">
-		<!--
-						<option value="null">{{ i18n.ts.notSet }}</option>
-						-->
-		<option value="public">{{ i18n.ts._searchbility.public }}</option>
-		<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
-		<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
-		<option value="private">{{ i18n.ts._searchbility.private }}</option>
-	</MkSelect>
+	<div class="_gaps_m">
+		<MkSelect v-model="searchableBy" @update:modelValue="save()">
+			<option value="public">{{ i18n.ts._searchbility.public }}</option>
+			<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
+			<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
+			<option value="private">{{ i18n.ts._searchbility.private }}</option>
+		</MkSelect>
+		<span class="_beta">yojo-art</span>
+	</div>
 	<MkInfo>{{ i18n.ts.makeSearchableByDescription }}</MkInfo>
 
 	<FormSection>
@@ -140,6 +139,9 @@ const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberN
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
 
 function save() {
+	console.log(typeof(searchableBy.value));
+	console.log(searchableBy.value);
+
 	misskeyApi('i/update', {
 		isLocked: !!isLocked.value,
 		autoAcceptFollowed: !!autoAcceptFollowed.value,
@@ -147,7 +149,7 @@ function save() {
 		preventAiLearning: !!preventAiLearning.value,
 		isExplorable: !!isExplorable.value,
 		isIndexable: !!isIndexable.value,
-		searchableBy: !!searchableBy.value,
+		searchableBy: searchableBy.value,
 		hideOnlineStatus: !!hideOnlineStatus.value,
 		publicReactions: !!publicReactions.value,
 		followingVisibility: followingVisibility.value,

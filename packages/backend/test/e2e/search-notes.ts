@@ -849,8 +849,9 @@ describe('検索', () => {
 
 		const noteIds = res.body.map( x => x.id);
 		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
-		assert.strictEqual(noteIds.length, 2);
+		assert.strictEqual(noteIds.length, 3);
 		assert.strictEqual(fres.status, 200);
 
 		const fdres = await api('following/delete', {
@@ -884,9 +885,10 @@ describe('検索', () => {
 
 		const noteIds = res.body.map( x => x.id);
 		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
-		assert.strictEqual(noteIds.length, 3);
+		assert.strictEqual(noteIds.length, 4);
 
 		const rdres1 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByFollowersAndReacted.id,
@@ -903,9 +905,9 @@ describe('検索', () => {
 		assert.strictEqual(rdres3.status, 204);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 	});
-	test('searchableBy(user: reacted, indexable false)', async () =>	{
+	test('searchableBy(user: reactedOnly, indexable false)', async () =>	{
 		const ires = await api('i/update', {
-			searchableBy: 'reacted',
+			searchableBy: 'reactedOnly',
 		}, carol);
 		assert.strictEqual(ires.status, 200);
 		const rres1 = await api('notes/reactions/create', {
@@ -927,8 +929,9 @@ describe('検索', () => {
 
 		const noteIds = res.body.map( x => x.id);
 		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
-		assert.strictEqual(noteIds.length, 2);
+		assert.strictEqual(noteIds.length, 3);
 
 		const rdres1 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByReacted.id,
@@ -941,7 +944,7 @@ describe('検索', () => {
 		await new Promise(resolve => setTimeout(resolve, 5000));
 	});
 
-	test('searchableBy(user: reacted, indexable false)', async () =>	{
+	test('searchableBy(user: private, indexable false)', async () =>	{
 		const ires = await api('i/update', {
 			searchableBy: 'private',
 		}, carol);
@@ -954,7 +957,8 @@ describe('検索', () => {
 
 		const noteIds = res.body.map( x => x.id);
 		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
-		assert.strictEqual(noteIds.length, 2);
+		assert.strictEqual(noteIds.length, 3);
 	});
 });
