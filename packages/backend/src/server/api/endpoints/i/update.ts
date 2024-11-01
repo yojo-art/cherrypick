@@ -574,7 +574,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			});
 
 			const updatedProfile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
-
+			const updatedUser = await this.usersRepository.findOneByOrFail({ id: user.id });
+			this.cacheService.userByIdCache.set(user.id, updatedUser);
 			this.cacheService.userProfileCache.set(user.id, updatedProfile);
 
 			// Publish meUpdated event
