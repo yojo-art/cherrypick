@@ -126,7 +126,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 	@bindThis
 	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<boolean> {
 		for (const activity of activityes) {
-			if (created < createLimit) return true;
+			if (createLimit < created) return true;
 			try {
 				if (includeAnnounce && activity.type === 'Announce') {
 					const object = await	this.apDbResolverService.getNoteFromApId(activity.id);
