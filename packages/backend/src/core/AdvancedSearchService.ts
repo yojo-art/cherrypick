@@ -5,7 +5,7 @@
 
 import * as Redis from 'ioredis';
 import { Inject, Injectable } from '@nestjs/common';
-import { In } from 'typeorm';
+import { Brackets, In } from 'typeorm';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
@@ -322,9 +322,9 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
-		if (note.searchableBy && note.searchableBy === 'private' && note.userHost !== null ) return;
-		if (note.text == null && note.cw == null) {
-			if (note.userHost !== null) return;
+		if (note.searchableBy === 'private' && note.userHost !== null) return;
+		if (note.renote?.searchableBy === 'private' && note.renote.userHost !== null) return;
+		if (note.text === null && note.cw === null && note.searchableBy !== 'private') {
 			//リノートであり、ローカルユーザー
 			await this.index(this.renoteIndex, note.id, {
 				renoteId: note.renoteId,
@@ -435,7 +435,7 @@ export class AdvancedSearchService {
 		reactionIncrement?: boolean,
 		searchableBy?: string,
 	}) {
-		if (!opts.remote && opts.searchableBy !== 'private') {
+		if (!(opts.remote && opts.searchableBy === 'private')) {
 			await this.index(this.reactionIndex, opts.id, {
 				noteId: opts.noteId,
 				userId: opts.userId,
@@ -532,11 +532,20 @@ export class AdvancedSearchService {
 		let latestid = '';
 		for (let index = 0; index < notesCount; index += limit) {
 			this.logger.info('indexing' + index + '/' + notesCount);
-
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
+				.leftJoin('note.renote', 'renote')
+				.select(['note'])
 				.where('note.id > :latestid', { latestid })
-				.andWhere('note.searchableBy != private')
+				.andWhere(new Brackets( qb => {
+					qb.where('note."userHost" IS NULL')
+						.orWhere(new Brackets(qb2 => {
+							qb2
+								.where('note."userHost" IS NOT NULL')
+								.andWhere('note.searchableBy != \'private\' OR NULL');
+						}));
+				}))
+				.andWhere('renote.searchableBy != \'private\' OR NULL')
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -568,10 +577,9 @@ export class AdvancedSearchService {
 				.createQueryBuilder('reac')
 				.where('reac.id > :latestid', { latestid })
 				.innerJoin('reac.user', 'user')
-				.select(['reac', 'user.host'])
 				.leftJoin('reac.note', 'note')
-				.select(['reac', 'note.searchableBy'])
-				.andWhere('note.searchableBy != private')
+				.select(['reac', 'user.host', 'note.searchableBy'])
+				.andWhere('note.searchableBy != \'private\' OR NULL')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -604,6 +612,8 @@ export class AdvancedSearchService {
 				.where('pv.id > :latestid', { latestid })
 				.innerJoin('pv.user', 'user')
 				.select(['pv', 'user.host'])
+				.leftJoin('reac.note', 'note')
+				.andWhere('note.searchableBy != \'private\' OR NULL')
 				.andWhere('user.host IS NULL')
 				.orderBy('pv.id', 'ASC')
 				.limit(limit)
@@ -632,9 +642,8 @@ export class AdvancedSearchService {
 				.innerJoin('clipnote.clip', 'clip')
 				.select(['clipnote', 'clip.userId'])
 				.where('clipnote.id > :latestid', { latestid })
-				.leftJoin('reac.note', 'note')
-				.select(['reac', 'note.searchableBy'])
-				.andWhere('note.searchableBy != private')
+				.leftJoin('clipnote.note', 'note')
+				.andWhere('note.searchableBy != \'private\'')
 				.orderBy('clipnote.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -660,8 +669,7 @@ export class AdvancedSearchService {
 				.orderBy('fv.id', 'ASC')
 				.where('fv.id > :latestid', { latestid })
 				.innerJoin('reac.note', 'note')
-				.select(['reac', 'note.searchableBy'])
-				.andWhere('note.searchableBy != private')
+				.andWhere('note.searchableBy != \'private\'')
 				.limit(limit)
 				.getMany();
 			favorites.forEach(favorite => {

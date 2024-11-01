@@ -179,7 +179,7 @@ export class ReactionService {
 		// Create reaction
 		try {
 			await this.noteReactionsRepository.insert(record);
-			if (!(note.searchableBy === 'private' && note.userHost === null)) {
+			if (!(note.searchableBy === 'private' && note.userHost !== null)) {
 				await this.advancedSearchService.indexReaction({
 					id: record.id,
 					noteId: record.noteId,
@@ -311,7 +311,7 @@ export class ReactionService {
 
 		// Delete reaction
 		const result = await this.noteReactionsRepository.delete(exist.id);
-		if (!(note.searchableBy === 'private' && note.userHost === null)) {
+		if (note.searchableBy !== 'private') {
 			await this.advancedSearchService.unindexReaction(exist.id, user.host !== null, note.id, exist.reaction);
 		}
 
