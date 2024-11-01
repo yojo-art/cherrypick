@@ -118,7 +118,8 @@ export interface IOrderedCollectionPage extends IObject {
 	partOf: string;
 	totalItems?: number;
 	first?: IObject | string;
-	orderedItems: ApObject[];
+	orderedItems?: IObject[];
+	items?: IObject[];
 	prev: string;
 	next: string;
 }
