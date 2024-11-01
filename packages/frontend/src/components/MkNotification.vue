@@ -253,7 +253,7 @@ const rejectGroupInvitation = () => {
 	height: 100%;
 }
 
-.scheduleNote,
+.icon_scheduleNote,
 .icon_noteGroup,
 .icon_reactionGroup,
 .icon_reactionGroupHeart,
@@ -282,6 +282,9 @@ const rejectGroupInvitation = () => {
 
 .icon_noteGroup {
 
+	background: var(--eventRenote);
+}
+.icon_scheduleNote {
 	background: var(--eventRenote);
 }
 
