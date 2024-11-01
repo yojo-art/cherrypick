@@ -870,7 +870,7 @@ describe('検索', () => {
 		}, alice);
 		const rres3 = await api('notes/reactions/create', {
 			reaction: '❤',
-			noteId: noteSearchableByReacted.id,
+			noteId: noteSearchableByFollowersAndReacted.id,
 		}, alice);
 
 		assert.strictEqual(rres1.status, 204);
@@ -959,6 +959,6 @@ describe('検索', () => {
 		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
 		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
-		assert.strictEqual(noteIds.length, 3);
+		assert.strictEqual(noteIds.length, 1);
 	});
 });
