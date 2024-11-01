@@ -30,6 +30,7 @@ Cherrypick 4.11.1
 - Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加
 
 ### Client
+- Fix: リモートのカスタム絵文字の場合`情報`がローカルのものになっていたのを修正[#513](https://github.com/yojo-art/cherrypick/pull/513)
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
@@ -57,8 +58,8 @@ Cherrypick 4.11.1
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
-- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Enhance: `api/emoji`で`host`を指定できるように
+- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
 - Fix: 通知APIがページ境界で重複する問題の修正
 - Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように  
