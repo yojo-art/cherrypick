@@ -2825,10 +2825,10 @@ _notification:
   flushNotification: "通知の履歴をリセットする"
   _scheduleNote:
     unknown: "原因は不明です"
-    renoteTargetNotFound: "引用元が消滅しました"
-    channelTargetNotFound: "対象のチャンネルが消滅しました"
-    replyTargetNotFound: "返信先が消滅しました"
-    invalidFilesCount: "添付ファイルが不足しました"
+    renoteTargetNotFound: "引用元がありません"
+    channelTargetNotFound: "対象のチャンネルがありません"
+    replyTargetNotFound: "返信先がありません"
+    invalidFilesCount: "添付ファイルがありません"
 
   _types:
     all: "すべて"

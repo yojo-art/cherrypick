@@ -10697,19 +10697,19 @@ export interface Locale extends ILocale {
              */
             "unknown": string;
             /**
-             * 引用元が消滅しました
+             * 引用元がありません
              */
             "renoteTargetNotFound": string;
             /**
-             * 対象のチャンネルが消滅しました
+             * 対象のチャンネルがありません
              */
             "channelTargetNotFound": string;
             /**
-             * 返信先が消滅しました
+             * 返信先がありません
              */
             "replyTargetNotFound": string;
             /**
-             * 添付ファイルが不足しました
+             * 添付ファイルがありません
              */
             "invalidFilesCount": string;
         };
