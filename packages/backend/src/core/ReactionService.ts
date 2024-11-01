@@ -311,8 +311,8 @@ export class ReactionService {
 
 		// Delete reaction
 		const result = await this.noteReactionsRepository.delete(exist.id);
-		if (note.searchableBy !== 'private' && note.userHost !== null) {
-			await this.advancedSearchService.unindexReaction(exist.id, user.host === null ? false : true, note.id, exist.reaction);
+		if (!(note.searchableBy === 'private' && note.userHost === null)) {
+			await this.advancedSearchService.unindexReaction(exist.id, user.host !== null, note.id, exist.reaction);
 		}
 
 		if (result.affected !== 1) {

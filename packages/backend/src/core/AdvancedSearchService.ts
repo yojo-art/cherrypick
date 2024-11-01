@@ -1163,7 +1163,7 @@ export class AdvancedSearchService {
 					break;
 			}
 
-			if (!requireReaction || !Note._source.searchableBy) {
+			if (!requireReaction) {
 				if (user.searchableBy) {
 					switch (user.searchableBy) {
 						case 'public':
