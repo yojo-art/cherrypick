@@ -435,7 +435,7 @@ export class AdvancedSearchService {
 		reactionIncrement?: boolean,
 		searchableBy?: string,
 	}) {
-		if (!opts.remote && opts.searchableBy === 'private') {
+		if (!opts.remote && opts.searchableBy !== 'private') {
 			await this.index(this.reactionIndex, opts.id, {
 				noteId: opts.noteId,
 				userId: opts.userId,
@@ -444,7 +444,7 @@ export class AdvancedSearchService {
 			});
 		}
 		if (opts.reactionIncrement === false) return;
-		if (opts.remote && opts.searchableBy && opts.searchableBy === 'private') return;
+		if (opts.remote && opts.searchableBy === 'private') return;
 		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && opts.remote && opts.reaction.includes('@')) return;
 
 		await this.opensearch?.update({

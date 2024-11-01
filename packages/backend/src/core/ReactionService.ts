@@ -179,7 +179,7 @@ export class ReactionService {
 		// Create reaction
 		try {
 			await this.noteReactionsRepository.insert(record);
-			if (note.searchableBy && note.searchableBy !== 'private' && note.userHost !== null) {
+			if (!(note.searchableBy === 'private' && note.userHost === null)) {
 				await this.advancedSearchService.indexReaction({
 					id: record.id,
 					noteId: record.noteId,
