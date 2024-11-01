@@ -1163,7 +1163,7 @@ export class AdvancedSearchService {
 					break;
 			}
 
-			if (!requireReaction) {
+			if (!requireReaction || !Note._source.searchableBy) {
 				if (user.searchableBy) {
 					switch (user.searchableBy) {
 						case 'public':
@@ -1184,6 +1184,7 @@ export class AdvancedSearchService {
 				}
 			}
 
+			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (requireReaction) { //検索許可されていないが、
 				if (!this.opensearch) return null;
 
