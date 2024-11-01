@@ -415,11 +415,7 @@ export class AdvancedSearchService {
 			id: id,
 			body: body,
 		}).catch((error) => {
-			if (error.type === 'version_conflict_engine_exception') {
-				this.index(index, id, body);
-			} else {
-				this.logger.error(error);
-			}
+			this.logger.error(error);
 		});
 	}
 	/**
@@ -702,11 +698,7 @@ export class AdvancedSearchService {
 				query: query,
 			},
 		}).catch((error) => {
-			if (error.type === 'version_conflict_engine_exception') {
-				this.unindexByQuery(index, query);
-			} else {
-				this.logger.error(error);
-			}
+			this.logger.error(error);
 		});
 	}
 
@@ -1196,7 +1188,6 @@ export class AdvancedSearchService {
 				}
 			}
 
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			if (requireReaction) { //検索許可されていないが、
 				if (!this.opensearch) return null;
 
