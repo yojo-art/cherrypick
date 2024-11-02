@@ -24,8 +24,10 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const props = withDefaults(defineProps<{
 	showHeader?: boolean;
+	setTitle?: boolean;
 }>(), {
 	showHeader: true,
+	setTitle: true,
 });
 
 const official_tags = ref<Misskey.entities.OfficialTagsShowResponse>([]);
@@ -33,9 +35,11 @@ const official_tags = ref<Misskey.entities.OfficialTagsShowResponse>([]);
 	official_tags.value = await misskeyApi('official-tags/show', {});
 })();
 
-definePageMetadata(() => ({
-	title: i18n.ts._official_tag.title,
-	icon: 'ti ti-bookmarks',
-}));
+if (props.setTitle) {
+	definePageMetadata(() => ({
+		title: i18n.ts._official_tag.title,
+		icon: 'ti ti-bookmarks',
+	}));
+}
 </script>
 
