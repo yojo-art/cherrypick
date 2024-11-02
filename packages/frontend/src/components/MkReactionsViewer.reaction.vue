@@ -81,7 +81,7 @@ function onContextmenu(ev: MouseEvent) {
 		text: i18n.ts.searchThisReaction,
 		icon: 'ti ti-search',
 		action: () => {
-			router.push(`/search?type=anote&reactions=${encodeURIComponent(':' + reactionName.value + '*')}`);
+			router.push(`/search?type=anote&reactions=${encodeURIComponent(props.reaction)}`);
 		},
 	}];
 	os.contextMenu(menu, ev);
