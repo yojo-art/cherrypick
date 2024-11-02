@@ -285,6 +285,8 @@ const rejectGroupInvitation = () => {
 	background: var(--eventRenote);
 }
 .icon_scheduleNote {
+	width: 100%;
+	height: 100%;
 	color: var(--warn);
 	background: var(--eventOther);
 }
