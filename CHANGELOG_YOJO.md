@@ -53,6 +53,7 @@ Cherrypick 4.11.1
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
 - Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正
 - Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように
+- Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
