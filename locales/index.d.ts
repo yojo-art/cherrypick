@@ -583,6 +583,10 @@ export interface Locale extends ILocale {
      */
     "searchThisReaction": string;
     /**
+     * 部分一致
+     */
+    "partialMatch": string;
+    /**
      * 返信
      */
     "reply": string;

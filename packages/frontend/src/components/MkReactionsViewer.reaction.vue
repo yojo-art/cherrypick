@@ -11,7 +11,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 	class="_button"
 	:class="[$style.root, { [$style.reacted]: note.myReaction == reaction, [$style.canToggle]: (canToggle || alternative), [$style.small]: defaultStore.state.reactionsDisplaySize === 'small', [$style.large]: defaultStore.state.reactionsDisplaySize === 'large' }]"
 	@click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"
-	@contextmenu.stop="onContextmenu"
 	@contextmenu.prevent.stop="menu"
 >
 	<MkReactionIcon :class="defaultStore.state.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction" :emojiUrl="note.reactionEmojis[reaction.substring(1, reaction.length - 1)]" @click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"/>
@@ -73,19 +72,6 @@ const reactionName = computed(() => {
 const router = useRouter();
 
 const alternative: ComputedRef<string | null> = computed(() => defaultStore.state.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
-
-function onContextmenu(ev: MouseEvent) {
-	if (!advanccedNotesSearchAvailable) return;
-	let menu: MenuItem[];
-	menu = [{
-		text: i18n.ts.searchThisReaction,
-		icon: 'ti ti-search',
-		action: () => {
-			router.push(`/search?type=anote&reactions=${encodeURIComponent(props.reaction)}`);
-		},
-	}];
-	os.contextMenu(menu, ev);
-}
 
 async function toggleReaction(ev: MouseEvent) {
 	if (!canToggle.value) {
@@ -171,31 +157,48 @@ function stealReaction(ev: MouseEvent) {
 }
 
 async function menu(ev) {
-	if (!canGetInfo.value) return;
-
-	os.popupMenu([{
+	const isCustomEmoji = props.reaction.endsWith(':');
+	let menu = [isCustomEmoji ? {
 		type: 'label',
 		text: `:${reactionName.value}:`,
-	}, {
+	} : undefined, isCustomEmoji ? {
 		text: i18n.ts.info,
 		icon: 'ti ti-info-circle',
 		action: async () => {
 			const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
 				emoji: await misskeyApiGet('emoji', {
-					name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
+					name: props.reaction.replace(/:/g, '').replace(/@.+/, ''),
+					...(!props.reaction.endsWith('@.:') && { host: props.reaction.split('@')[1].replace(':', '') }),
 				}),
 			}, {
 				closed: () => dispose(),
 			});
 		},
-	}, customEmojis.value.find(it => it.name === reactionName.value)?.name ? {
+	} : undefined, customEmojis.value.find(it => it.name === reactionName.value)?.name ? {
 		text: i18n.ts.copy,
 		icon: 'ti ti-copy',
 		action: () => {
 			copyToClipboard(`:${reactionName.value}:`);
 			os.toast(i18n.ts.copied, 'copied');
 		},
-	} : undefined], ev.currentTarget ?? ev.target);
+	} : undefined,
+	];
+	if (advanccedNotesSearchAvailable) {
+		menu.push({
+			text: i18n.ts.searchThisReaction,
+			icon: 'ti ti-search',
+			action: () => {
+				router.push(`/search?type=anote&reactions=${encodeURIComponent(isCustomEmoji ? props.reaction.endsWith('@.:') ? props.reaction.replace('@.', '') : props.reaction : props.reaction)}`);
+			},
+		}, isCustomEmoji ? {
+			text: `${i18n.ts.searchThisReaction}(${i18n.ts.partialMatch})`,
+			icon: 'ti ti-search',
+			action: () => {
+				router.push(`/search?type=anote&reactions=${encodeURIComponent(`${ props.reaction.endsWith('@.:') ? props.reaction.replace('@.:', '') : props.reaction.split('@')[0]}*`)}`);
+			},
+		} : undefined );
+	}
+	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
 function anime() {
