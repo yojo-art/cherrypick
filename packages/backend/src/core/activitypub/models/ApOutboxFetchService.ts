@@ -91,7 +91,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 
 		let nextUrl = cache ? (outbox as IOrderedCollectionPage).next : outbox.first;
 		let page = 0;
-		const created = 0;
+		let created = 0;
 		if (typeof(nextUrl) !== 'string') {
 			const first = (nextUrl as any);
 			if (first.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
@@ -112,11 +112,13 @@ export class ApOutboxFetchService implements OnModuleInit {
 			const activityes = (collectionPage.orderedItems ?? collectionPage.items);
 			nextUrl = collectionPage.next;
 			if (!activityes) continue;
-			const limit = await this.fetchObjects(user, activityes, includeAnnounce, created);
-			if (limit) break;
+
+			created = await this.fetchObjects(user, activityes, includeAnnounce, created);
+			if (createLimit <= created) break;//次ページ見て一件だけしか取れないのは微妙
 			if (!nextUrl) {
 				break;
 			}
+
 			await this.redisClient.set(`${outboxUrl}--next`, `${nextUrl}`, 'EX', 60 * 15);//15min
 		}
 		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
@@ -124,9 +126,9 @@ export class ApOutboxFetchService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<boolean> {
+	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<number> {
 		for (const activity of activityes) {
-			if (createLimit < created) return true;
+			if (createLimit < created) return created;
 			try {
 				if (includeAnnounce && activity.type === 'Announce') {
 					const object = await	this.apDbResolverService.getNoteFromApId(activity.id);
@@ -201,6 +203,6 @@ export class ApOutboxFetchService implements OnModuleInit {
 			}
 			created ++;
 		}
-		return false;
+		return created;
 	}
 }
