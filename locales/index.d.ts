@@ -10695,6 +10695,28 @@ export interface Locale extends ILocale {
          * 通知の履歴をリセットする
          */
         "flushNotification": string;
+        "_scheduleNote": {
+            /**
+             * 原因は不明です
+             */
+            "unknown": string;
+            /**
+             * 引用元がありません
+             */
+            "renoteTargetNotFound": string;
+            /**
+             * 対象のチャンネルがありません
+             */
+            "channelTargetNotFound": string;
+            /**
+             * 返信先がありません
+             */
+            "replyTargetNotFound": string;
+            /**
+             * 添付ファイルがありません
+             */
+            "invalidFilesCount": string;
+        };
         "_types": {
             /**
              * すべて
@@ -10752,6 +10774,10 @@ export interface Locale extends ILocale {
              * 実績の獲得
              */
             "achievementEarned": string;
+            /**
+             * 予約投稿に失敗
+             */
+            "scheduleNote": string;
             /**
              * 連携アプリからの通知
              */
