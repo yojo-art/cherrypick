@@ -766,19 +766,24 @@ describe('検索', () => {
 	test('searchableBy(user: null, indexable false)', async () =>	{
 		const rres = await api('notes/reactions/create', {
 			reaction: '❤',
-			noteId: noteSearchableByFollowersAndReacted.id,
+			noteId: noteSearchableByPublic.id,
 		}, alice);
 		const rres2 = await api('notes/reactions/create', {
-			reaction: '❤',
-			noteId: noteSearchableByFollowersAndReacted.id,
-		}, alice);
-
-		const rres3 = await api('notes/reactions/create', {
 			reaction: '❤',
 			noteId: noteSearchableByReacted.id,
 		}, alice);
 
+		const rres3 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByFollowersAndReacted.id,
+		}, alice);
+
 		const rres4 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByPrivate.id,
+		}, alice);
+
+		const rres5 = await api('notes/reactions/create', {
 			reaction: '❤',
 			noteId: noteSearchableByPrivate.id,
 		}, alice);
@@ -787,6 +792,7 @@ describe('検索', () => {
 		assert.strictEqual(rres2.status, 204);
 		assert.strictEqual(rres3.status, 204);
 		assert.strictEqual(rres4.status, 204);
+		assert.strictEqual(rres5.status, 204);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 
 		const res = await api('notes/advanced-search', {
@@ -803,7 +809,7 @@ describe('検索', () => {
 		assert.strictEqual(noteIds.length, 3);
 
 		const rdres = await api('notes/reactions/delete', {
-			noteId: noteSearchableByFollowersAndReacted.id,
+			noteId: noteSearchableByPublic.id,
 		}, alice);
 		const rdres2 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByFollowersAndReacted.id,
@@ -814,10 +820,15 @@ describe('検索', () => {
 		const rdres4 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByPrivate.id,
 		}, alice);
+		const rdres5 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByNull.id,
+		}, alice);
+
 		assert.strictEqual(rdres.status, 204);
 		assert.strictEqual(rdres2.status, 204);
 		assert.strictEqual(rdres3.status, 204);
 		assert.strictEqual(rdres4.status, 204);
+		assert.strictEqual(rdres5.status, 204);
 		await new Promise(resolve => setTimeout(resolve, 5000));
 	});
 
