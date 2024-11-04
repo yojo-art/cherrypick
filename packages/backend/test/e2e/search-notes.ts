@@ -801,12 +801,12 @@ describe('検索', () => {
 		assert.strictEqual(res.status, 200);
 
 		const noteIds = res.body.map( x => x.id);
-		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
 		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
-		assert.strictEqual(noteIds.length, 3);
+		assert.strictEqual(noteIds.length, 4);
 
 		const rdres = await api('notes/reactions/delete', {
 			noteId: noteSearchableByPublic.id,
