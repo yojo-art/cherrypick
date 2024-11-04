@@ -167,7 +167,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 										createdAt,
 										renote,
 										visibility: activityAudience.visibility,
-										searchableBy: await this.apAudienceService.parseSearchableBy(user, (activity as any).searchableBy),
+										searchableBy: null,
 										visibleUsers: activityAudience.visibleUsers,
 										uri,
 									}, true );

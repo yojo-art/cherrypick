@@ -651,7 +651,6 @@ export class ApPersonService implements OnModuleInit {
 			}
 		}
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
-		this.logger.info(JSON.stringify(tags));
 		const updates = {
 			lastFetchedAt: new Date(),
 			searchableBy: this.getSearchableType(tags),
@@ -1006,10 +1005,10 @@ export class ApPersonService implements OnModuleInit {
 
 	@bindThis
 	private getSearchableType(tags: string[]): 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null {
-		if (tags.includes('searchable_by_all_users')) return searchableTypes[0];
-		if (tags.includes('searchable_by_followers_only')) return searchableTypes[1];
-		if (tags.includes('searchable_by_reacted_users_only')) return searchableTypes[2];
-		if (tags.includes('searchable_by_nobody')) return searchableTypes[3];
+		if (tags.includes('searchable_by_all_users')) return 'public';
+		if (tags.includes('searchable_by_followers_only')) return 'followersAndReacted';
+		if (tags.includes('searchable_by_reacted_users_only')) return 'followersAndReacted';
+		if (tags.includes('searchable_by_nobody')) return 'private';
 		return null;
 	}
 }

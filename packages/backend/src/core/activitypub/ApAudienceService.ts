@@ -73,19 +73,19 @@ export class ApAudienceService {
 			visibleUsers: mentionedUsers,
 		};
 	}
-	public async parseSearchableBy (actor: MiRemoteUser, searchableBy?: string[]): Promise<string | null> {
+	public async parseSearchableBy (actor: MiRemoteUser, searchableBy?: string[]): Promise<'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null> {
 		if (!searchableBy) {
 			return null;
 		}
 		console.log(searchableBy);
 		if (searchableBy.includes('https://www.w3.org/ns/activitystreams#Public')) {
-			return searchableTypes[0];
+			return 'public';
 		} else	if (actor.followersUri && searchableBy.includes(actor.followersUri)) {
-			return searchableTypes[1];
+			return 'followersAndReacted';
 		} else if (searchableBy.includes(actor.uri)) {
-			return searchableTypes[2];
+			return 'reactedOnly';
 		} else if (searchableBy.includes('as:Limited') || searchableBy.includes('kmyblue:Limited')) {
-			return searchableTypes[3];
+			return 'private';
 		}
 		return null;
 	}
