@@ -118,7 +118,8 @@ export interface IOrderedCollectionPage extends IObject {
 	partOf: string;
 	totalItems?: number;
 	first?: IObject | string;
-	orderedItems: ApObject[];
+	orderedItems?: IObject[];
+	items?: IObject[];
 	prev: string;
 	next: string;
 }
@@ -140,6 +141,7 @@ export interface IPost extends IObject {
 	_misskey_content?: string;
 	quoteUrl?: string;
 	_misskey_talk?: boolean;
+	searchableBy?: string[];
 }
 
 export interface IQuestion extends IObject {

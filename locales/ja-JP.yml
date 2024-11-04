@@ -139,6 +139,8 @@ copyFolderId: "フォルダーIDをコピー"
 copyProfileUrl: "プロフィールURLをコピー"
 searchUser: "ユーザーを検索"
 searchThisUsersNotes: "ユーザーのノートを検索"
+searchThisReaction: "このリアクションで検索"
+partialMatch: "部分一致"
 reply: "返信"
 loadMore: "もっと見る"
 showMore: "もっと見る"
@@ -215,6 +217,7 @@ overwriteFromPinnedEmojisForReaction: "リアクション設定から上書き�
 overwriteFromPinnedEmojis: "全般設定から上書きする"
 reactionSettingDescription2: "ドラッグして並び替え、クリックして削除、＋を押して追加します。"
 rememberNoteVisibility: "公開範囲を記憶する"
+rememberNoteSearchbility: "検索可能範囲を記憶する"
 attachCancel: "添付取り消し"
 deleteFile: "ファイルを削除"
 markAsSensitive: "センシティブとして設定"
@@ -879,8 +882,10 @@ thisIsExperimentalFeature: "これは実験的な機能です。仕様が変更�
 developer: "開発者"
 makeExplorable: "アカウントを見つけやすくする"
 makeExplorableDescription: "オフにすると、「みつける」にアカウントが載らなくなります。"
-makeIndexable: "ノート検索の許可"
+makeIndexable: "ノートを見つけやすくする"
 makeIndexableDescription: "オフにすると、あなたのノートが検索で表示されにくくなります。\nリノートやリアクションされているノートは表示されます。\nリモートのサーバーが対応していない場合設定は無視されます。"
+makeSearchableBy: "ノート検索の許可"
+makeSearchableByDescription: "ノートを検索できる人を制限できます。\nノートにも設定した場合ノートの設定が優先されます。\nリモートのサーバーが対応していない場合設定が無視されるか、\nノートを見つけやすくする値が使われます。"
 showGapBetweenNotesInTimeline: "タイムラインのノートを離して表示"
 duplicate: "複製"
 left: "左"
@@ -2823,6 +2828,12 @@ _notification:
   notedBySomeUsers: "{n}件の新しい投稿"
   followedBySomeUsers: "{n}人にフォローされました"
   flushNotification: "通知の履歴をリセットする"
+  _scheduleNote:
+    unknown: "原因は不明です"
+    renoteTargetNotFound: "引用元がありません"
+    channelTargetNotFound: "対象のチャンネルがありません"
+    replyTargetNotFound: "返信先がありません"
+    invalidFilesCount: "添付ファイルがありません"
 
   _types:
     all: "すべて"
@@ -2839,6 +2850,7 @@ _notification:
     groupInvited: "グループに招待された"
     roleAssigned: "ロールが付与された"
     achievementEarned: "実績の獲得"
+    scheduleNote: "予約投稿に失敗"
     app: "連携アプリからの通知"
 
   _actions:
@@ -3214,3 +3226,10 @@ _renoteConfirm:
   title: "このノートはリノートしたばかりです"
   caption: "リノートしますか？"
   confirm: 'リノートする'
+_searchbility:
+    tooltip: "検索可能範囲"
+    canSearch: "が検索できます"
+    public: "すべてのユーザー"
+    followersAndReacted: "フォロワーと反応した人"
+    reactedOnly: "反応した人"
+    private: "自分だけ"

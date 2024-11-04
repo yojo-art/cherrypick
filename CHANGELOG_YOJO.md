@@ -55,6 +55,11 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 - Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
 - Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正 [#497](https://github.com/yojo-art/cherrypick/pull/497)
+- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
+- Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
+- Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正 [#497](https://github.com/yojo-art/cherrypick/pull/497)
+- Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
 - Enhance: チャートの連合グラフで割合を表示 [#437](https://github.com/yojo-art/cherrypick/pull/437)
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように [#448](https://github.com/yojo-art/cherrypick/pull/448)
 - Enhance: 高度な検索でもクエリ文字列を使えるように [#511](https://github.com/yojo-art/cherrypick/pull/511)
@@ -82,6 +87,8 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正 [#505](https://github.com/yojo-art/cherrypick/pull/505)
 - Fix: 通知APIがページ境界で重複する問題の修正 [#509](https://github.com/yojo-art/cherrypick/pull/509)
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Enhance: `api/emoji`で`host`を指定できるように
+
 
 ### Misc
 

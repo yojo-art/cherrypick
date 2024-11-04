@@ -193,6 +193,9 @@ export class NotificationEntityService implements OnModuleInit {
 			...(notification.type === 'achievementEarned' ? {
 				achievement: notification.achievement,
 			} : {}),
+			...(notification.type === 'scheduleNote' ? {
+				errorType: notification.errorType,
+			} : {}),
 			...(notification.type === 'app' ? {
 				body: notification.customBody,
 				header: notification.customHeader,

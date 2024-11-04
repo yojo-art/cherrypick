@@ -567,6 +567,7 @@ export class UserEntityService implements OnModuleInit {
 				isSilenced: this.roleService.getUserPolicies(user.id).then(r => !r.canPublicNote),
 				isSuspended: user.isSuspended,
 				isIndexable: user.isIndexable,
+				searchableBy: user.searchableBy,
 				description: profile!.description,
 				location: profile!.location,
 				birthday: profile!.birthday,

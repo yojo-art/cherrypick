@@ -45,9 +45,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</MkSwitch>
 	<MkSwitch v-model="isIndexable" @update:modelValue="save()">
 		{{ i18n.ts.makeIndexable }}
-		<template #caption>{{ i18n.ts.makeIndexableDescription }}</template>
 		<span class="_beta">yojo-art</span>
 	</MkSwitch>
+	<MkInfo>{{ i18n.ts.makeIndexableDescription }}</MkInfo>
+
+	<div class="_gaps_m">
+		<MkSelect v-model="searchableBy" @update:modelValue="save()">
+			<option value="public">{{ i18n.ts._searchbility.public }}</option>
+			<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
+			<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
+			<option value="private">{{ i18n.ts._searchbility.private }}</option>
+		</MkSelect>
+		<span class="_beta">yojo-art</span>
+	</div>
+	<MkInfo>{{ i18n.ts.makeSearchableByDescription }}</MkInfo>
 
 	<FormSection>
 		<div class="_gaps_m">
@@ -69,6 +80,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkSwitch v-model="defaultNoteLocalOnly">{{ i18n.ts._visibility.disableFederation }}</MkSwitch>
 				</div>
 			</MkFolder>
+			<MkSwitch v-model="remenberNoteSearchbility" @update:modelValue="save()">{{ i18n.ts.rememberNoteSearchbility }}</MkSwitch>
+			<MkFolder v-if="!remenberNoteSearchbility">
+				<template #label>{{ i18n.ts.makeSearchableBy }}</template>
+				<template #icon><i class="ti ti-search"></i></template>
+				<div class="_gaps_m">
+					<MkInfo>{{ i18n.ts.makeSearchableByDescription }}</MkInfo>
+					<MkSelect v-model="defaultNoteSearchbility">
+						<!--
+						<option value="null">{{ i18n.ts.notSet }}</option>
+						-->
+						<option value="public">{{ i18n.ts._searchbility.public }}</option>
+						<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
+						<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
+						<option value="private">{{ i18n.ts._searchbility.private }}</option>
+					</MkSelect>
+				</div>
+			</MkFolder>
 		</div>
 	</FormSection>
 
@@ -82,6 +110,7 @@ import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import FormSection from '@/components/form/section.vue';
 import MkFolder from '@/components/MkFolder.vue';
+import MkInfo from '@/components/MkInfo.vue';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
@@ -100,13 +129,19 @@ const hideOnlineStatus = ref($i.hideOnlineStatus);
 const publicReactions = ref($i.publicReactions);
 const followingVisibility = ref($i.followingVisibility);
 const followersVisibility = ref($i.followersVisibility);
+const searchableBy = ref($i.searchableBy);
 
 const defaultNoteVisibility = computed(defaultStore.makeGetterSetter('defaultNoteVisibility'));
+const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchableBy'));
+const remenberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchableBy'));
 const defaultNoteLocalOnly = computed(defaultStore.makeGetterSetter('defaultNoteLocalOnly'));
 const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
 
 function save() {
+	console.log(typeof(searchableBy.value));
+	console.log(searchableBy.value);
+
 	misskeyApi('i/update', {
 		isLocked: !!isLocked.value,
 		autoAcceptFollowed: !!autoAcceptFollowed.value,
@@ -114,6 +149,7 @@ function save() {
 		preventAiLearning: !!preventAiLearning.value,
 		isExplorable: !!isExplorable.value,
 		isIndexable: !!isIndexable.value,
+		searchableBy: searchableBy.value,
 		hideOnlineStatus: !!hideOnlineStatus.value,
 		publicReactions: !!publicReactions.value,
 		followingVisibility: followingVisibility.value,
