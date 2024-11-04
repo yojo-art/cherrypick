@@ -1077,9 +1077,9 @@ export class AdvancedSearchService {
 			if (me) this.queryService.generateMutedUserQuery(query, me);
 			if (me) this.queryService.generateBlockedUserQuery(query, me);
 			if (opts.followingFilter) {
-				this.queryService.generateVisibilityQuery(query, me, true, opts.followingFilter);
+				this.queryService.generateSearchVisibilityQuery(query, me, true, opts.followingFilter);
 			} else {
-				this.queryService.generateVisibilityQuery(query, me, true);
+				this.queryService.generateSearchVisibilityQuery(query, me, true);
 			}
 			return await query.limit(pagination.limit).getMany();
 		}
