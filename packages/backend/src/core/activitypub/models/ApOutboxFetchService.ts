@@ -166,12 +166,12 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (!await this.noteEntityService.isVisibleForMe(renote, user.id)) {
 							this.logger.info('skip: invalid actor for this activity');
 							continue;
-			       }
+						}
 						await this.noteCreateService.create(user, {
 							createdAt,
 							renote,
-							visibility: activityAudience.visibility,
 							searchableBy: null,
+							visibility: activityAudience.visibility,
 							visibleUsers: activityAudience.visibleUsers,
 							uri: activity.id,
 						}, true );
