@@ -87,7 +87,7 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正 [#505](https://github.com/yojo-art/cherrypick/pull/505)
 - Fix: 通知APIがページ境界で重複する問題の修正 [#509](https://github.com/yojo-art/cherrypick/pull/509)
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
-- Enhance: `api/emoji`で`host`を指定できるように
+- Enhance: `api/emoji`で`host`を指定できるように [#514](https://github.com/yojo-art/cherrypick/pull/514)
 
 
 ### Misc
