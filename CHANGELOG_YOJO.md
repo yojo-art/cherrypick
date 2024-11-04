@@ -25,11 +25,13 @@ Cherrypick 4.11.1
 - Enhance: ノートにつけられたリアクションを対象にした検索ができるように
   - Opensearchのみ対応 
   - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
+  - リアクションを右クリックすると検索へのボタンを表示できます
 - Enhance: 高度な検索でフォロー中/フォロー外を検索条件にできるように 
 - Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
 - Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加
 
 ### Client
+- Fix: リモートのカスタム絵文字の場合`情報`がローカルのものになっていたのを修正[#513](https://github.com/yojo-art/cherrypick/pull/513)
 - Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
 - Enhance: チャートの連合グラフで割合を表示
 - Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
@@ -52,13 +54,14 @@ Cherrypick 4.11.1
 - Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
 - Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正
 - Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように
+- Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
 
 ### Server
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
-- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Enhance: `api/emoji`で`host`を指定できるように
+- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
 - Fix: 通知APIがページ境界で重複する問題の修正
 - Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように  

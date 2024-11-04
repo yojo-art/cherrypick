@@ -139,6 +139,8 @@ copyFolderId: "フォルダーIDをコピー"
 copyProfileUrl: "プロフィールURLをコピー"
 searchUser: "ユーザーを検索"
 searchThisUsersNotes: "ユーザーのノートを検索"
+searchThisReaction: "このリアクションで検索"
+partialMatch: "部分一致"
 reply: "返信"
 loadMore: "もっと見る"
 showMore: "もっと見る"
@@ -2826,6 +2828,12 @@ _notification:
   notedBySomeUsers: "{n}件の新しい投稿"
   followedBySomeUsers: "{n}人にフォローされました"
   flushNotification: "通知の履歴をリセットする"
+  _scheduleNote:
+    unknown: "原因は不明です"
+    renoteTargetNotFound: "引用元がありません"
+    channelTargetNotFound: "対象のチャンネルがありません"
+    replyTargetNotFound: "返信先がありません"
+    invalidFilesCount: "添付ファイルがありません"
 
   _types:
     all: "すべて"
@@ -2842,6 +2850,7 @@ _notification:
     groupInvited: "グループに招待された"
     roleAssigned: "ロールが付与された"
     achievementEarned: "実績の獲得"
+    scheduleNote: "予約投稿に失敗"
     app: "連携アプリからの通知"
 
   _actions:

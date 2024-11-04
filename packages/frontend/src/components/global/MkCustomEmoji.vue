@@ -131,6 +131,7 @@ function onClick(ev: MouseEvent) {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
 					emoji: await misskeyApiGet('emoji', {
 						name: customEmojiName.value,
+						...(props.host ? { host: props.host } : {}),
 					}),
 				}, {
 					closed: () => dispose(),

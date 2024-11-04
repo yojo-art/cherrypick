@@ -37,6 +37,9 @@ import { checkReactionPermissions } from '@/scripts/check-reaction-permissions.j
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import { getUnicodeEmoji } from '@/scripts/emojilist.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
+import { useRouter } from '@/router/supplier.js';
+import { MenuItem } from '@/types/menu.js';
+import { advanccedNotesSearchAvailable } from '@/scripts/check-permissions.js';
 
 const props = defineProps<{
 	reaction: string;
@@ -65,6 +68,8 @@ const reactionName = computed(() => {
 	const r = props.reaction.replace(':', '');
 	return r.slice(0, r.indexOf('@'));
 });
+
+const router = useRouter();
 
 const alternative: ComputedRef<string | null> = computed(() => defaultStore.state.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
 
@@ -152,31 +157,48 @@ function stealReaction(ev: MouseEvent) {
 }
 
 async function menu(ev) {
-	if (!canGetInfo.value) return;
-
-	os.popupMenu([{
+	const isCustomEmoji = props.reaction.endsWith(':');
+	let menu = [isCustomEmoji ? {
 		type: 'label',
 		text: `:${reactionName.value}:`,
-	}, {
+	} : undefined, isCustomEmoji ? {
 		text: i18n.ts.info,
 		icon: 'ti ti-info-circle',
 		action: async () => {
 			const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
 				emoji: await misskeyApiGet('emoji', {
-					name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
+					name: props.reaction.replace(/:/g, '').replace(/@.+/, ''),
+					...(!props.reaction.endsWith('@.:') && { host: props.reaction.split('@')[1].replace(':', '') }),
 				}),
 			}, {
 				closed: () => dispose(),
 			});
 		},
-	}, customEmojis.value.find(it => it.name === reactionName.value)?.name ? {
+	} : undefined, customEmojis.value.find(it => it.name === reactionName.value)?.name ? {
 		text: i18n.ts.copy,
 		icon: 'ti ti-copy',
 		action: () => {
 			copyToClipboard(`:${reactionName.value}:`);
 			os.toast(i18n.ts.copied, 'copied');
 		},
-	} : undefined], ev.currentTarget ?? ev.target);
+	} : undefined,
+	];
+	if (advanccedNotesSearchAvailable) {
+		menu.push({
+			text: i18n.ts.searchThisReaction,
+			icon: 'ti ti-search',
+			action: () => {
+				router.push(`/search?type=anote&reactions=${encodeURIComponent(isCustomEmoji ? props.reaction.endsWith('@.:') ? props.reaction.replace('@.', '') : props.reaction : props.reaction)}`);
+			},
+		}, isCustomEmoji ? {
+			text: `${i18n.ts.searchThisReaction}(${i18n.ts.partialMatch})`,
+			icon: 'ti ti-search',
+			action: () => {
+				router.push(`/search?type=anote&reactions=${encodeURIComponent(`${ props.reaction.endsWith('@.:') ? props.reaction.replace('@.:', '') : props.reaction.split('@')[0]}*`)}`);
+			},
+		} : undefined );
+	}
+	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
 function anime() {
