@@ -188,7 +188,7 @@ export class QueryService {
 	}
 
 	@bindThis
-	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, search?: boolean, followingFilter?: string): void {
+	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, opts?: { search: boolean, followingFilter?: string}): void {
 		// This code must always be synchronized with the checks in Notes.isVisibleForMe.
 		if (me == null) {
 			q.andWhere(new Brackets(qb => {
@@ -197,7 +197,7 @@ export class QueryService {
 					.orWhere('note.visibility = \'home\'');
 			}));
 
-			if (search) {
+			if (opts?.search) {
 				this.generateSearchableQuery(q, me);
 			}
 		} else {
@@ -205,9 +205,9 @@ export class QueryService {
 				.select('following.followeeId')
 				.where('following.followerId = :meId');
 			const fq = followingQuery.getQuery();
-			if (followingFilter) {
-				if (followingFilter === 'following') q.andWhere(`note.userId IN (${ fq })`);
-				if (followingFilter === 'notFollowing') q.andWhere(`note.userId NOT IN (${ fq })`);
+			if (opts?.followingFilter) {
+				if (opts.followingFilter === 'following') q.andWhere(`note.userId IN (${ fq })`);
+				if (opts.followingFilter === 'notFollowing') q.andWhere(`note.userId NOT IN (${ fq })`);
 			}
 
 			q.andWhere(new Brackets(qb => {
@@ -237,7 +237,7 @@ export class QueryService {
 					}));
 			}));
 			q.setParameters({ meId: me.id, meIdAsList: [me.id] });
-			if (search) {
+			if (opts?.search) {
 				this.generateSearchableQuery(q, me, fq);
 			}
 		}
