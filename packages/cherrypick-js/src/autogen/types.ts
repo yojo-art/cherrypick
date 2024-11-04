@@ -19985,6 +19985,8 @@ export type operations = {
           isLocked?: boolean;
           isExplorable?: boolean;
           isIndexable?: boolean;
+          /** @enum {string} */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;
@@ -22068,6 +22070,11 @@ export type operations = {
            * @enum {string|null}
            */
           reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
+          /**
+           * @default public
+           * @enum {string|null}
+           */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
           /** @default false */
           disableRightClick?: boolean;
           /** @default false */
@@ -22169,6 +22176,11 @@ export type operations = {
            * @enum {string|null}
            */
           reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
+          /**
+           * @default public
+           * @enum {string|null}
+           */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
           /** @default false */
           disableRightClick?: boolean;
           /** @default false */

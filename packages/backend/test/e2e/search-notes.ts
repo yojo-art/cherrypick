@@ -39,6 +39,11 @@ describe('検索', () => {
 	let replyedNote: misskey.entities.Note;
 	let mutingNote: misskey.entities.Note;
 	let blockingNote: misskey.entities.Note;
+	let noteSearchableByNull: misskey.entities.Note;
+	let noteSearchableByPublic: misskey.entities.Note;
+	let noteSearchableByFollowersAndReacted: misskey.entities.Note;
+	let noteSearchableByReacted: misskey.entities.Note;
+	let noteSearchableByPrivate: misskey.entities.Note;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
@@ -67,6 +72,19 @@ describe('検索', () => {
 		nofile_Attached = await post(bob, {
 			text: 'filetest',
 		});
+
+		//ファイルへセンシティブフラグの付与
+		const res1 = await	api('drive/files/update', {
+			fileId: sensitive1Id,
+			isSensitive: true,
+		}, bob);
+		assert.strictEqual(res1.status, 200);
+
+		const res2 = await api('drive/files/update', {
+			fileId: sensitive2Id,
+			isSensitive: true,
+		}, bob);
+		assert.strictEqual(res2.status, 200);
 
 		sensitiveFile0_1Note = await post(bob, {
 			text: 'test_sensitive',
@@ -101,6 +119,13 @@ describe('検索', () => {
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
 
+		console.log(JSON.stringify(reactedNote));
+
+		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: null });
+		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });
+		noteSearchableByFollowersAndReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'followersAndReacted' });
+		noteSearchableByReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'reactedOnly' });
+		noteSearchableByPrivate = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'private' });
 		await new Promise(resolve => setTimeout(resolve, 5000));
 	}, 1000 * 60 * 2);
 
@@ -195,20 +220,6 @@ describe('検索', () => {
 
 		assert.strictEqual(noteIds.includes(nofile_Attached.id), true);//添付なしがある
 		assert.strictEqual(noteIds.includes(file_Attached.id), false);//添付ありがない
-	});
-	test('センシティブオプション:フラグ付与', async() => {
-		//ファイルへセンシティブフラグの付与
-		const res1 = await	api('drive/files/update', {
-			fileId: sensitive1Id,
-			isSensitive: true,
-		}, bob);
-		assert.strictEqual(res1.status, 200);
-
-		const res2 = await api('drive/files/update', {
-			fileId: sensitive2Id,
-			isSensitive: true,
-		}, bob);
-		assert.strictEqual(res2.status, 200);
 	});
 	test('センシティブオプション:フィルタなし', async() => {
 		const res = await api('notes/advanced-search', {
@@ -714,4 +725,260 @@ describe('検索', () => {
 		assert.strictEqual(asnids4.includes(favoritedNote.id), false);
 	});
 	//投票は消せないので対象外
+
+	//nullとpublicだけ出てくるはず
+	test('searchableBy(note null,user: null, indexable true)', async () =>	{
+		const ires = await api('i/update', {
+			isIndexable: true,
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.length, 2);
+	});
+
+	//publicだけ出てくる
+	test('searchableBy(user: null, indexable false)', async () =>	{
+		const ires = await api('i/update', {
+			isIndexable: false,
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.length, 1);
+	});
+
+	//色々出てくる
+	test('searchableBy(user: null, indexable false)', async () =>	{
+		const rres = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByPublic.id,
+		}, alice);
+		const rres2 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByReacted.id,
+		}, alice);
+
+		const rres3 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByFollowersAndReacted.id,
+		}, alice);
+
+		const rres4 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByPrivate.id,
+		}, alice);
+
+		const rres5 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByNull.id,
+		}, alice);
+
+		assert.strictEqual(rres.status, 204);
+		assert.strictEqual(rres2.status, 204);
+		assert.strictEqual(rres3.status, 204);
+		assert.strictEqual(rres4.status, 204);
+		assert.strictEqual(rres5.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
+		assert.strictEqual(noteIds.length, 4);
+
+		const rdres = await api('notes/reactions/delete', {
+			noteId: noteSearchableByPublic.id,
+		}, alice);
+		const rdres2 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByReacted.id,
+		}, alice);
+		const rdres3 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByFollowersAndReacted.id,
+		}, alice);
+		const rdres4 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByPrivate.id,
+		}, alice);
+		const rdres5 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByNull.id,
+		}, alice);
+
+		assert.strictEqual(rdres.status, 204);
+		assert.strictEqual(rdres2.status, 204);
+		assert.strictEqual(rdres3.status, 204);
+		assert.strictEqual(rdres4.status, 204);
+		assert.strictEqual(rdres5.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+	});
+
+	//nullとpublicだけ出てくる
+	test('searchableBy(user: public, indexable false)', async () =>	{
+		const ires = await api('i/update', {
+			searchableBy: 'public',
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.length, 2);
+	});
+
+	//nullとpublicだけ出てくる
+	test('searchableBy(user: followersAndReacted, indexable false follow)', async () =>	{
+		const ires = await api('i/update', {
+			searchableBy: 'followersAndReacted',
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const fres = await api('following/create', {
+			userId: carol.id,
+		}, alice);
+		assert.strictEqual(fres.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
+		assert.strictEqual(noteIds.length, 3);
+		assert.strictEqual(fres.status, 200);
+
+		const fdres = await api('following/delete', {
+			userId: carol.id,
+		}, alice);
+		assert.strictEqual(fdres.status, 200);
+	});
+	test('searchableBy(user: followersAndReacted, indexable false reaction)', async() => {
+		const rres1 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByNull.id,
+		}, alice);
+		const rres2 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByReacted.id,
+		}, alice);
+		const rres3 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByFollowersAndReacted.id,
+		}, alice);
+
+		assert.strictEqual(rres1.status, 204);
+		assert.strictEqual(rres2.status, 204);
+		assert.strictEqual(rres3.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
+		assert.strictEqual(noteIds.length, 4);
+
+		const rdres1 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByFollowersAndReacted.id,
+		}, alice);
+		const rdres2 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByReacted.id,
+		}, alice);
+		const rdres3 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByNull.id,
+		}, alice);
+
+		assert.strictEqual(rdres1.status, 204);
+		assert.strictEqual(rdres2.status, 204);
+		assert.strictEqual(rdres3.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+	});
+	test('searchableBy(user: reactedOnly, indexable false)', async () =>	{
+		const ires = await api('i/update', {
+			searchableBy: 'reactedOnly',
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+		const rres1 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByNull.id,
+		}, alice);
+		const rres2 = await api('notes/reactions/create', {
+			reaction: '❤',
+			noteId: noteSearchableByReacted.id,
+		}, alice);
+		assert.strictEqual(rres1.status, 204);
+		assert.strictEqual(rres2.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
+		assert.strictEqual(noteIds.length, 3);
+
+		const rdres1 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByReacted.id,
+		}, alice);
+		const rdres2 = await api('notes/reactions/delete', {
+			noteId: noteSearchableByNull.id,
+		}, alice);
+		assert.strictEqual(rdres1.status, 204);
+		assert.strictEqual(rdres2.status, 204);
+		await new Promise(resolve => setTimeout(resolve, 5000));
+	});
+
+	test('searchableBy(user: private, indexable false)', async () =>	{
+		const ires = await api('i/update', {
+			searchableBy: 'private',
+		}, carol);
+		assert.strictEqual(ires.status, 200);
+
+		const res = await api('notes/advanced-search', {
+			query: 'SearchableBy_Test',
+		}, alice);
+		assert.strictEqual(res.status, 200);
+
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
+		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
+		assert.strictEqual(noteIds.length, 1);
+	});
 });

@@ -891,6 +891,10 @@ export interface Locale extends ILocale {
      */
     "rememberNoteVisibility": string;
     /**
+     * 検索可能範囲を記憶する
+     */
+    "rememberNoteSearchbility": string;
+    /**
      * 添付取り消し
      */
     "attachCancel": string;
@@ -3548,7 +3552,7 @@ export interface Locale extends ILocale {
      */
     "makeExplorableDescription": string;
     /**
-     * ノート検索の許可
+     * ノートを見つけやすくする
      */
     "makeIndexable": string;
     /**
@@ -3557,6 +3561,17 @@ export interface Locale extends ILocale {
      * リモートのサーバーが対応していない場合設定は無視されます。
      */
     "makeIndexableDescription": string;
+    /**
+     * ノート検索の許可
+     */
+    "makeSearchableBy": string;
+    /**
+     * ノートを検索できる人を制限できます。
+     * ノートにも設定した場合ノートの設定が優先されます。
+     * リモートのサーバーが対応していない場合設定が無視されるか、
+     * ノートを見つけやすくする値が使われます。
+     */
+    "makeSearchableByDescription": string;
     /**
      * タイムラインのノートを離して表示
      */
@@ -12057,6 +12072,32 @@ export interface Locale extends ILocale {
          * リノートする
          */
         "confirm": string;
+    };
+    "_searchbility": {
+        /**
+         * 検索可能範囲
+         */
+        "tooltip": string;
+        /**
+         * が検索できます
+         */
+        "canSearch": string;
+        /**
+         * すべてのユーザー
+         */
+        "public": string;
+        /**
+         * フォロワーと反応した人
+         */
+        "followersAndReacted": string;
+        /**
+         * 反応した人
+         */
+        "reactedOnly": string;
+        /**
+         * 自分だけ
+         */
+        "private": string;
     };
 }
 declare const locales: {

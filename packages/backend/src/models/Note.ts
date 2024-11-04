@@ -4,7 +4,7 @@
  */
 
 import { Entity, Index, JoinColumn, Column, PrimaryColumn, ManyToOne } from 'typeorm';
-import { noteVisibilities } from '@/types.js';
+import { noteVisibilities, searchableTypes } from '@/types.js';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiChannel } from './Channel.js';
@@ -145,6 +145,19 @@ export class MiNote {
 	 */
 	@Column('enum', { enum: noteVisibilities })
 	public visibility: typeof noteVisibilities[number];
+
+	/**
+	 * public ... だれでも
+	 * followers ... フォロワーのみ
+	 * reacted ... 返信かリアクションしたユーザーのみ
+	 * null ... ユーザーのsearchableByを見る
+	 */
+	@Column('enum',
+		{
+			enum: searchableTypes,
+			nullable: true,
+		})
+	public searchableBy: typeof searchableTypes[number] | null;
 
 	@Index({ unique: true })
 	@Column('varchar', {

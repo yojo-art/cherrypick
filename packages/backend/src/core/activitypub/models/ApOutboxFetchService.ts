@@ -170,6 +170,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						await this.noteCreateService.create(user, {
 							createdAt,
 							renote,
+							searchableBy: null,
 							visibility: activityAudience.visibility,
 							visibleUsers: activityAudience.visibleUsers,
 							uri: activity.id,
