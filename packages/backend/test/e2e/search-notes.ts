@@ -785,7 +785,7 @@ describe('検索', () => {
 
 		const rres5 = await api('notes/reactions/create', {
 			reaction: '❤',
-			noteId: noteSearchableByPrivate.id,
+			noteId: noteSearchableByNull.id,
 		}, alice);
 
 		assert.strictEqual(rres.status, 204);
@@ -812,10 +812,10 @@ describe('検索', () => {
 			noteId: noteSearchableByPublic.id,
 		}, alice);
 		const rdres2 = await api('notes/reactions/delete', {
-			noteId: noteSearchableByFollowersAndReacted.id,
+			noteId: noteSearchableByReacted.id,
 		}, alice);
 		const rdres3 = await api('notes/reactions/delete', {
-			noteId: noteSearchableByReacted.id,
+			noteId: noteSearchableByFollowersAndReacted.id,
 		}, alice);
 		const rdres4 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByPrivate.id,
