@@ -188,7 +188,52 @@ export class QueryService {
 	}
 
 	@bindThis
-	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, search?: boolean, followingFilter?: string): void {
+	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null): void {
+		// This code must always be synchronized with the checks in Notes.isVisibleForMe.
+		if (me == null) {
+			q.andWhere(new Brackets(qb => {
+				qb
+					.where('note.visibility = \'public\'')
+					.orWhere('note.visibility = \'home\'');
+			}));
+		} else {
+			const followingQuery = this.followingsRepository.createQueryBuilder('following')
+				.select('following.followeeId')
+				.where('following.followerId = :meId');
+
+			q.andWhere(new Brackets(qb => {
+				qb
+				// 公開投稿である
+					.where(new Brackets(qb => {
+						qb
+							.where('note.visibility = \'public\'')
+							.orWhere('note.visibility = \'home\'');
+					}))
+				// または 自分自身
+					.orWhere('note.userId = :meId')
+				// または 自分宛て
+					.orWhere(':meIdAsList <@ note.visibleUserIds')
+					.orWhere(':meIdAsList <@ note.mentions')
+					.orWhere(new Brackets(qb => {
+						qb
+						// または フォロワー宛ての投稿であり、
+							.where('note.visibility = \'followers\'')
+							.andWhere(new Brackets(qb => {
+								qb
+								// 自分がフォロワーである
+									.where(`note.userId IN (${ followingQuery.getQuery() })`)
+								// または 自分の投稿へのリプライ
+									.orWhere('note.replyUserId = :meId');
+							}));
+					}));
+			}));
+
+			q.setParameters({ meId: me.id, meIdAsList: [me.id] });
+		}
+	}
+
+	@bindThis
+	public generateSearchVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, search?: boolean, followingFilter?: string): void {
 		// This code must always be synchronized with the checks in Notes.isVisibleForMe.
 		if (me == null) {
 			q.andWhere(new Brackets(qb => {
