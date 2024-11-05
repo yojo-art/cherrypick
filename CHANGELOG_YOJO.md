@@ -57,6 +57,7 @@ Cherrypick 4.11.1
 - Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
 
 ### Server
+- Change: `api/admin/recreate-index`では再インデックスをしないように
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました

@@ -498,7 +498,7 @@ export class AdvancedSearchService {
 			await this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
 				this.logger.error(error);
-				return;
+				throw error;
 			});
 
 			await this.opensearch.indices.create({
@@ -507,15 +507,10 @@ export class AdvancedSearchService {
 			},
 			).catch((error) => {
 				this.logger.error(error);
-				return;
+				throw error;
 			});
 
 			await this.redisClient.del('indexDeleted');
-			this.logger.info('reIndexing.');
-			this.fullIndexNote().catch((error) => {
-				this.logger.error(error);
-				return;
-			});
 		}
 	}
 
