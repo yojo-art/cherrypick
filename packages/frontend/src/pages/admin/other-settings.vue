@@ -122,7 +122,6 @@ async function reIndex() {
 	const { canceled } = await os.confirm({
 		type: 'warning',
 		text: i18n.ts._reCreateOpenSearchIndex.quesion,
-		description: i18n.ts._reCreateOpenSearchIndex.description,
 		okText: i18n.ts.yes,
 		cancelText: i18n.ts.no,
 	});
