@@ -3210,8 +3210,8 @@ _reIndexOpenSearch:
   quesion: "再インデックス対象"
 
 _reCreateOpenSearchIndex:
-  title: "現在のインデックスを破棄して再インデックスする"
-  quesion: "現在のインデックスを破棄して全てのノートを再インデックスしますか？"
+  title: "ノートインデックスを破棄して再作成する"
+  quesion: "再作成しますか？、現時点のノートインデックスは破棄されます。"
 
 _dice:
   rollDice: "サイコロを振る"

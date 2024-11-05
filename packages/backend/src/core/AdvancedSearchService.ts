@@ -498,7 +498,7 @@ export class AdvancedSearchService {
 			await this.opensearch.indices.delete({
 				index: this.opensearchNoteIndex as string }).catch((error) => {
 				this.logger.error(error);
-				return;
+				throw error;
 			});
 
 			await this.opensearch.indices.create({
@@ -507,15 +507,10 @@ export class AdvancedSearchService {
 			},
 			).catch((error) => {
 				this.logger.error(error);
-				return;
+				throw error;
 			});
 
 			await this.redisClient.del('indexDeleted');
-			this.logger.info('reIndexing.');
-			this.fullIndexNote().catch((error) => {
-				this.logger.error(error);
-				return;
-			});
 		}
 	}
 
@@ -956,7 +951,7 @@ export class AdvancedSearchService {
 			}
 
 			if (q && q !== '') {
-				const fields = [opts.useStrictSearch ? 'text.keyword' : 'text'];
+				const fields = ['tags', opts.useStrictSearch ? 'text.keyword' : 'text'];
 				if (!opts.excludeCW) {	fields.push(opts.useStrictSearch ? 'cw.keyword' : 'cw' );}
 				osFilter.bool.must.push({ simple_query_string: { fields: fields, 'query': q, default_operator: 'and' } });
 			}

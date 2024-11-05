@@ -85,6 +85,8 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました [#496](https://github.com/yojo-art/cherrypick/pull/496)
 - Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように   [#510](https://github.com/yojo-art/cherrypick/pull/510)
   - (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
+- Change: `api/admin/recreate-index`では再インデックスをしないように [#531](https://github.com/yojo-art/cherrypick/pull/531)
+- Fix: 高度な検索でノート本文に含まれないタグが検索対象外なのを修正 [#530](https://github.com/yojo-art/cherrypick/pull/530)
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように [#501](https://github.com/yojo-art/cherrypick/pull/501)
 - Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる [#449](https://github.com/yojo-art/cherrypick/pull/449)
 - Fix: ノート編集時に3001文字以上の場合編集できない問題を修正 [#505](https://github.com/yojo-art/cherrypick/pull/505)
