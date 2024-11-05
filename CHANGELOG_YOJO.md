@@ -58,6 +58,7 @@ Cherrypick 4.11.1
 
 ### Server
 - Change: `api/admin/recreate-index`では再インデックスをしないように
+- Fix: 高度な検索でノート本文に含まれないタグが検索対象外なのを修正
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
 - Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました
