@@ -77,7 +77,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<option value="followers">{{ i18n.ts._visibility.followers }}</option>
 						<option value="specified">{{ i18n.ts._visibility.specified }}</option>
 					</MkSelect>
-					<MkSwitch v-model="defaultNoteLocalOnly">{{ i18n.ts._visibility.disableFederation }}</MkSwitch>
 				</div>
 			</MkFolder>
 			<MkSwitch v-model="remenberNoteSearchbility" @update:modelValue="save()">{{ i18n.ts.rememberNoteSearchbility }}</MkSwitch>
@@ -134,7 +133,6 @@ const searchableBy = ref($i.searchableBy);
 const defaultNoteVisibility = computed(defaultStore.makeGetterSetter('defaultNoteVisibility'));
 const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchableBy'));
 const remenberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchableBy'));
-const defaultNoteLocalOnly = computed(defaultStore.makeGetterSetter('defaultNoteLocalOnly'));
 const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
 
