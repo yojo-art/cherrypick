@@ -3,7 +3,8 @@ Cherrypick 4.11.1
 
 ### Release Date
 
-### General
+### Note
+
 ノートが多数ある場合**マイグレーションに長時間かかることがあります**  
 
 docker環境でノートレコードが多数(数百万件)ある場合**一時的に** compose.ymlの`healthcheck`の`start_period`を大きめに指定してください
@@ -15,11 +16,13 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
       retries: 20
       start_period: "300s"#5分
 ```
-インデックス構造が変わったため破棄して再インデックスが必要です。
+インデックス構造が変わったためノートインデックスの再作成が必要です。
 リアクションや投票が途中からインデックスにされるので再インデックスをおすすめします。
+### General
 
 - Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
-- Feat: mastodonのindexableに対応 [#449](https://github.com/yojo-art/cherrypick/pull/449),[#502](https://github.com/yojo-art/cherrypick/pull/502),[#504](https://github.com/yojo-art/cherrypick/pull/504),[#507](https://github.com/yojo-art/cherrypick/pull/507)
+- Feat: 検索許可制限、SearchableByに対応 [#519](https://github.com/yojo-art/cherrypick/pull/519)
+- Feat: 検索許可制限、mastodonのindexableに対応 [#449](https://github.com/yojo-art/cherrypick/pull/449),[#502](https://github.com/yojo-art/cherrypick/pull/502),[#504](https://github.com/yojo-art/cherrypick/pull/504),[#507](https://github.com/yojo-art/cherrypick/pull/507)
   - 検索で表示される条件を制限できるようになります
   - 設定→プライバシーより設定できます
   - 設定されている場合対応しているサーバーでは、以下のことをしたユーザーのみ検索できます
