@@ -3,15 +3,26 @@ Cherrypick 4.11.1
 
 ### Release Date
 
-### General
-インデックス構造が変わったため破棄して再インデックスが必要です。
-リアクションや投票が途中からインデックスにされるので再インデックスをおすすめします。
+### Note
 
-- Enhance: 連合一覧のソートにリバーシのバージョンを追加
-- Enhance: リモートのクリップをお気に入りに登録できるように
-- Enhance: リモートのPlayを遊べるように
-- Enhance: リモートのPlayをお気に入りに登録できるように
-- Feat: mastodonのindexableに対応
+ノートが多数ある場合**マイグレーションに長時間かかることがあります**  
+
+docker環境でノートレコードが多数(数百万件)ある場合**一時的に** compose.ymlの`healthcheck`の`start_period`を大きめに指定してください
+```
+#サービスのwebに追記
+    healthcheck:
+      test: ["/bin/bash", "/misskey/healthcheck.sh"]
+      interval: "5s"
+      retries: 20
+      start_period: "300s"#5分
+```
+インデックス構造が変わったためノートインデックスの再作成が必要です。
+リアクションや投票が途中からインデックスにされるので再インデックスをおすすめします。
+### General
+
+- Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
+- Feat: 検索許可制限、SearchableByに対応 [#519](https://github.com/yojo-art/cherrypick/pull/519)
+- Feat: 検索許可制限、mastodonのindexableに対応 [#449](https://github.com/yojo-art/cherrypick/pull/449),[#502](https://github.com/yojo-art/cherrypick/pull/502),[#504](https://github.com/yojo-art/cherrypick/pull/504),[#507](https://github.com/yojo-art/cherrypick/pull/507)
   - 検索で表示される条件を制限できるようになります
   - 設定→プライバシーより設定できます
   - 設定されている場合対応しているサーバーでは、以下のことをしたユーザーのみ検索できます
@@ -22,20 +33,39 @@ Cherrypick 4.11.1
     - 返信
     - 投票
 	- コントロールパネル→その他で(クリップ、お気に入り、投票が)再インデックスできるようになりました
-- Enhance: ノートにつけられたリアクションを対象にした検索ができるように
+- Feat: 予約投稿 [#483](https://github.com/yojo-art/cherrypick/pull/483)
+	- based-on
+ 		- https://github.com/Type4ny-Project/Type4ny/commit/e133a6b6a4bee78c2598deaad087712b2e8e26ed
+  		- https://github.com/Type4ny-Project/Type4ny/commit/387faf55cf8b98918bc6c83fd8377d75408d7d1a
+  		- https://github.com/Type4ny-Project/Type4ny/commit/540f531b6d10e5419e63012ad63a637d4d7d084a
+  		- https://github.com/Type4ny-Project/Type4ny/commit/12b7ec30461eee0c80abf7ecc965ed904bb0edee
+  		- https://github.com/Type4ny-Project/Type4ny/commit/d6fb3c3342da111520eda6b18837f17fb3b50b5e
+  		- https://github.com/Type4ny-Project/Type4ny/commit/9bc6d8024fcab8855fb3e2aa86bb1d74d853eb70
+  		- https://github.com/Type4ny-Project/Type4ny/commit/28ee4d47c0b240db6eb30e14291e44862b1f7484
+- Enhance: 連合一覧のソートにリバーシのバージョンを追加 [#436](https://github.com/yojo-art/cherrypick/pull/436)
+- Enhance: リモートのクリップをお気に入りに登録できるように [#438](https://github.com/yojo-art/cherrypick/pull/438)
+- Enhance: リモートのPlayを遊べるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
+- Enhance: リモートのPlayをお気に入りに登録できるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
+- Enhance: ノートにつけられたリアクションを対象にした検索ができるように [#496](https://github.com/yojo-art/cherrypick/pull/496)
   - Opensearchのみ対応 
   - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
-  - リアクションを右クリックすると検索へのボタンを表示できます
-- Enhance: 高度な検索でフォロー中/フォロー外を検索条件にできるように 
-- Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
-- Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加
+- Enhance: 高度な検索でフォロー中/フォロー外を検索条件にできるように [#503](https://github.com/yojo-art/cherrypick/pull/503)
+- Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加 [#498](https://github.com/yojo-art/cherrypick/pull/498)
 
 ### Client
-- Fix: リモートのカスタム絵文字の場合`情報`がローカルのものになっていたのを修正[#513](https://github.com/yojo-art/cherrypick/pull/513)
-- Fix: リアクションが閲覧できる状態でも見れない問題を修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
-- Enhance: チャートの連合グラフで割合を表示
-- Enhance: お気に入り登録クリップの一覧画面から登録解除できるように
-- Enhance: 高度な検索でもクエリ文字列を使えるように
+- Fix: ユーザーページでリアクション履歴が閲覧できる状態の時にリアクションを選択するとユーザーの投稿が表示されてしまうの修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
+- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
+- Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
+- Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正 [#497](https://github.com/yojo-art/cherrypick/pull/497)
+- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
+- Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
+- Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正 [#497](https://github.com/yojo-art/cherrypick/pull/497)
+- Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
+- Enhance: チャートの連合グラフで割合を表示 [#437](https://github.com/yojo-art/cherrypick/pull/437)
+- Enhance: お気に入り登録クリップの一覧画面から登録解除できるように [#448](https://github.com/yojo-art/cherrypick/pull/448)
+- Enhance: 高度な検索でもクエリ文字列を使えるように [#511](https://github.com/yojo-art/cherrypick/pull/511)
   - `/search?type=anote`
   - `q` 通常検索と同じ
   - `userId` 通常検索と同じ
@@ -49,25 +79,21 @@ Cherrypick 4.11.1
   - `excludeCw` CW除外 true/false
   - `excludeQuote` 引用除外 true/false
   - `strictSearch` 表記ゆれ検索有効 true/false
-- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
-- Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
-- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
-- Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正
-- Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように
-- Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
+- Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように [#508](https://github.com/yojo-art/cherrypick/pull/508)
 
 ### Server
-- Change: `api/admin/recreate-index`では再インデックスをしないように
-- Fix: 高度な検索でノート本文に含まれないタグが検索対象外なのを修正
+- Change: `notes/advanced-search`で`query`が必須ではなくなりました [#496](https://github.com/yojo-art/cherrypick/pull/496)
+- Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように   [#510](https://github.com/yojo-art/cherrypick/pull/510)
+  - (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
+- Change: `api/admin/recreate-index`では再インデックスをしないように [#531](https://github.com/yojo-art/cherrypick/pull/531)
+- Fix: 高度な検索でノート本文に含まれないタグが検索対象外なのを修正 [#530](https://github.com/yojo-art/cherrypick/pull/530)
+- Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように [#501](https://github.com/yojo-art/cherrypick/pull/501)
+- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる [#449](https://github.com/yojo-art/cherrypick/pull/449)
+- Fix: ノート編集時に3001文字以上の場合編集できない問題を修正 [#505](https://github.com/yojo-art/cherrypick/pull/505)
+- Fix: 通知APIがページ境界で重複する問題の修正 [#509](https://github.com/yojo-art/cherrypick/pull/509)
 - Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
-- Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように
-- Change: `notes/advanced-search`で`query`が必須ではなくなりました
-- Enhance: `api/emoji`で`host`を指定できるように
-- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる
-- Fix: ノート編集時に3001文字以上の場合編集できない問題を修正
-- Fix: 通知APIがページ境界で重複する問題の修正
-- Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように  
-  (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
+- Enhance: `api/emoji`で`host`を指定できるように [#514](https://github.com/yojo-art/cherrypick/pull/514)
+
 
 ### Misc
 
