@@ -12027,11 +12027,11 @@ export interface Locale extends ILocale {
     };
     "_reCreateOpenSearchIndex": {
         /**
-         * 現在のインデックスを破棄して再インデックスする
+         * ノートインデックスを破棄して再作成する
          */
         "title": string;
         /**
-         * 現在のインデックスを破棄して全てのノートを再インデックスしますか？
+         * 再作成しますか？、現時点のノートインデックスは破棄されます。
          */
         "quesion": string;
     };
