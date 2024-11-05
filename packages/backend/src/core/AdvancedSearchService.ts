@@ -956,7 +956,7 @@ export class AdvancedSearchService {
 			}
 
 			if (q && q !== '') {
-				const fields = [opts.useStrictSearch ? 'text.keyword' : 'text'];
+				const fields = ['tags', opts.useStrictSearch ? 'text.keyword' : 'text'];
 				if (!opts.excludeCW) {	fields.push(opts.useStrictSearch ? 'cw.keyword' : 'cw' );}
 				osFilter.bool.must.push({ simple_query_string: { fields: fields, 'query': q, default_operator: 'and' } });
 			}
