@@ -322,10 +322,9 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
-		if (note.searchableBy === 'private' && note.userHost !== null) return;
-		if (note.renote?.searchableBy === 'private' && note.renote.userHost !== null) return;
-		if (note.text === null && note.cw === null && note.searchableBy !== 'private') {
-			//リノートであり、ローカルユーザー
+		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
+		if (note.text === null && note.cw === null && note.userHost === null) {//リノートであり、ローカルユーザー
+			if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
 			await this.index(this.renoteIndex, note.id, {
 				renoteId: note.renoteId,
 				userId: note.userId,
@@ -534,14 +533,18 @@ export class AdvancedSearchService {
 				.select(['note'])
 				.where('note.id > :latestid', { latestid })
 				.andWhere(new Brackets( qb => {
-					qb.where('note."userHost" IS NULL')
-						.orWhere(new Brackets(qb2 => {
-							qb2
-								.where('note."userHost" IS NOT NULL')
-								.andWhere('note.searchableBy != \'private\' OR NULL');
-						}));
+					qb.where(new Brackets(qb2 => {
+						qb2
+							.where('note."userHost" IS NULL');
+					})).orWhere(new Brackets(qb2 => {
+						qb2
+							.where('note."userHost" IS NOT NULL')
+							.andWhere(new Brackets(qb3 => {
+								qb3.where('note."searchableBy" != \'private\'')
+									.orWhere('note."searchableBy" IS NULL');
+							}));
+					}));
 				}))
-				.andWhere('renote.searchableBy != \'private\' OR NULL')
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -575,7 +578,6 @@ export class AdvancedSearchService {
 				.innerJoin('reac.user', 'user')
 				.leftJoin('reac.note', 'note')
 				.select(['reac', 'user.host', 'note.searchableBy'])
-				.andWhere('note.searchableBy != \'private\' OR NULL')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -609,8 +611,6 @@ export class AdvancedSearchService {
 				.innerJoin('pv.user', 'user')
 				.select(['pv', 'user.host'])
 				.leftJoin('reac.note', 'note')
-				.andWhere('note.searchableBy != \'private\' OR NULL')
-				.andWhere('user.host IS NULL')
 				.orderBy('pv.id', 'ASC')
 				.limit(limit)
 				.getMany();
