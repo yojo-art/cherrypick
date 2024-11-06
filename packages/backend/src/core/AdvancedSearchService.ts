@@ -611,6 +611,7 @@ export class AdvancedSearchService {
 				.innerJoin('pv.user', 'user')
 				.select(['pv', 'user.host'])
 				.leftJoin('reac.note', 'note')
+				.andWhere('user.host IS NULL')
 				.orderBy('pv.id', 'ASC')
 				.limit(limit)
 				.getMany();
