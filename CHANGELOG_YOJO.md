@@ -81,6 +81,7 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
   - `strictSearch` 表記ゆれ検索有効 true/false
 - Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように [#508](https://github.com/yojo-art/cherrypick/pull/508)
 - Fix: デフォルトの公開範囲から連合なしを削除 [#532](https://github.com/yojo-art/cherrypick/pull/532)
+- Fix: すべてのキューを今すぐ再試行するとモデログにロケールの無い項目が出現する問題を修正 [#534](https://github.com/yojo-art/cherrypick/pull/534)
 
 ### Server
 - Change: `notes/advanced-search`で`query`が必須ではなくなりました [#496](https://github.com/yojo-art/cherrypick/pull/496)
