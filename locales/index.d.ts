@@ -11286,6 +11286,10 @@ export interface Locale extends ILocale {
          * 公式タグ一覧を更新
          */
         "updateOfficialTags": string;
+        /**
+         * ジョブキューを再試行
+         */
+        "promoteQueue": string;
     };
     "_fileViewer": {
         /**

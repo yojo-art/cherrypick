@@ -2989,6 +2989,7 @@ _moderationLogTypes:
   deleteFlash: "Playを削除"
   deleteGalleryPost: "ギャラリーの投稿を削除"
   updateOfficialTags: "公式タグ一覧を更新"
+  promoteQueue: "ジョブキューを再試行"
 
 _fileViewer:
   title: "ファイルの詳細"
