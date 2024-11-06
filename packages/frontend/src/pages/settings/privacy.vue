@@ -79,8 +79,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkSelect>
 				</div>
 			</MkFolder>
-			<MkSwitch v-model="remenberNoteSearchbility" @update:modelValue="save()">{{ i18n.ts.rememberNoteSearchbility }}</MkSwitch>
-			<MkFolder v-if="!remenberNoteSearchbility">
+			<MkSwitch v-model="rememberNoteSearchbility" @update:modelValue="save()">{{ i18n.ts.rememberNoteSearchbility }}</MkSwitch>
+			<MkFolder v-if="!rememberNoteSearchbility">
 				<template #label>{{ i18n.ts.makeSearchableBy }}</template>
 				<template #icon><i class="ti ti-search"></i></template>
 				<div class="_gaps_m">
@@ -131,8 +131,8 @@ const followersVisibility = ref($i.followersVisibility);
 const searchableBy = ref($i.searchableBy);
 
 const defaultNoteVisibility = computed(defaultStore.makeGetterSetter('defaultNoteVisibility'));
-const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchableBy'));
-const remenberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchableBy'));
+const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchbility'));
+const rememberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchbility'));
 const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
 
