@@ -323,14 +323,17 @@ export class AdvancedSearchService {
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
-		if (note.text === null && note.cw === null && note.userHost === null) {//リノートであり、ローカルユーザー
-			if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
-			await this.index(this.renoteIndex, note.id, {
-				renoteId: note.renoteId,
-				userId: note.userId,
-				createdAt: this.idService.parse(note.id).date.getTime(),
-			});
-			return;
+
+		if (note.text === null && note.cw === null && note.fileIds.length === 0 && note.renoteId) { //リノートであり
+			if (note.userHost === null) {//ローカルユーザー
+				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
+				await this.index(this.renoteIndex, note.id, {
+					renoteId: note.renoteId,
+					userId: note.userId,
+					createdAt: this.idService.parse(note.id).date.getTime(),
+				});
+				return;
+			}
 		}
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
@@ -533,17 +536,13 @@ export class AdvancedSearchService {
 				.select(['note'])
 				.where('note.id > :latestid', { latestid })
 				.andWhere(new Brackets( qb => {
-					qb.where(new Brackets(qb2 => {
-						qb2
-							.where('note."userHost" IS NULL');
-					})).orWhere(new Brackets(qb2 => {
-						qb2
-							.where('note."userHost" IS NOT NULL')
-							.andWhere(new Brackets(qb3 => {
-								qb3.where('note."searchableBy" != \'private\'')
-									.orWhere('note."searchableBy" IS NULL');
-							}));
-					}));
+					qb.where('note."userHost" IS NULL')
+						.orWhere(new Brackets(qb2 => {
+							qb2
+								.where('note."userHost" IS NOT NULL')
+								.andWhere('note."searchableBy" != \'private\'')
+								.orWhere('note."searchableBy" IS NULL');
+						}));
 				}))
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
@@ -708,7 +707,7 @@ export class AdvancedSearchService {
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
 		}
-		if (note.text == null && note.cw == null) {
+		if (note.text == null && note.cw == null && note.fileIds.length === 0 && note.renoteId) {
 			//Renoteを消しとく
 			await this.unindexById(this.renoteIndex, note.id);
 			return;
