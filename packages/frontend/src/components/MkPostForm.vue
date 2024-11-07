@@ -189,7 +189,7 @@ const textareaEl = shallowRef<HTMLTextAreaElement | null>(null);
 const cwInputEl = shallowRef<HTMLInputElement | null>(null);
 const hashtagsInputEl = shallowRef<HTMLInputElement | null>(null);
 const visibilityButton = shallowRef<HTMLElement>();
-const searchableByButton = shallowRef<HTMLElement>();
+const searchbilityButton = shallowRef<HTMLElement>();
 
 const posting = ref(false);
 const posted = ref(false);
@@ -533,7 +533,7 @@ function setVisibility() {
 function setSearchbility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/CPSearchbilityPicker.vue')), {
 		currentSearchbility: searchableBy.value,
-		src: searchableByButton.value,
+		src: searchbilityButton.value,
 	}, {
 		changeSearchbility: v => {
 			searchableBy.value = v;
