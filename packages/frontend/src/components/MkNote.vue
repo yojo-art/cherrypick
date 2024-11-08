@@ -84,6 +84,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						:emojiUrls="appearNote.emojis"
 						:enableEmojiMenu="true"
 						:enableEmojiMenuReaction="true"
+						:enableAnimatedMfm="enableAnimatedMfm"
 					/>
 					<div v-if="defaultStore.state.showTranslateButtonInNote && instance.translatorAvailable && $i && appearNote.text && isForeignLanguage" style="padding-top: 5px; color: var(--accent);">
 						<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click.stop="translate()">{{ i18n.ts.translateNote }}</button>
@@ -125,6 +126,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</button>
 				<div v-if="appearNote.renote" :class="$style.quote"><MkNoteSimple :note="appearNote.renote" :class="$style.quoteNote"/></div>
 			</div>
+		</div>
+		<div v-if="!$i && isAnimatedMfm" :class="$style.play_mfm_action">
+			<MkSwitch v-model="enableAnimatedMfm">
+				<template #label>{{ i18n.ts.enableAnimatedMfm }}</template>
+			</MkSwitch>
 		</div>
 		<div>
 			<MkReactionsViewer v-if="appearNote.reactionAcceptance !== 'likeOnly'" :note="appearNote" :maxNumber="16" @click.stop @contextmenu.prevent.stop @mockUpdateMyReaction="emitUpdReaction">
@@ -209,6 +215,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, inject, onMounted, ref, shallowRef, Ref, watch, provide } from 'vue';
 import * as mfm from 'cherrypick-mfm-js';
 import * as Misskey from 'cherrypick-js';
+import MkSwitch from '@/components/MkSwitch.vue';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteHeader from '@/components/MkNoteHeader.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
@@ -241,7 +248,7 @@ import { getNoteSummary } from '@/scripts/get-note-summary.js';
 import { MenuItem } from '@/types/menu.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { showMovedDialog } from '@/scripts/show-moved-dialog.js';
-import { shouldCollapsed, shouldMfmCollapsed } from '@/scripts/collapsed.js';
+import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@/scripts/collapsed.js';
 import { host } from '@/config.js';
 import { isEnabledUrlPreview, instance } from '@/instance.js';
 import { type Keymap } from '@/scripts/hotkey.js';
@@ -303,6 +310,8 @@ if (noteViewInterruptors.length > 0) {
 
 const isRenote = Misskey.note.isPureRenote(note.value);
 
+const enableAnimatedMfm = $i ? undefined : computed(defaultStore.makeGetterSetter('animatedMfm'));
+
 const rootEl = shallowRef<HTMLElement>();
 const menuButton = shallowRef<HTMLElement>();
 const renoteButton = shallowRef<HTMLElement>();
@@ -319,6 +328,7 @@ const parsed = computed(() => appearNote.value.text ? mfm.parse(appearNote.value
 const urls = computed(() => parsed.value ? extractUrlFromMfm(parsed.value).filter((url) => appearNote.value.renote?.url !== url && appearNote.value.renote?.uri !== url) : null);
 const isLong = shouldCollapsed(appearNote.value, urls.value ?? []);
 const isMFM = shouldMfmCollapsed(appearNote.value);
+const isAnimatedMfm = $i ? undefined : shouldAnimatedMfm(appearNote.value);
 const collapsed = ref(appearNote.value.cw == null && (isLong || (isMFM && defaultStore.state.collapseDefault) || (appearNote.value.files.length > 0 && defaultStore.state.allMediaNoteCollapse)));
 const isDeleted = ref(false);
 const muted = ref(checkMute(appearNote.value, $i?.mutedWords));
@@ -1303,5 +1313,12 @@ function emitUpdReaction(emoji: string, delta: number) {
 	margin-left: 8px;
 	opacity: .8;
 	font-size: 95%;
+}
+
+.play_mfm_action {
+	display: flex;
+	gap: 6px;
+	flex-wrap: wrap;
+	margin-top: 6px;
 }
 </style>

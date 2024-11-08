@@ -17,9 +17,8 @@ import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { DI } from '@/di-symbols.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
-import { MetaService } from '@/core/MetaService.js';
-import { UtilityService } from '@/core/UtilityService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { searchableTypes } from '@/types.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -134,7 +133,7 @@ export const meta = {
 		},
 	},
 } as const;
-
+const searchableTypesForTest = ['public', 'followersAndReacted', 'reactedOnly', 'private', null] as const;
 export const paramDef = {
 	type: 'object',
 	properties: {
@@ -144,6 +143,10 @@ export const paramDef = {
 		} },
 		cw: { type: 'string', nullable: true, minLength: 1, maxLength: 100 },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
+		searchableBy: {
+			type: 'string', nullable: true,
+			enum: process.env.NODE_ENV === 'test' ? searchableTypesForTest : searchableTypes,
+			default: process.env.NODE_ENV === 'test' ? null : 'public' },
 		disableRightClick: { type: 'boolean', default: false },
 		noExtractMentions: { type: 'boolean', default: false },
 		noExtractHashtags: { type: 'boolean', default: false },
@@ -388,6 +391,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					localOnly: false,
 					reactionAcceptance: ps.reactionAcceptance,
 					disableRightClick: ps.disableRightClick,
+					searchableBy: ps.searchableBy,
 					visibility: ps.visibility,
 					visibleUsers,
 					channel,

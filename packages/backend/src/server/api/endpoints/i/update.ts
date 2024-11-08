@@ -15,7 +15,7 @@ import type { UsersRepository, DriveFilesRepository, UserProfilesRepository, Pag
 import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { birthdaySchema, descriptionSchema, locationSchema, nameSchema } from '@/models/User.js';
 import type { MiUserProfile } from '@/models/UserProfile.js';
-import { notificationTypes } from '@/types.js';
+import { notificationTypes, searchableTypes } from '@/types.js';
 import { normalizeForSearch } from '@/misc/normalize-for-search.js';
 import { langmap } from '@/misc/langmap.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
@@ -34,9 +34,9 @@ import type { Config } from '@/config.js';
 import { safeForSql } from '@/misc/safe-for-sql.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
 import { notificationRecieveConfig } from '@/models/json-schema/user.js';
+import { IdService } from '@/core/IdService.js';
 import { ApiLoggerService } from '../../ApiLoggerService.js';
 import { ApiError } from '../../error.js';
-import { IdService } from "@/core/IdService.js";
 
 export const meta = {
 	tags: ['account'],
@@ -180,6 +180,8 @@ export const paramDef = {
 		},
 		isLocked: { type: 'boolean' },
 		isExplorable: { type: 'boolean' },
+		isIndexable: { type: 'boolean' },
+		searchableBy: { type: 'string', enum: ['public', 'followersAndReacted', 'reactedOnly', 'private'] },
 		hideOnlineStatus: { type: 'boolean' },
 		publicReactions: { type: 'boolean' },
 		carefulBot: { type: 'boolean' },
@@ -311,6 +313,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.birthday !== undefined) profileUpdates.birthday = ps.birthday;
 			if (ps.followingVisibility !== undefined) profileUpdates.followingVisibility = ps.followingVisibility;
 			if (ps.followersVisibility !== undefined) profileUpdates.followersVisibility = ps.followersVisibility;
+			if (ps.searchableBy !== undefined) updates.searchableBy = ps.searchableBy;
 
 			function checkMuteWordCount(mutedWords: (string[] | string)[], limit: number) {
 				// TODO: ちゃんと数える
@@ -353,6 +356,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.notificationRecieveConfig !== undefined) profileUpdates.notificationRecieveConfig = ps.notificationRecieveConfig;
 			if (typeof ps.isLocked === 'boolean') updates.isLocked = ps.isLocked;
 			if (typeof ps.isExplorable === 'boolean') updates.isExplorable = ps.isExplorable;
+			if (typeof ps.isIndexable === 'boolean') updates.isIndexable = ps.isIndexable;
 			if (typeof ps.hideOnlineStatus === 'boolean') updates.hideOnlineStatus = ps.hideOnlineStatus;
 			if (typeof ps.publicReactions === 'boolean') profileUpdates.publicReactions = ps.publicReactions;
 			if (typeof ps.isBot === 'boolean') updates.isBot = ps.isBot;
@@ -570,7 +574,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			});
 
 			const updatedProfile = await this.userProfilesRepository.findOneByOrFail({ userId: user.id });
-
+			const updatedUser = await this.usersRepository.findOneByOrFail({ id: user.id });
+			this.cacheService.userByIdCache.set(user.id, updatedUser);
 			this.cacheService.userProfileCache.set(user.id, updatedProfile);
 
 			// Publish meUpdated event

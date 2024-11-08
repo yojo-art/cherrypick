@@ -23,3 +23,18 @@ export function shouldMfmCollapsed(note: Misskey.entities.Note): boolean {
 		(note.text.includes('$[scale'))
 	);
 }
+
+export function shouldAnimatedMfm(note: Misskey.entities.Note): boolean {
+	return note.cw == null && note.text != null && (
+		(note.text.includes('$[tada')) ||
+		(note.text.includes('$[jelly')) ||
+		(note.text.includes('$[twitch')) ||
+		(note.text.includes('$[shake')) ||
+		(note.text.includes('$[spin')) ||
+		(note.text.includes('$[jump')) ||
+		(note.text.includes('$[bounce')) ||
+		(note.text.includes('$[rainbow')) ||
+		(note.text.includes('$[sparkle')) ||
+		(note.text.includes('$[fade'))
+	);
+}

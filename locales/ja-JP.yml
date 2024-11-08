@@ -139,6 +139,8 @@ copyFolderId: "フォルダーIDをコピー"
 copyProfileUrl: "プロフィールURLをコピー"
 searchUser: "ユーザーを検索"
 searchThisUsersNotes: "ユーザーのノートを検索"
+searchThisReaction: "このリアクションで検索"
+partialMatch: "部分一致"
 reply: "返信"
 loadMore: "もっと見る"
 showMore: "もっと見る"
@@ -148,6 +150,7 @@ receiveFollowRequest: "フォローリクエストされました"
 followRequestAccepted: "フォローが承認されました"
 mention: "メンション"
 mentions: "あなた宛て"
+newNotes: "新規投稿"
 directNotes: "ダイレクト投稿"
 importAndExport: "インポートとエクスポート"
 import: "インポート"
@@ -214,6 +217,7 @@ overwriteFromPinnedEmojisForReaction: "リアクション設定から上書き�
 overwriteFromPinnedEmojis: "全般設定から上書きする"
 reactionSettingDescription2: "ドラッグして並び替え、クリックして削除、＋を押して追加します。"
 rememberNoteVisibility: "公開範囲を記憶する"
+rememberNoteSearchbility: "検索可能範囲を記憶する"
 attachCancel: "添付取り消し"
 deleteFile: "ファイルを削除"
 markAsSensitive: "センシティブとして設定"
@@ -730,7 +734,9 @@ invisibleNote: "非公開の投稿"
 enableInfiniteScroll: "自動でもっと見る"
 visibility: "公開範囲"
 poll: "アンケート"
+schedulePost: "予約投稿"
 useCw: "内容を隠す"
+schedulePostList: "予約投稿一覧"
 enablePlayer: "プレイヤーを開く"
 disablePlayer: "プレイヤーを閉じる"
 expandTweet: "ポストを展開する"
@@ -876,6 +882,10 @@ thisIsExperimentalFeature: "これは実験的な機能です。仕様が変更�
 developer: "開発者"
 makeExplorable: "アカウントを見つけやすくする"
 makeExplorableDescription: "オフにすると、「みつける」にアカウントが載らなくなります。"
+makeIndexable: "ノートを見つけやすくする"
+makeIndexableDescription: "オフにすると、あなたのノートが検索で表示されにくくなります。\nリノートやリアクションされているノートは表示されます。\nリモートのサーバーが対応していない場合設定は無視されます。"
+makeSearchableBy: "ノート検索の許可"
+makeSearchableByDescription: "ノートを検索できる人を制限できます。\nノートにも設定した場合ノートの設定が優先されます。\nリモートのサーバーが対応していない場合設定が無視されるか、\nノートを見つけやすくする値が使われます。"
 showGapBetweenNotesInTimeline: "タイムラインのノートを離して表示"
 duplicate: "複製"
 left: "左"
@@ -1990,6 +2000,7 @@ _role:
     ltlAvailable: "ローカルタイムラインの閲覧"
     canPublicNote: "パブリック投稿の許可"
     canEditNote: "ノートの編集"
+    scheduleNoteMax: "予約投稿の最大数"
     mentionMax: "ノート内の最大メンション数"
     canInvite: "サーバー招待コードの発行"
     inviteLimit: "招待コードの作成可能数"
@@ -2452,6 +2463,8 @@ _permissions:
   "read:mutes": "ミュートを見る"
   "write:mutes": "ミュートを操作する"
   "write:notes": "ノートを作成・削除する"
+  "read:notes-schedule": "予約投稿を見る"
+  "write:notes-schedule": "予約投稿を作成・削除する"
   "read:notifications": "通知を見る"
   "write:notifications": "通知を操作する"
   "read:reactions": "リアクションを見る"
@@ -2812,8 +2825,15 @@ _notification:
   reactedBySomeUsers: "{n}人がリアクションしました"
   likedBySomeUsers: "{n}人がいいねしました"
   renotedBySomeUsers: "{n}人がリノートしました"
+  notedBySomeUsers: "{n}件の新しい投稿"
   followedBySomeUsers: "{n}人にフォローされました"
   flushNotification: "通知の履歴をリセットする"
+  _scheduleNote:
+    unknown: "原因は不明です"
+    renoteTargetNotFound: "引用元がありません"
+    channelTargetNotFound: "対象のチャンネルがありません"
+    replyTargetNotFound: "返信先がありません"
+    invalidFilesCount: "添付ファイルがありません"
 
   _types:
     all: "すべて"
@@ -2830,6 +2850,7 @@ _notification:
     groupInvited: "グループに招待された"
     roleAssigned: "ロールが付与された"
     achievementEarned: "実績の獲得"
+    scheduleNote: "予約投稿に失敗"
     app: "連携アプリからの通知"
 
   _actions:
@@ -2968,6 +2989,7 @@ _moderationLogTypes:
   deleteFlash: "Playを削除"
   deleteGalleryPost: "ギャラリーの投稿を削除"
   updateOfficialTags: "公式タグ一覧を更新"
+  promoteQueue: "ジョブキューを再試行"
 
 _fileViewer:
   title: "ファイルの詳細"
@@ -3156,9 +3178,15 @@ _advancedSearch:
     toggleDate: "日時を指定する"
     toggleAdvancedSearch: "高度な検索を有効にする"
     toggleQuote: "引用を除外する"
+    toggleStrictSearch: "表記ゆれ検索を無効にする"
   _specifyDate:
     startDate: "から"
     endDate: "まで"
+  _followingFilter:
+    title: "フォローフィルター"
+    combined: "フィルタしない"
+    following: "フォロー中"
+    notFollowing: "フォロー外"
   _description:
     other: "その他の設定"
   _fileNsfwOption:
@@ -3167,6 +3195,11 @@ _advancedSearch:
     withOutSensitive: "除外"
     includeSensitive: "含むもの"
     sensitiveOnly: "全てセンシティブ"
+  _reactionSearch:
+    title: "リアクション検索"
+    include: "リアクションピッカー"
+    exclude: "除外リアクションピッカー"
+
 
 _searchOrApShow:
   question: "照会を行いますか？"
@@ -3174,12 +3207,12 @@ _searchOrApShow:
   lookup: "照会"
 
 _reIndexOpenSearch:
-  title: "全てのノートを再インデックスする"
-  quesion: "全てのノートを再インデックスしますか？"
+  title: "再インデックスする"
+  quesion: "再インデックス対象"
 
 _reCreateOpenSearchIndex:
-  title: "現在のインデックスを破棄して再インデックスする"
-  quesion: "現在のインデックスを破棄して全てのノートを再インデックスしますか？"
+  title: "ノートインデックスを破棄して再作成する"
+  quesion: "再作成しますか？、現時点のノートインデックスは破棄されます。"
 
 _dice:
   rollDice: "サイコロを振る"
@@ -3194,3 +3227,10 @@ _renoteConfirm:
   title: "このノートはリノートしたばかりです"
   caption: "リノートしますか？"
   confirm: 'リノートする'
+_searchbility:
+    tooltip: "検索可能範囲"
+    canSearch: "が検索できます"
+    public: "すべてのユーザー"
+    followersAndReacted: "フォロワーと反応した人"
+    reactedOnly: "反応した人"
+    private: "自分だけ"

@@ -63,6 +63,8 @@ import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { isReply } from '@/misc/is-reply.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { MiNoteSchedule } from '@/models/_.js';
+import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 
@@ -139,11 +141,13 @@ type Option = {
 	files?: MiDriveFile[] | null;
 	poll?: IPoll | null;
 	event?: IEvent | null;
+	schedule?: MiNoteSchedule | null;
 	localOnly?: boolean | null;
 	reactionAcceptance?: MiNote['reactionAcceptance'];
 	disableRightClick?: boolean | null;
 	cw?: string | null;
-	visibility?: string;
+	visibility?: string | null;
+	searchableBy: string | null,
 	visibleUsers?: MinimumUser[] | null;
 	channel?: MiChannel | null;
 	apMentions?: MinimumUser[] | null;
@@ -237,33 +241,17 @@ export class NoteCreateService implements OnApplicationShutdown {
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
 	}, data: Option, silent = false): Promise<MiNote> {
-		// チャンネル外にリプライしたら対象のスコープに合わせる
-		// (クライアントサイドでやっても良い処理だと思うけどとりあえずサーバーサイドで)
-		if (data.reply && data.channel && data.reply.channelId !== data.channel.id) {
-			if (data.reply.channelId) {
-				data.channel = await this.channelsRepository.findOneBy({ id: data.reply.channelId });
-			} else {
-				data.channel = null;
-			}
-		}
-
-		// チャンネル内にリプライしたら対象のスコープに合わせる
-		// (クライアントサイドでやっても良い処理だと思うけどとりあえずサーバーサイドで)
-		if (data.reply && (data.channel == null) && data.reply.channelId) {
-			data.channel = await this.channelsRepository.findOneBy({ id: data.reply.channelId });
-		}
+		//このフォークではチャンネルの存在を認めない
+		data.channel = undefined;
 
 		if (data.createdAt == null) data.createdAt = new Date();
 		if (data.visibility == null) data.visibility = 'public';
 		if (data.localOnly == null) data.localOnly = false;
 		if (data.disableRightClick == null) data.disableRightClick = false;
-		if (data.channel != null) data.visibility = 'public';
-		if (data.channel != null) data.visibleUsers = [];
-		if (data.channel != null) data.localOnly = true;
 
 		const meta = await this.metaService.fetch();
 
-		if (data.visibility === 'public' && data.channel == null) {
+		if (data.visibility === 'public') {
 			const sensitiveWords = meta.sensitiveWords;
 			if (this.utilityService.isKeyWordIncluded(data.cw ?? data.text ?? '', sensitiveWords)) {
 				data.visibility = 'home';
@@ -400,7 +388,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
 		}
-
+		//このフォークではローカルのみ投稿を認めない
+		data.localOnly = false;
 		const note = await this.insertNote(user, data, tags, emojis, mentionedUsers);
 
 		setImmediate('post created', { signal: this.#shutdownController.signal }).then(
@@ -436,12 +425,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 			reactionAcceptance: data.reactionAcceptance,
 			disableRightClick: data.disableRightClick!,
 			visibility: data.visibility as any,
+			searchableBy: data.searchableBy as any,
 			visibleUserIds: data.visibility === 'specified'
 				? data.visibleUsers
 					? data.visibleUsers.map(u => u.id)
 					: []
 				: [],
-
 			attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
 
 			// 以下非正規化データ
@@ -568,7 +557,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.saveReply(data.reply, note);
 		}
 
-		if (data.reply == null) {
+		if (data.reply == null && !silent) {
 			// TODO: キャッシュ
 			this.followingsRepository.findBy({
 				followeeId: user.id,
@@ -753,7 +742,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 
 		// Register to search database
-		this.index(note);
+		if (note.text !== null && note.cw !== null) this.searchService.indexNote(note);//MeiliSearch
+		this.advancedSearchService.indexNote(note, data.poll?.choices ?? undefined); //OpenSearch
 	}
 
 	@bindThis
@@ -843,14 +833,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			: this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 
 		return this.apRendererService.addContext(content);
-	}
-
-	@bindThis
-	private index(note: MiNote) {
-		if (note.text == null && note.cw == null) return;
-
-		this.searchService.indexNote(note);
-		this.advancedSearchService.indexNote(note);
 	}
 
 	@bindThis

@@ -1,3 +1,103 @@
+## 1.1.0
+Cherrypick 4.11.1
+
+### Release Date
+2024-11-08
+
+### Note
+
+ノートが多数ある場合**マイグレーションに長時間かかることがあります**  
+
+docker環境でノートレコードが多数(数百万件)ある場合**一時的に** compose.ymlの`healthcheck`の`start_period`を大きめに指定してください
+```
+#サービスのwebに追記
+    healthcheck:
+      test: ["/bin/bash", "/misskey/healthcheck.sh"]
+      interval: "5s"
+      retries: 20
+      start_period: "300s"#5分
+```
+インデックス構造が変わったためノートインデックスの再作成が必要です。
+リアクションや投票が途中からインデックスにされるので再インデックスをおすすめします。
+### General
+
+- Fix: 照会かリモートユーザーの投稿取得で作成されたノートの場合通知を発行しないように
+- Feat: 検索許可制限、SearchableByに対応 [#519](https://github.com/yojo-art/cherrypick/pull/519)
+- Feat: 検索許可制限、mastodonのindexableに対応 [#449](https://github.com/yojo-art/cherrypick/pull/449),[#502](https://github.com/yojo-art/cherrypick/pull/502),[#504](https://github.com/yojo-art/cherrypick/pull/504),[#507](https://github.com/yojo-art/cherrypick/pull/507)
+  - 検索で表示される条件を制限できるようになります
+  - 設定→プライバシーより設定できます
+  - 設定されている場合対応しているサーバーでは、以下のことをしたユーザーのみ検索できます
+    - リアクション
+    - リノート
+    - クリップ
+    - お気に入り
+    - 返信
+    - 投票
+	- コントロールパネル→その他で(クリップ、お気に入り、投票が)再インデックスできるようになりました
+- Feat: 予約投稿 [#483](https://github.com/yojo-art/cherrypick/pull/483)
+	- based-on
+ 		- https://github.com/Type4ny-Project/Type4ny/commit/e133a6b6a4bee78c2598deaad087712b2e8e26ed
+  		- https://github.com/Type4ny-Project/Type4ny/commit/387faf55cf8b98918bc6c83fd8377d75408d7d1a
+  		- https://github.com/Type4ny-Project/Type4ny/commit/540f531b6d10e5419e63012ad63a637d4d7d084a
+  		- https://github.com/Type4ny-Project/Type4ny/commit/12b7ec30461eee0c80abf7ecc965ed904bb0edee
+  		- https://github.com/Type4ny-Project/Type4ny/commit/d6fb3c3342da111520eda6b18837f17fb3b50b5e
+  		- https://github.com/Type4ny-Project/Type4ny/commit/9bc6d8024fcab8855fb3e2aa86bb1d74d853eb70
+  		- https://github.com/Type4ny-Project/Type4ny/commit/28ee4d47c0b240db6eb30e14291e44862b1f7484
+- Enhance: 連合一覧のソートにリバーシのバージョンを追加 [#436](https://github.com/yojo-art/cherrypick/pull/436)
+- Enhance: リモートのクリップをお気に入りに登録できるように [#438](https://github.com/yojo-art/cherrypick/pull/438)
+- Enhance: リモートのPlayを遊べるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
+- Enhance: リモートのPlayをお気に入りに登録できるように [#447](https://github.com/yojo-art/cherrypick/pull/447)
+- Enhance: ノートにつけられたリアクションを対象にした検索ができるように [#496](https://github.com/yojo-art/cherrypick/pull/496)
+  - Opensearchのみ対応 
+  - Opensearchの設定で` reactionSearchLocalOnly: true`にすることでリモートのカスタム絵文字リアクションをインデックス対象外にできます
+- Enhance: 高度な検索でフォロー中/フォロー外を検索条件にできるように [#503](https://github.com/yojo-art/cherrypick/pull/503)
+- Enhance(Opensearch): 表記ゆれがヒットしないようにするオプションを追加 [#498](https://github.com/yojo-art/cherrypick/pull/498)
+
+### Client
+- Fix: ユーザーページでリアクション履歴が閲覧できる状態の時にリアクションを選択するとユーザーの投稿が表示されてしまうの修正 [#429](https://github.com/yojo-art/cherrypick/pull/429)
+- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
+- Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
+- Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正 [#497](https://github.com/yojo-art/cherrypick/pull/497)
+- Fix: リモートから添付されてきたクリップURLにホスト情報があると二重になる不具合を修正 [#460](https://github.com/yojo-art/cherrypick/pull/460)
+- Fix: リモートクリップ説明文がローカル仕様になってる問題の修正 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Fix: ユーザー概要の「ファイル」の挙動を通常の添付ファイルに合わせる [#472](https://github.com/yojo-art/cherrypick/pull/472)
+- Fix: チャットの絵文字ピッカーが正しく入力できないことがあるのを修正 [#497](https://github.com/yojo-art/cherrypick/pull/497)
+- Fix: サーバー情報画面で公式タグを選択するとヘッダが公式タグのままになる不具合を修正 [#527](https://github.com/yojo-art/cherrypick/pull/527)
+- Enhance: チャートの連合グラフで割合を表示 [#437](https://github.com/yojo-art/cherrypick/pull/437)
+- Enhance: お気に入り登録クリップの一覧画面から登録解除できるように [#448](https://github.com/yojo-art/cherrypick/pull/448)
+- Enhance: 高度な検索でもクエリ文字列を使えるように [#511](https://github.com/yojo-art/cherrypick/pull/511)
+  - `/search?type=anote`
+  - `q` 通常検索と同じ
+  - `userId` 通常検索と同じ
+  - `username` 通常検索と同じ
+  - `host` 通常検索と同じ
+  - `fileAttach`添付ファイル有無 あり:`file-only`なし:`no-file`
+  - `fileSensitive`添付ファイルセンシティブ状態 あり:`includeSensitive` なし:`withOutSensitive`　センシティブのみ`sensitiveOnly`
+  - `reactions` リアクション検索ボックス
+  - `reactionsExclude` リアクション検索ボックス(除外)
+  - `excludeReply` リプライ除外 true/false
+  - `excludeCw` CW除外 true/false
+  - `excludeQuote` 引用除外 true/false
+  - `strictSearch` 表記ゆれ検索有効 true/false
+- Enhance: 非ログイン時に動きのあるMFMを動かすか選べるように [#508](https://github.com/yojo-art/cherrypick/pull/508)
+- Fix: デフォルトの公開範囲から連合なしを削除 [#532](https://github.com/yojo-art/cherrypick/pull/532)
+- Fix: すべてのキューを今すぐ再試行するとモデログにロケールの無い項目が出現する問題を修正 [#534](https://github.com/yojo-art/cherrypick/pull/534)
+
+### Server
+- Change: `notes/advanced-search`で`query`が必須ではなくなりました [#496](https://github.com/yojo-art/cherrypick/pull/496)
+- Change: 絵文字を登録する際にシステムユーザーとして再アップロードするように   [#510](https://github.com/yojo-art/cherrypick/pull/510)
+  - (Cherry-picked from https://github.com/team-shahu/misskey/pull/11)
+- Change: `api/admin/recreate-index`では再インデックスをしないように [#531](https://github.com/yojo-art/cherrypick/pull/531)
+- Fix: 高度な検索でノート本文に含まれないタグが検索対象外なのを修正 [#530](https://github.com/yojo-art/cherrypick/pull/530)
+- Fix: Opensearch利用時ファイルのセンシティブ状態が変更されたとき変更されるように [#501](https://github.com/yojo-art/cherrypick/pull/501)
+- Fix: (Opensearch利用時)高度な検索でリプライ除外にするとエラーがでる [#449](https://github.com/yojo-art/cherrypick/pull/449)
+- Fix: ノート編集時に3001文字以上の場合編集できない問題を修正 [#505](https://github.com/yojo-art/cherrypick/pull/505)
+- Fix: 通知APIがページ境界で重複する問題の修正 [#509](https://github.com/yojo-art/cherrypick/pull/509)
+- Enhance: リモートユーザーの`/api/clips/show`と`/api/users/clips`の応答にemojisを追加 [#466](https://github.com/yojo-art/cherrypick/pull/466)
+- Enhance: `api/emoji`で`host`を指定できるように [#514](https://github.com/yojo-art/cherrypick/pull/514)
+
+
 ## 1.0.1
 Cherrypick 4.11.1
 
@@ -13,7 +113,6 @@ Cherrypick 4.11.1
 ### Server
 - Change: 溢れそうなチャートの型を大きいものに変更 [#417](https://github.com/yojo-art/cherrypick/pull/417)
 
-### Misc
 
 ## 1.0.0
 Cherrypick 4.11.1
@@ -34,7 +133,6 @@ Cherrypick 4.11.1
 ### Server
 -
 
-### Misc
 
 ## 0.6.0
 Cherrypick 4.11.1
@@ -66,8 +164,6 @@ Cherrypick 4.11.1
 - Fix: 絵文字インポート時にすでにファイルがあるならそれを使うように [#362](https://github.com/yojo-art/cherrypick/pull/362)
 - Enhance: リバーシ連合の対応状況をnodeinfoに追加 [#379](https://github.com/yojo-art/cherrypick/pull/379)
 
-### Misc
-
 
 ## 0.5.2
 Cherrypick 4.10.0-rc.3
@@ -89,7 +185,6 @@ Cherrypick 4.10.0-rc.3
 ### Server
 - Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正 [#323](https://github.com/yojo-art/cherrypick/pull/323)
 
-### Misc
 
 ## 0.5.1
 Cherrypick 4.10.0-rc.3
@@ -106,7 +201,6 @@ Cherrypick 4.10.0-rc.3
 ### Server
 - Fix: APリクエストannounceNoteを受け取れない問題を修正  [#310](https://github.com/yojo-art/cherrypick/pull/310)
 
-### Misc
 
 ## 0.5.0
 Cherrypick 4.10.0-rc.3
@@ -133,7 +227,6 @@ Cherrypick 4.10.0-rc.3
   - ./config/default.ymlファイルの変更が必要です
 -	Enhance: 高度な検索に検索のオフセットを指定できるように [#285](https://github.com/yojo-art/cherrypick/pull/285)
 
-### Misc
 
 ## 0.4.1
 Cherrypick 4.9.0
@@ -152,7 +245,6 @@ Cherrypick 4.9.0
 ### Server
 -
 
-### Misc
 
 ## 0.4.0
 Cherrypick 4.9.0
@@ -173,8 +265,6 @@ Cherrypick 4.9.0
 
 ### Server
 -
-
-### Misc
 
 
 ## 0.3.4
@@ -198,7 +288,6 @@ Cherrypick 4.9.0-beta.2
   -  検索文に一致していてもノートが出てこないことがあるのを修正しました
   -  現在のインデックスを破棄して全ノートを再インデックスする必要があります
 
-### Misc
 
 ## 0.3.3
 Cherrypick 4.9.0-beta.2
@@ -218,7 +307,7 @@ Cherrypick 4.9.0-beta.2
 ### Server
 - feat: 通知を個別削除するAPI  
 (Cherry-picked from https://github.com/1673beta/cherrypick/pull/76)
-### Misc
+
 
 ## 0.3.2
 Cherrypick 4.9.0-beta.2
@@ -235,7 +324,6 @@ Cherrypick 4.9.0-beta.2
 ### Server
 - Fix: ステータスページURLが返ってこない問題を修正
 
-### Misc
 
 ## 0.3.1
 Cherrypick 4.9.0-beta.2

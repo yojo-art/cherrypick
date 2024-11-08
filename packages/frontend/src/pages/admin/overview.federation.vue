@@ -10,12 +10,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-if="topSubInstancesForPie && topPubInstancesForPie" class="pies">
 			<div class="pie deliver _panel">
 				<div class="title">Sub</div>
-				<XPie :data="topSubInstancesForPie" class="chart"/>
+				<XPie :data="topSubInstancesForPie" :total="totalFollowersCount" class="chart"/>
 				<div class="subTitle">Top 10</div>
 			</div>
 			<div class="pie inbox _panel">
 				<div class="title">Pub</div>
-				<XPie :data="topPubInstancesForPie" class="chart"/>
+				<XPie :data="topPubInstancesForPie" :total="totalFollowingCount" class="chart"/>
 				<div class="subTitle">Top 10</div>
 			</div>
 		</div>
@@ -55,6 +55,8 @@ import MkNumberDiff from '@/components/MkNumberDiff.vue';
 import { i18n } from '@/i18n.js';
 import { useChartTooltip } from '@/scripts/use-chart-tooltip.js';
 
+const totalFollowersCount = ref<number | undefined>(undefined);
+const totalFollowingCount = ref<number | undefined>(undefined);
 const topSubInstancesForPie = ref<InstanceForPie[] | null>(null);
 const topPubInstancesForPie = ref<InstanceForPie[] | null>(null);
 const federationPubActive = ref<number | null>(null);
@@ -73,6 +75,8 @@ onMounted(async () => {
 	federationSubActiveDiff.value = chart.subActive[0] - chart.subActive[1];
 
 	misskeyApiGet('federation/stats', { limit: 10 }).then(res => {
+		totalFollowersCount.value = res.topSubInstances.reduce((partialSum, a) => partialSum + a.followersCount, 0) + res.otherFollowersCount;
+		totalFollowingCount.value = res.topPubInstances.reduce((partialSum, a) => partialSum + a.followingCount, 0) + res.otherFollowingCount;
 		topSubInstancesForPie.value = [
 			...res.topSubInstances.map(x => ({
 				name: x.host,

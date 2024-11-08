@@ -49,8 +49,9 @@ let self = props.url.startsWith(local);
 let url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
 
-if (props.host === url.host && url.pathname.startsWith('/clips/')) {
-	url = new URL(local + url.pathname + '@' + props.host);
+if (props.host === url.host && (url.pathname.startsWith('/clips/') || url.pathname.startsWith('/play/'))) {
+	let split = url.pathname.split('@');
+	url = new URL(local + split[0] + '@' + (split.length >= 2 ? split[1] : props.host));
 	self = true;
 }
 const url_string = url.toString();

@@ -24,6 +24,7 @@ import {
 	MiChannelFollowing,
 	MiClip,
 	MiClipFavorite,
+	MiClipFavoriteRemote,
 	MiClipNote,
 	MiDriveFile,
 	MiDriveFolder,
@@ -31,6 +32,7 @@ import {
 	MiEvent,
 	MiFlash,
 	MiFlashLike,
+	MiFlashLikeRemote,
 	MiFollowing,
 	MiFollowRequest,
 	MiGalleryLike,
@@ -84,6 +86,7 @@ import {
 	MiUserSecurityKey,
 	MiWebhook,
 	MiOfficialTag,
+	MiNoteSchedule,
 } from './_.js';
 import type { Provider } from '@nestjs/common';
 import type { DataSource } from 'typeorm';
@@ -97,6 +100,12 @@ const $usersRepository: Provider = {
 const $notesRepository: Provider = {
 	provide: DI.notesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiNote).extend(miRepository as MiRepository<MiNote>),
+	inject: [DI.db],
+};
+
+const $noteScheduleRepository: Provider = {
+	provide: DI.noteScheduleRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiNoteSchedule).extend(miRepository as MiRepository<MiNoteSchedule>),
 	inject: [DI.db],
 };
 
@@ -412,6 +421,12 @@ const $clipFavoritesRepository: Provider = {
 	inject: [DI.db],
 };
 
+const $clipFavoritesRemoteRepository: Provider = {
+	provide: DI.clipFavoritesRemoteRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiClipFavoriteRemote).extend(miRepository as MiRepository<MiClipFavoriteRemote>),
+	inject: [DI.db],
+};
+
 const $antennasRepository: Provider = {
 	provide: DI.antennasRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiAntenna).extend(miRepository as MiRepository<MiAntenna>),
@@ -502,6 +517,12 @@ const $flashLikesRepository: Provider = {
 	inject: [DI.db],
 };
 
+const $flashLikesRemoteRepository: Provider = {
+	provide: DI.flashLikesRemoteRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiFlashLikeRemote).extend(miRepository as MiRepository<MiFlashLikeRemote>),
+	inject: [DI.db],
+};
+
 const $rolesRepository: Provider = {
 	provide: DI.rolesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiRole).extend(miRepository as MiRepository<MiRole>),
@@ -549,6 +570,7 @@ const $officialTagRepository: Provider = {
 	providers: [
 		$usersRepository,
 		$notesRepository,
+		$noteScheduleRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
 		$appsRepository,
@@ -601,6 +623,7 @@ const $officialTagRepository: Provider = {
 		$clipsRepository,
 		$clipNotesRepository,
 		$clipFavoritesRepository,
+		$clipFavoritesRemoteRepository,
 		$antennasRepository,
 		$promoNotesRepository,
 		$promoReadsRepository,
@@ -618,6 +641,7 @@ const $officialTagRepository: Provider = {
 		$roleAssignmentsRepository,
 		$flashsRepository,
 		$flashLikesRepository,
+		$flashLikesRemoteRepository,
 		$userMemosRepository,
 		$abuseReportResolversRepository,
 		$bubbleGameRecordsRepository,
@@ -627,6 +651,7 @@ const $officialTagRepository: Provider = {
 	exports: [
 		$usersRepository,
 		$notesRepository,
+		$noteScheduleRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
 		$appsRepository,
@@ -679,6 +704,7 @@ const $officialTagRepository: Provider = {
 		$clipsRepository,
 		$clipNotesRepository,
 		$clipFavoritesRepository,
+		$clipFavoritesRemoteRepository,
 		$antennasRepository,
 		$promoNotesRepository,
 		$promoReadsRepository,
@@ -696,6 +722,7 @@ const $officialTagRepository: Provider = {
 		$roleAssignmentsRepository,
 		$flashsRepository,
 		$flashLikesRepository,
+		$flashLikesRemoteRepository,
 		$userMemosRepository,
 		$abuseReportResolversRepository,
 		$bubbleGameRecordsRepository,

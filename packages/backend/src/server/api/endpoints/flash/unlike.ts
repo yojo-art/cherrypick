@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { FlashsRepository, FlashLikesRepository } from '@/models/_.js';
+import type { FlashsRepository, FlashLikesRepository, FlashLikesRemoteRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '../../error.js';
@@ -36,7 +36,7 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		flashId: { type: 'string', format: 'misskey:id' },
+		flashId: { type: 'string' },
 	},
 	required: ['flashId'],
 } as const;
@@ -46,11 +46,29 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.flashsRepository)
 		private flashsRepository: FlashsRepository,
+		@Inject(DI.flashLikesRemoteRepository)
+		private flashLikesRemoteRepository: FlashLikesRemoteRepository,
 
 		@Inject(DI.flashLikesRepository)
 		private flashLikesRepository: FlashLikesRepository,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			const flashIdArray = ps.flashId.split('@');
+			const host = flashIdArray.length > 1 ? flashIdArray[1] : null;
+			if (host) {
+				const exist = await this.flashLikesRemoteRepository.findOneBy({
+					flashId: flashIdArray[0],
+					host: host,
+					userId: me.id,
+				});
+
+				if (exist == null) {
+					throw new ApiError(meta.errors.notLiked);
+				}
+
+				await this.flashLikesRemoteRepository.delete(exist.id);
+				return;
+			}
 			const flash = await this.flashsRepository.findOneBy({ id: ps.flashId });
 			if (flash == null) {
 				throw new ApiError(meta.errors.noSuchFlash);

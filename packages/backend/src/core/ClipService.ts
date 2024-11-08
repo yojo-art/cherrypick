@@ -5,13 +5,23 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
+import got, * as Got from 'got';
+import * as Redis from 'ioredis';
+import type { Config } from '@/config.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { awaitAll } from '@/misc/prelude/await-all.js';
+import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
 import { DI } from '@/di-symbols.js';
 import type { ClipsRepository, MiNote, MiClip, ClipNotesRepository, NotesRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
-import type { MiLocalUser } from '@/models/User.js';
+import type { MiLocalUser, MiUser } from '@/models/User.js';
+import { Packed } from '@/misc/json-schema.js';
+import { emojis } from '@/misc/remote-api-utils.js';
+import { AdvancedSearchService } from './AdvancedSearchService.js';
 
 @Injectable()
 export class ClipService {
@@ -20,8 +30,13 @@ export class ClipService {
 	public static AlreadyAddedError = class extends Error {};
 	public static TooManyClipNotesError = class extends Error {};
 	public static TooManyClipsError = class extends Error {};
+	public static FailedToResolveRemoteUserError = class extends Error {};
 
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
+		@Inject(DI.redisForRemoteApis)
+		private redisForRemoteApis: Redis.Redis,
 		@Inject(DI.clipsRepository)
 		private clipsRepository: ClipsRepository,
 
@@ -31,8 +46,12 @@ export class ClipService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		private httpRequestService: HttpRequestService,
+		private userEntityService: UserEntityService,
+		private remoteUserResolveService: RemoteUserResolveService,
 		private roleService: RoleService,
 		private idService: IdService,
+		private advancedSearchService: AdvancedSearchService,
 	) {
 	}
 
@@ -86,6 +105,7 @@ export class ClipService {
 		}
 
 		await this.clipsRepository.delete(clip.id);
+		await this.advancedSearchService.unindexUserClip(clip.id);
 	}
 
 	@bindThis
@@ -107,11 +127,21 @@ export class ClipService {
 		}
 
 		try {
+			const ID = this.idService.gen();
 			await this.clipNotesRepository.insert({
-				id: this.idService.gen(),
+				id: ID,
 				noteId: noteId,
 				clipId: clip.id,
 			});
+
+			await this.advancedSearchService.indexFavorite(
+				ID,
+				{
+					clipId: clip.id,
+					noteId: noteId,
+					userId: me.id,
+				},
+			);
 		} catch (e: unknown) {
 			if (e instanceof QueryFailedError) {
 				if (isDuplicateKeyValueError(e)) {
@@ -153,6 +183,103 @@ export class ClipService {
 			clipId: clip.id,
 		});
 
+		await this.advancedSearchService.unindexFavorite(undefined, noteId, clip.id, me.id);
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);
+	}
+	@bindThis
+	async showRemoteOrDummy(clipId: string, author: MiUser|null) : Promise<Packed<'Clip'>> {
+		if (author == null) {
+			throw new Error();
+		}
+		try {
+			if (author.host == null) {
+				throw new Error();
+			}
+			return await this.showRemote(clipId, author.host);
+		} catch {
+			return await awaitAll({
+				id: clipId + '@' + (author.host ? author.host : ''),
+				createdAt: new Date(0).toISOString(),
+				lastClippedAt: new Date(0).toISOString(),
+				userId: author.id,
+				user: this.userEntityService.pack(author),
+				name: 'Unavailable',
+				description: '',
+				isPublic: true,
+				favoritedCount: 0,
+				isFavorited: false,
+				notesCount: 0,
+			});
+		}
+	}
+	@bindThis
+	public async showRemote(
+		clipId:string,
+		host:string,
+		fetch_emoji = false,
+	) : Promise<Packed<'Clip'>> {
+		const cache_key = 'clip:show:' + clipId + '@' + host;
+		const cache_value = await this.redisForRemoteApis.get(cache_key);
+		let remote_json = null;
+		if (cache_value === null) {
+			const timeout = 30 * 1000;
+			const operationTimeout = 60 * 1000;
+			const url = 'https://' + host + '/api/clips/show';
+			const res = got.post(url, {
+				headers: {
+					'User-Agent': this.config.userAgent,
+					'Content-Type': 'application/json; charset=utf-8',
+				},
+				timeout: {
+					lookup: timeout,
+					connect: timeout,
+					secureConnect: timeout,
+					socket: timeout,	// read timeout
+					response: timeout,
+					send: timeout,
+					request: operationTimeout,	// whole operation timeout
+				},
+				agent: {
+					http: this.httpRequestService.httpAgent,
+					https: this.httpRequestService.httpsAgent,
+				},
+				http2: true,
+				retry: {
+					limit: 1,
+				},
+				enableUnixSockets: false,
+				body: JSON.stringify({
+					clipId,
+				}),
+			});
+			remote_json = await res.text();
+			const redisPipeline = this.redisForRemoteApis.pipeline();
+			redisPipeline.set(cache_key, remote_json);
+			redisPipeline.expire(cache_key, 10 * 60);
+			await redisPipeline.exec();
+		} else {
+			remote_json = cache_value;
+		}
+		const remote_clip = JSON.parse(remote_json);
+		if (remote_clip.user == null || remote_clip.user.username == null) {
+			throw new ClipService.FailedToResolveRemoteUserError();
+		}
+		const user = await this.remoteUserResolveService.resolveUser(remote_clip.user.username, host).catch(err => {
+			throw new ClipService.FailedToResolveRemoteUserError();
+		});
+		return await awaitAll({
+			id: clipId + '@' + host,
+			createdAt: remote_clip.createdAt ? remote_clip.createdAt : null,
+			lastClippedAt: remote_clip.lastClippedAt ? remote_clip.lastClippedAt : null,
+			userId: user.id,
+			user: this.userEntityService.pack(user),
+			name: remote_clip.name,
+			description: remote_clip.description,
+			isPublic: true,
+			favoritedCount: remote_clip.favoritedCount,
+			isFavorited: false,
+			notesCount: remote_clip.notesCount,
+			emojis: (remote_clip.description && fetch_emoji) ? emojis(this.config, this.httpRequestService, this.redisForRemoteApis, host, remote_clip.description) : {},
+		});
 	}
 }

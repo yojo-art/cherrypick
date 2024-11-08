@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -31,6 +32,11 @@ export const meta = {
 			code: 'UNAVAILABLE',
 			id: '2f621660-e9b4-11ee-b87d-00155d0c9b27',
 		},
+		unimplemented: {
+			message: 'Reaction Search is unimplemented',
+			code: 'UNIMPLEMENTED',
+			id: '64d1dbf5-c14c-406e-88da-0f799b4b42ea',
+		},
 	},
 } as const;
 
@@ -41,6 +47,23 @@ export const paramDef = {
 		query: {
 			type: 'string',
 			description: '指定した文字列を含むノートを返します',
+		},
+
+		reactions: {
+			type: 'array',
+			description: '指定したリアクションがつけられたノートを探します',
+			uniqueItems: true,
+			minItems: 1,
+			maxItems: 16,
+			items: { type: 'string' },
+		},
+		reactionsExclude: {
+			type: 'array',
+			description: '指定したリアクションがつけられていないノートを探します',
+			uniqueItems: true,
+			minItems: 1,
+			maxItems: 16,
+			items: { type: 'string' },
 		},
 		sinceId: {
 			type: 'string',
@@ -77,6 +100,12 @@ export const paramDef = {
 			default: 'combined',
 			description: '添付ファイルのセンシティブ状態',
 		},
+		followingFilter: {
+			type: 'string',
+			enum: ['following', 'notFollowing', 'combined'],
+			default: 'combined',
+			description: 'ユーザーのフォロー状態',
+		},
 		offset: {
 			type: 'integer',
 			default: 0,
@@ -108,8 +137,13 @@ export const paramDef = {
 			default: null,
 			description: 'ノートを作成したユーザーのID',
 		},
+		useStrictSearch: {
+			type: 'boolean',
+			nullable: true,
+			default: false,
+			description: '表記ゆれ検索を無効にする',
+		},
 	},
-	required: ['query'],
 } as const;
 
 // Todo: スリムにする
@@ -127,21 +161,34 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.unavailable);
 			}
 
-			const notes = await this.advancedSearchService.searchNote(ps.query, me, {
+			const notes = await this.advancedSearchService.searchNote(me, {
+				reactions: ps.reactions,
+				reactionsExclude: ps.reactionsExclude,
 				userId: ps.userId,
 				host: ps.host,
 				origin: ps.origin,
 				fileOption: ps.fileOption,
 				sensitiveFilter: ps.sensitiveFilter,
+				followingFilter: ps.followingFilter,
 				excludeCW: ps.excludeCW,
 				excludeReply: ps.excludeReply,
 				excludeQuote: ps.excludeQuote,
 				offset: ps.offset,
+				useStrictSearch: ps.useStrictSearch,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,
 				limit: ps.limit,
-			});
+			}, ps.query).catch(
+				(err) => {
+					if (err instanceof IdentifiableError) {
+						if (err.id === '084b2eec-7b60-4382-ae49-3da182d27a9a') {
+							throw new ApiError(meta.errors.unimplemented);
+						}
+					}
+					throw err;
+				},
+			);
 
 			return await this.noteEntityService.packMany(notes, me);
 		});

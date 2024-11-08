@@ -4,6 +4,7 @@
  */
 
 import { Entity, Column, Index, OneToOne, JoinColumn, PrimaryColumn } from 'typeorm';
+import { searchableTypes } from '@/types.js';
 import { id } from './util/id.js';
 import { MiDriveFile } from './DriveFile.js';
 
@@ -193,6 +194,26 @@ export class MiUser {
 		comment: 'Whether the User is explorable.',
 	})
 	public isExplorable: boolean;
+
+	@Index()
+	@Column('boolean', {
+		default: true,
+		comment: '',
+	})
+	public isIndexable: boolean;
+
+	/**
+	 * public ... だれでも
+	 * followers ... フォロワーのみ
+	 * reacted ... 返信かリアクションしたユーザーのみ
+	 * null ... isIndexableを見る
+	 */
+	@Column('enum',
+		{
+			enum: searchableTypes,
+			nullable: true,
+		})
+	public searchableBy: typeof searchableTypes[number] | null;
 
 	@Column('boolean', {
 		default: false,

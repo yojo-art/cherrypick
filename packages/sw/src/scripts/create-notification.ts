@@ -229,6 +229,11 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 						data,
 						tag: `achievement:${data.body.achievement}`,
 					}];
+				case 'scheduleNote':
+					return [t('_notification.scheduleNote'), {
+						body: data.body.errorType,
+						data,
+					}];
 
 				case 'pollEnded':
 					return [t('_notification.pollEnded'), {

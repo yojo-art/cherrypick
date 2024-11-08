@@ -5,7 +5,6 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import got, * as Got from 'got';
 import type { ClipsRepository, MiUser, UsersRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { QueryService } from '@/core/QueryService.js';
@@ -15,6 +14,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
+import { emojis, fetch_remote_api, fetch_remote_user_id } from '@/misc/remote-api-utils.js';
 import type { FindOptionsWhere } from 'typeorm';
 
 export const meta = {
@@ -107,11 +107,11 @@ async function remote(
 		//ローカルユーザーではない
 		return [];
 	}
-	const remote_user_id = await fetch_remote_user(config, httpRequestService, redisForRemoteApis, user.username, user.host, user);
+	const remote_user_id = await fetch_remote_user_id(config, httpRequestService, redisForRemoteApis, user);
 	if (remote_user_id === null) {
 		return [];
 	}
-	const remote_json = await fetch_remote_clip(config, httpRequestService, remote_user_id, user.host, limit, sinceId, untilId);
+	const remote_json = await fetch_remote_api(config, httpRequestService, user.host, '/api/users/clips', { userId: remote_user_id, limit, sinceId, untilId });
 	const json = JSON.parse(remote_json);
 	const clips = [];
 	for (const remote_clip of json) {
@@ -127,6 +127,7 @@ async function remote(
 			favoritedCount: remote_clip.favoritedCount,
 			isFavorited: false,
 			notesCount: remote_clip.notesCount,
+			emojis: remote_clip.description ? emojis(config, httpRequestService, redisForRemoteApis, user.host, remote_clip.description) : {},
 		});
 		clips.push(clip);
 	}
@@ -135,117 +136,4 @@ async function remote(
 	redisPipeline.expire(cache_key, 10 * 60);
 	await redisPipeline.exec();
 	return clips;
-}
-
-async function fetch_remote_user(
-	config:Config,
-	httpRequestService: HttpRequestService,
-	redisForRemoteApis: Redis.Redis,
-	username:string,
-	host:string,
-	user:MiUser,
-) {
-	//ローカルのIDからリモートのIDを割り出す
-	const cache_key = 'remote-userId:' + user.id;
-	const id = await redisForRemoteApis.get(cache_key);
-	if (id !== null) {
-		if (id === '__NOT_MISSKEY') {
-			return null;
-		}
-		if (id === '__INTERVAL') {
-			return null;
-		}
-		return id;
-	}
-	try {
-		const url = 'https://' + host + '/api/users/show';
-		const timeout = 30 * 1000;
-		const operationTimeout = 60 * 1000;
-		const res = got.post(url, {
-			headers: {
-				'User-Agent': config.userAgent,
-				'Content-Type': 'application/json; charset=utf-8',
-			},
-			timeout: {
-				lookup: timeout,
-				connect: timeout,
-				secureConnect: timeout,
-				socket: timeout,	// read timeout
-				response: timeout,
-				send: timeout,
-				request: operationTimeout,	// whole operation timeout
-			},
-			agent: {
-				http: httpRequestService.httpAgent,
-				https: httpRequestService.httpsAgent,
-			},
-			http2: true,
-			retry: {
-				limit: 1,
-			},
-			enableUnixSockets: false,
-			body: JSON.stringify({
-				username,
-			}),
-		});
-		const text = await res.text();
-		const json = JSON.parse(text);
-		if (json.id != null) {
-			redisForRemoteApis.set(cache_key, json.id);
-			return json.id as string;
-		}
-	} catch {
-		const redisPipeline = redisForRemoteApis.pipeline();
-		redisPipeline.set(cache_key, '__INTERVAL');
-		redisPipeline.expire(cache_key, 60 * 60);
-		await redisPipeline.exec();
-	}
-	return null;
-}
-
-async function fetch_remote_clip(
-	config:Config,
-	httpRequestService: HttpRequestService,
-	userId:string,
-	host:string,
-	limit:number,
-	sinceId:string|undefined,
-	untilId:string|undefined,
-) {
-	const url = 'https://' + host + '/api/users/clips';
-	const sinceIdRemote = sinceId ? sinceId.split('@')[0] : undefined;
-	const untilIdRemote = untilId ? untilId.split('@')[0] : undefined;
-	const timeout = 30 * 1000;
-	const operationTimeout = 60 * 1000;
-	const res = got.post(url, {
-		headers: {
-			'User-Agent': config.userAgent,
-			'Content-Type': 'application/json; charset=utf-8',
-		},
-		timeout: {
-			lookup: timeout,
-			connect: timeout,
-			secureConnect: timeout,
-			socket: timeout,	// read timeout
-			response: timeout,
-			send: timeout,
-			request: operationTimeout,	// whole operation timeout
-		},
-		agent: {
-			http: httpRequestService.httpAgent,
-			https: httpRequestService.httpsAgent,
-		},
-		http2: true,
-		retry: {
-			limit: 1,
-		},
-		enableUnixSockets: false,
-		body: JSON.stringify({
-			userId,
-			limit,
-			sinceId: sinceIdRemote,
-			untilId: untilIdRemote,
-		}),
-	});
-	return await res.text();
 }

@@ -19,6 +19,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</button>
 		</div>
 		<div :class="$style.headerRight">
+			<button v-if="$i.policies.scheduleNoteMax>0" v-tooltip="i18n.ts.schedulePost" class="_button" :class="[$style.headerRightItem, { [$style.headerRightButtonActive]: schedule }]" @click="toggleSchedule"><i class="ti ti-calendar-time"></i></button>
+			<button v-if="$i.policies.scheduleNoteMax>0" v-tooltip="i18n.ts.schedulePostList" class="_button" :class="[$style.headerRightItem]" @click="listSchedulePost"><i class="ti ti-calendar-event"></i></button>
 			<template v-if="!(channel != null && fixed)">
 				<button v-if="channel == null" ref="visibilityButton" v-click-anime v-tooltip="i18n.ts.visibility" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setVisibility">
 					<span v-if="visibility === 'public'"><i class="ti ti-world"></i></span>
@@ -26,6 +28,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span v-if="visibility === 'followers'"><i class="ti ti-lock"></i></span>
 					<span v-if="visibility === 'specified'"><i class="ti ti-mail"></i></span>
 					<span :class="$style.headerRightButtonText">{{ i18n.ts._visibility[visibility] }}</span>
+				</button>
+				<button v-if="channel == null" ref="searchbilityButton" v-click-anime v-tooltip="i18n.ts._searchbility.tooltip" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setSearchbility">
+					<span v-if="searchableBy === 'public'"><i class="ti ti-world-search"></i></span>
+					<span v-if="searchableBy === 'followersAndReacted'"><i class="ti ti-user-search"></i></span>
+					<span v-if="searchableBy === 'reactedOnly'"><i class="ti ti-lock-search"></i></span>
+					<span v-if="searchableBy === 'private'"><i class="ti ti-mail-search"></i></span>
+					<span :class="$style.headerRightButtonText">{{ i18n.ts._searchbility[searchableBy] }}</span>
 				</button>
 				<button v-else class="_button" :class="[$style.headerRightItem, $style.visibility]" disabled>
 					<span><i class="ti ti-device-tv"></i></span>
@@ -72,6 +81,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<input v-show="withHashtags" ref="hashtagsInputEl" v-model="hashtags" :class="$style.hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
 	<XPostFormAttaches v-model="files" @detach="detachFile" @changeSensitive="updateFileSensitive" @changeName="updateFileName" @replaceFile="replaceFile"/>
 	<MkPollEditor v-if="poll" v-model="poll" @destroyed="poll = null"/>
+	<MkScheduleEditor v-if="schedule" v-model="schedule" @destroyed="schedule = null"/>
 	<MkNotePreview v-if="showPreview" :class="$style.preview" :text="text" :files="files" :poll="poll ?? undefined" :useCw="useCw" :cw="cw" :user="postAccount ?? $i" :showProfile="showProfilePreview"/>
 	<div v-if="showingOptions" style="padding: 8px 16px;">
 	</div>
@@ -132,6 +142,8 @@ import { emojiPicker } from '@/scripts/emoji-picker.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import * as sound from '@/scripts/sound.js';
 import { mfmFunctionPicker } from '@/scripts/mfm-function-picker.js';
+import MkScheduleEditor from '@/components/MkScheduleEditor.vue';
+import { listSchedulePost } from '@/os.js';
 
 const $i = signinRequired();
 
@@ -146,9 +158,10 @@ const props = withDefaults(defineProps<{
 	initialText?: string;
 	initialCw?: string;
 	initialVisibility?: (typeof Misskey.noteVisibilities)[number];
+	initialSearchableBy?: string;
 	initialFiles?: Misskey.entities.DriveFile[];
 	initialVisibleUsers?: Misskey.entities.UserDetailed[];
-	initialNote?: Misskey.entities.Note;
+	initialNote?: Misskey.entities.Note & {isSchedule?:boolean};
 	instant?: boolean;
 	fixed?: boolean;
 	autofocus?: boolean;
@@ -176,6 +189,7 @@ const textareaEl = shallowRef<HTMLTextAreaElement | null>(null);
 const cwInputEl = shallowRef<HTMLInputElement | null>(null);
 const hashtagsInputEl = shallowRef<HTMLInputElement | null>(null);
 const visibilityButton = shallowRef<HTMLElement>();
+const searchbilityButton = shallowRef<HTMLElement>();
 
 const posting = ref(false);
 const posted = ref(false);
@@ -188,6 +202,9 @@ const event = ref<{
 	end: string | null;
 	metadata: Record<string, string>;
 } | null>(null);
+const schedule = ref<{
+  expiresAt: number | null;
+}| null>(null);
 const useCw = ref<boolean>(!!props.initialCw);
 const showPreview = ref(defaultStore.state.showPreview);
 const showProfilePreview = ref(defaultStore.state.showProfilePreview);
@@ -197,6 +214,7 @@ const showAddMfmFunction = ref(defaultStore.state.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => defaultStore.set('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
 const visibility = ref(props.initialVisibility ?? (defaultStore.state.rememberNoteVisibility ? defaultStore.state.visibility : defaultStore.state.defaultNoteVisibility));
+const searchableBy = ref(defaultStore.state.rememberNoteSearchbility ? defaultStore.state.searchbility : defaultStore.state.defaultNoteSearchbility);
 const visibleUsers = ref<Misskey.entities.UserDetailed[]>([]);
 if (props.initialVisibleUsers) {
 	props.initialVisibleUsers.forEach(u => pushVisibleUser(u));
@@ -437,6 +455,16 @@ function toggleEvent() {
 	}
 }
 
+function toggleSchedule() {
+	if (schedule.value) {
+		schedule.value = null;
+	} else {
+		schedule.value = {
+			expiresAt: null,
+		};
+	}
+}
+
 function addTag(tag: string) {
 	insertTextAtCursor(textareaEl.value, ` #${tag} `);
 }
@@ -502,6 +530,21 @@ function setVisibility() {
 	});
 }
 
+function setSearchbility() {
+	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/CPSearchbilityPicker.vue')), {
+		currentSearchbility: searchableBy.value,
+		src: searchbilityButton.value,
+	}, {
+		changeSearchbility: v => {
+			searchableBy.value = v;
+			if (defaultStore.state.rememberNoteSearchbility) {
+				defaultStore.set('searchbility', searchableBy.value);
+			}
+		},
+		closed: () => dispose(),
+	});
+}
+
 async function toggleReactionAcceptance() {
 	const select = await os.select({
 		title: i18n.ts.reactionAcceptance,
@@ -540,6 +583,7 @@ function removeVisibleUser(user) {
 
 function clear() {
 	text.value = '';
+	schedule.value = null;
 	files.value = [];
 	poll.value = null;
 	event.value = null;
@@ -770,6 +814,7 @@ async function post(ev?: MouseEvent) {
 		replyId: props.reply ? props.reply.id : undefined,
 		renoteId: props.renote ? props.renote.id : quoteId.value ? quoteId.value : undefined,
 		channelId: props.channel ? props.channel.id : undefined,
+		schedule: schedule.value ?? undefined,
 		poll: poll.value,
 		event: event.value,
 		cw: useCw.value ? cw.value ?? '' : null,
@@ -814,7 +859,7 @@ async function post(ev?: MouseEvent) {
 	}
 
 	posting.value = true;
-	misskeyApi(props.updateMode ? 'notes/update' : 'notes/create', postData, token).then(() => {
+	misskeyApi(props.updateMode ? 'notes/update' : (postData.schedule ? 'notes/schedule/create' : 'notes/create'), postData, token).then(() => {
 		if (props.freezeAfterPosted) {
 			posted.value = true;
 		} else {
@@ -840,7 +885,7 @@ async function post(ev?: MouseEvent) {
 			if (notesCount === 1) {
 				claimAchievement('notes1');
 			}
-
+			poll.value = null;
 			const text = postData.text ?? '';
 			const lowerCase = text.toLowerCase();
 			if ((lowerCase.includes('love') || lowerCase.includes('❤')) && lowerCase.includes('cherrypick')) {
@@ -1015,6 +1060,7 @@ onMounted(() => {
 				cw.value = draft.data.cw;
 				disableRightClick.value = draft.data.disableRightClick;
 				visibility.value = draft.data.visibility;
+				searchableBy.value = draft.data.searchbility;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1040,6 +1086,11 @@ onMounted(() => {
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
 			files.value = init.files ?? [];
+			if (init.isSchedule) {
+				schedule.value = {
+					expiresAt: new Date(init.createdAt).getTime(),
+				};
+			}
 			if (init.poll) {
 				poll.value = {
 					choices: init.poll.choices.map(x => x.text),
@@ -1205,6 +1256,10 @@ defineExpose({
 	&:disabled {
 		background: none;
 	}
+
+  &.headerRightButtonActive {
+    color: var(--accent);
+  }
 
 	&.danger {
 		color: #ff2a2a;
@@ -1382,6 +1437,7 @@ defineExpose({
 	grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
 	grid-auto-rows: 40px;
 	direction: rtl;
+
 }
 
 .footerButton {

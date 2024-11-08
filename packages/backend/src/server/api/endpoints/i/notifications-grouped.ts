@@ -97,7 +97,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				return [];
 			}
 
-			let notifications = notificationsRes.map(x => JSON.parse(x[1][1])).filter(x => x.id !== ps.untilId && x !== ps.sinceId) as MiNotification[];
+			let notifications = notificationsRes.map(x => JSON.parse(x[1][1])).filter(x => x.id !== ps.untilId && x.id !== ps.sinceId) as MiNotification[];
 
 			if (includeTypes && includeTypes.length > 0) {
 				notifications = notifications.filter(notification => includeTypes.includes(notification.type));
@@ -154,6 +154,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						prevGroupedNotification = groupedNotifications.at(-1)!;
 					}
 					(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'renote:grouped'>).userIds.push(notification.notifierId!);
+					prevGroupedNotification.id = notification.id;
+					continue;
+				}
+				if (prev.type === 'note' && notification.type === 'note') {
+					if (prevGroupedNotification.type !== 'note:grouped') {
+						groupedNotifications[groupedNotifications.length - 1] = {
+							type: 'note:grouped',
+							id: '',
+							createdAt: notification.createdAt,
+							noteIds: [notification.noteId],
+							notifierIds: [prev.notifierId!],
+						};
+						prevGroupedNotification = groupedNotifications.at(-1)!;
+					}
+					if (!(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.includes(notification.notifierId)) {
+						(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).notifierIds.push(notification.notifierId!);
+					}
+					(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'note:grouped'>).noteIds.push(notification.noteId!);
 					prevGroupedNotification.id = notification.id;
 					continue;
 				}

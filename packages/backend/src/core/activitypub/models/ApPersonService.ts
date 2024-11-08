@@ -40,6 +40,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { searchableTypes } from '@/types.js';
 import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -408,6 +409,8 @@ export class ApPersonService implements OnModuleInit {
 					movedAt: person.movedTo ? new Date() : null,
 					alsoKnownAs: person.alsoKnownAs,
 					isExplorable: person.discoverable,
+					isIndexable: person.indexable ?? true,
+					searchableBy: this.getSearchableType(tags),
 					username: person.preferredUsername,
 					usernameLower: person.preferredUsername?.toLowerCase(),
 					host,
@@ -648,9 +651,9 @@ export class ApPersonService implements OnModuleInit {
 			}
 		}
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
-
 		const updates = {
 			lastFetchedAt: new Date(),
+			searchableBy: this.getSearchableType(tags),
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox,
 			outbox: typeof person.outbox === 'string' ? person.outbox : null,
@@ -810,6 +813,7 @@ export class ApPersonService implements OnModuleInit {
 				description: string | null;
 				imgSrc: string;
 				url: string;
+				id: string;
 		}[];
 }[]> {
 		const apMutualLinkSections = person.banner;
@@ -848,6 +852,7 @@ export class ApPersonService implements OnModuleInit {
 					imgSrc: image.url,
 					url: entry.url,
 					description,
+					id: this.idService.gen(),
 				};
 			}));
 			return {
@@ -996,5 +1001,14 @@ export class ApPersonService implements OnModuleInit {
 		}
 
 		return false;
+	}
+
+	@bindThis
+	private getSearchableType(tags: string[]): 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null {
+		if (tags.includes('searchable_by_all_users')) return 'public';
+		if (tags.includes('searchable_by_followers_only')) return 'followersAndReacted';
+		if (tags.includes('searchable_by_reacted_users_only')) return 'followersAndReacted';
+		if (tags.includes('searchable_by_nobody')) return 'private';
+		return null;
 	}
 }

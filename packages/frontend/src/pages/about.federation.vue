@@ -36,6 +36,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<option value="-followers">{{ i18n.ts.followers }} ({{ i18n.ts.ascendingOrder }})</option>
 				<option value="+firstRetrievedAt">{{ i18n.ts.registeredAt }} ({{ i18n.ts.descendingOrder }})</option>
 				<option value="-firstRetrievedAt">{{ i18n.ts.registeredAt }} ({{ i18n.ts.ascendingOrder }})</option>
+				<option value="+reversiVersion">{{ i18n.ts._reversi.reversi }} ({{ i18n.ts.descendingOrder }})</option>
+				<option value="-reversiVersion">{{ i18n.ts._reversi.reversi }} ({{ i18n.ts.ascendingOrder }})</option>
 			</MkSelect>
 		</FormSplit>
 	</div>

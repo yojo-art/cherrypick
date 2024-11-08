@@ -547,7 +547,7 @@ export class UserEntityService implements OnModuleInit {
 					name: r.name,
 					iconUrl: r.iconUrl,
 					displayOrder: r.displayOrder,
-				}))
+				})),
 			) : undefined,
 
 			...(isDetailed ? {
@@ -566,6 +566,8 @@ export class UserEntityService implements OnModuleInit {
 				isLocked: user.isLocked,
 				isSilenced: this.roleService.getUserPolicies(user.id).then(r => !r.canPublicNote),
 				isSuspended: user.isSuspended,
+				isIndexable: user.isIndexable,
+				searchableBy: user.searchableBy,
 				description: profile!.description,
 				location: profile!.location,
 				birthday: profile!.birthday,

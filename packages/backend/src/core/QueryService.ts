@@ -188,7 +188,7 @@ export class QueryService {
 	}
 
 	@bindThis
-	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null): void {
+	public generateVisibilityQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, opts?: { search: boolean, followingFilter?: string}): void {
 		// This code must always be synchronized with the checks in Notes.isVisibleForMe.
 		if (me == null) {
 			q.andWhere(new Brackets(qb => {
@@ -196,10 +196,19 @@ export class QueryService {
 					.where('note.visibility = \'public\'')
 					.orWhere('note.visibility = \'home\'');
 			}));
+
+			if (opts?.search) {
+				this.generateSearchableQuery(q, me);
+			}
 		} else {
 			const followingQuery = this.followingsRepository.createQueryBuilder('following')
 				.select('following.followeeId')
 				.where('following.followerId = :meId');
+			const fq = followingQuery.getQuery();
+			if (opts?.followingFilter) {
+				if (opts.followingFilter === 'following') q.andWhere(`note.userId IN (${ fq })`);
+				if (opts.followingFilter === 'notFollowing') q.andWhere(`note.userId NOT IN (${ fq })`);
+			}
 
 			q.andWhere(new Brackets(qb => {
 				qb
@@ -221,14 +230,179 @@ export class QueryService {
 							.andWhere(new Brackets(qb => {
 								qb
 								// 自分がフォロワーである
-									.where(`note.userId IN (${ followingQuery.getQuery() })`)
+									.where(`note.userId IN (${ fq })`)
 								// または 自分の投稿へのリプライ
 									.orWhere('note.replyUserId = :meId');
 							}));
 					}));
 			}));
-
 			q.setParameters({ meId: me.id, meIdAsList: [me.id] });
+			if (opts?.search) {
+				this.generateSearchableQuery(q, me, fq);
+			}
+		}
+	}
+
+	@bindThis
+	public generateSearchableQuery(q: SelectQueryBuilder<any>, me?: { id: MiUser['id'] } | null, followingQuery?: string): void {
+		//検索許可に基づいたクエリ生成
+		if (me == null) {
+			//検索許可が必要
+			q.andWhere(new Brackets(qb => {
+				qb.where('note.searchableBy = \'public\'')
+					.orWhere( new Brackets(qb2 => {
+						qb2.where('user.searchableBy = \'public\'')
+							.orWhere( new Brackets(qb3 => {
+								qb3.where('user.isIndexable = TRUE');
+							}));
+					}));
+			}));
+		} else {
+			if (followingQuery) {
+				q.andWhere(new Brackets(qb => {
+					qb
+						//自分の投稿か、
+						.where('note.userId = :meId')
+						.orWhere(new Brackets(qb1 => {
+							qb1.where('note.searchableBy = \'public\'')
+								.orWhere(new Brackets(qb2 => {
+									qb2.where('note.searchableBy IS NULL')
+										.andWhere('user.searchableBy = \'public\'');
+								}))
+								.orWhere(new Brackets(qb2 => {
+									qb2.where('note.searchableBy IS NULL')
+										.andWhere('user.searchableBy IS NULL')
+										.andWhere('user.isIndexable = TRUE');
+								}))
+								.orWhere(new Brackets(qb2 => {
+									qb2.where('note.searchableBy IS NULL')
+										.andWhere('user.searchableBy IS NULL')
+										.andWhere('user.isIndexable IS FALSE')
+										.andWhere(new Brackets(qb3 => {
+											//リアクションしている
+											qb3.where('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+												//投票している
+												.orWhere(new Brackets(qb4 => {
+													qb4
+														.where('note."hasPoll" IS TRUE')
+														.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
+												}))
+												//お気に入りしている
+												.orWhere('(EXISTS (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+												//クリップしている
+												.orWhere('(EXISTS (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+												//リノートしている
+												.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+												//返信している
+												.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
+										}));
+								}))
+								.orWhere(new Brackets(qb2 => {
+									qb2.where('note.searchableBy = \'followersAndReacted\'')
+										.andWhere(new Brackets(qb3 => {
+											qb3.where(`note.userId IN (${ followingQuery })`)
+												.orWhere(new Brackets(qb4 => {
+												//リアクションしている
+													qb4.where('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+													//投票している
+														.orWhere(new Brackets(qb5 => {
+															qb5
+																.where('note."hasPoll" IS TRUE')
+																.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
+														}))
+													//お気に入りしている
+														.orWhere('(EXISTS (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+													//クリップしている
+														.orWhere('(EXISTS (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+													//リノートしている
+														.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+													//返信している
+														.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
+												}));
+										}))
+										.orWhere(new Brackets(qb3 => {
+											qb3.where('note.searchableBy IS NULL')
+												.andWhere('user.searchableBy = \'followersAndReacted\'')
+												.andWhere(new Brackets(qb4 => {
+													qb4.where(`note.userId IN (${ followingQuery })`)
+														.orWhere(new Brackets(qb5 => {
+															//リアクションしている
+															qb5.where('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+															//投票している
+																.orWhere(new Brackets(qb6 => {
+																	qb6
+																		.where('note."hasPoll" IS TRUE')
+																		.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
+																}))
+															//お気に入りしている
+																.orWhere('(EXISTS (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+															//クリップしている
+																.orWhere('(EXISTS (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+															//リノートしている
+																.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+															//返信している
+																.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
+														}));
+												}));
+										}));
+								}))
+								.orWhere(new Brackets(qb2 => {
+									qb2.where('note.searchableBy = \'reactedOnly\'')
+										.andWhere(new Brackets(qb5 => {
+											//リアクションしている
+											qb5.where('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+												//投票している
+												.orWhere(new Brackets(qb6 => {
+													qb6
+														.where('note."hasPoll" IS TRUE')
+														.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
+												}))
+												//お気に入りしている
+												.orWhere('(EXISTS (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+												//クリップしている
+												.orWhere('(EXISTS (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+												//リノートしている
+												.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+												//返信している
+												.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
+										}))
+										.orWhere(new Brackets(qb3 => {
+											qb3.where('note.searchableBy IS NULL')
+												.andWhere('user.searchableBy = \'reactedOnly\'')
+												.andWhere(new Brackets(qb4 => {
+													//リアクションしている
+													qb4.where('(EXISTS (SELECT 1 FROM "note_reaction" WHERE "noteId" = note.id AND "userId" = :meId))')
+													//投票している
+														.orWhere(new Brackets(qb5 => {
+															qb5
+																.where('note."hasPoll" IS TRUE')
+																.andWhere('(EXISTS (SELECT 1 FROM "poll_vote" WHERE "noteId"=note.id AND "userId" = :meId))');
+														}))
+													//お気に入りしている
+														.orWhere('(EXISTS (SELECT 1 FROM "note_favorite" WHERE "noteId" = note.id AND "userId" = :meId))')
+													//クリップしている
+														.orWhere('(EXISTS (SELECT 1 FROM "clip_note" WHERE ("clipId" = ANY (SELECT id FROM "clip" WHERE "userId" = :meId)) AND "noteId" = note.id))')
+													//リノートしている
+														.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "renoteId" = note.id AND r."userId" = :meId))')
+													//返信している
+														.orWhere('(EXISTS (SELECT 1 FROM "note" AS r WHERE "replyId" = note.id AND r."userId" = :meId))');
+												}));
+										}));
+								}));
+						}));
+				}));
+				/*
+						* mastodonの検索の同じ動作をするように
+
+						> 「公開」で送信された投稿がMastodonの検索結果にヒットするようになります。
+						> ここのチェック状態にかかわらず、ほかのユーザーにブーストやお気に入り登録された投稿はそのユーザーから検索されることがあります。
+						mastodonでの自分以外の indexable:false で検索可能な条件
+						→ ブースト済み,返信済み,投票した投稿,ブックマーク済み,お気に入り済み,ブックマーク済み
+
+						お気に入り == APLike == リアクション
+						ブックマーク == クリップ | お気に入り
+						*/
+			}
 		}
 	}
 

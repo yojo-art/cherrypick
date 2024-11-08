@@ -579,6 +579,14 @@ export interface Locale extends ILocale {
      */
     "searchThisUsersNotes": string;
     /**
+     * このリアクションで検索
+     */
+    "searchThisReaction": string;
+    /**
+     * 部分一致
+     */
+    "partialMatch": string;
+    /**
      * 返信
      */
     "reply": string;
@@ -614,6 +622,10 @@ export interface Locale extends ILocale {
      * あなた宛て
      */
     "mentions": string;
+    /**
+     * 新規投稿
+     */
+    "newNotes": string;
     /**
      * ダイレクト投稿
      */
@@ -878,6 +890,10 @@ export interface Locale extends ILocale {
      * 公開範囲を記憶する
      */
     "rememberNoteVisibility": string;
+    /**
+     * 検索可能範囲を記憶する
+     */
+    "rememberNoteSearchbility": string;
     /**
      * 添付取り消し
      */
@@ -2943,9 +2959,17 @@ export interface Locale extends ILocale {
      */
     "poll": string;
     /**
+     * 予約投稿
+     */
+    "schedulePost": string;
+    /**
      * 内容を隠す
      */
     "useCw": string;
+    /**
+     * 予約投稿一覧
+     */
+    "schedulePostList": string;
     /**
      * プレイヤーを開く
      */
@@ -3527,6 +3551,27 @@ export interface Locale extends ILocale {
      * オフにすると、「みつける」にアカウントが載らなくなります。
      */
     "makeExplorableDescription": string;
+    /**
+     * ノートを見つけやすくする
+     */
+    "makeIndexable": string;
+    /**
+     * オフにすると、あなたのノートが検索で表示されにくくなります。
+     * リノートやリアクションされているノートは表示されます。
+     * リモートのサーバーが対応していない場合設定は無視されます。
+     */
+    "makeIndexableDescription": string;
+    /**
+     * ノート検索の許可
+     */
+    "makeSearchableBy": string;
+    /**
+     * ノートを検索できる人を制限できます。
+     * ノートにも設定した場合ノートの設定が優先されます。
+     * リモートのサーバーが対応していない場合設定が無視されるか、
+     * ノートを見つけやすくする値が使われます。
+     */
+    "makeSearchableByDescription": string;
     /**
      * タイムラインのノートを離して表示
      */
@@ -7665,6 +7710,10 @@ export interface Locale extends ILocale {
              */
             "canEditNote": string;
             /**
+             * 予約投稿の最大数
+             */
+            "scheduleNoteMax": string;
+            /**
              * ノート内の最大メンション数
              */
             "mentionMax": string;
@@ -9320,6 +9369,14 @@ export interface Locale extends ILocale {
          */
         "write:notes": string;
         /**
+         * 予約投稿を見る
+         */
+        "read:notes-schedule": string;
+        /**
+         * 予約投稿を作成・削除する
+         */
+        "write:notes-schedule": string;
+        /**
          * 通知を見る
          */
         "read:notifications": string;
@@ -10646,6 +10703,10 @@ export interface Locale extends ILocale {
          */
         "renotedBySomeUsers": ParameterizedString<"n">;
         /**
+         * {n}件の新しい投稿
+         */
+        "notedBySomeUsers": ParameterizedString<"n">;
+        /**
          * {n}人にフォローされました
          */
         "followedBySomeUsers": ParameterizedString<"n">;
@@ -10653,6 +10714,28 @@ export interface Locale extends ILocale {
          * 通知の履歴をリセットする
          */
         "flushNotification": string;
+        "_scheduleNote": {
+            /**
+             * 原因は不明です
+             */
+            "unknown": string;
+            /**
+             * 引用元がありません
+             */
+            "renoteTargetNotFound": string;
+            /**
+             * 対象のチャンネルがありません
+             */
+            "channelTargetNotFound": string;
+            /**
+             * 返信先がありません
+             */
+            "replyTargetNotFound": string;
+            /**
+             * 添付ファイルがありません
+             */
+            "invalidFilesCount": string;
+        };
         "_types": {
             /**
              * すべて
@@ -10710,6 +10793,10 @@ export interface Locale extends ILocale {
              * 実績の獲得
              */
             "achievementEarned": string;
+            /**
+             * 予約投稿に失敗
+             */
+            "scheduleNote": string;
             /**
              * 連携アプリからの通知
              */
@@ -11199,6 +11286,10 @@ export interface Locale extends ILocale {
          * 公式タグ一覧を更新
          */
         "updateOfficialTags": string;
+        /**
+         * ジョブキューを再試行
+         */
+        "promoteQueue": string;
     };
     "_fileViewer": {
         /**
@@ -11838,6 +11929,10 @@ export interface Locale extends ILocale {
              * 引用を除外する
              */
             "toggleQuote": string;
+            /**
+             * 表記ゆれ検索を無効にする
+             */
+            "toggleStrictSearch": string;
         };
         "_specifyDate": {
             /**
@@ -11848,6 +11943,24 @@ export interface Locale extends ILocale {
              * まで
              */
             "endDate": string;
+        };
+        "_followingFilter": {
+            /**
+             * フォローフィルター
+             */
+            "title": string;
+            /**
+             * フィルタしない
+             */
+            "combined": string;
+            /**
+             * フォロー中
+             */
+            "following": string;
+            /**
+             * フォロー外
+             */
+            "notFollowing": string;
         };
         "_description": {
             /**
@@ -11877,6 +11990,20 @@ export interface Locale extends ILocale {
              */
             "sensitiveOnly": string;
         };
+        "_reactionSearch": {
+            /**
+             * リアクション検索
+             */
+            "title": string;
+            /**
+             * リアクションピッカー
+             */
+            "include": string;
+            /**
+             * 除外リアクションピッカー
+             */
+            "exclude": string;
+        };
     };
     "_searchOrApShow": {
         /**
@@ -11894,21 +12021,21 @@ export interface Locale extends ILocale {
     };
     "_reIndexOpenSearch": {
         /**
-         * 全てのノートを再インデックスする
+         * 再インデックスする
          */
         "title": string;
         /**
-         * 全てのノートを再インデックスしますか？
+         * 再インデックス対象
          */
         "quesion": string;
     };
     "_reCreateOpenSearchIndex": {
         /**
-         * 現在のインデックスを破棄して再インデックスする
+         * ノートインデックスを破棄して再作成する
          */
         "title": string;
         /**
-         * 現在のインデックスを破棄して全てのノートを再インデックスしますか？
+         * 再作成しますか？、現時点のノートインデックスは破棄されます。
          */
         "quesion": string;
     };
@@ -11949,6 +12076,32 @@ export interface Locale extends ILocale {
          * リノートする
          */
         "confirm": string;
+    };
+    "_searchbility": {
+        /**
+         * 検索可能範囲
+         */
+        "tooltip": string;
+        /**
+         * が検索できます
+         */
+        "canSearch": string;
+        /**
+         * すべてのユーザー
+         */
+        "public": string;
+        /**
+         * フォロワーと反応した人
+         */
+        "followersAndReacted": string;
+        /**
+         * 反応した人
+         */
+        "reactedOnly": string;
+        /**
+         * 自分だけ
+         */
+        "private": string;
     };
 }
 declare const locales: {
