@@ -113,10 +113,6 @@ export type EndedPollNotificationJobData = {
 	noteId: MiNote['id'];
 };
 
-export type ScheduleNotePostJobData = {
-    scheduleNoteId: MiNote['id'];
-}
-
 type MinimumUser = {
 	id: MiUser['id'];
 	host: MiUser['host'];
@@ -148,3 +144,11 @@ export type UserWebhookDeliverJobData = {
 export type ThinUser = {
 	id: MiUser['id'];
 };
+
+export type ScheduledNoteDeleteJobData = {
+	noteId: MiNote['id'];
+};
+
+export type ScheduleNotePostJobData = {
+	scheduleNoteId: MiNote['id'];
+}

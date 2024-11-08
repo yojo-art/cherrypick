@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:is="self ? 'MkA' : 'a'" ref="el" style="word-break: break-all;" class="_link" :[attr]="self ? url_string.substring(local.length) : url_string" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
 	:title="url_string"
-	@click.stop
+	@click.stop="(ev: MouseEvent) => warningExternalWebsite(ev, props.url)"
 >
 	<slot></slot>
 	<i v-if="target === '_blank' && !hideIcon" class="ti ti-external-link" :class="$style.icon"></i>
@@ -17,11 +17,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, ref } from 'vue';
-import { url as local } from '@/config.js';
+import { url as local } from '@@/js/config.js';
 import { useTooltip } from '@/scripts/use-tooltip.js';
 import * as os from '@/os.js';
 import { isEnabledUrlPreview } from '@/instance.js';
 import { MkABehavior } from '@/components/global/MkA.vue';
+import { warningExternalWebsite } from '@/scripts/warning-external-website.js';
 
 const props = withDefaults(defineProps<{
 	url: string;
@@ -42,7 +43,7 @@ if (props.host === requestUrl.host && (requestUrl.pathname.startsWith('/clips/')
 }
 const url_string = requestUrl.toString();
 const attr = self ? 'to' : 'href';
-const target = self ? null : '_blank';
+const target = self ? undefined : '_blank';
 
 const el = ref<HTMLElement | { $el: HTMLElement }>();
 

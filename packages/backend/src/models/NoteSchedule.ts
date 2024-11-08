@@ -3,8 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Entity, Index, JoinColumn, Column, PrimaryColumn, ManyToOne } from 'typeorm';
-import { noteVisibilities } from '@/types.js';
+import { Entity, Index, Column, PrimaryColumn } from 'typeorm';
 import { MiNote } from '@/models/Note.js';
 import { searchableTypes } from '@/types.js';
 import { id } from './util/id.js';
@@ -35,10 +34,10 @@ export type MiScheduleNoteType={
 	} | undefined;
 	renote?: MiNote['id'];
 	localOnly: boolean;
-	cw?: string|null;
-	reactionAcceptance: 'likeOnly'|'likeOnlyForRemote'| 'nonSensitiveOnly'| 'nonSensitiveOnlyForLocalLikeOnlyForRemote'| null;
+	cw?: string | null;
+	reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
 	files: MiDriveFile['id'][];
-	text?: string|null;
+	text?: string | null;
 	reply?: MiNote['id'];
 	event?: {
 		/** Date.toISOString() */
@@ -48,7 +47,7 @@ export type MiScheduleNoteType={
 		title: string;
 		metadata: EventSchema;
 	} | null;
-	disableRightClick:boolean,
+	disableRightClick: boolean,
 	apMentions?: MinimumUser[] | null;
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
@@ -60,7 +59,7 @@ export class MiNoteSchedule {
 	public id: string;
 
 	@Column('jsonb')
-	public note:MiScheduleNoteType;
+	public note: MiScheduleNoteType;
 
 	@Index()
 	@Column('varchar', {
@@ -69,5 +68,5 @@ export class MiNoteSchedule {
 	public userId: MiUser['id'];
 
 	@Column('timestamp with time zone')
-	public expiresAt: Date;
+	public scheduledAt: Date;
 }

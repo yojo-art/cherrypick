@@ -6,6 +6,7 @@
 export const DI = {
 	config: Symbol('config'),
 	db: Symbol('db'),
+	meta: Symbol('meta'),
 	meilisearch: Symbol('meilisearch'),
 	opensearch: Symbol('opensearch'),
 	cloudLogging: Symbol('cloudLogging'),
@@ -13,13 +14,13 @@ export const DI = {
 	redisForPub: Symbol('redisForPub'),
 	redisForSub: Symbol('redisForSub'),
 	redisForTimelines: Symbol('redisForTimelines'),
+	redisForReactions: Symbol('redisForReactions'),
 	redisForJobQueue: Symbol('redisForJobQueue'),
 	redisForRemoteApis: Symbol('redisForRemoteApis'),
 
 	//#region Repositories
 	usersRepository: Symbol('usersRepository'),
 	notesRepository: Symbol('notesRepository'),
-	noteScheduleRepository: Symbol('noteScheduleRepository'),
 	abuseReportResolversRepository: Symbol('abuseReportResolversRepository'),
 	announcementsRepository: Symbol('announcementsRepository'),
 	announcementReadsRepository: Symbol('announcementReadsRepository'),
@@ -95,6 +96,7 @@ export const DI = {
 	userMemosRepository: Symbol('userMemosRepository'),
 	bubbleGameRecordsRepository: Symbol('bubbleGameRecordsRepository'),
 	reversiGamesRepository: Symbol('reversiGamesRepository'),
+	noteScheduleRepository: Symbol('noteScheduleRepository'),
 	officialTagRepository: Symbol('officialTagRepository'),
 	//#endregion
 };

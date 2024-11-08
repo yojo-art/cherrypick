@@ -33,6 +33,7 @@ import type {
 	SystemQueue,
 	UserWebhookDeliverQueue,
 	SystemWebhookDeliverQueue,
+	ScheduledNoteDeleteQueue,
 	ScheduleNotePostQueue,
 } from './QueueModule.js';
 import type httpSignature from '@peertube/http-signature';
@@ -46,7 +47,6 @@ export class QueueService {
 
 		@Inject('queue:system') public systemQueue: SystemQueue,
 		@Inject('queue:endedPollNotification') public endedPollNotificationQueue: EndedPollNotificationQueue,
-		@Inject('queue:scheduleNotePost') public ScheduleNotePostQueue: ScheduleNotePostQueue,
 		@Inject('queue:deliver') public deliverQueue: DeliverQueue,
 		@Inject('queue:inbox') public inboxQueue: InboxQueue,
 		@Inject('queue:db') public dbQueue: DbQueue,
@@ -54,6 +54,8 @@ export class QueueService {
 		@Inject('queue:objectStorage') public objectStorageQueue: ObjectStorageQueue,
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
+		@Inject('queue:scheduledNoteDelete') public scheduledNoteDeleteQueue: ScheduledNoteDeleteQueue,
+		@Inject('queue:scheduleNotePost') public ScheduleNotePostQueue: ScheduleNotePostQueue,
 	) {
 		this.systemQueue.add('tickCharts', {
 		}, {
@@ -88,6 +90,12 @@ export class QueueService {
 		this.systemQueue.add('checkExpiredMutings', {
 		}, {
 			repeat: { pattern: '*/5 * * * *' },
+			removeOnComplete: true,
+		});
+
+		this.systemQueue.add('bakeBufferedReactions', {
+		}, {
+			repeat: { pattern: '0 0 * * *' },
 			removeOnComplete: true,
 		});
 	}
@@ -460,10 +468,15 @@ export class QueueService {
 
 	/**
 	 * @see UserWebhookDeliverJobData
-	 * @see WebhookDeliverProcessorService
+	 * @see UserWebhookDeliverProcessorService
 	 */
 	@bindThis
-	public userWebhookDeliver(webhook: MiWebhook, type: typeof webhookEventTypes[number], content: unknown) {
+	public userWebhookDeliver(
+		webhook: MiWebhook,
+		type: typeof webhookEventTypes[number],
+		content: unknown,
+		opts?: { attempts?: number },
+	) {
 		const data: UserWebhookDeliverJobData = {
 			type,
 			content,
@@ -476,7 +489,7 @@ export class QueueService {
 		};
 
 		return this.userWebhookDeliverQueue.add(webhook.id, data, {
-			attempts: 4,
+			attempts: opts?.attempts ?? 4,
 			backoff: {
 				type: 'custom',
 			},
@@ -487,10 +500,15 @@ export class QueueService {
 
 	/**
 	 * @see SystemWebhookDeliverJobData
-	 * @see WebhookDeliverProcessorService
+	 * @see SystemWebhookDeliverProcessorService
 	 */
 	@bindThis
-	public systemWebhookDeliver(webhook: MiSystemWebhook, type: SystemWebhookEventType, content: unknown) {
+	public systemWebhookDeliver(
+		webhook: MiSystemWebhook,
+		type: SystemWebhookEventType,
+		content: unknown,
+		opts?: { attempts?: number },
+	) {
 		const data: SystemWebhookDeliverJobData = {
 			type,
 			content,
@@ -502,7 +520,7 @@ export class QueueService {
 		};
 
 		return this.systemWebhookDeliverQueue.add(webhook.id, data, {
-			attempts: 4,
+			attempts: opts?.attempts ?? 4,
 			backoff: {
 				type: 'custom',
 			},
