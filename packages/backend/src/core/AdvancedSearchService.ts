@@ -572,6 +572,7 @@ export class AdvancedSearchService {
 				.innerJoin('reac.user', 'user')
 				.leftJoin('reac.note', 'note')
 				.select(['reac', 'user.host', 'note.searchableBy'])
+				.andWhere('user.host IS NULL')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -581,7 +582,7 @@ export class AdvancedSearchService {
 					noteId: reac.noteId,
 					userId: reac.userId,
 					reaction: reac.reaction,
-					remote: reac.user === null ? false : true, //user.host===nullなら userがnullになる
+					remote: false,
 					reactionIncrement: false,
 					searchableBy: reac.note?.searchableBy === null ? undefined : reac.note?.searchableBy,
 				});
