@@ -1,7 +1,8 @@
-## x.x.x
+## 1.1.0
 Cherrypick 4.11.1
 
 ### Release Date
+2024-11-08
 
 ### Note
 
@@ -97,8 +98,6 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 - Enhance: `api/emoji`で`host`を指定できるように [#514](https://github.com/yojo-art/cherrypick/pull/514)
 
 
-### Misc
-
 ## 1.0.1
 Cherrypick 4.11.1
 
@@ -114,7 +113,6 @@ Cherrypick 4.11.1
 ### Server
 - Change: 溢れそうなチャートの型を大きいものに変更 [#417](https://github.com/yojo-art/cherrypick/pull/417)
 
-### Misc
 
 ## 1.0.0
 Cherrypick 4.11.1
@@ -135,7 +133,6 @@ Cherrypick 4.11.1
 ### Server
 -
 
-### Misc
 
 ## 0.6.0
 Cherrypick 4.11.1
@@ -167,8 +164,6 @@ Cherrypick 4.11.1
 - Fix: 絵文字インポート時にすでにファイルがあるならそれを使うように [#362](https://github.com/yojo-art/cherrypick/pull/362)
 - Enhance: リバーシ連合の対応状況をnodeinfoに追加 [#379](https://github.com/yojo-art/cherrypick/pull/379)
 
-### Misc
-
 
 ## 0.5.2
 Cherrypick 4.10.0-rc.3
@@ -190,7 +185,6 @@ Cherrypick 4.10.0-rc.3
 ### Server
 - Fix:withCats(ネコミミ付きのみのstreaming)がフィルタされていない問題を修正 [#323](https://github.com/yojo-art/cherrypick/pull/323)
 
-### Misc
 
 ## 0.5.1
 Cherrypick 4.10.0-rc.3
@@ -207,7 +201,6 @@ Cherrypick 4.10.0-rc.3
 ### Server
 - Fix: APリクエストannounceNoteを受け取れない問題を修正  [#310](https://github.com/yojo-art/cherrypick/pull/310)
 
-### Misc
 
 ## 0.5.0
 Cherrypick 4.10.0-rc.3
@@ -234,7 +227,6 @@ Cherrypick 4.10.0-rc.3
   - ./config/default.ymlファイルの変更が必要です
 -	Enhance: 高度な検索に検索のオフセットを指定できるように [#285](https://github.com/yojo-art/cherrypick/pull/285)
 
-### Misc
 
 ## 0.4.1
 Cherrypick 4.9.0
@@ -253,7 +245,6 @@ Cherrypick 4.9.0
 ### Server
 -
 
-### Misc
 
 ## 0.4.0
 Cherrypick 4.9.0
@@ -274,8 +265,6 @@ Cherrypick 4.9.0
 
 ### Server
 -
-
-### Misc
 
 
 ## 0.3.4
@@ -299,7 +288,6 @@ Cherrypick 4.9.0-beta.2
   -  検索文に一致していてもノートが出てこないことがあるのを修正しました
   -  現在のインデックスを破棄して全ノートを再インデックスする必要があります
 
-### Misc
 
 ## 0.3.3
 Cherrypick 4.9.0-beta.2
@@ -319,7 +307,7 @@ Cherrypick 4.9.0-beta.2
 ### Server
 - feat: 通知を個別削除するAPI  
 (Cherry-picked from https://github.com/1673beta/cherrypick/pull/76)
-### Misc
+
 
 ## 0.3.2
 Cherrypick 4.9.0-beta.2
@@ -336,7 +324,6 @@ Cherrypick 4.9.0-beta.2
 ### Server
 - Fix: ステータスページURLが返ってこない問題を修正
 
-### Misc
 
 ## 0.3.1
 Cherrypick 4.9.0-beta.2
