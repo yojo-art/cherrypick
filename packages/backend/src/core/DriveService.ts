@@ -9,7 +9,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
-import { IsNull } from 'typeorm';
+import { In, IsNull } from 'typeorm';
 import { DeleteObjectCommandInput, PutObjectCommandInput, NoSuchKey } from '@aws-sdk/client-s3';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, UsersRepository, DriveFoldersRepository, UserProfilesRepository } from '@/models/_.js';
@@ -951,11 +951,10 @@ export class DriveService {
 		if (FileIds.length === 0) return 0;
 		let SensitiveCount = 0;
 
-		for (const FileId of FileIds) {
-			const file = await this.driveFilesRepository.findOneBy({ id: FileId });
-			if (file?.isSensitive) SensitiveCount++;
+		const files = await this.driveFilesRepository.findBy({ id: In(FileIds) });
+		for (const file of files) {
+			if (file.isSensitive) SensitiveCount++;
 		}
-
 		return SensitiveCount;
 	}
 }
