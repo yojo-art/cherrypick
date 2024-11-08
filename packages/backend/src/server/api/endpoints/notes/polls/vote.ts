@@ -153,7 +153,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 				choice: ps.choice,
 			});
-			if (!(note.searchableBy === 'private' && note.userHost === null)) {
+			if (note.userHost === null) {
 				this.advancedSearchService.indexVote(id, {
 					noteId: note.id,
 					userId: me.id,

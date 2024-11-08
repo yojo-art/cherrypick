@@ -322,16 +322,18 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
-		if (note.searchableBy === 'private' && note.userHost !== null) return;
-		if (note.renote?.searchableBy === 'private' && note.renote.userHost !== null) return;
-		if (note.text === null && note.cw === null && note.searchableBy !== 'private') {
-			//リノートであり、ローカルユーザー
-			await this.index(this.renoteIndex, note.id, {
-				renoteId: note.renoteId,
-				userId: note.userId,
-				createdAt: this.idService.parse(note.id).date.getTime(),
-			});
-			return;
+		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
+
+		if (note.text === null && note.cw === null && note.fileIds.length === 0 && note.renoteId) { //リノートであり
+			if (note.userHost === null) {//ローカルユーザー
+				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
+				await this.index(this.renoteIndex, note.id, {
+					renoteId: note.renoteId,
+					userId: note.userId,
+					createdAt: this.idService.parse(note.id).date.getTime(),
+				});
+				return;
+			}
 		}
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
@@ -533,10 +535,10 @@ export class AdvancedSearchService {
 						.orWhere(new Brackets(qb2 => {
 							qb2
 								.where('note."userHost" IS NOT NULL')
-								.andWhere('note.searchableBy != \'private\' OR NULL');
+								.andWhere('note."searchableBy" != \'private\'')
+								.orWhere('note."searchableBy" IS NULL');
 						}));
 				}))
-				.andWhere('renote.searchableBy != \'private\' OR NULL')
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -570,7 +572,6 @@ export class AdvancedSearchService {
 				.innerJoin('reac.user', 'user')
 				.leftJoin('reac.note', 'note')
 				.select(['reac', 'user.host', 'note.searchableBy'])
-				.andWhere('note.searchableBy != \'private\' OR NULL')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
 				.getMany();
@@ -604,7 +605,6 @@ export class AdvancedSearchService {
 				.innerJoin('pv.user', 'user')
 				.select(['pv', 'user.host'])
 				.leftJoin('reac.note', 'note')
-				.andWhere('note.searchableBy != \'private\' OR NULL')
 				.andWhere('user.host IS NULL')
 				.orderBy('pv.id', 'ASC')
 				.limit(limit)
@@ -702,7 +702,7 @@ export class AdvancedSearchService {
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
 		}
-		if (note.text == null && note.cw == null) {
+		if (note.text == null && note.cw == null && note.fileIds.length === 0 && note.renoteId) {
 			//Renoteを消しとく
 			await this.unindexById(this.renoteIndex, note.id);
 			return;

@@ -179,16 +179,14 @@ export class ReactionService {
 		// Create reaction
 		try {
 			await this.noteReactionsRepository.insert(record);
-			if (!(note.searchableBy === 'private' && note.userHost !== null)) {
-				await this.advancedSearchService.indexReaction({
-					id: record.id,
-					noteId: record.noteId,
-					userId: record.userId,
-					reaction: record.reaction,
-					remote: user.host === null ? false : true,
-					searchableBy: note.searchableBy ?? undefined,
-				});
-			}
+			await this.advancedSearchService.indexReaction({
+				id: record.id,
+				noteId: record.noteId,
+				userId: record.userId,
+				reaction: record.reaction,
+				remote: user.host === null ? false : true,
+				searchableBy: note.searchableBy ?? undefined,
+			});
 		} catch (e) {
 			if (isDuplicateKeyValueError(e)) {
 				const exists = await this.noteReactionsRepository.findOneByOrFail({
@@ -311,9 +309,7 @@ export class ReactionService {
 
 		// Delete reaction
 		const result = await this.noteReactionsRepository.delete(exist.id);
-		if (note.searchableBy !== 'private') {
-			await this.advancedSearchService.unindexReaction(exist.id, user.host !== null, note.id, exist.reaction);
-		}
+		await this.advancedSearchService.unindexReaction(exist.id, user.host !== null, note.id, exist.reaction);
 
 		if (result.affected !== 1) {
 			throw new IdentifiableError('60527ec9-b4cb-4a88-a6bd-32d3ad26817d', 'not reacted');
