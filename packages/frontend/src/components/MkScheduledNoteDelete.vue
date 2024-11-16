@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, noridev, cherrypick-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 <template>
 <div :class="$style.root">
 	<span>{{ i18n.ts.scheduledNoteDelete }}</span>

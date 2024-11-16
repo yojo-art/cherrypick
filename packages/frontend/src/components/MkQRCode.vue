@@ -1,3 +1,8 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, noridev, cherrypick-project, esurio
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
 <template>
 <MkModal ref="modal" :zPriority="'middle'" @closed="$emit('closed')">
 	<div :class="$style.root">
