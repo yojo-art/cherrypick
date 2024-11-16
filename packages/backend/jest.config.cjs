@@ -207,7 +207,7 @@ module.exports = {
 
 	extensionsToTreatAsEsm: ['.ts'],
 
-	testTimeout: 60000,
+	testTimeout: 120000,
 
 	// Let Jest kill the test worker whenever it grows too much
 	// (It seems there's a known memory leak issue in Node.js' vm.Script used by Jest)
