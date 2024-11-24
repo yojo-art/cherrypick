@@ -17,10 +17,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div>✨{{ version }}🚀</div>
 			<div style="font-size: 0.8em;">{{ basedMisskeyVersion }}</div>
 		</div>
-		<MkButton rounded full @click="showChangelog = true; modal?.close();">{{ i18n.ts.whatIsNew }}</MkButton>
+		<MkButton rounded full @click="whatIsNewCherryPick">{{ i18n.ts.whatIsNew }}</MkButton>
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.gotIt }}</MkButton>
 	</div>
 </MkModal>
+<!--
 <MkModal v-else-if="showChangelog" ref="modal" :zPriority="'middle'" @closed="$emit('closed')">
 	<div :class="$style.root">
 		<div :class="$style.title" style="margin: 0 0 1.5em; font-weight: normal;">{{ i18n.ts.whatIsNew }}</div>
@@ -30,14 +31,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.ok }}</MkButton>
 	</div>
 </MkModal>
+-->
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef } from 'vue';
+import { version, basedMisskeyVersion } from '@@/js/config.js';
 import MkModal from '@/components/MkModal.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSparkle from '@/components/MkSparkle.vue';
-import { version, basedMisskeyVersion } from '@/config.js';
 import { i18n } from '@/i18n.js';
 import { confetti } from '@/scripts/confetti.js';
 import * as os from '@/os.js';

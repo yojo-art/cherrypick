@@ -86,9 +86,9 @@ import { MiFlash } from '@/models/Flash.js';
 import { MiFlashLike } from '@/models/FlashLike.js';
 import { MiFlashLikeRemote } from '@/models/FlashLikeRemote.js';
 import { MiUserListFavorite } from '@/models/UserListFavorite.js';
-import { MiNoteSchedule } from './NoteSchedule.js';
 import { MiBubbleGameRecord } from '@/models/BubbleGameRecord.js';
 import { MiReversiGame } from '@/models/ReversiGame.js';
+import { MiNoteSchedule } from '@/models/NoteSchedule.js';
 import type { QueryDeepPartialEntity } from 'typeorm/query-builder/QueryPartialEntity.js';
 
 export interface MiRepository<T extends ObjectLiteral> {

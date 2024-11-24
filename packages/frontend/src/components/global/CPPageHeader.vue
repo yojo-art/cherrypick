@@ -52,7 +52,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</template>
 	</div>
 	<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"/>
-	<div v-if="pageMetadata && pageMetadata.avatar && ($i && $i.id !== pageMetadata.userName?.id)" :class="$style.followButton">
+	<div v-if="pageMetadata && pageMetadata.avatar && ($i && $i.id !== pageMetadata.userName?.id) && !disableFollowButton" :class="$style.followButton">
 		<MkFollowButton v-if="mainRouter.currentRoute.value.name === 'user'" :user="pageMetadata.avatar" :transparent="false" :full="!narrow"/>
 	</div>
 </div>
@@ -61,7 +61,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, inject, watch, nextTick, shallowRef, computed } from 'vue';
 import tinycolor from 'tinycolor2';
-import { getScrollPosition, scrollToTop } from '@/scripts/scroll.js';
+import { getScrollPosition, scrollToTop } from '@@/js/scroll.js';
 import { globalEvents } from '@/events.js';
 import { injectReactiveMetadata } from '@/scripts/page-metadata.js';
 import { $i, openAccountMenu as openAccountMenu_ } from '@/account.js';
@@ -90,6 +90,7 @@ const props = withDefaults(defineProps<{
 	actions?: PageHeaderItem[] | null;
 	thin?: boolean;
 	displayMyAvatar?: boolean;
+	disableFollowButton?: boolean;
 }>(), {
 	tabs: () => ([] as Tab[]),
 });

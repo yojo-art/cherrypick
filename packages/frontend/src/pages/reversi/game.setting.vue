@@ -113,16 +113,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, watch, ref, onMounted, shallowRef, onUnmounted } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import * as Reversi from 'misskey-reversi';
+import type { MenuItem } from '@/types/menu.js';
 import { i18n } from '@/i18n.js';
+import { $i } from '@/account.js';
 import { deepClone } from '@/scripts/clone.js';
 import MkButton from '@/components/MkButton.vue';
 import MkRadios from '@/components/MkRadios.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import * as os from '@/os.js';
-import { MenuItem } from '@/types/menu.js';
 import { useRouter } from '@/router/supplier.js';
-import { $i } from '@/account.js';
 
 const router = useRouter();
 
@@ -143,13 +143,13 @@ const mapName = computed(() => {
 	return found ? found.name! : '-Custom-';
 });
 const isReady = computed(() => {
-	if (game.value.user1Id === $i.id && game.value.user1Ready) return true;
-	if (game.value.user2Id === $i.id && game.value.user2Ready) return true;
+	if (game.value.user1Id === $i?.id && game.value.user1Ready) return true;
+	if (game.value.user2Id === $i?.id && game.value.user2Ready) return true;
 	return false;
 });
 const isOpReady = computed(() => {
-	if (game.value.user1Id !== $i.id && game.value.user1Ready) return true;
-	if (game.value.user2Id !== $i.id && game.value.user2Ready) return true;
+	if (game.value.user1Id !== $i?.id && game.value.user1Ready) return true;
+	if (game.value.user2Id !== $i?.id && game.value.user2Ready) return true;
 	return false;
 });
 const isFederation = computed(() => {

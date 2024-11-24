@@ -94,6 +94,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			youBlockedImageUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			iconUrl: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -305,53 +309,53 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
-			useObjectStorageRemote: {
+			useRemoteObjectStorage: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
-			objectStorageRemoteBaseUrl: {
+			remoteObjectStorageBaseUrl: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemoteBucket: {
+			remoteObjectStorageBucket: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemotePrefix: {
+			remoteObjectStoragePrefix: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemoteEndpoint: {
+			remoteObjectStorageEndpoint: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemoteRegion: {
+			remoteObjectStorageRegion: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemotePort: {
+			remoteObjectStoragePort: {
 				type: 'number',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemoteAccessKey: {
+			remoteObjectStorageAccessKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemoteSecretKey: {
+			remoteObjectStorageSecretKey: {
 				type: 'string',
-				optional: true, nullable: true,
+				optional: false, nullable: true,
 			},
-			objectStorageRemoteUseSSL: {
+			remoteObjectStorageUseSSL: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
-			objectStorageRemoteUseProxy: {
+			remoteObjectStorageUseProxy: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
-			objectStorageRemoteSetPublicRead: {
+			remoteObjectStorageSetPublicRead: {
 				type: 'boolean',
-				optional: true, nullable: false,
+				optional: false, nullable: false,
 			},
 			enableIpLogging: {
 				type: 'boolean',
@@ -429,6 +433,10 @@ export const meta = {
 				type: 'number',
 				optional: false, nullable: false,
 			},
+			enableReactionsBuffering: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			notesPerOneAd: {
 				type: 'number',
 				optional: false, nullable: false,
@@ -485,7 +493,7 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
-			objectStorageRemoteS3ForcePathStyle: {
+			remoteObjectStorageS3ForcePathStyle: {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
@@ -551,6 +559,18 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			federation: {
+				type: 'string',
+				optional: false, nullable: false,
+			},
+			federationHosts: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+			},
 			doNotSendNotificationEmailsForAbuseReport: {
 				type: 'boolean',
 				optional: false, nullable: false,
@@ -570,6 +590,21 @@ export const meta = {
 			skipCherryPickVersion: {
 				type: 'string',
 				optional: true, nullable: true,
+			},
+			trustedLinkUrlPatterns: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
+			},
+			customSplashText: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+				},
 			},
 		},
 	},
@@ -628,6 +663,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				serverErrorImageUrl: instance.serverErrorImageUrl,
 				notFoundImageUrl: instance.notFoundImageUrl,
 				infoImageUrl: instance.infoImageUrl,
+				youBlockedImageUrl: instance.youBlockedImageUrl,
 				iconUrl: instance.iconUrl,
 				app192IconUrl: instance.app192IconUrl,
 				app512IconUrl: instance.app512IconUrl,
@@ -681,19 +717,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				objectStorageUseProxy: instance.objectStorageUseProxy,
 				objectStorageSetPublicRead: instance.objectStorageSetPublicRead,
 				objectStorageS3ForcePathStyle: instance.objectStorageS3ForcePathStyle,
-				useObjectStorageRemote: instance.useObjectStorageRemote,
-				objectStorageRemoteBaseUrl: instance.objectStorageRemoteBaseUrl,
-				objectStorageRemoteBucket: instance.objectStorageRemoteBucket,
-				objectStorageRemotePrefix: instance.objectStorageRemotePrefix,
-				objectStorageRemoteEndpoint: instance.objectStorageRemoteEndpoint,
-				objectStorageRemoteRegion: instance.objectStorageRemoteRegion,
-				objectStorageRemotePort: instance.objectStorageRemotePort,
-				objectStorageRemoteAccessKey: instance.objectStorageRemoteAccessKey,
-				objectStorageRemoteSecretKey: instance.objectStorageRemoteSecretKey,
-				objectStorageRemoteUseSSL: instance.objectStorageRemoteUseSSL,
-				objectStorageRemoteUseProxy: instance.objectStorageRemoteUseProxy,
-				objectStorageRemoteSetPublicRead: instance.objectStorageRemoteSetPublicRead,
-				objectStorageRemoteS3ForcePathStyle: instance.objectStorageRemoteS3ForcePathStyle,
+				useRemoteObjectStorage: instance.useRemoteObjectStorage,
+				remoteObjectStorageBaseUrl: instance.remoteObjectStorageBaseUrl,
+				remoteObjectStorageBucket: instance.remoteObjectStorageBucket,
+				remoteObjectStoragePrefix: instance.remoteObjectStoragePrefix,
+				remoteObjectStorageEndpoint: instance.remoteObjectStorageEndpoint,
+				remoteObjectStorageRegion: instance.remoteObjectStorageRegion,
+				remoteObjectStoragePort: instance.remoteObjectStoragePort,
+				remoteObjectStorageAccessKey: instance.remoteObjectStorageAccessKey,
+				remoteObjectStorageSecretKey: instance.remoteObjectStorageSecretKey,
+				remoteObjectStorageUseSSL: instance.remoteObjectStorageUseSSL,
+				remoteObjectStorageUseProxy: instance.remoteObjectStorageUseProxy,
+				remoteObjectStorageSetPublicRead: instance.remoteObjectStorageSetPublicRead,
+				remoteObjectStorageS3ForcePathStyle: instance.remoteObjectStorageS3ForcePathStyle,
 				deeplAuthKey: instance.deeplAuthKey,
 				deeplIsPro: instance.deeplIsPro,
 				ctav3SaKey: instance.ctav3SaKey,
@@ -721,6 +757,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				perRemoteUserUserTimelineCacheMax: instance.perRemoteUserUserTimelineCacheMax,
 				perUserHomeTimelineCacheMax: instance.perUserHomeTimelineCacheMax,
 				perUserListTimelineCacheMax: instance.perUserListTimelineCacheMax,
+				enableReactionsBuffering: instance.enableReactionsBuffering,
 				notesPerOneAd: instance.notesPerOneAd,
 				summalyProxy: instance.urlPreviewSummaryProxyUrl,
 				urlPreviewEnabled: instance.urlPreviewEnabled,
@@ -729,12 +766,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				urlPreviewRequireContentLength: instance.urlPreviewRequireContentLength,
 				urlPreviewUserAgent: instance.urlPreviewUserAgent,
 				urlPreviewSummaryProxyUrl: instance.urlPreviewSummaryProxyUrl,
+				federation: instance.federation,
+				federationHosts: instance.federationHosts,
 				urlPreviewDirectSummalyProxy: instance.directSummalyProxy,
 				doNotSendNotificationEmailsForAbuseReport: instance.doNotSendNotificationEmailsForAbuseReport,
 				emailToReceiveAbuseReport: instance.emailToReceiveAbuseReport,
 				enableReceivePrerelease: instance.enableReceivePrerelease,
 				skipVersion: instance.skipVersion,
 				skipCherryPickVersion: instance.skipCherryPickVersion,
+				trustedLinkUrlPatterns: instance.trustedLinkUrlPatterns,
+				customSplashText: instance.customSplashText,
 			};
 		});
 	}

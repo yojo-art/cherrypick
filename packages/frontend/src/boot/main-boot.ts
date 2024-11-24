@@ -4,9 +4,9 @@
  */
 
 import { createApp, defineAsyncComponent, markRaw } from 'vue';
+import { ui } from '@@/js/config.js';
 import { common } from './common.js';
 import type * as Misskey from 'cherrypick-js';
-import { ui } from '@/config.js';
 import { i18n } from '@/i18n.js';
 import { alert, confirm, popup, post, welcomeToast } from '@/os.js';
 import { useStream } from '@/stream.js';
@@ -22,6 +22,7 @@ import { deckStore } from '@/ui/deck/deck-store.js';
 import { emojiPicker } from '@/scripts/emoji-picker.js';
 import { mainRouter } from '@/router/main.js';
 import { type Keymap, makeHotkey } from '@/scripts/hotkey.js';
+import { addCustomEmoji, removeCustomEmojis, updateCustomEmojis } from '@/custom-emojis.js';
 import { userName } from '@/filters/user.js';
 import { vibrate } from '@/scripts/vibrate.js';
 
@@ -69,6 +70,18 @@ export async function mainBoot() {
 				location.reload();
 			}
 		} else if (defaultStore.state.serverDisconnectedBehavior === 'none') { /* empty */ }
+	});
+
+	stream.on('emojiAdded', emojiData => {
+		addCustomEmoji(emojiData.emoji);
+	});
+
+	stream.on('emojiUpdated', emojiData => {
+		updateCustomEmojis(emojiData.emojis);
+	});
+
+	stream.on('emojiDeleted', emojiData => {
+		removeCustomEmojis(emojiData.emojis);
 	});
 
 	for (const plugin of ColdDeviceStorage.get('plugins').filter(p => p.active)) {
@@ -244,7 +257,7 @@ export async function mainBoot() {
 		if (lastUsed) {
 			const lastUsedDate = parseInt(lastUsed, 10);
 			// 二時間以上前なら
-			if (Date.now() - lastUsedDate > 1000 * 60 * 60 * 2) {
+			if (defaultStore.state.welcomeBackToast && Date.now() - lastUsedDate > 1000 * 60 * 60 * 2) {
 				welcomeToast(i18n.tsx.welcomeBackWithName({
 					name: userName($i),
 				}));

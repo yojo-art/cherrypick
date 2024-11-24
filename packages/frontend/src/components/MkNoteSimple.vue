@@ -20,8 +20,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-show="note.cw == null || showContent">
 			<MkSubNoteContent :class="$style.text" :note="note" :showSubNoteFooterButton="false"/>
 			<div v-if="note.isSchedule" style="margin-top: 10px;">
-				<MkButton :class="$style.button" inline @click.stop.prevent="editScheduleNote()">{{ i18n.ts.deleteAndEdit }}</MkButton>
-				<MkButton :class="$style.button" inline danger @click.stop.prevent="deleteScheduleNote()">{{ i18n.ts.delete }}</MkButton>
+				<MkButton :class="$style.button" inline rounded @click.stop.prevent="editScheduleNote()"><i class="ti ti-eraser"></i> {{ i18n.ts.deleteAndEdit }}</MkButton>
+				<MkButton :class="$style.button" inline rounded danger @click.stop.prevent="deleteScheduleNote()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
 		</div>
 	</div>
@@ -31,33 +31,35 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
-import { i18n } from '../i18n.js';
+import * as os from '@/os.js';
 import MkNoteHeader from '@/components/MkNoteHeader.vue';
 import MkSubNoteContent from '@/components/MkSubNoteContent.vue';
 import MkCwButton from '@/components/MkCwButton.vue';
 import MkEvent from '@/components/MkEvent.vue';
+import MkButton from '@/components/MkButton.vue';
 import { globalEvents } from '@/events.js';
 import { mainRouter } from '@/router/main.js';
 import { useRouter } from '@/router/supplier.js';
 import { defaultStore } from '@/store.js';
 import { notePage } from '@/filters/note.js';
+import { i18n } from '@/i18n.js';
+import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const props = withDefaults(defineProps<{
-  note: Misskey.entities.Note & {isSchedule? : boolean, scheduledNoteId?:string};
+	note: Misskey.entities.Note & {
+		isSchedule? : boolean,
+		scheduledNoteId?: string
+	};
 	enableNoteClick?: boolean,
 }>(), {
 	enableNoteClick: true,
 });
 
-const showEl = ref(false);
-import MkButton from '@/components/MkButton.vue';
-import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api';
-const isDeleted = ref(false);
-
 const emit = defineEmits<{
-  (ev: 'editScheduleNote'): void;
+	(ev: 'editScheduleNote'): void;
 }>();
+
+const showEl = ref(false);
 
 async function deleteScheduleNote() {
 	const { canceled } = await os.confirm({
@@ -92,6 +94,10 @@ const showContent = ref(false);
 const expandOnNoteClick = defaultStore.state.expandOnNoteClick;
 const router = useRouter();
 
+const isDeleted = ref(false);
+
+if (defaultStore.state.alwaysShowCw) showContent.value = true;
+
 onMounted(() => {
 	globalEvents.on('showEl', (showEl_receive) => {
 		showEl.value = showEl_receive;
@@ -99,20 +105,17 @@ onMounted(() => {
 });
 
 function noteClick(ev: MouseEvent) {
-	if (props.note.isSchedule) {
-		return;
-	}
+	if (props.note.isSchedule) return;
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || defaultStore.state.expandOnNoteClickBehavior === 'doubleClick') ev.stopPropagation();
 	else router.push(notePage(props.note));
 }
 
 function noteDblClick(ev: MouseEvent) {
-	if (props.note.isSchedule) {
-		return;
-	}
+	if (props.note.isSchedule) return;
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || defaultStore.state.expandOnNoteClickBehavior === 'click') ev.stopPropagation();
 	else router.push(notePage(props.note));
 }
+
 </script>
 
 <style lang="scss" module>
@@ -120,6 +123,7 @@ function noteDblClick(ev: MouseEvent) {
 	margin: 0;
 	padding: 0;
 	font-size: 0.95em;
+	border-bottom: solid 0.5px var(--divider);
 	-webkit-tap-highlight-color: transparent;
   border-bottom: solid 0.5px var(--divider);
 }
@@ -127,6 +131,12 @@ function noteDblClick(ev: MouseEvent) {
   margin-right: var(--margin);
   margin-bottom: var(--margin);
 }
+
+.button{
+	margin-right: var(--margin);
+	margin-bottom: var(--margin);
+}
+
 .avatar {
 	flex-shrink: 0;
 	display: block;

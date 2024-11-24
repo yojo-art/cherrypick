@@ -157,6 +157,12 @@ export class MiMeta {
 	})
 	public infoImageUrl: string | null;
 
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public youBlockedImageUrl: string | null;
+
 	@Column('boolean', {
 		default: false,
 	})
@@ -521,74 +527,74 @@ export class MiMeta {
 	@Column('boolean', {
 		default: false,
 	})
-	public useObjectStorageRemote: boolean;
+	public useRemoteObjectStorage: boolean;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemoteBucket: string | null;
+	public remoteObjectStorageBucket: string | null;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemotePrefix: string | null;
+	public remoteObjectStoragePrefix: string | null;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemoteBaseUrl: string | null;
+	public remoteObjectStorageBaseUrl: string | null;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemoteEndpoint: string | null;
+	public remoteObjectStorageEndpoint: string | null;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemoteRegion: string | null;
+	public remoteObjectStorageRegion: string | null;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemoteAccessKey: string | null;
+	public remoteObjectStorageAccessKey: string | null;
 
 	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
-	public objectStorageRemoteSecretKey: string | null;
+	public remoteObjectStorageSecretKey: string | null;
 
 	@Column('integer', {
 		nullable: true,
 	})
-	public objectStorageRemotePort: number | null;
+	public remoteObjectStoragePort: number | null;
 
 	@Column('boolean', {
 		default: true,
 	})
-	public objectStorageRemoteUseSSL: boolean;
+	public remoteObjectStorageUseSSL: boolean;
 
 	@Column('boolean', {
 		default: true,
 	})
-	public objectStorageRemoteUseProxy: boolean;
+	public remoteObjectStorageUseProxy: boolean;
 
 	@Column('boolean', {
 		default: false,
 	})
-	public objectStorageRemoteSetPublicRead: boolean;
+	public remoteObjectStorageSetPublicRead: boolean;
 
 	@Column('boolean', {
 		default: true,
 	})
-	public objectStorageRemoteS3ForcePathStyle: boolean;
+	public remoteObjectStorageS3ForcePathStyle: boolean;
 
 	@Column('boolean', {
 		default: false,
@@ -708,6 +714,11 @@ export class MiMeta {
 	})
 	public perUserListTimelineCacheMax: number;
 
+	@Column('boolean', {
+		default: false,
+	})
+	public enableReactionsBuffering: boolean;
+
 	@Column('integer', {
 		default: 0,
 	})
@@ -734,6 +745,14 @@ export class MiMeta {
 	public urlPreviewRequireContentLength: boolean;
 
 	@Column('varchar', {
+		length: 3072,
+		array: true,
+		default: '{}',
+		comment: 'An array of URL strings or regex that can be used to omit warnings about redirects to external sites. Separate them with spaces to specify AND, and enclose them with slashes to specify regular expressions. Each item is regarded as an OR.',
+	})
+	public trustedLinkUrlPatterns: string[];
+
+	@Column('varchar', {
 		length: 1024,
 		nullable: true,
 	})
@@ -744,6 +763,19 @@ export class MiMeta {
 		nullable: true,
 	})
 	public urlPreviewUserAgent: string | null;
+
+	@Column('varchar', {
+		length: 128,
+		default: 'all',
+	})
+	public federation: 'all' | 'specified' | 'none';
+
+	@Column('varchar', {
+		length: 1024,
+		array: true,
+		default: '{}',
+	})
+	public federationHosts: string[];
 
 	@Column('boolean', {
 		default: false,
@@ -770,4 +802,11 @@ export class MiMeta {
 		nullable: true,
 	})
 	public skipCherryPickVersion: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		array: true,
+		default: '{}',
+	})
+	public customSplashText: string[];
 }

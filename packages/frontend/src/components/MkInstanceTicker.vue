@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import { instanceName } from '@/config.js';
+import { instanceName } from '@@/js/config.js';
 import { instance as Instance } from '@/instance.js';
 import { getProxiedImageUrlNullable } from '@/scripts/media-proxy.js';
 
@@ -44,13 +44,14 @@ $height: 2ex;
 
 .root {
 	display: flex;
+	cursor: pointer;
 	align-items: center;
 	height: $height;
-	border-radius: .3rem;
+	border-radius: .5rem;
 	overflow: clip;
 	color: #000;
 	margin-top: 5px;
-	padding: 1px 3px 1px 0;
+	padding: 1px 5px 1px 0;
 	text-shadow: /* .866 ≈ sin(60deg) */
 		1px 0 1px #fff,
 		.866px .5px 1px #fff,
