@@ -1,3 +1,11 @@
+## 1.2.0
+
+### Release Date
+yyyy-mm-dd
+
+### Server
+- Fix: PersonのserchableByが正しく連合できていないのを修正[#555](https://github.com/yojo-art/cherrypick/pull/555)
+
 ## 1.1.0
 Cherrypick 4.11.1
 
