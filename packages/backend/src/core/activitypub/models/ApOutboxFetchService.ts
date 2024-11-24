@@ -22,7 +22,7 @@ import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { ApDbResolverService } from '@/core/activitypub/ApDbResolverService.js';
-import { isIOrderedCollectionPage, isCreate, IOrderedCollectionPage, isNote } from '../type.js';
+import { isCreate, IOrderedCollectionPage, isNote } from '../type.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
@@ -83,46 +83,32 @@ export class ApOutboxFetchService implements OnModuleInit {
 		this.logger.info(`Fetcing the Outbox: ${outboxUrl}`);
 		const Resolver = resolver ?? this.apResolverService.createResolver();
 		const cache = await this.redisClient.get(`${outboxUrl}--next`);
-		// Resolve to (Ordered)Collection Object
-		const outbox = cache ? await Resolver.resolveOrderedCollectionPage(cache) : await Resolver.resolveCollection(outboxUrl);
+		let next: string | IOrderedCollectionPage;
 
-		if (!cache && outbox.type !== 'OrderedCollection') throw new IdentifiableError('0be2f5a1-2345-46d8-b8c3-430b111c68d3', 'outbox type is not OrderedCollection');
-		if (!cache && !outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
+		if (!cache) {
+			// Resolve to (Ordered)Collection Object
+			const outbox = await Resolver.resolveOrderedCollection(outboxUrl);
+			if (!outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
+			next = outbox.first;
+		} else next = cache;
 
-		let nextUrl = cache ? (outbox as IOrderedCollectionPage).next : outbox.first;
-		let page = 0;
 		let created = 0;
-		if (typeof(nextUrl) !== 'string') {
-			const first = (nextUrl as any);
-			if (first.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
 
-			const activityes = first.orderedItems ?? first.items;
-			await this.fetchObjects(user, activityes, includeAnnounce, created);
+		for (let page = 0; page < pagelimit; page++) {
+			const collection = (typeof(next) === 'string' ? await Resolver.resolveOrderedCollectionPage(next) : next);
+			if (collection.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
+			if (!collection.orderedItems && !collection.items) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is undefined');
 
-			page = 1;
-			if (!first.next) return;
-		}
-
-		for (; page < pagelimit; page++) {
-			this.logger.info(nextUrl as string);
-			const collectionPage = (typeof(nextUrl) === 'string' ? await Resolver.resolveOrderedCollectionPage(nextUrl) : nextUrl) as IOrderedCollectionPage;
-			if (!isIOrderedCollectionPage(collectionPage)) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'Object is not collectionPage');
-			if (collectionPage.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
-
-			const activityes = (collectionPage.orderedItems ?? collectionPage.items);
-			nextUrl = collectionPage.next;
+			const activityes = (collection.orderedItems ?? collection.items);
 			if (!activityes) continue;
 
 			created = await this.fetchObjects(user, activityes, includeAnnounce, created);
 			if (createLimit <= created) break;//次ページ見て一件だけしか取れないのは微妙
-			if (!nextUrl) {
-				break;
-			}
+			if (!collection.next) break;
 
-			await this.redisClient.set(`${outboxUrl}--next`, `${nextUrl}`, 'EX', 60 * 15);//15min
+			await this.redisClient.set(`${outboxUrl}--next`, `${collection.next}`, 'EX', 60 * 15);//15min
 		}
 		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
-		//this.logger.info(`Outbox Fetced last: ${nextUrl}`);
 	}
 
 	@bindThis
@@ -130,7 +116,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 		for (const activity of activityes) {
 			if (createLimit < created) return created;
 			try {
-				if (includeAnnounce && activity.type === 'Announce') {
+				if (activity.type === 'Announce' && includeAnnounce) {
 					const object = await	this.apDbResolverService.getNoteFromApId(activity.id);
 
 					if (object) continue;

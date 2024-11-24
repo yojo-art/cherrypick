@@ -109,7 +109,7 @@ export interface IOrderedCollection extends IObject {
 	type: 'OrderedCollection';
 	totalItems?: number;
 	orderedItems?: ApObject;
-	first?: IObject | string;
+	first?: IOrderedCollectionPage | string;
 	last?: IObject | string;
 }
 
@@ -117,7 +117,6 @@ export interface IOrderedCollectionPage extends IObject {
 	type: 'OrderedCollectionPage';
 	partOf: string;
 	totalItems?: number;
-	first?: IObject | string;
 	orderedItems?: IObject[];
 	items?: IObject[];
 	prev: string;
