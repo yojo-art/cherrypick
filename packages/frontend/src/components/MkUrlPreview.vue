@@ -235,7 +235,7 @@ onUnmounted(() => {
 	height: 1.5em;
 	padding: 0;
 	margin: 0;
-	color: var(--fg);
+	color: var(--MI_THEME-fg);
 	background: rgba(128, 128, 128, 0.2);
 	opacity: 0.7;
 
@@ -256,7 +256,7 @@ onUnmounted(() => {
 	position: relative;
 	display: block;
 	font-size: 14px;
-	box-shadow: 0 0 0 1px var(--divider);
+	box-shadow: 0 0 0 1px var(--MI_THEME-divider);
 	border-radius: 8px;
 	overflow: clip;
 
@@ -286,7 +286,7 @@ onUnmounted(() => {
 	height: 100%;
 	background-position: center;
 	background-size: cover;
-	background-color: var(--bg);
+	background-color: var(--MI_THEME-bg);
 	display: flex;
 	justify-content: center;
 	align-items: center;
@@ -333,7 +333,6 @@ onUnmounted(() => {
 .siteName {
 	display: inline-block;
 	margin: 0;
-	color: var(--urlPreviewInfo);
 	font-size: 0.8em;
 	line-height: 16px;
 	vertical-align: top;
