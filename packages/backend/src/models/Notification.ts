@@ -94,6 +94,11 @@ export type MiNotification = {
 	exportedEntity: typeof userExportableEntities[number];
 	fileId: MiDriveFile['id'];
 } | {
+	type: 'login';
+	id: string;
+	createdAt: string;
+	userIp: string;
+} | {
 	type: 'scheduleNote';
 	id: string;
 	createdAt: string;

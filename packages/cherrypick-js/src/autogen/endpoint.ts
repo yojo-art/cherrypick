@@ -94,6 +94,8 @@ import type {
 	AdminResetPasswordRequest,
 	AdminResetPasswordResponse,
 	AdminResolveAbuseUserReportRequest,
+	AdminForwardAbuseUserReportRequest,
+	AdminUpdateAbuseUserReportRequest,
 	AdminSendEmailRequest,
 	AdminFullIndexRequest,
 	AdminServerInfoResponse,
@@ -436,6 +438,8 @@ import type {
 	NotesMentionsResponse,
 	NotesPollsRecommendationRequest,
 	NotesPollsRecommendationResponse,
+	NotesPollsTranslateRequest,
+	NotesPollsTranslateResponse,
 	NotesPollsVoteRequest,
 	NotesEventsSearchRequest,
 	NotesEventsSearchResponse,
@@ -483,6 +487,7 @@ import type {
 	FlashCreateRequest,
 	FlashCreateResponse,
 	FlashDeleteRequest,
+	FlashFeaturedRequest,
 	FlashFeaturedResponse,
 	FlashGenTokenRequest,
 	FlashGenTokenResponse,
@@ -686,6 +691,8 @@ export type Endpoints = {
 	'admin/relays/remove': { req: AdminRelaysRemoveRequest; res: EmptyResponse };
 	'admin/reset-password': { req: AdminResetPasswordRequest; res: AdminResetPasswordResponse };
 	'admin/resolve-abuse-user-report': { req: AdminResolveAbuseUserReportRequest; res: EmptyResponse };
+	'admin/forward-abuse-user-report': { req: AdminForwardAbuseUserReportRequest; res: EmptyResponse };
+	'admin/update-abuse-user-report': { req: AdminUpdateAbuseUserReportRequest; res: EmptyResponse };
 	'admin/send-email': { req: AdminSendEmailRequest; res: EmptyResponse };
 	'admin/full-index': { req: AdminFullIndexRequest; res: EmptyResponse };
 	'admin/recreate-index': { req: EmptyRequest; res: EmptyResponse };
@@ -909,6 +916,7 @@ export type Endpoints = {
 	'notes/local-timeline': { req: NotesLocalTimelineRequest; res: NotesLocalTimelineResponse };
 	'notes/mentions': { req: NotesMentionsRequest; res: NotesMentionsResponse };
 	'notes/polls/recommendation': { req: NotesPollsRecommendationRequest; res: NotesPollsRecommendationResponse };
+	'notes/polls/translate': { req: NotesPollsTranslateRequest; res: NotesPollsTranslateResponse };
 	'notes/polls/vote': { req: NotesPollsVoteRequest; res: EmptyResponse };
 	'notes/events/search': { req: NotesEventsSearchRequest; res: NotesEventsSearchResponse };
 	'notes/reactions': { req: NotesReactionsRequest; res: NotesReactionsResponse };
@@ -944,7 +952,7 @@ export type Endpoints = {
 	'pages/update': { req: PagesUpdateRequest; res: EmptyResponse };
 	'flash/create': { req: FlashCreateRequest; res: FlashCreateResponse };
 	'flash/delete': { req: FlashDeleteRequest; res: EmptyResponse };
-	'flash/featured': { req: EmptyRequest; res: FlashFeaturedResponse };
+	'flash/featured': { req: FlashFeaturedRequest; res: FlashFeaturedResponse };
 	'flash/gen-token': { req: FlashGenTokenRequest; res: FlashGenTokenResponse };
 	'flash/like': { req: FlashLikeRequest; res: EmptyResponse };
 	'flash/show': { req: FlashShowRequest; res: FlashShowResponse };

@@ -12,7 +12,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
 import { DI } from '@/di-symbols.js';
-import type { ClipsRepository, ClipNotesRepository, NotesRepository, MiUser } from '@/models/_.js';
+import type { ClipsRepository, ClipNotesRepository, NotesRepository, MiUser, FlashsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
@@ -37,12 +37,34 @@ export class FlashService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		@Inject(DI.flashsRepository)
+		private flashRepository: FlashsRepository,
+
 		private httpRequestService: HttpRequestService,
 		private userEntityService: UserEntityService,
 		private remoteUserResolveService: RemoteUserResolveService,
 		private roleService: RoleService,
 		private idService: IdService,
 	) {
+	}
+	/**
+	 * 人気のあるPlay一覧を取得する.
+	 */
+	public async featured(opts?: { offset?: number, limit: number }) {
+		const builder = this.flashRepository.createQueryBuilder('flash')
+			.andWhere('flash.likedCount > 0')
+			.andWhere('flash.visibility = :visibility', { visibility: 'public' })
+			.addOrderBy('flash.likedCount', 'DESC')
+			.addOrderBy('flash.updatedAt', 'DESC')
+			.addOrderBy('flash.id', 'DESC');
+
+		if (opts?.offset) {
+			builder.skip(opts.offset);
+		}
+
+		builder.take(opts?.limit ?? 10);
+
+		return await builder.getMany();
 	}
 	@bindThis
 	async showRemoteOrDummy(
