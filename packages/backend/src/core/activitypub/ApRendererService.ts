@@ -533,7 +533,7 @@ export class ApRendererService {
 
 		const keypair = await this.userKeypairService.getUserKeypair(user.id);
 		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
-		//${this.config.url}
+
 		const person: any = {
 			type: isSystem ? 'Application' : user.isBot ? 'Service' : 'Person',
 			id,

@@ -4,7 +4,7 @@
 yyyy-mm-dd
 
 ### Server
-- Fix: PersonのserchableByが正しく連合できていないのを修正[#555](https://github.com/yojo-art/cherrypick/pull/555)
+- Fix: PersonのserchableByが正しく連合できていないのを修正[#556](https://github.com/yojo-art/cherrypick/pull/556)
 
 ## 1.1.0
 Cherrypick 4.11.1
