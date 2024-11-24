@@ -1,3 +1,8 @@
+## 1.2.0
+
+### Server
+- Enhance: `/users/${id}`に`Accept: application/ld+json`ではないリクエストが来たとき`/@${username}`にリダイレクトするように [#554](https://github.com/yojo-art/cherrypick/pull/554)
+
 ## 1.1.0
 Cherrypick 4.11.1
 
