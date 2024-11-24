@@ -117,6 +117,9 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			return cache.length === 0 ? null : cache;
 		}
 		const instance = await this.federatedInstanceService.fetch(host);
+		if (instance == null) {
+			return null;
+		}
 		const nodeinfo = await this.fetchInstanceMetadataService.fetchNodeinfo(instance);
 		const reversiVersion = nodeinfo.metadata?.reversiVersion;
 		if (typeof(reversiVersion) === 'string') {

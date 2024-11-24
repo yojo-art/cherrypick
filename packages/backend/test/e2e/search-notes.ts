@@ -121,7 +121,7 @@ describe('検索', () => {
 
 		console.log(JSON.stringify(reactedNote));
 
-		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: null });
+		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: undefined });
 		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });
 		noteSearchableByFollowersAndReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'followersAndReacted' });
 		noteSearchableByReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'reactedOnly' });
