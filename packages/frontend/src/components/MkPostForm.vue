@@ -405,6 +405,7 @@ function watchForDraft() {
 	watch(event, () => saveDraft());
 	watch(files, () => saveDraft(), { deep: true });
 	watch(visibility, () => saveDraft());
+	watch(searchableBy, () => saveDraft());
 	watch(quoteId, () => saveDraft());
 	watch(reactionAcceptance, () => saveDraft());
 	watch(scheduledNoteDelete, () => saveDraft());
