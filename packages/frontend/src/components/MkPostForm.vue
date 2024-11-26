@@ -742,6 +742,7 @@ function saveDraft() {
 			cw: cw.value,
 			disableRightClick: disableRightClick.value,
 			visibility: visibility.value,
+			searchableBy: searchableBy.value,
 			files: files.value,
 			poll: poll.value,
 			event: event.value,
@@ -1166,7 +1167,7 @@ onMounted(() => {
 				cw.value = draft.data.cw;
 				disableRightClick.value = draft.data.disableRightClick;
 				visibility.value = draft.data.visibility;
-				searchableBy.value = draft.data.searchbility;
+				searchableBy.value = draft.data.searchableBy;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1191,6 +1192,7 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
+			searchableBy.value = init.searchableBy;
 			files.value = init.files ?? [];
 			if (init.isSchedule) {
 				schedule.value = {

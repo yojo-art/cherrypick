@@ -233,7 +233,7 @@ const showAddMfmFunction = ref(defaultStore.state.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => defaultStore.set('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
 const visibility = ref(props.initialVisibility ?? (defaultStore.state.rememberNoteVisibility ? defaultStore.state.visibility : defaultStore.state.defaultNoteVisibility));
-const searchableBy = ref(defaultStore.state.rememberNoteSearchableBy ? defaultStore.state.searchableBy : defaultStore.state.defaultNotesearchableBy);
+const searchableBy = ref(defaultStore.state.rememberNoteSearchbility ? defaultStore.state.searchbility : defaultStore.state.defaultNoteSearchbility);
 const visibleUsers = ref<Misskey.entities.UserDetailed[]>([]);
 if (props.initialVisibleUsers) {
 	props.initialVisibleUsers.forEach(u => pushVisibleUser(u));
@@ -722,6 +722,7 @@ function saveDraft() {
 			cw: cw.value,
 			disableRightClick: disableRightClick.value,
 			visibility: visibility.value,
+			searchableBy: searchableBy.value,
 			files: files.value,
 			poll: poll.value,
 			event: event.value,
@@ -841,6 +842,7 @@ async function post(ev?: MouseEvent) {
 		event: event.value,
 		cw: useCw.value ? cw.value ?? '' : null,
 		visibility: visibility.value,
+		searchableBy: searchableBy.value,
 		visibleUserIds: visibility.value === 'specified' ? visibleUsers.value.map(u => u.id) : undefined,
 		reactionAcceptance: reactionAcceptance.value,
 		disableRightClick: disableRightClick.value,
@@ -1183,7 +1185,7 @@ onMounted(() => {
 				cw.value = draft.data.cw;
 				disableRightClick.value = draft.data.disableRightClick;
 				visibility.value = draft.data.visibility;
-				searchableBy.value = draft.data.searchbility;
+				searchableBy.value = draft.data.searchableBy;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1208,7 +1210,7 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
-			searchableBy.value = init.searchbility;
+			searchableBy.value = init.searchableBy;
 			files.value = init.files ?? [];
 			if (init.poll) {
 				poll.value = {

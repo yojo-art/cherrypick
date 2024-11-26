@@ -93,6 +93,11 @@ export const packedNoteSchema = {
 			optional: false, nullable: false,
 			enum: ['public', 'home', 'followers', 'specified'],
 		},
+		searchableBy: {
+			type: 'string',
+			optional: false, nullable: false,
+			enum: ['public', 'private', 'followersAndReacted', 'reactedOnly'],
+		},
 		mentions: {
 			type: 'array',
 			optional: true, nullable: false,

@@ -4456,6 +4456,8 @@ export type components = {
       isHidden?: boolean;
       /** @enum {string} */
       visibility: 'public' | 'home' | 'followers' | 'specified';
+      /** @enum {string} */
+      searchableBy: 'public' | 'private' | 'followersAndReacted' | 'reactedOnly';
       mentions?: string[];
       visibleUserIds?: string[];
       fileIds?: string[];
