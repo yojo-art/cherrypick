@@ -161,6 +161,7 @@ function toPackedNote(note: MiNote, detail = true, override?: Packed<'Note'>): P
 		renoteId: note.renoteId,
 		isHidden: false,
 		visibility: note.visibility,
+		searchableBy: note.searchableBy,
 		mentions: note.mentions,
 		visibleUserIds: note.visibleUserIds,
 		fileIds: note.fileIds,
