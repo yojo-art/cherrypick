@@ -667,6 +667,20 @@ export class ActivityPubServerService {
 			return await this.userInfo(request, reply, user);
 		});
 
+		fastify.get<{ Params: { user: string; } }>('/users/:user', { constraints: { apOrHtml: 'html' } }, async (request, reply) => {
+			vary(reply.raw, 'Accept');
+
+			const userId = request.params.user;
+
+			const user = await this.usersRepository.findOneBy({
+				id: userId,
+				host: IsNull(),
+				isSuspended: false,
+			});
+			if (user) reply.redirect(`/@${user.username}`);
+			reply.code(404);
+		});
+
 		fastify.get<{ Params: { user: string; } }>('/@:user', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
 			vary(reply.raw, 'Accept');
 
