@@ -6,7 +6,7 @@
 import { createPublicKey, randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
-import * as mfm from 'cherrypick-mfm-js';
+import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiPartialLocalUser, MiLocalUser, MiPartialRemoteUser, MiRemoteUser, MiUser } from '@/models/User.js';
@@ -455,6 +455,14 @@ export class ApRendererService {
 			} as const : {};
 		}
 
+		let asDeleteAt = {};
+		if (note.deleteAt) {
+			const n = await this.notesRepository.findOneBy({ id: note.id });
+			asDeleteAt = n ? {
+				deleteAt: n.deleteAt,
+			} as const : {};
+		}
+
 		return {
 			id: `${this.config.url}/notes/${note.id}`,
 			type: 'Note',
@@ -479,6 +487,8 @@ export class ApRendererService {
 			attachment: files.map(x => this.renderDocument(x)),
 			sensitive: note.cw != null || files.some(file => file.isSensitive),
 			tag,
+			disableRightClick: note.disableRightClick,
+			...asDeleteAt,
 			...asEvent,
 			...asPoll,
 			...asTalk,
@@ -547,6 +557,7 @@ export class ApRendererService {
 			name: user.name,
 			summary: profile.description ? this.mfmService.toHtml(mfm.parse(profile.description)) : null,
 			_misskey_summary: profile.description,
+			_misskey_followedMessage: profile.followedMessage,
 			icon: avatar ? this.renderImage(avatar) : null,
 			image: banner ? this.renderImage(banner) : null,
 			tag,

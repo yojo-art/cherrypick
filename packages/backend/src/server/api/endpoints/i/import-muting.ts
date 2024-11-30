@@ -16,6 +16,7 @@ export const meta = {
 	tags: ['account'],
 	secure: true,
 	requireCredential: true,
+	requireRolePolicy: 'canImportMuting',
 	prohibitMoved: true,
 
 	limit: {

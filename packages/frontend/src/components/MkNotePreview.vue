@@ -41,6 +41,8 @@ const props = defineProps<{
 	user: Misskey.entities.User;
   showProfile?: boolean;
 }>();
+
+if (defaultStore.state.alwaysShowCw) showContent.value = true;
 </script>
 
 <style lang="scss" module>
@@ -60,7 +62,7 @@ const props = defineProps<{
 	height: 40px !important;
 	border-radius: 8px !important;
 	pointer-events: none !important;
-	background: var(--panel);
+	background: var(--MI_THEME-panel);
 }
 
 .main {

@@ -5,14 +5,14 @@
 
 import { computed, reactive } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import { DEFAULT_INFO_IMAGE_URL, DEFAULT_NOT_FOUND_IMAGE_URL, DEFAULT_SERVER_ERROR_IMAGE_URL, DEFAULT_YOU_BLOCKED_IMAGE_URL } from '@@/js/const.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { miLocalStorage } from '@/local-storage.js';
-import { DEFAULT_INFO_IMAGE_URL, DEFAULT_NOT_FOUND_IMAGE_URL, DEFAULT_SERVER_ERROR_IMAGE_URL } from '@/const.js';
 
 // TODO: 他のタブと永続化されたstateを同期
 
 //#region loader
-const providedMetaEl = document.getElementById('misskey_meta');
+const providedMetaEl = document.getElementById('cherrypick_meta');
 
 let cachedMeta = miLocalStorage.getItem('instance') ? JSON.parse(miLocalStorage.getItem('instance')!) : null;
 let cachedAt = miLocalStorage.getItem('instanceCachedAt') ? parseInt(miLocalStorage.getItem('instanceCachedAt')!) : 0;
@@ -35,6 +35,8 @@ export const serverErrorImageUrl = computed(() => instance.serverErrorImageUrl ?
 export const infoImageUrl = computed(() => instance.infoImageUrl ?? DEFAULT_INFO_IMAGE_URL);
 
 export const notFoundImageUrl = computed(() => instance.notFoundImageUrl ?? DEFAULT_NOT_FOUND_IMAGE_URL);
+
+export const youBlockedImageUrl = computed(() => instance.youBlockedImageUrl ?? DEFAULT_YOU_BLOCKED_IMAGE_URL);
 
 export const isEnabledUrlPreview = computed(() => instance.enableUrlPreview ?? true);
 

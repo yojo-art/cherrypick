@@ -16,6 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, onUnmounted, shallowRef, ref } from 'vue';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
+import { globalEvents } from '@/events.js';
 
 const props = withDefaults(defineProps<{
 	maxHeight?: number;
@@ -39,6 +40,13 @@ const omitObserver = new ResizeObserver((entries, observer) => {
 onMounted(() => {
 	calcOmit();
 	omitObserver.observe(content.value as HTMLElement);
+
+	globalEvents.on('showNoteContent', (showNoteContent_receive) => {
+		if (showNoteContent_receive) {
+			ignoreOmit.value = true;
+			omitted.value = false;
+		}
+	});
 });
 
 onUnmounted(() => {
@@ -48,7 +56,7 @@ onUnmounted(() => {
 
 <style lang="scss" module>
 .content {
-	--stickyTop: 0px;
+	--MI-stickyTop: 0px;
 
 	&.omitted {
 		position: relative;
@@ -63,11 +71,11 @@ onUnmounted(() => {
 			left: 0;
 			width: 100%;
 			height: 64px;
-			background: linear-gradient(0deg, var(--panel), var(--X15));
+			background: linear-gradient(0deg, var(--MI_THEME-panel), color(from var(--MI_THEME-panel) srgb r g b / 0));
 
 			> .fadeLabel {
 				display: inline-block;
-				background: var(--panel);
+				background: var(--MI_THEME-panel);
 				padding: 6px 10px;
 				font-size: 0.8em;
 				border-radius: 999px;
@@ -76,7 +84,7 @@ onUnmounted(() => {
 
 			&:hover {
 				> .fadeLabel {
-					background: var(--panelHighlight);
+					background: var(--MI_THEME-panelHighlight);
 				}
 			}
 		}

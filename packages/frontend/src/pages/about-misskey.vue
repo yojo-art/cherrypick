@@ -216,7 +216,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, computed } from 'vue';
-import { version, basedMisskeyVersion } from '@/config.js';
+import { version, basedMisskeyVersion } from '@@/js/config.js';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -352,6 +352,9 @@ const patronsWithIconWithMisskey = [{
 }, {
 	name: 'なっかあ',
 	icon: 'https://assets.misskey-hub.net/patrons/c2f5f3e394e74a64912284a2f4ca710e.jpg',
+}, {
+	name: '如月ユカ',
+	icon: 'https://assets.misskey-hub.net/patrons/f24a042076a041b6811a2f124eb620ca.jpg',
 }];
 
 const patronsWithCherryPick = [
@@ -461,6 +464,7 @@ const patronsWithMisskey = [
 	'塩キャベツ',
 	'はとぽぷさん',
 	'100の人 (エスパー・イーシア)',
+	'ケモナーのケシン',
 ];
 
 let isKokonect = false;
@@ -571,7 +575,7 @@ definePageMetadata(() => ({
 .znqjceqz {
 	> .about {
 		position: relative;
-		border-radius: var(--radius);
+		border-radius: var(--MI-radius);
 
 		> .treasure {
 			position: absolute;
@@ -631,7 +635,7 @@ definePageMetadata(() => ({
 
         &:hover {
           text-decoration: underline;
-          color: var(--link);
+          color: var(--MI_THEME-link);
         }
 			}
 
@@ -664,17 +668,17 @@ definePageMetadata(() => ({
 	display: flex;
 	align-items: center;
 	padding: 12px;
-	background: var(--buttonBg);
+	background: var(--MI_THEME-buttonBg);
 	border-radius: 6px;
 
 	&:hover {
 		text-decoration: none;
-		background: var(--buttonHoverBg);
+		background: var(--MI_THEME-buttonHoverBg);
 	}
 
 	&.active {
-		color: var(--accent);
-		background: var(--buttonHoverBg);
+		color: var(--MI_THEME-accent);
+		background: var(--MI_THEME-buttonHoverBg);
 	}
 }
 
@@ -697,11 +701,11 @@ definePageMetadata(() => ({
 	}
 
 	> .cherry {
-		color: var(--cherry);
+		color: var(--CP-cherry);
 	}
 
 	> .pick {
-		color: var(--pick);
+		color: var(--CP-pick);
 	}
 }
 
@@ -715,7 +719,7 @@ definePageMetadata(() => ({
 	display: flex;
 	align-items: center;
 	padding: 12px;
-	background: var(--buttonBg);
+	background: var(--MI_THEME-buttonBg);
 	border-radius: 6px;
 }
 
@@ -734,18 +738,18 @@ definePageMetadata(() => ({
   width: 100%;
   box-sizing: border-box;
   padding: 10px 14px;
-  background: var(--buttonBg);
+  background: var(--MI_THEME-buttonBg);
   border-radius: 6px;
   font-size: 0.9em;
 
   &:hover {
     text-decoration: none;
-    background: var(--buttonHoverBg);
+    background: var(--MI_THEME-buttonHoverBg);
   }
 
   &.active {
-    color: var(--accent);
-    background: var(--buttonHoverBg);
+    color: var(--MI_THEME-accent);
+    background: var(--MI_THEME-buttonHoverBg);
   }
 }
 
@@ -753,7 +757,7 @@ definePageMetadata(() => ({
   margin-right: 0.75em;
   flex-shrink: 0;
   text-align: center;
-  color: var(--fgTransparentWeak);
+  color: var(--MI_THEME-fgTransparentWeak);
 
   &:empty {
     display: none;

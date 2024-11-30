@@ -77,6 +77,8 @@ import * as ep___admin_relays_list from './endpoints/admin/relays/list.js';
 import * as ep___admin_relays_remove from './endpoints/admin/relays/remove.js';
 import * as ep___admin_resetPassword from './endpoints/admin/reset-password.js';
 import * as ep___admin_resolveAbuseUserReport from './endpoints/admin/resolve-abuse-user-report.js';
+import * as ep___admin_forwardAbuseUserReport from './endpoints/admin/forward-abuse-user-report.js';
+import * as ep___admin_updateAbuseUserReport from './endpoints/admin/update-abuse-user-report.js';
 import * as ep___admin_sendEmail from './endpoints/admin/send-email.js';
 import * as ep___admin_fullIndex from './endpoints/admin/full-index.js';
 import * as ep___admin_reCreateIndex from './endpoints/admin/recreate-index.js';
@@ -103,6 +105,7 @@ import * as ep___admin_systemWebhook_delete from './endpoints/admin/system-webho
 import * as ep___admin_systemWebhook_list from './endpoints/admin/system-webhook/list.js';
 import * as ep___admin_systemWebhook_show from './endpoints/admin/system-webhook/show.js';
 import * as ep___admin_systemWebhook_update from './endpoints/admin/system-webhook/update.js';
+import * as ep___admin_systemWebhook_test from './endpoints/admin/system-webhook/test.js';
 import * as ep___announcements from './endpoints/announcements.js';
 import * as ep___announcements_show from './endpoints/announcements/show.js';
 import * as ep___antennas_create from './endpoints/antennas/create.js';
@@ -259,6 +262,7 @@ import * as ep___i_webhooks_show from './endpoints/i/webhooks/show.js';
 import * as ep___i_webhooks_list from './endpoints/i/webhooks/list.js';
 import * as ep___i_webhooks_update from './endpoints/i/webhooks/update.js';
 import * as ep___i_webhooks_delete from './endpoints/i/webhooks/delete.js';
+import * as ep___i_webhooks_test from './endpoints/i/webhooks/test.js';
 import * as ep___invite_create from './endpoints/invite/create.js';
 import * as ep___invite_delete from './endpoints/invite/delete.js';
 import * as ep___invite_list from './endpoints/invite/list.js';
@@ -298,6 +302,7 @@ import * as ep___notes_hybridTimeline from './endpoints/notes/hybrid-timeline.js
 import * as ep___notes_localTimeline from './endpoints/notes/local-timeline.js';
 import * as ep___notes_mentions from './endpoints/notes/mentions.js';
 import * as ep___notes_polls_recommendation from './endpoints/notes/polls/recommendation.js';
+import * as ep___notes_polls_translate from './endpoints/notes/polls/translate.js';
 import * as ep___notes_polls_vote from './endpoints/notes/polls/vote.js';
 import * as ep___notes_events_search from './endpoints/notes/events/search.js';
 import * as ep___notes_reactions from './endpoints/notes/reactions.js';
@@ -490,6 +495,8 @@ const $admin_relays_list: Provider = { provide: 'ep:admin/relays/list', useClass
 const $admin_relays_remove: Provider = { provide: 'ep:admin/relays/remove', useClass: ep___admin_relays_remove.default };
 const $admin_resetPassword: Provider = { provide: 'ep:admin/reset-password', useClass: ep___admin_resetPassword.default };
 const $admin_resolveAbuseUserReport: Provider = { provide: 'ep:admin/resolve-abuse-user-report', useClass: ep___admin_resolveAbuseUserReport.default };
+const $admin_forwardAbuseUserReport: Provider = { provide: 'ep:admin/forward-abuse-user-report', useClass: ep___admin_forwardAbuseUserReport.default };
+const $admin_updateAbuseUserReport: Provider = { provide: 'ep:admin/update-abuse-user-report', useClass: ep___admin_updateAbuseUserReport.default };
 const $admin_sendEmail: Provider = { provide: 'ep:admin/send-email', useClass: ep___admin_sendEmail.default };
 const $admin_fullIndex: Provider = { provide: 'ep:admin/full-index', useClass: ep___admin_fullIndex.default };
 const $admin_reCreateIndex: Provider = { provide: 'ep:admin/recreate-index', useClass: ep___admin_reCreateIndex.default };
@@ -516,6 +523,7 @@ const $admin_systemWebhook_delete: Provider = { provide: 'ep:admin/system-webhoo
 const $admin_systemWebhook_list: Provider = { provide: 'ep:admin/system-webhook/list', useClass: ep___admin_systemWebhook_list.default };
 const $admin_systemWebhook_show: Provider = { provide: 'ep:admin/system-webhook/show', useClass: ep___admin_systemWebhook_show.default };
 const $admin_systemWebhook_update: Provider = { provide: 'ep:admin/system-webhook/update', useClass: ep___admin_systemWebhook_update.default };
+const $admin_systemWebhook_test: Provider = { provide: 'ep:admin/system-webhook/test', useClass: ep___admin_systemWebhook_test.default };
 const $announcements: Provider = { provide: 'ep:announcements', useClass: ep___announcements.default };
 const $announcements_show: Provider = { provide: 'ep:announcements/show', useClass: ep___announcements_show.default };
 const $antennas_create: Provider = { provide: 'ep:antennas/create', useClass: ep___antennas_create.default };
@@ -672,6 +680,7 @@ const $i_webhooks_list: Provider = { provide: 'ep:i/webhooks/list', useClass: ep
 const $i_webhooks_show: Provider = { provide: 'ep:i/webhooks/show', useClass: ep___i_webhooks_show.default };
 const $i_webhooks_update: Provider = { provide: 'ep:i/webhooks/update', useClass: ep___i_webhooks_update.default };
 const $i_webhooks_delete: Provider = { provide: 'ep:i/webhooks/delete', useClass: ep___i_webhooks_delete.default };
+const $i_webhooks_test: Provider = { provide: 'ep:i/webhooks/test', useClass: ep___i_webhooks_test.default };
 const $invite_create: Provider = { provide: 'ep:invite/create', useClass: ep___invite_create.default };
 const $invite_delete: Provider = { provide: 'ep:invite/delete', useClass: ep___invite_delete.default };
 const $invite_list: Provider = { provide: 'ep:invite/list', useClass: ep___invite_list.default };
@@ -711,6 +720,7 @@ const $notes_hybridTimeline: Provider = { provide: 'ep:notes/hybrid-timeline', u
 const $notes_localTimeline: Provider = { provide: 'ep:notes/local-timeline', useClass: ep___notes_localTimeline.default };
 const $notes_mentions: Provider = { provide: 'ep:notes/mentions', useClass: ep___notes_mentions.default };
 const $notes_polls_recommendation: Provider = { provide: 'ep:notes/polls/recommendation', useClass: ep___notes_polls_recommendation.default };
+const $notes_polls_translate: Provider = { provide: 'ep:notes/polls/translate', useClass: ep___notes_polls_translate.default };
 const $notes_polls_vote: Provider = { provide: 'ep:notes/polls/vote', useClass: ep___notes_polls_vote.default };
 const $notes_events_search: Provider = { provide: 'ep:notes/events/search', useClass: ep___notes_events_search.default };
 const $notes_reactions: Provider = { provide: 'ep:notes/reactions', useClass: ep___notes_reactions.default };
@@ -908,6 +918,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_relays_remove,
 		$admin_resetPassword,
 		$admin_resolveAbuseUserReport,
+		$admin_forwardAbuseUserReport,
+		$admin_updateAbuseUserReport,
 		$admin_sendEmail,
 		$admin_fullIndex,
 		$admin_reCreateIndex,
@@ -934,6 +946,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_systemWebhook_list,
 		$admin_systemWebhook_show,
 		$admin_systemWebhook_update,
+		$admin_systemWebhook_test,
 		$announcements,
 		$announcements_show,
 		$antennas_create,
@@ -1090,6 +1103,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$i_webhooks_show,
 		$i_webhooks_update,
 		$i_webhooks_delete,
+		$i_webhooks_test,
 		$invite_create,
 		$invite_delete,
 		$invite_list,
@@ -1118,9 +1132,9 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_create,
 		$notes_schedule_create,
 		$notes_schedule_list,
+		$notes_schedule_delete,
 		$notes_delete,
 		$notes_update,
-		$notes_schedule_delete,
 		$notes_favorites_create,
 		$notes_favorites_delete,
 		$notes_featured,
@@ -1129,6 +1143,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_localTimeline,
 		$notes_mentions,
 		$notes_polls_recommendation,
+		$notes_polls_translate,
 		$notes_polls_vote,
 		$notes_events_search,
 		$notes_reactions,
@@ -1319,6 +1334,8 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_relays_remove,
 		$admin_resetPassword,
 		$admin_resolveAbuseUserReport,
+		$admin_forwardAbuseUserReport,
+		$admin_updateAbuseUserReport,
 		$admin_sendEmail,
 		$admin_fullIndex,
 		$admin_reCreateIndex,
@@ -1345,6 +1362,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$admin_systemWebhook_list,
 		$admin_systemWebhook_show,
 		$admin_systemWebhook_update,
+		$admin_systemWebhook_test,
 		$announcements,
 		$announcements_show,
 		$antennas_create,
@@ -1500,6 +1518,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$i_webhooks_show,
 		$i_webhooks_update,
 		$i_webhooks_delete,
+		$i_webhooks_test,
 		$invite_create,
 		$invite_delete,
 		$invite_list,
@@ -1528,9 +1547,9 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_create,
 		$notes_schedule_create,
 		$notes_schedule_list,
+		$notes_schedule_delete,
 		$notes_delete,
 		$notes_update,
-		$notes_schedule_delete,
 		$notes_favorites_create,
 		$notes_favorites_delete,
 		$notes_featured,
@@ -1539,6 +1558,7 @@ const $reversi_verify: Provider = { provide: 'ep:reversi/verify', useClass: ep__
 		$notes_localTimeline,
 		$notes_mentions,
 		$notes_polls_recommendation,
+		$notes_polls_translate,
 		$notes_polls_vote,
 		$notes_events_search,
 		$notes_reactions,

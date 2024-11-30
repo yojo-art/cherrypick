@@ -184,6 +184,7 @@ export function federationInstance(): entities.FederationInstance {
 		themeColor: '',
 		infoUpdatedAt: '',
 		latestRequestReceivedAt: '',
+		isMediaSilenced: false,
 	};
 }
 
@@ -275,6 +276,7 @@ export function userDetailed(id = 'someuserid', username = 'cherrypikist', host:
 		alsoKnownAs: null,
 		notify: 'none',
 		memo: null,
+		mutualLinkSections: [],
 	};
 }
 
