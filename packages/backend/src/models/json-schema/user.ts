@@ -258,6 +258,15 @@ export const packedUserDetailedNotMeOnlySchema = {
 			nullable: false, optional: false,
 			example: false,
 		},
+		isIndexable: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
+		searchableBy: {
+			type: 'string',
+			nullable: true, optional: false,
+			enum: ['public', 'followersAndReacted', 'reactedOnly', 'private'],
+		},
 		description: {
 			type: 'string',
 			nullable: true, optional: false,
@@ -358,21 +367,6 @@ export const packedUserDetailedNotMeOnlySchema = {
 			nullable: false, optional: false,
 			enum: ['public', 'followers', 'private'],
 		},
-		twoFactorEnabled: {
-			type: 'boolean',
-			nullable: false, optional: false,
-			default: false,
-		},
-		usePasswordLessLogin: {
-			type: 'boolean',
-			nullable: false, optional: false,
-			default: false,
-		},
-		securityKeys: {
-			type: 'boolean',
-			nullable: false, optional: false,
-			default: false,
-		},
 		roles: {
 			type: 'array',
 			nullable: false, optional: false,
@@ -392,6 +386,18 @@ export const packedUserDetailedNotMeOnlySchema = {
 		},
 		moderationNote: {
 			type: 'string',
+			nullable: false, optional: true,
+		},
+		twoFactorEnabled: {
+			type: 'boolean',
+			nullable: false, optional: true,
+		},
+		usePasswordLessLogin: {
+			type: 'boolean',
+			nullable: false, optional: true,
+		},
+		securityKeys: {
+			type: 'boolean',
 			nullable: false, optional: true,
 		},
 		mutualLinkSections: {
@@ -670,6 +676,21 @@ export const packedMeDetailedOnlySchema = {
 			type: 'object',
 			nullable: false, optional: false,
 			ref: 'RolePolicies',
+		},
+		twoFactorEnabled: {
+			type: 'boolean',
+			nullable: false, optional: false,
+			default: false,
+		},
+		usePasswordLessLogin: {
+			type: 'boolean',
+			nullable: false, optional: false,
+			default: false,
+		},
+		securityKeys: {
+			type: 'boolean',
+			nullable: false, optional: false,
+			default: false,
 		},
 		//#region secrets
 		email: {

@@ -71,6 +71,7 @@ export const notificationTypes = [
 	'scheduleNote',
 	'app',
 	'exportCompleted',
+	'login',
 	'test',
 	'pollVote',
 ] as const;

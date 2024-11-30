@@ -341,7 +341,7 @@ export class ApNoteService {
 				cw,
 				text,
 				localOnly: false,
-				disableRightClick: false,
+				disableRightClick: note.disableRightClick,
 				visibility,
 				visibleUsers,
 				searchableBy: searchableBy,
@@ -352,6 +352,7 @@ export class ApNoteService {
 				event,
 				uri: note.id,
 				url: url,
+				deleteAt: note.deleteAt ? new Date(note.deleteAt) : null,
 			}, silent);
 		} catch (err: any) {
 			if (err.name !== 'duplicated') {
@@ -428,6 +429,8 @@ export class ApNoteService {
 
 		const poll = await this.apQuestionService.extractPollFromQuestion(note, resolver).catch(() => undefined);
 
+		const event = await this.apEventService.extractEventFromNote(note, resolver).catch(() => undefined);
+
 		try {
 			return await this.noteUpdateService.update(actor, {
 				updatedAt: note.updated ? new Date(note.updated) : null,
@@ -435,9 +438,12 @@ export class ApNoteService {
 				name: note.name,
 				cw,
 				text,
+				disableRightClick: note.disableRightClick,
 				apHashtags,
 				apEmojis,
 				poll,
+				event,
+				deleteAt: note.deleteAt,
 			}, target, silent);
 		} catch (err: any) {
 			this.logger.warn(`note update failed: ${err}`);

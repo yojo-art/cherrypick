@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div v-show="!isDeleted" :class="$style.root" :tabindex="!isDeleted ? '-1' : undefined" :style="{ cursor: expandOnNoteClick && enableNoteClick ? 'pointer' : '' }" @click.stop="noteClick" @dblclick.stop="noteDblClick">
+<div v-show="!isDeleted" :class="[$style.root, { [$style.isSchedule]: note.isSchedule }]" :tabindex="!isDeleted ? '-1' : undefined" :style="{ cursor: expandOnNoteClick && enableNoteClick ? 'pointer' : '' }" @click.stop="noteClick" @dblclick.stop="noteDblClick">
 	<div style="display: flex; padding-bottom: 10px;">
 		<MkAvatar v-if="!defaultStore.state.hideAvatarsInNote" :class="[$style.avatar, { [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>defaultStore.state.displayHeaderNavBarWhenScroll)) && mainRouter.currentRoute.value.name === 'index', [$style.showElTab]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>defaultStore.state.displayHeaderNavBarWhenScroll)) && mainRouter.currentRoute.value.name !== 'index' }]" :user="note.user" link preview noteClick/>
 		<div :class="$style.main">
@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-show="note.cw == null || showContent">
 			<MkSubNoteContent :class="$style.text" :note="note" :showSubNoteFooterButton="false"/>
 			<div v-if="note.isSchedule" style="margin-top: 10px;">
-				<MkButton :class="$style.button" inline rounded @click.stop.prevent="editScheduleNote()"><i class="ti ti-eraser"></i> {{ i18n.ts.deleteAndEdit }}</MkButton>
+				<MkButton :class="$style.button" inline rounded @click.stop.prevent="deleteAndEditScheduleNote()"><i class="ti ti-eraser"></i> {{ i18n.ts.deleteAndEdit }}</MkButton>
 				<MkButton :class="$style.button" inline rounded danger @click.stop.prevent="deleteScheduleNote()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
 		</div>
@@ -56,39 +56,10 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-	(ev: 'editScheduleNote'): void;
+	(ev: 'deleteAndEditScheduleNote'): void;
 }>();
 
 const showEl = ref(false);
-
-async function deleteScheduleNote() {
-	const { canceled } = await os.confirm({
-		type: 'warning',
-		text: i18n.ts.deleteConfirm,
-		okText: i18n.ts.delete,
-		cancelText: i18n.ts.cancel,
-	});
-	if (canceled) return;
-	await os.apiWithDialog('notes/schedule/delete', { noteId: props.note.id })
-		.then(() => {
-			isDeleted.value = true;
-		});
-}
-
-async function editScheduleNote() {
-	try {
-		await misskeyApi('notes/schedule/delete', { noteId: props.note.id })
-			.then(() => {
-				isDeleted.value = true;
-			});
-	} catch (err) {
-		console.error(err);
-	}
-
-	await os.post({ initialNote: props.note, renote: props.note.renote, reply: props.note.reply, channel: props.note.channel });
-
-	emit('editScheduleNote');
-}
 
 const showContent = ref(false);
 const expandOnNoteClick = defaultStore.state.expandOnNoteClick;
@@ -116,6 +87,38 @@ function noteDblClick(ev: MouseEvent) {
 	else router.push(notePage(props.note));
 }
 
+async function deleteAndEditScheduleNote() {
+	try {
+		await misskeyApi('notes/schedule/delete', { noteId: props.note.id })
+			.then(() => {
+				isDeleted.value = true;
+			});
+	} catch (err) {
+		console.error(err);
+	}
+
+	await os.post({
+		initialNote: props.note,
+		renote: props.note.renote,
+		reply: props.note.reply,
+		channel: props.note.channel,
+	});
+	emit('deleteAndEditScheduleNote');
+}
+
+async function deleteScheduleNote() {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.deleteConfirm,
+		okText: i18n.ts.delete,
+		cancelText: i18n.ts.cancel,
+	});
+	if (canceled) return;
+	await os.apiWithDialog('notes/schedule/delete', { noteId: props.note.id })
+		.then(() => {
+			isDeleted.value = true;
+		});
+}
 </script>
 
 <style lang="scss" module>
@@ -123,18 +126,21 @@ function noteDblClick(ev: MouseEvent) {
 	margin: 0;
 	padding: 0;
 	font-size: 0.95em;
-	border-bottom: solid 0.5px var(--divider);
 	-webkit-tap-highlight-color: transparent;
-  border-bottom: solid 0.5px var(--divider);
-}
-.button{
-  margin-right: var(--margin);
-  margin-bottom: var(--margin);
-}
 
+	&.isSchedule {
+		border-bottom: solid 0.5px var(--MI_THEME-divider);
+	}
+	border-bottom: solid 0.5px var(--divider);
+}
 .button{
 	margin-right: var(--margin);
 	margin-bottom: var(--margin);
+}
+
+.button{
+	margin-right: var(--MI-margin);
+	margin-bottom: var(--MI-margin);
 }
 
 .avatar {
@@ -145,9 +151,9 @@ function noteDblClick(ev: MouseEvent) {
 	height: 34px;
 	border-radius: 8px;
 	position: sticky !important;
-	top: calc(16px + var(--stickyTop, 0px));
+	top: calc(16px + var(--MI-stickyTop, 0px));
 	left: 0;
-	background: var(--panel);
+	background: var(--MI_THEME-panel);
 }
 
 .main {
