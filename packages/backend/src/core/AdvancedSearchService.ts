@@ -571,7 +571,7 @@ export class AdvancedSearchService {
 				.where('reac.id > :latestid', { latestid })
 				.innerJoin('reac.user', 'user')
 				.leftJoin('reac.note', 'note')
-				.select(['reac', 'user.host', 'note.searchableBy'])
+				.select(['reac', 'note.searchableBy'])
 				.andWhere('user.host IS NULL')
 				.orderBy('reac.id', 'ASC')
 				.limit(limit)
