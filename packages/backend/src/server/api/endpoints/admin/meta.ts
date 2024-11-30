@@ -574,6 +574,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			urlPreviewDirectSummalyProxy: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			federation: {
 				type: 'string',
 				optional: false, nullable: false,
