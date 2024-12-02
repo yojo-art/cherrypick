@@ -65,7 +65,7 @@ const invalidChars = [' ', '　', '#', ':', '\'', '"', '!'];
 
 const headerActions = computed(() => {
 	//お気に入り登録状態はページ表示時に基づく
-	let is_my_tag = tags.indexOf(props.tag);
+	let is_my_tag = tags.includes(props.tag);
 	return [{
 		icon: is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart',
 		label: i18n.ts.more,
