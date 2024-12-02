@@ -96,7 +96,7 @@ const headerActions = computed(() => {
 					tags.push(input);
 				}
 			}
-			is_my_tag = tags.indexOf(props.tag);
+			is_my_tag = tags.includes(props.tag);
 			//アイコンを現状に合わせて変更
 			headerActions.value[0].icon = is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart';
 			await misskeyApi('i/registry/set', {
