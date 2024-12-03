@@ -22,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
+import { computed, ref } from 'vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
@@ -30,14 +30,10 @@ import { i18n } from '@/i18n.js';
 
 const tags = ref<string[]>([]);
 
-const tab = ref('my');
-
-watch(tab, async () => {
-	tags.value = await misskeyApi('i/registry/get', {
-		scope: ['client', 'base'],
-		key: 'hashTag',
-	}) as string[];
-});
+tags.value = await misskeyApi('i/registry/get', {
+	scope: ['client', 'base'],
+	key: 'hashTag',
+}) as string[];
 
 async function removeTag(item, ev) {
 	os.popupMenu([{
