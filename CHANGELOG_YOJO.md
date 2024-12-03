@@ -5,6 +5,7 @@
 
 ### Client
 - Fix: 絵文字情報表示でローカルのものに絵文字URLが表示されない [#562](https://github.com/yojo-art/cherrypick/pull/562)
+- Enhance: 表示中のタグTLをお気に入り登録するボタンを追加 [#561](https://github.com/yojo-art/cherrypick/pull/561)
 
 ### Server
 - Fix: PersonのserchableByが正しく連合できていないのを修正[#556](https://github.com/yojo-art/cherrypick/pull/556)
