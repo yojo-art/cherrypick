@@ -3,6 +3,9 @@
 ### General
 - Fix: ノートを編集する時に検索許可範囲を記憶する [#558](https://github.com/yojo-art/cherrypick/pull/558)
 
+### Client
+- Enhance: 表示中のタグTLをお気に入り登録するボタンを追加 [#561](https://github.com/yojo-art/cherrypick/pull/561)
+
 ### Server
 - Fix: PersonのserchableByが正しく連合できていないのを修正[#556](https://github.com/yojo-art/cherrypick/pull/556)
 - Enhance: `/users/${id}`に`Accept: application/ld+json`ではないリクエストが来たとき`/@${username}`にリダイレクトするように [#554](https://github.com/yojo-art/cherrypick/pull/554)
