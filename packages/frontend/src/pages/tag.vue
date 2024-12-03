@@ -32,6 +32,7 @@ import { useStream } from '@/stream.js';
 import * as os from '@/os.js';
 import { genEmbedCode } from '@/scripts/get-embed-code.js';
 import { misskeyApi } from '@/scripts/misskey-api';
+import { MenuItem } from '@/types/menu';
 
 const props = defineProps<{
 	tag: string;
@@ -63,19 +64,22 @@ const headerActions = computed(() => [{
 	icon: 'ti ti-dots',
 	label: i18n.ts.more,
 	handler: async (ev: MouseEvent) => {
-		let tags = await (misskeyApi('i/registry/get', {
+		const registryTags = await (misskeyApi('i/registry/get', {
 			scope: ['client', 'base'],
 			key: 'hashTag',
-		}).catch(() => [])) as string[];
-		const is_my_tag = tags.includes(props.tag);
-		os.popupMenu([
-			{
-				text: i18n.ts.genEmbedCode,
-				icon: 'ti ti-code',
-				action: () => {
-					genEmbedCode('tags', props.tag);
-				},
-			}, {
+		}).catch(() => null)) as string[] | null;
+		const menuList:MenuItem[] = [];
+		menuList.push({
+			text: i18n.ts.genEmbedCode,
+			icon: 'ti ti-code',
+			action: () => {
+				genEmbedCode('tags', props.tag);
+			},
+		});
+		if (registryTags !== null) {
+			let tags:string[] = registryTags;
+			const is_my_tag = tags.includes(props.tag);
+			menuList.push({
 				text: is_my_tag ? i18n.ts.unfavorite : i18n.ts.favorite,
 				icon: is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart',
 				action: async () => {
@@ -93,7 +97,7 @@ const headerActions = computed(() => [{
 							return;
 						}
 						if (tags.includes(input)) {
-							//既に登録済なら無視
+						//既に登録済なら無視
 						} else {
 							tags.push(input);
 						}
@@ -104,8 +108,9 @@ const headerActions = computed(() => [{
 						value: tags,
 					});
 				},
-			},
-		], ev.currentTarget ?? ev.target);
+			});
+		}
+		os.popupMenu(menuList, ev.currentTarget ?? ev.target);
 	},
 }]);
 
