@@ -63,10 +63,10 @@ const headerActions = computed(() => [{
 	icon: 'ti ti-dots',
 	label: i18n.ts.more,
 	handler: async (ev: MouseEvent) => {
-		let tags = await misskeyApi('i/registry/get', {
+		let tags = await (misskeyApi('i/registry/get', {
 			scope: ['client', 'base'],
 			key: 'hashTag',
-		}) as string[];
+		}).catch(() => [])) as string[];
 		const is_my_tag = tags.includes(props.tag);
 		os.popupMenu([
 			{
