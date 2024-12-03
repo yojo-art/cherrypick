@@ -76,7 +76,7 @@ const headerActions = computed(() => [{
 					genEmbedCode('tags', props.tag);
 				},
 			}, {
-				text: i18n.ts.tags,
+				text: is_my_tag ? i18n.ts.unfavorite : i18n.ts.favorite,
 				icon: is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart',
 				action: async () => {
 					if (is_my_tag) {
