@@ -21675,8 +21675,7 @@ export type operations = {
       content: {
         'application/json': {
           name: string;
-          /** @default null */
-          host?: string | null;
+          host?: string;
         };
       };
     };
