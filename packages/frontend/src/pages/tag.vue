@@ -57,68 +57,57 @@ async function post() {
 //	notes.value?.pagingComponent?.reload();
 }
 
-let tags = await misskeyApi('i/registry/get', {
-	scope: ['client', 'base'],
-	key: 'hashTag',
-}) as string[];
 const invalidChars = [' ', '　', '#', ':', '\'', '"', '!'];
 
-const headerActions = computed(() => {
-	//お気に入り登録状態はページ表示時に基づく
-	let is_my_tag = tags.includes(props.tag);
-	return [{
-		icon: is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart',
-		label: i18n.ts.more,
-		handler: async () => {
-			//最新の情報から更新しないと他タブで弄った時に不整合を起こす
-			tags = await misskeyApi('i/registry/get', {
-				scope: ['client', 'base'],
-				key: 'hashTag',
-			}) as string[];
-			//表示されたボタンの状態を元に登録/解除する
-			//実際の状態を問わない
-			if (is_my_tag) {
-				tags = tags.filter(x => props.tag !== x);
-			} else {
-				const input = props.tag;
-				if (input === '' || invalidChars.includes(input)) {
-					os.alert(
-						{
-							type: 'error',
-							title: i18n.ts.invalidTagName,
-						},
-					);
-					return;
-				}
-				if (tags.includes(input)) {
-					//既に登録済なら無視
-				} else {
-					tags.push(input);
-				}
-			}
-			is_my_tag = tags.includes(props.tag);
-			//アイコンを現状に合わせて変更
-			headerActions.value[0].icon = is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart';
-			await misskeyApi('i/registry/set', {
-				scope: ['client', 'base'],
-				key: 'hashTag',
-				value: tags,
-			});
-		},
-	}, {
-		icon: 'ti ti-dots',
-		label: i18n.ts.more,
-		handler: (ev: MouseEvent) => {
-			os.popupMenu([{
+const headerActions = computed(() => [{
+	icon: 'ti ti-dots',
+	label: i18n.ts.more,
+	handler: async (ev: MouseEvent) => {
+		let tags = await misskeyApi('i/registry/get', {
+			scope: ['client', 'base'],
+			key: 'hashTag',
+		}) as string[];
+		const is_my_tag = tags.includes(props.tag);
+		os.popupMenu([
+			{
 				text: i18n.ts.genEmbedCode,
 				icon: 'ti ti-code',
 				action: () => {
 					genEmbedCode('tags', props.tag);
 				},
-			}], ev.currentTarget ?? ev.target);
-		},
-	}];
-});
+			}, {
+				text: i18n.ts.tags,
+				icon: is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart',
+				action: async () => {
+					if (is_my_tag) {
+						tags = tags.filter(x => props.tag !== x);
+					} else {
+						const input = props.tag;
+						if (input === '' || invalidChars.includes(input)) {
+							os.alert(
+								{
+									type: 'error',
+									title: i18n.ts.invalidTagName,
+								},
+							);
+							return;
+						}
+						if (tags.includes(input)) {
+							//既に登録済なら無視
+						} else {
+							tags.push(input);
+						}
+					}
+					await misskeyApi('i/registry/set', {
+						scope: ['client', 'base'],
+						key: 'hashTag',
+						value: tags,
+					});
+				},
+			},
+		], ev.currentTarget ?? ev.target);
+	},
+}]);
 
 const headerTabs = computed(() => []);
 let connection: Misskey.ChannelConnection | null = null;
