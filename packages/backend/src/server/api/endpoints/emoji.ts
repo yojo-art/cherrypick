@@ -31,8 +31,7 @@ export const paramDef = {
 		},
 		host: {
 			type: 'string',
-			nullable: true,
-			default: null,
+			default: undefined,
 		},
 	},
 	required: ['name'],
