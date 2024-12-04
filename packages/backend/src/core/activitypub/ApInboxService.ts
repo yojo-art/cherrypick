@@ -8,7 +8,7 @@ import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { UserFollowingService } from '@/core/UserFollowingService.js';
-import { ReactionService } from '@/core/ReactionService.js';
+import { isCustomEmojiRegexp, ReactionService } from '@/core/ReactionService.js';
 import { RelayService } from '@/core/RelayService.js';
 import { NotePiningService } from '@/core/NotePiningService.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
@@ -30,7 +30,7 @@ import { bindThis } from '@/decorators.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi, isLeave } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi, isLeave, isGame, isNote } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -200,13 +200,26 @@ export class ApInboxService {
 	@bindThis
 	private async like(actor: MiRemoteUser, activity: ILike): Promise<string> {
 		const targetUri = getApId(activity.object);
+		const reaction = activity._misskey_reaction ?? activity.content ?? activity.name;
+		const parsed = this.apDbResolverService.parseUri(activity.actor);
+		if (parsed.local) {
+			if (parsed.type === 'games') {
+				const game_id = parsed.id;
+				if (game_id === '1c086295-25e3-4b82-b31e-3e3959906312' && parsed.rest) {
+					await this.apNoteService.extractEmojis(activity.tag ?? [], actor.host).catch(() => null);
+					await this.apgameService.reversiInboxLike(actor, parsed.rest, reaction ?? null);
+				} else {
+					return 'skip like unknwon game';
+				}
+			}
+		}
 
 		const note = await this.apNoteService.fetchNote(targetUri);
 		if (!note) return `skip: target note not found ${targetUri}`;
 
 		await this.apNoteService.extractEmojis(activity.tag ?? [], actor.host).catch(() => null);
 
-		return await this.reactionService.create(actor, note, activity._misskey_reaction ?? activity.content ?? activity.name).catch(err => {
+		return await this.reactionService.create(actor, note, reaction).catch(err => {
 			if (err.id === '51c42bb4-931a-456b-bff7-e5a8a70dd298') {
 				return 'skip: already reacted';
 			} else {
