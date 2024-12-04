@@ -4,6 +4,7 @@
 - Fix: ノートを編集する時に検索許可範囲を記憶する [#558](https://github.com/yojo-art/cherrypick/pull/558)
 
 ### Client
+- Fix: 絵文字情報表示でローカルのものに絵文字URLが表示されない [#562](https://github.com/yojo-art/cherrypick/pull/562)
 - Enhance: 表示中のタグTLをお気に入り登録するボタンを追加 [#561](https://github.com/yojo-art/cherrypick/pull/561)
 
 ### Server
