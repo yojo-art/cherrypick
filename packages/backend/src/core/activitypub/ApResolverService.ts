@@ -15,7 +15,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
-import { isCollectionOrOrderedCollection, isIOrderedCollectionPage } from './type.js';
+import { isCollectionOrOrderedCollection, isIOrderedCollectionPage, isOrderedCollection } from './type.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
 import { ApRendererService } from './ApRendererService.js';
 import { ApRequestService } from './ApRequestService.js';
@@ -59,6 +59,19 @@ export class Resolver {
 			: value;
 
 		if (isCollectionOrOrderedCollection(collection)) {
+			return collection;
+		} else {
+			throw new Error(`unrecognized collection type: ${collection.type}`);
+		}
+	}
+
+	@bindThis
+	public async resolveOrderedCollection(value: string | IObject): Promise<IOrderedCollection> {
+		const collection = typeof value === 'string'
+			? await this.resolve(value)
+			: value;
+
+		if (isOrderedCollection(collection)) {
 			return collection;
 		} else {
 			throw new Error(`unrecognized collection type: ${collection.type}`);
