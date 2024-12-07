@@ -49,8 +49,8 @@ export const meta = {
 			id: 'c3e584df-068a-4b1d-967e-54f2f30f7cba',
 		},
 		itemIsUndefined: {
-			message: 'outbox item is undefined',
-			code: 'OUTBOX_ITEM_IS_UNDEFINED',
+			message: 'outbox item is unavailable',
+			code: 'OUTBOX_ITEM_IS_UNAVAILABLE',
 			id: 'a07b05af-5f66-4203-918c-ebff9e9384bf',
 		},
 	},

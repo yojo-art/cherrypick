@@ -99,13 +99,14 @@ export class ApOutboxFetchService implements OnModuleInit {
 			if (collection.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
 
 			const activityes = (collection.orderedItems ?? collection.items);
-			if (!activityes) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is undefined');
+			if (!activityes) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is unavailable');
 
 			created = await this.fetchObjects(user, activityes, includeAnnounce, created);
 			if (createLimit <= created) break;//次ページ見て一件だけしか取れないのは微妙
 			if (!collection.next) break;
 
-			await this.redisClient.set(`${outboxUrl}--next`, `${collection.next}`, 'EX', 60 * 15);//15min
+			next = collection.next;
+			await this.redisClient.set(`${outboxUrl}--next`, `${next}`, 'EX', 60 * 15);//15min
 		}
 		this.logger.succ(`Outbox Fetced: ${outboxUrl}`);
 	}
@@ -176,7 +177,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 					}
 				} else if (isCreate(activity)) {
 					if (typeof(activity.object) !== 'string') {
-						if (!isNote(activity)) throw new IdentifiableError('9e344117-8392-402d-9f5a-d1cc20ba63cc');
+						if (!isNote(activity)) continue;
 					}
 					const fetch = await this.apNoteService.fetchNote(activity.object);
 					if (fetch) continue;
@@ -186,7 +187,6 @@ export class ApOutboxFetchService implements OnModuleInit {
 				//リモートのリモートが落ちてるなどで止まるとほかが見れなくなってしまうので再スローしない
 				if (err instanceof IdentifiableError) {
 					if (err.id === 'bde7c204-5441-4a87-9b7e-f81e8d05788a') this.logger.error(`fetchErrorInvalidActor:${activity.id}`);
-					if (err.id === '9e344117-8392-402d-9f5a-d1cc20ba63cc') this.logger.error(`fetchErrorNotNote:${activity.id}`);
 				} else {
 					this.logger.error(`fetchError:${activity.id}`);
 					this.logger.error(`${err}`);
