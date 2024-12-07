@@ -97,10 +97,9 @@ export class ApOutboxFetchService implements OnModuleInit {
 		for (let page = 0; page < pagelimit; page++) {
 			const collection = (typeof(next) === 'string' ? await Resolver.resolveOrderedCollectionPage(next) : next);
 			if (collection.partOf !== user.outbox) throw new IdentifiableError('6603433f-99db-4134-980c-48705ae57ab8', 'outbox part is invalid');
-			if (!collection.orderedItems && !collection.items) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is undefined');
 
 			const activityes = (collection.orderedItems ?? collection.items);
-			if (!activityes) continue;
+			if (!activityes) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is undefined');
 
 			created = await this.fetchObjects(user, activityes, includeAnnounce, created);
 			if (createLimit <= created) break;//次ページ見て一件だけしか取れないのは微妙
@@ -116,8 +115,9 @@ export class ApOutboxFetchService implements OnModuleInit {
 		for (const activity of activityes) {
 			if (createLimit < created) return created;
 			try {
+				if (activity.actor !== user.uri) throw new IdentifiableError('bde7c204-5441-4a87-9b7e-f81e8d05788a');
 				if (activity.type === 'Announce' && includeAnnounce) {
-					const object = await	this.apDbResolverService.getNoteFromApId(activity.id);
+					const object = await this.apNoteService.fetchNote(activity.id);
 
 					if (object) continue;
 
@@ -174,18 +174,23 @@ export class ApOutboxFetchService implements OnModuleInit {
 					} finally {
 						unlock();
 					}
-				} else if (isCreate(activity) && typeof(activity.object) !== 'string' && isNote(activity.object)) {
-					const object = await	this.apDbResolverService.getNoteFromApId(activity.object);
-					if (object) continue;
+				} else if (isCreate(activity)) {
+					if (typeof(activity.object) !== 'string') {
+						if (!isNote(activity)) throw new IdentifiableError('9e344117-8392-402d-9f5a-d1cc20ba63cc');
+					}
+					const fetch = await this.apNoteService.fetchNote(activity.object);
+					if (fetch) continue;
 					await this.apNoteService.createNote(activity.object, undefined, true);
 				}
 			} catch (err) {
-				if (err instanceof AbortError) {
-					this.logger.warn(`Aborted note: ${activity.id}`);
+				//リモートのリモートが落ちてるなどで止まるとほかが見れなくなってしまうので再スローしない
+				if (err instanceof IdentifiableError) {
+					if (err.id === 'bde7c204-5441-4a87-9b7e-f81e8d05788a') this.logger.error(`fetchErrorInvalidActor:${activity.id}`);
+					if (err.id === '9e344117-8392-402d-9f5a-d1cc20ba63cc') this.logger.error(`fetchErrorNotNote:${activity.id}`);
 				} else {
-					this.logger.warn(JSON.stringify(err));
-					this.logger.warn(JSON.stringify(activity));
-					throw err;
+					this.logger.error(`fetchError:${activity.id}`);
+					this.logger.error(`${err}`);
+					continue;
 				}
 			}
 			created ++;
