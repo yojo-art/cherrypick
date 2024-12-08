@@ -5355,6 +5355,7 @@ export type components = {
       maintainerEmail: string | null;
       version: string;
       basedMisskeyVersion: string;
+      basedCherrypickVersion: string;
       providesTarball: boolean;
       name: string | null;
       shortName: string | null;

@@ -41,17 +41,18 @@ function greet() {
 		console.log(chalk.hex('#ffa9c3').bold('         \\/     \\/     \\/              \\/     ') + chalk.hex('#95e3e8').bold('                  \\/     \\/'));
 		//#endregion
 
-		console.log(chalk.hex('#ffa9c3').bold(' Cherry') + chalk.hex('#95e3e8').bold('Pick') + (' is an open-source decentralized microblogging platform based from') + (chalk.hex('#9ec23f').bold(' Misskey') + ('.')));
-		console.log(chalk.hex('#ffbb00')(' If you like ') + chalk.hex('#ffa9c3').bold('Cherry') + chalk.hex('#95e3e8').bold('Pick') + chalk.hex('#ffbb00')(', please donate to support development. https://www.patreon.com/noridev & https://www.paypal.me/noridev & https://toss.me/noridev'));
+		console.log(chalk.hex('#ffa9c3').bold(' yojo') + chalk.hex('#98e2cf').bold('-') + chalk.hex('#95e3e8').bold('art') + (' is an open-source decentralized microblogging platform based from') + (chalk.hex('#9ec23f').bold(' Misskey') + (' and ') + chalk.hex('#ffa9c3').bold(' Cherry') + chalk.hex('#95e3e8').bold('Pick') + '.'));
+		console.log(chalk.hex('#ffbb00')(' If you like ') + chalk.hex('#ffa9c3').bold(' yojo') + chalk.hex('#98e2cf').bold('-') + chalk.hex('#95e3e8').bold('art') + chalk.hex('#ffbb00')(', please donate to support development. https://github.com/yojo-art & https://幼女.art/'));
 		// console.log(chalk.hex('#ffa9c3').bold(' KOKO') + chalk.hex('#95e3e8').bold('NECT') + chalk.hex('#ffa9c3')(' with') + chalk.hex('#95e3e8').bold(' NoriDev.'));
 
 		console.log('');
 		console.log(chalkTemplate`--- ${os.hostname()} {gray (PID: ${process.pid.toString()})} ---`);
 	}
 
-	bootLogger.info('Welcome to CherryPick!');
-	bootLogger.info(`CherryPick v${meta.version}`, null, true);
+	bootLogger.info('Welcome to yojo-art!');
+	bootLogger.info(`yojo-art v${meta.version}`, null, true);
 	bootLogger.info(`Based on Misskey v${meta.basedMisskeyVersion}`, null, true);
+	bootLogger.info(`Based on Cherrypick v${meta.basedCherrypickVersion}`, null, true);
 }
 
 /**
