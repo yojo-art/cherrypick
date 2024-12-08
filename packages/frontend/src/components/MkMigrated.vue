@@ -52,11 +52,11 @@ const modal = shallowRef<InstanceType<typeof MkModal>>();
 
 const whatIsNewYojo = () => {
 	// modal.value?.close();
-	window.open(`https://github.com/yojo-art/cherrypick/blob/develop/CHANGELOG_YOJO.md#${version}`, '_blank');
+	window.open(`https://github.com/yojo-art/cherrypick/blob/develop/CHANGELOG_YOJO.md#${version.replace(/\./g, '')}`, '_blank');
 };
 const whatIsNewCherryPick = () => {
 	// modal.value?.close();
-	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${basedCherrypickVersion}`, '_blank');
+	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${basedCherrypickVersion.replace(/\./g, '')}`, '_blank');
 };
 const whatIsNewMisskey = () => {
 	window.open(`https://misskey-hub.net/docs/releases/#_${basedMisskeyVersion.replace(/\./g, '')}`, '_blank');
