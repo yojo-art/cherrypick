@@ -62,7 +62,7 @@ function neverShow() {
 
 function donateYojoArt(ev: MouseEvent) {
 	os.popupMenu([{
-		text: 'Patreon',
+		text: 'Pixiv Fanbox',
 		icon: 'ti ti-pig-money',
 		action: () => {
 			window.open('https://yojo-art.fanbox.cc/', '_blank');

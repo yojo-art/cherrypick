@@ -47,13 +47,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 							{{ i18n.ts._aboutMisskey.source }} ({{ i18n.ts._aboutMisskey.original }})
 							<template #suffix>GitHub</template>
 						</FormLink>
-						<button :class="$style.main" class="_button" @click="donateYojoArt">
-							<span :class="$style.icon"><i class="ti ti-pig-money"></i></span>
-							<span :class="$style.text">{{ i18n.ts._aboutMisskey._yojoArt.donate }}</span>
-							<span :class="$style.suffix">
-								<i class="ti ti-external-link"></i>
-							</span>
-						</button>
+						<FormLink to="https://yojo-art.fanbox.cc/" external>
+							<template #icon><i class="ti ti-pig-money"></i></template>
+							{{ i18n.ts._aboutMisskey._yojoArt.donate }}
+							<template #suffix>Pixiv Fanbox</template>
+						</FormLink>
 					</div>
 				</FormSection>
 				<FormSection>
@@ -547,16 +545,6 @@ function getTreasure() {
 	claimAchievement('foundTreasure');
 }
 
-function donateYojoArt(ev: MouseEvent) {
-	os.popupMenu([{
-		text: 'Patreon',
-		icon: 'ti ti-pig-money',
-		action: () => {
-			window.open('https://yojo-art.fanbox.cc/', '_blank');
-		},
-	}], ev.currentTarget ?? ev.target);
-}
-
 function donateCherryPick(ev: MouseEvent) {
 	os.popupMenu([{
 		text: 'Patreon',
@@ -771,18 +759,18 @@ definePageMetadata(() => ({
   width: 100%;
   box-sizing: border-box;
   padding: 10px 14px;
-  background: var(--MI_THEME-buttonBg);
+  background: var(--MI_THEME-folderHeaderBg);
   border-radius: 6px;
   font-size: 0.9em;
 
   &:hover {
     text-decoration: none;
-    background: var(--MI_THEME-buttonHoverBg);
+    background: var(--MI_THEME-folderHeaderHoverBg);
   }
 
   &.active {
     color: var(--MI_THEME-accent);
-    background: var(--MI_THEME-buttonHoverBg);
+    background: var(--MI_THEME-folderHeaderHoverBg);
   }
 }
 
