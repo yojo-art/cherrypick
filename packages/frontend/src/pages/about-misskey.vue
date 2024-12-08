@@ -103,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</FormLink>
 					</div>
 				</FormSection>
-				<FormSection v-if="instance.repositoryUrl !== 'https://github.com/kokonect-link/cherrypick'">
+				<FormSection v-if="instance.repositoryUrl !== 'https://github.com/yojo-art/cherrypick'">
 					<div class="_gaps_s">
 						<MkInfo>
 							{{ i18n.tsx._aboutMisskey.thisIsModifiedVersion({ name: instance.name }) }}
@@ -125,6 +125,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<FormSection>
 					<template #label>{{ i18n.ts._aboutMisskey.projectMembers }}</template>
 					<div :class="$style.contributors">
+						<a href="https://github.com/kozakura913" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/98575220?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@kozakura913
+								<span :class="$style.contributorClient">
+									<span :class="$style.cherry">yojo</span><span :class="$style.pick">-art</span>
+								</span>
+							</span>
+						</a>
+						<a href="https://github.com/penginn-net" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/121443048?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@penginn-net
+								<span :class="$style.contributorClient">
+									<span :class="$style.cherry">yojo</span><span :class="$style.pick">-art</span>
+								</span>
+							</span>
+						</a>
 						<a href="https://github.com/noridev" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/11006910?v=4" :class="$style.contributorAvatar">
 							<span :class="$style.contributorUsername">@noridev
@@ -202,6 +218,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</FormSection>
 				<FormSection>
 					<template #label><Mfm text="$[jelly ❤]"/> {{ i18n.ts._aboutMisskey.patrons }}</template>
+					<p style="font-weight: bold">yojo-art</p>
+					<div :class="$style.patronsWithIcon">
+						<div v-for="patron in patronsWithIconWithYojoArt" :class="$style.patronWithIcon">
+							<img :src="patron.icon" :class="$style.patronIcon">
+							<span :class="$style.patronName">{{ patron.name }}</span>
+						</div>
+					</div>
+					<div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); grid-gap: 12px;">
+						<div v-for="patron in patronsWithYojoArt" :key="patron">{{ patron }}</div>
+					</div>
 					<p style="font-weight: bold">CherryPick</p>
 					<div :class="$style.patronsWithIcon">
 						<div v-for="patron in patronsWithIconWithCherryPick" :class="$style.patronWithIcon">
@@ -245,6 +271,8 @@ import * as os from '@/os.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { claimAchievement, claimedAchievements } from '@/scripts/achievements.js';
 import { $i } from '@/account.js';
+
+const patronsWithIconWithYojoArt = [];
 
 const patronsWithIconWithCherryPick = [];
 
@@ -372,6 +400,10 @@ const patronsWithIconWithMisskey = [{
 	name: '如月ユカ',
 	icon: 'https://assets.misskey-hub.net/patrons/f24a042076a041b6811a2f124eb620ca.jpg',
 }];
+
+const patronsWithYojoArt = [
+	'',
+];
 
 const patronsWithCherryPick = [
 	'',
