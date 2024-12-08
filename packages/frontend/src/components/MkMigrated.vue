@@ -16,8 +16,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.version">
 			<div>✨{{ version }}🚀</div>
 			<div style="font-size: 0.8em;">{{ basedMisskeyVersion }}</div>
+			<div style="font-size: 0.8em;">{{ basedCherrypickVersion }}</div>
 		</div>
-		<MkButton rounded full @click="whatIsNewCherryPick">{{ i18n.ts.whatIsNew }}</MkButton>
+		<MkButton rounded full @click="whatIsNewYojo">{{ i18n.ts.whatIsNew }}</MkButton>
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.gotIt }}</MkButton>
 	</div>
 </MkModal>
@@ -35,7 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef } from 'vue';
-import { version, basedMisskeyVersion } from '@@/js/config.js';
+import { version, basedMisskeyVersion, basedCherrypickVersion } from '@@/js/config.js';
 import MkModal from '@/components/MkModal.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSparkle from '@/components/MkSparkle.vue';
@@ -49,12 +50,16 @@ const showChangelog = ref(false);
 
 const modal = shallowRef<InstanceType<typeof MkModal>>();
 
+const whatIsNewYojo = () => {
+	// modal.value?.close();
+	window.open(`https://github.com/yojo-art/cherrypick/blob/develop/CHANGELOG_YOJO.md#${version}`, '_blank');
+};
+const whatIsNewCherryPick = () => {
+	// modal.value?.close();
+	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${basedCherrypickVersion}`, '_blank');
+};
 const whatIsNewMisskey = () => {
 	window.open(`https://misskey-hub.net/docs/releases/#_${basedMisskeyVersion.replace(/\./g, '')}`, '_blank');
-};
-
-const whatIsNewCherryPick = () => {
-	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '')}`, '_blank');
 };
 
 const close = async () => {

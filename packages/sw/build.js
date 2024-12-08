@@ -26,6 +26,7 @@ const buildOptions = {
 		_PERF_PREFIX_: JSON.stringify('CherryPick:'),
 		_VERSION_: JSON.stringify(meta.version),
 		_BASEDMISSKEYVERSION_: JSON.stringify(meta.basedMisskeyVersion),
+		_BASEDCHERRYPICKVERSION_: JSON.stringify(meta.basedCherrypickVersion),
 	},
 	entryPoints: [`${__dirname}/src/sw.ts`],
 	format: 'esm',
