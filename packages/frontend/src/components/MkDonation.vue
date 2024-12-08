@@ -23,7 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</template>
 			</I18n>
 			<div style="margin-top: 0.2em;">
-				<a class="_link" @click="donateCherryPick">{{ i18n.ts.learnMore }}</a>
+				<a class="_link" @click="donateYojoArt">{{ i18n.ts.learnMore }}</a>
 			</div>
 		</div>
 		<div class="_buttons">
@@ -58,6 +58,16 @@ function close() {
 function neverShow() {
 	miLocalStorage.setItem('neverShowDonationInfo', 'true');
 	close();
+}
+
+function donateYojoArt(ev: MouseEvent) {
+	os.popupMenu([{
+		text: 'Patreon',
+		icon: 'ti ti-pig-money',
+		action: () => {
+			window.open('https://yojo-art.fanbox.cc/', '_blank');
+		},
+	}], ev.currentTarget ?? ev.target);
 }
 
 function donateCherryPick(ev: MouseEvent) {
