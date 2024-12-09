@@ -189,7 +189,7 @@ export const paramDef = {
 		isLocked: { type: 'boolean' },
 		isExplorable: { type: 'boolean' },
 		isIndexable: { type: 'boolean' },
-		searchableBy: { type: 'string', enum: ['public', 'followersAndReacted', 'reactedOnly', 'private'] },
+		searchableBy: { type: 'string', enum: ['public', 'followersAndReacted', 'reactedOnly', 'private', null] },
 		hideOnlineStatus: { type: 'boolean' },
 		publicReactions: { type: 'boolean' },
 		carefulBot: { type: 'boolean' },
@@ -326,7 +326,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.birthday !== undefined) profileUpdates.birthday = ps.birthday;
 			if (ps.followingVisibility !== undefined) profileUpdates.followingVisibility = ps.followingVisibility;
 			if (ps.followersVisibility !== undefined) profileUpdates.followersVisibility = ps.followersVisibility;
-			if (ps.searchableBy !== undefined) updates.searchableBy = ps.searchableBy;
+			if (ps.searchableBy !== undefined && ps.searchableBy !== null) updates.searchableBy = ps.searchableBy;
 
 			function checkMuteWordCount(mutedWords: (string[] | string)[], limit: number) {
 				// TODO: ちゃんと数える
