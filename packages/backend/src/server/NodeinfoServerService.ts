@@ -83,9 +83,10 @@ export class NodeinfoServerService {
 					 * ソフトウェアの名前を変更すると、一部の独自機能が使用できなくなったり、CherryPickとして認識されないなどの不利益が発生する場合があります。
 					 * フォーク開発者はこの点に注意して修正を行ってください。
 					 */
-					name: 'cherrypick',
+					name: 'yojo-art',
 					version: this.config.version,
 					basedMisskeyVersion: this.config.basedMisskeyVersion,
+					basedCherrypickVersion: this.config.basedCherrypickVersion,
 					homepage: nodeinfo_homepage,
 					repository: meta.repositoryUrl,
 				},
