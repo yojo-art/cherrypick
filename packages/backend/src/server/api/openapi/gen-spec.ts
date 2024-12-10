@@ -97,7 +97,7 @@ export function genOpenapiSpec(config: Config, includeSelfRef = false) {
 			description: desc,
 			externalDocs: {
 				description: 'Source code',
-				url: `https://github.com/kokonect-link/cherrypick/blob/develop/packages/backend/src/server/api/endpoints/${endpoint.name}.ts`,
+				url: `https://github.com/yojo-art/cherrypick/blob/develop/packages/backend/src/server/api/endpoints/${endpoint.name}.ts`,
 			},
 			...(endpoint.meta.tags ? {
 				tags: [endpoint.meta.tags[0]],
