@@ -5367,9 +5367,9 @@ export type components = {
       description: string | null;
       langs: string[];
       tosUrl: string | null;
-      /** @default https://github.com/kokonect-link/cherrypick */
+      /** @default https://github.com/yojo-art/cherrypick */
       repositoryUrl: string | null;
-      /** @default https://github.com/kokonect-link/cherrypick/issues/new */
+      /** @default https://github.com/yojo-art/cherrypick/issues/new */
       feedbackUrl: string | null;
       statusUrl: string | null;
       defaultDarkTheme: string | null;
