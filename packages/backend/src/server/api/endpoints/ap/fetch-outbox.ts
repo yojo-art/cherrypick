@@ -48,7 +48,7 @@ export const meta = {
 			code: 'OUTBOX_PART_IS_INVALID',
 			id: 'c3e584df-068a-4b1d-967e-54f2f30f7cba',
 		},
-		itemIsUndefined: {
+		itemIsUnavailable: {
 			message: 'outbox item is unavailable',
 			code: 'OUTBOX_ITEM_IS_UNAVAILABLE',
 			id: 'a07b05af-5f66-4203-918c-ebff9e9384bf',
@@ -95,7 +95,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						if (err.id === 'e7a2e510-a8ce-40e9-b1e6-c007bacdc89f') throw new ApiError(meta.errors.outboxUndefined);
 						if (err.id === 'a723c2df-0250-4091-b5fc-e3a7b36c7b61') throw new ApiError(meta.errors.outboxFirstPageUndefined);
 						if (err.id === '6603433f-99db-4134-980c-48705ae57ab8') throw new ApiError(meta.errors.invalidPart);
-						if (err.id === '2a05bb06-f38c-4854-af6f-7fd5e87c98ee') throw new ApiError(meta.errors.itemIsUndefined);
+						if (err.id === '2a05bb06-f38c-4854-af6f-7fd5e87c98ee') throw new ApiError(meta.errors.itemIsUnavailable);
 					}
 					throw (err);
 				}
