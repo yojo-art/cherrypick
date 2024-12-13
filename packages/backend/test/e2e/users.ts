@@ -86,9 +86,6 @@ describe('ユーザー', () => {
 			publicReactions: user.publicReactions,
 			followingVisibility: user.followingVisibility,
 			followersVisibility: user.followersVisibility,
-			twoFactorEnabled: user.twoFactorEnabled,
-			usePasswordLessLogin: user.usePasswordLessLogin,
-			securityKeys: user.securityKeys,
 			roles: user.roles,
 			memo: user.memo,
 		});
@@ -108,6 +105,7 @@ describe('ユーザー', () => {
 			isRenoteMuted: user.isRenoteMuted ?? false,
 			notify: user.notify ?? 'none',
 			withReplies: user.withReplies ?? false,
+			followedMessage: user.isFollowing ? (user.followedMessage ?? null) : undefined,
 		});
 	};
 
@@ -117,6 +115,7 @@ describe('ユーザー', () => {
 			...userDetailedNotMe(user),
 			avatarId: user.avatarId,
 			bannerId: user.bannerId,
+			followedMessage: user.followedMessage,
 			isModerator: user.isModerator,
 			isAdmin: user.isAdmin,
 			injectFeaturedNote: user.injectFeaturedNote,
@@ -151,6 +150,9 @@ describe('ユーザー', () => {
 			achievements: user.achievements,
 			loggedInDays: user.loggedInDays,
 			policies: user.policies,
+			twoFactorEnabled: user.twoFactorEnabled,
+			usePasswordLessLogin: user.usePasswordLessLogin,
+			securityKeys: user.securityKeys,
 			...(security ? {
 				email: user.email,
 				emailVerified: user.emailVerified,
@@ -345,15 +347,13 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.publicReactions, true);
 		assert.strictEqual(response.followingVisibility, 'public');
 		assert.strictEqual(response.followersVisibility, 'public');
-		assert.strictEqual(response.twoFactorEnabled, false);
-		assert.strictEqual(response.usePasswordLessLogin, false);
-		assert.strictEqual(response.securityKeys, false);
 		assert.deepStrictEqual(response.roles, []);
 		assert.strictEqual(response.memo, null);
 
 		// MeDetailedOnly
 		assert.strictEqual(response.avatarId, null);
 		assert.strictEqual(response.bannerId, null);
+		assert.strictEqual(response.followedMessage, null);
 		assert.strictEqual(response.isModerator, false);
 		assert.strictEqual(response.isAdmin, false);
 		assert.strictEqual(response.injectFeaturedNote, true);
@@ -387,6 +387,9 @@ describe('ユーザー', () => {
 		assert.deepStrictEqual(response.achievements, []);
 		assert.deepStrictEqual(response.loggedInDays, 0);
 		assert.deepStrictEqual(response.policies, DEFAULT_POLICIES);
+		assert.strictEqual(response.twoFactorEnabled, false);
+		assert.strictEqual(response.usePasswordLessLogin, false);
+		assert.strictEqual(response.securityKeys, false);
 		assert.notStrictEqual(response.email, undefined);
 		assert.strictEqual(response.emailVerified, false);
 		assert.deepStrictEqual(response.securityKeysList, []);
@@ -418,6 +421,8 @@ describe('ユーザー', () => {
 		{ parameters: () => ({ description: 'x'.repeat(1500) }) },
 		{ parameters: () => ({ description: 'x' }) },
 		{ parameters: () => ({ description: 'My description' }) },
+		{ parameters: () => ({ followedMessage: null }) },
+		{ parameters: () => ({ followedMessage: 'Thank you' }) },
 		{ parameters: () => ({ location: null }) },
 		{ parameters: () => ({ location: 'x'.repeat(50) }) },
 		{ parameters: () => ({ location: 'x' }) },
@@ -435,10 +440,10 @@ describe('ユーザー', () => {
 		{ parameters: () => ({ isExplorable: true }) },
 		{ parameters: () => ({ isIndexable: false }) },
 		{ parameters: () => ({ isIndexable: true }) },
-		{ parameters: () => ({ searchableBy: 'public' }) },
-		{ parameters: () => ({ searchableBy: 'followersAndReacted' }) },
-		{ parameters: () => ({ searchableBy: 'reactedOnly' }) },
-		{ parameters: () => ({ searchableBy: 'private' }) },
+		{ parameters: () => ({ searchableBy: 'public' as const }) },
+		{ parameters: () => ({ searchableBy: 'followersAndReacted' as const }) },
+		{ parameters: () => ({ searchableBy: 'reactedOnly' as const }) },
+		{ parameters: () => ({ searchableBy: 'private' as const }) },
 		{ parameters: () => ({ hideOnlineStatus: true }) },
 		{ parameters: () => ({ hideOnlineStatus: false }) },
 		{ parameters: () => ({ publicReactions: false }) },
@@ -624,6 +629,9 @@ describe('ユーザー', () => {
 		{ label: 'Moderatorになっている', user: () => userModerator, me: () => userModerator, selector: (user: misskey.entities.MeDetailed) => user.isModerator },
 		// @ts-expect-error UserDetailedNotMe doesn't include isModerator
 		{ label: '自分以外から見たときはModeratorか判定できない', user: () => userModerator, selector: (user: misskey.entities.UserDetailedNotMe) => user.isModerator, expected: () => undefined },
+		{ label: '自分から見た場合に二要素認証関連のプロパティがセットされている', user: () => alice, me: () => alice, selector: (user: misskey.entities.MeDetailed) => user.twoFactorEnabled, expected: () => false },
+		{ label: '自分以外から見た場合に二要素認証関連のプロパティがセットされていない', user: () => alice, me: () => bob, selector: (user: misskey.entities.UserDetailedNotMe) => user.twoFactorEnabled, expected: () => undefined },
+		{ label: 'モデレーターから見た場合に二要素認証関連のプロパティがセットされている', user: () => alice, me: () => userModerator, selector: (user: misskey.entities.UserDetailedNotMe) => user.twoFactorEnabled, expected: () => false },
 		{ label: 'サイレンスになっている', user: () => userSilenced, selector: (user: misskey.entities.UserDetailed) => user.isSilenced },
 		// FIXME: 落ちる
 		//{ label: 'サスペンドになっている', user: () => userSuspended, selector: (user: misskey.entities.UserDetailed) => user.isSuspended },

@@ -127,6 +127,8 @@ export interface NoteEventTypes {
 	updated: {
 		cw: string | null;
 		text: string | null;
+		disableRightClick: boolean | null;
+		deleteAt: Date | null;
 	};
 	reacted: {
 		reaction: string;
@@ -226,6 +228,10 @@ export interface ReversiGameEventTypes {
 	canceled: {
 		userId: MiUser['id'];
 	};
+	reacted: {
+		userId: MiUser['id'];
+		reaction: string;
+	};
 }
 //#endregion
 
@@ -274,7 +280,7 @@ export interface InternalEventTypes {
 	avatarDecorationCreated: MiAvatarDecoration;
 	avatarDecorationDeleted: MiAvatarDecoration;
 	avatarDecorationUpdated: MiAvatarDecoration;
-	metaUpdated: MiMeta;
+	metaUpdated: { before?: MiMeta; after: MiMeta; };
 	followChannel: { userId: MiUser['id']; channelId: MiChannel['id']; };
 	unfollowChannel: { userId: MiUser['id']; channelId: MiChannel['id']; };
 	updateUserProfile: MiUserProfile;

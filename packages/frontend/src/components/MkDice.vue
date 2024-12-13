@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 <template>
-<div class="zmdxowus">
+<div :class="$style.root">
 	<div>
-		<MkInput v-model="diceCount" small type="text" class="input">
+		<MkInput v-model="diceCount" small type="text" :class="$style.input">
 			<template #label>{{ i18n.ts._dice.diceCount }}</template>
 		</MkInput>
 	</div>
 	<div>
-		<MkInput v-model="diceFaces" small type="text" class="input">
+		<MkInput v-model="diceFaces" small type="text" :class="$style.input">
 			<template #label>{{ i18n.ts._dice.diceFaces }}</template>
 		</MkInput>
 	</div>
@@ -20,10 +20,10 @@
 			{{ i18n.ts._dice.rollDice }}
 		</MkButton>
 	</div>
-	<div v-if="diceResult" class="result">{{ diceResult }}</div>
-	<div v-if="showMinTotal" class="option">{{ diceMinTotal }}</div>
-	<div v-if="showMaxTotal" class="option">{{ diceMaxTotal }}</div>
-	<dic v-if="showAverageTotal" class="option">{{ diceAverageTotal }}</dic>
+	<div v-if="diceResult" :class="$style.result">{{ diceResult }}</div>
+	<div v-if="showMinTotal" :class="$style.option">{{ diceMinTotal }}</div>
+	<div v-if="showMaxTotal" :class="$style.option">{{ diceMaxTotal }}</div>
+	<div v-if="showAverageTotal" :class="$style.option">{{ diceAverageTotal }}</div>
 </div>
 </template>
 
@@ -65,27 +65,27 @@ const rollDice = () => {
 
 </script>
 
-<style lang="scss" scoped>
-.zmdxowus {
+<style lang="scss" module>
+.root {
 	padding: 8px 16px;
 
 	> div {
 		margin: 8px 0;
 	}
+}
 
-	> .input {
-		flex: 1 1 auto;
-		padding: 8px;
-	}
+.input {
+	flex: 1 1 auto;
+	padding: 8px;
+}
 
-	> .result {
-		text-align: center;
-		margin: auto;
-	}
+.result {
+	text-align: center;
+	margin: auto;
+}
 
-	> .option {
-		padding: 8px 0;
-		text-align: left;
-	}
+.option {
+	padding: 8px 0;
+	text-align: left;
 }
 </style>

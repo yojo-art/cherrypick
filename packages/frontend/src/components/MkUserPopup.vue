@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<svg v-if="!defaultStore.state.squareAvatars" viewBox="0 0 128 128" :class="$style.avatarBack">
 				<g transform="matrix(1.6,0,0,1.6,-38.4,-51.2)">
-					<path d="M64,32C81.661,32 96,46.339 96,64C95.891,72.184 104,72 104,72C104,72 74.096,80 64,80C52.755,80 24,72 24,72C24,72 31.854,72.018 32,64C32,46.339 46.339,32 64,32Z" style="fill: var(--popup);"/>
+					<path d="M64,32C81.661,32 96,46.339 96,64C95.891,72.184 104,72 104,72C104,72 74.096,80 64,80C52.755,80 24,72 24,72C24,72 31.854,72.018 32,64C32,46.339 46.339,32 64,32Z" style="fill: var(--MI_THEME-popup);"/>
 				</g>
 			</svg>
 			<MkAvatar :class="$style.avatar" :user="user" indicator/>
@@ -44,8 +44,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div>{{ number(user.followersCount) }}</div>
 				</div>
 			</div>
-			<button class="_button" :class="$style.menu" @click="showMenu"><i class="ti ti-dots"></i></button>
-			<MkFollowButton v-model:user="user" :class="$style.follow" mini/>
+			<button class="_button" :class="[$style.menu, { [$style.isBlocked]: user.isBlocked || user.isBlocking }]" @click="showMenu"><i class="ti ti-dots"></i></button>
+			<button v-tooltip="user.notify === 'none' ? i18n.ts.notifyNotes : i18n.ts.unnotifyNotes" class="_button" :class="[$style.notify, { [$style.isBlocked]: user.isBlocked || user.isBlocking }]" @click="toggleNotify"><i :class="user.notify === 'none' ? 'ti ti-bell-plus' : 'ti ti-bell-minus'"></i></button>
+			<MkFollowButton v-if="!user.isBlocked && !user.isBlocking" v-model:user="user" :class="$style.follow" mini/>
 		</div>
 		<div v-else>
 			<MkLoading/>
@@ -90,6 +91,15 @@ function showMenu(ev: MouseEvent) {
 	if (user.value == null) return;
 	const { menu, cleanup } = getUserMenu(user.value);
 	os.popupMenu(menu, ev.currentTarget ?? ev.target).finally(cleanup);
+}
+
+async function toggleNotify() {
+	os.apiWithDialog('following/update', {
+		userId: user.value.id,
+		notify: user.value.notify === 'normal' ? 'none' : 'normal',
+	}).then(() => {
+		user.value.notify = user.value.notify === 'normal' ? 'none' : 'normal';
+	});
 }
 
 onMounted(() => {
@@ -141,14 +151,14 @@ onMounted(() => {
 
 	&::after {
 		content: "";
-		background-image: var(--blur, inherit);
+		background-image: var(--MI-blur, inherit);
 		position: fixed;
 		inset: 0;
 		background-size: cover;
 		background-position: center;
 		pointer-events: none;
 		opacity: 0.1;
-		filter: var(--blur, blur(10px));
+		filter: var(--MI-blur, blur(10px));
 	}
 
 }
@@ -183,8 +193,8 @@ onMounted(() => {
 	z-index: 2;
 	width: 58px;
 	height: 58px;
-	border: solid 4px var(--popup);
-	background: var(--popup);
+	border: solid 4px var(--MI_THEME-popup);
+	background: var(--MI_THEME-popup);
 }
 
 .title {
@@ -212,8 +222,8 @@ onMounted(() => {
 	padding: 16px 26px;
 	font-size: 0.8em;
 	text-align: center;
-	border-top: solid 1px var(--divider);
-	border-bottom: solid 1px var(--divider);
+	border-top: solid 1px var(--MI_THEME-divider);
+	border-bottom: solid 1px var(--MI_THEME-divider);
 }
 
 .mfm {
@@ -237,16 +247,31 @@ onMounted(() => {
 
 .statusItemLabel {
 	font-size: 0.7em;
-	color: var(--fgTransparentWeak);
+	color: var(--MI_THEME-fgTransparentWeak);
+}
+
+.menu,
+.notify {
+	position: absolute;
+	top: 8px;
+	right: 80px;
+	padding: 6px;
+	background: var(--MI_THEME-panel);
+	border-radius: 999px;
 }
 
 .menu {
-	position: absolute;
-	top: 8px;
+	&.isBlocked {
+		right: 44px;
+	}
+}
+
+.notify {
 	right: 44px;
-	padding: 6px;
-	background: var(--panel);
-	border-radius: 999px;
+
+	&.isBlocked {
+		right: 8px;
+	}
 }
 
 .follow {

@@ -152,7 +152,7 @@ export type Channels = {
 	};
 	hashtag: {
 		params: {
-			q?: string[][];
+			q: string[][];
 		};
 		events: {
 			note: (payload: Note) => void;
@@ -247,6 +247,7 @@ export type Channels = {
 			changeReadyStates: (payload: { user1: boolean; user2: boolean; }) => void;
 			updateSettings: <K extends ReversiUpdateKey>(payload: { userId: User['id']; key: K; value: ReversiGameDetailed[K]; }) => void;
 			log: (payload: Record<string, unknown>) => void;
+			reacted: (payload: { userId: User['id']; reaction: string; }) => void;
 		};
 		receives: {
 			putStone: {
@@ -257,11 +258,12 @@ export type Channels = {
 			cancel: null | Record<string, never>;
 			updateSettings: ReversiUpdateSettings<ReversiUpdateKey>;
 			claimTimeIsUp: null | Record<string, never>;
+			reaction: string;
 		}
 	}
 };
 
-export type NoteUpdatedEvent = {
+export type NoteUpdatedEvent = { id: Note['id'] } & ({
 	type: 'reacted';
 	body: {
 		reaction: string;
@@ -291,7 +293,7 @@ export type NoteUpdatedEvent = {
 		choice: number;
 		userId: User['id'];
 	};
-};
+});
 
 export type BroadcastEvents = {
 	noteUpdated: (payload: NoteUpdatedEvent) => void;

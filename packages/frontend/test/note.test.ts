@@ -29,7 +29,7 @@ describe('MkMediaImage', () => {
 					comment: null,
 					properties: {},
 					...image,
-				} as DriveFile,
+				} as Misskey.entities.DriveFile,
 			},
 			global: { directives, components },
 		});
@@ -43,11 +43,13 @@ describe('MkMediaImage', () => {
 		const mkMediaImage = renderMediaImage({
 			type: 'image/jpeg',
 		});
-		const [gif, alt] = await Promise.all([
+		const [gif, apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('GIF'),
+			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
 		assert.ok(!gif);
+		assert.ok(!apng);
 		assert.ok(!alt);
 	});
 
@@ -55,23 +57,27 @@ describe('MkMediaImage', () => {
 		const mkMediaImage = renderMediaImage({
 			type: 'image/gif',
 		});
-		const [gif, alt] = await Promise.all([
+		const [gif, apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('GIF'),
+			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
 		assert.ok(gif);
+		assert.ok(!apng);
 		assert.ok(!alt);
 	});
 
-	test('Attaching APNG should show a GIF indicator', async () => {
+	test('Attaching APNG should show a APNG indicator', async () => {
 		const mkMediaImage = renderMediaImage({
 			type: 'image/apng',
 		});
-		const [gif, alt] = await Promise.all([
+		const [gif, apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('GIF'),
+			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
-		assert.ok(gif);
+		assert.ok(!gif);
+		assert.ok(apng);
 		assert.ok(!alt);
 	});
 
@@ -80,11 +86,13 @@ describe('MkMediaImage', () => {
 			type: 'image/png',
 			comment: 'CherryPickのロゴです',
 		});
-		const [gif, alt] = await Promise.all([
+		const [gif, apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('GIF'),
+			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
 		assert.ok(!gif);
+		assert.ok(!apng);
 		assert.ok(alt);
 	});
 
@@ -93,11 +101,13 @@ describe('MkMediaImage', () => {
 			type: 'image/gif',
 			comment: 'CherryPickのロゴです',
 		});
-		const [gif, alt] = await Promise.all([
+		const [gif, apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('GIF'),
+			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
 		assert.ok(gif);
+		assert.ok(!apng);
 		assert.ok(alt);
 	});
 });

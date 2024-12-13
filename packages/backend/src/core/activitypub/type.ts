@@ -13,6 +13,7 @@ export interface IObject {
 	name?: string | null;
 	summary?: string;
 	_misskey_summary?: string;
+	_misskey_followedMessage?: string | null;
 	published?: string;
 	updated?: string;
 	cc?: ApObject;
@@ -31,6 +32,8 @@ export interface IObject {
 	href?: string;
 	tag?: IObject | IObject[];
 	sensitive?: boolean;
+	disableRightClick?: boolean;
+	deleteAt?: Date;
 }
 
 /**
@@ -194,6 +197,7 @@ export interface IActor extends IObject {
 	alsoKnownAs?: string[];
 	discoverable?: boolean;
 	indexable?: boolean;
+	searchableBy?: string[];
 	inbox: string;
 	sharedInbox?: string;	// 後方互換性のため
 	publicKey?: {

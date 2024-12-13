@@ -22,9 +22,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import * as Misskey from 'cherrypick-js';
 import { onUpdated, ref, shallowRef } from 'vue';
+import { getScrollContainer } from '@@/js/scroll.js';
 import XNote from '@/pages/welcome.timeline.note.vue';
 import { misskeyApiGet } from '@/scripts/misskey-api.js';
-import { getScrollContainer } from '@/scripts/scroll.js';
 
 const notes = ref<Misskey.entities.Note[]>([]);
 const isScrolling = ref(false);
@@ -60,7 +60,7 @@ onUpdated(() => {
 		transform: translate3d(0, 0, 0);
 	}
 	100% {
-		transform: translate3d(0, calc(calc(-100% - 128px) - var(--margin)), 0);
+		transform: translate3d(0, calc(calc(-100% - 128px) - var(--MI-margin)), 0);
 	}
 }
 
@@ -69,7 +69,7 @@ onUpdated(() => {
 		transform: translate3d(0, -128px, 0);
 	}
 	100% {
-		transform: translate3d(0, calc(calc(-100% - 128px) - var(--margin)), 0);
+		transform: translate3d(0, calc(calc(-100% - 128px) - var(--MI-margin)), 0);
 	}
 }
 

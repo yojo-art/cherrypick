@@ -43,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template v-if="releasesCherryPick" #value>{{ releasesCherryPick[0].tag_name }}</template>
 						<template v-else #value><MkEllipsis/></template>
 					</MkKeyValue>
-					<MkKeyValue style="margin: 8px 0 0; color: var(--fgTransparentWeak); font-size: 0.85em;">
+					<MkKeyValue style="margin: 8px 0 0; color: var(--MI_THEME-fgTransparentWeak); font-size: 0.85em;">
 						<template v-if="releasesCherryPick" #value><MkTime :time="releasesCherryPick[0].published_at" mode="detail"/></template>
 						<template v-else #value><MkEllipsis/></template>
 					</MkKeyValue>
@@ -56,7 +56,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template v-if="releasesMisskey" #value>{{ releasesMisskey[0].tag_name }}</template>
 						<template v-else #value><MkEllipsis/></template>
 					</MkKeyValue>
-					<MkKeyValue style="margin: 8px 0 0; color: var(--fgTransparentWeak); font-size: 0.85em;">
+					<MkKeyValue style="margin: 8px 0 0; color: var(--MI_THEME-fgTransparentWeak); font-size: 0.85em;">
 						<template v-if="releasesMisskey" #value><MkTime :time="releasesMisskey[0].published_at" mode="detail"/></template>
 						<template v-else #value><MkEllipsis/></template>
 					</MkKeyValue>
@@ -69,12 +69,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
+import { version, instanceName, basedMisskeyVersion } from '@@/js/config.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import FormInfo from '@/components/MkInfo.vue';
 import FormSection from '@/components/form/section.vue';
 import MkKeyValue from '@/components/MkKeyValue.vue';
-import { version, instanceName, basedMisskeyVersion } from '@/config.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { i18n } from '@/i18n.js';
 import XHeader from '@/pages/admin/_header_.vue';

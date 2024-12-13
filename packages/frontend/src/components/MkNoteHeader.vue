@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <header :class="$style.root">
 	<div :class="$style.section">
-		<div style="display: flex;">
+		<div style="display: flex; white-space: nowrap; align-items: baseline;">
 			<div v-if="mock" :class="$style.name">
 				<MkUserName :user="note.user"/>
 			</div>
@@ -23,6 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div :class="$style.section">
 		<div :class="$style.info">
 			<span v-if="note.updatedAt" style="margin-right: 0.5em;"><i v-tooltip="i18n.tsx.noteUpdatedAt({ date: (new Date(note.updatedAt)).toLocaleDateString(), time: (new Date(note.updatedAt)).toLocaleTimeString() })" class="ti ti-pencil"></i></span>
+			<span v-if="note.deleteAt" style="margin-right: 0.5em;"><i v-tooltip="`${i18n.ts.scheduledNoteDelete}: ${(new Date(note.deleteAt)).toLocaleString()}`" class="ti ti-bomb"></i></span>
 			<span v-if="note.visibility !== 'public'" style="margin-right: 0.5em;">
 				<i v-if="note.visibility === 'home'" v-tooltip="i18n.ts._visibility[note.visibility]" class="ti ti-home"></i>
 				<i v-else-if="note.visibility === 'followers'" v-tooltip="i18n.ts._visibility[note.visibility]" class="ti ti-lock"></i>
@@ -64,8 +65,10 @@ import MkInstanceTicker from '@/components/MkInstanceTicker.vue';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 
 const props = defineProps<{
-	note: Misskey.entities.Note & {isSchedule? : boolean};
-  scheduled?: boolean;
+	note: Misskey.entities.Note & {
+		isSchedule?: boolean
+	};
+	scheduled?: boolean;
 	notificationId?: string;
 }>();
 
@@ -76,7 +79,6 @@ const router = useRouter();
 
 function showOnRemote() {
 	if (props.note.user.instance === undefined) router.push(notePage(props.note));
-
 	else window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
 
@@ -123,7 +125,7 @@ const notificationDelete = () => {
   }
 
 	&:hover {
-		color: var(--nameHover);
+		color: var(--MI_THEME-nameHover);
 		text-decoration: none;
 	}
 }
@@ -134,7 +136,7 @@ const notificationDelete = () => {
 	margin: 0 .5em 0 0;
 	padding: 1px 6px;
 	font-size: 80%;
-	border: solid 0.5px var(--divider);
+	border: solid 0.5px var(--MI_THEME-divider);
 	border-radius: 3px;
 }
 
@@ -179,7 +181,7 @@ const notificationDelete = () => {
 }
 
 .danger {
-	color: var(--accent);
+	color: var(--MI_THEME-accent);
 }
 
 @container (max-width: 500px) {

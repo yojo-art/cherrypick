@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :data-is-hidden="hide ? 'true' : 'false'" :class="[hide ? $style.hidden : $style.visible, (image.isSensitive && defaultStore.state.highlightSensitiveMedia) && $style.sensitive]" :style="darkMode ? '--c: rgb(255 255 255 / 2%);' : '--c: rgb(0 0 0 / 2%);'" @click="onClick" @dblclick="onDblClick">
+<div :data-is-hidden="hide ? 'true' : 'false'" :class="[hide ? $style.hidden : $style.visible, (image.isSensitive && defaultStore.state.highlightSensitiveMedia) && $style.sensitive]" @click="onClick" @dblclick="onDblClick">
 	<component
 		:is="(disableImageLink || hide) ? 'div' : 'a'"
 		v-bind="(disableImageLink || hide) ? {
@@ -44,9 +44,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</template>
 	<template v-else-if="controls">
 		<div :class="$style.indicators">
-			<div v-if="['image/gif', 'image/apng'].includes(image.type)" :class="$style.indicator">GIF</div>
+			<div v-if="['image/gif'].includes(image.type)" :class="$style.indicator">GIF</div>
+			<div v-if="['image/apng'].includes(image.type)" :class="$style.indicator">APNG</div>
 			<div v-if="image.comment" :class="$style.indicator">ALT</div>
-			<div v-if="image.isSensitive" :class="$style.indicator" style="color: var(--warn);" :title="i18n.ts.sensitive"><i class="ti ti-eye-exclamation"></i></div>
+			<div v-if="image.isSensitive" :class="$style.indicator" style="color: var(--MI_THEME-warn);" :title="i18n.ts.sensitive"><i class="ti ti-eye-exclamation"></i></div>
 		</div>
 		<button :class="$style.menu" class="_button" @click.stop="showMenu"><i class="ti ti-dots" style="vertical-align: middle;"></i></button>
 		<i class="ti ti-eye-off" :class="$style.hide" @click.stop="hide = true"></i>
@@ -57,6 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, watch, ref, computed } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import type { MenuItem } from '@/types/menu.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import bytes from '@/filters/bytes.js';
 import ImgWithBlurhash from '@/components/MkImgWithBlurhash.vue';
@@ -80,7 +82,6 @@ const props = withDefaults(defineProps<{
 });
 
 const hide = ref(true);
-const darkMode = ref<boolean>(defaultStore.state.darkMode);
 
 const playAnimation = ref(true);
 if (defaultStore.state.showingAnimatedImages === 'interaction') playAnimation.value = false;
@@ -153,27 +154,39 @@ watch(() => props.image, () => {
 });
 
 function showMenu(ev: MouseEvent) {
-	os.popupMenu([{
+	const menuItems: MenuItem[] = [];
+
+	menuItems.push({
 		text: i18n.ts.hide,
 		icon: 'ti ti-eye-off',
 		action: () => {
 			hide.value = true;
 		},
-	}, ...(iAmModerator ? [{
-		text: i18n.ts.markAsSensitive,
-		icon: 'ti ti-eye-exclamation',
-		danger: true,
-		action: () => {
-			os.apiWithDialog('drive/files/update', { fileId: props.image.id, isSensitive: true });
-		},
-	}] : []), ...($i?.id === props.image.userId ? [{
-		type: 'divider' as const,
-	}, {
-		type: 'link' as const,
-		text: i18n.ts._fileViewer.title,
-		icon: 'ti ti-info-circle',
-		to: `/my/drive/file/${props.image.id}`,
-	}] : [])], ev.currentTarget ?? ev.target);
+	});
+
+	if (iAmModerator) {
+		menuItems.push({
+			text: i18n.ts.markAsSensitive,
+			icon: 'ti ti-eye-exclamation',
+			danger: true,
+			action: () => {
+				os.apiWithDialog('drive/files/update', { fileId: props.image.id, isSensitive: true });
+			},
+		});
+	}
+
+	if ($i?.id === props.image.userId) {
+		menuItems.push({
+			type: 'divider',
+		}, {
+			type: 'link',
+			text: i18n.ts._fileViewer.title,
+			icon: 'ti ti-info-circle',
+			to: `/my/drive/file/${props.image.id}`,
+		});
+	}
+
+	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
 onMounted(() => {
@@ -211,7 +224,7 @@ onUnmounted(() => {
 		height: 100%;
 		pointer-events: none;
 		border-radius: inherit;
-		box-shadow: inset 0 0 0 4px var(--warn);
+		box-shadow: inset 0 0 0 4px var(--MI_THEME-warn);
 	}
 }
 
@@ -232,10 +245,10 @@ onUnmounted(() => {
 	display: block;
 	position: absolute;
 	border-radius: 6px;
-	background-color: var(--fg);
-	color: var(--accentLighten);
-	font-size: 12px;
-	opacity: .5;
+	background-color: var(--MI_THEME-bg);
+	color: var(--MI_THEME-accentLighten);
+	font-size: 18px;
+	opacity: .7;
 	padding: 5px 8px;
 	text-align: center;
 	cursor: pointer;
@@ -253,10 +266,19 @@ onUnmounted(() => {
 .visible {
 	position: relative;
 	-webkit-tap-highlight-color: transparent;
-	//box-shadow: 0 0 0 1px var(--divider) inset;
-	background: var(--bg);
-	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--bg) 16.67%, var(--bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--bg) 66.67%, var(--bg) 100%);
+	//box-shadow: 0 0 0 1px var(--MI_THEME-divider) inset;
+	background: var(--MI_THEME-bg);
 	background-size: 16px 16px;
+}
+
+html[data-color-scheme=dark] .visible {
+	--c: rgb(255 255 255 / 2%);
+	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--MI_THEME-bg) 16.67%, var(--MI_THEME-bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--MI_THEME-bg) 66.67%, var(--MI_THEME-bg) 100%);
+}
+
+html[data-color-scheme=light] .visible {
+	--c: rgb(0 0 0 / 2%);
+	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--MI_THEME-bg) 16.67%, var(--MI_THEME-bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--MI_THEME-bg) 66.67%, var(--MI_THEME-bg) 100%);
 }
 
 .menu {
@@ -264,8 +286,8 @@ onUnmounted(() => {
 	position: absolute;
 	border-radius: 999px;
 	background-color: rgba(0, 0, 0, 0.3);
-	-webkit-backdrop-filter: var(--blur, blur(15px));
-	backdrop-filter: var(--blur, blur(15px));
+	-webkit-backdrop-filter: var(--MI-blur, blur(15px));
+	backdrop-filter: var(--MI-blur, blur(15px));
 	color: #fff;
 	font-size: 0.8em;
 	width: 28px;
@@ -296,10 +318,10 @@ onUnmounted(() => {
 }
 
 .indicator {
-	/* Hardcode to black because either --bg or --fg makes it hard to read in dark/light mode */
+	/* Hardcode to black because either --MI_THEME-bg or --MI_THEME-fg makes it hard to read in dark/light mode */
 	background-color: black;
 	border-radius: 6px;
-	color: var(--accentLighten);
+	color: var(--MI_THEME-accentLighten);
 	display: inline-block;
 	font-weight: bold;
 	font-size: 0.8em;
