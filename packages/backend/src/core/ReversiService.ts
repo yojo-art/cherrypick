@@ -840,7 +840,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async sendReaction(gameId: MiReversiGame['id'], user: MiUser, reaction: string) {
+	public async sendReaction(gameId: MiReversiGame['id'], user: MiUser, reaction: string | null) {
 		const game = await this.get(gameId);
 		if (game == null) throw new Error('game not found');
 		if (!game.isStarted || game.isEnded) return;
@@ -848,7 +848,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		let _reaction = '❤️';
 
-		const custom = reaction.match(isCustomEmojiRegexp);
+		const custom = reaction?.match(isCustomEmojiRegexp);
 
 		if (custom) {
 			const name = custom[1];
@@ -865,6 +865,18 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 			userId: user.id,
 			reaction: _reaction,
 		});
+
+		const remote_user = game.user1Id === user.id ? game.user2 : game.user1;
+		if (user.host === null && remote_user && remote_user.host != null && game.federationId !== null) {
+			const like = await this.apRendererService.renderReversiLike(game.federationId, _reaction, user, remote_user as MiRemoteUser);
+			const content = this.apRendererService.addContext(like);
+			const dm = this.apDeliverManagerService.createDeliverManager({
+				id: user.id,
+				host: null,
+			}, content);
+			dm.addDirectRecipe(remote_user as MiRemoteUser);
+			trackPromise(dm.execute());
+		}
 	}
 
 	@bindThis
