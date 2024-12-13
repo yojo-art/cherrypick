@@ -24,11 +24,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 				<FormSection first>
 					<template #label>{{ instanceName }}</template>
-					<MkKeyValue @click="whatIsNewCherryPick">
+					<MkKeyValue @click="whatIsNewYojoArt">
 						<template #key>{{ i18n.ts.currentVersion }} <i class="ti ti-external-link"></i></template>
 						<template #value>{{ version }}</template>
 					</MkKeyValue>
-					<MkKeyValue v-if="version < releasesYojoArt[0].tag_name && !skipVersion" style="margin-top: 10px;" @click="whatIsNewLatestCherryPick">
+					<MkKeyValue v-if="version < releasesYojoArt[0].tag_name && !skipVersion" style="margin-top: 10px;" @click="whatIsNewLatestYojoArt">
 						<template #key>{{ i18n.ts.latestVersion }} <i class="ti ti-external-link"></i></template>
 						<template v-if="releasesYojoArt" #value>{{ releasesYojoArt[0].tag_name }}</template>
 						<template v-else #value><MkEllipsis/></template>
@@ -99,9 +99,8 @@ import MkButton from '@/components/MkButton.vue';
 const enableReceivePrerelease = ref<boolean>(false);
 const skipVersion = ref<boolean>(false);
 const skipCherryPickVersion = ref<string | null>(null);
-const skipYojoArtVersion = ref<string | null>(null);
 
-const releasesYojoArt = ref(null);
+const releasesYojoArt = ref<any[]>([]);
 const releasesCherryPick = ref(null);
 const releasesMisskey = ref(null);
 
@@ -110,8 +109,7 @@ const meta = await misskeyApi('admin/meta');
 async function init() {
 	enableReceivePrerelease.value = meta.enableReceivePrerelease;
 	skipVersion.value = meta.skipVersion;
-	skipCherryPickVersion.value = meta.skipCherryPickVersion;
-	skipYojoArtVersion.value = meta.skipYojoArtVersion;
+	skipCherryPickVersion.value = meta.skipCherryPickVersion ?? null;
 
 	try {
 		// yojo-art Releases Fetch
@@ -119,7 +117,7 @@ async function init() {
 		const yojoArtData = await yojoArtResponse.json();
 		releasesYojoArt.value = meta.enableReceivePrerelease ? yojoArtData : yojoArtData.filter(x => !x.prerelease);
 
-		if (compareVersions(skipYojoArtVersion.value, releasesYojoArt.value[0].tag_name) < 0) {
+		if (compareVersions(skipCherryPickVersion.value ?? '0.0.0', releasesYojoArt.value[0].tag_name) < 0) {
 			skipVersion.value = false;
 			await misskeyApi('admin/update-meta', { skipVersion: skipVersion.value });
 		}
@@ -168,12 +166,12 @@ function save() {
 }
 
 function skipThisVersion() {
-	skipYojoArtVersion.value = releasesYojoArt.value[0].tag_name;
+	skipCherryPickVersion.value = releasesYojoArt.value[0].tag_name;
 	skipVersion.value = true;
 
 	os.apiWithDialog('admin/update-meta', {
 		skipVersion: skipVersion.value,
-		skipYojoArtVersion: skipYojoArtVersion.value,
+		skipCherrypickVersion: skipCherryPickVersion.value,
 	}).then(() => {
 		fetchInstance(true);
 	});
