@@ -11,15 +11,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<Transition :name="defaultStore.state.animation ? 'fade' : ''" mode="out-in">
 				<div v-if="note">
 					<div v-if="showNext" class="_margin">
-						<MkNotes class="" :pagination="showNextPagination()" :noGap="true" :disableAutoLoad="true"/>
+						<MkNotes class="" :pagination="showNext" :noGap="true" :disableAutoLoad="true"/>
 					</div>
 
 					<div class="_margin">
 						<div v-if="!showNext" class="_buttons" :class="$style.loadNext">
-							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showNext = 'channel'"><i class="ti ti-chevron-up"></i> <i class="ti ti-device-tv"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showNext = 'user'"><i class="ti ti-chevron-up"></i> <i class="ti ti-user"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showNext = 'home'"><i class="ti ti-chevron-up"></i> <i class="ti ti-home"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showNext = 'local'"><i class="ti ti-chevron-up"></i> <i class="ti ti-planet"></i></MkButton>
+							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showNext = showNextPagination('channel')"><i class="ti ti-chevron-up"></i> <i class="ti ti-device-tv"></i></MkButton>
+							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('user')"><i class="ti ti-chevron-up"></i> <i class="ti ti-user"></i></MkButton>
+							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('home')"><i class="ti ti-chevron-up"></i> <i class="ti ti-home"></i></MkButton>
+							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('local')"><i class="ti ti-chevron-up"></i> <i class="ti ti-planet"></i></MkButton>
 						</div>
 						<div class="_margin _gaps_s">
 							<MkRemoteCaution v-if="note.user.host != null" :href="note.url ?? note.uri"/>
@@ -32,15 +32,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</div>
 						<div v-if="!showPrev" class="_buttons" :class="$style.loadPrev">
-							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showPrev = 'channel'"><i class="ti ti-chevron-down"></i> <i class="ti ti-device-tv"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showPrev = 'user'"><i class="ti ti-chevron-down"></i> <i class="ti ti-user"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showPrev = 'home'"><i class="ti ti-chevron-down"></i> <i class="ti ti-home"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showPrev = 'local'"><i class="ti ti-chevron-down"></i> <i class="ti ti-planet"></i></MkButton>
+							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('channel')"><i class="ti ti-chevron-down"></i> <i class="ti ti-device-tv"></i></MkButton>
+							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('user')"><i class="ti ti-chevron-down"></i> <i class="ti ti-user"></i></MkButton>
+							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('home')"><i class="ti ti-chevron-down"></i> <i class="ti ti-home"></i></MkButton>
+							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('local')"><i class="ti ti-chevron-down"></i> <i class="ti ti-planet"></i></MkButton>
 						</div>
 					</div>
 
 					<div v-if="showPrev" class="_margin">
-						<MkNotes class="" :pagination="showPrevPagination()" :noGap="true"/>
+						<MkNotes class="" :pagination="showPrev" :noGap="true"/>
 					</div>
 				</div>
 				<MkError v-else-if="error" @retry="fetchNote()"/>
@@ -74,12 +74,12 @@ const props = defineProps<{
 const note = ref<null | Misskey.entities.Note>();
 const clips = ref<Misskey.entities.Clip[]>();
 type TimelineType = 'user' | 'home' | 'local' | 'channel' | false;
-const showPrev = ref<TimelineType>(false);
-const showNext = ref<TimelineType>(false);
+const showPrev = ref<Paging|false>(false);
+const showNext = ref<Paging|false>(false);
 const error = ref();
 
-function showPrevPagination():Paging {
-	switch (showPrev.value) {
+function showPrevPagination(tl:TimelineType): Paging {
+	switch (tl) {
 		case 'channel':
 			return {
 				endpoint: 'channels/timeline',
@@ -121,8 +121,8 @@ function showPrevPagination():Paging {
 	}
 }
 
-function showNextPagination():Paging {
-	switch (showPrev.value) {
+function showNextPagination(tl:TimelineType):Paging {
+	switch (tl) {
 		case 'channel':
 			return {
 				reversed: true,
