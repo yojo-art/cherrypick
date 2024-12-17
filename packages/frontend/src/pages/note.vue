@@ -177,6 +177,7 @@ function fetchNote() {
 	}).then(res => {
 		note.value = res;
 		console.log(res);
+		console.log(props.initialTab);
 		// 古いノートは被クリップ数をカウントしていないので、2023-10-01以前のものは強制的にnotes/clipsを叩く
 		if (note.value.clippedCount > 0 || new Date(note.value.createdAt).getTime() < new Date('2023-10-01').getTime()) {
 			misskeyApi('notes/clips', {
@@ -243,4 +244,4 @@ definePageMetadata(() => ({
 	border-radius: var(--MI-radius);
 	background: var(--MI_THEME-panel);
 }
-</style>
+</s
