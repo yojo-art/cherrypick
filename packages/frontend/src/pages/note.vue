@@ -244,4 +244,4 @@ definePageMetadata(() => ({
 	border-radius: var(--MI-radius);
 	background: var(--MI_THEME-panel);
 }
-</s
+</style>
