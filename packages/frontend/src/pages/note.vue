@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showNext = showNextPagination('channel')"><i class="ti ti-chevron-up"></i> <i class="ti ti-device-tv"></i></MkButton>
 							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('user')"><i class="ti ti-chevron-up"></i> <i class="ti ti-user"></i></MkButton>
 							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('home')"><i class="ti ti-chevron-up"></i> <i class="ti ti-home"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('local')"><i class="ti ti-chevron-up"></i> <i class="ti ti-planet"></i></MkButton>
+							<MkButton v-if="note.user.host == null" rounded :class="$style.loadButton" @click="showNext = showNextPagination('local')"><i class="ti ti-chevron-up"></i> <i class="ti ti-planet"></i></MkButton>
 						</div>
 						<div class="_margin _gaps_s">
 							<MkRemoteCaution v-if="note.user.host != null" :href="note.url ?? note.uri"/>
@@ -35,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('channel')"><i class="ti ti-chevron-down"></i> <i class="ti ti-device-tv"></i></MkButton>
 							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('user')"><i class="ti ti-chevron-down"></i> <i class="ti ti-user"></i></MkButton>
 							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('home')"><i class="ti ti-chevron-down"></i> <i class="ti ti-home"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('local')"><i class="ti ti-chevron-down"></i> <i class="ti ti-planet"></i></MkButton>
+							<MkButton v-if="note.user.host == null" rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('local')"><i class="ti ti-chevron-down"></i> <i class="ti ti-planet"></i></MkButton>
 						</div>
 					</div>
 
