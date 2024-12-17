@@ -176,7 +176,6 @@ function fetchNote() {
 		noteId: props.noteId,
 	}).then(res => {
 		note.value = res;
-		if (res.searchableBy === null)res.searchableBy = 'public';
 		console.log(res);
 		// 古いノートは被クリップ数をカウントしていないので、2023-10-01以前のものは強制的にnotes/clipsを叩く
 		if (note.value.clippedCount > 0 || new Date(note.value.createdAt).getTime() < new Date('2023-10-01').getTime()) {
