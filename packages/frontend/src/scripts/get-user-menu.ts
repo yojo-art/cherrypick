@@ -278,6 +278,10 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 		toggleInstanceMute();
 	});
 
+	watch(isAdminQuarantineLimit, () => {
+		toggleAdminInstanceQuarantined();
+	});
+
 	const menuItems: MenuItem[] = [];
 
 	menuItems.push({
