@@ -4,7 +4,7 @@
  */
 import { i18n } from '@/i18n.js';
 export async function importEmojiMeta(emoji, host:string) {
-	emoji.category = i18n.ts.unavailable;
+	emoji.category = i18n.ts.emojiRemoteDetailedUnavailable;
 	try {
 		const json = await(await fetch('https://' + host + '/api/emoji?name=' + emoji.name)).json();
 		emoji.category = '';
