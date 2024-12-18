@@ -15,8 +15,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div :class="$style.version">
 			<div>✨{{ version }}🚀</div>
-			<div style="font-size: 0.8em;">{{ basedCherrypickVersion }}</div>
-			<div style="font-size: 0.8em;">{{ basedMisskeyVersion }}</div>
+			<div style="font-size: 0.8em;">Cherrypick {{ basedCherrypickVersion }}</div>
+			<div style="font-size: 0.8em;">Misskey {{ basedMisskeyVersion }}</div>
 		</div>
 		<MkButton rounded full @click="whatIsNewYojo">{{ i18n.ts.whatIsNew }}</MkButton>
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.gotIt }}</MkButton>
