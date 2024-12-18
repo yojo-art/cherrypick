@@ -330,6 +330,7 @@ stopActivityDelivery: "アクティビティの配送を停止"
 blockThisInstance: "このサーバーをブロック"
 silenceThisInstance: "サーバーをサイレンス"
 mediaSilenceThisInstance: "サーバーをメディアサイレンス"
+quarantineThisInstance: "サーバーに公開投稿のみ配送"
 operations: "操作"
 software: "ソフトウェア"
 version: "バージョン"
@@ -3088,6 +3089,8 @@ _moderationLogTypes:
   deleteGalleryPost: "ギャラリーの投稿を削除"
   updateOfficialTags: "公式タグ一覧を更新"
   promoteQueue: "ジョブキューを再試行"
+  quarantineRemoteInstance: "公開投稿のみ配送に制限"
+  unquarantineRemoteInstance: "公開投稿のみ配送を解除"
 
 _fileViewer:
   title: "ファイルの詳細"

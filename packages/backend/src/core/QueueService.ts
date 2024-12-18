@@ -113,6 +113,7 @@ export class QueueService {
 		if (to == null) return null;
 
 		const contentBody = JSON.stringify(content);
+		const isPublicContent = content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public';
 		const digest = ApRequestCreator.createDigest(contentBody);
 
 		const data: DeliverJobData = {
@@ -123,6 +124,7 @@ export class QueueService {
 			digest,
 			to,
 			isSharedInbox,
+			isPublicContent,
 		};
 
 		return this.deliverQueue.add(to, data, {
@@ -146,6 +148,7 @@ export class QueueService {
 	public async deliverMany(user: ThinUser, content: IActivity | null, inboxes: Map<string, boolean>) {
 		if (content == null) return null;
 		const contentBody = JSON.stringify(content);
+		const isPublicContent = content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public';
 		const digest = ApRequestCreator.createDigest(contentBody);
 
 		const opts = {
@@ -165,6 +168,7 @@ export class QueueService {
 				digest,
 				to: d[0],
 				isSharedInbox: d[1],
+				isPublicContent,
 			},
 			opts,
 		})));

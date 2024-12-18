@@ -5073,6 +5073,7 @@ export type components = {
       latestRequestReceivedAt: string | null;
       moderationNote?: string | null;
       reversiVersion?: string | null;
+      isQuarantineLimited: boolean;
     };
     GalleryPost: {
       /**
@@ -8733,6 +8734,7 @@ export type operations = {
           host: string;
           isSuspended?: boolean;
           moderationNote?: string;
+          isQuarantineLimit?: boolean;
         };
       };
     };

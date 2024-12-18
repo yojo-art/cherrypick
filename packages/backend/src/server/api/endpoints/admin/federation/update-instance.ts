@@ -25,6 +25,7 @@ export const paramDef = {
 		host: { type: 'string' },
 		isSuspended: { type: 'boolean' },
 		moderationNote: { type: 'string' },
+		isQuarantineLimit: { type: 'boolean' },
 	},
 	required: ['host'],
 } as const;
@@ -52,9 +53,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.isSuspended != null && isSuspendedBefore !== ps.isSuspended) {
 				suspensionState = ps.isSuspended ? 'manuallySuspended' : 'none';
 			}
+			const isQuarantineLimitBefore = instance.quarantineLimited;
+			let quarantineLimited: undefined | boolean;
+
+			if (ps.isQuarantineLimit != null && isQuarantineLimitBefore !== ps.isQuarantineLimit) {
+				quarantineLimited = ps.isQuarantineLimit;
+			}
 
 			await this.federatedInstanceService.update(instance.id, {
 				suspensionState,
+				quarantineLimited,
 				moderationNote: ps.moderationNote,
 			});
 
@@ -66,6 +74,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					});
 				} else {
 					this.moderationLogService.log(me, 'unsuspendRemoteInstance', {
+						id: instance.id,
+						host: instance.host,
+					});
+				}
+			}
+			if (ps.isQuarantineLimit != null && isQuarantineLimitBefore !== ps.isQuarantineLimit) {
+				if (ps.isQuarantineLimit) {
+					this.moderationLogService.log(me, 'quarantineRemoteInstance', {
+						id: instance.id,
+						host: instance.host,
+					});
+				} else {
+					this.moderationLogService.log(me, 'unquarantineRemoteInstance', {
 						id: instance.id,
 						host: instance.host,
 					});

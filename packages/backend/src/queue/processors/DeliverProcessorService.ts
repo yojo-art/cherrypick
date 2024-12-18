@@ -27,6 +27,7 @@ import type { DeliverJobData } from '../types.js';
 export class DeliverProcessorService {
 	private logger: Logger;
 	private suspendedHostsCache: MemorySingleCache<MiInstance[]>;
+	private quarantinedHostsCache: MemorySingleCache<MiInstance[]>;
 	private latest: string | null;
 
 	constructor(
@@ -47,6 +48,7 @@ export class DeliverProcessorService {
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('deliver');
 		this.suspendedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
+		this.quarantinedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
 	}
 
 	@bindThis
@@ -69,6 +71,21 @@ export class DeliverProcessorService {
 		}
 		if (suspendedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
 			return 'skip (suspended)';
+		}
+		// isQuarantinedなら中断
+		let quarantinedHosts = this.quarantinedHostsCache.get();
+		if (quarantinedHosts == null) {
+			quarantinedHosts = await this.instancesRepository.find({
+				where: {
+					quarantineLimited: true,
+				},
+			});
+			this.quarantinedHostsCache.set(quarantinedHosts);
+		}
+		if (quarantinedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
+			if (!job.data.isPublicContent) {
+				return 'skip (quarantined)';
+			}
 		}
 
 		try {
