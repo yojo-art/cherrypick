@@ -65,7 +65,6 @@ export class DeliverProcessorService {
 			switch (type) {
 				case 'clearQuarantinedHostsCache': {
 					this.quarantinedHostsCache.delete();
-					console.log('clear cache');
 					break;
 				}
 				default:
@@ -110,6 +109,7 @@ export class DeliverProcessorService {
 				return 'skip (quarantined)';
 			} else {
 				console.log('target content is public');
+				console.log(job.data.content);
 			}
 		}
 
