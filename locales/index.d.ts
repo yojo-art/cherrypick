@@ -1138,6 +1138,10 @@ export interface Locale extends ILocale {
      */
     "customEmojis": string;
     /**
+     * 詳細情報が利用できません
+     */
+    "emojiRemoteDetailedUnavailable": string;
+    /**
      * 絵文字
      */
     "emoji": string;
