@@ -54,6 +54,7 @@ export class DeliverProcessorService {
 		this.quarantinedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
 		this.redisForSub.on('ClearQuarantinedHostsCache', () => {
 			this.quarantinedHostsCache.delete();
+			console.log('clear cache');
 		});
 	}
 
@@ -91,6 +92,8 @@ export class DeliverProcessorService {
 		if (quarantinedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
 			if (!job.data.isPublicContent) {
 				return 'skip (quarantined)';
+			} else {
+				console.log('target content is public');
 			}
 		}
 
