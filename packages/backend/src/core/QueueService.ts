@@ -107,21 +107,29 @@ export class QueueService {
 		});
 	}
 
+	private isPublicContent(content: IActivity) {
+		let toPublicOnly = false;
+		if (isAnnounce(content)) {
+			toPublicOnly = true;
+		}
+		if (typeof content.object !== 'string') {
+			if (isPost(content.object)) {
+				toPublicOnly = true;
+			}
+		}
+		if (toPublicOnly) {
+			return content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public';
+		} else {
+			return true;
+		}
+	}
+
 	@bindThis
 	public deliver(user: ThinUser, content: IActivity | null, to: string | null, isSharedInbox: boolean) {
 		if (content == null) return null;
 		if (to == null) return null;
 
 		const contentBody = JSON.stringify(content);
-		console.log('content.type' + content.type);
-		console.log('content.object' + content.object);
-		if (typeof content.object !== 'string') {
-			console.log('isPost(content.object)' + isPost(content.object));
-			console.log('isAnnounce(content.object)' + isAnnounce(content.object));
-		}
-		console.log('content.to ' + content.to);
-		console.log('content.cc ' + content.cc);
-		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
 		const digest = ApRequestCreator.createDigest(contentBody);
 
 		const data: DeliverJobData = {
@@ -132,7 +140,7 @@ export class QueueService {
 			digest,
 			to,
 			isSharedInbox,
-			isPublicContent,
+			isPublicContent: this.isPublicContent(content),
 		};
 
 		return this.deliverQueue.add(to, data, {
@@ -156,16 +164,6 @@ export class QueueService {
 	public async deliverMany(user: ThinUser, content: IActivity | null, inboxes: Map<string, boolean>) {
 		if (content == null) return null;
 		const contentBody = JSON.stringify(content);
-		console.log('content.type' + content.type);
-		console.log('content.type' + content.type);
-		console.log('content.object' + content.object);
-		if (typeof content.object !== 'string') {
-			console.log('isPost(content.object)' + isPost(content.object));
-			console.log('isAnnounce(content.object)' + isAnnounce(content.object));
-		}
-		console.log('content.to ' + content.to);
-		console.log('content.cc ' + content.cc);
-		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
 		const digest = ApRequestCreator.createDigest(contentBody);
 
 		const opts = {
@@ -185,7 +183,7 @@ export class QueueService {
 				digest,
 				to: d[0],
 				isSharedInbox: d[1],
-				isPublicContent,
+				isPublicContent: this.isPublicContent(content),
 			},
 			opts,
 		})));
