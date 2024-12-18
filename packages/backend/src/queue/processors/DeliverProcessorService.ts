@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Bull from 'bullmq';
 import { Not } from 'typeorm';
+import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
 import type { InstancesRepository, MiMeta } from '@/models/_.js';
 import type Logger from '@/logger.js';
@@ -36,6 +37,8 @@ export class DeliverProcessorService {
 
 		@Inject(DI.instancesRepository)
 		private instancesRepository: InstancesRepository,
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
 
 		private utilityService: UtilityService,
 		private federatedInstanceService: FederatedInstanceService,
@@ -49,6 +52,9 @@ export class DeliverProcessorService {
 		this.logger = this.queueLoggerService.logger.createSubLogger('deliver');
 		this.suspendedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
 		this.quarantinedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
+		this.redisClient.subscribe('ClearQuarantinedHostsCache', () => {
+			this.quarantinedHostsCache.delete();
+		});
 	}
 
 	@bindThis
