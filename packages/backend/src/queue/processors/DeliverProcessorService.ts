@@ -37,8 +37,8 @@ export class DeliverProcessorService {
 
 		@Inject(DI.instancesRepository)
 		private instancesRepository: InstancesRepository,
-		@Inject(DI.redis)
-		private redisClient: Redis.Redis,
+		@Inject(DI.redisForSub)
+		private redisForSub: Redis.Redis,
 
 		private utilityService: UtilityService,
 		private federatedInstanceService: FederatedInstanceService,
@@ -52,7 +52,7 @@ export class DeliverProcessorService {
 		this.logger = this.queueLoggerService.logger.createSubLogger('deliver');
 		this.suspendedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
 		this.quarantinedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
-		this.redisClient.subscribe('ClearQuarantinedHostsCache', () => {
+		this.redisForSub.on('ClearQuarantinedHostsCache', () => {
 			this.quarantinedHostsCache.delete();
 		});
 	}

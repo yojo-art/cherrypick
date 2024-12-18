@@ -36,8 +36,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.instancesRepository)
 		private instancesRepository: InstancesRepository,
-		@Inject(DI.redis)
-		private redisClient: Redis.Redis,
+		@Inject(DI.redisForPub)
+		private redisForPub: Redis.Redis,
 
 		private utilityService: UtilityService,
 		private federatedInstanceService: FederatedInstanceService,
@@ -94,7 +94,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						host: instance.host,
 					});
 				}
-				this.redisClient.publish('ClearQuarantinedHostsCache', '');
+				this.redisForPub.publish('ClearQuarantinedHostsCache', '');
 			}
 
 			if (ps.moderationNote != null && instance.moderationNote !== ps.moderationNote) {
