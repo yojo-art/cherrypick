@@ -118,6 +118,8 @@ export class QueueService {
 			}
 		}
 		if (toPublicOnly) {
+			console.log('to=' + content.to);
+			console.log('cc=' + content.cc);
 			return content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public';
 		} else {
 			return true;
