@@ -108,7 +108,7 @@ export class DeliverProcessorService {
 			if (!job.data.isPublicContent) {
 				return 'skip (quarantined)';
 			} else {
-				console.log('target content is public');
+				console.log('target content is public ' + job.data.isPublicContent);
 				console.log(job.data.content);
 			}
 		}
