@@ -113,6 +113,10 @@ export class QueueService {
 		if (to == null) return null;
 
 		const contentBody = JSON.stringify(content);
+		console.log('isPost(content)' + isPost(content));
+		console.log('isAnnounce(content)' + isAnnounce(content));
+		console.log('content.to ' + content.to);
+		console.log('content.cc ' + content.cc);
 		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
 		const digest = ApRequestCreator.createDigest(contentBody);
 
@@ -148,6 +152,10 @@ export class QueueService {
 	public async deliverMany(user: ThinUser, content: IActivity | null, inboxes: Map<string, boolean>) {
 		if (content == null) return null;
 		const contentBody = JSON.stringify(content);
+		console.log('isPost(content)' + isPost(content));
+		console.log('isAnnounce(content)' + isAnnounce(content));
+		console.log('content.to ' + content.to);
+		console.log('content.cc ' + content.cc);
 		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
 		const digest = ApRequestCreator.createDigest(contentBody);
 
