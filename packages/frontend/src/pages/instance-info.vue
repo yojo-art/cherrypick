@@ -226,7 +226,6 @@ async function toggleBlock(): Promise<void> {
 async function toggleQuarantined(): Promise<void> {
 	if (!iAmModerator) return;
 	if (!instance.value) throw new Error('No instance?');
-	isQuarantineLimit.value = isQuarantineLimit.value ? false : true;
 	await misskeyApi('admin/federation/update-instance', {
 		host: instance.value.host,
 		isQuarantineLimit: isQuarantineLimit.value,
