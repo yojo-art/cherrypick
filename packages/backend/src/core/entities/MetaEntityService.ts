@@ -74,6 +74,7 @@ export class MetaEntityService {
 
 			version: this.config.version,
 			basedMisskeyVersion: this.config.basedMisskeyVersion,
+			basedCherrypickVersion: this.config.basedCherrypickVersion,
 			providesTarball: this.config.publishTarballInsteadOfProvideRepositoryUrl,
 
 			name: instance.name,

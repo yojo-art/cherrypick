@@ -15,7 +15,7 @@ describe('nodeinfo', () => {
 		assert.strictEqual(res.headers.get('Access-Control-Allow-Origin'), '*');
 
 		const nodeInfo = await res.json() as any;
-		assert.strictEqual(nodeInfo.software.name, 'cherrypick');
+		assert.strictEqual(nodeInfo.software.name, 'yojo-art');
 	});
 
 	test('nodeinfo 2.0', async () => {
@@ -24,6 +24,6 @@ describe('nodeinfo', () => {
 		assert.strictEqual(res.headers.get('Access-Control-Allow-Origin'), '*');
 
 		const nodeInfo = await res.json() as any;
-		assert.strictEqual(nodeInfo.software.name, 'cherrypick');
+		assert.strictEqual(nodeInfo.software.name, 'yojo-art');
 	});
 });

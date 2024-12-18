@@ -13,13 +13,13 @@ export function genOpenapiSpec(config: Config, includeSelfRef = false) {
 		openapi: '3.1.0',
 
 		info: {
-			version: `${config.version} (${config.basedMisskeyVersion})`,
-			title: 'CherryPick API',
+			version: `${config.version} (${config.basedCherrypickVersion}) (${config.basedMisskeyVersion})`,
+			title: 'yojo-art API',
 		},
 
 		externalDocs: {
 			description: 'Repository',
-			url: 'https://github.com/kokonect-link/cherrypick',
+			url: 'https://github.com/yojo-art/cherrypick',
 		},
 
 		servers: [{
@@ -97,7 +97,7 @@ export function genOpenapiSpec(config: Config, includeSelfRef = false) {
 			description: desc,
 			externalDocs: {
 				description: 'Source code',
-				url: `https://github.com/kokonect-link/cherrypick/blob/develop/packages/backend/src/server/api/endpoints/${endpoint.name}.ts`,
+				url: `https://github.com/yojo-art/cherrypick/blob/develop/packages/backend/src/server/api/endpoints/${endpoint.name}.ts`,
 			},
 			...(endpoint.meta.tags ? {
 				tags: [endpoint.meta.tags[0]],

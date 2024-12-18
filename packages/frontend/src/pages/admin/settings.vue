@@ -176,7 +176,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<template v-if="urlPreviewForm.state.urlPreviewEnabled">
 							<MkSwitch v-model="urlPreviewForm.state.urlPreviewDirectSummalyProxy">
-								<template #label>DirectAccess<span v-if="urlPreviewForm.modifiedStates.urlPreviewDirectSummalyProxy" class="_modified">{{ i18n.ts.modified }}</span></template>
+								<template #label>{{ i18n.ts._urlPreviewSetting.directAccess }}<span v-if="urlPreviewForm.modifiedStates.urlPreviewDirectSummalyProxy" class="_modified">{{ i18n.ts.modified }}</span></template>
 							</MkSwitch>
 							<MkSwitch v-model="urlPreviewForm.state.urlPreviewRequireContentLength">
 								<template #label>{{ i18n.ts._urlPreviewSetting.requireContentLength }}<span v-if="urlPreviewForm.modifiedStates.urlPreviewRequireContentLength" class="_modified">{{ i18n.ts.modified }}</span></template>

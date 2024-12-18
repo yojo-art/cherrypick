@@ -8,10 +8,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkFeaturedPhotos class="bg"/>
 	<div class="shape1"></div>
 	<div class="shape2"></div>
+	<!--
 	<div class="logo-wrapper">
 		<div class="powered-by">Powered by</div>
 		<img :src="cherrypicksvg" class="cherrypick"/>
 	</div>
+-->
 	<div class="emojis">
 		<MkEmoji :normal="true" :noStyle="true" emoji="👍"/>
 		<MkEmoji :normal="true" :noStyle="true" emoji="❤"/>

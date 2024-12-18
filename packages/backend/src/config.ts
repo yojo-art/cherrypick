@@ -194,6 +194,7 @@ export type Config = {
 
 	version: string;
 	basedMisskeyVersion: string;
+	basedCherrypickVersion: string;
 	publishTarballInsteadOfProvideRepositoryUrl: boolean;
 	setupPassword: string | undefined;
 	host: string;
@@ -261,6 +262,7 @@ export function loadConfig(): Config {
 	const url = tryCreateUrl(config.url ?? process.env.CHERRYPICK_URL ?? '');
 	const version = meta.version;
 	const basedMisskeyVersion = meta.basedMisskeyVersion;
+	const basedCherrypickVersion = meta.basedCherrypickVersion;
 	const host = url.host;
 	const hostname = url.hostname;
 	const scheme = url.protocol.replace(/:$/, '');
@@ -284,6 +286,7 @@ export function loadConfig(): Config {
 	return {
 		version,
 		basedMisskeyVersion,
+		basedCherrypickVersion,
 		publishTarballInsteadOfProvideRepositoryUrl: !!config.publishTarballInsteadOfProvideRepositoryUrl,
 		setupPassword: config.setupPassword,
 		url: url.origin,
