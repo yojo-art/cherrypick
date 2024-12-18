@@ -113,7 +113,7 @@ export class QueueService {
 		if (to == null) return null;
 
 		const contentBody = JSON.stringify(content);
-		const isPublicContent = !((isPost(content) || isAnnounce(content)) && (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public'));
+		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
 		const digest = ApRequestCreator.createDigest(contentBody);
 
 		const data: DeliverJobData = {
@@ -148,7 +148,7 @@ export class QueueService {
 	public async deliverMany(user: ThinUser, content: IActivity | null, inboxes: Map<string, boolean>) {
 		if (content == null) return null;
 		const contentBody = JSON.stringify(content);
-		const isPublicContent = !((isPost(content) || isAnnounce(content)) && (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public'));
+		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
 		const digest = ApRequestCreator.createDigest(contentBody);
 
 		const opts = {
