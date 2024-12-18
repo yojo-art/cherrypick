@@ -18,8 +18,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div v-if="!showNext" class="_buttons" :class="$style.loadNext">
 							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showNext = showNextPagination('channel')"><i class="ti ti-chevron-up"></i> <i class="ti ti-device-tv"></i></MkButton>
 							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('user')"><i class="ti ti-chevron-up"></i> <i class="ti ti-user"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('home')"><i class="ti ti-chevron-up"></i> <i class="ti ti-home"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showNext = showNextPagination('local')"><i class="ti ti-chevron-up"></i> <i class="ti ti-planet"></i></MkButton>
+							<MkButton v-if="isAvailableBasicTimeline('home')" rounded :class="$style.loadButton" @click="showNext = showNextPagination('home')"><i class="ti ti-chevron-up"></i> <i class="ti ti-home"></i></MkButton>
+							<MkButton v-if="isAvailableBasicTimeline('local')" rounded :class="$style.loadButton" @click="showNext = showNextPagination('local')"><i class="ti ti-chevron-up"></i> <i class="ti ti-planet"></i></MkButton>
 						</div>
 						<div class="_margin _gaps_s">
 							<MkRemoteCaution v-if="note.user.host != null" :href="note.url ?? note.uri"/>
@@ -34,8 +34,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div v-if="!showPrev" class="_buttons" :class="$style.loadPrev">
 							<MkButton v-if="note.channelId" rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('channel')"><i class="ti ti-chevron-down"></i> <i class="ti ti-device-tv"></i></MkButton>
 							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('user')"><i class="ti ti-chevron-down"></i> <i class="ti ti-user"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('home')"><i class="ti ti-chevron-down"></i> <i class="ti ti-home"></i></MkButton>
-							<MkButton rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('local')"><i class="ti ti-chevron-down"></i> <i class="ti ti-planet"></i></MkButton>
+							<MkButton v-if="isAvailableBasicTimeline('home')" rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('home')"><i class="ti ti-chevron-down"></i> <i class="ti ti-home"></i></MkButton>
+							<MkButton v-if="isAvailableBasicTimeline('local')" rounded :class="$style.loadButton" @click="showPrev = showPrevPagination('local')"><i class="ti ti-chevron-down"></i> <i class="ti ti-planet"></i></MkButton>
 						</div>
 					</div>
 
@@ -65,6 +65,7 @@ import { i18n } from '@/i18n.js';
 import { dateString } from '@/filters/date.js';
 import MkClipPreview from '@/components/MkClipPreview.vue';
 import { defaultStore } from '@/store.js';
+import { isAvailableBasicTimeline } from '@/timelines.js';
 
 const props = defineProps<{
 	noteId: string;
