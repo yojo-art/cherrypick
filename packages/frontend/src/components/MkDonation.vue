@@ -23,7 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</template>
 			</I18n>
 			<div style="margin-top: 0.2em;">
-				<a class="_link" @click="router.push(`/about-misskey`);">{{ i18n.ts.learnMore }}</a>
+				<MkA :to="'/about-misskey'" class="_link">{{ i18n.ts.learnMore }}</MkA>
 			</div>
 		</div>
 		<div class="_buttons">
