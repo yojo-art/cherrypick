@@ -113,8 +113,12 @@ export class QueueService {
 		if (to == null) return null;
 
 		const contentBody = JSON.stringify(content);
-		console.log('isPost(content)' + isPost(content));
-		console.log('isAnnounce(content)' + isAnnounce(content));
+		console.log('content.type' + content.type);
+		console.log('content.object' + content.object);
+		if (typeof content.object !== 'string') {
+			console.log('isPost(content.object)' + isPost(content.object));
+			console.log('isAnnounce(content.object)' + isAnnounce(content.object));
+		}
 		console.log('content.to ' + content.to);
 		console.log('content.cc ' + content.cc);
 		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
@@ -152,8 +156,13 @@ export class QueueService {
 	public async deliverMany(user: ThinUser, content: IActivity | null, inboxes: Map<string, boolean>) {
 		if (content == null) return null;
 		const contentBody = JSON.stringify(content);
-		console.log('isPost(content)' + isPost(content));
-		console.log('isAnnounce(content)' + isAnnounce(content));
+		console.log('content.type' + content.type);
+		console.log('content.type' + content.type);
+		console.log('content.object' + content.object);
+		if (typeof content.object !== 'string') {
+			console.log('isPost(content.object)' + isPost(content.object));
+			console.log('isAnnounce(content.object)' + isAnnounce(content.object));
+		}
 		console.log('content.to ' + content.to);
 		console.log('content.cc ' + content.cc);
 		const isPublicContent = (isPost(content) || isAnnounce(content)) ? (content.to === 'https://www.w3.org/ns/activitystreams#Public' || content.cc === 'https://www.w3.org/ns/activitystreams#Public') : true;
