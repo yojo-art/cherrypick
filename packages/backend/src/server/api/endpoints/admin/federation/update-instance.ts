@@ -61,6 +61,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.isQuarantineLimit != null && isQuarantineLimitBefore !== ps.isQuarantineLimit) {
 				quarantineLimited = ps.isQuarantineLimit;
 			}
+			const moderationNoteBefore = instance.moderationNote;
+			if ((ps.moderationNote && moderationNoteBefore === ps.moderationNote) && isQuarantineLimitBefore === quarantineLimited && isSuspendedBefore === ps.isSuspended) {
+				//何も変更が無い時はupdateを呼ばない
+				//呼ぶとエラーが発生する
+				return;
+			}
 
 			await this.federatedInstanceService.update(instance.id, {
 				suspensionState,
