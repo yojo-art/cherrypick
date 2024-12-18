@@ -41,7 +41,7 @@ function greet() {
 		console.log(chalk.hex('#ffa9c3').bold(' |___/    |__/       ') + chalk.hex('#95e3e8').bold('                     '));
 		//#endregion
 
-		console.log(chalk.hex('#ffa9c3').bold(' yojo') + chalk.hex('#98e2cf').bold('-') + chalk.hex('#95e3e8').bold('art') + (' is an open-source decentralized microblogging platform based from') + (chalk.hex('#9ec23f').bold(' Misskey') + (' and ') + chalk.hex('#ffa9c3').bold(' Cherry') + chalk.hex('#95e3e8').bold('Pick') + '.'));
+		console.log(chalk.hex('#ffa9c3').bold(' yojo') + chalk.hex('#98e2cf').bold('-') + chalk.hex('#95e3e8').bold('art') + (' is an open-source decentralized microblogging platform based from') + (chalk.hex('#9ec23f').bold(' Misskey') + (' and') + chalk.hex('#ffa9c3').bold(' Cherry') + chalk.hex('#95e3e8').bold('Pick') + '.'));
 		console.log(chalk.hex('#ffbb00')(' If you like ') + chalk.hex('#ffa9c3').bold(' yojo') + chalk.hex('#98e2cf').bold('-') + chalk.hex('#95e3e8').bold('art') + chalk.hex('#ffbb00')(', please donate to support development. https://yojo-art.fanbox.cc/'));
 		// console.log(chalk.hex('#ffa9c3').bold(' KOKO') + chalk.hex('#95e3e8').bold('NECT') + chalk.hex('#ffa9c3')(' with') + chalk.hex('#95e3e8').bold(' NoriDev.'));
 
