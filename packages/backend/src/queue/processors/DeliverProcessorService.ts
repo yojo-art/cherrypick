@@ -21,6 +21,7 @@ import FederationChart from '@/core/chart/charts/federation.js';
 import { StatusError } from '@/misc/status-error.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
+import { GlobalEvents } from '@/core/GlobalEventService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type { DeliverJobData } from '../types.js';
 
@@ -52,10 +53,25 @@ export class DeliverProcessorService {
 		this.logger = this.queueLoggerService.logger.createSubLogger('deliver');
 		this.suspendedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
 		this.quarantinedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
-		this.redisForSub.on('ClearQuarantinedHostsCache', () => {
-			this.quarantinedHostsCache.delete();
-			console.log('clear cache');
-		});
+		this.redisForSub.on('message', this.onMessage);
+	}
+
+	@bindThis
+	private async onMessage(_: string, data: string): Promise<void> {
+		const obj = JSON.parse(data);
+
+		if (obj.channel === 'internal') {
+			const { type, body } = obj.message as GlobalEvents['internal']['payload'];
+			switch (type) {
+				case 'clearQuarantinedHostsCache': {
+					this.quarantinedHostsCache.delete();
+					console.log('clear cache');
+					break;
+				}
+				default:
+					break;
+			}
+		}
 	}
 
 	@bindThis
