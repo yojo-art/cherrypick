@@ -31,14 +31,14 @@ const themeColor = chalk.hex('#ffa9c3');
 
 function greet() {
 	if (!envOption.quiet) {
-		//#region CherryPick logo
+		//#region yojo-art logo
 		const v = `v${meta.version}`;
-		console.log(chalk.hex('#ffa9c3').bold('  _________ .__                                ') + chalk.hex('#95e3e8').bold('__________.__        __    '));
-		console.log(chalk.hex('#ffa9c3').bold(' \\_   ___ \\|  |__   __________________ ___.__.') + chalk.hex('#95e3e8').bold('\\______   \\__| ____ |  | __'));
-		console.log(chalk.hex('#ffa9c3').bold(' /    \\  \\/|  |  \\_/ __ \\_  __ \\_  __ <   |  |') + chalk.hex('#95e3e8').bold(' |     ___/  |/ ___\\|  |/ /'));
-		console.log(chalk.hex('#ffa9c3').bold(' \\     \\___|   Y  \\  ___/|  | \\/|  | \\/\\___  |') + chalk.hex('#95e3e8').bold(' |    |   |  \\  \\___|    < '));
-		console.log(chalk.hex('#ffa9c3').bold('  \\______  /___|  /\\___  >__|   |__|   / ____|') + chalk.hex('#95e3e8').bold(' |____|   |__|\\___  >__|_ \\'));
-		console.log(chalk.hex('#ffa9c3').bold('         \\/     \\/     \\/              \\/     ') + chalk.hex('#95e3e8').bold('                  \\/     \\/'));
+		console.log(chalk.hex('#ffa9c3').bold('             _       ') + chalk.hex('#95e3e8').bold('                 _   '));
+		console.log(chalk.hex('#ffa9c3').bold(' _   _  ___ (_) ___  ') + chalk.hex('#95e3e8').bold('       __ _ _ __| |_ '));
+		console.log(chalk.hex('#ffa9c3').bold('| | | |/ _ \\| |/ _ \\ ') + chalk.hex('#95e3e8').bold('_____ / _` | \'__| __|'));
+		console.log(chalk.hex('#ffa9c3').bold('| |_| | (_) | | (_) |') + chalk.hex('#95e3e8').bold('_____| (_| | |  | |_ '));
+		console.log(chalk.hex('#ffa9c3').bold(' \\__, |\\___// |\\___/ ') + chalk.hex('#95e3e8').bold('      \\__,_|_|   \\__|'));
+		console.log(chalk.hex('#ffa9c3').bold(' |___/    |__/       ') + chalk.hex('#95e3e8').bold('                     '));
 		//#endregion
 
 		console.log(chalk.hex('#ffa9c3').bold(' yojo') + chalk.hex('#98e2cf').bold('-') + chalk.hex('#95e3e8').bold('art') + (' is an open-source decentralized microblogging platform based from') + (chalk.hex('#9ec23f').bold(' Misskey') + (' and ') + chalk.hex('#ffa9c3').bold(' Cherry') + chalk.hex('#95e3e8').bold('Pick') + '.'));
