@@ -105,8 +105,6 @@ export class DeliverProcessorService {
 			this.quarantinedHostsCache.set(quarantinedHosts);
 		}
 		if (quarantinedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
-			console.log('quarantinedHosts public ? ' + job.data.isPublicContent);
-			console.log(job.data.content);
 			if (!job.data.isPublicContent) {
 				return 'skip (quarantined)';
 			}
