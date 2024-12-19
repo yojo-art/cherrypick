@@ -26,9 +26,7 @@ const props = defineProps<{
 const query = ref(props.q);
 
 const search = () => {
-	const sp = new URLSearchParams();
-	sp.append('q', query.value);
-	const searchUrl = String(defaultStore.state.searchEngine).replaceAll('%s', sp.toString());
+	const searchUrl = String(defaultStore.state.searchEngine).replaceAll('%s', encodeURIComponent(query.value));
 	const url = new URL(searchUrl, local);
 	if (url.origin === local) {
 		router.push(url.toString().substring(local.length));
