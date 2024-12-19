@@ -8,6 +8,7 @@
 - Enhance: 表示中のタグTLをお気に入り登録するボタンを追加 [#561](https://github.com/yojo-art/cherrypick/pull/561)
 
 ### Server
+- Fix: `api/ap/fetch-outbox`が正しく動作しないのを修正[#560](https://github.com/yojo-art/cherrypick/pull/560)
 - Fix: PersonのserchableByが正しく連合できていないのを修正[#556](https://github.com/yojo-art/cherrypick/pull/556)
 - Enhance: `/users/${id}`に`Accept: application/ld+json`ではないリクエストが来たとき`/@${username}`にリダイレクトするように [#554](https://github.com/yojo-art/cherrypick/pull/554)
 

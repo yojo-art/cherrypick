@@ -43,6 +43,16 @@ export const meta = {
 			code: 'OUTBOX_FIRST_PAGE_UNDEFINED_THIS_USER',
 			id: 'e1f29e66-86a9-4fdc-9be6-63d4587dc350',
 		},
+		invalidPart: {
+			message: 'outbox part is invalid',
+			code: 'OUTBOX_PART_IS_INVALID',
+			id: 'c3e584df-068a-4b1d-967e-54f2f30f7cba',
+		},
+		itemIsUnavailable: {
+			message: 'outbox item is unavailable',
+			code: 'OUTBOX_ITEM_IS_UNAVAILABLE',
+			id: 'a07b05af-5f66-4203-918c-ebff9e9384bf',
+		},
 	},
 } as const;
 
@@ -83,11 +93,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						if (err.id === '3fc5a089-cab4-48db-b9f3-f220574b3c0a') throw new ApiError(meta.errors.noSuchUser);
 						if (err.id === '67070303-177c-4600-af93-b26a7ab889c6') throw new ApiError(meta.errors.isLocalUser);
 						if (err.id === 'e7a2e510-a8ce-40e9-b1e6-c007bacdc89f') throw new ApiError(meta.errors.outboxUndefined);
-						//if (err.id === 'b27090c8-8a68-4189-a445-14591c32a89c')
-						//if (err.id === '0be2f5a1-2345-46d8-b8c3-430b111c68d3')
 						if (err.id === 'a723c2df-0250-4091-b5fc-e3a7b36c7b61') throw new ApiError(meta.errors.outboxFirstPageUndefined);
-						//if (err.id === '6603433f-99db-4134-980c-48705ae57ab8')
-						//if (err.id === '2a05bb06-f38c-4854-af6f-7fd5e87c98ee')
+						if (err.id === '6603433f-99db-4134-980c-48705ae57ab8') throw new ApiError(meta.errors.invalidPart);
+						if (err.id === '2a05bb06-f38c-4854-af6f-7fd5e87c98ee') throw new ApiError(meta.errors.itemIsUnavailable);
 					}
 					throw (err);
 				}
