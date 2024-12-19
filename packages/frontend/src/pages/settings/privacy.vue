@@ -102,8 +102,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSwitch v-model="keepCw" @update:modelValue="save()">{{ i18n.ts.keepCw }}</MkSwitch>
 
 	<MkInput v-model="searchEngine" manualSave :spellcheck="false">
-		<template #label>{{ i18n.ts.search }}</template>
-		<template #caption>{{ i18n.ts._embedCodeGen.maxHeightDescription }}</template>
+		<template #label>{{ i18n.ts.search }}<span class="_beta">yojo-art</span></template>
+		<template #caption>{{ i18n.ts.searchEngineDescription }}</template>
 	</MkInput>
 </div>
 </template>
