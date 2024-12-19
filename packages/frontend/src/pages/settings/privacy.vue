@@ -100,6 +100,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</FormSection>
 
 	<MkSwitch v-model="keepCw" @update:modelValue="save()">{{ i18n.ts.keepCw }}</MkSwitch>
+
+	<MkInput v-model="searchEngine" manualSave :spellcheck="false">
+		<template #label>{{ i18n.ts.search }}</template>
+		<template #caption>{{ i18n.ts._embedCodeGen.maxHeightDescription }}</template>
+	</MkInput>
 </div>
 </template>
 
@@ -135,6 +140,7 @@ const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultN
 const rememberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchbility'));
 const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
+const searchEngine = computed(defaultStore.makeGetterSetter('searchEngine'));
 
 function save() {
 	console.log(typeof(searchableBy.value));

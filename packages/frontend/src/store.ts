@@ -153,6 +153,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'account',
 		default: [] as string[],
 	},
+	searchEngine: {
+		where: 'account',
+		default: '/search?q=%s',
+	},
 
 	menu: {
 		where: 'deviceAccount',
