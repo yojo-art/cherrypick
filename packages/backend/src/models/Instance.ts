@@ -163,4 +163,12 @@ export class MiInstance {
 		length: 64, nullable: true,
 	})
 	public reversiVersion: string | null;
+	/**
+	 * このインスタンスへの配送制限
+	 */
+	@Index()
+	@Column('boolean', {
+		default: false,
+	})
+	public quarantineLimited: boolean;
 }
