@@ -4,10 +4,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div v-if="files.files.length > 0" :class="$style.root">
-	<div v-if="files.files[0].isSensitive && !showingFiles.includes(files.files[0].id)" :key="files.id + files.files[0].id" :class="$style.img" @click="onClick($event,files.files[0])" @dblclick="onDblClick(files.files[0])">
+<div v-if="note.files.length > 0" :class="$style.root">
+	<div v-if="note.files[0].isSensitive && !showingFiles.includes(note.files[0].id)" :key="note.id + note.files[0].id" :class="$style.img" @click="onClick($event,note.files[0])" @dblclick="onDblClick(note.files[0])">
 		<!-- TODO: 画像以外のファイルに対応 -->
-		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="files.files[0].blurhash" :src="thumbnail(files.files[0])" :title="files.files[0].name" :forceBlurhash="true"/>
+		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="note.files[0].blurhash" :src="thumbnail(note.files[0])" :title="note.files[0].name" :forceBlurhash="true"/>
 		<div :class="$style.sensitive">
 			<div>
 				<div><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}</div>
@@ -15,26 +15,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 	</div>
-	<MkA v-else :class="[$style.img, { [$style.multipleImg]: files.files.length > 1 }]" :to="notePage(files)">
+	<MkA v-else :class="[$style.img, { [$style.multipleImg]: note.files.length > 1 }]" :to="notePage(note)">
 		<!-- TODO: 画像以外のファイルに対応 -->
 		<ImgWithBlurhash
-			:hash="files.files[0].blurhash"
-			:src="thumbnail(files.files[0])"
-			:title="files.files[0].name"
+			:hash="note.files[0].blurhash"
+			:src="thumbnail(note.files[0])"
+			:title="note.files[0].name"
 			@mouseover="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 			@mouseout="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 			@touchstart="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 			@touchend="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 		/>
 	</MkA>
-	<div v-if="files.files.length > 1" :class="$style.multiple">
+	<div v-if="note.files.length > 1" :class="$style.multiple">
 		<i class="ti ti-box-multiple"></i>
 	</div>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, toRaw, watch } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { notePage } from '@/filters/note.js';
@@ -48,7 +48,7 @@ import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
-	files: Misskey.entities.DriveFile[];
+	note: Misskey.entities.Note & { files:Misskey.entities.DriveFile[] };
 }>();
 
 const showingFiles = ref<string[]>([]);
@@ -86,13 +86,11 @@ async function onDblClick(image:Misskey.entities.DriveFile) {
 	if (!showingFiles.value.includes(image.id) && defaultStore.state.nsfwOpenBehavior === 'doubleClick') showingFiles.value.push(image.id);
 }
 
-watch(() => props.files, () => {
-	console.log('files');
-	console.log(toRaw(props.files));
+watch(() => props.note, () => {
 	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
 		//hide = true;
 	} else {
-		for (const image of toRaw(props.files)) {
+		for (const image of props.note.files) {
 			if (image.isSensitive) {
 				if (defaultStore.state.nsfw !== 'ignore') {
 					//hide = true;
