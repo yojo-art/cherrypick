@@ -23,6 +23,10 @@ export const packedMetaLiteSchema = {
 			type: 'string',
 			optional: false, nullable: false,
 		},
+		basedCherrypickVersion: {
+			type: 'string',
+			optional: false, nullable: false,
+		},
 		providesTarball: {
 			type: 'boolean',
 			optional: false, nullable: false,
@@ -60,12 +64,12 @@ export const packedMetaLiteSchema = {
 		repositoryUrl: {
 			type: 'string',
 			optional: false, nullable: true,
-			default: 'https://github.com/kokonect-link/cherrypick',
+			default: 'https://github.com/yojo-art/cherrypick',
 		},
 		feedbackUrl: {
 			type: 'string',
 			optional: false, nullable: true,
-			default: 'https://github.com/kokonect-link/cherrypick/issues/new',
+			default: 'https://github.com/yojo-art/cherrypick/issues/new',
 		},
 		statusUrl: {
 			type: 'string',

@@ -1,6 +1,7 @@
 ## 1.2.0
 
 ### General
+- Change: nodeinfoでyojo-artを名乗る [#565](https://github.com/yojo-art/cherrypick/pull/565)
 - Fix: ノートを編集する時に検索許可範囲を記憶する [#558](https://github.com/yojo-art/cherrypick/pull/558)
 
 ### Client
