@@ -86,27 +86,32 @@ async function onDblClick(image:Misskey.entities.DriveFile) {
 	if (!showingFiles.value.includes(image.id) && defaultStore.state.nsfwOpenBehavior === 'doubleClick') showingFiles.value.push(image.id);
 }
 
-if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
-	//hide = true;
-} else {
-	for (const image of props.files) {
-		if (image.isSensitive) {
-			if (defaultStore.state.nsfw !== 'ignore') {
-				//hide = true;
-			} else {
-				if (wasConfirmR18()) {
-					if (!showingFiles.value.includes(image.id)) {
-						showingFiles.value.push(image.id);
+watch(() => props.files, () => {
+	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
+		//hide = true;
+	} else {
+		for (const image of props.files) {
+			if (image.isSensitive) {
+				if (defaultStore.state.nsfw !== 'ignore') {
+					//hide = true;
+				} else {
+					if (wasConfirmR18()) {
+						if (!showingFiles.value.includes(image.id)) {
+							showingFiles.value.push(image.id);
+						}
 					}
 				}
-			}
-		} else {
-			if (!showingFiles.value.includes(image.id)) {
-				showingFiles.value.push(image.id);
+			} else {
+				if (!showingFiles.value.includes(image.id)) {
+					showingFiles.value.push(image.id);
+				}
 			}
 		}
 	}
-}
+}, {
+	deep: true,
+	immediate: true,
+});
 
 function resetTimer() {
 	playAnimation.value = true;
