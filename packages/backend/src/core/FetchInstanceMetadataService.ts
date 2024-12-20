@@ -23,6 +23,7 @@ type NodeInfo = {
 		name?: unknown;
 		version?: unknown;
 		basedMisskeyVersion?: unknown;
+		basedCherrypickVersion?: unknown;
 	};
 	metadata?: {
 		name?: unknown;
