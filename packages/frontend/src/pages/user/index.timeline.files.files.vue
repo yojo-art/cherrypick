@@ -87,6 +87,8 @@ async function onDblClick(image:Misskey.entities.DriveFile) {
 }
 
 watch(() => props.files, () => {
+	console.log('files');
+	console.log(props.files);
 	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
 		//hide = true;
 	} else {
