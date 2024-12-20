@@ -20283,8 +20283,11 @@ export type operations = {
           isLocked?: boolean;
           isExplorable?: boolean;
           isIndexable?: boolean;
-          /** @enum {string} */
-          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
+          /**
+           * @description 検索許可SearchableByの値を指定しますデフォルトはnull(isIndexableを参照)
+           * @enum {string|null}
+           */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;
