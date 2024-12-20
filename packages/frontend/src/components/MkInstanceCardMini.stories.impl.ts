@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { StoryObj } from '@storybook/vue3';
 import { HttpResponse, http } from 'msw';
 import { federationInstance } from '../../.storybook/fakes.js';
@@ -47,7 +46,7 @@ export const Default = {
 					}
 					const url = new URL(urlStr);
 
-					if (url.href.startsWith('https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/')) {
+					if (url.href.startsWith('https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/')) {
 						const image = await (await fetch(`client-assets/${url.pathname.split('/').pop()}`)).blob();
 						return new HttpResponse(image, {
 							headers: {

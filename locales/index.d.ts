@@ -14,6 +14,143 @@ export interface Locale extends ILocale {
      */
     "_lang_": string;
     /**
+     * いいねボタンで使うリアクションを選択
+     */
+    "selectReaction": string;
+    /**
+     * モデレーターが一定期間非アクティブになったとき、新規登録を無効化
+     */
+    "disableRegistrationWhenInactive": string;
+    /**
+     * モデレーターが一定期間非アクティブになったとき、「パブリック投稿の許可」を無効化
+     */
+    "disablePublicNoteWhenInactive": string;
+    /**
+     * ブロックされています
+     */
+    "youBlocked": string;
+    /**
+     * {user}さんのフォローやポストの表示はできません。
+     */
+    "youBlockedDescription": ParameterizedString<"user">;
+    /**
+     * 一定時間が経過した後に接続したときに歓迎メッセージを表示
+     */
+    "welcomeBackToast": string;
+    /**
+     * 入力された文字数が多すぎます
+     */
+    "invalidTextLengthError": string;
+    /**
+     * 文字数が{limitValue}文字に制限されています。現在入力された文字数は{value}文字です。
+     */
+    "invalidTextLengthDescription": ParameterizedString<"limitValue" | "value">;
+    /**
+     * 返信を自動でもっと見る
+     */
+    "autoLoadMoreReplies": string;
+    /**
+     * 会話を自動でもっと見る
+     */
+    "autoLoadMoreConversation": string;
+    /**
+     * 自動翻訳
+     */
+    "useAutoTranslate": string;
+    /**
+     * 自動翻訳機能を有効にすると、タイムラインのすべてのノートが自動的に翻訳され、これにより翻訳サービス提供者が設定したAPI制限ポリシーにより、翻訳機能を一時的に使用できなくなる可能性があります。
+     *
+     * <b>それでも続けましょうか？</b>
+     */
+    "useAutoTranslateDescription": string;
+    /**
+     * サーバー管理者が自動翻訳を使用できないように設定しました。
+     * 自動翻訳を使用するには、サーバー管理者にお問い合わせください。
+     */
+    "cantUseAutoTranslateDescription": string;
+    /**
+     * 有効にすると、再利用できるときに自動翻訳を適用します。
+     */
+    "cantUseAutoTranslateCaption": string;
+    /**
+     * ウィジェット
+     */
+    "widgets": string;
+    /**
+     * ノートを作成
+     */
+    "postNote": string;
+    /**
+     * 下のナビゲーションバー
+     */
+    "bottomNavbar": string;
+    /**
+     * この設定は、モバイル環境でのみ使用できます。
+     */
+    "bottomNavbarDescription": string;
+    /**
+     * ノートの削除を予約
+     */
+    "scheduledNoteDelete": string;
+    /**
+     * QRコードを取得
+     */
+    "getQRCode": string;
+    /**
+     * カスタムスプラッシュテキスト
+     */
+    "customSplashText": string;
+    /**
+     * ロード画面に表示されるテキストを設定します。改行で区切って複数設定できます。
+     */
+    "customSplashTextDescription": string;
+    /**
+     * キャプション未設定案内
+     */
+    "showNoAltWarning": string;
+    /**
+     * 画像に代替テキストが設定されていない場合に警告を表示する
+     */
+    "showNoAltWarningDescription": string;
+    /**
+     * メディアタブをグリッドレイアウトに変更
+     */
+    "filesGridLayoutInUserPage": string;
+    /**
+     * この設定をオンにすると、ユーザーページのメディアタブがアルバム形式で表示されます。
+     * オフにすると、元のノートのタイムラインに変更されます。
+     */
+    "filesGridLayoutInUserPageDescription": string;
+    /**
+     * 返信対象ノートを半透明に表示
+     */
+    "showReplyTargetNoteInSemiTransparent": string;
+    /**
+     * ノートにアクションボタンを表示
+     */
+    "noteFooterButton": string;
+    /**
+     * 返信のリノートのスマート省略
+     */
+    "collapseReplies": string;
+    /**
+     * 返信で作成されたノートをたたんで表示します。
+     * リアクションしたノートは影響を受けません。
+     */
+    "collapseRepliesDescription": string;
+    /**
+     * {user}が返信を作成しました
+     */
+    "repliedBy": ParameterizedString<"user">;
+    /**
+     * 内容の長いノートを省略して表示
+     */
+    "collapseLongNoteContent": string;
+    /**
+     * 「内容を隠す」で設定した内容を常に表示する
+     */
+    "alwaysShowCw": string;
+    /**
      * リノートの公開範囲を指定
      */
     "forceRenoteVisibilitySelector": string;
@@ -42,7 +179,7 @@ export interface Locale extends ILocale {
      */
     "welcome": string;
     /**
-     * CherryPickへの移行が完了しました！
+     * yojo-artへの移行が完了しました！
      */
     "cherrypickMigrated": string;
     /**
@@ -50,7 +187,7 @@ export interface Locale extends ILocale {
      */
     "cherrypickMigratedCacheClearTitle": string;
     /**
-     * このサーバーは<b>Misskey</b>または<b>CherryPick v4.3.0以前</b>のバージョンから移行されました。
+     * このサーバーは<b>Misskey</b>または<b>CherryPick</b>から移行されました。
      * バージョン管理方式が異なり、残っているキャッシュが問題を引き起こす可能性があるため、移行後、最初の接続時にキャッシュを削除する作業を行う必要があります。
      *
      * この作業は最初一度だけ行われます。
@@ -138,11 +275,11 @@ export interface Locale extends ILocale {
      */
     "enableReceivePrerelease": string;
     /**
-     * 未発売バージョンのCherryPickを利用しています！
+     * ベータ版のyojo-artを利用しています！
      */
     "youAreRunningBetaClient": string;
     /**
-     * CherryPickアップデート
+     * yojo-artアップデート
      */
     "cherrypickUpdate": string;
     /**
@@ -275,22 +412,6 @@ export interface Locale extends ILocale {
      */
     "photosensitiveSeizuresWarning": string;
     /**
-     * 通知領域を有効化
-     */
-    "friendlyEnableNotifications": string;
-    /**
-     * 通知領域を無効化
-     */
-    "friendlyDisableNotifications": string;
-    /**
-     * ウィジェット領域を有効化
-     */
-    "friendlyEnableWidgets": string;
-    /**
-     * ウィジェット領域を無効化
-     */
-    "friendlyDisableWidgets": string;
-    /**
      * 文字を太くする
      */
     "useBoldFont": string;
@@ -320,14 +441,14 @@ export interface Locale extends ILocale {
      */
     "headlineMisskey": string;
     /**
-     * ようこそ！CherryPickは、オープンソースの分散型マイクロブログサービスです。
+     * ようこそ！yojo-artは、オープンソースの分散型マイクロブログサービスです。
      * 「ノート」を作成して、いま起こっていることを共有したり、あなたについて皆に発信しよう📡
      * 「リアクション」機能で、皆のノートに素早く反応を追加することもできます👍
      * 新しい世界を探検しよう🚀
      */
     "introMisskey": string;
     /**
-     * {name}は、オープンソースのプラットフォーム<b>CherryPick</b>のサーバーのひとつです。
+     * {name}は、オープンソースのプラットフォーム<b>yojo-art</b>のサーバーのひとつです。
      */
     "poweredByMisskeyDescription": ParameterizedString<"name">;
     /**
@@ -350,6 +471,20 @@ export interface Locale extends ILocale {
      * パスワード
      */
     "password": string;
+    /**
+     * 初期設定開始用パスワード
+     */
+    "initialPasswordForSetup": string;
+    /**
+     * 初期設定開始用のパスワードが違います。
+     */
+    "initialPasswordIsIncorrect": string;
+    /**
+     * yojo-artを自分でインストールした場合は、設定ファイルに入力したパスワードを使用してください。
+     * yojo-artのホスティングサービスなどを使用している場合は、提供されたパスワードを使用してください。
+     * パスワードを設定していない場合は、空欄にしたまま続行してください。
+     */
+    "initialPasswordForSetupDescription": string;
     /**
      * パスワードを忘れた
      */
@@ -1051,7 +1186,7 @@ export interface Locale extends ILocale {
      */
     "flagAsBot": string;
     /**
-     * このアカウントがプログラムによって運用される場合は、このフラグをオンにします。オンにすると、反応の連鎖を防ぐためのフラグとして他の開発者に役立ったり、CherryPickのシステム上での扱いがBotに合ったものになります。
+     * このアカウントがプログラムによって運用される場合は、このフラグをオンにします。オンにすると、反応の連鎖を防ぐためのフラグとして他の開発者に役立ったり、システム上での扱いがBotに合ったものになります。
      */
     "flagAsBotDescription": string;
     /**
@@ -1307,6 +1442,14 @@ export interface Locale extends ILocale {
      */
     "mediaSilencedInstancesDescription": string;
     /**
+     * 連合を許可するサーバー
+     */
+    "federationAllowedHosts": string;
+    /**
+     * 連合を許可するサーバーのホストを改行で区切って設定します。
+     */
+    "federationAllowedHostsDescription": string;
+    /**
      * ミュートとブロック
      */
     "muteAndBlock": string;
@@ -1335,7 +1478,7 @@ export interface Locale extends ILocale {
      */
     "pinLimitExceeded": string;
     /**
-     * CherryPickのインストールが完了しました！管理者アカウントを作成しましょう。
+     * yojo-artのインストールが完了しました！管理者アカウントを作成しましょう。
      */
     "intro": string;
     /**
@@ -1702,6 +1845,10 @@ export interface Locale extends ILocale {
      * ファイルを追加
      */
     "addFile": string;
+    /**
+     * ファイルを表示
+     */
+    "showFile": string;
     /**
      * ドライブは空です
      */
@@ -2119,7 +2266,7 @@ export interface Locale extends ILocale {
      */
     "about": string;
     /**
-     * CherryPickについて
+     * yojo-artについて
      */
     "aboutMisskey": string;
     /**
@@ -2158,6 +2305,10 @@ export interface Locale extends ILocale {
      * モデレーションノート
      */
     "moderationNote": string;
+    /**
+     * モデレーター間でだけ共有されるメモを記入することができます。
+     */
+    "moderationNoteDescription": string;
     /**
      * モデレーションノートを追加する
      */
@@ -2443,9 +2594,21 @@ export interface Locale extends ILocale {
      */
     "native": string;
     /**
-     * メニューをドロワーで表示しない
+     * メニューのスタイル
      */
-    "disableDrawer": string;
+    "menuStyle": string;
+    /**
+     * スタイル
+     */
+    "style": string;
+    /**
+     * ドロワー
+     */
+    "drawer": string;
+    /**
+     * ポップアップ
+     */
+    "popup": string;
     /**
      * グループがありません
      */
@@ -2471,19 +2634,19 @@ export interface Locale extends ILocale {
      */
     "signinHistory": string;
     /**
-     * 高度なMFMを有効にする
+     * 高度なMFCを有効にする
      */
     "enableAdvancedMfm": string;
     /**
-     * 有効にすると、動きのあるMFMのようなさまざまなMFM機能が使用できます。
+     * 有効にすると、動きのあるMFCのようなさまざまなMFC機能が使用できます。
      */
     "enableAdvancedMfmDescription": string;
     /**
-     * 動きのあるMFMを有効にする
+     * 動きのあるMFCを有効にする
      */
     "enableAnimatedMfm": string;
     /**
-     * 有効にすると、MFM文法または絵文字を使用するテキストが動きます。
+     * 有効にすると、MFC文法または絵文字を使用するテキストが動きます。
      */
     "enableAnimatedMfmDescription": string;
     /**
@@ -2743,7 +2906,7 @@ export interface Locale extends ILocale {
      */
     "notUseSound": string;
     /**
-     * CherryPickがアクティブな時のみサウンドを出力する
+     * ウィンドウがアクティブな時のみサウンドを出力する
      */
     "useSoundOnlyWhenActive": string;
     /**
@@ -2807,9 +2970,17 @@ export interface Locale extends ILocale {
      */
     "scratchpad": string;
     /**
-     * スクラッチパッドは、AiScriptの実験環境を提供します。CherryPickと対話するコードの記述、実行、結果の確認ができます。
+     * スクラッチパッドは、AiScriptの実験環境を提供します。yojo-artと対話するコードの記述、実行、結果の確認ができます。
      */
     "scratchpadDescription": string;
+    /**
+     * UIインスペクター
+     */
+    "uiInspector": string;
+    /**
+     * メモリ上に存在しているUIコンポーネントのインスタンスの一覧を見ることができます。UIコンポーネントはUi:C:系関数により生成されます。
+     */
+    "uiInspectorDescription": string;
     /**
      * 出力
      */
@@ -3299,21 +3470,9 @@ export interface Locale extends ILocale {
      */
     "reporterOrigin": string;
     /**
-     * リモートサーバーに通報を転送する
-     */
-    "forwardReport": string;
-    /**
-     * リモートサーバーからはあなたの情報は見れず、匿名のシステムアカウントとして表示されます。
-     */
-    "forwardReportIsAnonymous": string;
-    /**
      * 送信
      */
     "send": string;
-    /**
-     * 対応済みにする
-     */
-    "abuseMarkAsResolved": string;
     /**
      * 新しいタブで開く
      */
@@ -3387,7 +3546,7 @@ export interface Locale extends ILocale {
      */
     "private": string;
     /**
-     * CherryPickは有志によって様々な言語に翻訳されています。{link}で翻訳に協力できます。
+     * yojo-artは有志によって様々な言語に翻訳されています。{link}で翻訳に協力できます。
      */
     "i18nInfo": ParameterizedString<"link">;
     /**
@@ -3597,7 +3756,7 @@ export interface Locale extends ILocale {
      */
     "narrow": string;
     /**
-     * 設定はページリロード後に反映されます。今すぐリロードしますか？
+     * 設定はページリロード後に反映されます。
      */
     "reloadToApplySetting": string;
     /**
@@ -3633,7 +3792,7 @@ export interface Locale extends ILocale {
      */
     "sendErrorReports": string;
     /**
-     * オンにすると、問題が発生したときにエラーの詳細情報がCherryPickに共有され、ソフトウェアの品質向上に役立てることができます。エラー情報には、OSのバージョン、ブラウザの種類、行動履歴などが含まれます。
+     * オンにすると、問題が発生したときにエラーの詳細情報がyojo-artに共有され、ソフトウェアの品質向上に役立てることができます。エラー情報には、OSのバージョン、ブラウザの種類、行動履歴などが含まれます。
      */
     "sendErrorReportsDescription": string;
     /**
@@ -4017,7 +4176,7 @@ export interface Locale extends ILocale {
      */
     "learnMore": string;
     /**
-     * CherryPickが更新されました！
+     * yojo-artが更新されました！
      */
     "misskeyUpdated": string;
     /**
@@ -4152,6 +4311,10 @@ export interface Locale extends ILocale {
      * パスワードが間違っています。
      */
     "incorrectPassword": string;
+    /**
+     * ワンタイムパスワードが間違っているか、期限切れになっています。
+     */
+    "incorrectTotp": string;
     /**
      * 「{choice}」に投票しますか？
      */
@@ -4541,11 +4704,11 @@ export interface Locale extends ILocale {
      */
     "remindMeLater": string;
     /**
-     * CherryPickを気に入っていただけましたか？
+     * yojo-artを気に入っていただけましたか？
      */
     "didYouLikeMisskey": string;
     /**
-     * CherryPickは{host}が使用している無料のソフトウェアです。これからも開発を続けられるように、ぜひ寄付をお願いします！
+     * yojo-artは{host}が使用している無料のソフトウェアです。これからも開発を続けられるように、ぜひ寄付をお願いします！
      */
     "pleaseDonate": ParameterizedString<"host">;
     /**
@@ -4665,7 +4828,7 @@ export interface Locale extends ILocale {
      */
     "collapseRenotesDescription": string;
     /**
-     * 特定のMFM構文を含むノートを省略して表示
+     * 特定のMFC構文を含むノートを省略して表示
      */
     "collapseDefault": string;
     /**
@@ -4828,6 +4991,10 @@ export interface Locale extends ILocale {
      * リモートサーバーのチャートを生成
      */
     "enableChartsForFederatedInstances": string;
+    /**
+     * リモートサーバーの情報を取得
+     */
+    "enableStatsForFederatedInstances": string;
     /**
      * ノートのアクションにクリップを追加
      */
@@ -5073,7 +5240,7 @@ export interface Locale extends ILocale {
      */
     "later": string;
     /**
-     * CherryPickへ
+     * yojo-artへ
      */
     "goToMisskey": string;
     /**
@@ -5333,7 +5500,7 @@ export interface Locale extends ILocale {
      */
     "repositoryUrl": string;
     /**
-     * ソースコードが公開されているリポジトリがある場合、そのURLを記入します。CherryPickを現状のまま（ソースコードにいかなる変更も加えずに）使用している場合は https://github.com/kokonect-link/cherrypick と記入します。
+     * ソースコードが公開されているリポジトリがある場合、そのURLを記入します。yojo-artを現状のまま（ソースコードにいかなる変更も加えずに）使用している場合は https://github.com/yojo-art/cherrypick と記入します。
      */
     "repositoryUrlDescription": string;
     /**
@@ -5465,7 +5632,7 @@ export interface Locale extends ILocale {
      */
     "addMfmFunction": string;
     /**
-     * 高度なMFMのピッカーを表示する
+     * 高度なMFCのピッカーを表示する
      */
     "enableQuickAddMfmFunction": string;
     /**
@@ -5601,6 +5768,82 @@ export interface Locale extends ILocale {
      */
     "createdAntennas": string;
     /**
+     * {x}から
+     */
+    "fromX": ParameterizedString<"x">;
+    /**
+     * 埋め込みコードを生成
+     */
+    "genEmbedCode": string;
+    /**
+     * このユーザーのノート一覧
+     */
+    "noteOfThisUser": string;
+    /**
+     * これ以上このクリップにノートを追加できません。
+     */
+    "clipNoteLimitExceeded": string;
+    /**
+     * パフォーマンス
+     */
+    "performance": string;
+    /**
+     * 変更あり
+     */
+    "modified": string;
+    /**
+     * 破棄
+     */
+    "discard": string;
+    /**
+     * {n}件の変更があります
+     */
+    "thereAreNChanges": ParameterizedString<"n">;
+    /**
+     * パスキーでログイン
+     */
+    "signinWithPasskey": string;
+    /**
+     * 登録されていないパスキーです。
+     */
+    "unknownWebAuthnKey": string;
+    /**
+     * パスキーの検証に失敗しました。
+     */
+    "passkeyVerificationFailed": string;
+    /**
+     * パスキーの検証に成功しましたが、パスワードレスログインが無効になっています。
+     */
+    "passkeyVerificationSucceededButPasswordlessLoginDisabled": string;
+    /**
+     * フォロワーへのメッセージ
+     */
+    "messageToFollower": string;
+    /**
+     * 対象
+     */
+    "target": string;
+    /**
+     * CAPTCHAのテストを目的とした機能です。<strong>本番環境で使用しないでください。</strong>
+     */
+    "testCaptchaWarning": string;
+    /**
+     * 禁止ワード（ユーザーの名前）
+     */
+    "prohibitedWordsForNameOfUser": string;
+    /**
+     * このリストに含まれる文字列がユーザーの名前に含まれる場合、ユーザーの名前の変更を拒否します。モデレーター権限を持つユーザーはこの制限の影響を受けません。
+     */
+    "prohibitedWordsForNameOfUserDescription": string;
+    /**
+     * 変更しようとした名前に禁止された文字列が含まれています
+     */
+    "yourNameContainsProhibitedWords": string;
+    /**
+     * 名前に禁止されている文字列が含まれています。この名前を使用したい場合は、サーバー管理者にお問い合わせください。
+     */
+    "yourNameContainsProhibitedWordsDescription": string;
+    /**
      * 未読の通知の数を表示する
      */
     "showUnreadNotificationsCount": string;
@@ -5624,6 +5867,18 @@ export interface Locale extends ILocale {
      * プロフィールを翻訳する
      */
     "translateProfile": string;
+    /**
+     * 外部サイトへのリンク警告 除外リスト
+     */
+    "trustedLinkUrlPatterns": string;
+    /**
+     * スペースで区切るとAND指定になり、改行で区切るとOR指定になります。スラッシュで囲むと正規表現になります。ドメイン名だけ書くと後方一致になります。
+     */
+    "trustedLinkUrlPatternsDescription": string;
+    /**
+     * 開く
+     */
+    "open": string;
     /**
      * タグ名を入力
      */
@@ -5719,6 +5974,33 @@ export interface Locale extends ILocale {
          * ダイレクトメッセージ
          */
         "direct": string;
+    };
+    "_abuseUserReport": {
+        /**
+         * 転送
+         */
+        "forward": string;
+        /**
+         * 匿名のシステムアカウントとして、リモートサーバーに通報を転送します。
+         */
+        "forwardDescription": string;
+        /**
+         * 解決
+         */
+        "resolve": string;
+        /**
+         * 是認
+         */
+        "accept": string;
+        /**
+         * 否認
+         */
+        "reject": string;
+        /**
+         * 内容が正当である通報に対応した場合は「是認」を選択し、肯定的にケースが解決されたことをマークします。
+         * 内容が正当でない通報の場合は「否認」を選択し、否定的にケースが解決されたことをマークします。
+         */
+        "resolveTutorial": string;
     };
     "_delivery": {
         /**
@@ -6005,6 +6287,22 @@ export interface Locale extends ILocale {
          */
         "renameTheButtonInPostFormToNyaDescription": string;
         /**
+         * ウィジェット領域を有効化
+         */
+        "enableWidgetsArea": string;
+        /**
+         * ウィジェット領域を無効化
+         */
+        "disableWidgetsArea": string;
+        /**
+         * 通知領域を有効化
+         */
+        "friendlyUiEnableNotificationsArea": string;
+        /**
+         * 通知領域を無効化
+         */
+        "friendlyUiDisableNotificationsArea": string;
+        /**
          * 長押しでアカウントメニューを開く
          */
         "enableLongPressOpenAccountMenu": string;
@@ -6015,7 +6313,7 @@ export interface Locale extends ILocale {
         /**
          * フローティングボタンにアイコンのデコレーションを表示
          */
-        "friendlyShowAvatarDecorationsInNavBtn": string;
+        "friendlyUiShowAvatarDecorationsInNavBtn": string;
     };
     "_bannerDisplay": {
         /**
@@ -6083,7 +6381,7 @@ export interface Locale extends ILocale {
          */
         "blurEffectsSetting": string;
         /**
-         * MFMとアニメーション画像設定
+         * MFCとアニメーション画像設定
          */
         "mfmAndAnimatedImagesSetting": string;
         /**
@@ -6111,7 +6409,7 @@ export interface Locale extends ILocale {
          */
         "haveFun": ParameterizedString<"name">;
         /**
-         * このまま{name}(CherryPick)の使い方についてのチュートリアルに進むこともできますが、ここで中断してすぐに使い始めることもできます。
+         * このまま{name}(yojo-art)の使い方についてのチュートリアルに進むこともできますが、ここで中断してすぐに使い始めることもできます。
          */
         "youCanContinueTutorial": ParameterizedString<"name">;
         /**
@@ -6154,7 +6452,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * ここでは、CherryPickの基本的な使い方や機能を確認できます。
+             * ここでは、yojo-artの基本的な使い方や機能を確認できます。
              */
             "description": string;
         };
@@ -6164,7 +6462,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * CherryPickでの投稿は「ノート」と呼びます。ノートはタイムラインに時系列で並んでいて、リアルタイムで更新されていきます。
+             * yojo-artでの投稿は「ノート」と呼びます。ノートはタイムラインに時系列で並んでいて、リアルタイムで更新されていきます。
              */
             "description": string;
             /**
@@ -6224,7 +6522,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * CherryPickには、使い方に応じて複数のタイムラインが用意されています（サーバーによってはいずれかが無効になっていることがあります）。
+             * yojo-artには、使い方に応じて複数のタイムラインが用意されています（サーバーによってはいずれかが無効になっていることがあります）。
              */
             "description1": string;
             /**
@@ -6258,7 +6556,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * CherryPickにノートを投稿する際には、様々なオプションの設定が可能です。投稿フォームはこのようになっています。
+             * yojo-artにノートを投稿する際には、様々なオプションの設定が可能です。投稿フォームはこのようになっています。
              */
             "description1": string;
             "_visibility": {
@@ -6358,7 +6656,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * ここで紹介した機能はほんの一部にすぎません。CherryPickの使い方をより詳しく知るには、{link}をご覧ください。
+             * ここで紹介した機能はほんの一部にすぎません。yojo-artの使い方をより詳しく知るには、{link}をご覧ください。
              */
             "description": ParameterizedString<"link">;
         };
@@ -6539,6 +6837,10 @@ export interface Locale extends ILocale {
          */
         "fanoutTimelineDbFallbackDescription": string;
         /**
+         * 有効にすると、リアクション作成時のパフォーマンスが大幅に向上し、データベースへの負荷を軽減することが可能です。ただし、Redisのメモリ使用量は増加します。
+         */
+        "reactionsBufferingDescription": string;
+        /**
          * 問い合わせ先URL
          */
         "inquiryUrl": string;
@@ -6546,6 +6848,10 @@ export interface Locale extends ILocale {
          * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
          */
         "inquiryUrlDescription": string;
+        /**
+         * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
+         */
+        "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
         /**
          * マスコット画像ウィジェットに表示されます
          */
@@ -6591,7 +6897,7 @@ export interface Locale extends ILocale {
          * フォロワーの移行は自動ですが、フォローの移行は手動で行う必要があります。移行前にこのアカウントでフォローエクスポートし、移行後すぐに移行先アカウントでインポートを行なってください。
          * リスト・ミュート・ブロックについても同様ですので、手動で移行する必要があります。
          *
-         * （この説明はこのサーバー（CherryPick v13.12.0以降）の仕様です。Mastodonなどの他のActivityPubソフトウェアでは挙動が異なる場合があります。）
+         * （この説明はこのサーバー（yojo-art）の仕様です。Mastodonなどの他のActivityPubソフトウェアでは挙動が異なる場合があります。）
          */
         "moveAccountDescription": string;
         /**
@@ -6639,7 +6945,7 @@ export interface Locale extends ILocale {
                  */
                 "description": string;
                 /**
-                 * 良いCherryPickライフを！
+                 * 良いyojo-artライフを！
                  */
                 "flavor": string;
             };
@@ -6963,7 +7269,7 @@ export interface Locale extends ILocale {
                  */
                 "description": string;
                 /**
-                 * CherryPickを使ってくれてありがとう！
+                 * yojo-artを使ってくれてありがとう！
                  */
                 "flavor": string;
             };
@@ -7197,7 +7503,7 @@ export interface Locale extends ILocale {
             };
             "_client60min": {
                 /**
-                 * CherryPickの見すぎ
+                 * yojo-artの見すぎ
                  */
                 "title": string;
                 /**
@@ -7461,7 +7767,7 @@ export interface Locale extends ILocale {
             };
             "_tutorialCompleted": {
                 /**
-                 * CherryPick初心者講座 修了証
+                 * yojo-art初心者講座 修了証
                  */
                 "title": string;
                 /**
@@ -7814,9 +8120,41 @@ export interface Locale extends ILocale {
              */
             "canUseTranslator": string;
             /**
+             * 自動翻訳機能の利用
+             */
+            "canUseAutoTranslate": string;
+            /**
+             * 自動翻訳機能を有効にしたユーザーは、タイムラインのすべてのノートが自動的に翻訳され、これにより翻訳サービス提供者が設定したAPI制限に非常に早く到達し、翻訳機能を一時的に使用できなくなる可能性があります。
+             * これは、サーバー内のすべてのユーザーがAPIを一時的に使用できなくなる可能性があることを意味します。
+             * また、翻訳サービスの提供者によっては、APIの使用による料金が過度に発生する可能性があります。
+             *
+             * <b>それでも続けましょうか？</b>
+             */
+            "canUseAutoTranslateDescription": string;
+            /**
              * アイコンデコレーションの最大取付個数
              */
             "avatarDecorationLimit": string;
+            /**
+             * アンテナのインポートを許可
+             */
+            "canImportAntennas": string;
+            /**
+             * ブロックのインポートを許可
+             */
+            "canImportBlocking": string;
+            /**
+             * フォローのインポートを許可
+             */
+            "canImportFollowing": string;
+            /**
+             * ミュートのインポートを許可
+             */
+            "canImportMuting": string;
+            /**
+             * リストのインポートを許可
+             */
+            "canImportUserLists": string;
             /**
              * 相互リンクのセクションの最大数
              */
@@ -8227,7 +8565,7 @@ export interface Locale extends ILocale {
     };
     "_aboutMisskey": {
         /**
-         * CherryPickは、Misskeyをベースに2021年から開発中のカスタマイズオープンソースのソフトウェアです。
+         * yojo-artは、CherryPickをベースに2024年から開発中のカスタマイズオープンソースのソフトウェアです。
          */
         "about": string;
         /**
@@ -8247,7 +8585,7 @@ export interface Locale extends ILocale {
          */
         "original": string;
         /**
-         * {name}はオリジナルのCherryPickを改変したバージョンを使用しています。
+         * {name}はオリジナルのyojo-artを改変したバージョンを使用しています。
          */
         "thisIsModifiedVersion": ParameterizedString<"name">;
         /**
@@ -8298,6 +8636,12 @@ export interface Locale extends ILocale {
              */
             "community": string;
         };
+        "_yojoArt": {
+            /**
+             * yojo-artに寄付
+             */
+            "donate": string;
+        };
     };
     "_displayOfSensitiveMedia": {
         /**
@@ -8313,17 +8657,17 @@ export interface Locale extends ILocale {
          */
         "force": string;
     };
-    "_mfm": {
+    "_mfc": {
         /**
          * MFMチートシート
          */
         "cheatSheet": string;
         /**
-         * MFMは、Misskey内の様々な場所で使用できる専用のマークアップ言語です。ここでは、MFMで使用可能な構文一覧が確認できます。
+         * MFMは、yojo-art内の様々な場所で使用できる専用のマークアップ言語です。ここでは、MFMで使用可能な構文一覧が確認できます。
          */
         "intro": string;
         /**
-         * CherryPickでFediverseの世界が広がります
+         * yojo-artでFediverseの世界が広がります
          */
         "dummy": string;
         /**
@@ -9010,10 +9354,6 @@ export interface Locale extends ILocale {
              */
             "inputBorder": string;
             /**
-             * リスト項目の背景 (ホバー)
-             */
-            "listItemHoverBg": string;
-            /**
              * ドライブフォルダーの背景
              */
             "driveFolderBg": string;
@@ -9095,7 +9435,7 @@ export interface Locale extends ILocale {
          */
         "driveFileDurationWarn": string;
         /**
-         * 長い音声を使用するとCherryPickの使用に支障をきたす可能性があります。それでも続行しますか？
+         * 長い音声を使用するとyojo-artの使用に支障をきたす可能性があります。それでも続行しますか？
          */
         "driveFileDurationWarnDescription": string;
         /**
@@ -9871,13 +10211,17 @@ export interface Locale extends ILocale {
          */
         "birthdayFollowings": string;
         /**
-         * マスコット画像
+         * 検索
          */
-        "mascot": string;
+        "search": string;
         /**
          * サイコロ
          */
         "dice": string;
+        /**
+         * マスコット画像
+         */
+        "mascot": string;
     };
     "_cw": {
         /**
@@ -10122,6 +10466,18 @@ export interface Locale extends ILocale {
          * 最大{max}つまでデコレーションを付けられます。
          */
         "avatarDecorationMax": ParameterizedString<"max">;
+        /**
+         * フォローされた時のメッセージ
+         */
+        "followedMessage": string;
+        /**
+         * フォローされた時に相手に表示する短いメッセージを設定できます。
+         */
+        "followedMessageDescription": string;
+        /**
+         * フォローを承認制にしている場合、フォローリクエストを許可した時に表示されます。
+         */
+        "followedMessageDescriptionForLockedAccount": string;
         /**
          * 相互リンクを編集
          */
@@ -10703,7 +11059,7 @@ export interface Locale extends ILocale {
          */
         "renotedBySomeUsers": ParameterizedString<"n">;
         /**
-         * {n}件の新しい投稿
+         * {n}件の新しい投稿があります
          */
         "notedBySomeUsers": ParameterizedString<"n">;
         /**
@@ -10714,6 +11070,19 @@ export interface Locale extends ILocale {
          * 通知の履歴をリセットする
          */
         "flushNotification": string;
+        /**
+         * {x}のエクスポートが完了しました
+         */
+        "exportOfXCompleted": ParameterizedString<"x">;
+        /**
+         * ログインがありました
+         */
+        "login": string;
+        /**
+         * {ip}でログインされました。
+         * 承認されていない機器であれば、セキュリティのために「{text}」を通じてすべての機器でログアウトを行ってください。
+         */
+        "loginDescription": ParameterizedString<"ip" | "text">;
         "_scheduleNote": {
             /**
              * 原因は不明です
@@ -10793,6 +11162,18 @@ export interface Locale extends ILocale {
              * 実績の獲得
              */
             "achievementEarned": string;
+            /**
+             * エクスポートが完了した
+             */
+            "exportCompleted": string;
+            /**
+             * ログイン
+             */
+            "login": string;
+            /**
+             * 通知のテスト
+             */
+            "test": string;
             /**
              * 予約投稿に失敗
              */
@@ -11039,11 +11420,27 @@ export interface Locale extends ILocale {
              * ユーザーが作成されたとき
              */
             "userCreated": string;
+            /**
+             * モデレーターが一定期間非アクティブになったとき
+             */
+            "inactiveModeratorsWarning": string;
+            /**
+             * モデレーターが一定期間非アクティブだったため、システムにより招待制へと変更されたとき
+             */
+            "inactiveModeratorsInvitationOnlyChanged": string;
+            /**
+             * モデレーターが一定期間非アクティブだったため、システムによりパブリック投稿へと変更されたとき
+             */
+            "inactiveModeratorsDisablePublicNoteChanged": string;
         };
         /**
          * Webhookを削除しますか？
          */
         "deleteConfirm": string;
+        /**
+         * スイッチの右にあるボタンをクリックするとダミーのデータを使用したテスト用Webhookを送信できます。
+         */
+        "testRemarks": string;
     };
     "_abuseReport": {
         "_notificationRecipient": {
@@ -11206,6 +11603,14 @@ export interface Locale extends ILocale {
          * 通報を解決
          */
         "resolveAbuseReport": string;
+        /**
+         * 通報を転送
+         */
+        "forwardAbuseReport": string;
+        /**
+         * 通報のモデレーションノート更新
+         */
+        "updateAbuseReportNote": string;
         /**
          * 招待コードを作成
          */
@@ -11498,7 +11903,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * MFMなどでコードハイライト記法が使われている場合、タップするまで読み込まれなくなります。コードハイライトではハイライトする言語ごとにその定義ファイルを読み込む必要がありますが、それらが自動で読み込まれなくなるため、通信量の削減が見込めます。
+             * MFCなどでコードハイライト記法が使われている場合、タップするまで読み込まれなくなります。コードハイライトではハイライトする言語ごとにその定義ファイルを読み込む必要がありますが、それらが自動で読み込まれなくなるため、通信量の削減が見込めます。
              */
             "description": string;
         };
@@ -11687,6 +12092,10 @@ export interface Locale extends ILocale {
          */
         "showBoardLabels": string;
         /**
+         * 相手のリアクションを表示
+         */
+        "showReaction": string;
+        /**
          * 石をアイコンにする
          */
         "useAvatarAsStone": string;
@@ -11759,7 +12168,11 @@ export interface Locale extends ILocale {
          */
         "summaryProxy": string;
         /**
-         * CherryPick本体ではなく、サマリープロキシを使用してプレビューを生成します。
+         * 直接取得
+         */
+        "directAccess": string;
+        /**
+         * yojo-art本体ではなく、サマリープロキシを使用してプレビューを生成します。
          */
         "summaryProxyDescription": string;
         /**
@@ -11798,6 +12211,60 @@ export interface Locale extends ILocale {
          * ブラウザのUI
          */
         "native": string;
+    };
+    "_embedCodeGen": {
+        /**
+         * 埋め込みコードをカスタマイズ
+         */
+        "title": string;
+        /**
+         * ヘッダーを表示
+         */
+        "header": string;
+        /**
+         * 自動で続きを読み込む（非推奨）
+         */
+        "autoload": string;
+        /**
+         * 高さの最大値
+         */
+        "maxHeight": string;
+        /**
+         * 0で最大値の設定が無効になります。ウィジェットが縦に伸び続けるのを防ぐために、何らかの値に指定してください。
+         */
+        "maxHeightDescription": string;
+        /**
+         * 高さの最大値制限が無効（0）になっています。これが意図した変更ではない場合は、高さの最大値を何らかの値に設定してください。
+         */
+        "maxHeightWarn": string;
+        /**
+         * プレビュー画面で表示可能な範囲を超えたため、実際に埋め込んだ際とは表示が異なります。
+         */
+        "previewIsNotActual": string;
+        /**
+         * 角丸にする
+         */
+        "rounded": string;
+        /**
+         * 外枠に枠線をつける
+         */
+        "border": string;
+        /**
+         * プレビューに反映
+         */
+        "applyToPreview": string;
+        /**
+         * 埋め込みコードを作成
+         */
+        "generateCode": string;
+        /**
+         * コードが生成されました
+         */
+        "codeGenerated": string;
+        /**
+         * 生成されたコードをウェブサイトに貼り付けてご利用ください。
+         */
+        "codeGeneratedDescription": string;
     };
     "_abuse": {
         "_resolver": {
@@ -11888,6 +12355,80 @@ export interface Locale extends ILocale {
          * 縮小せず非可逆圧縮する
          */
         "noResizeCompressLossy": string;
+    };
+    "_externalNavigationWarning": {
+        /**
+         * 外部サイトに移動します
+         */
+        "title": string;
+        /**
+         * {host}を離れて外部サイトに移動します
+         */
+        "description": ParameterizedString<"host">;
+        /**
+         * このデバイスで今後このドメインを信頼する
+         */
+        "trustThisDomain": string;
+    };
+    "_altWarning": {
+        /**
+         * ファイルに代替テキストが設定されていません。
+         */
+        "noAltWarning": string;
+        /**
+         * この設定は「設定 - アピアランス」で変更できます。
+         */
+        "noAltWarningDescription": string;
+    };
+    "_dice": {
+        /**
+         * サイコロを振る
+         */
+        "rollDice": string;
+        /**
+         * サイコロの数
+         */
+        "diceCount": string;
+        /**
+         * サイコロの面数
+         */
+        "diceFaces": string;
+    };
+    "_scheduledNoteDelete": {
+        /**
+         * 期限
+         */
+        "expiration": string;
+        /**
+         * 日時指定
+         */
+        "at": string;
+        /**
+         * 経過指定
+         */
+        "after": string;
+        /**
+         * 期日
+         */
+        "deadlineDate": string;
+        /**
+         * 時間
+         */
+        "deadlineTime": string;
+        /**
+         * 期間
+         */
+        "duration": string;
+    };
+    "_getQRCode": {
+        /**
+         * QRコードをスキャンする
+         */
+        "title": string;
+        /**
+         * 以下のQRコードをスキャンまたは共有できます。
+         */
+        "description": string;
     };
     "_advancedSearch": {
         "_fileOption": {
@@ -12038,20 +12579,6 @@ export interface Locale extends ILocale {
          * 再作成しますか？、現時点のノートインデックスは破棄されます。
          */
         "quesion": string;
-    };
-    "_dice": {
-        /**
-         * サイコロを振る
-         */
-        "rollDice": string;
-        /**
-         * サイコロの数
-         */
-        "diceCount": string;
-        /**
-         * サイコロの面数
-         */
-        "diceFaces": string;
     };
     "_deleteConfirm": {
         /**

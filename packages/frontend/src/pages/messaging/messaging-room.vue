@@ -59,11 +59,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, onMounted, nextTick, onBeforeUnmount, watch, shallowRef, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import { isBottomVisible, onScrollBottom, scrollToBottom } from '@@/js/scroll.js';
 import XMessage from './messaging-room.message.vue';
 import XForm from './messaging-room.form.vue';
 import MkDateSeparatedList from '@/components/MkDateSeparatedList.vue';
 import MkPagination, { Paging } from '@/components/MkPagination.vue';
-import { isBottomVisible, onScrollBottom, scrollToBottom } from '@/scripts/scroll.js';
 import * as os from '@/os.js';
 import { useStream } from '@/stream.js';
 import * as sound from '@/scripts/sound.js';
@@ -398,7 +398,7 @@ definePageMetadata(computed(() => !fetching.value ? user.value ? {
 	bottom: 100%;
 	padding: 0 8px 0 8px;
 	font-size: 0.9em;
-	color: var(--fgTransparentWeak);
+	color: var(--MI_THEME-fgTransparentWeak);
 }
 
 .user + .user:before {
@@ -413,7 +413,7 @@ definePageMetadata(computed(() => !fetching.value ? user.value ? {
 .form {
 	max-height: 12em;
 	overflow-y: scroll;
-	// border-top: solid 0.5px var(--divider);
+	// border-top: solid 0.5px var(--MI_THEME-divider);
 	// border-bottom-left-radius: 0;
 	// border-bottom-right-radius: 0;
   border-radius: 15px;

@@ -12,17 +12,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, watch, ref, onMounted, shallowRef, onUnmounted } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import { url } from '@@/js/config.js';
+import { useInterval } from '@@/js/use-interval.js';
 import GameSetting from './game.setting.vue';
 import GameBoard from './game.board.vue';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { useStream } from '@/stream.js';
+import { $i } from '@/account.js';
 import { useRouter } from '@/router/supplier.js';
 import * as os from '@/os.js';
-import { url } from '@/config.js';
 import { i18n } from '@/i18n.js';
-import { useInterval } from '@/scripts/use-interval.js';
-import { $i } from '@/account.js';
 
 const router = useRouter();
 

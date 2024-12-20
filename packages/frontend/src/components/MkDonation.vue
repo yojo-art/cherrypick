@@ -23,7 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</template>
 			</I18n>
 			<div style="margin-top: 0.2em;">
-				<a class="_link" @click="donateCherryPick">{{ i18n.ts.learnMore }}</a>
+				<MkA :to="'/about-misskey'" class="_link">{{ i18n.ts.learnMore }}</MkA>
 			</div>
 		</div>
 		<div class="_buttons">
@@ -36,9 +36,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
+import { host } from '@@/js/config.js';
 import MkButton from '@/components/MkButton.vue';
-import MkLink from '@/components/MkLink.vue';
-import { host } from '@/config.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { miLocalStorage } from '@/local-storage.js';
@@ -60,39 +59,18 @@ function neverShow() {
 	close();
 }
 
-function donateCherryPick(ev: MouseEvent) {
-	os.popupMenu([{
-		text: 'Patreon',
-		icon: 'ti ti-pig-money',
-		action: () => {
-			window.open('https://www.patreon.com/noridev', '_blank');
-		},
-	}, {
-		text: 'Paypal',
-		icon: 'ti ti-pig-money',
-		action: () => {
-			window.open('https://www.paypal.me/noridev', '_blank');
-		},
-	}, {
-		text: 'Toss (Korea)',
-		icon: 'ti ti-pig-money',
-		action: () => {
-			window.open('https://toss.me/noridev', '_blank');
-		},
-	}], ev.currentTarget ?? ev.target);
-}
 </script>
 
 <style lang="scss" module>
 .root {
 	position: fixed;
 	z-index: v-bind(zIndex);
-	bottom: var(--margin);
+	bottom: var(--MI-margin);
 	left: 0;
 	right: 0;
 	margin: auto;
 	box-sizing: border-box;
-	width: calc(100% - (var(--margin) * 2));
+	width: calc(100% - (var(--MI-margin) * 2));
 	max-width: 500px;
 	display: flex;
 }
@@ -101,7 +79,7 @@ function donateCherryPick(ev: MouseEvent) {
 	text-align: center;
 	padding-top: 25px;
 	width: 100px;
-	color: var(--accent);
+	color: var(--MI_THEME-accent);
 }
 @media (max-width: 500px) {
 	.icon {

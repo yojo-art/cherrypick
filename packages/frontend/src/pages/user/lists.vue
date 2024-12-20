@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import {} from 'vue';
+import { } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import MkPagination from '@/components/MkPagination.vue';
 import MkStickyContainer from '@/components/global/MkStickyContainer.vue';
@@ -44,12 +44,12 @@ const pagination = {
 .list {
 	display: block;
 	padding: 16px;
-	border: solid 1px var(--divider);
+	border: solid 1px var(--MI_THEME-divider);
 	border-radius: 6px;
 	margin-bottom: 8px;
 
 	&:hover {
-		border: solid 1px var(--accent);
+		border: solid 1px var(--MI_THEME-accent);
 		text-decoration: none;
 	}
 }

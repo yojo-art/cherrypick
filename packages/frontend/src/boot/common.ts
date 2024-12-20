@@ -5,10 +5,10 @@
 
 import { computed, watch, version as vueVersion, App, defineAsyncComponent } from 'vue';
 import { compareVersions } from 'compare-versions';
+import { version, basedMisskeyVersion, basedCherrypickVersion, lang, updateLocale, locale } from '@@/js/config.js';
 import widgets from '@/widgets/index.js';
 import directives from '@/directives/index.js';
 import components from '@/components/index.js';
-import { version, basedMisskeyVersion, lang, updateLocale, locale } from '@/config.js';
 import { applyTheme } from '@/scripts/theme.js';
 import { isDeviceDarkmode } from '@/scripts/is-device-darkmode.js';
 import { updateI18n } from '@/i18n.js';
@@ -22,7 +22,8 @@ import { getAccountFromId } from '@/scripts/get-account-from-id.js';
 import { deckStore } from '@/ui/deck/deck-store.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { fetchCustomEmojis } from '@/custom-emojis.js';
-import { setupRouter } from '@/router/definition.js';
+import { setupRouter } from '@/router/main.js';
+import { createMainRouter } from '@/router/definition.js';
 import { popup } from '@/os.js';
 
 export async function common(createVue: () => App<Element>) {
@@ -65,6 +66,8 @@ export async function common(createVue: () => App<Element>) {
 	let isClientMigrated = false;
 	const showPushNotificationDialog = miLocalStorage.getItem('showPushNotificationDialog');
 
+	if (miLocalStorage.getItem('ui') === null) miLocalStorage.setItem('ui', 'friendly');
+
 	if (instance.swPublickey && ('PushManager' in window) && $i && $i.token && showPushNotificationDialog == null) {
 		popup(defineAsyncComponent(() => import('@/components/MkPushNotification.vue')), {}, {}, 'closed');
 	}
@@ -72,16 +75,18 @@ export async function common(createVue: () => App<Element>) {
 	//#region クライアントが更新されたかチェック
 	const lastVersion = miLocalStorage.getItem('lastVersion');
 	const lastBasedMisskeyVersion = miLocalStorage.getItem('lastBasedMisskeyVersion');
-	if (lastVersion !== version || lastBasedMisskeyVersion !== basedMisskeyVersion) {
+	const lastBasedCherrypickVersion = miLocalStorage.getItem('lastBasedCherrypickVersion');
+	if (lastVersion !== version || lastBasedMisskeyVersion !== basedMisskeyVersion || lastBasedCherrypickVersion !== basedCherrypickVersion) {
 		if (lastVersion == null) miLocalStorage.setItem('lastVersion', version);
 		else if (compareVersions(version, lastVersion) === 0 || compareVersions(version, lastVersion) === 1) miLocalStorage.setItem('lastVersion', version);
 		miLocalStorage.setItem('lastBasedMisskeyVersion', basedMisskeyVersion);
+		miLocalStorage.setItem('lastBasedCherrypickVersion', basedCherrypickVersion);
 
 		// テーマリビルドするため
 		miLocalStorage.removeItem('theme');
 
 		try { // 変なバージョン文字列来るとcompareVersionsでエラーになるため
-			if ((lastVersion != null && compareVersions(version, lastVersion) === 1) || (lastBasedMisskeyVersion != null && compareVersions(basedMisskeyVersion, lastBasedMisskeyVersion) === 1)) {
+			if ((lastVersion != null && compareVersions(version, lastVersion) === 1) || (lastBasedMisskeyVersion != null && compareVersions(basedMisskeyVersion, lastBasedMisskeyVersion) === 1) || (lastBasedCherrypickVersion != null && compareVersions(basedCherrypickVersion, lastBasedCherrypickVersion) === 1)) {
 				isClientUpdated = true;
 			} else if (lastVersion != null && compareVersions(version, lastVersion) === -1) isClientMigrated = true;
 		} catch (err) { /* empty */ }
@@ -90,7 +95,7 @@ export async function common(createVue: () => App<Element>) {
 
 	//#region Detect language & fetch translations
 	const localeVersion = miLocalStorage.getItem('localeVersion');
-	const localeOutdated = (localeVersion == null || localeVersion !== version || lastBasedMisskeyVersion !== basedMisskeyVersion || locale == null);
+	const localeOutdated = (localeVersion == null || localeVersion !== version || lastBasedMisskeyVersion !== basedMisskeyVersion || lastBasedCherrypickVersion !== basedCherrypickVersion || locale == null);
 	if (localeOutdated) {
 		const res = await window.fetch(`/assets/locales/${lang}.${version}.json`);
 		if (res.status === 200) {
@@ -133,6 +138,7 @@ export async function common(createVue: () => App<Element>) {
 	fetchInstanceMetaPromise.then(() => {
 		miLocalStorage.setItem('v', instance.version);
 		miLocalStorage.setItem('basedMisskeyVersion', instance.basedMisskeyVersion);
+		miLocalStorage.setItem('basedCherrypickVersion', instance.basedCherrypickVersion);
 	});
 
 	//#region loginId
@@ -156,10 +162,9 @@ export async function common(createVue: () => App<Element>) {
 	// NOTE: この処理は必ずクライアント更新チェック処理より後に来ること(テーマ再構築のため)
 	watch(defaultStore.reactiveState.darkMode, (darkMode) => {
 		applyTheme(darkMode ? ColdDeviceStorage.get('darkTheme') : ColdDeviceStorage.get('lightTheme'));
-		document.documentElement.dataset.colorMode = darkMode ? 'dark' : 'light';
 	}, { immediate: miLocalStorage.getItem('theme') == null });
 
-	document.documentElement.dataset.colorMode = defaultStore.state.darkMode ? 'dark' : 'light';
+	document.documentElement.dataset.colorScheme = defaultStore.state.darkMode ? 'dark' : 'light';
 
 	const darkTheme = computed(ColdDeviceStorage.makeGetterSetter('darkTheme'));
 	const lightTheme = computed(ColdDeviceStorage.makeGetterSetter('lightTheme'));
@@ -193,24 +198,18 @@ export async function common(createVue: () => App<Element>) {
 			if (instance.defaultLightTheme != null) ColdDeviceStorage.set('lightTheme', JSON.parse(instance.defaultLightTheme));
 			if (instance.defaultDarkTheme != null) ColdDeviceStorage.set('darkTheme', JSON.parse(instance.defaultDarkTheme));
 			defaultStore.set('themeInitial', false);
-		} else {
-			if (defaultStore.state.darkMode) {
-				applyTheme(darkTheme.value);
-			} else {
-				applyTheme(lightTheme.value);
-			}
 		}
 	});
 
 	watch(defaultStore.reactiveState.useBlurEffectForModal, v => {
-		document.documentElement.style.setProperty('--modalBgFilter', v ? 'blur(4px)' : 'none');
+		document.documentElement.style.setProperty('--MI-modalBgFilter', v ? 'blur(4px)' : 'none');
 	}, { immediate: true });
 
 	watch(defaultStore.reactiveState.useBlurEffect, v => {
 		if (v) {
-			document.documentElement.style.removeProperty('--blur');
+			document.documentElement.style.removeProperty('--MI-blur');
 		} else {
-			document.documentElement.style.setProperty('--blur', 'none');
+			document.documentElement.style.setProperty('--MI-blur', 'none');
 		}
 	}, { immediate: true });
 
@@ -250,7 +249,7 @@ export async function common(createVue: () => App<Element>) {
 
 	const app = createVue();
 
-	setupRouter(app);
+	setupRouter(app, createMainRouter);
 
 	if (_DEV_) {
 		app.config.performance = true;

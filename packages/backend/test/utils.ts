@@ -255,16 +255,6 @@ export const galleryPost = async (user: UserToken, galleryPost: Partial<misskey.
 	return res.body;
 };
 
-export const channel = async (user: UserToken, channel: Partial<misskey.entities.Channel> = {}): Promise<misskey.entities.Channel> => {
-	const res = await api('channels/create', {
-		bannerId: null,
-		description: null,
-		name: 'test',
-		...channel,
-	}, user);
-	return res.body;
-};
-
 export const role = async (user: UserToken, role: Partial<misskey.entities.Role> = {}, policies: any = {}): Promise<misskey.entities.Role> => {
 	const res = await api('admin/roles/create', {
 		asBadge: false,

@@ -24,8 +24,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, shallowRef } from 'vue';
+import { getScrollContainer } from '@@/js/scroll.js';
 import { i18n } from '@/i18n.js';
-import { getScrollContainer } from '@/scripts/scroll.js';
 import { isHorizontalSwipeSwiping } from '@/scripts/touch.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import { defaultStore } from '@/store.js';
@@ -239,7 +239,7 @@ defineExpose({
 	width: 100%;
 	min-height: var(--frame-min-height, 0px);
 
-	box-shadow: inset 0px -7px 10px -10px rgba(0,0,0,.1);
+	// box-shadow: inset 0px -7px 10px -10px rgba(0,0,0,.1);
 	mask-image: linear-gradient(90deg, #000 0%, #000 80%, transparent);
 	-webkit-mask-image: -webkit-linear-gradient(90deg, #000 0%, #000 80%, transparent);
 

@@ -52,7 +52,7 @@ export const meta = {
 					},
 				},
 				userId: { type: 'string', optional: false, nullable: false },
-				expiresAt: { type: 'string', optional: false, nullable: false },
+				scheduledAt: { type: 'string', optional: false, nullable: false },
 			},
 		},
 	},
@@ -102,11 +102,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					isSchedule: boolean;
 				};
 				userId: string;
-				expiresAt: string;
+				scheduledAt: string;
 			}[] = await Promise.all(scheduleNotes.map(async (item: MiNoteSchedule) => {
 				return {
 					...item,
-					expiresAt: item.expiresAt.toISOString(),
+					scheduledAt: item.scheduledAt.toISOString(),
 					note: {
 						...item.note,
 						text: item.note.text ?? '',
@@ -115,7 +115,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						reactionAcceptance: item.note.reactionAcceptance ?? null,
 						visibleUsers: item.note.visibleUsers ? await userEntityService.packMany(item.note.visibleUsers.map(u => u.id), me) : [],
 						fileIds: item.note.files ? item.note.files : [],
-						createdAt: item.expiresAt.toISOString(),
+						createdAt: item.scheduledAt.toISOString(),
 						isSchedule: true,
 						id: item.id,
 					},

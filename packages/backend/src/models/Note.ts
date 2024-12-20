@@ -271,6 +271,11 @@ export class MiNote {
 		comment: '[Denormalized]',
 	})
 	public renoteUserHost: string | null;
+
+	@Column('timestamp with time zone', {
+		nullable: true,
+	})
+	public deleteAt: Date | null;
 	//#endregion
 
 	constructor(data: Partial<MiNote>) {

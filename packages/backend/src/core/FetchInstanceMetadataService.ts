@@ -23,6 +23,7 @@ type NodeInfo = {
 		name?: unknown;
 		version?: unknown;
 		basedMisskeyVersion?: unknown;
+		basedCherrypickVersion?: unknown;
 	};
 	metadata?: {
 		name?: unknown;
@@ -84,7 +85,7 @@ export class FetchInstanceMetadataService {
 
 		try {
 			if (!force) {
-				const _instance = await this.federatedInstanceService.fetch(host);
+				const _instance = await this.federatedInstanceService.fetchOrRegister(host);
 				const now = Date.now();
 				if (_instance && _instance.infoUpdatedAt && (now - _instance.infoUpdatedAt.getTime() < 1000 * 60 * 60 * 24)) {
 					// unlock at the finally caluse

@@ -10,11 +10,13 @@ import { DataSource } from 'typeorm';
 import { MeiliSearch } from 'meilisearch';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
 import { Logging } from '@google-cloud/logging';
+import { MiMeta } from '@/models/Meta.js';
 import { DI } from './di-symbols.js';
 import { Config, loadConfig } from './config.js';
 import { createPostgresDataSource } from './postgres.js';
 import { RepositoryModule } from './models/RepositoryModule.js';
 import { allSettled } from './misc/promise-tracker.js';
+import { GlobalEvents } from './core/GlobalEventService.js';
 import type { Provider, OnApplicationShutdown } from '@nestjs/common';
 
 const $config: Provider = {
@@ -117,6 +119,71 @@ const $redisForTimelines: Provider = {
 	},
 	inject: [DI.config],
 };
+
+const $redisForReactions: Provider = {
+	provide: DI.redisForReactions,
+	useFactory: (config: Config) => {
+		return new Redis.Redis(config.redisForReactions);
+	},
+	inject: [DI.config],
+};
+
+const $meta: Provider = {
+	provide: DI.meta,
+	useFactory: async (db: DataSource, redisForSub: Redis.Redis) => {
+		const meta = await db.transaction(async transactionalEntityManager => {
+			// 過去のバグでレコードが複数出来てしまっている可能性があるので新しいIDを優先する
+			const metas = await transactionalEntityManager.find(MiMeta, {
+				order: {
+					id: 'DESC',
+				},
+			});
+
+			const meta = metas[0];
+
+			if (meta) {
+				return meta;
+			} else {
+				// metaが空のときfetchMetaが同時に呼ばれるとここが同時に呼ばれてしまうことがあるのでフェイルセーフなupsertを使う
+				const saved = await transactionalEntityManager
+					.upsert(
+						MiMeta,
+						{
+							id: 'x',
+						},
+						['id'],
+					)
+					.then((x) => transactionalEntityManager.findOneByOrFail(MiMeta, x.identifiers[0]));
+
+				return saved;
+			}
+		});
+
+		async function onMessage(_: string, data: string): Promise<void> {
+			const obj = JSON.parse(data);
+
+			if (obj.channel === 'internal') {
+				const { type, body } = obj.message as GlobalEvents['internal']['payload'];
+				switch (type) {
+					case 'metaUpdated': {
+						for (const key in body.after) {
+							(meta as any)[key] = (body.after as any)[key];
+						}
+						meta.proxyAccount = null; // joinなカラムは通常取ってこないので
+						break;
+					}
+					default:
+						break;
+				}
+			}
+		}
+
+		redisForSub.on('message', onMessage);
+
+		return meta;
+	},
+	inject: [DI.db, DI.redisForSub],
+};
 const $redisForRemoteApis: Provider = {
 	provide: DI.redisForRemoteApis,
 	useFactory: (config: Config) => {
@@ -140,8 +207,8 @@ const $redisForJobQueue: Provider = {
 @Global()
 @Module({
 	imports: [RepositoryModule],
-	providers: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, $redisForRemoteApis],
-	exports: [$config, $db, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForJobQueue, $redisForRemoteApis, RepositoryModule],
+	providers: [$config, $db, $meta, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions, $redisForJobQueue, $redisForRemoteApis],
+	exports: [$config, $db, $meta, $meilisearch, $opensearch, $cloudLogging, $redis, $redisForPub, $redisForSub, $redisForTimelines, $redisForReactions, $redisForJobQueue, $redisForRemoteApis, RepositoryModule],
 })
 export class GlobalModule implements OnApplicationShutdown {
 	constructor(
@@ -150,6 +217,7 @@ export class GlobalModule implements OnApplicationShutdown {
 		@Inject(DI.redisForPub) private redisForPub: Redis.Redis,
 		@Inject(DI.redisForSub) private redisForSub: Redis.Redis,
 		@Inject(DI.redisForTimelines) private redisForTimelines: Redis.Redis,
+		@Inject(DI.redisForReactions) private redisForReactions: Redis.Redis,
 		@Inject(DI.redisForJobQueue) private redisForJobQueue: Redis.Redis,
 		@Inject(DI.redisForRemoteApis) private redisForRemoteApis: Redis.Redis,
 	) { }
@@ -164,6 +232,7 @@ export class GlobalModule implements OnApplicationShutdown {
 			this.redisForPub.disconnect(),
 			this.redisForSub.disconnect(),
 			this.redisForTimelines.disconnect(),
+			this.redisForReactions.disconnect(),
 			this.redisForJobQueue.disconnect(),
 			this.redisForRemoteApis.disconnect(),
 		]);

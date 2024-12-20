@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { StoryObj } from '@storybook/vue3';
 import MkCustomEmoji from './MkCustomEmoji.vue';
 export const Default = {
@@ -29,7 +28,7 @@ export const Default = {
 	},
 	args: {
 		name: 'mi',
-		url: 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/about-icon.png?raw=true',
+		url: 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/about-icon.png?raw=true',
 	},
 	parameters: {
 		layout: 'centered',

@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-/* eslint-disable @typescript-eslint/explicit-function-return-type */
-/* eslint-disable import/no-default-export */
 import { StoryObj } from '@storybook/vue3';
 import { HttpResponse, http } from 'msw';
 import { action } from '@storybook/addon-actions';
@@ -54,7 +52,7 @@ export const Default = {
 				...commonHandlers,
 				http.get('/proxy/image.webp', async ({ request }) => {
 					const url = new URL(request.url).searchParams.get('url');
-					if (url === 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true') {
+					if (url === 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true') {
 						const image = await (await fetch('client-assets/fedi.jpg')).blob();
 						return new HttpResponse(image, {
 							headers: {

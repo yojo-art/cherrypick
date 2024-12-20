@@ -6,7 +6,7 @@
 import { createPublicKey, randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
-import * as mfm from 'cherrypick-mfm-js';
+import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import type { MiPartialLocalUser, MiLocalUser, MiPartialRemoteUser, MiRemoteUser, MiUser } from '@/models/User.js';
@@ -32,6 +32,7 @@ import { searchableTypes } from '@/types.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
+import { toSerchableByProperty } from './misc/searchableBy.js';
 import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
@@ -455,6 +456,14 @@ export class ApRendererService {
 			} as const : {};
 		}
 
+		let asDeleteAt = {};
+		if (note.deleteAt) {
+			const n = await this.notesRepository.findOneBy({ id: note.id });
+			asDeleteAt = n ? {
+				deleteAt: n.deleteAt,
+			} as const : {};
+		}
+
 		return {
 			id: `${this.config.url}/notes/${note.id}`,
 			type: 'Note',
@@ -479,6 +488,8 @@ export class ApRendererService {
 			attachment: files.map(x => this.renderDocument(x)),
 			sensitive: note.cw != null || files.some(file => file.isSensitive),
 			tag,
+			disableRightClick: note.disableRightClick,
+			...asDeleteAt,
 			...asEvent,
 			...asPoll,
 			...asTalk,
@@ -531,6 +542,7 @@ export class ApRendererService {
 		];
 
 		const keypair = await this.userKeypairService.getUserKeypair(user.id);
+		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
 
 		const person: any = {
 			type: isSystem ? 'Application' : user.isBot ? 'Service' : 'Person',
@@ -547,13 +559,14 @@ export class ApRendererService {
 			name: user.name,
 			summary: profile.description ? this.mfmService.toHtml(mfm.parse(profile.description)) : null,
 			_misskey_summary: profile.description,
+			_misskey_followedMessage: profile.followedMessage,
 			icon: avatar ? this.renderImage(avatar) : null,
 			image: banner ? this.renderImage(banner) : null,
 			tag,
 			manuallyApprovesFollowers: user.isLocked,
 			discoverable: user.isExplorable,
 			indexable: user.isIndexable,
-			searchableBy: [`${this.config.url}/users/${user.id}`],
+			...( searchableByData ? { searchableBy: searchableByData } : {}),
 			publicKey: this.renderKey(user, keypair, '#main-key'),
 			isCat: user.isCat,
 			attachment: attachment.length ? attachment : undefined,

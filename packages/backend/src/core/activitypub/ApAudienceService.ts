@@ -8,7 +8,6 @@ import promiseLimit from 'promise-limit';
 import type { MiRemoteUser, MiUser } from '@/models/User.js';
 import { concat, unique } from '@/misc/prelude/array.js';
 import { bindThis } from '@/decorators.js';
-import { searchableTypes } from '@/types.js';
 import { getApIds } from './type.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import type { ApObject } from './type.js';
@@ -73,22 +72,7 @@ export class ApAudienceService {
 			visibleUsers: mentionedUsers,
 		};
 	}
-	public async parseSearchableBy (actor: MiRemoteUser, searchableBy?: string[]): Promise<'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null> {
-		if (!searchableBy) {
-			return null;
-		}
-		console.log(searchableBy);
-		if (searchableBy.includes('https://www.w3.org/ns/activitystreams#Public')) {
-			return 'public';
-		} else	if (actor.followersUri && searchableBy.includes(actor.followersUri)) {
-			return 'followersAndReacted';
-		} else if (searchableBy.includes(actor.uri)) {
-			return 'reactedOnly';
-		} else if (searchableBy.includes('as:Limited') || searchableBy.includes('kmyblue:Limited')) {
-			return 'private';
-		}
-		return null;
-	}
+
 	@bindThis
 	private groupingAudience(ids: string[], actor: MiRemoteUser): GroupedAudience {
 		const groups: GroupedAudience = {

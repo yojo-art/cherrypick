@@ -15,28 +15,31 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div :class="$style.version">
 			<div>✨{{ version }}🚀</div>
-			<div style="font-size: 0.8em;">{{ basedMisskeyVersion }}</div>
+			<div style="font-size: 0.8em;">Cherrypick {{ basedCherrypickVersion }}</div>
+			<div style="font-size: 0.8em;">Misskey {{ basedMisskeyVersion }}</div>
 		</div>
-		<MkButton rounded full @click="showChangelog = true; modal.value.close();">{{ i18n.ts.whatIsNew }}</MkButton>
+		<MkButton rounded full @click="whatIsNewYojo">{{ i18n.ts.whatIsNew }}</MkButton>
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.gotIt }}</MkButton>
 	</div>
 </MkModal>
+<!--
 <MkModal v-else-if="showChangelog" ref="modal" :zPriority="'middle'">
 	<div :class="$style.root">
 		<div :class="$style.title" style="margin: 0 0 1.5em; font-weight: normal;">{{ i18n.ts.whatIsNew }}</div>
-		<MkButton rounded full @click="whatIsNewMisskey">Misskey</MkButton>
 		<MkButton rounded full style="margin: 8px 0 0;" @click="whatIsNewCherryPick">CherryPick</MkButton>
+		<MkButton rounded full @click="whatIsNewMisskey">Misskey</MkButton>
 		<MkButton :class="$style.gotIt" primary rounded full @click="close">{{ i18n.ts.ok }}</MkButton>
 	</div>
 </MkModal>
+-->
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref, shallowRef } from 'vue';
+import { version, basedMisskeyVersion, basedCherrypickVersion } from '@@/js/config.js';
 import MkModal from '@/components/MkModal.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSparkle from '@/components/MkSparkle.vue';
-import { version, basedMisskeyVersion } from '@/config.js';
 import { i18n } from '@/i18n.js';
 import { confetti } from '@/scripts/confetti.js';
 import * as os from '@/os.js';
@@ -47,12 +50,16 @@ const showChangelog = ref(false);
 
 const modal = shallowRef<InstanceType<typeof MkModal>>();
 
+const whatIsNewYojo = () => {
+	// modal.value?.close();
+	window.open(`https://github.com/yojo-art/cherrypick/blob/develop/CHANGELOG_YOJO.md#${version.replace(/\./g, '')}`, '_blank');
+};
+const whatIsNewCherryPick = () => {
+	// modal.value?.close();
+	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${basedCherrypickVersion.replace(/\./g, '')}`, '_blank');
+};
 const whatIsNewMisskey = () => {
 	window.open(`https://misskey-hub.net/docs/releases/#_${basedMisskeyVersion.replace(/\./g, '')}`, '_blank');
-};
-
-const whatIsNewCherryPick = () => {
-	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '')}`, '_blank');
 };
 
 const close = async () => {
@@ -82,8 +89,8 @@ onMounted(() => {
 	max-width: 480px;
 	box-sizing: border-box;
 	text-align: center;
-	background: var(--panel);
-	border-radius: var(--radius);
+	background: var(--MI_THEME-panel);
+	border-radius: var(--MI-radius);
 }
 
 .title {

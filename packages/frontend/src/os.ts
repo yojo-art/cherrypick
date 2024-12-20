@@ -10,6 +10,7 @@ import { EventEmitter } from 'eventemitter3';
 import * as Misskey from 'cherrypick-js';
 import type { ComponentProps as CP } from 'vue-component-type-helpers';
 import type { Form, GetFormResultType } from '@/scripts/form.js';
+import type { MenuItem } from '@/types/menu.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
@@ -23,7 +24,7 @@ import MkPasswordDialog from '@/components/MkPasswordDialog.vue';
 import MkEmojiPickerDialog from '@/components/MkEmojiPickerDialog.vue';
 import MkPopupMenu from '@/components/MkPopupMenu.vue';
 import MkContextMenu from '@/components/MkContextMenu.vue';
-import { MenuItem } from '@/types/menu.js';
+import MkQRCode from '@/components/MkQRCode.vue';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import { pleaseLogin } from '@/scripts/please-login.js';
 import { showMovedDialog } from '@/scripts/show-moved-dialog.js';
@@ -36,6 +37,7 @@ export const apiWithDialog = (<E extends keyof Misskey.Endpoints = keyof Misskey
 	endpoint: E,
 	data: P = {} as any,
 	token?: string | null | undefined,
+	customErrors?: Record<string, { title?: string; text: string; }>,
 ) => {
 	const promise = misskeyApi(endpoint, data, token);
 	promiseDialog(promise, null, async (err) => {
@@ -78,6 +80,9 @@ export const apiWithDialog = (<E extends keyof Misskey.Endpoints = keyof Misskey
 		} else if (err.message.startsWith('Unexpected token')) {
 			title = i18n.ts.gotInvalidResponseError;
 			text = i18n.ts.gotInvalidResponseErrorDescription;
+		} else if (customErrors && customErrors[err.id] != null) {
+			title = customErrors[err.id].title;
+			text = customErrors[err.id].text;
 		}
 		alert({
 			type: 'error',
@@ -87,7 +92,7 @@ export const apiWithDialog = (<E extends keyof Misskey.Endpoints = keyof Misskey
 	});
 
 	return promise;
-}) as typeof misskeyApi;
+});
 
 export function promiseDialog<T extends Promise<any>>(
 	promise: T,
@@ -230,6 +235,7 @@ export function alert(props: {
 	type?: 'error' | 'info' | 'success' | 'warning' | 'waiting' | 'question';
 	title?: string;
 	text?: string;
+	caption?: string | null;
 }): Promise<void> {
 	return new Promise(resolve => {
 		const { dispose } = popup(MkDialog, props, {
@@ -267,12 +273,14 @@ export function confirm(props: {
 export function actions<T extends {
 	value: string;
 	text: string;
+	caption?: string | null;
 	primary?: boolean,
 	danger?: boolean,
 }[]>(props: {
 	type: 'error' | 'info' | 'success' | 'warning' | 'waiting' | 'question';
 	title?: string;
 	text?: string;
+	caption?: string | null;
 	actions: T;
 }): Promise<{
 	canceled: true; result: undefined;
@@ -574,13 +582,6 @@ export async function selectUser(opts: { includeSelf?: boolean; localOnly?: bool
 		});
 	});
 }
-export async function listSchedulePost() {
-	return new Promise((resolve, reject) => {
-		popup(defineAsyncComponent(() => import('@/components/MkSchedulePostListDialog.vue')), {
-		}, {
-		}, 'closed');
-	});
-}
 export async function selectDriveFile(multiple: boolean): Promise<Misskey.entities.DriveFile[]> {
 	return new Promise(resolve => {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkDriveSelectDialog.vue')), {
@@ -741,3 +742,26 @@ export function checkExistence(fileData: ArrayBuffer): Promise<any> {
 		});
 	});
 }*/
+
+export async function displayQRCode(qrCode: string) {
+	(await new Promise<(() => void ) | undefined>((resolve) => {
+		let dispose: (() => void ) | undefined;
+		popup(
+			MkQRCode,
+			{ qrCode },
+			{
+				closed: () => {
+					resolve(dispose);
+				},
+			},
+		).then((res) => {
+			dispose = res.dispose;
+		});
+	}))?.();
+}
+
+export async function listScheduleNotePost() {
+	return new Promise((resolve, reject) => {
+		popup(defineAsyncComponent(() => import('@/components/MkSchedulePostListDialog.vue')), {}, {}, 'closed');
+	});
+}

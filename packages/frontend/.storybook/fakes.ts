@@ -23,7 +23,7 @@ export function abuseUserReport() {
 	};
 }
 
-export function channel(id = 'somechannelid', name = 'Some Channel', bannerUrl: string | null = 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true'): entities.Channel {
+export function channel(id = 'somechannelid', name = 'Some Channel', bannerUrl: string | null = 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true'): entities.Channel {
 	return {
 		id,
 		createdAt: '2016-12-28T22:49:51.000Z',
@@ -105,8 +105,8 @@ export function file(isSensitive = false) {
 			width: 1024,
 			height: 270
 		},
-		url: 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true',
-		thumbnailUrl: 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true',
+		url: 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true',
+		thumbnailUrl: 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true',
 		comment: null,
 		folderId: null,
 		folder: null,
@@ -179,11 +179,12 @@ export function federationInstance(): entities.FederationInstance {
 		maintainerName: '',
 		maintainerEmail: '',
 		isSilenced: false,
-		iconUrl: 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/about-icon.png?raw=true',
+		iconUrl: 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/about-icon.png?raw=true',
 		faviconUrl: '',
 		themeColor: '',
 		infoUpdatedAt: '',
 		latestRequestReceivedAt: '',
+		isMediaSilenced: false,
 	};
 }
 
@@ -214,7 +215,7 @@ export function userLite(id = 'someuserid', username = 'cherrypikist', host: ent
 		host,
 		name,
 		onlineStatus: 'unknown',
-		avatarUrl: 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/about-icon.png?raw=true',
+		avatarUrl: 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/about-icon.png?raw=true',
 		avatarBlurhash: 'eQFRshof5NWBRi},juayfPju53WB?0ofs;s*a{ofjuay^SoMEJR%ay',
 		avatarDecorations: [],
 		emojis: {},
@@ -225,7 +226,7 @@ export function userDetailed(id = 'someuserid', username = 'cherrypikist', host:
 	return {
 		...userLite(id, username, host, name),
 		bannerBlurhash: 'eQA^IW^-MH8w9tE8I=S^o{$*R4RikXtSxutRozjEnNR.RQadoyozog',
-		bannerUrl: 'https://github.com/kokonect-link/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true',
+		bannerUrl: 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true',
 		birthday: '2014-06-20',
 		createdAt: '2016-12-28T22:49:51.000Z',
 		description: 'I am a cool user!',
@@ -275,6 +276,7 @@ export function userDetailed(id = 'someuserid', username = 'cherrypikist', host:
 		alsoKnownAs: null,
 		notify: 'none',
 		memo: null,
+		mutualLinkSections: [],
 	};
 }
 

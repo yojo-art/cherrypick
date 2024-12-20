@@ -12,10 +12,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSpacer :contentMax="800">
 		<MkHorizontalSwipe v-model:tab="src" :tabs="$i ? headerTabs : headerTabsWhenNotLogin">
 			<div :key="src" ref="rootEl">
-				<MkInfo v-if="isBasicTimeline(src) && !defaultStore.reactiveState.timelineTutorials.value[src]" style="margin-bottom: var(--margin);" closable @close="closeTutorial()">
+				<MkInfo v-if="isBasicTimeline(src) && !defaultStore.reactiveState.timelineTutorials.value[src]" style="margin-bottom: var(--MI-margin);" closable @close="closeTutorial()">
 					{{ i18n.ts._timelineDescription[src] }}
 				</MkInfo>
-				<MkPostForm v-if="defaultStore.reactiveState.showFixedPostForm.value" :class="$style.postForm" class="post-form _panel" fixed style="margin-bottom: var(--margin);" :autofocus="false"/>
+				<MkPostForm v-if="defaultStore.reactiveState.showFixedPostForm.value" :class="$style.postForm" class="post-form _panel" fixed style="margin-bottom: var(--MI-margin);" :autofocus="false"/>
 
 				<transition
 					:enterActiveClass="defaultStore.state.animation ? $style.transition_new_enterActive : ''"
@@ -37,7 +37,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</transition>
 
 				<div :class="$style.tl">
+					<div v-if="!isAvailableBasicTimeline(src)" :class="$style.disabled">
+						<p :class="$style.disabledTitle">
+							<i class="ti ti-circle-minus"></i>
+							{{ i18n.ts._disabledTimeline.title }}
+						</p>
+						<p :class="$style.disabledDescription">{{ i18n.ts._disabledTimeline.description }}</p>
+					</div>
 					<MkTimeline
+						v-else
 						ref="tlComponent"
 						:key="src + withRenotes + withReplies + onlyFiles + onlyCats"
 						:src="src.split(':')[0]"
@@ -58,13 +66,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, watch, provide, shallowRef, ref, onMounted, onActivated } from 'vue';
+import { scroll } from '@@/js/scroll.js';
 import type { Tab } from '@/components/global/MkPageHeader.tabs.vue';
 import type { BasicTimelineType } from '@/timelines.js';
+import type { MenuItem } from '@/types/menu.js';
 import MkTimeline from '@/components/MkTimeline.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
 import MkHorizontalSwipe from '@/components/MkHorizontalSwipe.vue';
-import { scroll } from '@/scripts/scroll.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore } from '@/store.js';
@@ -75,16 +84,18 @@ import { antennasCache, userListsCache, favoritedChannelsCache } from '@/cache.j
 import { globalEvents } from '@/events.js';
 import { deviceKind } from '@/scripts/device-kind.js';
 import { deepMerge } from '@/scripts/merge.js';
-import { MenuItem } from '@/types/menu.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { availableBasicTimelines, hasWithReplies, isAvailableBasicTimeline, isBasicTimeline, basicTimelineIconClass } from '@/timelines.js';
-import { unisonReload } from '@/scripts/unison-reload.js';
+import { reloadAsk } from '@/scripts/reload-ask.js';
 
 const showEl = ref(false);
 const isFriendly = ref(miLocalStorage.getItem('ui') === 'friendly');
 
+const DESKTOP_THRESHOLD = 1100;
 const MOBILE_THRESHOLD = 500;
 
+// デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
+const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
 window.addEventListener('resize', () => {
 	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
@@ -156,8 +167,22 @@ const withSensitive = computed<boolean>({
 	set: (x) => saveTlFilter('withSensitive', x),
 });
 
-const friendlyEnableNotifications = ref(defaultStore.state.friendlyEnableNotifications);
-const friendlyEnableWidgets = ref(defaultStore.state.friendlyEnableWidgets);
+const enableWidgetsArea = ref(defaultStore.state.enableWidgetsArea);
+const friendlyUiEnableNotificationsArea = ref(defaultStore.state.friendlyUiEnableNotificationsArea);
+
+const enableHomeTimeline = ref(defaultStore.state.enableHomeTimeline);
+const enableLocalTimeline = ref(defaultStore.state.enableLocalTimeline);
+const enableSocialTimeline = ref(defaultStore.state.enableSocialTimeline);
+const enableGlobalTimeline = ref(defaultStore.state.enableGlobalTimeline);
+const enableListTimeline = ref(defaultStore.state.enableListTimeline);
+const enableAntennaTimeline = ref(defaultStore.state.enableAntennaTimeline);
+const enableChannelTimeline = ref(defaultStore.state.enableChannelTimeline);
+
+const collapseRenotes = ref(defaultStore.state.collapseRenotes);
+const collapseReplies = ref(defaultStore.state.collapseReplies);
+const collapseLongNoteContent = ref(defaultStore.state.collapseLongNoteContent);
+const collapseDefault = ref(defaultStore.state.collapseDefault);
+const alwaysShowCw = ref(defaultStore.state.alwaysShowCw);
 
 watch(src, () => {
 	queue.value = 0;
@@ -169,14 +194,77 @@ watch(withSensitive, () => {
 	tlComponent.value?.reloadTimeline();
 });
 
-watch(friendlyEnableNotifications, (x) => {
-	defaultStore.set('friendlyEnableNotifications', x);
-	reloadAsk();
+watch(enableWidgetsArea, (x) => {
+	defaultStore.set('enableWidgetsArea', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
-watch(friendlyEnableWidgets, (x) => {
-	defaultStore.set('friendlyEnableWidgets', x);
-	reloadAsk();
+watch(friendlyUiEnableNotificationsArea, (x) => {
+	defaultStore.set('friendlyUiEnableNotificationsArea', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableHomeTimeline, (x) => {
+	defaultStore.set('enableHomeTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableLocalTimeline, (x) => {
+	defaultStore.set('enableLocalTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableSocialTimeline, (x) => {
+	defaultStore.set('enableSocialTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableGlobalTimeline, (x) => {
+	defaultStore.set('enableGlobalTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableListTimeline, (x) => {
+	defaultStore.set('enableListTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableAntennaTimeline, (x) => {
+	defaultStore.set('enableAntennaTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableChannelTimeline, (x) => {
+	defaultStore.set('enableChannelTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(collapseRenotes, (x) => {
+	defaultStore.set('collapseRenotes', x);
+	reloadTimeline();
+});
+
+watch(collapseReplies, (x) => {
+	defaultStore.set('collapseReplies', x);
+	reloadTimeline();
+});
+
+watch(collapseLongNoteContent, (x) => {
+	defaultStore.set('collapseLongNoteContent', x);
+	reloadTimeline();
+	reloadNotification();
+});
+
+watch(collapseDefault, (x) => {
+	defaultStore.set('collapseDefault', x);
+	reloadTimeline();
+	reloadNotification();
+});
+
+watch(alwaysShowCw, (x) => {
+	defaultStore.set('alwaysShowCw', x);
+	reloadTimeline();
+	reloadNotification();
 });
 
 onMounted(() => {
@@ -290,7 +378,7 @@ async function chooseChannel(ev: MouseEvent): Promise<void> {
 		}),
 		(channels.length === 0 ? undefined : { type: 'divider' }),
 		{
-			type: 'link' as const,
+			type: 'link',
 			icon: 'ti ti-plus',
 			text: i18n.ts.createNew,
 			to: '/channels',
@@ -302,7 +390,7 @@ async function chooseChannel(ev: MouseEvent): Promise<void> {
 function saveSrc(newSrc: TimelinePageSrc): void {
 	const out = deepMerge({ src: newSrc }, defaultStore.state.tl);
 
-	if (newSrc.startsWith('userList:')) {
+	if (defaultStore.state.enableListTimeline && newSrc.startsWith('userList:')) {
 		const id = newSrc.substring('userList:'.length);
 		out.userList = defaultStore.reactiveState.pinnedUserLists.value.find(l => l.id === id) ?? null;
 	}
@@ -329,18 +417,6 @@ async function timetravel(): Promise<void> {
 	tlComponent.value.timetravel(date);
 }
 
-async function reloadAsk() {
-	if (defaultStore.state.requireRefreshBehavior === 'dialog') {
-		const { canceled } = await os.confirm({
-			type: 'info',
-			text: i18n.ts.reloadToApplySetting,
-		});
-		if (canceled) return;
-
-		unisonReload();
-	} else globalEvents.emit('hasRequireRefresh', true);
-}
-
 function focus(): void {
 	tlComponent.value.focus();
 }
@@ -358,6 +434,14 @@ function switchTlIfNeeded() {
 	}
 }
 
+function reloadTimeline() {
+	globalEvents.emit('reloadTimeline');
+}
+
+function reloadNotification() {
+	globalEvents.emit('reloadNotification');
+}
+
 onMounted(() => {
 	switchTlIfNeeded();
 });
@@ -371,37 +455,147 @@ const headerActions = computed(() => {
 			icon: 'ti ti-dots',
 			text: i18n.ts.options,
 			handler: (ev) => {
-				os.popupMenu([{
+				const menuItems: MenuItem[] = [];
+
+				if (isFriendly.value) {
+					menuItems.push({
+						type: 'parent',
+						icon: 'ti ti-settings',
+						text: 'Friendly UI',
+						children: async () => {
+							const friendlyUiChildMenu = [] as MenuItem[];
+
+							if (isDesktop.value) {
+								friendlyUiChildMenu.push({
+									type: 'switch',
+									text: i18n.ts._cherrypick.friendlyUiEnableNotificationsArea,
+									ref: friendlyUiEnableNotificationsArea,
+								});
+							}
+
+							return friendlyUiChildMenu;
+						},
+					});
+				}
+
+				menuItems.push({
 					type: 'switch',
-					text: i18n.ts.friendlyEnableNotifications,
-					ref: friendlyEnableNotifications,
-				}, {
-					type: 'switch',
-					text: i18n.ts.friendlyEnableWidgets,
-					ref: friendlyEnableWidgets,
-				}, {
-					type: 'switch',
-					text: i18n.ts.showRenotes,
-					ref: withRenotes,
-				}, isBasicTimeline(src.value) && hasWithReplies(src.value) ? {
-					type: 'switch',
-					text: i18n.ts.showRepliesToOthersInTimeline,
-					ref: withReplies,
-					disabled: onlyFiles,
-				} : undefined, {
-					type: 'switch',
-					text: i18n.ts.withSensitive,
-					ref: withSensitive,
-				}, {
-					type: 'switch',
-					text: i18n.ts.fileAttachedOnly,
-					ref: onlyFiles,
-					disabled: isBasicTimeline(src.value) && hasWithReplies(src.value) ? withReplies : false,
-				}, {
-					type: 'switch',
-					text: i18n.ts.showCatOnly,
-					ref: onlyCats,
-				}], ev.currentTarget ?? ev.target);
+					text: i18n.ts._cherrypick.enableWidgetsArea,
+					ref: enableWidgetsArea,
+				});
+
+				menuItems.push({ type: 'divider' });
+
+				menuItems.push({
+					type: 'parent',
+					icon: 'ti ti-align-left',
+					text: i18n.ts.timeline,
+					children: async () => {
+						const displayOfTimelineChildMenu = [] as MenuItem[];
+
+						displayOfTimelineChildMenu.push({
+							type: 'switch',
+							text: i18n.ts._timelines.home,
+							icon: 'ti ti-home',
+							ref: enableHomeTimeline,
+						}, {
+							type: 'switch',
+							text: i18n.ts._timelines.local,
+							icon: 'ti ti-planet',
+							ref: enableLocalTimeline,
+						}, {
+							type: 'switch',
+							text: i18n.ts._timelines.social,
+							icon: 'ti ti-universe',
+							ref: enableSocialTimeline,
+						}, {
+							type: 'switch',
+							text: i18n.ts._timelines.global,
+							icon: 'ti ti-world',
+							ref: enableGlobalTimeline,
+						}, { type: 'divider' }, {
+							type: 'switch',
+							text: i18n.ts.lists,
+							icon: 'ti ti-list',
+							ref: enableListTimeline,
+						}, {
+							type: 'switch',
+							text: i18n.ts.antennas,
+							icon: 'ti ti-antenna',
+							ref: enableAntennaTimeline,
+						}, {
+							type: 'switch',
+							text: i18n.ts.channel,
+							icon: 'ti ti-device-tv',
+							ref: enableChannelTimeline,
+						});
+
+						return displayOfTimelineChildMenu;
+					},
+				});
+
+				menuItems.push({
+					type: 'parent',
+					icon: 'ti ti-note',
+					text: i18n.ts.displayOfNote,
+					children: async () => {
+						const displayOfNoteChildMenu = [] as MenuItem[];
+
+						displayOfNoteChildMenu.push({
+							type: 'switch',
+							text: i18n.ts.showRenotes,
+							ref: withRenotes,
+						});
+
+						if (isBasicTimeline(src.value) && hasWithReplies(src.value)) {
+							displayOfNoteChildMenu.push({
+								type: 'switch',
+								text: i18n.ts.showRepliesToOthersInTimeline,
+								ref: withReplies,
+								disabled: onlyFiles,
+							});
+						}
+
+						displayOfNoteChildMenu.push({
+							type: 'switch',
+							text: i18n.ts.withSensitive,
+							ref: withSensitive,
+						}, {
+							type: 'switch',
+							text: i18n.ts.fileAttachedOnly,
+							ref: onlyFiles,
+							disabled: isBasicTimeline(src.value) && hasWithReplies(src.value) ? withReplies : false,
+						}, {
+							type: 'switch',
+							text: i18n.ts.showCatOnly,
+							ref: onlyCats,
+						}, { type: 'divider' }, {
+							type: 'switch',
+							text: i18n.ts.collapseRenotes,
+							ref: collapseRenotes,
+						}, {
+							type: 'switch',
+							text: i18n.ts.collapseReplies,
+							ref: collapseReplies,
+						}, {
+							type: 'switch',
+							text: i18n.ts.collapseLongNoteContent,
+							ref: collapseLongNoteContent,
+						}, {
+							type: 'switch',
+							text: i18n.ts.collapseDefault,
+							ref: collapseDefault,
+						}, {
+							type: 'switch',
+							text: i18n.ts.alwaysShowCw,
+							ref: alwaysShowCw,
+						});
+
+						return displayOfNoteChildMenu;
+					},
+				});
+
+				os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 			},
 		},
 	];
@@ -465,22 +659,22 @@ definePageMetadata(() => ({
 
 .new {
 	position: sticky;
-	top: calc(var(--stickyTop, 0px) + 8px);
+	top: calc(var(--MI-stickyTop, 0px) + 8px);
 	z-index: 1000;
 	width: 100%;
 	margin: calc(-0.675em - 8px) 0;
 	transition: opacity 0.5s, transform 0.5s;
 
 	&:first-child {
-		margin-top: calc(-0.675em - 8px - var(--margin));
+		margin-top: calc(-0.675em - 8px - var(--MI-margin));
 	}
 
 	&.showEl {
-		transform: translateY(calc(var(--stickyTop, 0px) - 101px))
+		transform: translateY(calc(var(--MI-stickyTop, 0px) - 101px))
 	}
 
   &.showElTab {
-    transform: translateY(calc(var(--stickyTop, 0px) - 181px))
+    transform: translateY(calc(var(--MI-stickyTop, 0px) - 181px))
   }
 
 	&.reduceAnimation {
@@ -490,7 +684,7 @@ definePageMetadata(() => ({
 
 .newButton {
 	display: block;
-	margin: var(--margin) auto 0 auto;
+	margin: var(--MI-margin) auto 0 auto;
 	padding: 8px 16px;
 	border-radius: 32px;
 
@@ -500,12 +694,12 @@ definePageMetadata(() => ({
 }
 
 .postForm {
-	border-radius: var(--radius);
+	border-radius: var(--MI-radius);
 }
 
 .tl {
-	background: var(--bg);
-	border-radius: var(--radius);
+	background: var(--MI_THEME-bg);
+	border-radius: var(--MI-radius);
 	overflow: clip;
 }
 </style>

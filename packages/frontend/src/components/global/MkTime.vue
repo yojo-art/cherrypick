@@ -15,8 +15,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import isChromatic from 'chromatic/isChromatic';
 import { onMounted, onUnmounted, ref, computed } from 'vue';
+import { dateTimeFormat } from '@@/js/intl-const.js';
 import { i18n } from '@/i18n.js';
-import { dateTimeFormat } from '@/scripts/intl-const.js';
 import { defaultStore } from '@/store.js';
 
 const props = withDefaults(defineProps<{
@@ -114,10 +114,10 @@ if (!invalid && props.origin === null && (props.mode === 'relative' || props.mod
 
 <style lang="scss" module>
 .old1 {
-	color: var(--warn);
+	color: var(--MI_THEME-warn);
 }
 
 .old1.old2 {
-	color: var(--error);
+	color: var(--MI_THEME-error);
 }
 </style>

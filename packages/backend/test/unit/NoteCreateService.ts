@@ -60,6 +60,13 @@ describe('NoteCreateService', () => {
 			replyUserHost: null,
 			renoteUserId: null,
 			renoteUserHost: null,
+			searchableBy: 'public',
+			updatedAt: null,
+			updatedAtHistory: null,
+			noteEditHistory: [],
+			hasEvent: false,
+			disableRightClick: false,
+			deleteAt: null,
 		};
 
 		const poll: IPoll = {
@@ -101,42 +108,42 @@ describe('NoteCreateService', () => {
 		};
 
 		test('note without renote should not be Renote', () => {
-			const note = { renote: null };
+			const note = { renote: null, searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(false);
 		});
 
 		test('note with renote should be Renote and not be Quote', () => {
-			const note = { renote: base };
+			const note = { renote: base, searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(false);
 		});
 
 		test('note with renote and text should be Quote', () => {
-			const note = { renote: base, text: 'some-text' };
+			const note = { renote: base, text: 'some-text', searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(true);
 		});
 
 		test('note with renote and cw should be Quote', () => {
-			const note = { renote: base, cw: 'some-cw' };
+			const note = { renote: base, cw: 'some-cw', searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(true);
 		});
 
 		test('note with renote and reply should be Quote', () => {
-			const note = { renote: base, reply: { ...base, id: 'another-note-id' } };
+			const note = { renote: base, reply: { ...base, id: 'another-note-id' }, searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(true);
 		});
 
 		test('note with renote and poll should be Quote', () => {
-			const note = { renote: base, poll };
+			const note = { renote: base, poll, searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(true);
 		});
 
 		test('note with renote and non-empty files should be Quote', () => {
-			const note = { renote: base, files: [file] };
+			const note = { renote: base, files: [file], searchableBy: 'public' };
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(true);
 		});

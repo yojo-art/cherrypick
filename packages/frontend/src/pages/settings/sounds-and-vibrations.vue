@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkButton danger @click="reset()"><i class="ti ti-reload"></i> {{ i18n.ts.default }}</MkButton>
 
 	<FormSection>
-		<template #label>{{ i18n.ts.vibrations }} <span class="_beta">CherryPick</span></template>
+		<template #label>{{ i18n.ts.vibrations }} <span class="_beta" style="vertical-align: middle;">CherryPick</span></template>
 		<div class="_gaps_s">
 			<MkSwitch v-model="vibrate" :disabled="ua" @click="demoVibrate()">{{ i18n.ts.playVibrations }}<template v-if="ua" #caption>{{ i18n.ts.cannotBeUsedFunc }} <a class="_link" @click="learnMorePlayVibrations">{{ i18n.ts.learnMore }}</a></template></MkSwitch>
 			<MkSwitch v-if="vibrate" v-model="vibrateNote">{{ i18n.ts._vibrations.note }}</MkSwitch>
@@ -66,7 +66,7 @@ import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { operationTypes } from '@/scripts/sound.js';
 import { defaultStore } from '@/store.js';
-import { unisonReload } from '@/scripts/unison-reload.js';
+import { reloadAsk } from '@/scripts/reload-ask.js';
 
 const ua = /ipad|iphone/.test(navigator.userAgent.toLowerCase()) || !window.navigator.vibrate;
 
@@ -90,16 +90,6 @@ const vibrateNotification = computed(defaultStore.makeGetterSetter('vibrateNotif
 const vibrateChat = computed(defaultStore.makeGetterSetter('vibrateChat'));
 const vibrateChatBg = computed(defaultStore.makeGetterSetter('vibrateChatBg'));
 const vibrateSystem = computed(defaultStore.makeGetterSetter('vibrateSystem'));
-
-async function reloadAsk() {
-	const { canceled } = await os.confirm({
-		type: 'info',
-		text: i18n.ts.reloadToApplySetting,
-	});
-	if (canceled) return;
-
-	unisonReload();
-}
 
 function getSoundTypeName(f: SoundType): string {
 	switch (f) {
@@ -148,7 +138,7 @@ function learnMorePlayVibrations() {
 watch([
 	vibrateSystem,
 ], async () => {
-	await reloadAsk();
+	await reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
 const headerActions = computed(() => []);

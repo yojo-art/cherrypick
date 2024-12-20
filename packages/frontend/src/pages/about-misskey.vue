@@ -12,8 +12,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div v-panel class="about">
 					<div ref="containerEl" class="container" :class="{ playing: easterEggEngine != null }">
 						<img src="/client-assets/about-icon.png" alt="" class="icon" draggable="false" @load="iconLoaded" @click="gravity"/>
-						<div class="cherrypick">CherryPick</div>
-						<div class="version" @click="whatIsNewCherryPick">v{{ version }}</div>
+						<div class="cherrypick">yojo-art</div>
+						<div class="version" @click="whatIsNewYojo">v{{ version }}</div>
+						<div class="version" style="font-size: 11px;" @click="whatIsNewCherryPick">v{{ basedCherrypickVersion }} (Based on CherryPick)</div>
 						<div class="version" style="font-size: 11px;" @click="whatIsNewMisskey">v{{ basedMisskeyVersion }} (Based on Misskey)</div>
 						<span v-for="emoji in easterEggEmojis" :key="emoji.id" class="emoji" :data-physics-x="emoji.left" :data-physics-y="emoji.top" :class="{ _physics_circle_: !emoji.emoji.startsWith(':') }">
 							<MkCustomEmoji v-if="emoji.emoji[0] === ':'" class="emoji" :name="emoji.emoji" :normal="true" :noStyle="true" :fallbackToImage="true"/>
@@ -39,11 +40,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</FormSection>
 				<FormSection>
+					<template #label>yojo-art</template>
+					<div class="_gaps_s">
+						<FormLink to="https://github.com/yojo-art/cherrypick" external>
+							<template #icon><i class="ti ti-code"></i></template>
+							{{ i18n.ts._aboutMisskey.source }} ({{ i18n.ts._aboutMisskey.original }})
+							<template #suffix>GitHub</template>
+						</FormLink>
+						<FormLink to="https://yojo-art.fanbox.cc/" external>
+							<template #icon><i class="ti ti-pig-money"></i></template>
+							{{ i18n.ts._aboutMisskey._yojoArt.donate }}
+							<template #suffix>Pixiv Fanbox</template>
+						</FormLink>
+					</div>
+				</FormSection>
+				<FormSection>
 					<template #label>CherryPick</template>
 					<div class="_gaps_s">
 						<FormLink to="https://github.com/kokonect-link/cherrypick" external>
 							<template #icon><i class="ti ti-code"></i></template>
-							{{ i18n.ts._aboutMisskey.source }} ({{ i18n.ts._aboutMisskey.original }})
+							{{ i18n.ts._aboutMisskey.source }}
 							<template #suffix>GitHub</template>
 						</FormLink>
 						<!--
@@ -87,7 +103,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</FormLink>
 					</div>
 				</FormSection>
-				<FormSection v-if="instance.repositoryUrl !== 'https://github.com/kokonect-link/cherrypick'">
+				<FormSection v-if="instance.repositoryUrl !== 'https://github.com/yojo-art/cherrypick'">
 					<div class="_gaps_s">
 						<MkInfo>
 							{{ i18n.tsx._aboutMisskey.thisIsModifiedVersion({ name: instance.name }) }}
@@ -109,6 +125,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<FormSection>
 					<template #label>{{ i18n.ts._aboutMisskey.projectMembers }}</template>
 					<div :class="$style.contributors">
+						<a href="https://github.com/kozakura913" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/98575220?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@kozakura913
+								<span :class="$style.contributorClient">
+									<span :class="$style.cherry">yojo</span><span :class="$style.pick">-art</span>
+								</span>
+							</span>
+						</a>
+						<a href="https://github.com/penginn-net" target="_blank" :class="$style.contributor">
+							<img src="https://avatars.githubusercontent.com/u/121443048?v=4" :class="$style.contributorAvatar">
+							<span :class="$style.contributorUsername">@penginn-net
+								<span :class="$style.contributorClient">
+									<span :class="$style.cherry">yojo</span><span :class="$style.pick">-art</span>
+								</span>
+							</span>
+						</a>
 						<a href="https://github.com/noridev" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/11006910?v=4" :class="$style.contributorAvatar">
 							<span :class="$style.contributorUsername">@noridev
@@ -186,6 +218,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</FormSection>
 				<FormSection>
 					<template #label><Mfm text="$[jelly ❤]"/> {{ i18n.ts._aboutMisskey.patrons }}</template>
+					<p style="font-weight: bold">yojo-art</p>
+					<div :class="$style.patronsWithIcon">
+						<div v-for="patron in patronsWithIconWithYojoArt" :class="$style.patronWithIcon">
+							<img :src="patron.icon" :class="$style.patronIcon">
+							<span :class="$style.patronName">{{ patron.name }}</span>
+						</div>
+					</div>
+					<div style="margin-top: 16px; display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); grid-gap: 12px;">
+						<div v-for="patron in patronsWithYojoArt" :key="patron">{{ patron }}</div>
+					</div>
 					<p style="font-weight: bold">CherryPick</p>
 					<div :class="$style.patronsWithIcon">
 						<div v-for="patron in patronsWithIconWithCherryPick" :class="$style.patronWithIcon">
@@ -216,7 +258,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, shallowRef, computed } from 'vue';
-import { version, basedMisskeyVersion } from '@/config.js';
+import { version, basedMisskeyVersion, basedCherrypickVersion } from '@@/js/config.js';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -229,6 +271,8 @@ import * as os from '@/os.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 import { claimAchievement, claimedAchievements } from '@/scripts/achievements.js';
 import { $i } from '@/account.js';
+
+const patronsWithIconWithYojoArt = [];
 
 const patronsWithIconWithCherryPick = [];
 
@@ -352,7 +396,14 @@ const patronsWithIconWithMisskey = [{
 }, {
 	name: 'なっかあ',
 	icon: 'https://assets.misskey-hub.net/patrons/c2f5f3e394e74a64912284a2f4ca710e.jpg',
+}, {
+	name: '如月ユカ',
+	icon: 'https://assets.misskey-hub.net/patrons/f24a042076a041b6811a2f124eb620ca.jpg',
 }];
+
+const patronsWithYojoArt = [
+	'',
+];
 
 const patronsWithCherryPick = [
 	'',
@@ -461,6 +512,7 @@ const patronsWithMisskey = [
 	'塩キャベツ',
 	'はとぽぷさん',
 	'100の人 (エスパー・イーシア)',
+	'ケモナーのケシン',
 ];
 
 let isKokonect = false;
@@ -477,8 +529,13 @@ const easterEggEmojis = ref<{
 const easterEggEngine = ref<{ stop: () => void } | null>(null);
 const containerEl = shallowRef<HTMLElement>();
 
+const whatIsNewYojo = () => {
+	// modal.value?.close();
+	window.open(`https://github.com/yojo-art/cherrypick/blob/develop/CHANGELOG_YOJO.md#${version.replace(/\./g, '')}`, '_blank');
+};
 const whatIsNewCherryPick = () => {
-	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${version.replace(/\./g, '')}`, '_blank');
+	// modal.value?.close();
+	window.open(`https://github.com/kokonect-link/cherrypick/blob/develop/CHANGELOG_CHERRYPICK.md#${basedCherrypickVersion.replace(/\./g, '')}`, '_blank');
 };
 
 const whatIsNewMisskey = () => {
@@ -571,7 +628,7 @@ definePageMetadata(() => ({
 .znqjceqz {
 	> .about {
 		position: relative;
-		border-radius: var(--radius);
+		border-radius: var(--MI-radius);
 
 		> .treasure {
 			position: absolute;
@@ -631,7 +688,7 @@ definePageMetadata(() => ({
 
         &:hover {
           text-decoration: underline;
-          color: var(--link);
+          color: var(--MI_THEME-link);
         }
 			}
 
@@ -664,17 +721,17 @@ definePageMetadata(() => ({
 	display: flex;
 	align-items: center;
 	padding: 12px;
-	background: var(--buttonBg);
+	background: var(--MI_THEME-buttonBg);
 	border-radius: 6px;
 
 	&:hover {
 		text-decoration: none;
-		background: var(--buttonHoverBg);
+		background: var(--MI_THEME-buttonHoverBg);
 	}
 
 	&.active {
-		color: var(--accent);
-		background: var(--buttonHoverBg);
+		color: var(--MI_THEME-accent);
+		background: var(--MI_THEME-buttonHoverBg);
 	}
 }
 
@@ -697,11 +754,11 @@ definePageMetadata(() => ({
 	}
 
 	> .cherry {
-		color: var(--cherry);
+		color: var(--CP-cherry);
 	}
 
 	> .pick {
-		color: var(--pick);
+		color: var(--CP-pick);
 	}
 }
 
@@ -715,7 +772,7 @@ definePageMetadata(() => ({
 	display: flex;
 	align-items: center;
 	padding: 12px;
-	background: var(--buttonBg);
+	background: var(--MI_THEME-buttonBg);
 	border-radius: 6px;
 }
 
@@ -734,18 +791,18 @@ definePageMetadata(() => ({
   width: 100%;
   box-sizing: border-box;
   padding: 10px 14px;
-  background: var(--buttonBg);
+  background: var(--MI_THEME-folderHeaderBg);
   border-radius: 6px;
   font-size: 0.9em;
 
   &:hover {
     text-decoration: none;
-    background: var(--buttonHoverBg);
+    background: var(--MI_THEME-folderHeaderHoverBg);
   }
 
   &.active {
-    color: var(--accent);
-    background: var(--buttonHoverBg);
+    color: var(--MI_THEME-accent);
+    background: var(--MI_THEME-folderHeaderHoverBg);
   }
 }
 
@@ -753,7 +810,7 @@ definePageMetadata(() => ({
   margin-right: 0.75em;
   flex-shrink: 0;
   text-align: center;
-  color: var(--fgTransparentWeak);
+  color: var(--MI_THEME-fgTransparentWeak);
 
   &:empty {
     display: none;

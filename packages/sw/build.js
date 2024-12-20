@@ -8,10 +8,10 @@
 import { fileURLToPath } from 'node:url';
 import * as esbuild from 'esbuild';
 import locales from '../../locales/index.js';
-import meta from '../../package.json' with { type: "json" };
+import meta from '../../package.json' with { type: 'json' };
 const watch = process.argv[2]?.includes('watch');
 
-const __dirname = fileURLToPath(new URL('.', import.meta.url))
+const __dirname = fileURLToPath(new URL('.', import.meta.url));
 
 console.log('Starting SW building...');
 
@@ -26,6 +26,7 @@ const buildOptions = {
 		_PERF_PREFIX_: JSON.stringify('CherryPick:'),
 		_VERSION_: JSON.stringify(meta.version),
 		_BASEDMISSKEYVERSION_: JSON.stringify(meta.basedMisskeyVersion),
+		_BASEDCHERRYPICKVERSION_: JSON.stringify(meta.basedCherrypickVersion),
 	},
 	entryPoints: [`${__dirname}/src/sw.ts`],
 	format: 'esm',
