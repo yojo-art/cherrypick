@@ -1,4 +1,9 @@
 ## 1.2.0
+Cherrypick 4.13.0
+Misskey 2024.10.1
+
+### Release Date
+2024-12-20
 
 ### General
 - Change: nodeinfoでyojo-artを名乗る [#565](https://github.com/yojo-art/cherrypick/pull/565)
@@ -16,6 +21,7 @@
 
 ## 1.1.0
 Cherrypick 4.11.1
+Misskey 2024.8.0
 
 ### Release Date
 2024-11-08
@@ -116,6 +122,7 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 
 ## 1.0.1
 Cherrypick 4.11.1
+Misskey 2024.8.0
 
 ### Release Date
 2024-09-06
@@ -132,6 +139,7 @@ Cherrypick 4.11.1
 
 ## 1.0.0
 Cherrypick 4.11.1
+Misskey 2024.8.0
 
 ### Release Date
 2024-09-05
