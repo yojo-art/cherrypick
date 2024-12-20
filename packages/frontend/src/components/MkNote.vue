@@ -110,7 +110,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								:enableEmojiMenuReaction="!!$i"
 								@click.stop
 							/>
-							<MkPoll v-if="appearNote.poll" :noteId="appearNote.id" :poll="appearNote.poll" :class="$style.poll" isTranslation @click.stop/>
 							<div v-if="translation.translator == 'ctav3'" style="margin-top: 10px; padding: 0 0 15px;">
 								<img v-if="!defaultStore.state.darkMode" src="/client-assets/color-short.svg" alt="" style="float: right;">
 								<img v-else src="/client-assets/white-short.svg" alt="" style="float: right;"/>
@@ -128,6 +127,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkMediaList v-else ref="galleryEl" :mediaList="appearNote.files" @click.stop/>
 				</div>
 				<MkPoll v-if="appearNote.poll" :noteId="appearNote.id" :poll="appearNote.poll" :author="appearNote.user" :emojiUrls="appearNote.emojis" :class="$style.poll" @click.stop/>
+				<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (isLong || appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && appearNote.poll && pollIsForeignLanguage" style="padding-top: 5px; color: var(--MI_THEME-accent);">
+					<button v-if="!(pollTranslating || pollTranslation)" ref="translateButton" class="_button" @click.stop="pollTranslate()">{{ i18n.ts.translatePoll }}</button>
+					<button v-else class="_button" @click.stop="pollTranslation = null">{{ i18n.ts.close }}</button>
+				</div>
+				<div v-if="pollTranslating || pollTranslation" :class="$style.translation">
+					<MkLoading v-if="pollTranslating" mini/>
+					<div v-else-if="pollTranslation">
+						<b>{{ i18n.tsx.translatedFrom({ x: pollTranslation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
+						<MkPoll v-if="appearNote.poll" :noteId="appearNote.id" :poll="appearNote.poll" :class="$style.poll" isTranslation @click.stop/>
+						<div v-if="pollTranslation.translator == 'ctav3'" style="margin-top: 10px; padding: 0 0 15px;">
+							<img v-if="!defaultStore.state.darkMode" src="/client-assets/color-short.svg" alt="" style="float: right;">
+							<img v-else src="/client-assets/white-short.svg" alt="" style="float: right;"/>
+						</div>
+					</div>
+				</div>
 				<div v-if="isEnabledUrlPreview">
 					<MkUrlPreview v-for="url in urls" :key="url" :url="url" :compact="true" :detail="false" :host="appearNote.user.host" :class="$style.urlPreview"/>
 				</div>
@@ -355,7 +369,9 @@ const isDeleted = ref(false);
 const muted = ref(checkMute(appearNote.value, $i?.mutedWords));
 const hardMuted = ref(props.withHardMute && checkMute(appearNote.value, $i?.hardMutedWords, true));
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
+const pollTranslation = ref<Misskey.entities.NotesPollsTranslateResponse | null>(null);
 const translating = ref(false);
+const pollTranslating = ref(false);
 const viewTextSource = ref(false);
 const noNyaize = ref(false);
 const canRenote = computed(() => ['public', 'home'].includes(appearNote.value.visibility) || (appearNote.value.visibility === 'followers' && appearNote.value.userId === $i?.id));
@@ -757,9 +773,15 @@ async function clip(): Promise<void> {
 const isForeignLanguage: boolean = appearNote.value.text != null && (() => {
 	const targetLang = (miLocalStorage.getItem('lang') ?? navigator.language).slice(0, 2);
 	const postLang = detectLanguage(appearNote.value.text);
-	const choicesLang = appearNote.value.poll?.choices.map((choice) => choice.text).join(' ') ?? '';
-	const pollLang = detectLanguage(choicesLang);
-	return postLang !== '' && (postLang !== targetLang || pollLang !== targetLang);
+	return postLang !== '' && postLang !== targetLang;
+})();
+
+const pollIsForeignLanguage: boolean = appearNote.value.poll != null && (() => {
+	const targetLang = (miLocalStorage.getItem('lang') ?? navigator.language).slice(0, 2);
+	const langs = appearNote.value.poll.choices
+		.map((choice) => detectLanguage(choice.text))
+		.filter((lang) => lang != targetLang).length;
+	return langs != 0;
 })();
 
 if (defaultStore.state.useAutoTranslate && instance.translatorAvailable && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && !isLong && (appearNote.value.cw == null || showContent.value) && appearNote.value.text && isForeignLanguage) translate();
@@ -789,6 +811,34 @@ async function translate(): Promise<void> {
 	});
 	translating.value = false;
 	translation.value = res;
+
+	vibrate(defaultStore.state.vibrateSystem ? [5, 5, 10] : []);
+}
+
+async function pollTranslate(): Promise<void> {
+	if (pollTranslation.value != null) return;
+	collapsed.value = false;
+	pollTranslating.value = true;
+
+	vibrate(defaultStore.state.vibrateSystem ? 5 : []);
+
+	if (props.mock) {
+		return;
+	}
+	const res = await misskeyApi('notes/polls/translate', {
+		noteId: appearNote.value.id,
+		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).catch((err) => {
+		translating.value = false;
+		os.alert(
+			{
+				type: 'error',
+				title: err.message,
+				text: err.id,
+			});
+	});
+		pollTranslating.value = false;
+	pollTranslation.value = res;
 
 	vibrate(defaultStore.state.vibrateSystem ? [5, 5, 10] : []);
 }
