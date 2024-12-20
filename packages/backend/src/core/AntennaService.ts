@@ -17,6 +17,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import type { GlobalEvents } from '@/core/GlobalEventService.js';
 import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
+import { CacheService } from '@/core/CacheService.js';
 import { deserializeAntenna } from './deserializeAntenna.js';
 import type { OnApplicationShutdown } from '@nestjs/common';
 
@@ -44,6 +45,7 @@ export class AntennaService implements OnApplicationShutdown {
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
 
+		private cacheService: CacheService,
 		private utilityService: UtilityService,
 		private globalEventService: GlobalEventService,
 		private fanoutTimelineService: FanoutTimelineService,
@@ -109,13 +111,7 @@ export class AntennaService implements OnApplicationShutdown {
 			}
 		}
 		if (note.visibility === 'followers') {
-			const isFollowing = await this.followingsRepository.count({
-				where: {
-					followerId: antenna.userId,
-					followeeId: note.userId,
-				},
-				take: 1,
-			}).then(n => n > 0);
+			const isFollowing = Object.hasOwn(await this.cacheService.userFollowingsCache.fetch(antenna.userId), note.userId);
 			if (!isFollowing && antenna.userId !== note.userId) return false;
 		}
 

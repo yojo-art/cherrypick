@@ -1,3 +1,15 @@
+## 1.3.0
+
+### Release Date
+
+### General
+
+### Client
+
+### Server
+- Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
+	- based-on https://github.com/team-shahu/misskey/pull/38
+
 ## 1.2.0
 Cherrypick 4.13.0
 Misskey 2024.10.1
