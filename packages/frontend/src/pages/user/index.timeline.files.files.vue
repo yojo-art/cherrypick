@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref, watch } from 'vue';
+import { onMounted, onUnmounted, ref, toRaw, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { notePage } from '@/filters/note.js';
@@ -78,7 +78,7 @@ async function onClick(ev: MouseEvent, image:Misskey.entities.DriveFile) {
 	}
 
 	if (defaultStore.state.nsfwOpenBehavior === 'doubleClick') os.popup(MkRippleEffect, { x: ev.clientX, y: ev.clientY }, {});
-	if (defaultStore.state.nsfwOpenBehavior === 'click') showingFiles.value.push(props.files.files[0].id);
+	if (defaultStore.state.nsfwOpenBehavior === 'click') showingFiles.value.push(image.id);
 }
 
 async function onDblClick(image:Misskey.entities.DriveFile) {
@@ -88,11 +88,11 @@ async function onDblClick(image:Misskey.entities.DriveFile) {
 
 watch(() => props.files, () => {
 	console.log('files');
-	console.log(props.files);
+	console.log(toRaw(props.files));
 	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
 		//hide = true;
 	} else {
-		for (const image of props.files) {
+		for (const image of toRaw(props.files)) {
 			if (image.isSensitive) {
 				if (defaultStore.state.nsfw !== 'ignore') {
 					//hide = true;
