@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div v-if="files.files.length > 0" :class="$style.root">
-	<div v-if="files.files[0].isSensitive && !showingFiles.includes(files.files[0].id)" :key="files.id + files.files[0].id" :class="$style.img" @click="showingFiles.push(files.files[0].id)">
+	<div v-if="files.files[0].isSensitive && !showingFiles.includes(files.files[0].id)" :key="files.id + files.files[0].id" :class="$style.img" @click="onClick($event,files.files[0])" @dblclick="onDblClick(files.files[0])">
 		<!-- TODO: 画像以外のファイルに対応 -->
 		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="files.files[0].blurhash" :src="thumbnail(files.files[0])" :title="files.files[0].name" :forceBlurhash="true"/>
 		<div :class="$style.sensitive">
@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, onUnmounted, ref } from 'vue';
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { notePage } from '@/filters/note.js';
@@ -42,6 +42,9 @@ import ImgWithBlurhash from '@/components/MkImgWithBlurhash.vue';
 import MkA from '@/components/global/MkA.vue';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
+import MkRippleEffect from '@/components/MkRippleEffect.vue';
+import * as os from '@/os.js';
+import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -59,6 +62,56 @@ function thumbnail(image: Misskey.entities.DriveFile): string | null {
 		? getStaticImageUrl(image.url)
 		: image.thumbnailUrl;
 }
+
+async function onClick(ev: MouseEvent, image:Misskey.entities.DriveFile) {
+	if (!showingFiles.value.includes(image.id)) {
+		ev.stopPropagation();
+		if (image.isSensitive && !await confirmR18()) return;
+		if (image.isSensitive && defaultStore.state.confirmWhenRevealingSensitiveMedia) {
+			const { canceled } = await os.confirm({
+				type: 'question',
+				text: i18n.ts.sensitiveMediaRevealConfirm,
+			});
+			if (canceled) return;
+			showingFiles.value.push(image.id);
+		}
+	}
+
+	if (defaultStore.state.nsfwOpenBehavior === 'doubleClick') os.popup(MkRippleEffect, { x: ev.clientX, y: ev.clientY }, {});
+	if (defaultStore.state.nsfwOpenBehavior === 'click') showingFiles.value.push(props.files.files[0].id);
+}
+
+async function onDblClick(image:Misskey.entities.DriveFile) {
+	if (image.isSensitive && !await confirmR18()) return;
+	if (!showingFiles.value.includes(image.id) && defaultStore.state.nsfwOpenBehavior === 'doubleClick') showingFiles.value.push(image.id);
+}
+
+watch(() => props.files, () => {
+	if (defaultStore.state.nsfw === 'force' || defaultStore.state.dataSaver.media) {
+		//hide = true;
+	} else {
+		for (const image of props.files) {
+			if (image.isSensitive) {
+				if (defaultStore.state.nsfw !== 'ignore') {
+					//hide = true;
+				} else {
+					if (wasConfirmR18()) {
+						if (!showingFiles.value.includes(image.id)) {
+							showingFiles.value.push(image.id);
+						}
+					}
+				}
+			} else {
+				if (!showingFiles.value.includes(image.id)) {
+					showingFiles.value.push(image.id);
+				}
+			}
+		}
+	}
+}, {
+	deep: true,
+	immediate: true,
+});
 
 function resetTimer() {
 	playAnimation.value = true;
