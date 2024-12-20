@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div v-if="note.files.length > 0" :class="$style.root">
-	<div v-if="note.files[0].isSensitive && !showingFiles.includes(note.files[0].id)" :key="note.id + note.files[0].id" :class="$style.img" @click="onClick($event,note.files[0])" @dblclick="onDblClick(note.files[0])">
+	<div v-if="!showingFiles.includes(note.files[0].id)" :key="note.id + note.files[0].id" :class="$style.img" @click="onClick($event,note.files[0])" @dblclick="onDblClick(note.files[0])">
 		<!-- TODO: 画像以外のファイルに対応 -->
 		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="note.files[0].blurhash" :src="thumbnail(note.files[0])" :title="note.files[0].name" :forceBlurhash="true"/>
 		<div :class="$style.sensitive">
