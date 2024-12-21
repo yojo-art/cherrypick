@@ -117,7 +117,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:enableAnimatedMfm="enableAnimatedMfm"
 				/>
 				<a v-if="appearNote.renote != null" :class="$style.rn">RN:</a>
-				<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && appearNote.text && isForeignLanguage" style="padding-top: 5px; color: var(--MI_THEME-accent);">
+				<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && (appearNote.text || appearNote.poll) && isForeignLanguage" style="padding-top: 5px; color: var(--MI_THEME-accent);">
 					<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click="translate()">{{ i18n.ts.translateNote }}</button>
 					<button v-else class="_button" @click="translation = null">{{ i18n.ts.close }}</button>
 				</div>
@@ -125,7 +125,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkLoading v-if="translating" mini/>
 					<div v-else-if="translation">
 						<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-						<Mfm
+						<Mfm v-if="appearNote.text"
 							:text="translation.text"
 							:author="appearNote.user"
 							:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -683,12 +683,19 @@ function showMenu(): void {
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 
-const isForeignLanguage: boolean = appearNote.value.text != null && (() => {
+const isForeignLanguage: boolean = (appearNote.value.text != null || appearNote.value.poll != null) && (() => {
 	const targetLang = (miLocalStorage.getItem('lang') ?? navigator.language).slice(0, 2);
-	const postLang = detectLanguage(appearNote.value.text);
-	const choicesLang = appearNote.value.poll?.choices.map((choice) => choice.text).join(' ') ?? '';
-	const pollLang = detectLanguage(choicesLang);
-	return postLang !== '' && (postLang !== targetLang || pollLang !== targetLang);
+	if (appearNote.value.text) {
+		const postLang = detectLanguage(appearNote.value.text);
+		return postLang !== '' && postLang !== targetLang;
+	}
+	if (appearNote.value.poll) {
+		const foreignLang = appearNote.value.poll.choices
+			.map((choice) => detectLanguage(choice.text))
+			.filter((lang) => lang !== targetLang).length;
+		return 0 < foreignLang;
+	}
+	return false;
 })();
 
 if (defaultStore.state.useAutoTranslate && instance.translatorAvailable && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (appearNote.value.cw == null || showContent.value) && appearNote.value.text && isForeignLanguage) translate();
@@ -699,6 +706,14 @@ async function translate(): Promise<void> {
 
 	vibrate(defaultStore.state.vibrateSystem ? 5 : []);
 
+	if (appearNote.value.text == null) {
+		translating.value = false;
+		translation.value = {
+			sourceLang: '',
+			text: '',
+		};
+		return;
+	}
 	const res = await misskeyApi('notes/translate', {
 		noteId: appearNote.value.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
