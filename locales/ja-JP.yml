@@ -90,7 +90,6 @@ inviteRevokeConfirm: "本当に全ての招待コードを失効させますか�
 enableAbsoluteTime: "絶対時刻表記を使用する"
 posted: "ノートを公開しました。"
 translateNote: "ノートを翻訳する"
-translatePoll: "投票を翻訳する"
 showTranslateButtonInNote: "ノート本文に翻訳ボタンを表示"
 editNickName: "ニックネームを編集"
 hideAvatarsInNote: "ノートでアイコンを隠す"

@@ -384,10 +384,6 @@ export interface Locale extends ILocale {
      */
     "translateNote": string;
     /**
-     * 投票を翻訳する
-     */
-    "translatePoll": string;
-    /**
      * ノート本文に翻訳ボタンを表示
      */
     "showTranslateButtonInNote": string;
