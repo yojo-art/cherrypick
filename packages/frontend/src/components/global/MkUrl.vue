@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <component
 	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? url_string.substring(local.length) : url_string" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
-	@click.stop="(ev: MouseEvent) => warningExternalWebsite(ev, props.url)"
+	@click.stop="(ev: MouseEvent) => warningExternalWebsite(ev, url_string)"
 	@contextmenu.stop="() => {}"
 >
 	<template v-if="!self">
