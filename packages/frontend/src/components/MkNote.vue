@@ -761,10 +761,10 @@ const isForeignLanguage: boolean = (appearNote.value.text != null || appearNote.
 		return postLang !== '' && postLang !== targetLang;
 	}
 	if (appearNote.value.poll) {
-		const langs = appearNote.value.poll.choices
+		const foreignLang = appearNote.value.poll.choices
 			.map((choice) => detectLanguage(choice.text))
-			.filter((lang) => lang != targetLang).length;
-		return langs != 0;
+			.filter((lang) => lang !== targetLang).length;
+		return 0 < foreignLang;
 	}
 	return false;
 })();
