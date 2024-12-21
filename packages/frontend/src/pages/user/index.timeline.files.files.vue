@@ -10,7 +10,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="note.files[0].blurhash" :src="thumbnail(note.files[0])" :title="note.files[0].name" :forceBlurhash="true"/>
 		<div :class="$style.sensitive">
 			<div>
-				<div><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}</div>
+				<div v-if="note.files[0].isSensitive" style="display: block;"><i class="ti ti-eye-exclamation"></i> {{ i18n.ts.sensitive }}{{ defaultStore.state.dataSaver.media ? ` (${i18n.ts.image}${note.files[0].size ? ' ' + bytes(note.files[0].size) : ''})` : '' }}</div>
+				<div v-else style="display: block;"><i class="ti ti-photo"></i> {{ defaultStore.state.dataSaver.media && note.files[0].size ? bytes(note.files[0].size) : i18n.ts.image }}</div>
 				<div>{{ i18n.ts.clickToShow }}</div>
 			</div>
 		</div>
@@ -26,6 +27,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 			@touchstart="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 			@touchend="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 		/>
+		<div :class="$style.indicators">
+			<div v-if="['image/gif'].includes(note.files[0].type)" :class="$style.indicator">GIF</div>
+			<div v-if="['image/apng'].includes(note.files[0].type)" :class="$style.indicator">APNG</div>
+			<div v-if="note.files[0].isSensitive" :class="$style.indicator" style="color: var(--MI_THEME-warn);" :title="i18n.ts.sensitive"><i class="ti ti-eye-exclamation"></i></div>
+		</div>
 	</MkA>
 	<div v-if="note.files.length > 1" :class="$style.multiple">
 		<i class="ti ti-box-multiple"></i>
@@ -45,6 +51,7 @@ import { i18n } from '@/i18n.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import * as os from '@/os.js';
 import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
+import bytes from '@/filters/bytes.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -188,6 +195,27 @@ onUnmounted(() => {
 	font-size: 1.45em;
 	color: #fff;
 	opacity: .9;
+}
+
+.indicators {
+	display: inline-flex;
+	position: absolute;
+	top: 10px;
+	left: 10px;
+	pointer-events: none;
+	opacity: .5;
+	gap: 6px;
+}
+
+.indicator {
+	/* Hardcode to black because either --MI_THEME-bg or --MI_THEME-fg makes it hard to read in dark/light mode */
+	background-color: black;
+	border-radius: 6px;
+	color: var(--MI_THEME-accentLighten);
+	display: inline-block;
+	font-weight: bold;
+	font-size: 0.8em;
+	padding: 2px 5px;
 }
 
 @container (max-width: 785px) {
