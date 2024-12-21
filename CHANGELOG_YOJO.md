@@ -1,5 +1,5 @@
 ## 1.2.1
-Cherrypick 4.13.0
+Cherrypick 4.13.0  
 Misskey 2024.10.1
 
 ### Release Date
@@ -15,11 +15,12 @@ Misskey 2024.10.1
   - ユーザー設定全般のデータセーバー、メディアの読み込みを無効化が無視されてたのを修正
   - センシティブ画像を開く時に年齢確認ダイアログを表示する機能が無視されてたのを修正
   - 画像左上にALT/GIF/APNG/センシティブの表示を追加
+- Fix: リモートクリップ/リモートplay機能のURLで外部サイト警告が出る問題を修正 [#581](https://github.com/yojo-art/cherrypick/pull/581)
 
 ### Server
 
 ## 1.2.0
-Cherrypick 4.13.0
+Cherrypick 4.13.0  
 Misskey 2024.10.1
 
 ### Release Date
