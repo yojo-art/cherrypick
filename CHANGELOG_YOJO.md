@@ -1,6 +1,6 @@
-## 1.2.0
-Cherrypick x.xx.x
-Misskey xxxx.xx.x
+## 1.2.1
+Cherrypick 4.13.0
+Misskey 2024.10.1
 
 ### Release Date
 
@@ -33,7 +33,7 @@ Misskey 2024.10.1
 - Enhance: `/users/${id}`に`Accept: application/ld+json`ではないリクエストが来たとき`/@${username}`にリダイレクトするように [#554](https://github.com/yojo-art/cherrypick/pull/554)
 
 ## 1.1.0
-Cherrypick 4.11.1
+Cherrypick 4.11.1  
 Misskey 2024.8.0
 
 ### Release Date
@@ -134,7 +134,7 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 
 
 ## 1.0.1
-Cherrypick 4.11.1
+Cherrypick 4.11.1  
 Misskey 2024.8.0
 
 ### Release Date
@@ -151,7 +151,7 @@ Misskey 2024.8.0
 
 
 ## 1.0.0
-Cherrypick 4.11.1
+Cherrypick 4.11.1  
 Misskey 2024.8.0
 
 ### Release Date
