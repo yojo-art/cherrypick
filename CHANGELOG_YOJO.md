@@ -1,4 +1,17 @@
 ## 1.2.0
+Cherrypick x.xx.x
+Misskey xxxx.xx.x
+
+### Release Date
+
+### General
+
+### Client
+- Fix: すべてのノートに翻訳ボタンが表示される/本文がなくて投票だけあると翻訳が表示されなくなる [#579](https://github.com/yojo-art/cherrypick/pull/579)
+
+### Server
+
+## 1.2.0
 Cherrypick 4.13.0
 Misskey 2024.10.1
 
