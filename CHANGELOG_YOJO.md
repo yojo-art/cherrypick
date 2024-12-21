@@ -3,8 +3,10 @@ Cherrypick 4.13.0
 Misskey 2024.10.1
 
 ### Release Date
+2024-12-21
 
 ### General
+-
 
 ### Client
 - Fix: すべてのノートに翻訳ボタンが表示される/本文がなくて投票だけあると翻訳が表示されなくなる [#579](https://github.com/yojo-art/cherrypick/pull/579)
@@ -18,6 +20,7 @@ Misskey 2024.10.1
 - Fix: リモートクリップ/リモートplay機能のURLで外部サイト警告が出る問題を修正 [#581](https://github.com/yojo-art/cherrypick/pull/581)
 
 ### Server
+-
 
 ## 1.2.0
 Cherrypick 4.13.0  
