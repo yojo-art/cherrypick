@@ -687,13 +687,13 @@ const isForeignLanguage: boolean = (appearNote.value.text != null || appearNote.
 	const targetLang = (miLocalStorage.getItem('lang') ?? navigator.language).slice(0, 2);
 	if (appearNote.value.text) {
 		const postLang = detectLanguage(appearNote.value.text);
-		return postLang !== '' && postLang !== targetLang;
+		if (postLang !== '' && postLang !== targetLang) return true;
 	}
 	if (appearNote.value.poll) {
 		const foreignLang = appearNote.value.poll.choices
 			.map((choice) => detectLanguage(choice.text))
 			.filter((lang) => lang !== targetLang).length;
-		return 0 < foreignLang;
+		if (0 < foreignLang) return true;
 	}
 	return false;
 })();
