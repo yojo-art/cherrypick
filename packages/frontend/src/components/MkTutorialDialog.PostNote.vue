@@ -20,7 +20,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<b>{{ i18n.ts._initialTutorial._postNote._visibility.doNotSendConfidencialOnDirect1 }}</b> {{ i18n.ts._initialTutorial._postNote._visibility.doNotSendConfidencialOnDirect2 }}
 				</MkInfo>
 			</div>
-			<div><i class="ti ti-rocket-off"></i> <b>{{ i18n.ts._visibility.disableFederation }}</b> … {{ i18n.ts._initialTutorial._postNote._visibility.localOnly }}</div>
+		</div>
+	</MkFormSection>
+	<MkFormSection>
+		<template #label>{{ i18n.ts._initialTutorial._postNote._searchbility.title }}</template>
+		<div class="_gaps">
+			<div>{{ i18n.ts._initialTutorial._postNote._searchbility.description }}</div>
+			<div><i class="ti ti-world-search"></i> <b>{{ i18n.ts._searchbility.public }}</b> … {{ i18n.ts._initialTutorial._postNote._searchbility.public }}</div>
+			<div><i class="ti ti-user-search"></i> <b>{{ i18n.ts._searchbility.followersAndReacted }}</b> … {{ i18n.ts._initialTutorial._postNote._searchbility.followers }}</div>
+			<div><i class="ti ti-lock-search"></i> <b>{{ i18n.ts._searchbility.reactedOnly }}</b> … {{ i18n.ts._initialTutorial._postNote._searchbility.reactedOnly }}</div>
+			<div class="_gaps_s">
+				<div><i class="ti ti-mail-search"></i> <b>{{ i18n.ts._searchbility.private }}</b> … {{ i18n.ts._initialTutorial._postNote._searchbility.private }}</div>
+			</div>
+			<MkInfo :warn="true">
+				<b>{{ i18n.ts._initialTutorial._postNote._searchbility.notApplyRemote }}</b>
+			</MkInfo>
 		</div>
 	</MkFormSection>
 	<MkFormSection>
@@ -64,7 +78,7 @@ const exampleCWNote = reactive<Misskey.entities.Note>({
 	text: i18n.ts._initialTutorial._postNote._cw._exampleNote.note,
 	cw: i18n.ts._initialTutorial._postNote._cw._exampleNote.cw,
 	visibility: 'public',
-	localOnly: false,
+	searchableBy: 'public',
 	reactionAcceptance: null,
 	renoteCount: 0,
 	repliesCount: 1,

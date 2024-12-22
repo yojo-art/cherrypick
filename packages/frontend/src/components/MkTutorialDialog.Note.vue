@@ -61,6 +61,7 @@ const exampleNote = reactive<Misskey.entities.Note>({
 	text: 'just setting up my crpk',
 	cw: null,
 	visibility: 'public',
+	searchableBy: 'public',
 	localOnly: false,
 	reactionAcceptance: null,
 	renoteCount: 0,

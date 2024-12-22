@@ -6542,6 +6542,10 @@ export interface Locale extends ILocale {
              */
             "global": string;
             /**
+             * 接続している他のすべてのサーバーからのファイル付き投稿を見られます。
+             */
+            "media": string;
+            /**
              * それぞれのタイムラインは、画面上部でいつでも切り替えられます。
              */
             "description2": string;
@@ -6592,6 +6596,36 @@ export interface Locale extends ILocale {
                  * 他のサーバーに投稿を連合しません。上記の公開範囲に関わらず、他のサーバーのユーザーは、この設定がついたノートを直接閲覧することができなくなります。
                  */
                 "localOnly": string;
+            };
+            "_searchbility": {
+                /**
+                 * 検索許可の設定
+                 */
+                "title": string;
+                /**
+                 * ノートを表示できる相手を制限できます。
+                 */
+                "description": string;
+                /**
+                 * すべてのユーザーが検索できます
+                 */
+                "public": string;
+                /**
+                 * フォロワーと反応した人が検索できます
+                 */
+                "followers": string;
+                /**
+                 * 反応した人が検索できます
+                 */
+                "reactedOnly": string;
+                /**
+                 * 自分のみが検索できます
+                 */
+                "private": string;
+                /**
+                 * リモートサーバーでは適用されない可能性があります。
+                 */
+                "notApplyRemote": string;
             };
             "_cw": {
                 /**
