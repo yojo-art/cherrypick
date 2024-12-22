@@ -1,3 +1,19 @@
+## 1.2.2
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+xxxx-xx-xx
+
+### General
+-
+
+### Client
+- Fix: ノート詳細画面でリアクション出来ない [#584](https://github.com/yojo-art/cherrypick/pull/584)
+
+### Server
+-
+
 ## 1.2.1
 Cherrypick 4.13.0  
 Misskey 2024.10.1
