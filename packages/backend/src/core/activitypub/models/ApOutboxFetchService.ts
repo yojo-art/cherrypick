@@ -95,8 +95,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 		}
 
 		let current = {
-			created = 0 as number,
-			breaked = false,
+			created: 0,
+			breaked: false,
 		};
 
 		for (let page = 0; page < pagelimit; page++) {
@@ -111,9 +111,8 @@ export class ApOutboxFetchService implements OnModuleInit {
 				page++;
 			}
 			while (!current.breaked && page < pagelimit);
-			if (createLimit <= current.created) break;//次ページ見て一件だけしか取れないのは微妙
-			if (!collection.next) break;
 
+			if (!collection.next) break;
 			next = collection.next;
 			await this.redisClient.set(`${outboxUrl}--next`, `${next}`, 'EX', 60 * 15);//15min
 		}
@@ -123,7 +122,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 	@bindThis
 	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number) {
 		for (const activity of activityes) {
-			if (createLimit < created) return { created = created, breaked = true };
+			if (createLimit < created) return { created: created, breaked: true };
 			try {
 				if (activity.actor !== user.uri) throw new IdentifiableError('bde7c204-5441-4a87-9b7e-f81e8d05788a');
 				if (activity.type === 'Announce' && includeAnnounce) {
@@ -204,6 +203,6 @@ export class ApOutboxFetchService implements OnModuleInit {
 			}
 			created ++;
 		}
-		return { created = created, breaked = false };
+		return { created: created, breaked: false };
 	}
 }
