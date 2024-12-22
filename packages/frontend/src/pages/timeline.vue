@@ -525,7 +525,7 @@ const headerActions = computed(() => {
 							ref: enableAntennaTimeline,
 						}, {
 							type: 'switch',
-							text: i18n.ts.channel,
+							text: i18n.ts.tags,
 							icon: 'ti ti-hash',
 							ref: enableTagTimeline,
 						});
