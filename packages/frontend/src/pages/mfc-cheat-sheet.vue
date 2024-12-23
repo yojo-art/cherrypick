@@ -381,9 +381,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div :class="$style.section">
-			<div :class="$style.title">{{ i18n.ts._mfm.border }}</div>
+			<div :class="$style.title">{{ i18n.ts._mfc.border }}</div>
 			<div :class="$style.content">
-				<p>{{ i18n.ts._mfm.borderDescription }}</p>
+				<p>{{ i18n.ts._mfc.borderDescription }}</p>
 				<div :class="$style.preview">
 					<Mfm :text="preview_border"/>
 					<MkTextarea v-model="preview_border" :class="$style.text"><span>MFM {{ i18n.ts.sample }}</span></MkTextarea>
