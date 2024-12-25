@@ -14,6 +14,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			class="file _button"
 		>
 			<div v-if="file.isSensitive" class="sensitive-label">{{ i18n.ts.sensitive }}</div>
+			<div v-if="customEmojiUrls.includes(file.url)" class="label">
+				<img class="labelImg" src="/client-assets/label.svg"/>
+				<p class="labelText">{{ i18n.ts.emoji }}</p>
+			</div>
 			<MkDriveFileThumbnail class="thumbnail" :file="file" fit="contain" :highlightWhenSensitive="true"/>
 			<div v-if="viewMode === 'list'" class="body">
 				<div>
@@ -38,12 +42,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import * as Misskey from 'cherrypick-js';
+import { ref, watch } from 'vue';
 import MkPagination from '@/components/MkPagination.vue';
 import MkDriveFileThumbnail from '@/components/MkDriveFileThumbnail.vue';
 import bytes from '@/filters/bytes.js';
 import { i18n } from '@/i18n.js';
 import { dateString } from '@/filters/date.js';
+import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 
+let customEmojiUrls = ref<string[]>([]);
+watch(customEmojis, emojis => {
+	customEmojiUrls.value = emojis.map(emoji => emoji.url);
+}, { immediate: true });
 const props = defineProps<{
 	pagination: any;
 	viewMode: 'grid' | 'list';
@@ -113,6 +123,56 @@ const props = defineProps<{
 				animation: sensitive-blink 1s infinite;
 			}
 		}
+	}
+
+	.label {
+		position: absolute;
+		top: 0;
+		left: 0;
+		pointer-events: none;
+
+		&::before,
+		&::after {
+			content: "";
+			display: block;
+			position: absolute;
+			z-index: 1;
+			background: #0c7ac9;
+		}
+
+		&::before {
+			top: 0;
+			left: 57px;
+			width: 28px;
+			height: 8px;
+		}
+
+		&::after {
+			top: 57px;
+			left: 0;
+			width: 8px;
+			height: 28px;
+		}
+	}
+
+	.labelImg {
+		position: absolute;
+		z-index: 2;
+		top: 0;
+		left: 0;
+	}
+
+	.labelText {
+		position: absolute;
+		z-index: 3;
+		top: 19px;
+		left: -28px;
+		width: 120px;
+		margin: 0;
+		text-align: center;
+		line-height: 28px;
+		color: #fff;
+		transform: rotate(-45deg);
 	}
 }
 </style>
