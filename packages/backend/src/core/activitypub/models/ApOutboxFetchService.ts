@@ -66,7 +66,6 @@ export class ApOutboxFetchService implements OnModuleInit {
 		this.apLoggerService = this.moduleRef.get('ApLoggerService');
 		this.logger = this.apLoggerService.logger;
 	}
-
 	/**
 	 * outboxから投稿を取得します
 	 */
@@ -120,7 +119,10 @@ export class ApOutboxFetchService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number) {
+	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<{
+		created: number;
+		breaked: boolean;
+	}> {
 		for (const activity of activityes) {
 			if (createLimit < created) return { created: created, breaked: true };
 			try {
