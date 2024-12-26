@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:enableAnimatedMfm="enableAnimatedMfm"
 		/>
 		<MkA v-if="note.renoteId" :class="$style.rp" :to="`/notes/${note.renoteId}`">RN: ...</MkA>
-		<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (isLong || note.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && note.text && isForeignLanguage && !note.isSchedule" style="padding-top: 5px; color: var(--MI_THEME-accent);">
+		<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (isLong || note.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && (note.text || note.poll) && isForeignLanguage" style="padding-top: 5px; color: var(--MI_THEME-accent);">
 			<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click.stop="translate()">{{ i18n.ts.translateNote }}</button>
 			<button v-else class="_button" @click.stop="translation = null">{{ i18n.ts.close }}</button>
 		</div>
@@ -29,7 +29,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkLoading v-if="translating" mini/>
 			<div v-else-if="translation">
 				<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-				<Mfm
+				<Mfm v-if="note.text"
 					:text="translation.text"
 					:author="note.user"
 					:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -459,12 +459,19 @@ async function clip(): Promise<void> {
 	os.popupMenu(await getNoteClipMenu({ note: note.value, isDeleted, currentClip: currentClip?.value }), clipButton.value).then(focus);
 }
 
-const isForeignLanguage: boolean = note.value.text != null && (() => {
+const isForeignLanguage: boolean = (note.value.text != null || note.value.poll != null) && (() => {
 	const targetLang = (miLocalStorage.getItem('lang') ?? navigator.language).slice(0, 2);
-	const postLang = detectLanguage(note.value.text);
-	const choicesLang = note.value.poll?.choices.map((choice) => choice.text).join(' ') ?? '';
-	const pollLang = detectLanguage(choicesLang);
-	return postLang !== '' && (postLang !== targetLang || pollLang !== targetLang);
+	if (note.value.text) {
+		const postLang = detectLanguage(note.value.text);
+		if (postLang !== '' && postLang !== targetLang) return true;
+	}
+	if (note.value.poll) {
+		const foreignLang = note.value.poll.choices
+			.map((choice) => detectLanguage(choice.text))
+			.filter((lang) => lang !== targetLang).length;
+		if (0 < foreignLang) return true;
+	}
+	return false;
 })();
 
 if (defaultStore.state.useAutoTranslate && instance.translatorAvailable && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && !isLong && (note.value.cw == null || showContent.value) && note.value.text && isForeignLanguage) translate();
@@ -473,6 +480,15 @@ async function translate(): Promise<void> {
 	if (translation.value != null) return;
 	collapsed.value = false;
 	translating.value = true;
+
+	if (note.value.text == null) {
+		translating.value = false;
+		translation.value = {
+			sourceLang: '',
+			text: '',
+		};
+		return;
+	}
 
 	vibrate(defaultStore.state.vibrateSystem ? 5 : []);
 
