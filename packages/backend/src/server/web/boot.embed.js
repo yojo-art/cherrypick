@@ -62,6 +62,7 @@
 		const meta = await metaRes.json();
 		const v = meta.version;
 		const basedMisskeyVersion = meta.basedMisskeyVersion;
+		const basedCherrypickVersion = meta.basedCherrypickVersion;
 		if (v == null) {
 			renderError('META_FETCH_V');
 			return;
@@ -69,6 +70,10 @@
 
 		if (basedMisskeyVersion == null) {
 			renderError('META_FETCH_BASEDMISSKEY_V');
+			return;
+		}
+		if (basedCherrypickVersion == null) {
+			renderError('META_FETCH_BASEDCHERRYPICK_V');
 			return;
 		}
 

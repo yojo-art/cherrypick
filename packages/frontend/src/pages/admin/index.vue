@@ -70,7 +70,7 @@ const noInquiryUrl = computed(() => isEmpty(instance.inquiryUrl));
 const thereIsUnresolvedAbuseReport = ref(false);
 const currentPage = computed(() => router.currentRef.value.child);
 const updateAvailable = ref(false);
-const releasesCherryPick = ref(null);
+const releasesYojoArt = ref(null);
 
 misskeyApi('admin/abuse-user-reports', {
 	state: 'unresolved',
@@ -81,11 +81,11 @@ misskeyApi('admin/abuse-user-reports', {
 
 misskeyApi('admin/meta')
 	.then(meta => {
-		return fetch('https://api.github.com/repos/kokonect-link/cherrypick/releases')
+		return fetch('https://api.github.com/repos/yojo-art/cherrypick/releases')
 			.then(res => res.json())
 			.then(cherryPickData => {
-				releasesCherryPick.value = meta.enableReceivePrerelease ? cherryPickData : cherryPickData.filter(x => !x.prerelease);
-				if ((compareVersions(version, releasesCherryPick.value[0].tag_name) < 0) && (compareVersions(meta.skipCherryPickVersion, releasesCherryPick.value[0].tag_name) < 0)) {
+				releasesYojoArt.value = meta.enableReceivePrerelease ? cherryPickData : cherryPickData.filter(x => !x.prerelease);
+				if ((compareVersions(version, releasesYojoArt.value[0].tag_name) < 0) && (compareVersions(meta.skipCherryPickVersion, releasesYojoArt.value[0].tag_name) < 0)) {
 					updateAvailable.value = true;
 				}
 			});

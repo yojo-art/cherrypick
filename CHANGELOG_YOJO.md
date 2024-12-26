@@ -1,6 +1,69 @@
-## 1.2.0
+## 1.3.0
+
+### Release Date
 
 ### General
+- Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
+
+### Client
+- Enhance: インポート時にライセンス欄にインポート元を追記する [#573](https://github.com/yojo-art/cherrypick/pull/573)
+
+### Server
+- Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
+	- based-on https://github.com/team-shahu/misskey/pull/38
+
+## 1.2.2
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+2024-12-27
+
+### General
+-
+
+### Client
+- Fix: ノート詳細画面でリアクション出来ない [#584](https://github.com/yojo-art/cherrypick/pull/584)
+- Fix: タイムラインオプションで表示有無選択の選択肢を修正 [#590](https://github.com/yojo-art/cherrypick/pull/590)
+- Fix: MFMチートシートが表示できない不具合を修正 [#592](https://github.com/yojo-art/cherrypick/pull/592)
+- Fix: 引用や返信のノートすべてに翻訳ボタンが表示される [#598](https://github.com/yojo-art/cherrypick/pull/598)
+
+### Server
+- Fix:`api/ap/fetch-outbox`でリノートしか取得されないのを修正 [#588](https://github.com/yojo-art/cherrypick/pull/588)
+
+## 1.2.1
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+2024-12-21
+
+### General
+-
+
+### Client
+- Fix: すべてのノートに翻訳ボタンが表示される/本文がなくて投票だけあると翻訳が表示されなくなる [#579](https://github.com/yojo-art/cherrypick/pull/579)
+- Fix: ユーザーTLファイル付きノートTLの修正 [#580](https://github.com/yojo-art/cherrypick/pull/580)
+  - ユーザー設定アピアランスのセンシティブ画像を常に表示が無視されてたのを修正
+  - ユーザー設定アピアランスの画像を常に非表示が無視されてたのを修正
+  - ユーザー設定アピアランスの非表示の画像をダブルクリックして開く設定が無視されてたのを修正
+  - ユーザー設定全般のデータセーバー、メディアの読み込みを無効化が無視されてたのを修正
+  - センシティブ画像を開く時に年齢確認ダイアログを表示する機能が無視されてたのを修正
+  - 画像左上にALT/GIF/APNG/センシティブの表示を追加
+- Fix: リモートクリップ/リモートplay機能のURLで外部サイト警告が出る問題を修正 [#581](https://github.com/yojo-art/cherrypick/pull/581)
+
+### Server
+-
+
+## 1.2.0
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+2024-12-20
+
+### General
+- Change: nodeinfoでyojo-artを名乗る [#565](https://github.com/yojo-art/cherrypick/pull/565)
 - Fix: ノートを編集する時に検索許可範囲を記憶する [#558](https://github.com/yojo-art/cherrypick/pull/558)
 
 ### Client
@@ -8,11 +71,14 @@
 - Enhance: 表示中のタグTLをお気に入り登録するボタンを追加 [#561](https://github.com/yojo-art/cherrypick/pull/561)
 
 ### Server
+- Fix: `api/ap/fetch-outbox`が正しく動作しないのを修正[#560](https://github.com/yojo-art/cherrypick/pull/560)
 - Fix: PersonのserchableByが正しく連合できていないのを修正[#556](https://github.com/yojo-art/cherrypick/pull/556)
+- Fix: SerchableByが未設定の時にプライバシーを更新できないことがある[#567](https://github.com/yojo-art/cherrypick/pull/567)
 - Enhance: `/users/${id}`に`Accept: application/ld+json`ではないリクエストが来たとき`/@${username}`にリダイレクトするように [#554](https://github.com/yojo-art/cherrypick/pull/554)
 
 ## 1.1.0
-Cherrypick 4.11.1
+Cherrypick 4.11.1  
+Misskey 2024.8.0
 
 ### Release Date
 2024-11-08
@@ -112,7 +178,8 @@ docker環境でノートレコードが多数(数百万件)ある場合**一時�
 
 
 ## 1.0.1
-Cherrypick 4.11.1
+Cherrypick 4.11.1  
+Misskey 2024.8.0
 
 ### Release Date
 2024-09-06
@@ -128,7 +195,8 @@ Cherrypick 4.11.1
 
 
 ## 1.0.0
-Cherrypick 4.11.1
+Cherrypick 4.11.1  
+Misskey 2024.8.0
 
 ### Release Date
 2024-09-05

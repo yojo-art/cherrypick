@@ -316,14 +316,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 				window.open(user.url, '_blank', 'noopener');
 			},
 		});
-		menuItems.push({
-			icon: 'ti ti-server',
-			text: i18n.ts.instanceInfo,
-			action: () => {
-				if (user.host == null) return;
-				router.push(`/instance-info/${user.host}`);
-			},
-		});
 	} else {
 		menuItems.push({
 			icon: 'ti ti-code',
