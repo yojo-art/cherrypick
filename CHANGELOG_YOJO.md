@@ -6,6 +6,7 @@
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
 
 ### Client
+- Enhance: インポート時にライセンス欄にインポート元を追記する [#573](https://github.com/yojo-art/cherrypick/pull/573)
 
 ### Server
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
