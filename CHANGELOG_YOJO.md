@@ -1,9 +1,21 @@
+## 1.3.0
+
+### Release Date
+
+### General
+
+### Client
+
+### Server
+- Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
+	- based-on https://github.com/team-shahu/misskey/pull/38
+
 ## 1.2.2
 Cherrypick 4.13.0  
 Misskey 2024.10.1
 
 ### Release Date
-xxxx-xx-xx
+2024-12-27
 
 ### General
 -
@@ -12,9 +24,10 @@ xxxx-xx-xx
 - Fix: ノート詳細画面でリアクション出来ない [#584](https://github.com/yojo-art/cherrypick/pull/584)
 - Fix: タイムラインオプションで表示有無選択の選択肢を修正 [#590](https://github.com/yojo-art/cherrypick/pull/590)
 - Fix: MFMチートシートが表示できない不具合を修正 [#592](https://github.com/yojo-art/cherrypick/pull/592)
+- Fix: 引用や返信のノートすべてに翻訳ボタンが表示される [#598](https://github.com/yojo-art/cherrypick/pull/598)
 
 ### Server
--
+- Fix:`api/ap/fetch-outbox`でリノートしか取得されないのを修正 [#588](https://github.com/yojo-art/cherrypick/pull/588)
 
 ## 1.2.1
 Cherrypick 4.13.0  
