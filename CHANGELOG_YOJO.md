@@ -14,7 +14,7 @@ xxxx-xx-xx
 - Fix: MFMチートシートが表示できない不具合を修正 [#592](https://github.com/yojo-art/cherrypick/pull/592)
 
 ### Server
--
+- Fix:`api/ap/fetch-outbox`でリノートしか取得されないのを修正 [#588](https://github.com/yojo-art/cherrypick/pull/588)
 
 ## 1.2.1
 Cherrypick 4.13.0  
