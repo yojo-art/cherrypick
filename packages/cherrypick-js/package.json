@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "cherrypick-js",
-	"version": "1.2.0",
+	"version": "1.2.2",
 	"basedMisskeyVersion": "2024.10.1",
 	"basedCherrypickVersion": "4.13.0",
 	"description": "yojo-art SDK for JavaScript",
