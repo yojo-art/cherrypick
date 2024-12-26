@@ -1,11 +1,12 @@
 {
-	"name": "cherrypick",
-	"version": "4.13.0-yojo1.2.0",
+	"name": "yojo-art",
+	"version": "1.2.2",
 	"basedMisskeyVersion": "2024.10.1",
+	"basedCherrypickVersion": "4.13.0",
 	"codename": "nasubi",
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/kokonect-link/cherrypick.git"
+		"url": "https://github.com/yojo-art/cherrypick.git"
 	},
 	"packageManager": "pnpm@9.6.0",
 	"workspaces": [
