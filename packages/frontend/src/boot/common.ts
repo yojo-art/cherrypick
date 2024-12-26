@@ -27,7 +27,7 @@ import { createMainRouter } from '@/router/definition.js';
 import { popup } from '@/os.js';
 
 export async function common(createVue: () => App<Element>) {
-	console.info(`CherryPick v${version}`);
+	console.info(`YojoArt v${version}`);
 
 	if (_DEV_) {
 		console.warn('Development mode!!!');

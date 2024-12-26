@@ -23,7 +23,7 @@ import { serverMetadata } from '@/server-metadata.js';
 import { postMessageToParentWindow, setIframeId } from '@/post-message.js';
 import { serverContext } from '@/server-context.js';
 
-console.log('CherryPick Embed');
+console.log('YojoArt Embed');
 
 //#region Embedパラメータの取得・パース
 const params = new URLSearchParams(location.search);
