@@ -12,7 +12,7 @@ xxxx-xx-xx
 - Fix: ノート詳細画面でリアクション出来ない [#584](https://github.com/yojo-art/cherrypick/pull/584)
 
 ### Server
--
+- Fix:`api/ap/fetch-outbox`でリノートしか取得されないのを修正 [#588](https://github.com/yojo-art/cherrypick/pull/584)
 
 ## 1.2.1
 Cherrypick 4.13.0  
