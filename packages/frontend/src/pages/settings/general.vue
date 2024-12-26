@@ -61,7 +61,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">yojo-art</span></MkSwitch>
 			</div>
 			<MkInput v-model="searchEngine" manualSave :spellcheck="false">
-				<template #label>{{ i18n.ts.search }}<span class="_beta">yojo-art</span></template>
+				<template #label>{{ i18n.ts.search }}<span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
 				<template #caption>{{ i18n.ts.searchEngineDescription }}</template>
 			</MkInput>
 			<MkSelect v-model="serverDisconnectedBehavior">
