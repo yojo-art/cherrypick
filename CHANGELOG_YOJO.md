@@ -12,6 +12,7 @@ xxxx-xx-xx
 - Fix: ノート詳細画面でリアクション出来ない [#584](https://github.com/yojo-art/cherrypick/pull/584)
 - Fix: タイムラインオプションで表示有無選択の選択肢を修正 [#590](https://github.com/yojo-art/cherrypick/pull/590)
 - Fix: MFMチートシートが表示できない不具合を修正 [#592](https://github.com/yojo-art/cherrypick/pull/592)
+- Fix: 引用や返信のノートすべてに翻訳ボタンが表示される [#598](https://github.com/yojo-art/cherrypick/pull/598)
 
 ### Server
 - Fix:`api/ap/fetch-outbox`でリノートしか取得されないのを修正 [#588](https://github.com/yojo-art/cherrypick/pull/588)
