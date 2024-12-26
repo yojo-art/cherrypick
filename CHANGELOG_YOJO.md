@@ -3,7 +3,7 @@
 ### Release Date
 
 ### General
--
+- Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
 
 ### Client
 - Enhance: インポート時にライセンス欄にインポート元を追記する [#573](https://github.com/yojo-art/cherrypick/pull/573)
