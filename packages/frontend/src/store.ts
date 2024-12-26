@@ -155,7 +155,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	searchEngine: {
 		where: 'account',
-		default: '/search?q=%s',
+		default: 'https://www.google.com/search?q=%s',
 	},
 
 	menu: {
