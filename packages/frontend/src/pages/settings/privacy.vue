@@ -100,11 +100,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</FormSection>
 
 	<MkSwitch v-model="keepCw" @update:modelValue="save()">{{ i18n.ts.keepCw }}</MkSwitch>
-
-	<MkInput v-model="searchEngine" manualSave :spellcheck="false">
-		<template #label>{{ i18n.ts.search }}<span class="_beta">yojo-art</span></template>
-		<template #caption>{{ i18n.ts.searchEngineDescription }}</template>
-	</MkInput>
 </div>
 </template>
 
@@ -115,7 +110,6 @@ import MkSelect from '@/components/MkSelect.vue';
 import FormSection from '@/components/form/section.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkInfo from '@/components/MkInfo.vue';
-import MkInput from '@/components/MkInput.vue';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
@@ -141,7 +135,6 @@ const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultN
 const rememberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchbility'));
 const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
 const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
-const searchEngine = computed(defaultStore.makeGetterSetter('searchEngine'));
 
 function save() {
 	console.log(typeof(searchableBy.value));
