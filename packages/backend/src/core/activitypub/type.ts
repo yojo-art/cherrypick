@@ -273,6 +273,12 @@ export interface IApEmoji extends IObject {
 	type: 'Emoji';
 	name: string;
 	updated: string;
+	copyPermission?: 'allow' | 'deny' | 'conditional';
+	license?: string;
+	keywords?: string[];
+	usageInfo?: string;
+	author?: string;
+	description?: string;
 }
 
 export const isEmoji = (object: IObject): object is IApEmoji =>

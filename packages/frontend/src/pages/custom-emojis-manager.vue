@@ -160,6 +160,21 @@ const edit = (emoji) => {
 };
 
 const importEmoji = async(emoji) => {
+	if (emoji.copyPermission && emoji.copyPermission !== 'allow') {
+		if (emoji.copyPermission === 'deny') {
+			await os.alert({ type: 'error',
+				title: '作成者によりこの絵文字のコピーは禁止されています',
+			});
+			return;
+		}
+
+		const { canceled } = await os.confirm({
+			type: 'warning',
+			title: 'ライセンスを確認してください' + emoji.copyPermission === 'conditional' ? '' : emoji.copyPermission,
+			text: emoji.license,
+		});
+		if (canceled) return;
+	}
 	let res = await os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
 	});

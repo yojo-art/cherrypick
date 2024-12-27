@@ -11,6 +11,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
+import { emojiCopyPermissions } from "@/types.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -56,6 +57,10 @@ export const meta = {
 					type: 'string',
 					optional: false, nullable: false,
 				},
+				copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, default: null, description: 'この絵文字を外部サーバーへコピーすることの許可' },
+				usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
+				author: { type: 'string', nullable: true, description: '作者情報' },
+				description: { type: 'string', nullable: true, description: '絵文字の説明' },
 			},
 		},
 	},

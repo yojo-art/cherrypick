@@ -190,6 +190,12 @@ export class ApRendererService {
 				// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
 				url: emoji.publicUrl || emoji.originalUrl,
 			},
+			...(emoji.copyPermission === null ? { } : { copyPermission: emoji.copyPermission }),
+			...(emoji.license === null ? { } : { license: emoji.license }),
+			keywords: emoji.aliases,
+			...(emoji.usageInfo === null ? { } : { usageInfo: emoji.usageInfo }),
+			...(emoji.author === null ? { } : { author: emoji.author }),
+			...(emoji.description === null ? { } : { description: emoji.description }),
 		};
 	}
 

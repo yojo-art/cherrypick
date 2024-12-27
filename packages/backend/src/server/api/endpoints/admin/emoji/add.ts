@@ -10,6 +10,7 @@ import { DI } from '@/di-symbols.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { ApiError } from '../../../error.js';
+import { emojiCopyPermissions } from '@/types.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -56,6 +57,11 @@ export const paramDef = {
 		roleIdsThatCanBeUsedThisEmojiAsReaction: { type: 'array', items: {
 			type: 'string',
 		} },
+
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, default: null, description: 'この絵文字を外部サーバーへコピーすることの許可' },
+		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
+		author: { type: 'string', nullable: true, description: '作者情報' },
+		description: { type: 'string', nullable: true, description: '絵文字の説明' },
 	},
 	required: ['name', 'fileId'],
 } as const;
@@ -88,6 +94,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				isSensitive: ps.isSensitive ?? false,
 				localOnly: ps.localOnly ?? false,
 				roleIdsThatCanBeUsedThisEmojiAsReaction: ps.roleIdsThatCanBeUsedThisEmojiAsReaction ?? [],
+				copyPermission: ps.copyPermission ?? null,
+				usageInfo: ps.copyPermission ?? null,
+				author: ps.copyPermission ?? null,
+				description: ps.copyPermission ?? null,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(emoji);

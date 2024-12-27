@@ -11,6 +11,7 @@ import { DI } from '@/di-symbols.js';
 import { DriveService } from '@/core/DriveService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
+import { emojiCopyPermissions } from '@/types.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -30,6 +31,16 @@ export const meta = {
 			message: 'Duplicate name.',
 			code: 'DUPLICATE_NAME',
 			id: 'f7a3462c-4e6e-4069-8421-b9bd4f4c3975',
+		},
+		copyIsNotAllowed: {
+			message: 'Copy is not allowed this emoji.',
+			code: 'NOT_ALLOWED',
+			id: '1beadfcc-3882-f3c9-ee57-ded45e4741e4',
+		},
+		seeUsageInfo: {
+			message: 'see Usage information.',
+			code: 'SeeUsageInfo',
+			id: '28d9031e-ddbc-5ba3-c435-fcb5259e8408',
 		},
 	},
 
@@ -71,6 +82,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.noSuchEmoji);
 			}
 
+			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
+
 			let driveFile: MiDriveFile;
 
 			try {
@@ -95,6 +108,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				isSensitive: emoji.isSensitive,
 				localOnly: emoji.localOnly,
 				roleIdsThatCanBeUsedThisEmojiAsReaction: emoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
+				copyPermission: emoji.copyPermission,
+				usageInfo: emoji.usageInfo,
+				author: emoji.author,
+				description: emoji.description,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(addedEmoji);

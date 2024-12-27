@@ -13,6 +13,7 @@ import { DriveService } from '@/core/DriveService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { ApiError } from '../../../error.js';
+import {emojiCopyPermissions} from "@/types.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -36,6 +37,16 @@ export const meta = {
 			message: 'Local emoji already exists.',
 			code: 'LOCAL_EMOJI_ALREADY_EXISTS',
 			id: 'c7262375-102c-41c6-be6b-4f81166a8a5b',
+		},
+		copyIsNotAllowed: {
+			message: 'Copy is not allowed this emoji.',
+			code: 'NOT_ALLOWED',
+			id: '1beadfcc-3882-f3c9-ee57-ded45e4741e4',
+		},
+		seeUsageInfo: {
+			message: 'see Usage information.',
+			code: 'SeeUsageInfo',
+			id: '28d9031e-ddbc-5ba3-c435-fcb5259e8408',
 		},
 	},
 
@@ -79,6 +90,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (emoji == null) {
 				throw new ApiError(meta.errors.noSuchEmoji);
 			}
+			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
 
 			if (localEmoji != null) {
 				throw new ApiError(meta.errors.localEmojiAlreadyExists);
@@ -108,6 +120,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				isSensitive: emoji.isSensitive,
 				localOnly: emoji.localOnly,
 				roleIdsThatCanBeUsedThisEmojiAsReaction: emoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
+				copyPermission: emoji.copyPermission,
+				usageInfo: emoji.usageInfo,
+				author: emoji.author,
+				description: emoji.description,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(addedEmoji);

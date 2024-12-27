@@ -492,14 +492,14 @@ export class ApNoteService {
 		// eslint-disable-next-line no-param-reassign
 		host = this.utilityService.toPuny(host);
 
-		const eomjiTags = toArray(tags).filter(isEmoji);
+		const emojiTags = toArray(tags).filter(isEmoji);
 
 		const existingEmojis = await this.emojisRepository.findBy({
 			host,
-			name: In(eomjiTags.map(tag => tag.name.replaceAll(':', ''))),
+			name: In(emojiTags.map(tag => tag.name.replaceAll(':', ''))),
 		});
 
-		return await Promise.all(eomjiTags.map(async tag => {
+		return await Promise.all(emojiTags.map(async tag => {
 			const name = tag.name.replaceAll(':', '');
 			tag.icon = toSingle(tag.icon);
 
@@ -519,6 +519,12 @@ export class ApNoteService {
 						originalUrl: tag.icon.url,
 						publicUrl: tag.icon.url,
 						updatedAt: new Date(),
+						aliases: tag.keywords,
+						copyPermission: tag.copyPermission,
+						author: tag.author,
+						license: tag.license,
+						description: tag.description,
+						usageInfo: tag.usageInfo,
 					});
 
 					const emoji = await this.emojisRepository.findOneBy({ host, name });
@@ -539,7 +545,12 @@ export class ApNoteService {
 				originalUrl: tag.icon.url,
 				publicUrl: tag.icon.url,
 				updatedAt: new Date(),
-				aliases: [],
+				aliases: tag.keywords,
+				copyPermission: tag.copyPermission,
+				author: tag.author,
+				license: tag.license,
+				description: tag.description,
+				usageInfo: tag.usageInfo,
 			});
 		}));
 	}
