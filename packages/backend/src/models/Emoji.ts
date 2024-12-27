@@ -5,7 +5,7 @@
 
 import { PrimaryColumn, Entity, Index, Column } from 'typeorm';
 import { id } from './util/id.js';
-import {emojiCopyPermissions, searchableTypes} from "@/types.js";
+import { emojiCopyPermissions } from "@/types.js";
 
 @Entity('emoji')
 @Index(['name', 'host'], { unique: true })
