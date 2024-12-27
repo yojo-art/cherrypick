@@ -8167,7 +8167,6 @@ export type operations = {
               url: string;
               /**
                * @description この絵文字を外部サーバーへコピーすることの許可
-               * @default null
                * @enum {string|null}
                */
               copyPermission: 'allow' | 'deny' | 'conditional';
