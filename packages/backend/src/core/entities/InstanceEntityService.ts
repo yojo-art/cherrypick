@@ -60,6 +60,7 @@ export class InstanceEntityService {
 			latestRequestReceivedAt: instance.latestRequestReceivedAt ? instance.latestRequestReceivedAt.toISOString() : null,
 			moderationNote: iAmModerator ? instance.moderationNote : null,
 			reversiVersion: instance.reversiVersion,
+			isQuarantineLimited: instance.quarantineLimited,
 		};
 	}
 
