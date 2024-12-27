@@ -12655,6 +12655,22 @@ export interface Locale extends ILocale {
          * 作成者
          */
         "author": string;
+        /**
+         * コピーの許可
+         */
+        "copyPermission": string;
+        /**
+         * 許可
+         */
+        "allow": string;
+        /**
+         * 禁止
+         */
+        "deny": string;
+        /**
+         * 条件付き
+         */
+        "conditional": string;
     };
 }
 declare const locales: {

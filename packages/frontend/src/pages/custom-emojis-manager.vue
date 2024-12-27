@@ -173,7 +173,7 @@ const importEmoji = async(emoji) => {
 			type: 'warning',
 			title: i18n.ts._emoji.seeLicense,
 			text: `${i18n.ts.license}: ${emoji.license}\r\n`
-					+ `${i18n.ts.usageinfo}: ${emoji.usageInfo}`,
+					+ `${i18n.ts._emoji.usageInfo}: ${emoji.usageInfo}`,
 		});
 		if (canceled) return;
 	}
