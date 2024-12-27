@@ -36,7 +36,7 @@ export const paramDef = {
 		untilId: { type: 'string', format: 'misskey:id' },
 		userId: { type: 'string', format: 'misskey:id', nullable: true },
 		type: { type: 'string', nullable: true, pattern: /^[a-zA-Z0-9\/\-*]+$/.toString().slice(1, -1) },
-		origin: { type: 'string', enum: ['combined', 'local', 'remote'], default: 'local' },
+		origin: { type: 'string', enum: ['combined', 'local', 'remote', 'system'], default: 'local' },
 		hostname: {
 			type: 'string',
 			nullable: true,
@@ -66,6 +66,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					query.andWhere('file.userHost IS NULL');
 				} else if (ps.origin === 'remote') {
 					query.andWhere('file.userHost IS NOT NULL');
+				} else if (ps.origin === 'system') {
+					query.andWhere('file.userId IS NULL');
 				}
 
 				if (ps.hostname) {

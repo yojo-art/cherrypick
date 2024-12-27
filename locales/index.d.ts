@@ -1138,6 +1138,10 @@ export interface Locale extends ILocale {
      */
     "customEmojis": string;
     /**
+     * 詳細情報が利用できません
+     */
+    "emojiRemoteDetailedUnavailable": string;
+    /**
      * 絵文字
      */
     "emoji": string;
@@ -4211,6 +4215,10 @@ export interface Locale extends ILocale {
      * CWを維持する
      */
     "keepCw": string;
+    /**
+     * %sが検索語句に置き換えられます
+     */
+    "searchEngineDescription": string;
     /**
      * Pub/Subのアカウント
      */

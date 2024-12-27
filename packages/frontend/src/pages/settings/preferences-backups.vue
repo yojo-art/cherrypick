@@ -191,6 +191,10 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'showMoreButtonInNoteFooter',
 	'selectReaction',
 	// #endregion CherryPick
+	// #region yojo-art
+	'checkMultipleRenote',
+	'searchEngine',
+	// #endregion yojo-art
 ];
 const coldDeviceStorageSaveKeys: (keyof typeof ColdDeviceStorage.default)[] = [
 	'lightTheme',
