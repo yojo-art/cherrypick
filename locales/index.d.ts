@@ -4216,6 +4216,10 @@ export interface Locale extends ILocale {
      */
     "keepCw": string;
     /**
+     * %sが検索語句に置き換えられます
+     */
+    "searchEngineDescription": string;
+    /**
      * Pub/Subのアカウント
      */
     "pubSub": string;
