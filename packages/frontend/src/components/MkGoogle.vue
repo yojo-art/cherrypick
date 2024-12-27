@@ -12,7 +12,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref } from 'vue';
+import { url as local } from '@@/js/config.js';
 import { i18n } from '@/i18n.js';
+import { defaultStore } from '@/store.js';
+import { useRouter } from '@/router/supplier.js';
+
+const router = useRouter();
 
 const props = defineProps<{
 	q: string;
@@ -21,9 +26,13 @@ const props = defineProps<{
 const query = ref(props.q);
 
 const search = () => {
-	const sp = new URLSearchParams();
-	sp.append('q', query.value);
-	window.open(`https://www.google.com/search?${sp.toString()}`, '_blank', 'noopener');
+	const searchUrl = String(defaultStore.state.searchEngine).replaceAll('%s', encodeURIComponent(query.value));
+	const url = new URL(searchUrl, local);
+	if (url.origin === local) {
+		router.push(url.toString().substring(local.length));
+	} else {
+		window.open(searchUrl, '_blank', 'noopener');
+	}
 };
 </script>
 
