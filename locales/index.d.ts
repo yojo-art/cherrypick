@@ -12630,6 +12630,24 @@ export interface Locale extends ILocale {
          */
         "private": string;
     };
+    "_emoji": {
+        /**
+         * この絵文字のコピーは許可されていません
+         */
+        "copyPermissionIsDeny": string;
+        /**
+         * ライセンスと使用に関しての情報よんで同意できるならOkを選択してください
+         */
+        "seeLicense": string;
+        /**
+         * 使用に関して
+         */
+        "usageInfo": string;
+        /**
+         * 作成者
+         */
+        "author": string;
+    };
 }
 declare const locales: {
     [lang: string]: Locale;

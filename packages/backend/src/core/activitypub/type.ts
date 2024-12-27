@@ -274,6 +274,7 @@ export interface IApEmoji extends IObject {
 	name: string;
 	updated: string;
 	copyPermission?: 'allow' | 'deny' | 'conditional';
+	category?: string;
 	license?: string;
 	keywords?: string[];
 	usageInfo?: string;

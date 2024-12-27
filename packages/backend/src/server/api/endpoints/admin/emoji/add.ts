@@ -9,8 +9,8 @@ import type { DriveFilesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
-import { ApiError } from '../../../error.js';
 import { emojiCopyPermissions } from '@/types.js';
+import { ApiError } from '../../../error.js';
 
 export const meta = {
 	tags: ['admin'],

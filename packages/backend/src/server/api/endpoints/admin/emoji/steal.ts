@@ -13,7 +13,7 @@ import { DriveService } from '@/core/DriveService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { ApiError } from '../../../error.js';
-import {emojiCopyPermissions} from "@/types.js";
+import { emojiCopyPermissions } from "@/types.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -43,9 +43,9 @@ export const meta = {
 			code: 'NOT_ALLOWED',
 			id: '1beadfcc-3882-f3c9-ee57-ded45e4741e4',
 		},
-		seeUsageInfo: {
-			message: 'see Usage information.',
-			code: 'SeeUsageInfo',
+		seeUsageInfoAndLicense: {
+			message: 'see Usage information or license.',
+			code: 'SEE_USAGEINFOMATION_OR_LICENSE',
 			id: '28d9031e-ddbc-5ba3-c435-fcb5259e8408',
 		},
 	},
@@ -68,6 +68,9 @@ export const paramDef = {
 	properties: {
 		name: { type: 'string' },
 		host: { type: 'string' },
+		usageInfoReaded: {
+			type: 'boolean',
+		},
 	},
 	required: ['name', 'host'],
 } as const;
@@ -91,6 +94,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				throw new ApiError(meta.errors.noSuchEmoji);
 			}
 			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
+			const readed = ps.usageInfoReaded ?? false;
+			if (emoji.copyPermission === emojiCopyPermissions[2] && !readed) throw new ApiError(meta.errors.seeUsageInfoAndLicense);
 
 			if (localEmoji != null) {
 				throw new ApiError(meta.errors.localEmojiAlreadyExists);

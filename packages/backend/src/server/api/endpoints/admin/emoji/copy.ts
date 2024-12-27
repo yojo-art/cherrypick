@@ -37,9 +37,9 @@ export const meta = {
 			code: 'NOT_ALLOWED',
 			id: '1beadfcc-3882-f3c9-ee57-ded45e4741e4',
 		},
-		seeUsageInfo: {
-			message: 'see Usage information.',
-			code: 'SeeUsageInfo',
+		seeUsageInfoAndLicense: {
+			message: 'see Usage information or license.',
+			code: 'SEE_USAGEINFOMATION_OR_LICENSE',
 			id: '28d9031e-ddbc-5ba3-c435-fcb5259e8408',
 		},
 	},
@@ -61,6 +61,9 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		emojiId: { type: 'string', format: 'misskey:id' },
+		usageInfoReaded: {
+			type: 'boolean',
+		},
 	},
 	required: ['emojiId'],
 } as const;
@@ -83,6 +86,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
+
+			const readed = ps.usageInfoReaded ?? false;
+			if (emoji.copyPermission === emojiCopyPermissions[2] && !readed) throw new ApiError(meta.errors.seeUsageInfoAndLicense);
 
 			let driveFile: MiDriveFile;
 

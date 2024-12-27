@@ -12,10 +12,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div :class="$style.emojiImgWrapper">
 					<MkCustomEmoji :name="emoji.name" :normal="true" :useOriginalSize="true" :host="props.emoji.host" :url="props.emoji.url" style="height: 100%;"></MkCustomEmoji>
 				</div>
-				<div v-if="emoji.host === null">
-					<MkKeyValue :copy="`:${emoji.name}:`">
+					<MkKeyValue v-if="emoji.host === null" :copy="`:${emoji.name}:`">
 						<template #key>{{ i18n.ts.name }}</template>
 						<template #value>{{ emoji.name }}</template>
+					</MkKeyValue>
+					<MkKeyValue v-else :copy="`:${emoji.name}@${emoji.host}:`">
+						<template #key>{{ i18n.ts.name }}</template>
+						<template #value>{{ emoji.name + "@" + emoji.host }}</template>
+					</MkKeyValue>
+					<MkKeyValue v-if="emoji.host !== null">
+						<template #key>{{ i18n.ts.host }}</template>
+						<template #value>{{ emoji.host }}</template>
 					</MkKeyValue>
 					<MkKeyValue>
 						<template #key>{{ i18n.ts.tags }}</template>
@@ -32,29 +39,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #key>{{ i18n.ts.category }}</template>
 						<template #value>{{ emoji.category ?? i18n.ts.none }}</template>
 					</MkKeyValue>
-					<MkKeyValue>
+				<MkKeyValue>
 						<template #key>{{ i18n.ts.sensitive }}</template>
 						<template #value>{{ emoji.isSensitive ? i18n.ts.yes : i18n.ts.no }}</template>
 					</MkKeyValue>
 					<MkKeyValue>
 						<template #key>{{ i18n.ts.localOnly }}</template>
-						<template #value>{{ emoji.localOnly ? i18n.ts.yes : i18n.ts.no }}</template>
-					</MkKeyValue>
-					<MkKeyValue>
-						<template #key>{{ i18n.ts.license }}</template>
-						<template #value><Mfm :text="emoji.license ?? i18n.ts.none"/></template>
-					</MkKeyValue>
-				</div>
-				<div v-else>
-					<MkKeyValue :copy="`:${emoji.name}@${emoji.host}:`">
-						<template #key>{{ i18n.ts.name }}</template>
-						<template #value>{{ emoji.name + "@" + emoji.host }}</template>
-					</MkKeyValue>
-					<MkKeyValue>
-						<template #key>{{ i18n.ts.host }}</template>
-						<template #value>{{ emoji.host }}</template>
-					</MkKeyValue>
-				</div>
+						<template #value>{{ emoji.localOnly ? i18n.ts.yes : i18n.ts.no }}</template></MkKeyValue>
+				<MkKeyValue>
+						<template #key>{{ i18n.ts.license }}</template><template #value>
+						<Mfm :text="emoji.license ?? i18n.ts.none"/></template></MkKeyValue>
+				<MkKeyValue>
+					<template #key>{{ i18n.ts._emoji.usageInfo }}</template>
+					<template #value><Mfm :text="emoji.usageInfo ?? i18n.ts.none"/></template>
+				</MkKeyValue>
+				<MkKeyValue>
+					<template #key>{{ i18n.ts._emoji.author }}</template>
+					<template #value><Mfm :text="emoji.author ?? i18n.ts.none"/></template>
+				</MkKeyValue>
 				<MkKeyValue :copy="emoji.url">
 					<template #key>{{ i18n.ts.emojiUrl }}</template>
 					<template #value>
