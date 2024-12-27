@@ -35,7 +35,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</template>
 					</MkKeyValue>
-					<MkKeyValue>
+				<MkKeyValue>
+					<template #key>{{ i18n.ts.description }}</template><template #value>
+					<Mfm :text="emoji.description ?? i18n.ts.none"/></template>
+				</MkKeyValue>
+				<MkKeyValue>
 						<template #key>{{ i18n.ts.category }}</template>
 						<template #value>{{ emoji.category ?? i18n.ts.none }}</template>
 					</MkKeyValue>
@@ -47,8 +51,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #key>{{ i18n.ts.localOnly }}</template>
 						<template #value>{{ emoji.localOnly ? i18n.ts.yes : i18n.ts.no }}</template></MkKeyValue>
 				<MkKeyValue>
-						<template #key>{{ i18n.ts.license }}</template><template #value>
-						<Mfm :text="emoji.license ?? i18n.ts.none"/></template></MkKeyValue>
+					<template #key>{{ i18n.ts.license }}</template><template #value>
+					<Mfm :text="emoji.license ?? i18n.ts.none"/></template>
+				</MkKeyValue>
 				<MkKeyValue>
 					<template #key>{{ i18n.ts._emoji.usageInfo }}</template>
 					<template #value><Mfm :text="emoji.usageInfo ?? i18n.ts.none"/></template>
