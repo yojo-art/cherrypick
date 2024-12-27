@@ -9,6 +9,7 @@ import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import type { DriveFilesRepository, MiEmoji } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { ApiError } from '../../../error.js';
+import { emojiCopyPermissions } from "@/types.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -56,6 +57,11 @@ export const paramDef = {
 		roleIdsThatCanBeUsedThisEmojiAsReaction: { type: 'array', items: {
 			type: 'string',
 		} },
+
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, default: emojiCopyPermissions[0], description: 'この絵文字を外部サーバーへコピーすることの許可' },
+		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
+		author: { type: 'string', nullable: true, description: '作者情報' },
+		description: { type: 'string', nullable: true, description: '絵文字の説明' },
 	},
 	anyOf: [
 		{ required: ['id'] },
@@ -79,7 +85,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			// JSON schemeのanyOfの型変換がうまくいっていないらしい
-			const required = { id: ps.id, name: ps.name } as 
+			const required = { id: ps.id, name: ps.name } as
 				| { id: MiEmoji['id']; name?: string }
 				| { id?: MiEmoji['id']; name: string };
 

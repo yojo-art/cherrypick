@@ -168,6 +168,7 @@ const importEmoji = async(emoji) => {
 		return;
 	}
 
+	let readed = false;
 	if (emoji.license || emoji.usageInfo) {
 		const { canceled } = await os.confirm({
 			type: 'warning',
@@ -179,6 +180,7 @@ const importEmoji = async(emoji) => {
 	}
 	let res = await os.apiWithDialog('admin/emoji/copy', {
 		emojiId: emoji.id,
+		...(readed ? { usageInfoReaded: true } : { }),
 	});
 	res = await importEmojiMeta(res, emoji.host);
 	edit(res);
