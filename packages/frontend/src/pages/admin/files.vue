@@ -15,6 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<option value="combined">{{ i18n.ts.all }}</option>
 						<option value="local">{{ i18n.ts.local }}</option>
 						<option value="remote">{{ i18n.ts.remote }}</option>
+						<option value="system">{{ i18n.ts.system }}</option>
 					</MkSelect>
 					<MkInput v-model="searchHost" :debounce="true" type="search" style="margin: 0; flex: 1;" :disabled="pagination.params.origin === 'local'">
 						<template #label>{{ i18n.ts.host }}</template>
@@ -50,7 +51,7 @@ const origin = ref('local');
 const type = ref<string | null>(null);
 const searchHost = ref('');
 const userId = ref('');
-const viewMode = ref('grid');
+const viewMode = ref<'grid'|'list'>('grid');
 const pagination = {
 	endpoint: 'admin/drive/files' as const,
 	limit: 10,
