@@ -93,7 +93,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (emoji == null) {
 				throw new ApiError(meta.errors.noSuchEmoji);
 			}
+			//コピー拒否
 			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
+
+			//条件付き
 			const readed = ps.usageInfoReaded ?? false;
 			if (emoji.copyPermission === emojiCopyPermissions[2] && !readed) throw new ApiError(meta.errors.seeUsageInfoAndLicense);
 

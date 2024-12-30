@@ -492,14 +492,14 @@ export class ApNoteService {
 		// eslint-disable-next-line no-param-reassign
 		host = this.utilityService.toPuny(host);
 
-		const emojiTags = toArray(tags).filter(isEmoji);
+		const eomjiTags = toArray(tags).filter(isEmoji);
 
 		const existingEmojis = await this.emojisRepository.findBy({
 			host,
-			name: In(emojiTags.map(tag => tag.name.replaceAll(':', ''))),
+			name: In(eomjiTags.map(tag => tag.name.replaceAll(':', ''))),
 		});
 
-		return await Promise.all(emojiTags.map(async tag => {
+		return await Promise.all(eomjiTags.map(async tag => {
 			const name = tag.name.replaceAll(':', '');
 			tag.icon = toSingle(tag.icon);
 

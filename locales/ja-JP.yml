@@ -3377,7 +3377,7 @@ _searchbility:
 
 _emoji:
   copyPermissionIsDeny: "この絵文字のコピーは許可されていません"
-  seeLicense: "ライセンスと使用に関しての情報よんで同意できるならOkを選択してください"
+  seeLicense: "ライセンスと使用に関しての情報を読んで同意できるならOkを選択してください"
   usageInfo: "使用に関して"
   author: "作成者"
   copyPermission: "コピーの許可"

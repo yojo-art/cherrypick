@@ -22,7 +22,14 @@ describe('Emoji', () => {
 	});
 
 	test('Custom emoji are delivered with Note delivery', async () => {
-		const emoji = await addCustomEmoji('a.test');
+		const emoji = await addCustomEmoji('a.test', {
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+		});
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
 		await sleep();
 
@@ -36,7 +43,14 @@ describe('Emoji', () => {
 	});
 
 	test('Custom emoji are delivered with Reaction delivery', async () => {
-		const emoji = await addCustomEmoji('a.test');
+		const emoji = await addCustomEmoji('a.test', {
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+		});
 		const note = (await alice.client.request('notes/create', { text: 'a' })).createdNote;
 		await sleep();
 
@@ -49,7 +63,14 @@ describe('Emoji', () => {
 	});
 
 	test('Custom emoji are delivered with Profile delivery', async () => {
-		const emoji = await addCustomEmoji('a.test');
+		const emoji = await addCustomEmoji('a.test', {
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+		});
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
 		await sleep();
 
