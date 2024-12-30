@@ -176,7 +176,7 @@ const enableSocialTimeline = ref(defaultStore.state.enableSocialTimeline);
 const enableGlobalTimeline = ref(defaultStore.state.enableGlobalTimeline);
 const enableListTimeline = ref(defaultStore.state.enableListTimeline);
 const enableAntennaTimeline = ref(defaultStore.state.enableAntennaTimeline);
-const enableChannelTimeline = ref(defaultStore.state.enableChannelTimeline);
+const enableTagTimeline = ref(defaultStore.state.enableTagTimeline);
 
 const collapseRenotes = ref(defaultStore.state.collapseRenotes);
 const collapseReplies = ref(defaultStore.state.collapseReplies);
@@ -234,8 +234,8 @@ watch(enableAntennaTimeline, (x) => {
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
-watch(enableChannelTimeline, (x) => {
-	defaultStore.set('enableChannelTimeline', x);
+watch(enableTagTimeline, (x) => {
+	defaultStore.set('enableTagTimeline', x);
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
@@ -525,9 +525,9 @@ const headerActions = computed(() => {
 							ref: enableAntennaTimeline,
 						}, {
 							type: 'switch',
-							text: i18n.ts.channel,
-							icon: 'ti ti-device-tv',
-							ref: enableChannelTimeline,
+							text: i18n.ts.tags,
+							icon: 'ti ti-hash',
+							ref: enableTagTimeline,
 						});
 
 						return displayOfTimelineChildMenu;

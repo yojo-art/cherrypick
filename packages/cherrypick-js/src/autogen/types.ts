@@ -7550,7 +7550,7 @@ export type operations = {
            * @default local
            * @enum {string}
            */
-          origin?: 'combined' | 'local' | 'remote';
+          origin?: 'combined' | 'local' | 'remote' | 'system';
           /**
            * @description The local host is represented with `null`.
            * @default null
