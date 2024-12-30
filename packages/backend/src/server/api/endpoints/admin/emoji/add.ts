@@ -58,7 +58,7 @@ export const paramDef = {
 			type: 'string',
 		} },
 
-		copyPermission: { type: 'string', enum: emojiCopyPermissions, default: emojiCopyPermissions[0], description: 'この絵文字を外部サーバーへコピーすることの許可' },
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, description: 'この絵文字を外部サーバーへコピーすることの許可' },
 		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
 		author: { type: 'string', nullable: true, description: '作者情報' },
 		description: { type: 'string', nullable: true, description: '絵文字の説明' },
@@ -95,9 +95,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				localOnly: ps.localOnly ?? false,
 				roleIdsThatCanBeUsedThisEmojiAsReaction: ps.roleIdsThatCanBeUsedThisEmojiAsReaction ?? [],
 				copyPermission: ps.copyPermission ?? null,
-				usageInfo: ps.copyPermission ?? null,
-				author: ps.copyPermission ?? null,
-				description: ps.copyPermission ?? null,
+				usageInfo: ps.usageInfo ?? null,
+				author: ps.author ?? null,
+				description: ps.description ?? null,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(emoji);

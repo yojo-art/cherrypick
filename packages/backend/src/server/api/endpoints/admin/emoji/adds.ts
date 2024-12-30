@@ -58,7 +58,7 @@ export const paramDef = {
 		roleIdsThatCanBeUsedThisEmojiAsReaction: { type: 'array', items: {
 			type: 'string',
 		} },
-		copyPermission: { type: 'string', enum: emojiCopyPermissions, default: emojiCopyPermissions[0], description: 'この絵文字を外部サーバーへコピーすることの許可' },
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, description: 'この絵文字を外部サーバーへコピーすることの許可' },
 		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
 		author: { type: 'string', nullable: true, description: '作者情報' },
 		description: { type: 'string', nullable: true, description: '絵文字の説明' },
@@ -97,7 +97,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				isSensitive: ps.isSensitive ?? false,
 				localOnly: ps.localOnly ?? false,
 				roleIdsThatCanBeUsedThisEmojiAsReaction: ps.roleIdsThatCanBeUsedThisEmojiAsReaction ?? [],
-				copyPermission: ps.copyPermission,
+				copyPermission: ps.copyPermission ?? null,
 				usageInfo: ps.usageInfo ?? null,
 				author: ps.author ?? null,
 				description: ps.description ?? null,
