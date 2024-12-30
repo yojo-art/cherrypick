@@ -12644,7 +12644,7 @@ export interface Locale extends ILocale {
          */
         "copyPermissionIsDeny": string;
         /**
-         * ライセンスと使用に関しての情報よんで同意できるならOkを選択してください
+         * ライセンスと使用に関しての情報を読んで同意できるならOkを選択してください
          */
         "seeLicense": string;
         /**
