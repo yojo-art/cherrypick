@@ -40,7 +40,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test'});
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		strictEqual(emoji, remoteEmoji);
 	});
 
@@ -62,7 +62,7 @@ describe('Emoji', () => {
 		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
 		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
-		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test'});
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		strictEqual(emoji, remoteEmoji);
 	});
 
@@ -82,7 +82,7 @@ describe('Emoji', () => {
 		strictEqual(renewedaliceInB.name, renewedAlice.name);
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
-		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test'});
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		strictEqual(emoji, remoteEmoji);
 	});
 
