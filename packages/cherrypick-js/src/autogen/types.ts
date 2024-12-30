@@ -7787,7 +7787,7 @@ export type operations = {
           /**
            * @description この絵文字を外部サーバーへコピーすることの許可
            * @default allow
-           * @enum {string}
+           * @enum {string|null}
            */
           copyPermission?: 'allow' | 'deny' | 'conditional' | null;
           /** @description 使用する際の説明 */
@@ -7861,7 +7861,7 @@ export type operations = {
           /**
            * @description この絵文字を外部サーバーへコピーすることの許可
            * @default allow
-           * @enum {string}
+           * @enum {string|null}
            */
           copyPermission?: 'allow' | 'deny' | 'conditional' | null;
           /** @description 使用する際の説明 */
@@ -8572,8 +8572,7 @@ export type operations = {
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
           /**
            * @description この絵文字を外部サーバーへコピーすることの許可
-           * @default allow
-           * @enum {string}
+           * @enum {string|null}
            */
           copyPermission?: 'allow' | 'deny' | 'conditional' | null;
           /** @description 使用する際の説明 */
