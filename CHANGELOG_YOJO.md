@@ -11,8 +11,10 @@
 - Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
 
 ### Server
+- Change: `ap/fetch-outbox`から`includeAnnounce`オプションを削除 [#606](https://github.com/yojo-art/cherrypick/pull/606)
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
+
 
 ## 1.2.2
 Cherrypick 4.13.0  

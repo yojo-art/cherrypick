@@ -69,11 +69,6 @@ export const paramDef = {
 			default: false,
 			description: 'Outboxの取得が終わるまで待ちます',
 		},
-		includeAnnounce: {
-			type: 'boolean',
-			default: false,
-			description: 'Outbox取得の際にRenoteも対象にします',
-		},
 		//skip: { type: 'integer', minimum: 1, default: 0 },
 	},
 	required: ['userId'],
@@ -87,7 +82,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			if (ps.wait) {
 				try {
-					await this.apOutboxFetchService.fetchOutbox(ps.userId, ps.includeAnnounce);
+					await this.apOutboxFetchService.fetchOutbox(ps.userId);
 				} catch (err) {
 					if (err instanceof IdentifiableError) {
 						if (err.id === '3fc5a089-cab4-48db-b9f3-f220574b3c0a') throw new ApiError(meta.errors.noSuchUser);
@@ -100,7 +95,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw (err);
 				}
 			} else {
-				this.apOutboxFetchService.fetchOutbox(ps.userId, ps.includeAnnounce);
+				this.apOutboxFetchService.fetchOutbox(ps.userId);
 			}
 		});
 	}
