@@ -64,6 +64,7 @@ export class ApNoteService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		private idService: IdService,
 		private apMfmService: ApMfmService,
 		private apResolverService: ApResolverService,
 
