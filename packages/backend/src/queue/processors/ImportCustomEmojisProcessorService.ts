@@ -103,6 +103,10 @@ export class ImportCustomEmojisProcessorService {
 						license: emojiInfo.license,
 						isSensitive: emojiInfo.isSensitive,
 						localOnly: emojiInfo.localOnly,
+						author: emojiInfo.author ?? null,
+						description: emojiInfo.description ?? null,
+						usageInfo: emojiInfo.usageInfo ?? null,
+						copyPermission: emojiInfo.copyPermission ?? null,
 						roleIdsThatCanBeUsedThisEmojiAsReaction: [],
 					});
 				} catch (e) {

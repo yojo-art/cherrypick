@@ -5,6 +5,7 @@
 
 import { PrimaryColumn, Entity, Index, Column } from 'typeorm';
 import { id } from './util/id.js';
+import { emojiCopyPermissions } from "@/types.js";
 
 @Entity('emoji')
 @Index(['name', 'host'], { unique: true })
@@ -75,6 +76,34 @@ export class MiEmoji {
 		default: false,
 	})
 	public isSensitive: boolean;
+
+	@Column('varchar', {
+		length: 512,
+		default: null,
+		nullable: true,
+	})
+	public usageInfo: string | null;
+
+	@Column('varchar', {
+		length: 512,
+		default: null,
+		nullable: true,
+	})
+	public description: string | null;
+
+	@Column('varchar', {
+		length: 128,
+		default: null,
+		nullable: true,
+	})
+	public author: string | null;
+
+	@Column('enum',
+		{
+			enum: emojiCopyPermissions,
+			nullable: true,
+		})
+	public copyPermission: typeof emojiCopyPermissions[number] | null;
 
 	// TODO: 定期ジョブで存在しなくなったロールIDを除去するようにする
 	@Column('varchar', {

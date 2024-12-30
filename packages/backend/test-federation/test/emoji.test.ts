@@ -22,7 +22,15 @@ describe('Emoji', () => {
 	});
 
 	test('Custom emoji are delivered with Note delivery', async () => {
-		const emoji = await addCustomEmoji('a.test');
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+		});
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
 		await sleep();
 
@@ -33,10 +41,35 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
+		deepStrictEqual(JSON.stringify({
+			id: remoteEmoji.id,
+			aliases: emoji.aliases,
+			name: emoji.name,
+			category: emoji.category,
+			host: 'a.test',
+			url: emoji.url,
+			license: emoji.license,
+			isSensitive: false,
+			localOnly: false,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+		}), JSON.stringify(remoteEmoji));
 	});
 
 	test('Custom emoji are delivered with Reaction delivery', async () => {
-		const emoji = await addCustomEmoji('a.test');
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+		});
 		const note = (await alice.client.request('notes/create', { text: 'a' })).createdNote;
 		await sleep();
 
@@ -46,10 +79,35 @@ describe('Emoji', () => {
 		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
 		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
+		deepStrictEqual(JSON.stringify({
+			id: remoteEmoji.id,
+			aliases: emoji.aliases,
+			name: emoji.name,
+			category: emoji.category,
+			host: 'a.test',
+			url: emoji.url,
+			license: emoji.license,
+			isSensitive: false,
+			localOnly: false,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+		}), JSON.stringify(remoteEmoji));
 	});
 
 	test('Custom emoji are delivered with Profile delivery', async () => {
-		const emoji = await addCustomEmoji('a.test');
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+		});
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
 		await sleep();
 
@@ -57,6 +115,23 @@ describe('Emoji', () => {
 		strictEqual(renewedaliceInB.name, renewedAlice.name);
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
+		deepStrictEqual(JSON.stringify({
+			id: remoteEmoji.id,
+			aliases: emoji.aliases,
+			name: emoji.name,
+			category: emoji.category,
+			host: 'a.test',
+			url: emoji.url,
+			license: emoji.license,
+			isSensitive: false,
+			localOnly: false,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+		}), JSON.stringify(remoteEmoji));
 	});
 
 	test('Local-only custom emoji aren\'t delivered with Note delivery', async () => {
