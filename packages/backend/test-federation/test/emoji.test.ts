@@ -41,7 +41,18 @@ describe('Emoji', () => {
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		strictEqual(emoji, remoteEmoji);
+		strictEqual({
+			id: remoteEmoji.id,
+			host: 'a.test',
+
+			aliases: emoji.aliases,
+			license: emoji.license,
+			category: emoji.category,
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+		}, remoteEmoji);
 	});
 
 	test('Custom emoji are delivered with Reaction delivery', async () => {
@@ -63,11 +74,23 @@ describe('Emoji', () => {
 		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		strictEqual(emoji, remoteEmoji);
+		strictEqual({
+			id: remoteEmoji.id,
+			host: 'a.test',
+
+			aliases: emoji.aliases,
+			license: emoji.license,
+			category: emoji.category,
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+		}, remoteEmoji);
 	});
 
 	test('Custom emoji are delivered with Profile delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a','b','c'],
 			license: 'license',
 			category: 'category',
 			copyPermission: 'allow',
@@ -83,7 +106,18 @@ describe('Emoji', () => {
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		strictEqual(emoji, remoteEmoji);
+		strictEqual({
+			id: remoteEmoji.id,
+			host: 'a.test',
+
+			aliases: emoji.aliases,
+			license: emoji.license,
+			category: emoji.category,
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+		}, remoteEmoji);
 	});
 
 	test('Local-only custom emoji aren\'t delivered with Note delivery', async () => {
