@@ -23,6 +23,7 @@ describe('Emoji', () => {
 
 	test('Custom emoji are delivered with Note delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
 			license: 'license',
 			category: 'category',
 			copyPermission: 'allow',
@@ -63,6 +64,7 @@ describe('Emoji', () => {
 
 	test('Custom emoji are delivered with Reaction delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
 			license: 'license',
 			category: 'category',
 			copyPermission: 'allow',
@@ -102,7 +104,7 @@ describe('Emoji', () => {
 
 	test('Custom emoji are delivered with Profile delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', {
-			aliases: ['a','b','c'],
+			aliases: ['a', 'b', 'c'],
 			license: 'license',
 			category: 'category',
 			copyPermission: 'allow',
