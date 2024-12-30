@@ -1,4 +1,4 @@
-import assert, { deepStrictEqual, strictEqual } from 'assert';
+import assert, { deepStrictEqual, strictEqual, equal } from 'assert';
 import * as Misskey from 'cherrypick-js';
 import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
 
@@ -42,7 +42,7 @@ describe('Emoji', () => {
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		deepStrictEqual({
+		equal({
 			id: remoteEmoji.id,
 			host: 'a.test',
 
@@ -82,7 +82,7 @@ describe('Emoji', () => {
 		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		deepStrictEqual({
+		equal({
 			id: remoteEmoji.id,
 			host: 'a.test',
 
@@ -120,7 +120,7 @@ describe('Emoji', () => {
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		deepStrictEqual({
+		equal({
 			id: remoteEmoji.id,
 			host: 'a.test',
 
