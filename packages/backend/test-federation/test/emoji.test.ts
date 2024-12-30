@@ -45,6 +45,12 @@ describe('Emoji', () => {
 			id: remoteEmoji.id,
 			host: 'a.test',
 
+			isSensitive: false,
+			localOnly: false,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+			url: emoji.url,
+
+			name: emoji.name,
 			aliases: emoji.aliases,
 			license: emoji.license,
 			category: emoji.category,
@@ -78,6 +84,12 @@ describe('Emoji', () => {
 			id: remoteEmoji.id,
 			host: 'a.test',
 
+			isSensitive: false,
+			localOnly: false,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+			url: emoji.url,
+
+			name: emoji.name,
 			aliases: emoji.aliases,
 			license: emoji.license,
 			category: emoji.category,
@@ -110,6 +122,12 @@ describe('Emoji', () => {
 			id: remoteEmoji.id,
 			host: 'a.test',
 
+			isSensitive: false,
+			localOnly: false,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
+			url: emoji.url,
+
+			name: emoji.name,
 			aliases: emoji.aliases,
 			license: emoji.license,
 			category: emoji.category,
