@@ -40,6 +40,8 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test'});
+		strictEqual(emoji, remoteEmoji);
 	});
 
 	test('Custom emoji are delivered with Reaction delivery', async () => {
@@ -60,6 +62,8 @@ describe('Emoji', () => {
 		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
 		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test'});
+		strictEqual(emoji, remoteEmoji);
 	});
 
 	test('Custom emoji are delivered with Profile delivery', async () => {
@@ -78,6 +82,8 @@ describe('Emoji', () => {
 		strictEqual(renewedaliceInB.name, renewedAlice.name);
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
+		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test'});
+		strictEqual(emoji, remoteEmoji);
 	});
 
 	test('Local-only custom emoji aren\'t delivered with Note delivery', async () => {
