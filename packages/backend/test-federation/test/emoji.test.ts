@@ -1,4 +1,4 @@
-import assert, { deepStrictEqual, strictEqual, equal } from 'assert';
+import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'cherrypick-js';
 import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
 
@@ -42,19 +42,16 @@ describe('Emoji', () => {
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		equal({
+		strictEqual({
 			id: remoteEmoji.id,
-			host: 'a.test',
-
+			aliases: emoji.aliases,
+			name: emoji.name,
+			category: emoji.category,
+			url: emoji.url,
+			license: emoji.license,
 			isSensitive: false,
 			localOnly: false,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
-			url: emoji.url,
-
-			name: emoji.name,
-			aliases: emoji.aliases,
-			license: emoji.license,
-			category: emoji.category,
 			copyPermission: emoji.copyPermission,
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
@@ -82,19 +79,16 @@ describe('Emoji', () => {
 		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		equal({
+		strictEqual({
 			id: remoteEmoji.id,
-			host: 'a.test',
-
+			aliases: emoji.aliases,
+			name: emoji.name,
+			category: emoji.category,
+			url: emoji.url,
+			license: emoji.license,
 			isSensitive: false,
 			localOnly: false,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
-			url: emoji.url,
-
-			name: emoji.name,
-			aliases: emoji.aliases,
-			license: emoji.license,
-			category: emoji.category,
 			copyPermission: emoji.copyPermission,
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
@@ -120,19 +114,16 @@ describe('Emoji', () => {
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
-		equal({
+		strictEqual({
 			id: remoteEmoji.id,
-			host: 'a.test',
-
+			aliases: emoji.aliases,
+			name: emoji.name,
+			category: emoji.category,
+			url: emoji.url,
+			license: emoji.license,
 			isSensitive: false,
 			localOnly: false,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
-			url: emoji.url,
-
-			name: emoji.name,
-			aliases: emoji.aliases,
-			license: emoji.license,
-			category: emoji.category,
 			copyPermission: emoji.copyPermission,
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
