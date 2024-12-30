@@ -71,7 +71,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 	 * outboxから投稿を取得します
 	 */
 	@bindThis
-	public async fetchOutbox(userId: MiUser['id'], includeAnnounce = false, resolver?: Resolver): Promise<void> {
+	public async fetchOutbox(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = (await this.usersRepository.findOneBy({ id: userId }) as MiRemoteUser | null) ?? null;
 		if (!user) throw new IdentifiableError('3fc5a089-cab4-48db-b9f3-f220574b3c0a', 'No such user');
 		if (!user.host) throw new IdentifiableError('67070303-177c-4600-af93-b26a7ab889c6', 'Is local user');
@@ -101,7 +101,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 			const activityes = (collection.orderedItems ?? collection.items);
 			if (!activityes) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is unavailable');
 
-			created = await this.fetchObjects(user, activityes, includeAnnounce, created);
+			created = await this.fetchObjects(user, activityes, created);
 			if (createLimit <= created) break;//次ページ見て一件だけしか取れないのは微妙
 			if (!collection.next) break;
 
@@ -112,12 +112,12 @@ export class ApOutboxFetchService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<number> {
+	private async fetchObjects(user: MiRemoteUser, activityes: any[], created: number): Promise<number> {
 		for (const activity of activityes) {
 			if (createLimit < created) return created;
 			try {
 				if (activity.actor !== user.uri) throw new IdentifiableError('bde7c204-5441-4a87-9b7e-f81e8d05788a');
-				if (activity.type === 'Announce' && includeAnnounce) {
+				if (activity.type === 'Announce') {
 					const object = await this.apNoteService.fetchNote(activity.id);
 
 					if (object) continue;
