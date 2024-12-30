@@ -79,19 +79,22 @@ export class MiEmoji {
 
 	@Column('varchar', {
 		length: 512,
-		default: 'null',
+		default: null,
+		nullable: true,
 	})
 	public usageInfo: string | null;
 
 	@Column('varchar', {
 		length: 512,
-		default: 'null',
+		default: null,
+		nullable: true,
 	})
 	public description: string | null;
 
 	@Column('varchar', {
 		length: 128,
-		default: 'null',
+		default: null,
+		nullable: true,
 	})
 	public author: string | null;
 
