@@ -173,7 +173,7 @@ export class NotificationEntityService implements OnModuleInit {
 			return null;
 		}
 
-		return await awaitAll({
+		return {
 			id: notification.id,
 			createdAt: new Date(notification.createdAt).toISOString(),
 			type: notification.type,
@@ -184,7 +184,11 @@ export class NotificationEntityService implements OnModuleInit {
 				reaction: notification.reaction,
 			} : {}),
 			...(notification.type === 'groupInvited' ? {
-				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId),
+				invitation: awaitAll(this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId)).catch(e => {
+					return {
+						message: JSON.stringify(e),
+					};
+				}),
 			} : {}),
 			...(notification.type === 'roleAssigned' ? {
 				role: role,
@@ -210,7 +214,7 @@ export class NotificationEntityService implements OnModuleInit {
 				header: notification.customHeader,
 				icon: notification.customIcon,
 			} : {}),
-		});
+		};
 	}
 
 	async #packManyInternal <T extends MiNotification | MiGroupedNotification>	(
