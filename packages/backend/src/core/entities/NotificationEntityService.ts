@@ -184,8 +184,10 @@ export class NotificationEntityService implements OnModuleInit {
 				reaction: notification.reaction,
 			} : {}),
 			...(notification.type === 'groupInvited' ? {
-				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId).catch(() => {
-					return {};
+				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId).catch((e) => {
+					return {
+						error: JSON.stringify(e),
+					};
 				}),
 			} : {}),
 			...(notification.type === 'roleAssigned' ? {
