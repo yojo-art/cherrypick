@@ -173,7 +173,7 @@ export class NotificationEntityService implements OnModuleInit {
 			return null;
 		}
 
-		return {
+		return awaitAll({
 			id: notification.id,
 			createdAt: new Date(notification.createdAt).toISOString(),
 			type: notification.type,
@@ -214,7 +214,7 @@ export class NotificationEntityService implements OnModuleInit {
 				header: notification.customHeader,
 				icon: notification.customIcon,
 			} : {}),
-		};
+		});
 	}
 
 	async #packManyInternal <T extends MiNotification | MiGroupedNotification>	(
