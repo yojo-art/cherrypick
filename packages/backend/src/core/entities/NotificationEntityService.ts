@@ -184,7 +184,9 @@ export class NotificationEntityService implements OnModuleInit {
 				reaction: notification.reaction,
 			} : {}),
 			...(notification.type === 'groupInvited' ? {
-				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId),
+				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId).catch(() => {
+					return {};
+				}),
 			} : {}),
 			...(notification.type === 'roleAssigned' ? {
 				role: role,
