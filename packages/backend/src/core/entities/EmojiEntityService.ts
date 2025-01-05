@@ -66,6 +66,7 @@ export class EmojiEntityService {
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
 			description: emoji.description,
+			isBasedOn: emoji.isBasedOn,
 		};
 	}
 

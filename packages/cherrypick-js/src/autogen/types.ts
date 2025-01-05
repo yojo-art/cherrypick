@@ -5123,6 +5123,7 @@ export type components = {
       usageInfo: string | null;
       author: string | null;
       description: string | null;
+      isBasedOn: string | null;
     };
     Flash: {
       /**
@@ -7796,6 +7797,8 @@ export type operations = {
           author?: string | null;
           /** @description 絵文字の説明 */
           description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -7870,6 +7873,8 @@ export type operations = {
           author?: string | null;
           /** @description 絵文字の説明 */
           description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -8581,6 +8586,8 @@ export type operations = {
           author?: string | null;
           /** @description 絵文字の説明 */
           description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
