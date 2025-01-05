@@ -324,7 +324,7 @@ export class AdvancedSearchService {
 		if (!this.opensearch) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
 
-		if (note.text === null && note.cw === null && note.fileIds.length === 0 && note.renoteId) { //リノートであり
+		if (isRenote(note) && !isQuote(note)) { //リノートであり
 			if (note.userHost === null) {//ローカルユーザー
 				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
 				await this.index(this.renoteIndex, note.id, {
@@ -966,7 +966,6 @@ export class AdvancedSearchService {
 				}  else {
 					const fields = ['tags', 'text', 'pollChoices'];
 					if (!opts.excludeCW)fields.push('cw');
-
 					osFilter.bool.must.push({ simple_query_string: {
 							fields: fields, 'query': q,
 							default_operator: 'and',
