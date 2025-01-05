@@ -106,7 +106,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 			if (!activityes) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is unavailable');
 
 			do {
-				current = await this.fetchObjects(user, activityes, includeAnnounce, current.created);
+				current = await this.fetchObjects(user, activityes, current.created);
 				page++;
 			}
 			while (!current.breaked && page < pagelimit);
