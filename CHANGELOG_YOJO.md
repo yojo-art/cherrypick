@@ -11,6 +11,7 @@
 - Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
 
 ### Server
+- Enhance: 高度な検索であいまい検索が無効な時ワイルドカードを利用可能に [#564](https://github.com/yojo-art/cherrypick/pull/564)
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
 
