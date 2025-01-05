@@ -47,7 +47,6 @@ import {defaultStore} from "@/store.js";
 const name = 'dataSaver';
 
 const widgetPropsDef = {
-
 };
 
 type WidgetProps = GetFormResultType<typeof widgetPropsDef>;
@@ -55,7 +54,7 @@ type WidgetProps = GetFormResultType<typeof widgetPropsDef>;
 const props = defineProps<WidgetComponentProps<WidgetProps>>();
 const emit = defineEmits<WidgetComponentEmits<WidgetProps>>();
 
-const { widgetProps, configure, save } = useWidgetPropsManager(name,
+const { configure } = useWidgetPropsManager(name,
 	widgetPropsDef,
 	props,
 	emit,
@@ -63,7 +62,6 @@ const { widgetProps, configure, save } = useWidgetPropsManager(name,
 
 
 const dataSaver = ref(defaultStore.state.dataSaver);
-
 
 function enableAllDataSaver() {
 	const g = { ...defaultStore.state.dataSaver };
