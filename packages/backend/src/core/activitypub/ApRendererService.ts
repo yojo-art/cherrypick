@@ -32,6 +32,7 @@ import { searchableTypes } from '@/types.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
+import { toSerchableByProperty } from './misc/searchableBy.js';
 import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
@@ -541,6 +542,7 @@ export class ApRendererService {
 		];
 
 		const keypair = await this.userKeypairService.getUserKeypair(user.id);
+		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
 
 		const person: any = {
 			type: isSystem ? 'Application' : user.isBot ? 'Service' : 'Person',
@@ -564,7 +566,7 @@ export class ApRendererService {
 			manuallyApprovesFollowers: user.isLocked,
 			discoverable: user.isExplorable,
 			indexable: user.isIndexable,
-			searchableBy: [`${this.config.url}/users/${user.id}`],
+			...( searchableByData ? { searchableBy: searchableByData } : {}),
 			publicKey: this.renderKey(user, keypair, '#main-key'),
 			isCat: user.isCat,
 			attachment: attachment.length ? attachment : undefined,

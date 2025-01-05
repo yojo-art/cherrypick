@@ -31,6 +31,7 @@ import { ApMfmService } from '../ApMfmService.js';
 import { ApDbResolverService } from '../ApDbResolverService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { ApAudienceService } from '../ApAudienceService.js';
+import { parseSearchableByFromProperty } from '../misc/searchableBy.js';
 import { ApPersonService } from './ApPersonService.js';
 import { extractApHashtags } from './tag.js';
 import { ApMentionService } from './ApMentionService.js';
@@ -209,7 +210,7 @@ export class ApNoteService {
 		}
 
 		const noteAudience = await this.apAudienceService.parseAudience(actor, note.to, note.cc, resolver);
-		const searchableBy = await this.apAudienceService.parseSearchableBy(actor, note.searchableBy);
+		const searchableBy = parseSearchableByFromProperty(actor.uri, actor.followersUri ?? undefined, note.searchableBy);
 		let visibility = noteAudience.visibility;
 		const visibleUsers = noteAudience.visibleUsers;
 

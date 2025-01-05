@@ -2,8 +2,9 @@
  * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
  * SPDX-License-Identifier: AGPL-3.0-only
  */
+import { i18n } from '@/i18n.js';
 export async function importEmojiMeta(emoji, host:string) {
-	emoji.category = '取得失敗';
+	emoji.category = i18n.ts.emojiRemoteDetailedUnavailable;
 	try {
 		const json = await(await fetch('https://' + host + '/api/emoji?name=' + emoji.name)).json();
 		emoji.category = '';
@@ -24,5 +25,6 @@ export async function importEmojiMeta(emoji, host:string) {
 		console.log(err);
 		//リモートから取得に失敗
 	}
+	emoji.license = (emoji.license ? emoji.license + '\n' : '') + 'import from ' + host;
 	return emoji;
 }

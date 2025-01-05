@@ -574,6 +574,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			urlPreviewDirectSummalyProxy: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 			federation: {
 				type: 'string',
 				optional: false, nullable: false,
@@ -656,6 +660,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				maintainerEmail: instance.maintainerEmail,
 				version: this.config.version,
 				basedMisskeyVersion: this.config.basedMisskeyVersion,
+				basedCherrypickVersion: this.config.basedCherrypickVersion,
 				name: instance.name,
 				shortName: instance.shortName,
 				uri: this.config.url,

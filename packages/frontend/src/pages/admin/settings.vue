@@ -73,8 +73,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template #prefix><i class="ti ti-link"></i></template>
 						</MkInput>
 
-						<MkInput v-model="statusUrl" type="url">
-							<template #label>{{ i18n.ts.statusUrl }}</template>
+						<MkInput v-model="infoForm.state.statusUrl" type="url">
+							<template #label>{{ i18n.ts.statusUrl }}<span v-if="infoForm.modifiedStates.statusUrl" class="_modified">{{ i18n.ts.modified }}</span></template>
 							<template #prefix><i class="ti ti-link"></i></template>
 						</MkInput>
 					</div>
@@ -173,11 +173,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkSwitch v-model="urlPreviewForm.state.urlPreviewEnabled">
 							<template #label>{{ i18n.ts._urlPreviewSetting.enable }}<span v-if="urlPreviewForm.modifiedStates.urlPreviewEnabled" class="_modified">{{ i18n.ts.modified }}</span></template>
 						</MkSwitch>
-						<MkSwitch v-model="urlPreviewDirectSummalyProxy">
-							<template #label>DirectAccess</template>
-						</MkSwitch>
 
 						<template v-if="urlPreviewForm.state.urlPreviewEnabled">
+							<MkSwitch v-model="urlPreviewForm.state.urlPreviewDirectSummalyProxy">
+								<template #label>{{ i18n.ts._urlPreviewSetting.directAccess }}<span v-if="urlPreviewForm.modifiedStates.urlPreviewDirectSummalyProxy" class="_modified">{{ i18n.ts.modified }}</span></template>
+							</MkSwitch>
 							<MkSwitch v-model="urlPreviewForm.state.urlPreviewRequireContentLength">
 								<template #label>{{ i18n.ts._urlPreviewSetting.requireContentLength }}<span v-if="urlPreviewForm.modifiedStates.urlPreviewRequireContentLength" class="_modified">{{ i18n.ts.modified }}</span></template>
 								<template #caption>{{ i18n.ts._urlPreviewSetting.requireContentLengthDescription }}</template>
@@ -312,6 +312,7 @@ const infoForm = useForm({
 	inquiryUrl: meta.inquiryUrl ?? '',
 	repositoryUrl: meta.repositoryUrl ?? '',
 	impressumUrl: meta.impressumUrl ?? '',
+	statusUrl: meta.statusUrl ?? '',
 }, async (state) => {
 	await os.apiWithDialog('admin/update-meta', {
 		name: state.name,
@@ -324,6 +325,7 @@ const infoForm = useForm({
 		inquiryUrl: state.inquiryUrl,
 		repositoryUrl: state.repositoryUrl,
 		impressumUrl: state.impressumUrl,
+		statusUrl: state.statusUrl,
 	});
 	fetchInstance(true);
 });
@@ -377,6 +379,7 @@ const urlPreviewForm = useForm({
 	urlPreviewRequireContentLength: meta.urlPreviewRequireContentLength,
 	urlPreviewUserAgent: meta.urlPreviewUserAgent ?? '',
 	urlPreviewSummaryProxyUrl: meta.urlPreviewSummaryProxyUrl ?? '',
+	urlPreviewDirectSummalyProxy: meta.urlPreviewDirectSummalyProxy,
 }, async (state) => {
 	await os.apiWithDialog('admin/update-meta', {
 		urlPreviewEnabled: state.urlPreviewEnabled,
@@ -385,6 +388,7 @@ const urlPreviewForm = useForm({
 		urlPreviewRequireContentLength: state.urlPreviewRequireContentLength,
 		urlPreviewUserAgent: state.urlPreviewUserAgent,
 		urlPreviewSummaryProxyUrl: state.urlPreviewSummaryProxyUrl,
+		urlPreviewDirectSummalyProxy: state.urlPreviewDirectSummalyProxy,
 	});
 	fetchInstance(true);
 });

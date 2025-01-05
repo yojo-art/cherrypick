@@ -54,13 +54,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #key>{{ i18n.ts.host }}</template>
 						<template #value>{{ emoji.host }}</template>
 					</MkKeyValue>
-					<MkKeyValue :copy="emoji.url">
-						<template #key>{{ i18n.ts.emojiUrl }}</template>
-						<template #value>
-							<MkLink :url="emoji.url" target="_blank">{{ emoji.url }}</MkLink>
-						</template>
-					</MkKeyValue>
 				</div>
+				<MkKeyValue :copy="emoji.url">
+					<template #key>{{ i18n.ts.emojiUrl }}</template>
+					<template #value>
+						<MkLink :url="emoji.url" target="_blank">{{ emoji.url }}</MkLink>
+					</template>
+				</MkKeyValue>
 			</div>
 		</MkSpacer>
 	</template>
