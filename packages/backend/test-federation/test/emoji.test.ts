@@ -30,6 +30,7 @@ describe('Emoji', () => {
 			usageInfo: 'usageInfo',
 			author: '@alice@a.test',
 			description: 'description',
+			isBasedOn: 'isBasedOn',
 		});
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
 		await sleep();
@@ -57,6 +58,7 @@ describe('Emoji', () => {
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
 			description: emoji.description,
+			isBasedOn: emoji.isBasedOn,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -95,6 +97,7 @@ describe('Emoji', () => {
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
 			description: emoji.description,
+			isBasedOn: emoji.url,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -131,6 +134,7 @@ describe('Emoji', () => {
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
 			description: emoji.description,
+			isBasedOn: emoji.url,
 		}), JSON.stringify(remoteEmoji));
 	});
 

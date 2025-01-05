@@ -280,6 +280,7 @@ export interface IApEmoji extends IObject {
 	usageInfo?: string;
 	author?: string;
 	description?: string;
+	isBasedOn?: string;
 }
 
 export const isEmoji = (object: IObject): object is IApEmoji =>

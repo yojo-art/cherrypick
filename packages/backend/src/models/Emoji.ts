@@ -105,6 +105,12 @@ export class MiEmoji {
 		})
 	public copyPermission: typeof emojiCopyPermissions[number] | null;
 
+	@Column('varchar', {
+		length: 1024,
+		default: null,
+	})
+	public isBasedOn: string | null;
+
 	// TODO: 定期ジョブで存在しなくなったロールIDを除去するようにする
 	@Column('varchar', {
 		array: true, length: 128, default: '{}',

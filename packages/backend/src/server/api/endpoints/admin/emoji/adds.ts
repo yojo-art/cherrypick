@@ -62,6 +62,7 @@ export const paramDef = {
 		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
 		author: { type: 'string', nullable: true, description: '作者情報' },
 		description: { type: 'string', nullable: true, description: '絵文字の説明' },
+		isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
 	},
 	required: ['fileId'],
 } as const;
@@ -101,6 +102,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				usageInfo: ps.usageInfo ?? null,
 				author: ps.author ?? null,
 				description: ps.description ?? null,
+				isBasedOn: ps.isBasedOn ?? null,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(emoji);

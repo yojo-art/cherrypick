@@ -74,6 +74,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		usageInfo: string | null,
 		author: string | null,
 		description: string | null,
+		isBasedOn: string | null,
 	}, moderator?: MiUser): Promise<MiEmoji> {
 		// システムユーザーとして再アップロード
 		if (!data.driveFile.user?.isRoot) {
@@ -102,6 +103,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			usageInfo: data.usageInfo,
 			author: data.author,
 			description: data.description,
+			isBasedOn: data.isBasedOn,
 		});
 
 		if (data.host == null) {
@@ -140,6 +142,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		usageInfo?: string | null,
 		author?: string | null,
 		description?: string | null,
+		isBasedOn?: string | null,
 	}, moderator?: MiUser): Promise<
 		null
 		| 'NO_SUCH_EMOJI'

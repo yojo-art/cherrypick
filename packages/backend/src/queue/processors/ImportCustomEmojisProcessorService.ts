@@ -107,6 +107,7 @@ export class ImportCustomEmojisProcessorService {
 						description: emojiInfo.description ?? null,
 						usageInfo: emojiInfo.usageInfo ?? null,
 						copyPermission: emojiInfo.copyPermission ?? null,
+						isBasedOn: emojiInfo.isBasedOn ?? null,
 						roleIdsThatCanBeUsedThisEmojiAsReaction: [],
 					});
 				} catch (e) {

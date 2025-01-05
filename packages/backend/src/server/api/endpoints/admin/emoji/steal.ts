@@ -132,6 +132,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				usageInfo: emoji.usageInfo,
 				author: emoji.author,
 				description: emoji.description,
+				isBasedOn: emoji.isBasedOn ?? emoji.originalUrl,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(addedEmoji);
