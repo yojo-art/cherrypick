@@ -97,7 +97,7 @@ describe('Emoji', () => {
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
 			description: emoji.description,
-			isBasedOn: emoji.url,
+			isBasedOn: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -134,7 +134,7 @@ describe('Emoji', () => {
 			usageInfo: emoji.usageInfo,
 			author: emoji.author,
 			description: emoji.description,
-			isBasedOn: emoji.url,
+			isBasedOn: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
