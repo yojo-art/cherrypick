@@ -10222,6 +10222,10 @@ export interface Locale extends ILocale {
          * マスコット画像
          */
         "mascot": string;
+        /**
+         * データセーバー
+         */
+        "dataSaver": string;
     };
     "_cw": {
         /**

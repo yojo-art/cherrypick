@@ -37,6 +37,7 @@ export default function(app: App) {
 	app.component('WidgetSearch', defineAsyncComponent(() => import('./WidgetSearch.vue')));
 	app.component('WidgetDice', defineAsyncComponent(() => import('./WidgetDice.vue')));
 	app.component('WidgetMascot', defineAsyncComponent(() => import('./WidgetMascot.vue')));
+	app.component('WidgetDataSaver', defineAsyncComponent(() => import('./WidgetDataSaver.vue')));
 }
 
 export const widgets = [
@@ -71,4 +72,5 @@ export const widgets = [
 	'search',
 	'dice',
 	'mascot',
+	'dataSaver',
 ];
