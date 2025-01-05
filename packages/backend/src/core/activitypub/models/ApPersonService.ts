@@ -39,8 +39,8 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
-import { searchableTypes } from '@/types.js';
 import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
+import { parseSearchableByFromTags, parseSearchableByFromProperty } from '../misc/searchableBy.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
@@ -410,7 +410,9 @@ export class ApPersonService implements OnModuleInit {
 					alsoKnownAs: person.alsoKnownAs,
 					isExplorable: person.discoverable,
 					isIndexable: person.indexable ?? true,
-					searchableBy: this.getSearchableType(tags),
+					searchableBy: person.searchableBy ?
+						parseSearchableByFromProperty(uri, person.followers ? getApId(person.followers) : undefined, person.searchableBy) :
+						parseSearchableByFromTags(tags),
 					username: person.preferredUsername,
 					usernameLower: person.preferredUsername?.toLowerCase(),
 					host,
@@ -656,7 +658,9 @@ export class ApPersonService implements OnModuleInit {
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
 		const updates = {
 			lastFetchedAt: new Date(),
-			searchableBy: this.getSearchableType(tags),
+			searchableBy: person.searchableBy ?
+				parseSearchableByFromProperty(uri, person.followers ? getApId(person.followers) : undefined, person.searchableBy) :
+				parseSearchableByFromTags(tags),
 			inbox: person.inbox,
 			sharedInbox: person.sharedInbox ?? person.endpoints?.sharedInbox,
 			outbox: typeof person.outbox === 'string' ? person.outbox : null,
@@ -1005,14 +1009,5 @@ export class ApPersonService implements OnModuleInit {
 		}
 
 		return false;
-	}
-
-	@bindThis
-	private getSearchableType(tags: string[]): 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null {
-		if (tags.includes('searchable_by_all_users')) return 'public';
-		if (tags.includes('searchable_by_followers_only')) return 'followersAndReacted';
-		if (tags.includes('searchable_by_reacted_users_only')) return 'followersAndReacted';
-		if (tags.includes('searchable_by_nobody')) return 'private';
-		return null;
 	}
 }

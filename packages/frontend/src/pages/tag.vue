@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <MkStickyContainer>
-	<template #header><MkPageHeader :actions="headerActions" :tabs="headerTabs"/></template>
+	<template #header><MkPageHeader :key="headerActions" :actions="headerActions" :tabs="headerTabs"/></template>
 	<MkSpacer :contentMax="800">
 		<MkNotes ref="notes" class="" :pagination="pagination"/>
 	</MkSpacer>
@@ -31,6 +31,8 @@ import { defaultStore } from '@/store.js';
 import { useStream } from '@/stream.js';
 import * as os from '@/os.js';
 import { genEmbedCode } from '@/scripts/get-embed-code.js';
+import { misskeyApi } from '@/scripts/misskey-api';
+import { MenuItem } from '@/types/menu';
 
 const props = defineProps<{
 	tag: string;
@@ -56,17 +58,59 @@ async function post() {
 //	notes.value?.pagingComponent?.reload();
 }
 
+const invalidChars = [' ', '　', '#', ':', '\'', '"', '!'];
+
 const headerActions = computed(() => [{
 	icon: 'ti ti-dots',
 	label: i18n.ts.more,
-	handler: (ev: MouseEvent) => {
-		os.popupMenu([{
+	handler: async (ev: MouseEvent) => {
+		const registryTags = await (misskeyApi('i/registry/get', {
+			scope: ['client', 'base'],
+			key: 'hashTag',
+		}).catch(() => null)) as string[] | null;
+		const menuList:MenuItem[] = [];
+		menuList.push({
 			text: i18n.ts.genEmbedCode,
 			icon: 'ti ti-code',
 			action: () => {
 				genEmbedCode('tags', props.tag);
 			},
-		}], ev.currentTarget ?? ev.target);
+		});
+		if (registryTags !== null) {
+			let tags:string[] = registryTags;
+			const is_my_tag = tags.includes(props.tag);
+			menuList.push({
+				text: is_my_tag ? i18n.ts.unfavorite : i18n.ts.favorite,
+				icon: is_my_tag ? 'ti ti-heart-off' : 'ti ti-heart',
+				action: async () => {
+					if (is_my_tag) {
+						tags = tags.filter(x => props.tag !== x);
+					} else {
+						const input = props.tag;
+						if (input === '' || invalidChars.includes(input)) {
+							os.alert(
+								{
+									type: 'error',
+									title: i18n.ts.invalidTagName,
+								},
+							);
+							return;
+						}
+						if (tags.includes(input)) {
+						//既に登録済なら無視
+						} else {
+							tags.push(input);
+						}
+					}
+					await misskeyApi('i/registry/set', {
+						scope: ['client', 'base'],
+						key: 'hashTag',
+						value: tags,
+					});
+				},
+			});
+		}
+		os.popupMenu(menuList, ev.currentTarget ?? ev.target);
 	},
 }]);
 

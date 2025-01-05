@@ -5355,6 +5355,7 @@ export type components = {
       maintainerEmail: string | null;
       version: string;
       basedMisskeyVersion: string;
+      basedCherrypickVersion: string;
       providesTarball: boolean;
       name: string | null;
       shortName: string | null;
@@ -5366,9 +5367,9 @@ export type components = {
       description: string | null;
       langs: string[];
       tosUrl: string | null;
-      /** @default https://github.com/kokonect-link/cherrypick */
+      /** @default https://github.com/yojo-art/cherrypick */
       repositoryUrl: string | null;
-      /** @default https://github.com/kokonect-link/cherrypick/issues/new */
+      /** @default https://github.com/yojo-art/cherrypick/issues/new */
       feedbackUrl: string | null;
       statusUrl: string | null;
       defaultDarkTheme: string | null;
@@ -5643,6 +5644,7 @@ export type operations = {
             urlPreviewRequireContentLength: boolean;
             urlPreviewUserAgent: string | null;
             urlPreviewSummaryProxyUrl: string | null;
+            urlPreviewDirectSummalyProxy: boolean;
             federation: string;
             federationHosts: string[];
             doNotSendNotificationEmailsForAbuseReport: boolean;
@@ -7548,7 +7550,7 @@ export type operations = {
            * @default local
            * @enum {string}
            */
-          origin?: 'combined' | 'local' | 'remote';
+          origin?: 'combined' | 'local' | 'remote' | 'system';
           /**
            * @description The local host is represented with `null`.
            * @default null
@@ -20281,8 +20283,11 @@ export type operations = {
           isLocked?: boolean;
           isExplorable?: boolean;
           isIndexable?: boolean;
-          /** @enum {string} */
-          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
+          /**
+           * @description 検索許可SearchableByの値を指定しますデフォルトはnull(isIndexableを参照)
+           * @enum {string|null}
+           */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;
