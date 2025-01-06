@@ -27,8 +27,6 @@ const { configure } = useWidgetPropsManager(name,
 	emit,
 );
 
-
-
 defineExpose<WidgetComponentExpose>({
 	name,
 	configure,
