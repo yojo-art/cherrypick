@@ -66,12 +66,11 @@ export class ApOutboxFetchService implements OnModuleInit {
 		this.apLoggerService = this.moduleRef.get('ApLoggerService');
 		this.logger = this.apLoggerService.logger;
 	}
-
 	/**
 	 * outboxから投稿を取得します
 	 */
 	@bindThis
-	public async fetchOutbox(userId: MiUser['id'], includeAnnounce = false, resolver?: Resolver): Promise<void> {
+	public async fetchOutbox(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = (await this.usersRepository.findOneBy({ id: userId }) as MiRemoteUser | null) ?? null;
 		if (!user) throw new IdentifiableError('3fc5a089-cab4-48db-b9f3-f220574b3c0a', 'No such user');
 		if (!user.host) throw new IdentifiableError('67070303-177c-4600-af93-b26a7ab889c6', 'Is local user');
@@ -85,14 +84,19 @@ export class ApOutboxFetchService implements OnModuleInit {
 		const cache = await this.redisClient.get(`${outboxUrl}--next`);
 		let next: string | IOrderedCollectionPage;
 
-		if (!cache) {
+		if (cache) {
+			next = cache;
+		} else {
 			// Resolve to (Ordered)Collection Object
 			const outbox = await Resolver.resolveOrderedCollection(outboxUrl);
 			if (!outbox.first) throw new IdentifiableError('a723c2df-0250-4091-b5fc-e3a7b36c7b61', 'outbox first page not exist');
 			next = outbox.first;
-		} else next = cache;
+		}
 
-		let created = 0;
+		let current = {
+			created: 0,
+			breaked: false,
+		};
 
 		for (let page = 0; page < pagelimit; page++) {
 			const collection = (typeof(next) === 'string' ? await Resolver.resolveOrderedCollectionPage(next) : next);
@@ -101,10 +105,13 @@ export class ApOutboxFetchService implements OnModuleInit {
 			const activityes = (collection.orderedItems ?? collection.items);
 			if (!activityes) throw new IdentifiableError('2a05bb06-f38c-4854-af6f-7fd5e87c98ee', 'item is unavailable');
 
-			created = await this.fetchObjects(user, activityes, includeAnnounce, created);
-			if (createLimit <= created) break;//次ページ見て一件だけしか取れないのは微妙
-			if (!collection.next) break;
+			do {
+				current = await this.fetchObjects(user, activityes, current.created);
+				page++;
+			}
+			while (!current.breaked && page < pagelimit);
 
+			if (!collection.next) break;
 			next = collection.next;
 			await this.redisClient.set(`${outboxUrl}--next`, `${next}`, 'EX', 60 * 15);//15min
 		}
@@ -112,12 +119,15 @@ export class ApOutboxFetchService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async fetchObjects(user: MiRemoteUser, activityes: any[], includeAnnounce:boolean, created: number): Promise<number> {
+	private async fetchObjects(user: MiRemoteUser, activityes: any[], created: number): Promise<{
+		created: number;
+		breaked: boolean;
+	}> {
 		for (const activity of activityes) {
-			if (createLimit < created) return created;
+			if (createLimit < created) return { created: created, breaked: true };
 			try {
 				if (activity.actor !== user.uri) throw new IdentifiableError('bde7c204-5441-4a87-9b7e-f81e8d05788a');
-				if (activity.type === 'Announce' && includeAnnounce) {
+				if (activity.type === 'Announce') {
 					const object = await this.apNoteService.fetchNote(activity.id);
 
 					if (object) continue;
@@ -177,7 +187,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 					}
 				} else if (isCreate(activity)) {
 					if (typeof(activity.object) !== 'string') {
-						if (!isNote(activity)) continue;
+						if (!isNote(activity.object)) continue;
 					}
 					const fetch = await this.apNoteService.fetchNote(activity.object);
 					if (fetch) continue;
@@ -190,11 +200,11 @@ export class ApOutboxFetchService implements OnModuleInit {
 				} else {
 					this.logger.error(`fetchError:${activity.id}`);
 					this.logger.error(`${err}`);
-					continue;
 				}
+				continue;
 			}
 			created ++;
 		}
-		return created;
+		return { created: created, breaked: false };
 	}
 }
