@@ -88,37 +88,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label>{{ i18n.ts.numberOfPageCache }}</template>
 				<template #caption>{{ i18n.ts.numberOfPageCacheDescription }}</template>
 			</MkRange>
-
-			<MkFolder>
-				<template #label>{{ i18n.ts.dataSaver }}</template>
-
-				<div class="_gaps_m">
-					<MkInfo>{{ i18n.ts.reloadRequiredToApplySettings }}</MkInfo>
-
-					<div class="_buttons">
-						<MkButton inline @click="enableAllDataSaver">{{ i18n.ts.enableAll }}</MkButton>
-						<MkButton inline @click="disableAllDataSaver">{{ i18n.ts.disableAll }}</MkButton>
-					</div>
-					<div class="_gaps_m">
-						<MkSwitch v-model="dataSaver.media">
-							{{ i18n.ts._dataSaver._media.title }}
-							<template #caption>{{ i18n.ts._dataSaver._media.description }}</template>
-						</MkSwitch>
-						<MkSwitch v-model="dataSaver.avatar">
-							{{ i18n.ts._dataSaver._avatar.title }}
-							<template #caption>{{ i18n.ts._dataSaver._avatar.description }}</template>
-						</MkSwitch>
-						<MkSwitch v-model="dataSaver.urlPreview">
-							{{ i18n.ts._dataSaver._urlPreview.title }}
-							<template #caption>{{ i18n.ts._dataSaver._urlPreview.description }}</template>
-						</MkSwitch>
-						<MkSwitch v-model="dataSaver.code">
-							{{ i18n.ts._dataSaver._code.title }}
-							<template #caption>{{ i18n.ts._dataSaver._code.description }}</template>
-						</MkSwitch>
-					</div>
-				</div>
-			</MkFolder>
+			<XDataSaver :show-description="true"/>
 		</div>
 	</FormSection>
 
@@ -151,6 +121,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
 import { langs } from '@@/js/config.js';
+import XDataSaver from '@/components/CPDataSaver.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkRadios from '@/components/MkRadios.vue';
@@ -160,7 +131,6 @@ import MkButton from '@/components/MkButton.vue';
 import FormSection from '@/components/form/section.vue';
 import FormLink from '@/components/form/link.vue';
 import MkLink from '@/components/MkLink.vue';
-import MkInfo from '@/components/MkInfo.vue';
 import { defaultStore } from '@/store.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
@@ -290,18 +260,6 @@ function removePinnedList() {
 	defaultStore.set('pinnedUserLists', []);
 }
 
-function enableAllDataSaver() {
-	const g = { ...defaultStore.state.dataSaver };
-	Object.keys(g).forEach((key) => { g[key] = true; });
-	dataSaver.value = g;
-}
-
-function disableAllDataSaver() {
-	const g = { ...defaultStore.state.dataSaver };
-	Object.keys(g).forEach((key) => { g[key] = false; });
-	dataSaver.value = g;
-}
-
 async function learnMoreAutoTranslate() {
 	if (!useAutoTranslate.value) return;
 
@@ -321,12 +279,6 @@ function learnMoreCantUseAutoTranslate() {
 		caption: i18n.ts.cantUseAutoTranslateCaption,
 	});
 }
-
-watch(dataSaver, (to) => {
-	defaultStore.set('dataSaver', to);
-}, {
-	deep: true,
-});
 
 const headerActions = computed(() => []);
 
