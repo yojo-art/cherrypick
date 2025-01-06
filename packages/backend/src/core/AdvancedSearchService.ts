@@ -964,7 +964,7 @@ export class AdvancedSearchService {
 							minimum_should_match: 1,
 						},
 					});
-				}  else {
+				} else {
 					const fields = ['tags', 'text', 'pollChoices'];
 					if (!opts.excludeCW)fields.push('cw');
 					osFilter.bool.must.push({ simple_query_string: {
