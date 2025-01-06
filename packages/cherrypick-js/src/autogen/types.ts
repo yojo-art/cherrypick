@@ -7550,7 +7550,7 @@ export type operations = {
            * @default local
            * @enum {string}
            */
-          origin?: 'combined' | 'local' | 'remote';
+          origin?: 'combined' | 'local' | 'remote' | 'system';
           /**
            * @description The local host is represented with `null`.
            * @default null
@@ -12235,11 +12235,6 @@ export type operations = {
            * @default false
            */
           wait?: boolean;
-          /**
-           * @description Outbox取得の際にRenoteも対象にします
-           * @default false
-           */
-          includeAnnounce?: boolean;
         };
       };
     };
