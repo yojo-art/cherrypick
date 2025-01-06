@@ -88,7 +88,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label>{{ i18n.ts.numberOfPageCache }}</template>
 				<template #caption>{{ i18n.ts.numberOfPageCacheDescription }}</template>
 			</MkRange>
-			<XDataSaver :show-description="true"/>
+			<XDataSaver/>
 		</div>
 	</FormSection>
 

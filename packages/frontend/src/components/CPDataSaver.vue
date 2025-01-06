@@ -46,7 +46,7 @@ import MkFolder from "@/components/MkFolder.vue";
 import MkInfo from "@/components/MkInfo.vue";
 
 const props = withDefaults(defineProps<{
-	showDescription: boolean;
+	showDescription?: boolean;
 }>(), {
 	showDescription: true,
 });
