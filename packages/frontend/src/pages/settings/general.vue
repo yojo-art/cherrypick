@@ -148,7 +148,6 @@ import { globalEvents } from '@/events.js';
 import { $i } from '@/account.js';
 
 const lang = ref(miLocalStorage.getItem('lang'));
-const dataSaver = ref(defaultStore.state.dataSaver);
 
 function reloadTimeline() {
 	globalEvents.emit('reloadTimeline');
