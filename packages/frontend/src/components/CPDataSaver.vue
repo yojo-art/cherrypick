@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #label>{{ i18n.ts.dataSaver }}</template>
 
 		<div class="_gaps_m">
-			<MkInfo>{{ i18n.ts.reloadRequiredToApplySettings }}</MkInfo>
+			<MkInfo v-if="props.showDescription">{{ i18n.ts.reloadRequiredToApplySettings }}</MkInfo>
 
 			<div class="_buttons">
 				<MkButton inline @click="enableAllDataSaver">{{ i18n.ts.enableAll }}</MkButton>
