@@ -173,4 +173,130 @@ describe('Emoji', () => {
 		strictEqual(renewedaliceInB.name, renewedAlice.name);
 		deepStrictEqual({ ...renewedaliceInB.emojis }, {});
 	});
+
+	test('コピー拒否の絵文字をコピーできない(copy)', async () => {
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'deny',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+			isBasedOn: 'isBasedOn',
+		});
+		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
+		await sleep();
+
+		const notes = await bob.client.request('notes/timeline', {});
+		const noteInB = notes[0];
+
+		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
+		assert(noteInB.emojis != null);
+		assert(emoji.name in noteInB.emojis);
+		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		console.log(res);
+	});
+	test('コピー拒否の絵文字をコピーできない(steal)', async () => {
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'deny',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+			isBasedOn: 'isBasedOn',
+		});
+		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
+		await sleep();
+
+		const notes = await bob.client.request('notes/timeline', {});
+		const noteInB = notes[0];
+
+		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
+		assert(noteInB.emojis != null);
+		assert(emoji.name in noteInB.emojis);
+		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const res = bob.client.request('admin/emoji/steal',{ name: emoji.name, host: 'a.test' });
+		console.log(res);
+	});
+
+	test('コピー許可の絵文字をコピーできる', async () => {
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'allow',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+			isBasedOn: 'isBasedOn',
+		});
+		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
+		await sleep();
+
+		const notes = await bob.client.request('notes/timeline', {});
+		const noteInB = notes[0];
+
+		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
+		assert(noteInB.emojis != null);
+		assert(emoji.name in noteInB.emojis);
+		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		console.log(res);
+	});
+	test('条件付きの絵文字をコピーできない', async () => {
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'conditional',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+			isBasedOn: 'isBasedOn',
+		});
+		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
+		await sleep();
+
+		const notes = await bob.client.request('notes/timeline', {});
+		const noteInB = notes[0];
+
+		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
+		assert(noteInB.emojis != null);
+		assert(emoji.name in noteInB.emojis);
+		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		console.log(res);
+	});
+	test('コピー拒否の絵文字をコピーできない', async () => {
+		const emoji = await addCustomEmoji('a.test', {
+			aliases: ['a', 'b', 'c'],
+			license: 'license',
+			category: 'category',
+			copyPermission: 'deny',
+			usageInfo: 'usageInfo',
+			author: '@alice@a.test',
+			description: 'description',
+			isBasedOn: 'isBasedOn',
+		});
+		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
+		await sleep();
+
+		const notes = await bob.client.request('notes/timeline', {});
+		const noteInB = notes[0];
+
+		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
+		assert(noteInB.emojis != null);
+		assert(emoji.name in noteInB.emojis);
+		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		console.log(res);
+	});
 });

@@ -177,6 +177,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			usageInfo: data.usageInfo,
 			author: data.author,
 			description: data.description,
+			isBasedOn: data.isBasedOn,
 		});
 
 		this.localEmojisCache.refresh();
