@@ -1,11 +1,11 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'cherrypick-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, createModerator, fetchAdmin } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
 	let bobInA: Misskey.entities.UserDetailedNotMe, aliceInB: Misskey.entities.UserDetailedNotMe;
-
+	let bAdmin: LoginUser;
 	beforeAll(async () => {
 		[alice, bob] = await Promise.all([
 			createAccount('a.test'),
@@ -16,8 +16,8 @@ describe('Emoji', () => {
 			resolveRemoteUser('b.test', bob.id, alice),
 			resolveRemoteUser('a.test', alice.id, bob),
 		]);
-
 		await bob.client.request('following/create', { userId: aliceInB.id });
+		bAdmin = await fetchAdmin('b.test');
 		await sleep();
 	});
 
@@ -195,8 +195,8 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bAdmin.client.request('admin/emoji/copy',{ emojiId: emojiId });
 		console.log(res);
 	});
 	test('コピー拒否の絵文字をコピーできない(steal)', async () => {
@@ -220,7 +220,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = bob.client.request('admin/emoji/steal',{ name: emoji.name, host: 'a.test' });
+		const res = bAdmin.client.request('admin/emoji/steal',{ name: emoji.name, host: 'a.test' });
 		console.log(res);
 	});
 
@@ -245,8 +245,8 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bAdmin.client.request('admin/emoji/copy',{ emojiId: emojiId });
 		console.log(res);
 	});
 	test('条件付きの絵文字をコピーできない', async () => {
@@ -270,33 +270,8 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
-		console.log(res);
-	});
-	test('コピー拒否の絵文字をコピーできない', async () => {
-		const emoji = await addCustomEmoji('a.test', {
-			aliases: ['a', 'b', 'c'],
-			license: 'license',
-			category: 'category',
-			copyPermission: 'deny',
-			usageInfo: 'usageInfo',
-			author: '@alice@a.test',
-			description: 'description',
-			isBasedOn: 'isBasedOn',
-		});
-		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
-		await sleep();
-
-		const notes = await bob.client.request('notes/timeline', {});
-		const noteInB = notes[0];
-
-		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
-		assert(noteInB.emojis != null);
-		assert(emoji.name in noteInB.emojis);
-		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const emojiId = (await bob.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = bob.client.request('admin/emoji/copy',{ emojiId: emojiId });
+		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+		const res = bAdmin.client.request('admin/emoji/copy',{ emojiId: emojiId });
 		console.log(res);
 	});
 });
