@@ -9,6 +9,7 @@
 - Enhance: ノート詳細から前後のHTL/LTLを開く機能を追加 [#572](https://github.com/yojo-art/cherrypick/pull/572)
 - Enhance: インポート時にライセンス欄にインポート元を追記する [#573](https://github.com/yojo-art/cherrypick/pull/573)
 - Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
+- Enhance: TLオプション表示有無切り替えの選択肢にメディアタイムラインを追加 [#609](https://github.com/yojo-art/cherrypick/pull/609)
 
 ### Server
 - Change: `ap/fetch-outbox`から`includeAnnounce`オプションを削除 [#606](https://github.com/yojo-art/cherrypick/pull/606)
