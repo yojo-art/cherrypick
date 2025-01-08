@@ -39,7 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from 'vue';
 import { v4 as uuid } from 'uuid';
-import { version, basedMisskeyVersion, host } from '@@/js/config.js';
+import { version, basedMisskeyVersion, basedCherrypickVersion, host } from '@@/js/config.js';
 import FormSection from '@/components/form/section.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
@@ -191,6 +191,10 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'showMoreButtonInNoteFooter',
 	'selectReaction',
 	// #endregion CherryPick
+	// #region yojo-art
+	'checkMultipleRenote',
+	'searchEngine',
+	// #endregion yojo-art
 ];
 const coldDeviceStorageSaveKeys: (keyof typeof ColdDeviceStorage.default)[] = [
 	'lightTheme',
@@ -201,7 +205,7 @@ const coldDeviceStorageSaveKeys: (keyof typeof ColdDeviceStorage.default)[] = [
 
 const scope = ['clientPreferencesProfiles'];
 
-const profileProps = ['name', 'createdAt', 'updatedAt', 'cherrypickVersion', 'basedMisskeyVersion', 'settings', 'host'];
+const profileProps = ['name', 'createdAt', 'updatedAt', 'cherrypickVersion', 'basedMisskeyVersion', 'basedCherrypickVersion', 'settings', 'host'];
 
 type Profile = {
 	name: string;
@@ -209,6 +213,7 @@ type Profile = {
 	updatedAt: string | null;
 	cherrypickVersion: string;
 	basedMisskeyVersion: string;
+	basedCherrypickVersion: string;
 	host: string;
 	settings: {
 		hot: Record<keyof typeof defaultStoreSaveKeys, unknown>;
@@ -241,6 +246,7 @@ function validate(profile: any): void {
 	if (!profile.name) throw new Error('Missing required prop: name');
 	if (!profile.cherrypickVersion) throw new Error('Missing required prop: cherrypickVersion');
 	if (!profile.basedMisskeyVersion) throw new Error('Missing required prop: basedMisskeyVersion');
+	if (!profile.basedCherrypickVersion) throw new Error('Missing required prop: basedCherrypickVersion');
 
 	// Check if createdAt and updatedAt is Date
 	// https://zenn.dev/lollipop_onl/articles/eoz-judge-js-invalid-date
@@ -300,6 +306,7 @@ async function saveNew(): Promise<void> {
 		updatedAt: null,
 		cherrypickVersion: version,
 		basedMisskeyVersion: basedMisskeyVersion,
+		basedCherrypickVersion: basedCherrypickVersion,
 		host,
 		settings: getSettings(),
 	};
@@ -442,6 +449,7 @@ async function save(id: string): Promise<void> {
 		updatedAt: (new Date()).toISOString(),
 		cherrypickVersion: version,
 		basedMisskeyVersion: basedMisskeyVersion,
+		basedCherrypickVersion: basedCherrypickVersion,
 		host,
 		settings: getSettings(),
 	};

@@ -414,14 +414,14 @@ export class MiMeta {
 
 	@Column('varchar', {
 		length: 1024,
-		default: 'https://github.com/kokonect-link/cherrypick',
+		default: 'https://github.com/yojo-art/cherrypick',
 		nullable: true,
 	})
 	public repositoryUrl: string | null;
 
 	@Column('varchar', {
 		length: 1024,
-		default: 'https://github.com/kokonect-link/cherrypick/issues/new',
+		default: 'https://github.com/yojo-art/cherrypick/issues/new',
 		nullable: true,
 	})
 	public feedbackUrl: string | null;
