@@ -15,6 +15,7 @@
 
 ### Server
 - Change: `ap/fetch-outbox`から`includeAnnounce`オプションを削除 [#606](https://github.com/yojo-art/cherrypick/pull/606)
+- Enhance: 高度な検索であいまい検索が無効な時ワイルドカードを利用可能に [#564](https://github.com/yojo-art/cherrypick/pull/564)
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
 
