@@ -54,6 +54,7 @@ const exampleNote = reactive<Misskey.entities.Note>({
 	text: i18n.ts._initialTutorial._howToMakeAttachmentsSensitive._exampleNote.note,
 	cw: null,
 	visibility: 'public',
+	searchableBy: 'public',
 	localOnly: false,
 	reactionAcceptance: null,
 	renoteCount: 0,
