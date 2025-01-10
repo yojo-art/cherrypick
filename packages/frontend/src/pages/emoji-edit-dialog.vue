@@ -55,6 +55,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInput v-model="usageInfo">
 					<template #label>{{ i18n.ts._emoji.usageInfo }}</template>
 				</MkInput>
+				<MkInput v-model="isBasedOn">
+					<template #label>{{ i18n.ts._emoji.isBasedOn }}</template>
+				</MkInput>
 				<MkTextarea v-model="license" :mfmAutocomplete="true">
 					<template #label>{{ i18n.ts.license }}</template>
 				</MkTextarea>
@@ -125,6 +128,7 @@ const localOnly = ref(props.emoji ? props.emoji.localOnly : false);
 const description = ref<string>(props.emoji ? (props.emoji.description ?? '') : '');
 const author = ref<string>(props.emoji ? (props.emoji.author ?? '') : '');
 const usageInfo = ref<string>(props.emoji ? (props.emoji.usageInfo ?? '') : '');
+const isBasedOn = ref<string>(props.emoji ? (props.emoji.isBasedOn ?? '') : '');
 const copyPermission = ref<string>(props.emoji ? (props.emoji.copyPermission ?? null ) : 'allow');
 const roleIdsThatCanBeUsedThisEmojiAsReaction = ref(props.emoji ? props.emoji.roleIdsThatCanBeUsedThisEmojiAsReaction : []);
 const rolesThatCanBeUsedThisEmojiAsReaction = ref<Misskey.entities.Role[]>([]);
@@ -176,6 +180,7 @@ async function done() {
 		description: description.value,
 		author: author.value,
 		usageInfo: usageInfo.value,
+		isBasedOn: isBasedOn.value,
 		copyPermission: copyPermission.value,
 		roleIdsThatCanBeUsedThisEmojiAsReaction: rolesThatCanBeUsedThisEmojiAsReaction.value.map(x => x.id),
 	};

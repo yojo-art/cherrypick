@@ -3384,3 +3384,4 @@ _emoji:
   allow: "許可"
   deny: "禁止"
   conditional: "条件付き"
+  isBasedOn: "絵文字ベース"

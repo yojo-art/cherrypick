@@ -12671,6 +12671,10 @@ export interface Locale extends ILocale {
          * 条件付き
          */
         "conditional": string;
+        /**
+         * 絵文字ベース
+         */
+        "isBasedOn": string;
     };
 }
 declare const locales: {
