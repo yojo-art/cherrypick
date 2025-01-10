@@ -195,9 +195,11 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
+
+		// @ts-ignore
+		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x  => x.name === emoji.name).id;
 		const res = await bAdmin.client.request('admin/emoji/copy',{ emojiId: emojiId });
-		console.log(res);
+		console.log(JSON.stringify(res));
 	});
 	test('コピー拒否の絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -221,7 +223,7 @@ describe('Emoji', () => {
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
 		const res = await bAdmin.client.request('admin/emoji/steal',{ name: emoji.name, host: 'a.test' });
-		console.log(res);
+		console.log(JSON.stringify(res));
 	});
 
 	test('コピー許可の絵文字をコピーできる', async () => {
@@ -245,9 +247,10 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		// @ts-ignore
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
 		const res = await bAdmin.client.request('admin/emoji/copy',{ emojiId: emojiId });
-		console.log(res);
+		console.log(JSON.stringify(res));
 	});
 	test('条件付きの絵文字をコピーできない', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -270,8 +273,9 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+		// @ts-ignore
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
 		const res = bAdmin.client.request('admin/emoji/copy',{ emojiId: emojiId });
-		console.log(res);
+		console.log(JSON.stringify(res));
 	});
 });
