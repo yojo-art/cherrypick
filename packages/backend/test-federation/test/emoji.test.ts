@@ -198,7 +198,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		let res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -210,7 +210,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'NOT_ALLOWED')
+		strictEqual((await res.json()).code, 'NOT_ALLOWED');
 	});
 	test('コピー拒否の絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -233,7 +233,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		let res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -246,7 +246,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'NOT_ALLOWED')
+		strictEqual((await res.json()).code, 'NOT_ALLOWED');
 	});
 
 	test('コピー許可の絵文字をコピーできる(copy)', async () => {
@@ -356,7 +356,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		let res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -368,7 +368,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE')
+		strictEqual((await res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE');
 	});
 	test('条件付きの絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -391,7 +391,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		let res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -404,8 +404,9 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE')
+		strictEqual((await res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE');
 	});
+
 	test('条件付きの絵文字をコピーできる(copy)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
 			aliases: ['a', 'b', 'c'],
@@ -488,5 +489,4 @@ describe('Emoji', () => {
 			isBasedOn: 'isBasedOn',
 		}), JSON.stringify(res));
 	});
-
 });
