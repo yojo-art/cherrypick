@@ -210,7 +210,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'NOT_ALLOWED');
+		strictEqual((await res.json()).error.code, 'NOT_ALLOWED');
 	});
 	test('コピー拒否の絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -246,7 +246,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'NOT_ALLOWED');
+		strictEqual((await res.json()).error.code, 'NOT_ALLOWED');
 	});
 
 	test('コピー許可の絵文字をコピーできる(copy)', async () => {
@@ -368,7 +368,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE');
+		strictEqual((await res.json()).error.code, 'SEE_USAGEINFOMATION_OR_LICENSE');
 	});
 	test('条件付きの絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -404,7 +404,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE');
+		strictEqual((await res.json()).error.code, 'SEE_USAGEINFOMATION_OR_LICENSE');
 	});
 
 	test('条件付きの絵文字をコピーできる(copy)', async () => {
