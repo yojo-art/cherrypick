@@ -329,14 +329,21 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
+
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		let res:string;
-		try {
-			res = await bAdmin.client.request('admin/emoji/copy', {emojiId: emojiId});
-		}	catch (e) {
-			res = JSON.stringify(e);
-		}
-		console.log(JSON.stringify(res));
+		let res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+			method: 'POST',
+			body: JSON.stringify({
+				emojiId: emojiId,
+				i: bAdmin.client.credential,
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'omit',
+			cache: 'no-cache',
+		});
+		console.log(await  res.json());
 	});
 });
