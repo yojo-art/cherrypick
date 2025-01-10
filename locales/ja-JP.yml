@@ -2693,6 +2693,7 @@ _widgets:
   search: "検索"
   dice: "サイコロ"
   mascot: "マスコット画像"
+  dataSaver: "データセーバー"
 
 _cw:
   hide: "隠す"
