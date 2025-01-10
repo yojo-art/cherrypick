@@ -6,6 +6,7 @@
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
 
 ### Client
+- Enhance: データセーバーウィジェットを追加[#608](https://github.com/yojo-art/cherrypick/pull/608)
 - Enhance: ノート詳細から前後のHTL/LTLを開く機能を追加 [#572](https://github.com/yojo-art/cherrypick/pull/572)
 - Enhance: インポート時にライセンス欄にインポート元を追記する [#573](https://github.com/yojo-art/cherrypick/pull/573)
 - Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
