@@ -8181,6 +8181,8 @@ export type operations = {
               author: string | null;
               /** @description 絵文字の説明 */
               description: string | null;
+              /** @description もとになったもののURLなど */
+              isBasedOn: string | null;
             })[];
         };
       };
@@ -8250,6 +8252,19 @@ export type operations = {
               /** @description The local host is represented with `null`. The field exists for compatibility with other API endpoints that return files. */
               host: string | null;
               url: string;
+              /**
+               * @description この絵文字を外部サーバーへコピーすることの許可
+               * @enum {string|null}
+               */
+              copyPermission: 'allow' | 'deny' | 'conditional' | null;
+              /** @description 使用する際の説明 */
+              usageInfo: string | null;
+              /** @description 作者情報 */
+              author: string | null;
+              /** @description 絵文字の説明 */
+              description: string | null;
+              /** @description もとになったもののURLなど */
+              isBasedOn: string | null;
             })[];
         };
       };
