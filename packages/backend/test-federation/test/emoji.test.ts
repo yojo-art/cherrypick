@@ -251,7 +251,7 @@ describe('Emoji', () => {
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
 		const res = await bAdmin.client.request('admin/emoji/copy', { emojiId: emojiId });
 		strictEqual(JSON.stringify({
-			id: emojiId,
+			id: res.id,
 			aliases: emoji.aliases,
 			name: emoji.name,
 			category: emoji.category,
