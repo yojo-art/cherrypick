@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { FollowRequestsRepository, NotesRepository, MiUser, UsersRepository, UserGroupInvitationsRepository } from '@/models/_.js';
+import type { FollowRequestsRepository, NotesRepository, MiUser, UsersRepository, UserGroupInvitationsRepository, MiUserGroupInvitation } from '@/models/_.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import type { MiGroupedNotification, MiNotification } from '@/models/Notification.js';
 import type { MiNote } from '@/models/Note.js';
@@ -15,6 +15,7 @@ import type { Packed } from '@/misc/json-schema.js';
 import { bindThis } from '@/decorators.js';
 import { FilterUnionByProperty, groupedNotificationTypes } from '@/types.js';
 import { CacheService } from '@/core/CacheService.js';
+import { NotificationService } from '../NotificationService.js';
 import { RoleEntityService } from './RoleEntityService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { UserEntityService } from './UserEntityService.js';
@@ -29,6 +30,7 @@ export class NotificationEntityService implements OnModuleInit {
 	private noteEntityService: NoteEntityService;
 	private roleEntityService: RoleEntityService;
 	private userGroupInvitationEntityService: UserGroupInvitationEntityService;
+	private notificationService: NotificationService;
 
 	constructor(
 		private moduleRef: ModuleRef,
@@ -58,6 +60,7 @@ export class NotificationEntityService implements OnModuleInit {
 		this.noteEntityService = this.moduleRef.get('NoteEntityService');
 		this.roleEntityService = this.moduleRef.get('RoleEntityService');
 		this.userGroupInvitationEntityService = this.moduleRef.get('UserGroupInvitationEntityService');
+		this.notificationService = this.moduleRef.get('NotificationService');
 	}
 
 	/**
@@ -172,8 +175,16 @@ export class NotificationEntityService implements OnModuleInit {
 		if (needsRole && !role) {
 			return null;
 		}
+		let group_invitation: MiUserGroupInvitation|null = null;
+		if (notification.type === 'groupInvited') {
+			group_invitation = await this.userGroupInvitationsRepository.findOneBy({ id: notification.userGroupInvitationId });
+			if (group_invitation === null) {
+				this.notificationService.deleteNotification(meId, notification.id);
+				return null;
+			}
+		}
 
-		return await awaitAll({
+		return awaitAll({
 			id: notification.id,
 			createdAt: new Date(notification.createdAt).toISOString(),
 			type: notification.type,
@@ -184,7 +195,7 @@ export class NotificationEntityService implements OnModuleInit {
 				reaction: notification.reaction,
 			} : {}),
 			...(notification.type === 'groupInvited' ? {
-				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId),
+				invitation: this.userGroupInvitationEntityService.pack(group_invitation!),
 			} : {}),
 			...(notification.type === 'roleAssigned' ? {
 				role: role,
