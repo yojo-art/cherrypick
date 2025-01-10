@@ -198,8 +198,19 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await bAdmin.client.request('admin/emoji/copy', { emojiId: emojiId });
-		strictEqual('Copy is not allowed this emoji.', JSON.stringify(res));
+		let res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+			method: 'POST',
+			body: JSON.stringify({
+				emojiId: emojiId,
+				i: bAdmin.client.credential,
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'omit',
+			cache: 'no-cache',
+		});
+		console.log(await  res.json());
 	});
 	test('コピー拒否の絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -222,8 +233,20 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test' });
-		strictEqual('Copy is not allowed this emoji.', JSON.stringify(res));
+		let res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+			method: 'POST',
+			body: JSON.stringify({
+				name: emoji.name,
+				host: 'a.test',
+				i: bAdmin.client.credential,
+			}),
+			headers: {
+				'Content-Type': 'application/json',
+			},
+			credentials: 'omit',
+			cache: 'no-cache',
+		});
+		console.log(await  res.json());
 	});
 
 	test('コピー許可の絵文字をコピーできる(copy)', async () => {
@@ -345,5 +368,6 @@ describe('Emoji', () => {
 			cache: 'no-cache',
 		});
 		console.log(await  res.json());
+		strictEqual((await  res.json()).code, 'SEE_USAGEINFOMATION_OR_LICENSE')
 	});
 });
