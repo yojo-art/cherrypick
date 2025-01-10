@@ -5118,6 +5118,12 @@ export type components = {
       isSensitive: boolean;
       localOnly: boolean;
       roleIdsThatCanBeUsedThisEmojiAsReaction: string[];
+      /** @enum {string|null} */
+      copyPermission: 'allow' | 'deny' | 'conditional' | null;
+      usageInfo: string | null;
+      author: string | null;
+      description: string | null;
+      isBasedOn: string | null;
     };
     Flash: {
       /**
@@ -7779,6 +7785,20 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
+          /**
+           * @description この絵文字を外部サーバーへコピーすることの許可
+           * @default allow
+           * @enum {string|null}
+           */
+          copyPermission?: 'allow' | 'deny' | 'conditional' | null;
+          /** @description 使用する際の説明 */
+          usageInfo?: string | null;
+          /** @description 作者情報 */
+          author?: string | null;
+          /** @description 絵文字の説明 */
+          description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -7841,6 +7861,20 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
+          /**
+           * @description この絵文字を外部サーバーへコピーすることの許可
+           * @default allow
+           * @enum {string|null}
+           */
+          copyPermission?: 'allow' | 'deny' | 'conditional' | null;
+          /** @description 使用する際の説明 */
+          usageInfo?: string | null;
+          /** @description 作者情報 */
+          author?: string | null;
+          /** @description 絵文字の説明 */
+          description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -7895,6 +7929,7 @@ export type operations = {
         'application/json': {
           /** Format: misskey:id */
           emojiId: string;
+          usageInfoReaded?: boolean;
         };
       };
     };
@@ -8135,6 +8170,19 @@ export type operations = {
               /** @description The local host is represented with `null`. */
               host: string | null;
               url: string;
+              /**
+               * @description この絵文字を外部サーバーへコピーすることの許可
+               * @enum {string|null}
+               */
+              copyPermission: 'allow' | 'deny' | 'conditional' | null;
+              /** @description 使用する際の説明 */
+              usageInfo: string | null;
+              /** @description 作者情報 */
+              author: string | null;
+              /** @description 絵文字の説明 */
+              description: string | null;
+              /** @description もとになったもののURLなど */
+              isBasedOn: string | null;
             })[];
         };
       };
@@ -8204,6 +8252,19 @@ export type operations = {
               /** @description The local host is represented with `null`. The field exists for compatibility with other API endpoints that return files. */
               host: string | null;
               url: string;
+              /**
+               * @description この絵文字を外部サーバーへコピーすることの許可
+               * @enum {string|null}
+               */
+              copyPermission: 'allow' | 'deny' | 'conditional' | null;
+              /** @description 使用する際の説明 */
+              usageInfo: string | null;
+              /** @description 作者情報 */
+              author: string | null;
+              /** @description 絵文字の説明 */
+              description: string | null;
+              /** @description もとになったもののURLなど */
+              isBasedOn: string | null;
             })[];
         };
       };
@@ -8461,6 +8522,7 @@ export type operations = {
         'application/json': {
           name: string;
           host: string;
+          usageInfoReaded?: boolean;
         };
       };
     };
@@ -8528,6 +8590,19 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
+          /**
+           * @description この絵文字を外部サーバーへコピーすることの許可
+           * @enum {string|null}
+           */
+          copyPermission?: 'allow' | 'deny' | 'conditional' | null;
+          /** @description 使用する際の説明 */
+          usageInfo?: string | null;
+          /** @description 作者情報 */
+          author?: string | null;
+          /** @description 絵文字の説明 */
+          description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };

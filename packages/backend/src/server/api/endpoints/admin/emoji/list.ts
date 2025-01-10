@@ -10,6 +10,7 @@ import type { MiEmoji } from '@/models/Emoji.js';
 import { QueryService } from '@/core/QueryService.js';
 import { DI } from '@/di-symbols.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
+import { emojiCopyPermissions } from "@/types.js";
 //import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 
 export const meta = {
@@ -56,6 +57,12 @@ export const meta = {
 					type: 'string',
 					optional: false, nullable: false,
 				},
+
+				copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, description: 'この絵文字を外部サーバーへコピーすることの許可' },
+				usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
+				author: { type: 'string', nullable: true, description: '作者情報' },
+				description: { type: 'string', nullable: true, description: '絵文字の説明' },
+				isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
 			},
 		},
 	},

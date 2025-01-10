@@ -3384,3 +3384,14 @@ _searchbility:
     followersAndReacted: "フォロワーと反応した人"
     reactedOnly: "反応した人"
     private: "自分だけ"
+
+_emoji:
+  copyPermissionIsDeny: "この絵文字のコピーは許可されていません"
+  seeLicense: "ライセンスと使用に関しての情報を読んで同意できるならOkを選択してください"
+  usageInfo: "使用に関して"
+  author: "作成者"
+  copyPermission: "コピーの許可"
+  allow: "許可"
+  deny: "禁止"
+  conditional: "条件付き"
+  isBasedOn: "絵文字ベース"

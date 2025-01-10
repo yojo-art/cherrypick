@@ -4,6 +4,15 @@
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
+- Enhance: Fedibird形式の絵文字情報連合に対応 [#604](https://github.com/yojo-art/cherrypick/pull/604)
+	- 以下の情報が対応ソフト間で連合されます
+    - キーワード
+    - コピー条件
+    - カテゴリ
+    - 製作者
+    - ライセンス
+    - 説明
+    - 使用に関しての説明
 
 ### Client
 - Fix: チュートリアルを現状に合わせて更新[#586](https://github.com/yojo-art/cherrypick/pull/586)
