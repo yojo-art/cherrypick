@@ -62,6 +62,7 @@ export const meta = {
 				usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
 				author: { type: 'string', nullable: true, description: '作者情報' },
 				description: { type: 'string', nullable: true, description: '絵文字の説明' },
+				isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
 			},
 		},
 	},
