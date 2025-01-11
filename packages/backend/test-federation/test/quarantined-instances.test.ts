@@ -23,21 +23,24 @@ describe('quarantine instance', () => {
 		aAdmin = await fetchAdmin('a.test');
 		await sleep();
 	});
-	describe('isQuarantineLimit true', async () => {
-		await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
-		const alicePublicNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
-		const alicePublicRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
+	describe('isQuarantineLimit true', () => {
+		let alicePublicNote: Misskey.entities.Note, alicePublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
-		expected.push({
-			text: alicePublicNote.text,
-			createdAt: alicePublicNote.createdAt,
+		beforeAll(async () => {
+			await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
+			alicePublicNote = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
+			alicePublicRenote = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
+			expected.push({
+				text: alicePublicNote.text,
+				createdAt: alicePublicNote.createdAt,
+			});
+			expected.push({
+				text: alicePublicRenote.text,
+				createdAt: alicePublicRenote.createdAt,
+			});
 		});
-		expected.push({
-			text: alicePublicRenote.text,
-			createdAt: alicePublicRenote.createdAt,
-		});
-		await sleep();
 		test('public', async () => {
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -47,18 +50,18 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		const aliceHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
-		const aliceHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'home' })).createdNote;
-		expected.push({
-			text: aliceHomeNote.text,
-			createdAt: aliceHomeNote.createdAt,
-		});
-		expected.push({
-			text: aliceHomeRenote.text,
-			createdAt: aliceHomeRenote.createdAt,
-		});
-		await sleep();
 		test('home', async () => {
+			const aliceHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
+			const aliceHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'home' })).createdNote;
+			expected.push({
+				text: aliceHomeNote.text,
+				createdAt: aliceHomeNote.createdAt,
+			});
+			expected.push({
+				text: aliceHomeRenote.text,
+				createdAt: aliceHomeRenote.createdAt,
+			});
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -68,10 +71,10 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		(await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
-		(await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'followers' })).createdNote;
-		await sleep();
 		test('followers', async () => {
+			(await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
+			(await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'followers' })).createdNote;
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -81,10 +84,10 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		(await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
-		(await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
-		await sleep();
 		test('specified', async () => {
+			(await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
+			(await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -95,22 +98,25 @@ describe('quarantine instance', () => {
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
 	});
-	test('isQuarantineLimit false', async () => {
-		await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false });
-
-		const carolPublicNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
-		const carolPublicRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
+	describe('isQuarantineLimit false', () => {
+		let carolPublicNote: Misskey.entities.Note, carolPublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
-		expected.push({
-			text: carolPublicNote.text,
-			createdAt: carolPublicNote.createdAt,
+		beforeAll(async () => {
+			await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false });
+			carolPublicNote = (await carol.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
+			carolPublicRenote = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
+
+			expected.push({
+				text: carolPublicNote.text,
+				createdAt: carolPublicNote.createdAt,
+			});
+			expected.push({
+				text: carolPublicRenote.text,
+				createdAt: carolPublicRenote.createdAt,
+			});
 		});
-		expected.push({
-			text: carolPublicRenote.text,
-			createdAt: carolPublicRenote.createdAt,
-		});
-		await sleep();
 		test('public', async () => {
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: carolInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -120,18 +126,18 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		const carolHomeNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
-		const carolHomeRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'home' })).createdNote;
-		expected.push({
-			text: carolHomeNote.text,
-			createdAt: carolHomeNote.createdAt,
-		});
-		expected.push({
-			text: carolHomeRenote.text,
-			createdAt: carolHomeRenote.createdAt,
-		});
-		await sleep();
 		test('home', async () => {
+			const carolHomeNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
+			const carolHomeRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'home' })).createdNote;
+			expected.push({
+				text: carolHomeNote.text,
+				createdAt: carolHomeNote.createdAt,
+			});
+			expected.push({
+				text: carolHomeRenote.text,
+				createdAt: carolHomeRenote.createdAt,
+			});
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: carolInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -141,18 +147,18 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		const carolFollowersNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
-		const carolFollowersRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'followers' })).createdNote;
-		expected.push({
-			text: carolFollowersNote.text,
-			createdAt: carolFollowersNote.createdAt,
-		});
-		expected.push({
-			text: carolFollowersRenote.text,
-			createdAt: carolFollowersRenote.createdAt,
-		});
-		await sleep();
 		test('followers', async () => {
+			const carolFollowersNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
+			const carolFollowersRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'followers' })).createdNote;
+			expected.push({
+				text: carolFollowersNote.text,
+				createdAt: carolFollowersNote.createdAt,
+			});
+			expected.push({
+				text: carolFollowersRenote.text,
+				createdAt: carolFollowersRenote.createdAt,
+			});
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: carolInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
@@ -162,18 +168,18 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		const carolSpecifiedNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
-		const carolSpecifiedRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
-		expected.push({
-			text: carolSpecifiedNote.text,
-			createdAt: carolSpecifiedNote.createdAt,
-		});
-		expected.push({
-			text: carolSpecifiedRenote.text,
-			createdAt: carolSpecifiedRenote.createdAt,
-		});
-		await sleep();
 		test('followers', async () => {
+			const carolSpecifiedNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
+			const carolSpecifiedRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
+			expected.push({
+				text: carolSpecifiedNote.text,
+				createdAt: carolSpecifiedNote.createdAt,
+			});
+			expected.push({
+				text: carolSpecifiedRenote.text,
+				createdAt: carolSpecifiedRenote.createdAt,
+			});
+			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: carolInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
 			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
