@@ -4,15 +4,27 @@
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
+- Enhance: Fedibird形式の絵文字情報連合に対応 [#604](https://github.com/yojo-art/cherrypick/pull/604)
+	- 以下の情報が対応ソフト間で連合されます
+    - キーワード
+    - コピー条件
+    - カテゴリ
+    - 製作者
+    - ライセンス
+    - 説明
+    - 使用に関しての説明
 
 ### Client
+- Fix: チュートリアルを現状に合わせて更新[#586](https://github.com/yojo-art/cherrypick/pull/586)
+- Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
+- Enhance: データセーバーウィジェットを追加[#608](https://github.com/yojo-art/cherrypick/pull/608)
 - Enhance: ノート詳細から前後のHTL/LTLを開く機能を追加 [#572](https://github.com/yojo-art/cherrypick/pull/572)
 - Enhance: インポート時にライセンス欄にインポート元を追記する [#573](https://github.com/yojo-art/cherrypick/pull/573)
-- Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
 - Enhance: TLオプション表示有無切り替えの選択肢にメディアタイムラインを追加 [#609](https://github.com/yojo-art/cherrypick/pull/609)
 
 ### Server
 - Change: `ap/fetch-outbox`から`includeAnnounce`オプションを削除 [#606](https://github.com/yojo-art/cherrypick/pull/606)
+- Enhance: 高度な検索であいまい検索が無効な時ワイルドカードを利用可能に [#564](https://github.com/yojo-art/cherrypick/pull/564)
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
 

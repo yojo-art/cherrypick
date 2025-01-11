@@ -519,6 +519,14 @@ export class ApNoteService {
 						originalUrl: tag.icon.url,
 						publicUrl: tag.icon.url,
 						updatedAt: new Date(),
+						copyPermission: tag.copyPermission,
+						category: tag.category,
+						license: tag.license,
+						aliases: tag.keywords,
+						usageInfo: tag.usageInfo,
+						author: tag.author,
+						description: tag.description,
+						isBasedOn: tag.isBasedOn,
 					});
 
 					const emoji = await this.emojisRepository.findOneBy({ host, name });
@@ -539,7 +547,14 @@ export class ApNoteService {
 				originalUrl: tag.icon.url,
 				publicUrl: tag.icon.url,
 				updatedAt: new Date(),
-				aliases: [],
+				copyPermission: tag.copyPermission,
+				category: tag.category,
+				license: tag.license,
+				aliases: tag.keywords,
+				usageInfo: tag.usageInfo,
+				author: tag.author,
+				description: tag.description,
+				isBasedOn: tag.isBasedOn,
 			});
 		}));
 	}

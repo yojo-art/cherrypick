@@ -20,6 +20,7 @@ import { query } from '@/misc/prelude/url.js';
 import type { Serialized } from '@/types.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { DriveService } from '@/core/DriveService.js';
+import { emojiCopyPermissions } from '@/types.js';
 
 const parseEmojiStrRegexp = /^([-\w]+)(?:@([\w.-]+))?$/;
 
@@ -69,6 +70,11 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		isSensitive: boolean;
 		localOnly: boolean;
 		roleIdsThatCanBeUsedThisEmojiAsReaction: MiRole['id'][];
+		copyPermission: 'allow' | 'deny' | 'conditional' | null,
+		usageInfo: string | null,
+		author: string | null,
+		description: string | null,
+		isBasedOn: string | null,
 	}, moderator?: MiUser): Promise<MiEmoji> {
 		// システムユーザーとして再アップロード
 		if (!data.driveFile.user?.isRoot) {
@@ -93,6 +99,11 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			isSensitive: data.isSensitive,
 			localOnly: data.localOnly,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: data.roleIdsThatCanBeUsedThisEmojiAsReaction,
+			copyPermission: data.copyPermission,
+			usageInfo: data.usageInfo,
+			author: data.author,
+			description: data.description,
+			isBasedOn: data.isBasedOn,
 		});
 
 		if (data.host == null) {
@@ -127,6 +138,11 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		isSensitive?: boolean;
 		localOnly?: boolean;
 		roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
+		copyPermission?: 'allow' | 'deny' | 'conditional' | null,
+		usageInfo?: string | null,
+		author?: string | null,
+		description?: string | null,
+		isBasedOn?: string | null,
 	}, moderator?: MiUser): Promise<
 		null
 		| 'NO_SUCH_EMOJI'
@@ -157,6 +173,11 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			publicUrl: data.driveFile != null ? (data.driveFile.webpublicUrl ?? data.driveFile.url) : undefined,
 			type: data.driveFile != null ? (data.driveFile.webpublicType ?? data.driveFile.type) : undefined,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: data.roleIdsThatCanBeUsedThisEmojiAsReaction ?? undefined,
+			copyPermission: data.copyPermission,
+			usageInfo: data.usageInfo,
+			author: data.author,
+			description: data.description,
+			isBasedOn: data.isBasedOn,
 		});
 
 		this.localEmojisCache.refresh();
