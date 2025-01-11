@@ -54,6 +54,7 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 	const isAdminInstanceBlocked = ref(false);
 	const isAdminInstanceSilenced = ref(false);
 	const isAdminInstanceMediaSilenced = ref(false);
+	const isAdminQuarantineLimit = ref(false);
 
 	const isInstanceMuted = ref(false);
 
@@ -67,6 +68,7 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 		isAdminInstanceBlocked.value = instance.value?.isBlocked ?? false;
 		isAdminInstanceSilenced.value = instance.value?.isSilenced ?? false;
 		isAdminInstanceMediaSilenced.value = instance.value?.isMediaSilenced ?? false;
+		isAdminQuarantineLimit.value = instance.value?.isQuarantineLimited ?? false;
 
 		isInstanceMuted.value = $i?.mutedInstances?.some((mutedInstance: string) => mutedInstance === instance.value?.host) ?? false;
 	}
@@ -105,6 +107,15 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 		const mediaSilencedHosts = meta.value.mediaSilencedHosts ?? [];
 		await misskeyApi('admin/update-meta', {
 			mediaSilencedHosts: isAdminInstanceMediaSilenced.value ? mediaSilencedHosts.concat([host]) : mediaSilencedHosts.filter(x => x !== host),
+		});
+	}
+
+	async function toggleAdminInstanceQuarantined(): Promise<void> {
+		if (!iAmAdmin) return;
+		if (!instance.value) throw new Error('No instance?');
+		await misskeyApi('admin/federation/update-instance', {
+			host: instance.value.host,
+			isQuarantineLimit: isAdminQuarantineLimit.value,
 		});
 	}
 
@@ -264,6 +275,10 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 
 	watch(isInstanceMuted, () => {
 		toggleInstanceMute();
+	});
+
+	watch(isAdminQuarantineLimit, () => {
+		toggleAdminInstanceQuarantined();
 	});
 
 	const menuItems: MenuItem[] = [];
@@ -553,6 +568,11 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 						text: i18n.ts.mediaSilenceThisInstance,
 						ref: isAdminInstanceMediaSilenced,
 						action: toggleAdminInstanceMediaSilenced,
+					}, {
+						type: 'switch',
+						text: i18n.ts.quarantineThisInstance,
+						ref: isAdminQuarantineLimit,
+						action: toggleAdminInstanceQuarantined,
 					});
 
 					return federationChildMenu;
