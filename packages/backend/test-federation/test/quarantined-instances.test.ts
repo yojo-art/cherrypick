@@ -28,7 +28,7 @@ describe('quarantine instance', () => {
 		let alicePublicNote: Misskey.entities.Note, alicePublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
 		beforeAll(async () => {
-			//await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
+			await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
 			alicePublicNote = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
 			alicePublicRenote = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
 			expected.push({
