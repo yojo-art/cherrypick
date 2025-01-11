@@ -117,7 +117,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:enableAnimatedMfm="enableAnimatedMfm"
 				/>
 				<a v-if="appearNote.renote != null" :class="$style.rn">RN:</a>
-				<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && appearNote.text && isForeignLanguage" style="padding-top: 5px; color: var(--MI_THEME-accent);">
+				<div v-if="defaultStore.state.showTranslateButtonInNote && (!defaultStore.state.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (defaultStore.state.useAutoTranslate && (appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && (appearNote.text || appearNote.poll) && isForeignLanguage" style="padding-top: 5px; color: var(--MI_THEME-accent);">
 					<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click="translate()">{{ i18n.ts.translateNote }}</button>
 					<button v-else class="_button" @click="translation = null">{{ i18n.ts.close }}</button>
 				</div>
@@ -125,7 +125,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkLoading v-if="translating" mini/>
 					<div v-else-if="translation">
 						<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-						<Mfm
+						<Mfm v-if="appearNote.text"
 							:text="translation.text"
 							:author="appearNote.user"
 							:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -175,7 +175,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template v-if="defaultStore.state.showReplyButtonInNoteFooter">
 				<button v-if="!note.isHidden" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.reply" class="_button" :class="$style.noteFooterButton" @click="reply()">
 					<i class="ti ti-arrow-back-up"></i>
-					<p v-if="appearNote.repliesCount > 0" :class="$style.noteFooterButtonCount">{{ number(appearNote.repliesCount) }}</p>
+					<p v-if="appearNote.repliesCount > 0" :class="$style.noteFooterButtonCount">{{ Number(appearNote.repliesCount) }}</p>
 				</button>
 				<button v-else-if="note.isHidden" class="_button" :class="$style.noteFooterButton" disabled>
 					<i class="ti ti-ban"></i>
@@ -192,7 +192,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					@click.stop="defaultStore.state.renoteQuoteButtonSeparation && ((!defaultStore.state.renoteVisibilitySelection && !appearNote.channel) || (appearNote.channel && !appearNote.channel.allowRenoteToExternal) || appearNote.visibility === 'followers') ? renoteOnly() : renote()"
 				>
 					<i class="ti ti-repeat"></i>
-					<p v-if="appearNote.renoteCount > 0" :class="$style.noteFooterButtonCount">{{ number(appearNote.renoteCount) }}</p>
+					<p v-if="appearNote.renoteCount > 0" :class="$style.noteFooterButtonCount">{{ Number(appearNote.renoteCount) }}</p>
 				</button>
 				<button v-else-if="!canRenote" class="_button" :class="$style.noteFooterButton" disabled>
 					<i class="ti ti-ban"></i>
@@ -201,12 +201,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button v-if="appearNote.reactionAcceptance !== 'likeOnly' && appearNote.myReaction == null && defaultStore.state.showLikeButtonInNoteFooter" ref="heartReactButton" v-vibrate="defaultStore.state.vibrateSystem ? [30, 50, 50] : []" v-tooltip="i18n.ts.like" :class="$style.noteFooterButton" class="_button" @click="heartReact()">
 				<i class="ti ti-heart"></i>
 			</button>
-			<button v-if="defaultStore.state.showDoReactionButtonInNoteFooter" ref="reactButton" v-vibrate="defaultStore.state.vibrateSystem ? [30, 50, 50] : []" v-tooltip="appearNote.reactionAcceptance === 'likeOnly' && appearNote.myReaction != null ? i18n.ts.unlike : appearNote.myReaction != null ? i18n.ts.editReaction : appearNote.reactionAcceptance === 'likeOnly' ? i18n.ts.like : i18n.ts.doReaction" :class="$style.noteFooterButton" class="_button" @click.stop="toggleReact()">
+			<button v-if="defaultStore.state.showDoReactionButtonInNoteFooter" ref="reactButton" v-vibrate="defaultStore.state.vibrateSystem ? [30, 50, 50] : []" v-tooltip="appearNote.reactionAcceptance === 'likeOnly' && appearNote.myReaction != null ? i18n.ts.unlike : appearNote.myReaction != null ? i18n.ts.editReaction : appearNote.reactionAcceptance === 'likeOnly' ? i18n.ts.like : i18n.ts.doReaction" :class="$style.noteFooterButton" class="_button" @click.stop="react()">
 				<i v-if="appearNote.reactionAcceptance === 'likeOnly' && appearNote.myReaction != null" class="ti ti-heart-filled" style="color: var(--MI_THEME-love);"></i>
 				<i v-else-if="appearNote.myReaction != null" class="ti ti-mood-edit" style="color: var(--MI_THEME-accent);"></i>
 				<i v-else-if="appearNote.reactionAcceptance === 'likeOnly'" class="ti ti-heart"></i>
 				<i v-else class="ti ti-mood-plus"></i>
-				<p v-if="(appearNote.reactionAcceptance === 'likeOnly' || defaultStore.state.showReactionsCount) && appearNote.reactionCount > 0" :class="$style.noteFooterButtonCount">{{ number(appearNote.reactionCount) }}</p>
+				<p v-if="(appearNote.reactionAcceptance === 'likeOnly' || defaultStore.state.showReactionsCount) && appearNote.reactionCount > 0" :class="$style.noteFooterButtonCount">{{ Number(appearNote.reactionCount) }}</p>
 			</button>
 			<button v-if="canRenote && defaultStore.state.renoteQuoteButtonSeparation && defaultStore.state.showQuoteButtonInNoteFooter" ref="quoteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.quote" class="_button" :class="$style.noteFooterButton" @click="quote()">
 				<i class="ti ti-quote"></i>
@@ -306,13 +306,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { error } from 'console';
 import { computed, inject, onMounted, provide, ref, shallowRef } from 'vue';
 import * as mfm from 'mfc-js';
 import * as Misskey from 'cherrypick-js';
 import { CodeDiff } from 'v-code-diff';
 import { isLink } from '@@/js/is-link.js';
 import { host } from '@@/js/config.js';
+import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
@@ -336,7 +336,6 @@ import { defaultStore, noteViewInterruptors } from '@/store.js';
 import { reactionPicker } from '@/scripts/reaction-picker.js';
 import { extractUrlFromMfm } from '@/scripts/extract-url-from-mfm.js';
 import { $i } from '@/account.js';
-import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import { i18n } from '@/i18n.js';
 import { getAbuseNoteMenu, getNoteClipMenu, getNoteMenu, getRenoteMenu, getRenoteOnly } from '@/scripts/get-note-menu.js';
 import { useNoteCapture } from '@/scripts/use-note-capture.js';
@@ -684,12 +683,19 @@ function showMenu(): void {
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 
-const isForeignLanguage: boolean = appearNote.value.text != null && (() => {
+const isForeignLanguage: boolean = (appearNote.value.text != null || appearNote.value.poll != null) && (() => {
 	const targetLang = (miLocalStorage.getItem('lang') ?? navigator.language).slice(0, 2);
-	const postLang = detectLanguage(appearNote.value.text);
-	const choicesLang = appearNote.value.poll?.choices.map((choice) => choice.text).join(' ') ?? '';
-	const pollLang = detectLanguage(choicesLang);
-	return postLang !== '' && (postLang !== targetLang || pollLang !== targetLang);
+	if (appearNote.value.text) {
+		const postLang = detectLanguage(appearNote.value.text);
+		if (postLang !== '' && postLang !== targetLang) return true;
+	}
+	if (appearNote.value.poll) {
+		const foreignLang = appearNote.value.poll.choices
+			.map((choice) => detectLanguage(choice.text))
+			.filter((lang) => lang !== targetLang).length;
+		if (0 < foreignLang) return true;
+	}
+	return false;
 })();
 
 if (defaultStore.state.useAutoTranslate && instance.translatorAvailable && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (appearNote.value.cw == null || showContent.value) && appearNote.value.text && isForeignLanguage) translate();
@@ -699,6 +705,15 @@ async function translate(): Promise<void> {
 	translating.value = true;
 
 	vibrate(defaultStore.state.vibrateSystem ? 5 : []);
+
+	if (appearNote.value.text == null) {
+		translating.value = false;
+		translation.value = {
+			sourceLang: '',
+			text: '',
+		};
+		return;
+	}
 
 	const res = await misskeyApi('notes/translate', {
 		noteId: appearNote.value.id,

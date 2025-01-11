@@ -112,7 +112,7 @@ export interface IOrderedCollection extends IObject {
 	type: 'OrderedCollection';
 	totalItems?: number;
 	orderedItems?: ApObject;
-	first?: IObject | string;
+	first?: IOrderedCollectionPage | string;
 	last?: IObject | string;
 }
 
@@ -120,7 +120,6 @@ export interface IOrderedCollectionPage extends IObject {
 	type: 'OrderedCollectionPage';
 	partOf: string;
 	totalItems?: number;
-	first?: IObject | string;
 	orderedItems?: IObject[];
 	items?: IObject[];
 	prev: string;
@@ -274,6 +273,14 @@ export interface IApEmoji extends IObject {
 	type: 'Emoji';
 	name: string;
 	updated: string;
+	copyPermission?: 'allow' | 'deny' | 'conditional';
+	category?: string;
+	license?: string;
+	keywords?: string[];
+	usageInfo?: string;
+	author?: string;
+	description?: string;
+	isBasedOn?: string;
 }
 
 export const isEmoji = (object: IObject): object is IApEmoji =>

@@ -216,7 +216,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 		os.apiWithDialog('ap/fetch-outbox', {
 			userId: user.id,
 			wait: true,
-			includeAnnounce: true,
 		});
 	}
 
@@ -314,14 +313,6 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: IRouter
 			action: () => {
 				if (user.url == null) return;
 				window.open(user.url, '_blank', 'noopener');
-			},
-		});
-		menuItems.push({
-			icon: 'ti ti-server',
-			text: i18n.ts.instanceInfo,
-			action: () => {
-				if (user.host == null) return;
-				router.push(`/instance-info/${user.host}`);
 			},
 		});
 	} else {

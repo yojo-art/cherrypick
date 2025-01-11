@@ -5118,6 +5118,12 @@ export type components = {
       isSensitive: boolean;
       localOnly: boolean;
       roleIdsThatCanBeUsedThisEmojiAsReaction: string[];
+      /** @enum {string|null} */
+      copyPermission: 'allow' | 'deny' | 'conditional' | null;
+      usageInfo: string | null;
+      author: string | null;
+      description: string | null;
+      isBasedOn: string | null;
     };
     Flash: {
       /**
@@ -5355,6 +5361,7 @@ export type components = {
       maintainerEmail: string | null;
       version: string;
       basedMisskeyVersion: string;
+      basedCherrypickVersion: string;
       providesTarball: boolean;
       name: string | null;
       shortName: string | null;
@@ -5366,9 +5373,9 @@ export type components = {
       description: string | null;
       langs: string[];
       tosUrl: string | null;
-      /** @default https://github.com/kokonect-link/cherrypick */
+      /** @default https://github.com/yojo-art/cherrypick */
       repositoryUrl: string | null;
-      /** @default https://github.com/kokonect-link/cherrypick/issues/new */
+      /** @default https://github.com/yojo-art/cherrypick/issues/new */
       feedbackUrl: string | null;
       statusUrl: string | null;
       defaultDarkTheme: string | null;
@@ -7549,7 +7556,7 @@ export type operations = {
            * @default local
            * @enum {string}
            */
-          origin?: 'combined' | 'local' | 'remote';
+          origin?: 'combined' | 'local' | 'remote' | 'system';
           /**
            * @description The local host is represented with `null`.
            * @default null
@@ -7778,6 +7785,20 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
+          /**
+           * @description この絵文字を外部サーバーへコピーすることの許可
+           * @default allow
+           * @enum {string|null}
+           */
+          copyPermission?: 'allow' | 'deny' | 'conditional' | null;
+          /** @description 使用する際の説明 */
+          usageInfo?: string | null;
+          /** @description 作者情報 */
+          author?: string | null;
+          /** @description 絵文字の説明 */
+          description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -7840,6 +7861,20 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
+          /**
+           * @description この絵文字を外部サーバーへコピーすることの許可
+           * @default allow
+           * @enum {string|null}
+           */
+          copyPermission?: 'allow' | 'deny' | 'conditional' | null;
+          /** @description 使用する際の説明 */
+          usageInfo?: string | null;
+          /** @description 作者情報 */
+          author?: string | null;
+          /** @description 絵文字の説明 */
+          description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -7894,6 +7929,7 @@ export type operations = {
         'application/json': {
           /** Format: misskey:id */
           emojiId: string;
+          usageInfoReaded?: boolean;
         };
       };
     };
@@ -8134,6 +8170,19 @@ export type operations = {
               /** @description The local host is represented with `null`. */
               host: string | null;
               url: string;
+              /**
+               * @description この絵文字を外部サーバーへコピーすることの許可
+               * @enum {string|null}
+               */
+              copyPermission: 'allow' | 'deny' | 'conditional' | null;
+              /** @description 使用する際の説明 */
+              usageInfo: string | null;
+              /** @description 作者情報 */
+              author: string | null;
+              /** @description 絵文字の説明 */
+              description: string | null;
+              /** @description もとになったもののURLなど */
+              isBasedOn: string | null;
             })[];
         };
       };
@@ -8203,6 +8252,19 @@ export type operations = {
               /** @description The local host is represented with `null`. The field exists for compatibility with other API endpoints that return files. */
               host: string | null;
               url: string;
+              /**
+               * @description この絵文字を外部サーバーへコピーすることの許可
+               * @enum {string|null}
+               */
+              copyPermission: 'allow' | 'deny' | 'conditional' | null;
+              /** @description 使用する際の説明 */
+              usageInfo: string | null;
+              /** @description 作者情報 */
+              author: string | null;
+              /** @description 絵文字の説明 */
+              description: string | null;
+              /** @description もとになったもののURLなど */
+              isBasedOn: string | null;
             })[];
         };
       };
@@ -8460,6 +8522,7 @@ export type operations = {
         'application/json': {
           name: string;
           host: string;
+          usageInfoReaded?: boolean;
         };
       };
     };
@@ -8527,6 +8590,19 @@ export type operations = {
           isSensitive?: boolean;
           localOnly?: boolean;
           roleIdsThatCanBeUsedThisEmojiAsReaction?: string[];
+          /**
+           * @description この絵文字を外部サーバーへコピーすることの許可
+           * @enum {string|null}
+           */
+          copyPermission?: 'allow' | 'deny' | 'conditional' | null;
+          /** @description 使用する際の説明 */
+          usageInfo?: string | null;
+          /** @description 作者情報 */
+          author?: string | null;
+          /** @description 絵文字の説明 */
+          description?: string | null;
+          /** @description もとになったもののURLなど */
+          isBasedOn?: string | null;
         };
       };
     };
@@ -12234,11 +12310,6 @@ export type operations = {
            * @default false
            */
           wait?: boolean;
-          /**
-           * @description Outbox取得の際にRenoteも対象にします
-           * @default false
-           */
-          includeAnnounce?: boolean;
         };
       };
     };
@@ -20282,8 +20353,11 @@ export type operations = {
           isLocked?: boolean;
           isExplorable?: boolean;
           isIndexable?: boolean;
-          /** @enum {string} */
-          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private';
+          /**
+           * @description 検索許可SearchableByの値を指定しますデフォルトはnull(isIndexableを参照)
+           * @enum {string|null}
+           */
+          searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
           hideOnlineStatus?: boolean;
           publicReactions?: boolean;
           carefulBot?: boolean;

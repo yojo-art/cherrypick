@@ -189,7 +189,11 @@ export const paramDef = {
 		isLocked: { type: 'boolean' },
 		isExplorable: { type: 'boolean' },
 		isIndexable: { type: 'boolean' },
-		searchableBy: { type: 'string', enum: ['public', 'followersAndReacted', 'reactedOnly', 'private'] },
+		searchableBy: {
+			type: 'string',
+			enum: ['public', 'followersAndReacted', 'reactedOnly', 'private', null],
+			nullable: true,
+			description: '検索許可SearchableByの値を指定しますデフォルトはnull(isIndexableを参照)' },
 		hideOnlineStatus: { type: 'boolean' },
 		publicReactions: { type: 'boolean' },
 		carefulBot: { type: 'boolean' },

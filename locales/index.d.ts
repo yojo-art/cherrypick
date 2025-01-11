@@ -179,7 +179,7 @@ export interface Locale extends ILocale {
      */
     "welcome": string;
     /**
-     * CherryPickへの移行が完了しました！
+     * yojo-artへの移行が完了しました！
      */
     "cherrypickMigrated": string;
     /**
@@ -187,7 +187,7 @@ export interface Locale extends ILocale {
      */
     "cherrypickMigratedCacheClearTitle": string;
     /**
-     * このサーバーは<b>Misskey</b>または<b>CherryPick v4.3.0以前</b>のバージョンから移行されました。
+     * このサーバーは<b>Misskey</b>または<b>CherryPick</b>から移行されました。
      * バージョン管理方式が異なり、残っているキャッシュが問題を引き起こす可能性があるため、移行後、最初の接続時にキャッシュを削除する作業を行う必要があります。
      *
      * この作業は最初一度だけ行われます。
@@ -275,11 +275,11 @@ export interface Locale extends ILocale {
      */
     "enableReceivePrerelease": string;
     /**
-     * 未発売バージョンのCherryPickを利用しています！
+     * ベータ版のyojo-artを利用しています！
      */
     "youAreRunningBetaClient": string;
     /**
-     * CherryPickアップデート
+     * yojo-artアップデート
      */
     "cherrypickUpdate": string;
     /**
@@ -441,14 +441,14 @@ export interface Locale extends ILocale {
      */
     "headlineMisskey": string;
     /**
-     * ようこそ！CherryPickは、オープンソースの分散型マイクロブログサービスです。
+     * ようこそ！yojo-artは、オープンソースの分散型マイクロブログサービスです。
      * 「ノート」を作成して、いま起こっていることを共有したり、あなたについて皆に発信しよう📡
      * 「リアクション」機能で、皆のノートに素早く反応を追加することもできます👍
      * 新しい世界を探検しよう🚀
      */
     "introMisskey": string;
     /**
-     * {name}は、オープンソースのプラットフォーム<b>CherryPick</b>のサーバーのひとつです。
+     * {name}は、オープンソースのプラットフォーム<b>yojo-art</b>のサーバーのひとつです。
      */
     "poweredByMisskeyDescription": ParameterizedString<"name">;
     /**
@@ -480,8 +480,8 @@ export interface Locale extends ILocale {
      */
     "initialPasswordIsIncorrect": string;
     /**
-     * CherryPickを自分でインストールした場合は、設定ファイルに入力したパスワードを使用してください。
-     * CherryPickのホスティングサービスなどを使用している場合は、提供されたパスワードを使用してください。
+     * yojo-artを自分でインストールした場合は、設定ファイルに入力したパスワードを使用してください。
+     * yojo-artのホスティングサービスなどを使用している場合は、提供されたパスワードを使用してください。
      * パスワードを設定していない場合は、空欄にしたまま続行してください。
      */
     "initialPasswordForSetupDescription": string;
@@ -1138,6 +1138,10 @@ export interface Locale extends ILocale {
      */
     "customEmojis": string;
     /**
+     * 詳細情報が利用できません
+     */
+    "emojiRemoteDetailedUnavailable": string;
+    /**
      * 絵文字
      */
     "emoji": string;
@@ -1186,7 +1190,7 @@ export interface Locale extends ILocale {
      */
     "flagAsBot": string;
     /**
-     * このアカウントがプログラムによって運用される場合は、このフラグをオンにします。オンにすると、反応の連鎖を防ぐためのフラグとして他の開発者に役立ったり、CherryPickのシステム上での扱いがBotに合ったものになります。
+     * このアカウントがプログラムによって運用される場合は、このフラグをオンにします。オンにすると、反応の連鎖を防ぐためのフラグとして他の開発者に役立ったり、システム上での扱いがBotに合ったものになります。
      */
     "flagAsBotDescription": string;
     /**
@@ -1478,7 +1482,7 @@ export interface Locale extends ILocale {
      */
     "pinLimitExceeded": string;
     /**
-     * CherryPickのインストールが完了しました！管理者アカウントを作成しましょう。
+     * yojo-artのインストールが完了しました！管理者アカウントを作成しましょう。
      */
     "intro": string;
     /**
@@ -2266,7 +2270,7 @@ export interface Locale extends ILocale {
      */
     "about": string;
     /**
-     * CherryPickについて
+     * yojo-artについて
      */
     "aboutMisskey": string;
     /**
@@ -2906,7 +2910,7 @@ export interface Locale extends ILocale {
      */
     "notUseSound": string;
     /**
-     * CherryPickがアクティブな時のみサウンドを出力する
+     * ウィンドウがアクティブな時のみサウンドを出力する
      */
     "useSoundOnlyWhenActive": string;
     /**
@@ -2970,7 +2974,7 @@ export interface Locale extends ILocale {
      */
     "scratchpad": string;
     /**
-     * スクラッチパッドは、AiScriptの実験環境を提供します。CherryPickと対話するコードの記述、実行、結果の確認ができます。
+     * スクラッチパッドは、AiScriptの実験環境を提供します。yojo-artと対話するコードの記述、実行、結果の確認ができます。
      */
     "scratchpadDescription": string;
     /**
@@ -3546,7 +3550,7 @@ export interface Locale extends ILocale {
      */
     "private": string;
     /**
-     * CherryPickは有志によって様々な言語に翻訳されています。{link}で翻訳に協力できます。
+     * yojo-artは有志によって様々な言語に翻訳されています。{link}で翻訳に協力できます。
      */
     "i18nInfo": ParameterizedString<"link">;
     /**
@@ -3792,7 +3796,7 @@ export interface Locale extends ILocale {
      */
     "sendErrorReports": string;
     /**
-     * オンにすると、問題が発生したときにエラーの詳細情報がCherryPickに共有され、ソフトウェアの品質向上に役立てることができます。エラー情報には、OSのバージョン、ブラウザの種類、行動履歴などが含まれます。
+     * オンにすると、問題が発生したときにエラーの詳細情報がyojo-artに共有され、ソフトウェアの品質向上に役立てることができます。エラー情報には、OSのバージョン、ブラウザの種類、行動履歴などが含まれます。
      */
     "sendErrorReportsDescription": string;
     /**
@@ -4176,7 +4180,7 @@ export interface Locale extends ILocale {
      */
     "learnMore": string;
     /**
-     * CherryPickが更新されました！
+     * yojo-artが更新されました！
      */
     "misskeyUpdated": string;
     /**
@@ -4211,6 +4215,10 @@ export interface Locale extends ILocale {
      * CWを維持する
      */
     "keepCw": string;
+    /**
+     * %sが検索語句に置き換えられます
+     */
+    "searchEngineDescription": string;
     /**
      * Pub/Subのアカウント
      */
@@ -4704,11 +4712,11 @@ export interface Locale extends ILocale {
      */
     "remindMeLater": string;
     /**
-     * CherryPickを気に入っていただけましたか？
+     * yojo-artを気に入っていただけましたか？
      */
     "didYouLikeMisskey": string;
     /**
-     * CherryPickは{host}が使用している無料のソフトウェアです。これからも開発を続けられるように、ぜひ寄付をお願いします！
+     * yojo-artは{host}が使用している無料のソフトウェアです。これからも開発を続けられるように、ぜひ寄付をお願いします！
      */
     "pleaseDonate": ParameterizedString<"host">;
     /**
@@ -5240,7 +5248,7 @@ export interface Locale extends ILocale {
      */
     "later": string;
     /**
-     * CherryPickへ
+     * yojo-artへ
      */
     "goToMisskey": string;
     /**
@@ -5500,7 +5508,7 @@ export interface Locale extends ILocale {
      */
     "repositoryUrl": string;
     /**
-     * ソースコードが公開されているリポジトリがある場合、そのURLを記入します。CherryPickを現状のまま（ソースコードにいかなる変更も加えずに）使用している場合は https://github.com/kokonect-link/cherrypick と記入します。
+     * ソースコードが公開されているリポジトリがある場合、そのURLを記入します。yojo-artを現状のまま（ソースコードにいかなる変更も加えずに）使用している場合は https://github.com/yojo-art/cherrypick と記入します。
      */
     "repositoryUrlDescription": string;
     /**
@@ -6409,7 +6417,7 @@ export interface Locale extends ILocale {
          */
         "haveFun": ParameterizedString<"name">;
         /**
-         * このまま{name}(CherryPick)の使い方についてのチュートリアルに進むこともできますが、ここで中断してすぐに使い始めることもできます。
+         * このまま{name}(yojo-art)の使い方についてのチュートリアルに進むこともできますが、ここで中断してすぐに使い始めることもできます。
          */
         "youCanContinueTutorial": ParameterizedString<"name">;
         /**
@@ -6452,7 +6460,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * ここでは、CherryPickの基本的な使い方や機能を確認できます。
+             * ここでは、yojo-artの基本的な使い方や機能を確認できます。
              */
             "description": string;
         };
@@ -6462,7 +6470,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * CherryPickでの投稿は「ノート」と呼びます。ノートはタイムラインに時系列で並んでいて、リアルタイムで更新されていきます。
+             * yojo-artでの投稿は「ノート」と呼びます。ノートはタイムラインに時系列で並んでいて、リアルタイムで更新されていきます。
              */
             "description": string;
             /**
@@ -6522,7 +6530,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * CherryPickには、使い方に応じて複数のタイムラインが用意されています（サーバーによってはいずれかが無効になっていることがあります）。
+             * yojo-artには、使い方に応じて複数のタイムラインが用意されています（サーバーによってはいずれかが無効になっていることがあります）。
              */
             "description1": string;
             /**
@@ -6542,6 +6550,10 @@ export interface Locale extends ILocale {
              */
             "global": string;
             /**
+             * 接続している他のすべてのサーバーからのファイル付き投稿を見られます。
+             */
+            "media": string;
+            /**
              * それぞれのタイムラインは、画面上部でいつでも切り替えられます。
              */
             "description2": string;
@@ -6556,7 +6568,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * CherryPickにノートを投稿する際には、様々なオプションの設定が可能です。投稿フォームはこのようになっています。
+             * yojo-artにノートを投稿する際には、様々なオプションの設定が可能です。投稿フォームはこのようになっています。
              */
             "description1": string;
             "_visibility": {
@@ -6592,6 +6604,36 @@ export interface Locale extends ILocale {
                  * 他のサーバーに投稿を連合しません。上記の公開範囲に関わらず、他のサーバーのユーザーは、この設定がついたノートを直接閲覧することができなくなります。
                  */
                 "localOnly": string;
+            };
+            "_searchbility": {
+                /**
+                 * 検索許可の設定
+                 */
+                "title": string;
+                /**
+                 * ノートを表示できる相手を制限できます。
+                 */
+                "description": string;
+                /**
+                 * すべてのユーザーが検索できます
+                 */
+                "public": string;
+                /**
+                 * フォロワーと反応した人が検索できます
+                 */
+                "followers": string;
+                /**
+                 * 反応した人が検索できます
+                 */
+                "reactedOnly": string;
+                /**
+                 * 自分のみが検索できます
+                 */
+                "private": string;
+                /**
+                 * リモートサーバーでは適用されない可能性があります。
+                 */
+                "notApplyRemote": string;
             };
             "_cw": {
                 /**
@@ -6656,7 +6698,7 @@ export interface Locale extends ILocale {
              */
             "title": string;
             /**
-             * ここで紹介した機能はほんの一部にすぎません。CherryPickの使い方をより詳しく知るには、{link}をご覧ください。
+             * ここで紹介した機能はほんの一部にすぎません。yojo-artの使い方をより詳しく知るには、{link}をご覧ください。
              */
             "description": ParameterizedString<"link">;
         };
@@ -6897,7 +6939,7 @@ export interface Locale extends ILocale {
          * フォロワーの移行は自動ですが、フォローの移行は手動で行う必要があります。移行前にこのアカウントでフォローエクスポートし、移行後すぐに移行先アカウントでインポートを行なってください。
          * リスト・ミュート・ブロックについても同様ですので、手動で移行する必要があります。
          *
-         * （この説明はこのサーバー（CherryPick v13.12.0以降）の仕様です。Mastodonなどの他のActivityPubソフトウェアでは挙動が異なる場合があります。）
+         * （この説明はこのサーバー（yojo-art）の仕様です。Mastodonなどの他のActivityPubソフトウェアでは挙動が異なる場合があります。）
          */
         "moveAccountDescription": string;
         /**
@@ -6945,7 +6987,7 @@ export interface Locale extends ILocale {
                  */
                 "description": string;
                 /**
-                 * 良いCherryPickライフを！
+                 * 良いyojo-artライフを！
                  */
                 "flavor": string;
             };
@@ -7269,7 +7311,7 @@ export interface Locale extends ILocale {
                  */
                 "description": string;
                 /**
-                 * CherryPickを使ってくれてありがとう！
+                 * yojo-artを使ってくれてありがとう！
                  */
                 "flavor": string;
             };
@@ -7503,7 +7545,7 @@ export interface Locale extends ILocale {
             };
             "_client60min": {
                 /**
-                 * CherryPickの見すぎ
+                 * yojo-artの見すぎ
                  */
                 "title": string;
                 /**
@@ -7767,7 +7809,7 @@ export interface Locale extends ILocale {
             };
             "_tutorialCompleted": {
                 /**
-                 * CherryPick初心者講座 修了証
+                 * yojo-art初心者講座 修了証
                  */
                 "title": string;
                 /**
@@ -8565,7 +8607,7 @@ export interface Locale extends ILocale {
     };
     "_aboutMisskey": {
         /**
-         * CherryPickは、Misskeyをベースに2021年から開発中のカスタマイズオープンソースのソフトウェアです。
+         * yojo-artは、CherryPickをベースに2024年から開発中のカスタマイズオープンソースのソフトウェアです。
          */
         "about": string;
         /**
@@ -8585,7 +8627,7 @@ export interface Locale extends ILocale {
          */
         "original": string;
         /**
-         * {name}はオリジナルのCherryPickを改変したバージョンを使用しています。
+         * {name}はオリジナルのyojo-artを改変したバージョンを使用しています。
          */
         "thisIsModifiedVersion": ParameterizedString<"name">;
         /**
@@ -8636,6 +8678,12 @@ export interface Locale extends ILocale {
              */
             "community": string;
         };
+        "_yojoArt": {
+            /**
+             * yojo-artに寄付
+             */
+            "donate": string;
+        };
     };
     "_displayOfSensitiveMedia": {
         /**
@@ -8653,15 +8701,15 @@ export interface Locale extends ILocale {
     };
     "_mfc": {
         /**
-         * MFCチートシート
+         * MFMチートシート
          */
         "cheatSheet": string;
         /**
-         * MFCは、CherryPick内の様々な場所で使用できる専用のマークアップ言語です。ここでは、MFCで使用可能な構文一覧が確認できます。
+         * MFMは、yojo-art内の様々な場所で使用できる専用のマークアップ言語です。ここでは、MFMで使用可能な構文一覧が確認できます。
          */
         "intro": string;
         /**
-         * CherryPickでFediverseの世界が広がります
+         * yojo-artでFediverseの世界が広がります
          */
         "dummy": string;
         /**
@@ -9429,7 +9477,7 @@ export interface Locale extends ILocale {
          */
         "driveFileDurationWarn": string;
         /**
-         * 長い音声を使用するとCherryPickの使用に支障をきたす可能性があります。それでも続行しますか？
+         * 長い音声を使用するとyojo-artの使用に支障をきたす可能性があります。それでも続行しますか？
          */
         "driveFileDurationWarnDescription": string;
         /**
@@ -10216,6 +10264,10 @@ export interface Locale extends ILocale {
          * マスコット画像
          */
         "mascot": string;
+        /**
+         * データセーバー
+         */
+        "dataSaver": string;
     };
     "_cw": {
         /**
@@ -12162,7 +12214,11 @@ export interface Locale extends ILocale {
          */
         "summaryProxy": string;
         /**
-         * CherryPick本体ではなく、サマリープロキシを使用してプレビューを生成します。
+         * 直接取得
+         */
+        "directAccess": string;
+        /**
+         * yojo-art本体ではなく、サマリープロキシを使用してプレビューを生成します。
          */
         "summaryProxyDescription": string;
         /**
@@ -12619,6 +12675,44 @@ export interface Locale extends ILocale {
          * 自分だけ
          */
         "private": string;
+    };
+    "_emoji": {
+        /**
+         * この絵文字のコピーは許可されていません
+         */
+        "copyPermissionIsDeny": string;
+        /**
+         * ライセンスと使用に関しての情報を読んで同意できるならOkを選択してください
+         */
+        "seeLicense": string;
+        /**
+         * 使用に関して
+         */
+        "usageInfo": string;
+        /**
+         * 作成者
+         */
+        "author": string;
+        /**
+         * コピーの許可
+         */
+        "copyPermission": string;
+        /**
+         * 許可
+         */
+        "allow": string;
+        /**
+         * 禁止
+         */
+        "deny": string;
+        /**
+         * 条件付き
+         */
+        "conditional": string;
+        /**
+         * 絵文字ベース
+         */
+        "isBasedOn": string;
     };
 }
 declare const locales: {
