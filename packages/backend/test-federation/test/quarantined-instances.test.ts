@@ -3,26 +3,28 @@ import * as Misskey from 'cherrypick-js';
 import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
 
 describe('quarantine instance', () => {
-	let alice: LoginUser, bob: LoginUser;
-	let aliceInBobHost: Misskey.entities.UserDetailedNotMe, bobInBobHost: Misskey.entities.UserDetailedNotMe;
+	let alice: LoginUser, bob: LoginUser, carol:LoginUser;
+	let aliceInBobHost: Misskey.entities.UserDetailedNotMe, bobInBobHost: Misskey.entities.UserDetailedNotMe, carolInBobHost: Misskey.entities.UserDetailedNotMe;
 	let bAdmin: LoginUser;
 
 	beforeAll(async () => {
-		[alice, bob] = await Promise.all([
+		[alice, bob, carol] = await Promise.all([
 			createAccount('a.test'),
 			createAccount('b.test'),
+			createAccount('a.test'),
 		]);
 
-		[aliceInBobHost, bobInBobHost] = await Promise.all([
+		[aliceInBobHost, bobInBobHost, carolInBobHost] = await Promise.all([
 			resolveRemoteUser('a.test', alice.id, bob),
 			resolveRemoteUser('b.test', bob.id, alice),
+			resolveRemoteUser('a.test', carol.id, bob),
 		]);
 		await bob.client.request('following/create', { userId: aliceInBobHost.id });
 		bAdmin = await fetchAdmin('b.test');
 		await sleep();
 	});
 	test('isQuarantineLimit true', async () => {
-		await bAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
+		await bAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true }, bAdmin.i);
 
 		const alicePublicNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
 		const alicePublicRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
@@ -35,7 +37,7 @@ describe('quarantine instance', () => {
 
 		await sleep();
 		const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
-		strictEqual(fetch_notes.length, 2, JSON.stringify(fetch_notes));
+		strictEqual(fetch_notes.length, 4, JSON.stringify(fetch_notes));
 		deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
 			return {
 				text: note.text,
@@ -60,20 +62,20 @@ describe('quarantine instance', () => {
 		strictEqual(fetch_notes[0].renote?.id, fetch_notes[1].id);
 	});
 	test('isQuarantineLimit false', async () => {
-		await bAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false });
+		await bAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false }, bAdmin.i);
 
-		const alicePublicNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
-		const alicePublicRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
-		const aliceHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
-		const aliceHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'home' })).createdNote;
-		const aliceFollowersNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
-		const aliceFollowersRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'followers' })).createdNote;
-		const aliceSpecifiedNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
-		const aliceSpecifiedRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
+		const carolPublicNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
+		const carolPublicRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
+		const carolHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
+		const carolHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'home' })).createdNote;
+		const carolFollowersNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
+		const carolFollowersRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'followers' })).createdNote;
+		const carolSpecifiedNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
+		const carolSpecifiedRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
 
 		await sleep();
-		const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
-		strictEqual(fetch_notes.length, 4, JSON.stringify(fetch_notes));
+		const fetch_notes = await bob.client.request('users/notes', { userId: carolInBobHost.id, withReplies: false, withRenotes: true });
+		strictEqual(fetch_notes.length, 8, JSON.stringify(fetch_notes));
 		deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
 			return {
 				text: note.text,
@@ -81,32 +83,32 @@ describe('quarantine instance', () => {
 			};
 		})), JSON.stringify([
 			{
-				text: aliceSpecifiedRenote.text,
-				createdAt: aliceSpecifiedRenote.createdAt,
+				text: carolSpecifiedRenote.text,
+				createdAt: carolSpecifiedRenote.createdAt,
 			}, {
-				text: aliceSpecifiedNote.text,
-				createdAt: aliceSpecifiedNote.createdAt,
+				text: carolSpecifiedNote.text,
+				createdAt: carolSpecifiedNote.createdAt,
 			},
 			{
-				text: aliceFollowersRenote.text,
-				createdAt: aliceFollowersRenote.createdAt,
+				text: carolFollowersRenote.text,
+				createdAt: carolFollowersRenote.createdAt,
 			}, {
-				text: aliceFollowersNote.text,
-				createdAt: aliceFollowersNote.createdAt,
+				text: carolFollowersNote.text,
+				createdAt: carolFollowersNote.createdAt,
 			},
 			{
-				text: aliceHomeRenote.text,
-				createdAt: aliceHomeRenote.createdAt,
+				text: carolHomeRenote.text,
+				createdAt: carolHomeRenote.createdAt,
 			}, {
-				text: aliceHomeNote.text,
-				createdAt: aliceHomeNote.createdAt,
+				text: carolHomeNote.text,
+				createdAt: carolHomeNote.createdAt,
 			},
 			{
-				text: alicePublicRenote.text,
-				createdAt: alicePublicRenote.createdAt,
+				text: carolPublicRenote.text,
+				createdAt: carolPublicRenote.createdAt,
 			}, {
-				text: alicePublicNote.text,
-				createdAt: alicePublicNote.createdAt,
+				text: carolPublicNote.text,
+				createdAt: carolPublicNote.createdAt,
 			},
 		]));
 		strictEqual(fetch_notes[0].renote?.id, fetch_notes[7].id);
