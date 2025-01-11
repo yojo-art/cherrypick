@@ -17,6 +17,7 @@
 
 ### Client
 - Fix: チュートリアルを現状に合わせて更新[#586](https://github.com/yojo-art/cherrypick/pull/586)
+- Fix: 自分自身のリアクション一覧が公開設定に影響される問題を修正 [#614](https://github.com/yojo-art/cherrypick/pull/614)
 - Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
 - Enhance: データセーバーウィジェットを追加[#608](https://github.com/yojo-art/cherrypick/pull/608)
 - Enhance: ノート詳細から前後のHTL/LTLを開く機能を追加 [#572](https://github.com/yojo-art/cherrypick/pull/572)
