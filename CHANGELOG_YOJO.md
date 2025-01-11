@@ -29,7 +29,7 @@
 - Enhance: 高度な検索であいまい検索が無効な時ワイルドカードを利用可能に [#564](https://github.com/yojo-art/cherrypick/pull/564)
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
-
+- Enhance: リバーシ連合時にリアクションを送れるように(v1.1.0) [#569](https://github.com/yojo-art/cherrypick/pull/569)
 
 ## 1.2.2
 Cherrypick 4.13.0  
