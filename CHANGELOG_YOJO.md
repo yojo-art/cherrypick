@@ -4,6 +4,7 @@
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
+- Feat: 公開投稿以外の配送を制限する機能 [#574](https://github.com/yojo-art/cherrypick/pull/574)
 - Enhance: Fedibird形式の絵文字情報連合に対応 [#604](https://github.com/yojo-art/cherrypick/pull/604)
 	- 以下の情報が対応ソフト間で連合されます
     - キーワード
