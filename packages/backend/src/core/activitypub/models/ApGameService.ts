@@ -129,6 +129,14 @@ export class ApGameService {
 			user: await this.userEntityService.pack(fromUser, targetUser),
 		});
 	}
+	async reversiInboxLike(actor: MiRemoteUser, rest: string, emoji:string|null) {
+		const id = await this.reversiIdFromUUID(rest);
+		if (id === null) {
+			this.logger.error('Update reversi Id Solve error');
+			return;
+		}
+		this.reversiService.sendReaction(id, actor, emoji);
+	}
 	public async reversiIdFromUUID(game_session_id:string) :Promise<string|null> {
 		//キャッシュにあればそれ
 		const cache = await this.redisClient.get(`reversi:federationId:${game_session_id}`);

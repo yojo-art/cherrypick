@@ -200,13 +200,26 @@ export class ApInboxService {
 	@bindThis
 	private async like(actor: MiRemoteUser, activity: ILike): Promise<string> {
 		const targetUri = getApId(activity.object);
+		const reaction = activity._misskey_reaction ?? activity.content ?? activity.name;
+		const parsed = this.apDbResolverService.parseUri(targetUri);
+		if (parsed.local) {
+			if (parsed.type === 'games') {
+				const game_id = parsed.id;
+				if (game_id === '1c086295-25e3-4b82-b31e-3e3959906312' && parsed.rest) {
+					await this.apNoteService.extractEmojis(activity.tag ?? [], actor.host).catch(() => null);
+					await this.apgameService.reversiInboxLike(actor, parsed.rest, reaction ?? null);
+				} else {
+					return 'skip like unknwon game';
+				}
+			}
+		}
 
 		const note = await this.apNoteService.fetchNote(targetUri);
 		if (!note) return `skip: target note not found ${targetUri}`;
 
 		await this.apNoteService.extractEmojis(activity.tag ?? [], actor.host).catch(() => null);
 
-		return await this.reactionService.create(actor, note, activity._misskey_reaction ?? activity.content ?? activity.name).catch(err => {
+		return await this.reactionService.create(actor, note, reaction).catch(err => {
 			if (err.id === '51c42bb4-931a-456b-bff7-e5a8a70dd298') {
 				return 'skip: already reacted';
 			} else {
