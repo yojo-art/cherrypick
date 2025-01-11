@@ -5,7 +5,7 @@ import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep } f
 describe('quarantine instance', () => {
 	let alice: LoginUser, bob: LoginUser, carol:LoginUser;
 	let aliceInBobHost: Misskey.entities.UserDetailedNotMe, bobInBobHost: Misskey.entities.UserDetailedNotMe, carolInBobHost: Misskey.entities.UserDetailedNotMe;
-	let bAdmin: LoginUser;
+	let aAdmin: LoginUser;
 
 	beforeAll(async () => {
 		[alice, bob, carol] = await Promise.all([
@@ -20,11 +20,11 @@ describe('quarantine instance', () => {
 			resolveRemoteUser('a.test', carol.id, bob),
 		]);
 		await bob.client.request('following/create', { userId: aliceInBobHost.id });
-		bAdmin = await fetchAdmin('b.test');
+		aAdmin = await fetchAdmin('a.test');
 		await sleep();
 	});
 	test('isQuarantineLimit true', async () => {
-		await bAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true }, bAdmin.i);
+		await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
 
 		const alicePublicNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
 		const alicePublicRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
@@ -62,16 +62,16 @@ describe('quarantine instance', () => {
 		strictEqual(fetch_notes[0].renote?.id, fetch_notes[1].id);
 	});
 	test('isQuarantineLimit false', async () => {
-		await bAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false }, bAdmin.i);
+		await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false });
 
-		const carolPublicNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
-		const carolPublicRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
-		const carolHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
-		const carolHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'home' })).createdNote;
-		const carolFollowersNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
-		const carolFollowersRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'followers' })).createdNote;
-		const carolSpecifiedNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
-		const carolSpecifiedRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
+		const carolPublicNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
+		const carolPublicRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
+		const carolHomeNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
+		const carolHomeRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'home' })).createdNote;
+		const carolFollowersNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
+		const carolFollowersRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'followers' })).createdNote;
+		const carolSpecifiedNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
+		const carolSpecifiedRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'specified', visibleUserIds: [bobInBobHost.id] })).createdNote;
 
 		await sleep();
 		const fetch_notes = await bob.client.request('users/notes', { userId: carolInBobHost.id, withReplies: false, withRenotes: true });
