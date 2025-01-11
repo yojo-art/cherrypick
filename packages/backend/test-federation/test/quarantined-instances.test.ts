@@ -28,7 +28,7 @@ describe('quarantine instance', () => {
 		let alicePublicNote: Misskey.entities.Note, alicePublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
 		beforeAll(async () => {
-			await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
+			await aAdmin.client.request('admin/federation/update-instance', { host: 'b.test', isQuarantineLimit: true });
 			alicePublicNote = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
 			alicePublicRenote = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
 			expected.push({
@@ -51,7 +51,6 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		/*
 		test('home', async () => {
 			const aliceHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
 			const aliceHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'home' })).createdNote;
@@ -99,14 +98,12 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		*/
 	});
-	/*
 	describe('isQuarantineLimit false', () => {
 		let carolPublicNote: Misskey.entities.Note, carolPublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
 		beforeAll(async () => {
-			await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: false });
+			await aAdmin.client.request('admin/federation/update-instance', { host: 'b.test', isQuarantineLimit: false });
 			carolPublicNote = (await carol.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
 			carolPublicRenote = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
 
@@ -194,5 +191,4 @@ describe('quarantine instance', () => {
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
 	});
-	*/
 });
