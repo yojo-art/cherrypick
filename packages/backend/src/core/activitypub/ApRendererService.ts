@@ -888,8 +888,9 @@ export class ApRendererService {
 	}
 	@bindThis
 	public async renderReversiLike(game_session_id:string, reaction:string, reaction_from:MiUser, reaction_to:MiRemoteUser): Promise<ILike> {
+		const url = new URL(reaction_to.uri).origin;
 		const activity: ILike = {
-			object: `${this.config.url}/games/1c086295-25e3-4b82-b31e-3e3959906312/${game_session_id}`,
+			object: `${url}/games/1c086295-25e3-4b82-b31e-3e3959906312/${game_session_id}`,
 			actor: this.userEntityService.genLocalUserUri(reaction_from.id),
 			type: 'EmojiReaction',
 			published: new Date().toISOString(),
