@@ -62,7 +62,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				quarantineLimited = ps.isQuarantineLimit;
 			}
 			const moderationNoteBefore = instance.moderationNote;
-			if ((!ps.moderationNote || moderationNoteBefore === ps.moderationNote) && (!quarantineLimited || isQuarantineLimitBefore === quarantineLimited) && (!suspensionState || isSuspendedBefore === ps.isSuspended)) {
+			if ((ps.moderationNote === undefined || moderationNoteBefore === ps.moderationNote) && (quarantineLimited === undefined || isQuarantineLimitBefore === quarantineLimited) && (suspensionState === undefined || isSuspendedBefore === ps.isSuspended)) {
 				//何も変更が無い時はupdateを呼ばない
 				//呼ぶとエラーが発生する
 				return;
