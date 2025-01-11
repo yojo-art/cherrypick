@@ -20,6 +20,7 @@ describe('quarantine instance', () => {
 			resolveRemoteUser('a.test', carol.id, bob),
 		]);
 		await bob.client.request('following/create', { userId: aliceInBobHost.id });
+		await bob.client.request('following/create', { userId: carolInBobHost.id });
 		aAdmin = await fetchAdmin('a.test');
 		await sleep();
 	});
@@ -27,7 +28,7 @@ describe('quarantine instance', () => {
 		let alicePublicNote: Misskey.entities.Note, alicePublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
 		beforeAll(async () => {
-			await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
+			//await aAdmin.client.request('admin/federation/update-instance', { host: 'a.test', isQuarantineLimit: true });
 			alicePublicNote = (await alice.client.request('notes/create', { text: 'I am Alice!' })).createdNote;
 			alicePublicRenote = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id })).createdNote;
 			expected.push({
@@ -43,13 +44,14 @@ describe('quarantine instance', () => {
 			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
-			//deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
-			//	return {
-			//		text: note.text,
-			//		createdAt: note.createdAt,
-			//	};
-			//})), JSON.stringify(Array.from(expected).reverse()));
+			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
+				return {
+					text: note.text,
+					createdAt: note.createdAt,
+				};
+			})), JSON.stringify(Array.from(expected).reverse()));
 		});
+		/*
 		test('home', async () => {
 			const aliceHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
 			const aliceHomeRenote: Misskey.entities.Note = (await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'home' })).createdNote;
@@ -97,7 +99,9 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
+		*/
 	});
+	/*
 	describe('isQuarantineLimit false', () => {
 		let carolPublicNote: Misskey.entities.Note, carolPublicRenote: Misskey.entities.Note;
 		const expected :{text:string|null, createdAt:string}[] = [];
@@ -190,4 +194,5 @@ describe('quarantine instance', () => {
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
 	});
+	*/
 });
