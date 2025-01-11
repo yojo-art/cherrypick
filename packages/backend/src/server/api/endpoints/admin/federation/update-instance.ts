@@ -10,6 +10,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { DI } from '@/di-symbols.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -25,6 +26,7 @@ export const paramDef = {
 		host: { type: 'string' },
 		isSuspended: { type: 'boolean' },
 		moderationNote: { type: 'string' },
+		isQuarantineLimit: { type: 'boolean' },
 	},
 	required: ['host'],
 } as const;
@@ -34,6 +36,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	constructor(
 		@Inject(DI.instancesRepository)
 		private instancesRepository: InstancesRepository,
+		private globalEventService: GlobalEventService,
 
 		private utilityService: UtilityService,
 		private federatedInstanceService: FederatedInstanceService,
@@ -52,9 +55,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.isSuspended != null && isSuspendedBefore !== ps.isSuspended) {
 				suspensionState = ps.isSuspended ? 'manuallySuspended' : 'none';
 			}
+			const isQuarantineLimitBefore = instance.quarantineLimited;
+			let quarantineLimited: undefined | boolean;
+
+			if (ps.isQuarantineLimit != null && isQuarantineLimitBefore !== ps.isQuarantineLimit) {
+				quarantineLimited = ps.isQuarantineLimit;
+			}
+			const moderationNoteBefore = instance.moderationNote;
+			if ((ps.moderationNote === undefined || moderationNoteBefore === ps.moderationNote) && (quarantineLimited === undefined || isQuarantineLimitBefore === quarantineLimited) && (suspensionState === undefined || isSuspendedBefore === ps.isSuspended)) {
+				//何も変更が無い時はupdateを呼ばない
+				//呼ぶとエラーが発生する
+				return;
+			}
 
 			await this.federatedInstanceService.update(instance.id, {
 				suspensionState,
+				quarantineLimited,
 				moderationNote: ps.moderationNote,
 			});
 
@@ -70,6 +86,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						host: instance.host,
 					});
 				}
+			}
+			if (ps.isQuarantineLimit != null && isQuarantineLimitBefore !== ps.isQuarantineLimit) {
+				if (ps.isQuarantineLimit) {
+					this.moderationLogService.log(me, 'quarantineRemoteInstance', {
+						id: instance.id,
+						host: instance.host,
+					});
+				} else {
+					this.moderationLogService.log(me, 'unquarantineRemoteInstance', {
+						id: instance.id,
+						host: instance.host,
+					});
+				}
+				this.globalEventService.publishInternalEvent('clearQuarantinedHostsCache', '');
 			}
 
 			if (ps.moderationNote != null && instance.moderationNote !== ps.moderationNote) {

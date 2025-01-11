@@ -52,6 +52,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkSwitch v-model="isBlocked" :disabled="!meta || !instance" @update:modelValue="toggleBlock">{{ i18n.ts.blockThisInstance }}</MkSwitch>
 						<MkSwitch v-model="isSilenced" :disabled="!meta || !instance" @update:modelValue="toggleSilenced">{{ i18n.ts.silenceThisInstance }}</MkSwitch>
 						<MkSwitch v-model="isMediaSilenced" :disabled="!meta || !instance" @update:modelValue="toggleMediaSilenced">{{ i18n.ts.mediaSilenceThisInstance }}</MkSwitch>
+						<MkSwitch v-model="isQuarantineLimit" :disabled="!meta || !instance" @update:modelValue="toggleQuarantined">{{ i18n.ts.quarantineThisInstance }}</MkSwitch>
 						<MkButton @click="refreshMetadata"><i class="ti ti-refresh"></i> Refresh metadata</MkButton>
 						<MkTextarea v-model="moderationNote" manualSave>
 							<template #label>{{ i18n.ts.moderationNote }}</template>
@@ -174,6 +175,7 @@ const suspensionState = ref<'none' | 'manuallySuspended' | 'goneSuspended' | 'au
 const isBlocked = ref(false);
 const isSilenced = ref(false);
 const isMediaSilenced = ref(false);
+const isQuarantineLimit = ref(false);
 const faviconUrl = ref<string | null>(null);
 const moderationNote = ref('');
 
@@ -206,6 +208,7 @@ async function fetch(): Promise<void> {
 	isBlocked.value = instance.value?.isBlocked ?? false;
 	isSilenced.value = instance.value?.isSilenced ?? false;
 	isMediaSilenced.value = instance.value?.isMediaSilenced ?? false;
+	isQuarantineLimit.value = instance.value?.isQuarantineLimited ?? false;
 	faviconUrl.value = getProxiedImageUrlNullable(instance.value?.faviconUrl, 'preview') ?? getProxiedImageUrlNullable(instance.value?.iconUrl, 'preview');
 	moderationNote.value = instance.value?.moderationNote ?? '';
 }
@@ -217,6 +220,15 @@ async function toggleBlock(): Promise<void> {
 	const { host } = instance.value;
 	await misskeyApi('admin/update-meta', {
 		blockedHosts: isBlocked.value ? meta.value.blockedHosts.concat([host]) : meta.value.blockedHosts.filter(x => x !== host),
+	});
+}
+
+async function toggleQuarantined(): Promise<void> {
+	if (!iAmModerator) return;
+	if (!instance.value) throw new Error('No instance?');
+	await misskeyApi('admin/federation/update-instance', {
+		host: instance.value.host,
+		isQuarantineLimit: isQuarantineLimit.value,
 	});
 }
 
