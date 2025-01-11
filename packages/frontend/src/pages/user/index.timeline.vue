@@ -35,6 +35,7 @@ import XReactions from '@/pages/user/reactions.vue';
 import XFiles from '@/pages/user/index.timeline.files.vue';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
+import { $i } from '@/account.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
