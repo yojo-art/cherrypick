@@ -104,6 +104,7 @@ describe('quarantine instance', () => {
 		const expected :{text:string|null, createdAt:string}[] = [];
 		beforeAll(async () => {
 			await aAdmin.client.request('admin/federation/update-instance', { host: 'b.test', isQuarantineLimit: false });
+			await sleep();
 			carolPublicNote = (await carol.client.request('notes/create', { text: 'I am Carol!' })).createdNote;
 			carolPublicRenote = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id })).createdNote;
 
@@ -169,7 +170,7 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
-		test('followers', async () => {
+		test('specified', async () => {
 			const carolSpecifiedNote: Misskey.entities.Note = (await carol.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
 			const carolSpecifiedRenote: Misskey.entities.Note = (await carol.client.request('notes/create', { renoteId: carolPublicNote.id, visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
 			expected.push({

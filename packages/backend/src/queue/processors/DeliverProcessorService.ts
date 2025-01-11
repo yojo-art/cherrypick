@@ -104,8 +104,8 @@ export class DeliverProcessorService {
 			});
 			this.quarantinedHostsCache.set(quarantinedHosts);
 		}
-		if (quarantinedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
-			if (!job.data.isPublicContent) {
+		if (!job.data.isPublicContent) {
+			if (quarantinedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
 				return 'skip (quarantined)';
 			}
 		}
