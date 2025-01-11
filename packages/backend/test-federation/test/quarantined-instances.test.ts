@@ -1,4 +1,4 @@
-import { deepStrictEqual, rejects, strictEqual } from 'node:assert';
+import assert, { deepStrictEqual, strictEqual } from 'node:assert';
 import * as Misskey from 'cherrypick-js';
 import { createAccount, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
@@ -202,8 +202,8 @@ describe('quarantine instance', () => {
 			await carol.client.request('blocking/create', { userId: bobInAliceHost.id });
 			await sleep();
 			const resolvedNote = await resolveRemoteNote('a.test', carolPublicNote.id, bob);
-			await rejects(
-				bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' }),
+			await assert.rejects(
+				async () => await bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' }),
 				(err: any) => {
 					strictEqual(err.code, 'YOU_HAVE_BEEN_BLOCKED');
 					return true;
