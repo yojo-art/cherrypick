@@ -15747,6 +15747,7 @@ export type operations = {
           federating?: boolean | null;
           subscribing?: boolean | null;
           publishing?: boolean | null;
+          quarantined?: boolean | null;
           /** @default 30 */
           limit?: number;
           /** @default 0 */
