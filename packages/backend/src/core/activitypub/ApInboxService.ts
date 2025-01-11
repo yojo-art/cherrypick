@@ -202,8 +202,6 @@ export class ApInboxService {
 		const targetUri = getApId(activity.object);
 		const reaction = activity._misskey_reaction ?? activity.content ?? activity.name;
 		const parsed = this.apDbResolverService.parseUri(targetUri);
-		console.log('targetUri=' + targetUri);
-		console.log('parsed=' + JSON.stringify(parsed));
 		if (parsed.local) {
 			if (parsed.type === 'games') {
 				const game_id = parsed.id;
