@@ -1,4 +1,4 @@
-import { deepStrictEqual, rejects, strictEqual } from 'assert';
+import { deepStrictEqual, rejects, strictEqual } from 'node:assert';
 import * as Misskey from 'cherrypick-js';
 import { createAccount, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
@@ -107,7 +107,7 @@ describe('quarantine instance', () => {
 			await bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' });
 			//実際にはブロックしているのでリアクションが追加されない
 			const note = await alice.client.request('notes/show', { noteId: alicePublicNote.id });
-			deepStrictEqual(note.reactions, { });
+			strictEqual(Object.values(note.reactions).length, 0);
 		});
 	});
 	describe('isQuarantineLimit false', () => {
@@ -203,7 +203,7 @@ describe('quarantine instance', () => {
 			await sleep();
 			const resolvedNote = await resolveRemoteNote('a.test', carolPublicNote.id, bob);
 			await rejects(
-				async () => await bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' }),
+				bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' }),
 				(err: any) => {
 					strictEqual(err.code, 'YOU_HAVE_BEEN_BLOCKED');
 					return true;
@@ -211,7 +211,7 @@ describe('quarantine instance', () => {
 			);
 			//ブロックしているのでリアクションが追加されない
 			const note = await alice.client.request('notes/show', { noteId: carolPublicNote.id });
-			deepStrictEqual(note.reactions, { });
+			strictEqual(Object.values(note.reactions).length, 0);
 		});
 	});
 });
