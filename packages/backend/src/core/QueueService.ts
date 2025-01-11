@@ -5,7 +5,7 @@
 
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { isAnnounce, isBlock, isPost, type IActivity } from '@/core/activitypub/type.js';
+import { isAnnounce, isBlock, isPost, isUndo, type IActivity } from '@/core/activitypub/type.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiAbuseUserReport } from '@/models/AbuseUserReport.js';
 import type { MiWebhook, webhookEventTypes } from '@/models/Webhook.js';
@@ -116,6 +116,11 @@ export class QueueService {
 			toPublicOnly = true;
 		}
 		if (typeof content.object !== 'string') {
+			if (isUndo(content)) {
+				if (isBlock(content.object)) {
+					toPublicOnly = true;
+				}
+			}
 			if (isPost(content.object)) {
 				toPublicOnly = true;
 			}
