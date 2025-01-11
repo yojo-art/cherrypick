@@ -1,6 +1,6 @@
-import { deepStrictEqual, strictEqual } from 'assert';
+import { deepStrictEqual, rejects, strictEqual } from 'assert';
 import * as Misskey from 'cherrypick-js';
-import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
 describe('quarantine instance', () => {
 	let alice: LoginUser, bob: LoginUser, carol:LoginUser;
@@ -99,6 +99,16 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
+		test('block', async () => {
+			await alice.client.request('blocking/create', { userId: bobInAliceHost.id });
+			await sleep();
+			const resolvedNote = await resolveRemoteNote('a.test', alicePublicNote.id, bob);
+			//ブロックの配送が来ないのでb.testではブロックされていないように見える
+			await bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' });
+			//実際にはブロックしているのでリアクションが追加されない
+			const note = await alice.client.request('notes/show', { noteId: alicePublicNote.id });
+			deepStrictEqual(note.reactions, { });
+		});
 	});
 	describe('isQuarantineLimit false', () => {
 		let carolPublicNote: Misskey.entities.Note, carolPublicRenote: Misskey.entities.Note;
@@ -187,6 +197,21 @@ describe('quarantine instance', () => {
 					createdAt: note.createdAt,
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
+		});
+		test('block', async () => {
+			await carol.client.request('blocking/create', { userId: bobInAliceHost.id });
+			await sleep();
+			const resolvedNote = await resolveRemoteNote('a.test', carolPublicNote.id, bob);
+			await rejects(
+				async () => await bob.client.request('notes/reactions/create', { noteId: resolvedNote.id, reaction: '😅' }),
+				(err: any) => {
+					strictEqual(err.code, 'YOU_HAVE_BEEN_BLOCKED');
+					return true;
+				},
+			);
+			//ブロックしているのでリアクションが追加されない
+			const note = await alice.client.request('notes/show', { noteId: carolPublicNote.id });
+			deepStrictEqual(note.reactions, { });
 		});
 	});
 });
