@@ -425,10 +425,9 @@ export class ActivityPubServerService {
 		const sinceId = request.query.since_id;
 		const untilId = request.query.until_id;
 
-		const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip'), sinceId, untilId)
-			.innerJoinAndSelect('note.uri', 'uri')
-			.leftJoinAndSelect('note.localOnly', 'localOnly')
-			.andWhere('clip.id = :clipId', { clipId: clip.id });
+		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
+			.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
+			.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
 		this.queryService.generateVisibilityQuery(query, null);
 		const notes = await query.limit(limit).getMany();
 
@@ -436,12 +435,11 @@ export class ActivityPubServerService {
 		const notes_count : number = await this.clipNotesRepository.countBy({
 			clipId: clip.id,
 		});
-		const activities : IObject[] = (await Promise.all(notes.map(async clip_note => {
-			if (clip_note.note === null) return null;
-			if (clip_note.note.localOnly) return null;
+		const activities : IObject[] = (await Promise.all(notes.map(async note => {
+			if (note.localOnly) return null;
 			return {
 				type: 'Note',
-				object: clip_note.note.uri ?? undefined,
+				object: note.uri ?? undefined,
 			};
 		}))).filter(activitie => activitie != null);
 		const partOf = `${this.config.url}/clips/${clip.id}`;
