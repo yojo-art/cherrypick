@@ -426,8 +426,10 @@ export class ActivityPubServerService {
 		const untilId = request.query.until_id;
 
 		const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip'), sinceId, untilId)
-			.andWhere('clip.id = :clipId', { clipId: clip.id })
-			.andWhere('(EXISTS (SELECT 1 FROM "note" WHERE "visibility" = \'public\' OR "visibility" = \'home\'))');
+			.innerJoinAndSelect('note.uri', 'uri')
+			.leftJoinAndSelect('note.localOnly', 'localOnly')
+			.andWhere('clip.id = :clipId', { clipId: clip.id });
+		this.queryService.generateVisibilityQuery(query, null);
 		const notes = await query.limit(limit).getMany();
 
 		if (sinceId) notes.reverse();
@@ -460,6 +462,7 @@ export class ActivityPubServerService {
 		this.setResponseType(request, reply);
 		return (this.apRendererService.addContext(rendered));
 	}
+
 	@bindThis
 	private async recommend(request: FastifyRequest<{ Params: { user: string; }; }>, reply: FastifyReply) {
 		const userId = request.params.user;
