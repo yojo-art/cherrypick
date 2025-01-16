@@ -60,10 +60,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="disableNyaize">{{ i18n.ts.noNyaization }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">yojo-art</span></MkSwitch>
 			</div>
-			<MkInput v-model="searchEngine" manualSave :spellcheck="false">
-				<template #label>{{ i18n.ts.search }}<span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
-				<template #caption>{{ i18n.ts.searchEngineDescription }}</template>
-			</MkInput>
 			<MkSelect v-model="serverDisconnectedBehavior">
 				<template #label>{{ i18n.ts.whenServerDisconnected }} <span class="_beta" style="vertical-align: middle;">CherryPick</span></template>
 				<option value="reload">{{ i18n.ts._serverDisconnectedBehavior.reload }}</option>
@@ -136,7 +132,6 @@ import FormSection from '@/components/form/section.vue';
 import FormLink from '@/components/form/link.vue';
 import MkLink from '@/components/MkLink.vue';
 import MkInfo from '@/components/MkInfo.vue';
-import MkInput from '@/components/MkInput.vue';
 import { defaultStore } from '@/store.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
@@ -176,7 +171,6 @@ const useAutoTranslate = computed(defaultStore.makeGetterSetter('useAutoTranslat
 const welcomeBackToast = computed(defaultStore.makeGetterSetter('welcomeBackToast'));
 const disableNyaize = computed(defaultStore.makeGetterSetter('disableNyaize'));
 const checkMultipleRenote = computed(defaultStore.makeGetterSetter('checkMultipleRenote'));
-const searchEngine = computed(defaultStore.makeGetterSetter('searchEngine'));
 
 watch(lang, () => {
 	miLocalStorage.setItem('lang', lang.value as string);
