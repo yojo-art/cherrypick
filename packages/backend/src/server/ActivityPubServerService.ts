@@ -435,14 +435,11 @@ export class ActivityPubServerService {
 			clipId: clip.id,
 		});
 		const activities : IObject[] = (await Promise.all(notes.map(async clip_note => {
-			const note = await this.notesRepository.findOneBy({
-				id: clip_note.id,
-			});
-			if (note === null) return null;
-			if (note.localOnly) return null;
+			if (clip_note.note === null) return null;
+			if (clip_note.note.localOnly) return null;
 			return {
 				type: 'Note',
-				object: note.uri ?? undefined,
+				object: clip_note.note.uri ?? undefined,
 			};
 		}))).filter(activitie => activitie != null);
 		const partOf = `${this.config.url}/clips/${clip.id}`;
