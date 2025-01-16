@@ -223,6 +223,7 @@ export interface IActor extends IObject {
 				url: string | null;//link to
 		}[] | [];
 	}[];
+	recommendCollections?: string | null;
 }
 
 export const isCollection = (object: IObject): object is ICollection =>

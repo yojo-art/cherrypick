@@ -578,6 +578,7 @@ export class ApRendererService {
 			publicKey: this.renderKey(user, keypair, '#main-key'),
 			isCat: user.isCat,
 			attachment: attachment.length ? attachment : undefined,
+			recommendCollections: `${id}/collections/recommend`,
 		};
 
 		if (user.movedToUri) {

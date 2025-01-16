@@ -12,8 +12,9 @@ import { Brackets, In, IsNull, LessThan, Not } from 'typeorm';
 import accepts from 'accepts';
 import vary from 'vary';
 import secureJson from 'secure-json-parse';
+import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository } from '@/models/_.js';
+import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
 import * as url from '@/misc/prelude/url.js';
 import type { Config } from '@/config.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -27,8 +28,11 @@ import { QueryService } from '@/core/QueryService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
-import { IActivity } from '@/core/activitypub/type.js';
+import { IActivity, IObject, IOrderedCollection } from '@/core/activitypub/type.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { MfmService } from '@/core/MfmService.js';
+import { IdService } from '@/core/IdService.js';
+import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import type { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginOptions, FastifyBodyParser } from 'fastify';
 import type { FindOptionsWhere } from 'typeorm';
 
@@ -65,12 +69,20 @@ export class ActivityPubServerService {
 		@Inject(DI.followRequestsRepository)
 		private followRequestsRepository: FollowRequestsRepository,
 
+		@Inject(DI.clipsRepository)
+		private clipsRepository: ClipsRepository,
+
+		@Inject(DI.clipNotesRepository)
+		private clipNotesRepository: ClipNotesRepository,
+
 		private utilityService: UtilityService,
 		private userEntityService: UserEntityService,
 		private apRendererService: ApRendererService,
 		private queueService: QueueService,
 		private userKeypairService: UserKeypairService,
 		private queryService: QueryService,
+		private mfmService: MfmService,
+		private idService: IdService,
 	) {
 		//this.createServer = this.createServer.bind(this);
 	}
@@ -396,6 +408,112 @@ export class ActivityPubServerService {
 	}
 
 	@bindThis
+	private async clips(request: FastifyRequest<{
+		Params: { clip: string; };
+		Querystring: { since_id?: string; until_id?: string; };
+	 }>, reply: FastifyReply) {
+		const clipId = request.params.clip;
+		const clip = await this.clipsRepository.findOneBy({
+			id: clipId,
+			isPublic: true,
+		});
+		if (clip == null) {
+			reply.code(404);
+			return;
+		}
+		const limit = 20;
+		const sinceId = request.query.since_id;
+		const untilId = request.query.until_id;
+
+		const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip'), sinceId, untilId)
+			.andWhere('clip.id = :clipId', { clipId: clip.id })
+			.andWhere('(EXISTS (SELECT 1 FROM "note" WHERE "visibility" = \'public\' OR "visibility" = \'home\'))');
+		const notes = await query.limit(limit).getMany();
+
+		if (sinceId) notes.reverse();
+		const notes_count : number = await this.clipNotesRepository.countBy({
+			clipId: clip.id,
+		});
+		const activities : IObject[] = (await Promise.all(notes.map(async clip_note => {
+			const note = await this.notesRepository.findOneBy({
+				id: clip_note.id,
+			});
+			if (note === null) return null;
+			if (note.localOnly) return null;
+			return {
+				type: 'Note',
+				object: note.uri ?? undefined,
+			};
+		}))).filter(activitie => activitie != null);
+		const partOf = `${this.config.url}/clips/${clip.id}`;
+		const rendered = this.apRendererService.renderOrderedCollectionPage(
+			`${partOf}?${url.query({
+				since_id: sinceId,
+				until_id: untilId,
+			})}`,
+			notes_count, activities, partOf,
+			notes.length ? `${partOf}?${url.query({
+				since_id: notes[0].id,
+			})}` : undefined,
+			notes.length ? `${partOf}?${url.query({
+				until_id: notes.at(-1)!.id,
+			})}` : undefined,
+		);
+		reply.header('Cache-Control', 'private, max-age=180');
+		this.setResponseType(request, reply);
+		return (this.apRendererService.addContext(rendered));
+	}
+	@bindThis
+	private async recommend(request: FastifyRequest<{ Params: { user: string; }; }>, reply: FastifyReply) {
+		const userId = request.params.user;
+
+		const user = await this.usersRepository.findOneBy({
+			id: userId,
+			host: IsNull(),
+		});
+
+		if (user == null) {
+			reply.code(404);
+			return;
+		}
+
+		const clips = await this.clipsRepository.find({
+			where: { userId: user.id, isPublic: true },
+			order: { id: 'DESC' },
+		});
+
+		const clipIds : IObject[] = await Promise.all(clips.map(async clip => {
+			const notes_count:number = await this.clipNotesRepository.countBy({
+				clipId: clip.id,
+			});
+			const first = `${this.config.url}/clips/${clip.id}`;
+			const last = `${this.config.url}/clips/${clip.id}?since_id=000000000000000000000000`;
+			const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(`${this.config.url}/clips/${clip.id}`, notes_count, first, last);
+			const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
+			rendered.name = clip.name;
+			rendered.summary = summary ? summary : undefined;
+			rendered._misskey_summary = clip.description ?? undefined;
+			rendered.to = [];
+			rendered.published = this.idService.parse(clip.id).date.toISOString(),
+			rendered.cc = ['https://www.w3.org/ns/activitystreams#Public'];
+			rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
+			return rendered;
+		}));
+
+		const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(
+			`${this.config.url}/users/${userId}/collections/recommend`,
+			clipIds.length,
+			undefined,
+			undefined,
+			clipIds,
+		);
+
+		reply.header('Cache-Control', 'private, max-age=180');
+		this.setResponseType(request, reply);
+		return (this.apRendererService.addContext(rendered));
+	}
+
+	@bindThis
 	private async outbox(
 		request: FastifyRequest<{
 			Params: { user: string; };
@@ -626,6 +744,9 @@ export class ActivityPubServerService {
 
 		// featured
 		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/featured', async (request, reply) => await this.featured(request, reply));
+
+		// recommend
+		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/recommend', async (request, reply) => await this.recommend(request, reply));
 
 		// publickey
 		fastify.get<{ Params: { user: string; } }>('/users/:user/publickey', async (request, reply) => {

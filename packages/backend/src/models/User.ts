@@ -294,6 +294,10 @@ export class MiUser {
 			(this as any)[k] = v;
 		}
 	}
+	@Column('varchar', {
+		length: 512, nullable: true,
+	})
+	public recommendCollections: string | null;
 }
 
 export type MiLocalUser = MiUser & {
