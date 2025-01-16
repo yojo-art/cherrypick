@@ -748,6 +748,12 @@ export class ActivityPubServerService {
 		// recommend
 		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/recommend', async (request, reply) => await this.recommend(request, reply));
 
+		//clip
+		fastify.get<{
+			Params: { clip: string; };
+			Querystring: { since_id?: string; until_id?: string; };
+		}>('/clips/:clip', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => await this.clips(request, reply));
+
 		// publickey
 		fastify.get<{ Params: { user: string; } }>('/users/:user/publickey', async (request, reply) => {
 			const userId = request.params.user;
