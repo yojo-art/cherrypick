@@ -452,7 +452,7 @@ export class ActivityPubServerService {
 		const activities : IObject[] = (await Promise.all(notes.map(async note => {
 			if (note.localOnly) return null;
 			return {
-				type: 'Note',
+				type: 'Activity',
 				object: note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? undefined,
 			};
 		}))).filter(activitie => activitie != null);
