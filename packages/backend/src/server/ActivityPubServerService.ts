@@ -422,9 +422,23 @@ export class ActivityPubServerService {
 			return;
 		}
 		const limit = 20;
-		const sinceId = request.query.since_id;
-		const untilId = request.query.until_id;
 
+		const sinceId = request.query.since_id;
+		if (sinceId != null && typeof sinceId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		const untilId = request.query.until_id;
+		if (untilId != null && typeof untilId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		if (countIf(x => x != null, [sinceId, untilId]) > 1) {
+			reply.code(400);
+			return;
+		}
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
 			.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
 			.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
@@ -439,7 +453,7 @@ export class ActivityPubServerService {
 			if (note.localOnly) return null;
 			return {
 				type: 'Note',
-				object: note.uri ?? undefined,
+				object: note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? undefined,
 			};
 		}))).filter(activitie => activitie != null);
 		const partOf = `${this.config.url}/clips/${clip.id}`;
