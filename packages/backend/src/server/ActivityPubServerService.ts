@@ -474,7 +474,7 @@ export class ActivityPubServerService {
 			this.setResponseType(request, reply);
 			return (this.apRendererService.addContext(rendered));
 		} else {
-			const notes_count:number = await this.clipNotesRepository.countBy({
+			const notes_count : number = await this.clipNotesRepository.countBy({
 				clipId: clip.id,
 			});
 			const first = `${this.config.url}/clips/${clip.id}?page=true`;
@@ -540,7 +540,7 @@ export class ActivityPubServerService {
 
 			if (sinceId) clips.reverse();
 
-			const clips_count = this.clipsRepository.countBy({
+			const clips_count : number = await this.clipsRepository.countBy({
 				userId: user.id,
 				isPublic: true,
 			});
