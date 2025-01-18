@@ -473,7 +473,10 @@ export class ActivityPubServerService {
 	}
 
 	@bindThis
-	private async recommend(request: FastifyRequest<{ Params: { user: string; }; }>, reply: FastifyReply) {
+	private async recommend(request: FastifyRequest<{
+			Params: { user: string; };
+			Querystring: { since_id?: string; until_id?: string; page?: string; };
+		}>, reply: FastifyReply) {
 		const userId = request.params.user;
 
 		const user = await this.usersRepository.findOneBy({
@@ -486,40 +489,85 @@ export class ActivityPubServerService {
 			return;
 		}
 
-		const clips = await this.clipsRepository.find({
-			where: { userId: user.id, isPublic: true },
-			order: { id: 'DESC' },
-		});
+		const sinceId = request.query.since_id;
+		if (sinceId != null && typeof sinceId !== 'string') {
+			reply.code(400);
+			return;
+		}
 
-		const clipIds : IObject[] = await Promise.all(clips.map(async clip => {
-			const notes_count:number = await this.clipNotesRepository.countBy({
-				clipId: clip.id,
+		const untilId = request.query.until_id;
+		if (untilId != null && typeof untilId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		const page = request.query.page === 'true';
+
+		if (countIf(x => x != null, [sinceId, untilId]) > 1) {
+			reply.code(400);
+			return;
+		}
+		const limit = 20;
+		const partOf = `${this.config.url}/users/${userId}/collections/recommend`;
+		if (page) {
+			const query = this.queryService.makePaginationQuery(this.clipsRepository.createQueryBuilder('clips'), sinceId, untilId)
+				.andWhere('clips.userId = :userId', { userId: user.id })
+				.andWhere('clips.isPublic = TRUE');
+
+			const clips = await query.limit(limit).getMany();
+
+			if (sinceId) clips.reverse();
+
+			const activities : IObject[] = await Promise.all(clips.map(async clip => {
+				const notes_count:number = await this.clipNotesRepository.countBy({
+					clipId: clip.id,
+				});
+				const first = `${this.config.url}/clips/${clip.id}`;
+				const last = `${this.config.url}/clips/${clip.id}?since_id=000000000000000000000000`;
+				const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(`${this.config.url}/clips/${clip.id}`, notes_count, first, last);
+				const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
+				rendered.name = clip.name;
+				rendered.summary = summary ? summary : undefined;
+				rendered._misskey_summary = clip.description ?? undefined;
+				rendered.to = [];
+				rendered.published = this.idService.parse(clip.id).date.toISOString(),
+				rendered.cc = ['https://www.w3.org/ns/activitystreams#Public'];
+				rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
+				return rendered;
+			}));
+			const rendered = this.apRendererService.renderOrderedCollectionPage(
+				`${partOf}?${url.query({
+					page: 'true',
+					since_id: sinceId,
+					until_id: untilId,
+				})}`,
+				user.notesCount, activities, partOf,
+				clips.length ? `${partOf}?${url.query({
+					page: 'true',
+					since_id: clips[0].id,
+				})}` : undefined,
+				clips.length ? `${partOf}?${url.query({
+					page: 'true',
+					until_id: clips.at(-1)!.id,
+				})}` : undefined,
+			);
+
+			this.setResponseType(request, reply);
+			return (this.apRendererService.addContext(rendered));
+		} else {
+			const clips_count:number = await this.clipsRepository.countBy({
+				userId: user.id,
 			});
-			const first = `${this.config.url}/clips/${clip.id}`;
-			const last = `${this.config.url}/clips/${clip.id}?since_id=000000000000000000000000`;
-			const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(`${this.config.url}/clips/${clip.id}`, notes_count, first, last);
-			const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
-			rendered.name = clip.name;
-			rendered.summary = summary ? summary : undefined;
-			rendered._misskey_summary = clip.description ?? undefined;
-			rendered.to = [];
-			rendered.published = this.idService.parse(clip.id).date.toISOString(),
-			rendered.cc = ['https://www.w3.org/ns/activitystreams#Public'];
-			rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
-			return rendered;
-		}));
-
-		const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(
-			`${this.config.url}/users/${userId}/collections/recommend`,
-			clipIds.length,
-			undefined,
-			undefined,
-			clipIds,
-		);
-
-		reply.header('Cache-Control', 'private, max-age=180');
-		this.setResponseType(request, reply);
-		return (this.apRendererService.addContext(rendered));
+			const rendered = this.apRendererService.renderOrderedCollection(
+				partOf,
+				clips_count,
+				`${partOf}?page=true`,
+				`${partOf}?page=true&since_id=000000000000000000000000`,
+			);
+			reply.header('Cache-Control', 'public, max-age=180');
+			this.setResponseType(request, reply);
+			return (this.apRendererService.addContext(rendered));
+		}
 	}
 
 	@bindThis
@@ -755,7 +803,10 @@ export class ActivityPubServerService {
 		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/featured', async (request, reply) => await this.featured(request, reply));
 
 		// recommend
-		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/recommend', async (request, reply) => await this.recommend(request, reply));
+		fastify.get<{
+			Params: { user: string; };
+			Querystring: { since_id?: string; until_id?: string; page?: string; };
+		}>('/users/:user/collections/recommend', async (request, reply) => await this.recommend(request, reply));
 
 		//clip
 		fastify.get<{
