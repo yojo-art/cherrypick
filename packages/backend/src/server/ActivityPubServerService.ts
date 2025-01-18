@@ -410,7 +410,7 @@ export class ActivityPubServerService {
 	@bindThis
 	private async clips(request: FastifyRequest<{
 		Params: { clip: string; };
-		Querystring: { since_id?: string; until_id?: string; };
+		Querystring: { since_id?: string; until_id?: string; page?: string; };
 	 }>, reply: FastifyReply) {
 		const clipId = request.params.clip;
 		const clip = await this.clipsRepository.findOneBy({
@@ -435,41 +435,63 @@ export class ActivityPubServerService {
 			return;
 		}
 
+		const page = request.query.page === 'true';
+
 		if (countIf(x => x != null, [sinceId, untilId]) > 1) {
 			reply.code(400);
 			return;
 		}
-		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
-			.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
-			.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
-		this.queryService.generateVisibilityQuery(query, null);
-		const notes = await query.limit(limit).getMany();
-
-		if (sinceId) notes.reverse();
-		const notes_count : number = await this.clipNotesRepository.countBy({
-			clipId: clip.id,
-		});
-		const activities : string[] = (await Promise.all(notes.map(async note => {
-			if (note.localOnly) return null;
-			return note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? null;
-		}))).filter(activitie => activitie != null);
 		const partOf = `${this.config.url}/clips/${clip.id}`;
-		const rendered = this.apRendererService.renderOrderedCollectionPage(
-			`${partOf}?${url.query({
-				since_id: sinceId,
-				until_id: untilId,
-			})}`,
-			notes_count, activities, partOf,
-			notes.length ? `${partOf}?${url.query({
-				since_id: notes[0].id,
-			})}` : undefined,
-			notes.length ? `${partOf}?${url.query({
-				until_id: notes.at(-1)!.id,
-			})}` : undefined,
-		);
-		reply.header('Cache-Control', 'private, max-age=180');
-		this.setResponseType(request, reply);
-		return (this.apRendererService.addContext(rendered));
+		if (page) {
+			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
+				.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
+				.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
+			this.queryService.generateVisibilityQuery(query, null);
+			const notes = await query.limit(limit).getMany();
+
+			if (sinceId) notes.reverse();
+			const notes_count : number = await this.clipNotesRepository.countBy({
+				clipId: clip.id,
+			});
+			const activities : string[] = (await Promise.all(notes.map(async note => {
+				if (note.localOnly) return null;
+				return note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? null;
+			}))).filter(activitie => activitie != null);
+			const rendered = this.apRendererService.renderOrderedCollectionPage(
+				`${partOf}?${url.query({
+					since_id: sinceId,
+					until_id: untilId,
+				})}`,
+				notes_count, activities, partOf,
+				notes.length ? `${partOf}?${url.query({
+					since_id: notes[0].id,
+				})}` : undefined,
+				notes.length ? `${partOf}?${url.query({
+					until_id: notes.at(-1)!.id,
+				})}` : undefined,
+			);
+			reply.header('Cache-Control', 'private, max-age=180');
+			this.setResponseType(request, reply);
+			return (this.apRendererService.addContext(rendered));
+		} else {
+			const notes_count:number = await this.clipNotesRepository.countBy({
+				clipId: clip.id,
+			});
+			const first = `${this.config.url}/clips/${clip.id}?page=true`;
+			const last = `${this.config.url}/clips/${clip.id}?page=true&since_id=000000000000000000000000`;
+			const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(partOf, notes_count, first, last);
+			const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
+			rendered.name = clip.name;
+			rendered.summary = summary ? summary : undefined;
+			rendered._misskey_summary = clip.description ?? undefined;
+			rendered.to = [];
+			rendered.published = this.idService.parse(clip.id).date.toISOString(),
+			rendered.cc = ['https://www.w3.org/ns/activitystreams#Public'];
+			rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
+			reply.header('Cache-Control', 'private, max-age=180');
+			this.setResponseType(request, reply);
+			return (this.apRendererService.addContext(rendered));
+		}
 	}
 
 	@bindThis
@@ -522,22 +544,8 @@ export class ActivityPubServerService {
 				userId: user.id,
 				isPublic: true,
 			});
-			const activities : IObject[] = await Promise.all(clips.map(async clip => {
-				const notes_count:number = await this.clipNotesRepository.countBy({
-					clipId: clip.id,
-				});
-				const first = `${this.config.url}/clips/${clip.id}`;
-				const last = `${this.config.url}/clips/${clip.id}?since_id=000000000000000000000000`;
-				const rendered :IOrderedCollection = this.apRendererService.renderOrderedCollection(`${this.config.url}/clips/${clip.id}`, notes_count, first, last);
-				const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
-				rendered.name = clip.name;
-				rendered.summary = summary ? summary : undefined;
-				rendered._misskey_summary = clip.description ?? undefined;
-				rendered.to = [];
-				rendered.published = this.idService.parse(clip.id).date.toISOString(),
-				rendered.cc = ['https://www.w3.org/ns/activitystreams#Public'];
-				rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
-				return rendered;
+			const activities : string[] = await Promise.all(clips.map(async clip => {
+				return `${this.config.url}/clips/${clip.id}`;
 			}));
 			const rendered = this.apRendererService.renderOrderedCollectionPage(
 				`${partOf}?${url.query({
@@ -815,7 +823,7 @@ export class ActivityPubServerService {
 		//clip
 		fastify.get<{
 			Params: { clip: string; };
-			Querystring: { since_id?: string; until_id?: string; };
+			Querystring: { since_id?: string; until_id?: string; page?: string; };
 		}>('/clips/:clip', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => await this.clips(request, reply));
 
 		// publickey
