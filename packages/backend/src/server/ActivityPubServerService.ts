@@ -518,6 +518,10 @@ export class ActivityPubServerService {
 
 			if (sinceId) clips.reverse();
 
+			const clips_count = this.clipsRepository.countBy({
+				userId: user.id,
+				isPublic: true,
+			});
 			const activities : IObject[] = await Promise.all(clips.map(async clip => {
 				const notes_count:number = await this.clipNotesRepository.countBy({
 					clipId: clip.id,
@@ -541,7 +545,7 @@ export class ActivityPubServerService {
 					since_id: sinceId,
 					until_id: untilId,
 				})}`,
-				user.notesCount, activities, partOf,
+				clips_count, activities, partOf,
 				clips.length ? `${partOf}?${url.query({
 					page: 'true',
 					since_id: clips[0].id,
