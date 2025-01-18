@@ -449,12 +449,9 @@ export class ActivityPubServerService {
 		const notes_count : number = await this.clipNotesRepository.countBy({
 			clipId: clip.id,
 		});
-		const activities : IObject[] = (await Promise.all(notes.map(async note => {
+		const activities : string[] = (await Promise.all(notes.map(async note => {
 			if (note.localOnly) return null;
-			return {
-				type: 'Activity',
-				object: note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? undefined,
-			};
+			return note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? null;
 		}))).filter(activitie => activitie != null);
 		const partOf = `${this.config.url}/clips/${clip.id}`;
 		const rendered = this.apRendererService.renderOrderedCollectionPage(
