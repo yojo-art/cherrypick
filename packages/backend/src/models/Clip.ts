@@ -47,4 +47,9 @@ export class MiClip {
 		comment: 'The description of the Clip.',
 	})
 	public description: string | null;
+
+	@Column('timestamp with time zone', {
+		nullable: true,
+	})
+	public lastFetchedAt: Date | null;
 }
