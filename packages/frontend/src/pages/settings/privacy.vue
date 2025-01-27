@@ -49,7 +49,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #caption>{{ i18n.ts.makeIndexableDescription }}</template>
 	</MkSwitch>
 	<MkSelect v-model="searchableBy" @update:modelValue="save()">
-		<template #label>{{ i18n.ts._searchbility.tooltip }}<span class="_beta">yojo-art</span></template>
+		<template #label>{{ i18n.ts._searchbility.tooltip }}<span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
 		<option value="public">{{ i18n.ts._searchbility.public }}</option>
 		<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
 		<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
