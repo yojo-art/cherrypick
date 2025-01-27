@@ -31,6 +31,7 @@
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
 - Enhance: リバーシ連合時にリアクションを送れるように(v1.1.0) [#569](https://github.com/yojo-art/cherrypick/pull/569)
+- Enhance: nodeinfoで対応する機能を示す(kmyblue互換) [#624](https://github.com/yojo-art/cherrypick/pull/624)
 
 ## 1.2.2
 Cherrypick 4.13.0  
