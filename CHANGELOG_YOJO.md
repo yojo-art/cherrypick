@@ -1,6 +1,9 @@
 ## 1.3.0
+Cherrypick 4.13.0  
+Misskey 2024.10.1
 
 ### Release Date
+2025-01-28
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
