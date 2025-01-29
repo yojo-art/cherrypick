@@ -8,10 +8,10 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defineAsyncComponent } from "vue";
 
 export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null> {
-	let canImport = false;
 	let readText = '';
 
-	if (emoji.copyPermission === 'conditional') {
+	//条件付きか、ライセンス情報などがある場合その情報を表示する
+	if (emoji.copyPermission === 'conditional' || emoji.license || emoji.usageInfo) {
 		const { canceled } = await os.confirm({
 			type: 'warning',
 			title: i18n.ts._emoji.seeLicense,
@@ -20,12 +20,11 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 		});
 		if (canceled) return null;
 		readText = emoji.license;
-		canImport = true;
 	} else if (emoji.copyPermission === 'deny') {
 		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny, });
+		return null;
 	}
 
-	if (canImport!) return null;
 	let emojiInfo: any|null = null;
 
 	const promise = misskeyApi('admin/emoji/copy', {
