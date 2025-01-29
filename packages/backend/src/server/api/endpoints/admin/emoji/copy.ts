@@ -8,7 +8,6 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { EmojisRepository } from '@/models/_.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import { DI } from '@/di-symbols.js';
-import { checkMatch } from '@/misc/check-emoji-import.js'
 import { DriveService } from '@/core/DriveService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
@@ -62,7 +61,7 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		emojiId: { type: 'string', format: 'misskey:id' },
-		licenseReadText: { type: 'string', nullable: true},
+		licenseReadText: { type: 'string', nullable: true },
 	},
 	required: ['emojiId'],
 } as const;
@@ -87,7 +86,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			//コピー拒否
 			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
 			//条件付き
-			if (emoji.copyPermission === emojiCopyPermissions[2] && !checkMatch(ps.licenseReadText, emoji.license)) throw new ApiError(meta.errors.seeLicense);
+			if (emoji.copyPermission === emojiCopyPermissions[2] && ps.licenseReadText !== emoji.license) throw new ApiError(meta.errors.seeLicense);
 
 			let driveFile: MiDriveFile;
 

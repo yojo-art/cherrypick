@@ -9,9 +9,9 @@ import { defineAsyncComponent } from "vue";
 
 export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null> {
 	let canImport = false;
-	let readed = '';
+	let readText = '';
 
-	if (emoji.copyPermission == 'conditional') {
+	if (emoji.copyPermission === 'conditional') {
 		const { canceled } = await os.confirm({
 			type: 'warning',
 			title: i18n.ts._emoji.seeLicense,
@@ -19,27 +19,34 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 				+ `${i18n.ts._emoji.usageInfo}: ${emoji.usageInfo}`,
 		});
 		if (canceled) return null;
-		readed = emoji.license;
+		readText = emoji.license;
 		canImport = true;
 	} else if (emoji.copyPermission === 'deny') {
-		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny,})
+		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny });
 	}
 
 	if (canImport!) return null;
-
-	let res = await os.apiWithDialog('admin/emoji/copy', {
+	let emojiInfo: any|null = null
+	const promise = misskeyApi('admin/emoji/copy', {
 		emojiId: emoji.id,
-		...(readed == '' ? {} : { readInfo: readed }),
+		...(readText === '' ? {} : { readInfo: readText })
+	}, undefined);
+	await os.promiseDialog(promise,(res) => {
+		emojiInfo = res;
+	},(err) => {
+		await os.alert({ type: 'error', title: err.message, text: err.id });
 	});
 
-	if(!res.id) return null;
+	if(!emojiInfo.id) return null;
 	return showDialog ? importEmojiMeta(emoji, emoji.host) : emoji;
 }
 
 export async function stealEmoji(emojiName: string, host: string): Promise<any|null> {
 	let emoji:any|null = null;
 	const promise = misskeyApi('admin/emoji/steal', { name :emojiName, host: host}, undefined);
-	await os.promiseDialog(promise,null,async (err) => {
+	await os.promiseDialog(promise,(res) => {
+		emoji = res;
+	},async (err) => {
 		//コピー不可
 		if(err.id === '1beadfcc-3882-f3c9-ee57-ded45e4741e4') {
 			await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny,});

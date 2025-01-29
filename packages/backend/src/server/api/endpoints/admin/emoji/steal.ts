@@ -14,7 +14,6 @@ import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { ApiError } from '../../../error.js';
 import { emojiCopyPermissions } from "@/types.js";
-import {checkMatch} from "@/misc/check-emoji-import.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -69,7 +68,7 @@ export const paramDef = {
 	properties: {
 		name: { type: 'string' },
 		host: { type: 'string' },
-		licenseReadText: { type: 'string', nullable: true},
+		licenseReadText: { type: 'string', nullable: true },
 	},
 	required: ['name', 'host'],
 } as const;
@@ -96,7 +95,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
 
 			//条件付き
-			if (emoji.copyPermission === emojiCopyPermissions[2] && !checkMatch(ps.licenseReadText, emoji.license)) throw new ApiError(meta.errors.seeLicense);
+			if (emoji.copyPermission === emojiCopyPermissions[2] && ps.licenseReadText !== emoji.license) throw new ApiError(meta.errors.seeLicense);
 
 			if (localEmoji != null) {
 				throw new ApiError(meta.errors.localEmojiAlreadyExists);
