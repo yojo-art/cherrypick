@@ -44,9 +44,9 @@ export const meta = {
 			code: 'NOT_ALLOWED',
 			id: '1beadfcc-3882-f3c9-ee57-ded45e4741e4',
 		},
-		seeUsageInfoAndLicense: {
-			message: 'see Usage information or license.',
-			code: 'SEE_USAGEINFOMATION_OR_LICENSE',
+		seeLicense: {
+			message: 'see license.',
+			code: 'SEE_LICENSE',
 			id: '28d9031e-ddbc-5ba3-c435-fcb5259e8408',
 		},
 	},
@@ -69,7 +69,7 @@ export const paramDef = {
 	properties: {
 		name: { type: 'string' },
 		host: { type: 'string' },
-		readInfo: { type: 'string', nullable: true},
+		licenseReadText: { type: 'string', nullable: true},
 	},
 	required: ['name', 'host'],
 } as const;
@@ -96,7 +96,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
 
 			//条件付き
-			if (emoji.copyPermission === emojiCopyPermissions[2] && !checkMatch(ps.readInfo, emoji.usageInfo, emoji.license)) throw new ApiError(meta.errors.seeUsageInfoAndLicense);
+			if (emoji.copyPermission === emojiCopyPermissions[2] && !checkMatch(ps.licenseReadText, emoji.license)) throw new ApiError(meta.errors.seeLicense);
 
 			if (localEmoji != null) {
 				throw new ApiError(meta.errors.localEmojiAlreadyExists);

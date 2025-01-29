@@ -7930,7 +7930,7 @@ export type operations = {
         'application/json': {
           /** Format: misskey:id */
           emojiId: string;
-          usageInfoReaded?: boolean;
+          licenseReadText?: string | null;
         };
       };
     };
@@ -8523,7 +8523,7 @@ export type operations = {
         'application/json': {
           name: string;
           host: string;
-          usageInfoReaded?: boolean;
+          licenseReadText?: string | null;
         };
       };
     };

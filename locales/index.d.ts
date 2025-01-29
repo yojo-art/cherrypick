@@ -1354,6 +1354,10 @@ export interface Locale extends ILocale {
      */
     "mediaSilenceThisInstance": string;
     /**
+     * サーバーに公開投稿のみ配送
+     */
+    "quarantineThisInstance": string;
+    /**
      * 操作
      */
     "operations": string;
@@ -11737,6 +11741,14 @@ export interface Locale extends ILocale {
          * ジョブキューを再試行
          */
         "promoteQueue": string;
+        /**
+         * 公開投稿のみ配送に制限
+         */
+        "quarantineRemoteInstance": string;
+        /**
+         * 公開投稿のみ配送を解除
+         */
+        "unquarantineRemoteInstance": string;
     };
     "_fileViewer": {
         /**

@@ -19,7 +19,7 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 				+ `${i18n.ts._emoji.usageInfo}: ${emoji.usageInfo}`,
 		});
 		if (canceled) return null;
-		readed = emoji.license ?? emoji.usageInfo;
+		readed = emoji.license;
 		canImport = true;
 	} else if (emoji.copyPermission === 'deny') {
 		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny,})

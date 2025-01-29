@@ -272,7 +272,7 @@ describe('Emoji', () => {
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await bAdmin.client.request('admin/emoji/copy', { emojiId: emojiId });
+		const res = await bAdmin.client.request('admin/emoji/copy', { emojiId: emojiId, licenseReadText: emoji.license });
 		strictEqual(JSON.stringify({
 			id: res.id,
 			aliases: emoji.aliases,
@@ -313,7 +313,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test' });
+		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test', licenseReadText: emoji.license  });
 		strictEqual(JSON.stringify({
 			id: res.id,
 			aliases: emoji.aliases,
@@ -370,7 +370,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).error.code, 'SEE_USAGEINFOMATION_OR_LICENSE');
+		strictEqual((await res.json()).error.code, 'SEE_LICENSE');
 	});
 	test('条件付きの絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -406,7 +406,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).error.code, 'SEE_USAGEINFOMATION_OR_LICENSE');
+		strictEqual((await res.json()).error.code, 'SEE_LICENSE');
 	});
 
 	test('条件付きの絵文字をコピーできる(copy)', async () => {

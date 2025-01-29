@@ -4,9 +4,9 @@
  */
 
 // @ts-ignore
-export function checkMatch(ps?: string|null, usageInfo: string|null, license: string|null): boolean {
-	if(ps === null && usageInfo === null && license === null) return true;
-	if(!usageInfo && ! license) return false;
-	if(!ps) return false;
-	return  ps == (usageInfo ?? license);
+export function checkMatch(licenseReadText?: string|null, license: string|null): boolean {
+	if(licenseReadText === null && license === null) return true;
+	if(!license) return false;
+	if(!licenseReadText) return false;
+	return  licenseReadText === license;
 }
