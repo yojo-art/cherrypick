@@ -45,27 +45,27 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 
 export async function stealEmoji(emojiName: string, host: string): Promise<any|null> {
 	let emoji:any|null = null;
-	const promise = misskeyApi('admin/emoji/steal', { name :emojiName, host: host}, undefined);
+	const promise = misskeyApi('admin/emoji/steal', { name: emojiName, host: host }, undefined);
 	await os.promiseDialog(promise, (res) => {
 		emoji = res;
 	}, async (err) => {
 		//コピー不可
-		if(err.id === '1beadfcc-3882-f3c9-ee57-ded45e4741e4') {
-			await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny,});
+		if (err.id === '1beadfcc-3882-f3c9-ee57-ded45e4741e4') {
+			await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny, });
 			return;
 		}
 		//条件付きのため絵文字情報を取得して再度インポート
-		if(err.id === '28d9031e-ddbc-5ba3-c435-fcb5259e8408') {
-			const promise = misskeyApi('emoji', { name :emojiName, host: host}, undefined);
-			const emojiInfo = await os.promiseDialog(promise,null,async (err) => {
+		if (err.id === '28d9031e-ddbc-5ba3-c435-fcb5259e8408') {
+			const promise = misskeyApi('emoji', { name: emojiName, host: host }, undefined);
+			const emojiInfo = await os.promiseDialog(promise, null, async (err) => {
 				await os.alert({ type: 'error', title: err.message, text: err.id });
 				return;
 			});
-			emoji = await copyEmoji(emojiInfo,false);
+			emoji = await copyEmoji(emojiInfo, false);
 		}
 		await os.alert({ type: 'error', title: err.message, text: err.id });
 	});
-	return emoji === null ? null : await importEmojiMeta(emoji,host);
+	return emoji === null ? null : await importEmojiMeta(emoji, host);
 }
 
 export async function importEmojiMeta(emoji: any, host:string) {
