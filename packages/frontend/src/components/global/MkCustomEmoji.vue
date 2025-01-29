@@ -41,7 +41,7 @@ import * as sound from '@/scripts/sound.js';
 import { i18n } from '@/i18n.js';
 import MkCustomEmojiDetailedDialog from '@/components/MkCustomEmojiDetailedDialog.vue';
 import { $i } from '@/account.js';
-import { importEmojiMeta } from '@/scripts/import-emoji.js';
+import {importEmojiMeta, stealEmoji} from '@/scripts/import-emoji.js';
 
 const props = defineProps<{
 	name: string;
@@ -54,10 +54,10 @@ const props = defineProps<{
 	menuReaction?: boolean;
 	fallbackToImage?: boolean;
 }>();
-
 const react = inject<((name: string) => void) | null>('react', null);
 
 const customEmojiName = computed(() => (props.name[0] === ':' ? props.name.substring(1, props.name.length - 1) : props.name).replace('@.', ''));
+const customEmojiHost = computed(() => props.name.split('@')[1].replaceAll(':', ''));
 const isLocal = computed(() => !props.host && (customEmojiName.value.endsWith('@.') || !customEmojiName.value.includes('@')));
 
 const rawUrl = computed(() => {
@@ -115,14 +115,7 @@ function onClick(ev: MouseEvent) {
 				text: i18n.ts.import,
 				icon: 'ti ti-plus',
 				action: async() => {
-					let emoji = await os.apiWithDialog('admin/emoji/steal', {
-						name: customEmojiName.value,
-						host: props.host,
-					});
-					emoji = await importEmojiMeta(emoji, props.host);
-					os.popup(defineAsyncComponent(() => import('@/pages/emoji-edit-dialog.vue')), {
-						emoji: emoji,
-					});
+					await stealEmoji(customEmojiName.value, customEmojiHost.value);
 				},
 			});
 		}
