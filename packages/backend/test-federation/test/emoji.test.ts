@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'cherrypick-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, createModerator, fetchAdmin } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -313,7 +313,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test', licenseReadText: emoji.license  });
+		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test', licenseReadText: emoji.license });
 		strictEqual(JSON.stringify({
 			id: res.id,
 			aliases: emoji.aliases,

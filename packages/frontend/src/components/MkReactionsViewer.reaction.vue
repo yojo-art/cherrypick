@@ -38,9 +38,8 @@ import { checkReactionPermissions } from '@/scripts/check-reaction-permissions.j
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import { useRouter } from '@/router/supplier.js';
-import { MenuItem } from '@/types/menu.js';
 import { advanccedNotesSearchAvailable } from '@/scripts/check-permissions.js';
-import {stealEmoji} from "@/scripts/import-emoji.js";
+import { stealEmoji } from "@/scripts/import-emoji.js";
 
 const props = defineProps<{
 	reaction: string;
@@ -146,7 +145,7 @@ function stealReaction(ev: MouseEvent) {
 		icon: 'ti ti-mood-plus',
 		action: async () => {
 			const emoji = await stealEmoji(reactionName.value, reactionHost.value);
-			if(!emoji) return;
+			if (!emoji) return;
 			await misskeyApi('notes/reactions/create', {
 				noteId: props.note.id,
 				reaction: `:${reactionName.value}:`,

@@ -41,7 +41,7 @@ import * as sound from '@/scripts/sound.js';
 import { i18n } from '@/i18n.js';
 import MkCustomEmojiDetailedDialog from '@/components/MkCustomEmojiDetailedDialog.vue';
 import { $i } from '@/account.js';
-import {importEmojiMeta, stealEmoji} from '@/scripts/import-emoji.js';
+import { stealEmoji } from '@/scripts/import-emoji.js';
 
 const props = defineProps<{
 	name: string;

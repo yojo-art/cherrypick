@@ -22,31 +22,33 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 		readText = emoji.license;
 		canImport = true;
 	} else if (emoji.copyPermission === 'deny') {
-		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny });
+		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny, });
 	}
 
 	if (canImport!) return null;
-	let emojiInfo: any|null = null
+	let emojiInfo: any|null = null;
+
 	const promise = misskeyApi('admin/emoji/copy', {
 		emojiId: emoji.id,
 		...(readText === '' ? {} : { readInfo: readText })
 	}, undefined);
-	await os.promiseDialog(promise,(res) => {
+
+	await os.promiseDialog(promise, (res) => {
 		emojiInfo = res;
-	},(err) => {
+	}, async (err) => {
 		await os.alert({ type: 'error', title: err.message, text: err.id });
 	});
 
-	if(!emojiInfo.id) return null;
+	if (!emojiInfo.id) return null;
 	return showDialog ? importEmojiMeta(emoji, emoji.host) : emoji;
 }
 
 export async function stealEmoji(emojiName: string, host: string): Promise<any|null> {
 	let emoji:any|null = null;
 	const promise = misskeyApi('admin/emoji/steal', { name :emojiName, host: host}, undefined);
-	await os.promiseDialog(promise,(res) => {
+	await os.promiseDialog(promise, (res) => {
 		emoji = res;
-	},async (err) => {
+	}, async (err) => {
 		//コピー不可
 		if(err.id === '1beadfcc-3882-f3c9-ee57-ded45e4741e4') {
 			await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny,});
