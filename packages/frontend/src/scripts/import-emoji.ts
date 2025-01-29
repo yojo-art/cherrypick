@@ -7,7 +7,7 @@ import * as os from "@/os.js";
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defineAsyncComponent } from "vue";
 
-export async function copyEmoji(emoji: any): Promise<any|null> {
+export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null> {
 	let canImport = false;
 	let readed = '';
 
@@ -33,7 +33,7 @@ export async function copyEmoji(emoji: any): Promise<any|null> {
 	});
 
 	if(!res.id) return null;
-	return  await importEmojiMeta(emoji,emoji.host);
+	return showDialog ? importEmojiMeta(emoji, emoji.host) : emoji;
 }
 
 export async function stealEmoji(emojiName: string, host: string): Promise<any|null> {
@@ -52,7 +52,7 @@ export async function stealEmoji(emojiName: string, host: string): Promise<any|n
 				await os.alert({ type: 'error', title: err.message, text: err.id });
 				return;
 			});
-			emoji = await copyEmoji(emojiInfo);
+			emoji = await copyEmoji(emojiInfo,false);
 		}
 		await os.alert({ type: 'error', title: err.message, text: err.id });
 	});
