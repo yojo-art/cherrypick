@@ -59,6 +59,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -98,6 +99,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: null,
+			importFrom: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -135,6 +137,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: null,
+			importFrom: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -290,6 +293,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 	test('コピー許可の絵文字をコピーできる(steal)', async () => {
@@ -332,6 +336,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 
@@ -451,6 +456,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 	test('条件付きの絵文字をコピーできる(steal)', async () => {
@@ -492,6 +498,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 });
