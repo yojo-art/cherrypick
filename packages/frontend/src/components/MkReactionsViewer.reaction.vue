@@ -129,7 +129,7 @@ async function toggleReaction(ev: MouseEvent) {
 }
 
 function stealReaction(ev: MouseEvent) {
-	if (!props.note.user.host && $i && !($i.isAdmin ?? $i.policies.canManageCustomEmojis)) return;
+	if (reactionHost.value === '' && $i && !($i.isAdmin ?? $i.policies.canManageCustomEmojis)) return;
 
 	os.popupMenu([{
 		type: 'label',
