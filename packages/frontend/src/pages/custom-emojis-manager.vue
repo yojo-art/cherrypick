@@ -85,7 +85,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
-import { importEmojiMeta } from '@/scripts/import-emoji.js';
+import { copyEmoji } from '@/scripts/import-emoji.js';
 
 const emojisPaginationComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
@@ -160,30 +160,7 @@ const edit = (emoji) => {
 };
 
 const importEmoji = async(emoji) => {
-	if (emoji.copyPermission && emoji.copyPermission === 'deny') {
-		await os.alert({
-			type: 'error',
-			title: i18n.ts._emoji.copyPermissionIsDeny,
-		});
-		return;
-	}
-
-	let readed = false;
-	if (emoji.license || emoji.usageInfo) {
-		const { canceled } = await os.confirm({
-			type: 'warning',
-			title: i18n.ts._emoji.seeLicense,
-			text: `${i18n.ts.license}: ${emoji.license}\r\n`
-					+ `${i18n.ts._emoji.usageInfo}: ${emoji.usageInfo}`,
-		});
-		if (canceled) return;
-	}
-	let res = await os.apiWithDialog('admin/emoji/copy', {
-		emojiId: emoji.id,
-		...(readed ? { usageInfoReaded: true } : { }),
-	});
-	res = await importEmojiMeta(res, emoji.host);
-	edit(res);
+	await copyEmoji(emoji, 'admin/emoji/import');
 };
 
 const remoteMenu = (emoji, ev: MouseEvent) => {

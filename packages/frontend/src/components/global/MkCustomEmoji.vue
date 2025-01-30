@@ -41,7 +41,7 @@ import * as sound from '@/scripts/sound.js';
 import { i18n } from '@/i18n.js';
 import MkCustomEmojiDetailedDialog from '@/components/MkCustomEmojiDetailedDialog.vue';
 import { $i } from '@/account.js';
-import { importEmojiMeta } from '@/scripts/import-emoji.js';
+import { stealEmoji } from '@/scripts/import-emoji.js';
 
 const props = defineProps<{
 	name: string;
@@ -115,14 +115,7 @@ function onClick(ev: MouseEvent) {
 				text: i18n.ts.import,
 				icon: 'ti ti-plus',
 				action: async() => {
-					let emoji = await os.apiWithDialog('admin/emoji/steal', {
-						name: customEmojiName.value,
-						host: props.host,
-					});
-					emoji = await importEmojiMeta(emoji, props.host);
-					os.popup(defineAsyncComponent(() => import('@/pages/emoji-edit-dialog.vue')), {
-						emoji: emoji,
-					});
+					await stealEmoji(customEmojiName.value, props.host);
 				},
 			});
 		}

@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'cherrypick-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, createModerator, fetchAdmin } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -59,6 +59,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -98,6 +99,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: null,
+			importFrom: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -135,6 +137,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: null,
+			importFrom: null,
 		}), JSON.stringify(remoteEmoji));
 	});
 
@@ -272,7 +275,7 @@ describe('Emoji', () => {
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await bAdmin.client.request('admin/emoji/copy', { emojiId: emojiId });
+		const res = await bAdmin.client.request('admin/emoji/copy', { emojiId: emojiId, licenseReadText: emoji.license });
 		strictEqual(JSON.stringify({
 			id: res.id,
 			aliases: emoji.aliases,
@@ -290,12 +293,14 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 	test('コピー許可の絵文字をコピーできる(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
 			aliases: ['a', 'b', 'c'],
 			license: 'license',
+			isSensitive: true,
 			category: 'category',
 			copyPermission: 'allow',
 			usageInfo: 'usageInfo',
@@ -313,7 +318,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test' });
+		const res = await bAdmin.client.request('admin/emoji/steal', { name: emoji.name, host: 'a.test', licenseReadText: emoji.license });
 		strictEqual(JSON.stringify({
 			id: res.id,
 			aliases: emoji.aliases,
@@ -323,7 +328,7 @@ describe('Emoji', () => {
 			//@ts-expect-error urlが未定義といわれるため
 			url: res.url,
 			license: emoji.license,
-			isSensitive: false,
+			isSensitive: true,
 			localOnly: false,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
 			copyPermission: emoji.copyPermission,
@@ -331,6 +336,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 
@@ -370,7 +376,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).error.code, 'SEE_USAGEINFOMATION_OR_LICENSE');
+		strictEqual((await res.json()).error.code, 'SEE_LICENSE');
 	});
 	test('条件付きの絵文字をコピーできない(steal)', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -406,7 +412,7 @@ describe('Emoji', () => {
 			credentials: 'omit',
 			cache: 'no-cache',
 		});
-		strictEqual((await res.json()).error.code, 'SEE_USAGEINFOMATION_OR_LICENSE');
+		strictEqual((await res.json()).error.code, 'SEE_LICENSE');
 	});
 
 	test('条件付きの絵文字をコピーできる(copy)', async () => {
@@ -450,6 +456,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 	test('条件付きの絵文字をコピーできる(steal)', async () => {
@@ -491,6 +498,7 @@ describe('Emoji', () => {
 			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: 'isBasedOn',
+			importFrom: 'a.test',
 		}), JSON.stringify(res));
 	});
 });
