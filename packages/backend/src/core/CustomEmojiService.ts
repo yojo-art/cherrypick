@@ -242,7 +242,9 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		const driveFile = await this.driveService.uploadFromUrl({ url: remoteEmoji.originalUrl, user: null, force: false });
 
 		//連合絵文字のisBasedOnがnullでなく空文字列だった場合オリジナルのURLを使う
-		const basedOn = remoteEmoji.isBasedOn ?? remoteEmoji.isBasedOn === '' ? remoteEmoji.originalUrl : remoteEmoji.isBasedOn;
+		const basedOn = remoteEmoji.isBasedOn === null ?
+			remoteEmoji.originalUrl :
+			remoteEmoji.isBasedOn === '' ? remoteEmoji.originalUrl : remoteEmoji.isBasedOn;
 
 		return await this.add({
 			driveFile,
