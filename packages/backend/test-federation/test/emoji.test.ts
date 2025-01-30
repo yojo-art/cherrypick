@@ -296,6 +296,7 @@ describe('Emoji', () => {
 		const emoji = await addCustomEmoji('a.test', {
 			aliases: ['a', 'b', 'c'],
 			license: 'license',
+			isSensitive: true,
 			category: 'category',
 			copyPermission: 'allow',
 			usageInfo: 'usageInfo',
@@ -323,7 +324,7 @@ describe('Emoji', () => {
 			//@ts-expect-error urlが未定義といわれるため
 			url: res.url,
 			license: emoji.license,
-			isSensitive: false,
+			isSensitive: true,
 			localOnly: false,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: [],
 			copyPermission: emoji.copyPermission,

@@ -1138,10 +1138,6 @@ export interface Locale extends ILocale {
      */
     "customEmojis": string;
     /**
-     * 詳細情報が利用できません
-     */
-    "emojiRemoteDetailedUnavailable": string;
-    /**
      * 絵文字
      */
     "emoji": string;
@@ -12721,6 +12717,28 @@ export interface Locale extends ILocale {
          * 絵文字ベース
          */
         "isBasedOn": string;
+        /**
+         * コピー元
+         */
+        "importFrom": string;
+        /**
+         * インポートしました
+         */
+        "imported": string;
+    };
+    "_emojiRemoteFetch": {
+        /**
+         * リモートAPIからの情報取得
+         */
+        "title": string;
+        /**
+         * エラー
+         */
+        "Error": string;
+        /**
+         * 成功
+         */
+        "Success": string;
     };
 }
 declare const locales: {

@@ -3,17 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
-import { IsNull } from 'typeorm';
+import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { EmojisRepository } from '@/models/_.js';
-import type { MiDriveFile } from '@/models/DriveFile.js';
-import { DI } from '@/di-symbols.js';
-import { DriveService } from '@/core/DriveService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { ApiError } from '../../../error.js';
-import { emojiCopyPermissions } from "@/types.js";
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -68,7 +63,7 @@ export const paramDef = {
 	properties: {
 		name: { type: 'string' },
 		host: { type: 'string' },
-		licenseReadText: { type: 'string', nullable: true },
+		licenseReadText: { type: 'string', nullable: true, default: null },
 	},
 	required: ['name', 'host'],
 } as const;
@@ -78,61 +73,27 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
-		@Inject(DI.emojisRepository)
-		private emojisRepository: EmojisRepository,
 		private emojiEntityService: EmojiEntityService,
 		private customEmojiService: CustomEmojiService,
-		private driveService: DriveService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const emoji = await this.emojisRepository.findOneBy({ name: ps.name, host: ps.host });
-			const localEmoji = await this.emojisRepository.findOneBy({ name: ps.name, host: IsNull() });
-
-			if (emoji == null) {
-				throw new ApiError(meta.errors.noSuchEmoji);
-			}
-			//コピー拒否
-			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
-
-			//条件付き
-			if (emoji.copyPermission === emojiCopyPermissions[2] && ps.licenseReadText !== emoji.license) throw new ApiError(meta.errors.seeLicense);
-
-			if (localEmoji != null) {
-				throw new ApiError(meta.errors.localEmojiAlreadyExists);
-			}
-
-			let driveFile: MiDriveFile;
-
 			try {
-				// Create file
-				driveFile = await this.driveService.uploadFromUrl({ url: emoji.originalUrl, user: null, force: false });
-			} catch (e) {
-				// TODO: need to return Drive Error
+				const imported = await this.customEmojiService.importEmoji({
+					name: ps.name,
+					host: ps.host,
+					licenseReadText: ps.licenseReadText
+				},me)
+				return this.emojiEntityService.packDetailed(imported);
+			} catch(err) {
+				if (err instanceof IdentifiableError) {
+					if (err.id === '1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e') throw new ApiError(meta.errors.noSuchEmoji);
+					if (err.id === '16bd0f1d-c797-468e-af3f-a7eede1fef72') throw new ApiError(meta.errors.copyIsNotAllowed);
+					if (err.id === '064ac9f8-5531-4e9b-b158-3cf8524d96ef') throw new ApiError(meta.errors.seeLicense);
+					if (err.id === '141c2c9af-0039-45e8-a99b-bc9027f4e0a9') throw new ApiError(meta.errors.duplicateName);
+					throw new ApiError();
+				}
 				throw new ApiError();
 			}
-
-			// Duplication Check
-			const isDuplicate = await this.customEmojiService.checkDuplicate(emoji.name);
-			if (isDuplicate) throw new ApiError(meta.errors.duplicateName);
-
-			const addedEmoji = await this.customEmojiService.add({
-				driveFile,
-				name: emoji.name,
-				category: emoji.category,
-				aliases: emoji.aliases,
-				host: null,
-				license: emoji.license,
-				isSensitive: emoji.isSensitive,
-				localOnly: emoji.localOnly,
-				roleIdsThatCanBeUsedThisEmojiAsReaction: emoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
-				copyPermission: emoji.copyPermission,
-				usageInfo: emoji.usageInfo,
-				author: emoji.author,
-				description: emoji.description,
-				isBasedOn: emoji.isBasedOn ?? emoji.originalUrl,
-			}, me);
-
-			return this.emojiEntityService.packDetailed(addedEmoji);
 		});
 	}
 }

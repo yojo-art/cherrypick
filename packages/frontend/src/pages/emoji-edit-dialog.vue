@@ -33,6 +33,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 				<MkButton rounded style="margin: 0 auto;" @click="changeImage">{{ i18n.ts.selectFile }}</MkButton>
+				<MkKeyValue v-if="props.showFetchResult">
+					<template #key>{{ i18n.ts._emojiRemoteFetch.title }}</template>
+					<template #value><Mfm :text="props.fetchSuccess ? i18n.ts._emojiRemoteFetch.Success : i18n.ts._emojiRemoteFetch.Error"/></template>
+				</MkKeyValue>
 				<MkInput v-model="name" pattern="[a-z0-9_]" autocapitalize="off">
 					<template #label>{{ i18n.ts.name }}</template>
 				</MkInput>
@@ -86,6 +90,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<option value="deny">{{ i18n.ts._emoji.deny }}</option>
 					<option value="conditional">{{ i18n.ts._emoji.conditional }}</option>
 				</MkSelect>
+				<MkKeyValue v-if="importFrom">
+					<template #key>{{ i18n.ts._emoji.importFrom }}</template>
+					<template #value><Mfm :text="emoji.importFrom"/></template>
+				</MkKeyValue>
 				<MkButton v-if="emoji" danger @click="del()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
 		</MkSpacer>
@@ -113,9 +121,12 @@ import MkSwitch from '@/components/MkSwitch.vue';
 import { selectFile } from '@/scripts/select-file.js';
 import MkRolePreview from '@/components/MkRolePreview.vue';
 import MkSelect from "@/components/MkSelect.vue";
+import MkKeyValue from "@/components/MkKeyValue.vue";
 
 const props = defineProps<{
 	emoji?: any,
+	showFetchResult?: boolean,
+	fetchSuccess?: boolean,
 }>();
 
 const windowEl = ref<InstanceType<typeof MkWindow> | null>(null);
@@ -125,11 +136,14 @@ const aliases = ref<string>(props.emoji ? props.emoji.aliases.join(' ') : '');
 const license = ref<string>(props.emoji ? (props.emoji.license ?? '') : '');
 const isSensitive = ref(props.emoji ? props.emoji.isSensitive : false);
 const localOnly = ref(props.emoji ? props.emoji.localOnly : false);
-const description = ref<string>(props.emoji ? (props.emoji.description ?? '') : '');
-const author = ref<string>(props.emoji ? (props.emoji.author ?? '') : '');
-const usageInfo = ref<string>(props.emoji ? (props.emoji.usageInfo ?? '') : '');
-const isBasedOn = ref<string>(props.emoji ? (props.emoji.isBasedOn ?? '') : '');
-const copyPermission = ref<string>(props.emoji ? (props.emoji.copyPermission ?? null ) : 'allow');
+
+const description = ref<string>(props.emoji ? props.emoji.description : null);
+const author = ref<string>(props.emoji ? props.emoji.author : null);
+const usageInfo = ref<string>(props.emoji ? props.emoji.usageInfo : null);
+const isBasedOn = ref<string>(props.emoji ? props.emoji.isBasedOn : null);
+const copyPermission = ref<string>(props.emoji ? props.emoji.copyPermission : 'allow');
+const importFrom = computed(() => props.emoji ? props.emoji.importFrom : null);
+
 const roleIdsThatCanBeUsedThisEmojiAsReaction = ref(props.emoji ? props.emoji.roleIdsThatCanBeUsedThisEmojiAsReaction : []);
 const rolesThatCanBeUsedThisEmojiAsReaction = ref<Misskey.entities.Role[]>([]);
 const file = ref<Misskey.entities.DriveFile>();

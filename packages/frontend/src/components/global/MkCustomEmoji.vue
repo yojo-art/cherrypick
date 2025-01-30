@@ -54,10 +54,10 @@ const props = defineProps<{
 	menuReaction?: boolean;
 	fallbackToImage?: boolean;
 }>();
+
 const react = inject<((name: string) => void) | null>('react', null);
 
 const customEmojiName = computed(() => (props.name[0] === ':' ? props.name.substring(1, props.name.length - 1) : props.name).replace('@.', ''));
-const customEmojiHost = computed(() => props.name.split('@')[1].replaceAll(':', ''));
 const isLocal = computed(() => !props.host && (customEmojiName.value.endsWith('@.') || !customEmojiName.value.includes('@')));
 
 const rawUrl = computed(() => {
@@ -115,7 +115,7 @@ function onClick(ev: MouseEvent) {
 				text: i18n.ts.import,
 				icon: 'ti ti-plus',
 				action: async() => {
-					await stealEmoji(customEmojiName.value, customEmojiHost.value);
+					await stealEmoji(customEmojiName.value, props.host);
 				},
 			});
 		}

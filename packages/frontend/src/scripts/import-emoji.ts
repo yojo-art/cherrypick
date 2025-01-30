@@ -29,11 +29,12 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 
 	const promise = misskeyApi('admin/emoji/copy', {
 		emojiId: emoji.id,
-		...(readText === '' ? {} : { readInfo: readText })
+		...(readText === '' ? {} : { licenseReadText: readText })
 	}, undefined);
 
 	await os.promiseDialog(promise, (res) => {
 		emojiInfo = res;
+		if (showDialog) os.toast(i18n.ts._emoji.imported);
 	}, async (err) => {
 		await os.alert({ type: 'error', title: err.message, text: err.id });
 	});
@@ -47,6 +48,7 @@ export async function stealEmoji(emojiName: string, host: string): Promise<any|n
 	const promise = misskeyApi('admin/emoji/steal', { name: emojiName, host: host }, undefined);
 	await os.promiseDialog(promise, (res) => {
 		emoji = res;
+		os.toast(i18n.ts._emoji.imported);
 	}, async (err) => {
 		//コピー不可
 		if (err.id === '1beadfcc-3882-f3c9-ee57-ded45e4741e4') {
@@ -58,9 +60,10 @@ export async function stealEmoji(emojiName: string, host: string): Promise<any|n
 			const promise = misskeyApi('emoji', { name: emojiName, host: host }, undefined);
 			const emojiInfo = await os.promiseDialog(promise, null, async (err) => {
 				await os.alert({ type: 'error', title: err.message, text: err.id });
-				return;
 			});
 			emoji = await copyEmoji(emojiInfo, false);
+			if (emoji !== null) os.toast(i18n.ts._emoji.imported);
+			return;
 		}
 		await os.alert({ type: 'error', title: err.message, text: err.id });
 	});
@@ -68,10 +71,14 @@ export async function stealEmoji(emojiName: string, host: string): Promise<any|n
 }
 
 export async function importEmojiMeta(emoji: any, host:string) {
-	emoji.category = i18n.ts.emojiRemoteDetailedUnavailable;
+	//カテゴリ・ライセンス・エイリアスのいずれかがある場合、連合で取得しているのでリモートAPIで確認しない
+	if(emoji.category !== null ||
+		emoji.license !== null ||
+		0 < emoji.aliases.length) return emoji;
+	let success = true;
+
 	try {
 		const json = await(await fetch('https://' + host + '/api/emoji?name=' + emoji.name)).json();
-		emoji.category = '';
 		const from_json = (key: string) => {
 			try {
 				if (json[key]) {
@@ -88,10 +95,13 @@ export async function importEmojiMeta(emoji: any, host:string) {
 	} catch (err) {
 		console.log(err);
 		//リモートから取得に失敗
+		success = false;
 	}
 	emoji.license = (emoji.license ? emoji.license + '\n' : '') + 'import from ' + host;
 	os.popup(defineAsyncComponent(() => import('@/pages/emoji-edit-dialog.vue')), {
 		emoji: emoji,
+		showFetchResult: true,
+		fetchSuccess: success,
 	});
 	return emoji;
 }

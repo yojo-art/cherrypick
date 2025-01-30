@@ -109,5 +109,6 @@ export const packedEmojiDetailedSchema = {
 		author: { type: 'string', nullable: true, },
 		description: { type: 'string', nullable: true, },
 		isBasedOn: { type: 'string', nullable: true, },
+		importFrom: { type: 'string', nullable: true, },
 	},
 } as const;
