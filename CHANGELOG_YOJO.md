@@ -1,3 +1,13 @@
+## x.x.x
+Cherrypick x.xx.x  
+Misskey 2025.xx.x
+
+### Release Date
+### General
+### Client
+- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
+### Server
+
 ## 1.3.0
 Cherrypick 4.13.0  
 Misskey 2024.10.1

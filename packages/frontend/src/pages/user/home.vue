@@ -128,7 +128,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<dd class="value">{{ user.birthday.replace('-', '/').replace('-', '/') }} ({{ i18n.tsx.yearsOld({ age }) }})</dd>
 						</dl>
 						<dl class="field">
-							<dt class="name"><i class="ti ti-calendar ti-fw"></i> {{ i18n.ts.registeredDate }}</dt>
+							<dt class="name"><i class="ti ti-calendar ti-fw"></i> {{　user.host === null ? i18n.ts.registeredDate : i18n.ts.registeredAt }}</dt>
 							<dd class="value">{{ dateString(user.createdAt) }} (<MkTime :time="user.createdAt"/>)</dd>
 						</dl>
 					</div>
