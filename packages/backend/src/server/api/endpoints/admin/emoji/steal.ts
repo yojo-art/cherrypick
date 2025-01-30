@@ -82,9 +82,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					name: ps.name,
 					host: ps.host,
 					licenseReadText: ps.licenseReadText
-				},　me);
+				}, me);
 				return this.emojiEntityService.packDetailed(imported);
-			} catch　(err) {
+			} catch (err) {
 				if (err instanceof IdentifiableError) {
 					if (err.id === '1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e') throw new ApiError(meta.errors.noSuchEmoji);
 					if (err.id === '16bd0f1d-c797-468e-af3f-a7eede1fef72') throw new ApiError(meta.errors.copyIsNotAllowed);

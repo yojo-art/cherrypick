@@ -8,7 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { ApiError } from '../../../error.js';
-import {　IdentifiableError　} from "@/misc/identifiable-error.js";
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -73,9 +73,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					const imported = await this.customEmojiService.importEmoji({
 						id: ps.emojiId,
 						licenseReadText: ps.licenseReadText
-					},　me)
+					}, me);
 					return this.emojiEntityService.packDetailed(imported);
-				} catch　(err) {
+				} catch (err) {
 					if (err instanceof IdentifiableError) {
 						if (err.id === '1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e') throw new ApiError(meta.errors.noSuchEmoji);
 						if (err.id === '16bd0f1d-c797-468e-af3f-a7eede1fef72') throw new ApiError(meta.errors.copyIsNotAllowed);
