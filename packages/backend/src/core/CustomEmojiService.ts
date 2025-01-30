@@ -218,7 +218,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		host?: string;
 		licenseReadText: string| null;
 	}, moderator: MiUser): Promise<MiEmoji> {
-		if ((!data.id && !data.name && !data.host)) throw new IdentifiableError('7884f9a9-878f-454c-af3a-f2a75ee59a57', 'InvalidData')
+		if ((!data.id && !data.name && !data.host)) throw new IdentifiableError('7884f9a9-878f-454c-af3a-f2a75ee59a57', 'InvalidData');
 
 		const remoteEmoji = data.id ?
 			await this.emojisRepository.findOneBy({ id: data.id }) :

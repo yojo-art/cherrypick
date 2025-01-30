@@ -72,7 +72,7 @@ export async function stealEmoji(emojiName: string, host: string): Promise<any|n
 
 export async function importEmojiMeta(emoji: any, host:string) {
 	//カテゴリ・ライセンス・エイリアスのいずれかがある場合、連合で取得しているのでリモートAPIで確認しない
-	if(emoji.category !== null ||
+	if (emoji.category !== null ||
 		emoji.license !== null ||
 		0 < emoji.aliases.length) return emoji;
 	let success = true;
