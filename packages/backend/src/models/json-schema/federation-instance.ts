@@ -124,5 +124,9 @@ export const packedFederationInstanceSchema = {
 			type: 'string',
 			optional: true, nullable: true,
 		},
+		isQuarantineLimited: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 	},
 } as const;

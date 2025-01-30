@@ -9,6 +9,7 @@ import type { DriveFilesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
+import { emojiCopyPermissions } from '@/types.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -56,6 +57,12 @@ export const paramDef = {
 		roleIdsThatCanBeUsedThisEmojiAsReaction: { type: 'array', items: {
 			type: 'string',
 		} },
+
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, default: emojiCopyPermissions[0], description: 'この絵文字を外部サーバーへコピーすることの許可' },
+		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
+		author: { type: 'string', nullable: true, description: '作者情報' },
+		description: { type: 'string', nullable: true, description: '絵文字の説明' },
+		isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
 	},
 	required: ['name', 'fileId'],
 } as const;
@@ -88,6 +95,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				isSensitive: ps.isSensitive ?? false,
 				localOnly: ps.localOnly ?? false,
 				roleIdsThatCanBeUsedThisEmojiAsReaction: ps.roleIdsThatCanBeUsedThisEmojiAsReaction ?? [],
+				copyPermission: ps.copyPermission ?? null,
+				usageInfo: ps.usageInfo ?? null,
+				author: ps.author ?? null,
+				description: ps.description ?? null,
+				isBasedOn: ps.isBasedOn ?? null,
 			}, me);
 
 			return this.emojiEntityService.packDetailed(emoji);

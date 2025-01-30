@@ -1350,6 +1350,10 @@ export interface Locale extends ILocale {
      */
     "mediaSilenceThisInstance": string;
     /**
+     * サーバーに公開投稿のみ配送
+     */
+    "quarantineThisInstance": string;
+    /**
      * 操作
      */
     "operations": string;
@@ -6542,6 +6546,10 @@ export interface Locale extends ILocale {
              */
             "global": string;
             /**
+             * 接続している他のすべてのサーバーからのファイル付き投稿を見られます。
+             */
+            "media": string;
+            /**
              * それぞれのタイムラインは、画面上部でいつでも切り替えられます。
              */
             "description2": string;
@@ -6592,6 +6600,36 @@ export interface Locale extends ILocale {
                  * 他のサーバーに投稿を連合しません。上記の公開範囲に関わらず、他のサーバーのユーザーは、この設定がついたノートを直接閲覧することができなくなります。
                  */
                 "localOnly": string;
+            };
+            "_searchbility": {
+                /**
+                 * 検索許可の設定
+                 */
+                "title": string;
+                /**
+                 * ノートを表示できる相手を制限できます。
+                 */
+                "description": string;
+                /**
+                 * すべてのユーザーが検索できます
+                 */
+                "public": string;
+                /**
+                 * フォロワーと反応した人が検索できます
+                 */
+                "followers": string;
+                /**
+                 * 反応した人が検索できます
+                 */
+                "reactedOnly": string;
+                /**
+                 * 自分のみが検索できます
+                 */
+                "private": string;
+                /**
+                 * リモートサーバーでは適用されない可能性があります。
+                 */
+                "notApplyRemote": string;
             };
             "_cw": {
                 /**
@@ -10222,6 +10260,10 @@ export interface Locale extends ILocale {
          * マスコット画像
          */
         "mascot": string;
+        /**
+         * データセーバー
+         */
+        "dataSaver": string;
     };
     "_cw": {
         /**
@@ -11695,6 +11737,14 @@ export interface Locale extends ILocale {
          * ジョブキューを再試行
          */
         "promoteQueue": string;
+        /**
+         * 公開投稿のみ配送に制限
+         */
+        "quarantineRemoteInstance": string;
+        /**
+         * 公開投稿のみ配送を解除
+         */
+        "unquarantineRemoteInstance": string;
     };
     "_fileViewer": {
         /**
@@ -12629,6 +12679,66 @@ export interface Locale extends ILocale {
          * 自分だけ
          */
         "private": string;
+    };
+    "_emoji": {
+        /**
+         * この絵文字のコピーは許可されていません
+         */
+        "copyPermissionIsDeny": string;
+        /**
+         * ライセンスと使用に関しての情報を読んで同意できるならOkを選択してください
+         */
+        "seeLicense": string;
+        /**
+         * 使用に関して
+         */
+        "usageInfo": string;
+        /**
+         * 作成者
+         */
+        "author": string;
+        /**
+         * コピーの許可
+         */
+        "copyPermission": string;
+        /**
+         * 許可
+         */
+        "allow": string;
+        /**
+         * 禁止
+         */
+        "deny": string;
+        /**
+         * 条件付き
+         */
+        "conditional": string;
+        /**
+         * 絵文字ベース
+         */
+        "isBasedOn": string;
+        /**
+         * コピー元
+         */
+        "importFrom": string;
+        /**
+         * インポートしました
+         */
+        "imported": string;
+    };
+    "_emojiRemoteFetch": {
+        /**
+         * リモートAPIからの情報取得
+         */
+        "title": string;
+        /**
+         * エラー
+         */
+        "Error": string;
+        /**
+         * 成功
+         */
+        "Success": string;
     };
 }
 declare const locales: {

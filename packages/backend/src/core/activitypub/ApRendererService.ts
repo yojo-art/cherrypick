@@ -190,6 +190,15 @@ export class ApRendererService {
 				// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
 				url: emoji.publicUrl || emoji.originalUrl,
 			},
+			keywords: emoji.aliases,
+			isSensitive: emoji.isSensitive,
+			...(emoji.copyPermission === null ? { } : { copyPermission: emoji.copyPermission }),
+			...(emoji.category === null ? { } : { category: emoji.category }),
+			...(emoji.license === null ? { } : { license: emoji.license }),
+			...(emoji.usageInfo === null ? { } : { usageInfo: emoji.usageInfo }),
+			...(emoji.author === null ? { } : { author: emoji.author }),
+			...(emoji.description === null ? { } : { description: emoji.description }),
+			...(emoji.isBasedOn === null ? { } : { isBasedOn: emoji.isBasedOn }),
 		};
 	}
 
@@ -876,6 +885,28 @@ export class ApRendererService {
 		activity.to = remote_user.uri;
 		activity.cc = [];
 
+		return activity;
+	}
+	@bindThis
+	public async renderReversiLike(game_session_id:string, reaction:string, reaction_from:MiUser, reaction_to:MiRemoteUser): Promise<ILike> {
+		const url = new URL(reaction_to.uri).origin;
+		const activity: ILike = {
+			object: `${url}/games/1c086295-25e3-4b82-b31e-3e3959906312/${game_session_id}`,
+			actor: this.userEntityService.genLocalUserUri(reaction_from.id),
+			type: 'EmojiReaction',
+			published: new Date().toISOString(),
+			content: reaction,
+			_misskey_reaction: reaction,
+		};
+		activity.to = reaction_to.uri;
+		activity.cc = [];
+
+		if (reaction.startsWith(':')) {
+			const name = reaction.replaceAll(':', '');
+			const emoji = (await this.customEmojiService.localEmojisCache.fetch()).get(name);
+
+			if (emoji && !emoji.localOnly) activity.tag = [this.renderEmoji(emoji)];
+		}
 		return activity;
 	}
 }

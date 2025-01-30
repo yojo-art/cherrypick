@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import * as Bull from 'bullmq';
 import { Not } from 'typeorm';
+import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
 import type { InstancesRepository, MiMeta } from '@/models/_.js';
 import type Logger from '@/logger.js';
@@ -20,6 +21,7 @@ import FederationChart from '@/core/chart/charts/federation.js';
 import { StatusError } from '@/misc/status-error.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
+import { GlobalEvents } from '@/core/GlobalEventService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type { DeliverJobData } from '../types.js';
 
@@ -27,6 +29,7 @@ import type { DeliverJobData } from '../types.js';
 export class DeliverProcessorService {
 	private logger: Logger;
 	private suspendedHostsCache: MemorySingleCache<MiInstance[]>;
+	private quarantinedHostsCache: MemorySingleCache<MiInstance[]>;
 	private latest: string | null;
 
 	constructor(
@@ -35,6 +38,8 @@ export class DeliverProcessorService {
 
 		@Inject(DI.instancesRepository)
 		private instancesRepository: InstancesRepository,
+		@Inject(DI.redisForSub)
+		private redisForSub: Redis.Redis,
 
 		private utilityService: UtilityService,
 		private federatedInstanceService: FederatedInstanceService,
@@ -47,6 +52,25 @@ export class DeliverProcessorService {
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('deliver');
 		this.suspendedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
+		this.quarantinedHostsCache = new MemorySingleCache<MiInstance[]>(1000 * 60 * 60); // 1h
+		this.redisForSub.on('message', this.onMessage);
+	}
+
+	@bindThis
+	private async onMessage(_: string, data: string): Promise<void> {
+		const obj = JSON.parse(data);
+
+		if (obj.channel === 'internal') {
+			const { type, body } = obj.message as GlobalEvents['internal']['payload'];
+			switch (type) {
+				case 'clearQuarantinedHostsCache': {
+					this.quarantinedHostsCache.delete();
+					break;
+				}
+				default:
+					break;
+			}
+		}
 	}
 
 	@bindThis
@@ -69,6 +93,21 @@ export class DeliverProcessorService {
 		}
 		if (suspendedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
 			return 'skip (suspended)';
+		}
+		// isQuarantinedなら中断
+		let quarantinedHosts = this.quarantinedHostsCache.get();
+		if (quarantinedHosts == null) {
+			quarantinedHosts = await this.instancesRepository.find({
+				where: {
+					quarantineLimited: true,
+				},
+			});
+			this.quarantinedHostsCache.set(quarantinedHosts);
+		}
+		if (!job.data.isPublicContent) {
+			if (quarantinedHosts.map(x => x.host).includes(this.utilityService.toPuny(host))) {
+				return 'skip (quarantined)';
+			}
 		}
 
 		try {

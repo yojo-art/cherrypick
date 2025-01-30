@@ -21,6 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<option value="silenced">{{ i18n.ts.silence }}</option>
 				<option value="blocked">{{ i18n.ts.blocked }}</option>
 				<option value="notResponding">{{ i18n.ts.notResponding }}</option>
+				<option value="quarantined">{{ i18n.ts.quarantineThisInstance }}</option>
 			</MkSelect>
 			<MkSelect v-model="sort">
 				<template #label>{{ i18n.ts.sort }}</template>
@@ -80,6 +81,7 @@ const pagination = {
 			state.value === 'blocked' ? { blocked: true } :
 			state.value === 'silenced' ? { silenced: true } :
 			state.value === 'notResponding' ? { notResponding: true } :
+			state.value === 'quarantined' ? { quarantined: true } :
 			{}),
 	})),
 } as Paging;

@@ -59,7 +59,7 @@ export const mutedNoteReasons = ['word', 'manual', 'spam', 'other'] as const;
 export const followingVisibilities = ['public', 'followers', 'private'] as const;
 export const followersVisibilities = ['public', 'followers', 'private'] as const;
 export const searchableTypes = ['public', 'followersAndReacted', 'reactedOnly', 'private'] as const;
-
+export const emojiCopyPermissions = ['allow', 'deny', 'conditional', null] as const;
 /**
  * ユーザーがエクスポートできるものの種類
  *
@@ -127,6 +127,8 @@ export const moderationLogTypes = [
 	'deleteGalleryPost',
 	'updateOfficialTags',
 	'unsetUserMutualLink',
+	'quarantineRemoteInstance',
+	'unquarantineRemoteInstance',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -392,7 +394,15 @@ export type ModerationLogPayloads = {
 		userId: string;
 		userUsername: string;
 		userMutualLinkSections: { name: string | null; mutualLinks: { fileId: string; description: string | null; imgSrc: string; }[]; }[] | []
-	}
+	};
+	quarantineRemoteInstance: {
+		id: string;
+		host: string;
+	};
+	unquarantineRemoteInstance: {
+		id: string;
+		host: string;
+	};
 };
 
 export type Serialized<T> = {

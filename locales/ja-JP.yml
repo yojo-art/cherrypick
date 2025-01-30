@@ -330,6 +330,7 @@ stopActivityDelivery: "アクティビティの配送を停止"
 blockThisInstance: "このサーバーをブロック"
 silenceThisInstance: "サーバーをサイレンス"
 mediaSilenceThisInstance: "サーバーをメディアサイレンス"
+quarantineThisInstance: "サーバーに公開投稿のみ配送"
 operations: "操作"
 software: "ソフトウェア"
 version: "バージョン"
@@ -1654,6 +1655,7 @@ _initialTutorial:
     local: "このサーバーにいるユーザー全員の投稿を見られます。"
     social: "ホームタイムラインとローカルタイムラインの投稿が両方表示されます。"
     global: "接続している他のすべてのサーバーからの投稿を見られます。"
+    media: "接続している他のすべてのサーバーからのファイル付き投稿を見られます。"
     description2: "それぞれのタイムラインは、画面上部でいつでも切り替えられます。"
     description3: "その他にも、リストタイムラインやチャンネルタイムラインなどがあります。詳しくは{link}をご覧ください。"
   _postNote:
@@ -1668,6 +1670,14 @@ _initialTutorial:
       doNotSendConfidencialOnDirect1: "機密情報は送信する際は注意してください。"
       doNotSendConfidencialOnDirect2: "送信先のサーバーの管理者は投稿内容を見ることが可能なので、信頼できないサーバーのユーザーにダイレクト投稿を送信する場合は、機密情報の扱いに注意が必要です。"
       localOnly: "他のサーバーに投稿を連合しません。上記の公開範囲に関わらず、他のサーバーのユーザーは、この設定がついたノートを直接閲覧することができなくなります。"
+    _searchbility:
+      title: "検索許可の設定"
+      description: "ノートを表示できる相手を制限できます。"
+      public: "すべてのユーザーが検索できます"
+      followers: "フォロワーと反応した人が検索できます"
+      reactedOnly: "反応した人が検索できます"
+      private: "自分のみが検索できます"
+      notApplyRemote: "リモートサーバーでは適用されない可能性があります。"
     _cw:
       title: "内容を隠す（CW）"
       description: "本文のかわりに「注釈」に書いた内容が表示されます。「もっと見る」を押すと本文が表示されます。"
@@ -2682,6 +2692,7 @@ _widgets:
   search: "検索"
   dice: "サイコロ"
   mascot: "マスコット画像"
+  dataSaver: "データセーバー"
 
 _cw:
   hide: "隠す"
@@ -3090,6 +3101,8 @@ _moderationLogTypes:
   deleteGalleryPost: "ギャラリーの投稿を削除"
   updateOfficialTags: "公式タグ一覧を更新"
   promoteQueue: "ジョブキューを再試行"
+  quarantineRemoteInstance: "公開投稿のみ配送に制限"
+  unquarantineRemoteInstance: "公開投稿のみ配送を解除"
 
 _fileViewer:
   title: "ファイルの詳細"
@@ -3365,6 +3378,7 @@ _renoteConfirm:
   title: "このノートはリノートしたばかりです"
   caption: "リノートしますか？"
   confirm: 'リノートする'
+
 _searchbility:
     tooltip: "検索可能範囲"
     canSearch: "が検索できます"
@@ -3372,3 +3386,21 @@ _searchbility:
     followersAndReacted: "フォロワーと反応した人"
     reactedOnly: "反応した人"
     private: "自分だけ"
+
+_emoji:
+  copyPermissionIsDeny: "この絵文字のコピーは許可されていません"
+  seeLicense: "ライセンスと使用に関しての情報を読んで同意できるならOkを選択してください"
+  usageInfo: "使用に関して"
+  author: "作成者"
+  copyPermission: "コピーの許可"
+  allow: "許可"
+  deny: "禁止"
+  conditional: "条件付き"
+  isBasedOn: "絵文字ベース"
+  importFrom: "コピー元"
+  imported: "インポートしました"
+
+_emojiRemoteFetch:
+  title: "リモートAPIからの情報取得"
+  Error: "エラー"
+  Success: "成功"

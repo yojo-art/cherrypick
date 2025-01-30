@@ -3,6 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { emojiCopyPermissions } from '@/types.js';
+
 export const packedEmojiSimpleSchema = {
 	type: 'object',
 	properties: {
@@ -102,5 +104,11 @@ export const packedEmojiDetailedSchema = {
 				format: 'id',
 			},
 		},
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, },
+		usageInfo: { type: 'string', nullable: true, },
+		author: { type: 'string', nullable: true, },
+		description: { type: 'string', nullable: true, },
+		isBasedOn: { type: 'string', nullable: true, },
+		importFrom: { type: 'string', nullable: true, },
 	},
 } as const;

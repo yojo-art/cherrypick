@@ -7,7 +7,6 @@ import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
 import type { EmojisRepository } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
-import type { } from '@/models/Blocking.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import { bindThis } from '@/decorators.js';
 
@@ -62,6 +61,12 @@ export class EmojiEntityService {
 			isSensitive: emoji.isSensitive,
 			localOnly: emoji.localOnly,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: emoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
+			copyPermission: emoji.copyPermission,
+			usageInfo: emoji.usageInfo,
+			author: emoji.author,
+			description: emoji.description,
+			isBasedOn: emoji.isBasedOn,
+			importFrom: emoji.importFrom,
 		};
 	}
 

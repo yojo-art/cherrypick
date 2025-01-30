@@ -17,9 +17,10 @@ import { bindThis } from '@/decorators.js';
 import { MemoryKVCache, RedisSingleCache } from '@/misc/cache.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { query } from '@/misc/prelude/url.js';
-import type { Serialized } from '@/types.js';
+import { emojiCopyPermissions, Serialized } from '@/types.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { DriveService } from '@/core/DriveService.js';
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 const parseEmojiStrRegexp = /^([-\w]+)(?:@([\w.-]+))?$/;
 
@@ -69,9 +70,15 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		isSensitive: boolean;
 		localOnly: boolean;
 		roleIdsThatCanBeUsedThisEmojiAsReaction: MiRole['id'][];
+		copyPermission: 'allow' | 'deny' | 'conditional' | null,
+		usageInfo: string | null,
+		author: string | null,
+		description: string | null,
+		isBasedOn: string | null,
+		importFrom?: string | null,
 	}, moderator?: MiUser): Promise<MiEmoji> {
 		// システムユーザーとして再アップロード
-		if (!data.driveFile.user?.isRoot) {
+		if (!data.driveFile.user?.isRoot && !data.importFrom) {
 			data.driveFile = await this.driveService.uploadFromUrl({
 				url: data.driveFile.url,
 				user: null,
@@ -93,6 +100,12 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			isSensitive: data.isSensitive,
 			localOnly: data.localOnly,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: data.roleIdsThatCanBeUsedThisEmojiAsReaction,
+			copyPermission: data.copyPermission,
+			usageInfo: data.usageInfo,
+			author: data.author,
+			description: data.description,
+			isBasedOn: data.isBasedOn,
+			...(data.importFrom ? { importFrom: data.importFrom } : {}),
 		});
 
 		if (data.host == null) {
@@ -127,6 +140,11 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		isSensitive?: boolean;
 		localOnly?: boolean;
 		roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
+		copyPermission?: 'allow' | 'deny' | 'conditional' | null,
+		usageInfo?: string | null,
+		author?: string | null,
+		description?: string | null,
+		isBasedOn?: string | null,
 	}, moderator?: MiUser): Promise<
 		null
 		| 'NO_SUCH_EMOJI'
@@ -157,6 +175,11 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			publicUrl: data.driveFile != null ? (data.driveFile.webpublicUrl ?? data.driveFile.url) : undefined,
 			type: data.driveFile != null ? (data.driveFile.webpublicType ?? data.driveFile.type) : undefined,
 			roleIdsThatCanBeUsedThisEmojiAsReaction: data.roleIdsThatCanBeUsedThisEmojiAsReaction ?? undefined,
+			copyPermission: data.copyPermission,
+			usageInfo: data.usageInfo,
+			author: data.author,
+			description: data.description,
+			isBasedOn: data.isBasedOn,
 		});
 
 		this.localEmojisCache.refresh();
@@ -188,6 +211,59 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		return null;
 	}
 
+	@bindThis
+	public async importEmoji(data: {
+		id?: string;
+		name?: string;
+		host?: string;
+		licenseReadText: string| null;
+	}, moderator: MiUser): Promise<MiEmoji> {
+		if ((!data.id && !data.name && !data.host)) throw new IdentifiableError('7884f9a9-878f-454c-af3a-f2a75ee59a57', 'InvalidData');
+
+		const remoteEmoji = data.id ?
+			await this.emojisRepository.findOneBy({ id: data.id }) :
+			await this.emojisRepository.findOneBy({ name: data.name, host: data.host });
+
+		if (remoteEmoji === null) throw new IdentifiableError('1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e', 'No such emoji');
+
+		//コピー拒否
+		if (remoteEmoji.copyPermission === emojiCopyPermissions[1]) {
+			throw new IdentifiableError('16bd0f1d-c797-468e-af3f-a7eede1fef72', 'Copy is not allowed this emoji.');
+		}
+
+		//条件付き
+		if (remoteEmoji.copyPermission === emojiCopyPermissions[2] && data.licenseReadText !== remoteEmoji.license) {
+			throw new IdentifiableError('064ac9f8-5531-4e9b-b158-3cf8524d96ef', 'See license');
+		}
+
+		const isDuplicate = await this.checkDuplicate(remoteEmoji.name);
+		if (isDuplicate) throw new IdentifiableError('141c2c9af-0039-45e8-a99b-bc9027f4e0a9', 'Local emoji already exists.');
+
+		const driveFile = await this.driveService.uploadFromUrl({ url: remoteEmoji.originalUrl, user: null, force: false });
+
+		//連合絵文字のisBasedOnがnullでなく空文字列だった場合オリジナルのURLを使う
+		const basedOn = remoteEmoji.isBasedOn === null ?
+			remoteEmoji.originalUrl :
+			remoteEmoji.isBasedOn === '' ? remoteEmoji.originalUrl : remoteEmoji.isBasedOn;
+
+		return await this.add({
+			driveFile,
+			name: remoteEmoji.name,
+			category: remoteEmoji.category,
+			aliases: remoteEmoji.aliases,
+			host: null,
+			license: remoteEmoji.license,
+			isSensitive: remoteEmoji.isSensitive,
+			localOnly: remoteEmoji.localOnly,
+			roleIdsThatCanBeUsedThisEmojiAsReaction: remoteEmoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
+			copyPermission: remoteEmoji.copyPermission,
+			usageInfo: remoteEmoji.usageInfo,
+			author: remoteEmoji.author,
+			description: remoteEmoji.description,
+			isBasedOn: basedOn,
+			importFrom: remoteEmoji.host,
+		}, moderator);
+	}
 	@bindThis
 	public async addAliasesBulk(ids: MiEmoji['id'][], aliases: string[]) {
 		const emojis = await this.emojisRepository.findBy({

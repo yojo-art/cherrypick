@@ -46,19 +46,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSwitch v-model="isIndexable" @update:modelValue="save()">
 		{{ i18n.ts.makeIndexable }}
 		<span class="_beta">yojo-art</span>
+		<template #caption>{{ i18n.ts.makeIndexableDescription }}</template>
 	</MkSwitch>
-	<MkInfo>{{ i18n.ts.makeIndexableDescription }}</MkInfo>
-
-	<div class="_gaps_m">
-		<MkSelect v-model="searchableBy" @update:modelValue="save()">
-			<option value="public">{{ i18n.ts._searchbility.public }}</option>
-			<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
-			<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
-			<option value="private">{{ i18n.ts._searchbility.private }}</option>
-		</MkSelect>
-		<span class="_beta">yojo-art</span>
-	</div>
-	<MkInfo>{{ i18n.ts.makeSearchableByDescription }}</MkInfo>
+	<MkSelect v-model="searchableBy" @update:modelValue="save()">
+		<template #label>{{ i18n.ts._searchbility.tooltip }}<span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
+		<option value="public">{{ i18n.ts._searchbility.public }}</option>
+		<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
+		<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
+		<option value="private">{{ i18n.ts._searchbility.private }}</option>
+		<template #caption>{{ i18n.ts.makeSearchableByDescription }}</template>
+	</MkSelect>
 
 	<FormSection>
 		<div class="_gaps_m">

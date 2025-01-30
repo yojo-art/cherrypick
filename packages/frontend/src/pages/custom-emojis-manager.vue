@@ -85,7 +85,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
-import { importEmojiMeta } from '@/scripts/import-emoji.js';
+import { copyEmoji } from '@/scripts/import-emoji.js';
 
 const emojisPaginationComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
@@ -160,11 +160,7 @@ const edit = (emoji) => {
 };
 
 const importEmoji = async(emoji) => {
-	let res = await os.apiWithDialog('admin/emoji/copy', {
-		emojiId: emoji.id,
-	});
-	res = await importEmojiMeta(res, emoji.host);
-	edit(res);
+	await copyEmoji(emoji, 'admin/emoji/import');
 };
 
 const remoteMenu = (emoji, ev: MouseEvent) => {
