@@ -1,6 +1,4 @@
-## x.x.x
-Cherrypick x.xx.x  
-Misskey 2025.xx.x
+## 1.4.0
 
 ### Release Date
 ### General
