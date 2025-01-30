@@ -78,7 +78,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		importFrom?: string | null,
 	}, moderator?: MiUser): Promise<MiEmoji> {
 		// システムユーザーとして再アップロード
-		if (!data.driveFile.user?.isRoot && data.importFrom) {
+		if (!data.driveFile.user?.isRoot && !data.importFrom) {
 			data.driveFile = await this.driveService.uploadFromUrl({
 				url: data.driveFile.url,
 				user: null,
