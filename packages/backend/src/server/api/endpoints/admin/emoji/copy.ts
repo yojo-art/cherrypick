@@ -3,16 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { EmojisRepository } from '@/models/_.js';
-import type { MiDriveFile } from '@/models/DriveFile.js';
-import { DI } from '@/di-symbols.js';
-import { DriveService } from '@/core/DriveService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
-import { emojiCopyPermissions } from '@/types.js';
 import { ApiError } from '../../../error.js';
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -37,9 +33,9 @@ export const meta = {
 			code: 'NOT_ALLOWED',
 			id: '1beadfcc-3882-f3c9-ee57-ded45e4741e4',
 		},
-		seeUsageInfoAndLicense: {
-			message: 'see Usage information or license.',
-			code: 'SEE_USAGEINFOMATION_OR_LICENSE',
+		seeLicense: {
+			message: 'see Usage license.',
+			code: 'SEE_LICENSE',
 			id: '28d9031e-ddbc-5ba3-c435-fcb5259e8408',
 		},
 	},
@@ -61,68 +57,34 @@ export const paramDef = {
 	type: 'object',
 	properties: {
 		emojiId: { type: 'string', format: 'misskey:id' },
-		usageInfoReaded: {
-			type: 'boolean',
-		},
+		licenseReadText: { type: 'string', nullable: true, default: null },
 	},
 	required: ['emojiId'],
 } as const;
 
-// TODO: ロジックをサービスに切り出す
-
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
-		@Inject(DI.emojisRepository)
-		private emojisRepository: EmojisRepository,
 		private emojiEntityService: EmojiEntityService,
 		private customEmojiService: CustomEmojiService,
-		private driveService: DriveService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const emoji = await this.emojisRepository.findOneBy({ id: ps.emojiId });
-			if (emoji == null) {
-				throw new ApiError(meta.errors.noSuchEmoji);
-			}
-
-			//コピー拒否
-			if (emoji.copyPermission === emojiCopyPermissions[1]) throw new ApiError(meta.errors.copyIsNotAllowed);
-			//条件付き
-			const readed = ps.usageInfoReaded ?? false;
-			if (emoji.copyPermission === emojiCopyPermissions[2] && !readed) throw new ApiError(meta.errors.seeUsageInfoAndLicense);
-
-			let driveFile: MiDriveFile;
-
-			try {
-				// Create file
-				driveFile = await this.driveService.uploadFromUrl({ url: emoji.originalUrl, user: null, force: false });
-			} catch (e) {
-				// TODO: need to return Drive Error
-				throw new ApiError();
-			}
-
-			// Duplication Check
-			const isDuplicate = await this.customEmojiService.checkDuplicate(emoji.name);
-			if (isDuplicate) throw new ApiError(meta.errors.duplicateName);
-
-			const addedEmoji = await this.customEmojiService.add({
-				driveFile,
-				name: emoji.name,
-				category: emoji.category,
-				aliases: emoji.aliases,
-				host: null,
-				license: emoji.license,
-				isSensitive: emoji.isSensitive,
-				localOnly: emoji.localOnly,
-				roleIdsThatCanBeUsedThisEmojiAsReaction: emoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
-				copyPermission: emoji.copyPermission,
-				usageInfo: emoji.usageInfo,
-				author: emoji.author,
-				description: emoji.description,
-				isBasedOn: emoji.isBasedOn ?? emoji.originalUrl,
-			}, me);
-
-			return this.emojiEntityService.packDetailed(addedEmoji);
+				try {
+					const imported = await this.customEmojiService.importEmoji({
+						id: ps.emojiId,
+						licenseReadText: ps.licenseReadText
+					}, me);
+					return this.emojiEntityService.packDetailed(imported);
+				} catch (err) {
+					if (err instanceof IdentifiableError) {
+						if (err.id === '1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e') throw new ApiError(meta.errors.noSuchEmoji);
+						if (err.id === '16bd0f1d-c797-468e-af3f-a7eede1fef72') throw new ApiError(meta.errors.copyIsNotAllowed);
+						if (err.id === '064ac9f8-5531-4e9b-b158-3cf8524d96ef') throw new ApiError(meta.errors.seeLicense);
+						if (err.id === '141c2c9af-0039-45e8-a99b-bc9027f4e0a9') throw new ApiError(meta.errors.duplicateName);
+						throw err;
+					}
+					throw err;
+				}
 		});
 	}
 }

@@ -236,11 +236,8 @@ describe('Note', () => {
 				strictEqual(reactions[0].type, '❤');
 			});
 
-			/**
-			 * TODO: this may be unexpected behavior?
-			 *       @see https://github.com/misskey-dev/misskey/issues/12409
-			 */
-			test('Even if nonSensitiveOnly, remote users can react with sensitive emoji, and it is not converted', async () => {
+			//https://github.com/yojo-art/cherrypick/pull/631
+			test('絵文字のセンシティブフラグが連合している場合、センシティブリアクションはハートに変換される', async () => {
 				const note = (await alice.client.request('notes/create', { text: 'a', reactionAcceptance: 'nonSensitiveOnly' })).createdNote;
 				const noteInB = await resolveRemoteNote('a.test', note.id, bob);
 				const emoji = await addCustomEmoji('b.test', { isSensitive: true });
@@ -249,7 +246,7 @@ describe('Note', () => {
 
 				const reactions = await alice.client.request('notes/reactions', { noteId: note.id });
 				strictEqual(reactions.length, 1);
-				strictEqual(reactions[0].type, `:${emoji.name}@b.test:`);
+				strictEqual(reactions[0].type, `❤`);
 			});
 		});
 	});

@@ -11,13 +11,13 @@ Cherrypick 4.13.0
 Misskey 2024.10.1
 
 ### Release Date
-2025-01-28
+2025-01-30
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
 - Feat: 公開投稿以外の配送を制限する機能 [#574](https://github.com/yojo-art/cherrypick/pull/574)
 - Enhance: Fedibird形式の絵文字情報連合に対応 [#604](https://github.com/yojo-art/cherrypick/pull/604)
-	- 以下の情報が対応ソフト間で連合されます
+  - 以下の情報が対応ソフト間で連合されます
     - キーワード
     - コピー条件
     - カテゴリ
@@ -25,7 +25,7 @@ Misskey 2024.10.1
     - ライセンス
     - 説明
     - 使用に関しての説明
-
+- Enhance: `emoji`の拡張プロパティ`isSensitive?: boolean`が定義されている場合、カスタム絵文字のセンシティブフラグを連合するように
 ### Client
 - Fix: チュートリアルを現状に合わせて更新[#586](https://github.com/yojo-art/cherrypick/pull/586)
 - Fix: 自分自身のリアクション一覧が公開設定に影響される問題を修正 [#614](https://github.com/yojo-art/cherrypick/pull/614)

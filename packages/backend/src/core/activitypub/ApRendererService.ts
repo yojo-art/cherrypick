@@ -191,6 +191,7 @@ export class ApRendererService {
 				url: emoji.publicUrl || emoji.originalUrl,
 			},
 			keywords: emoji.aliases,
+			isSensitive: emoji.isSensitive,
 			...(emoji.copyPermission === null ? { } : { copyPermission: emoji.copyPermission }),
 			...(emoji.category === null ? { } : { category: emoji.category }),
 			...(emoji.license === null ? { } : { license: emoji.license }),
