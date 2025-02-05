@@ -1,10 +1,16 @@
-## 1.4.0
+## 1.3.1
+Cherrypick 4.13.0  
+Misskey 2024.10.1
 
 ### Release Date
+
 ### General
+- Fix: Docker のビルドに失敗する問題を修正  
+  (Cherry-picked from https://github.com/misskey-dev/misskey/pull/15387)
+
 ### Client
 - リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
-### Server
+
 
 ## 1.3.0
 Cherrypick 4.13.0  
