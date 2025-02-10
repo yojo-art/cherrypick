@@ -279,7 +279,7 @@ export interface IApEmoji extends IObject {
 	license?: string;
 	keywords?: string[];
 	usageInfo?: string;
-	creator?: string;
+	author?: string;
 	description?: string;
 	isBasedOn?: string;
 }

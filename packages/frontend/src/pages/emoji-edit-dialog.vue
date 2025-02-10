@@ -53,7 +53,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInput v-model="description">
 					<template #label>{{ i18n.ts.description }}</template>
 				</MkInput>
-				<MkInput v-model="creator">
+				<MkInput v-model="author">
 					<template #label>{{ i18n.ts._emoji.author }}</template>
 				</MkInput>
 				<MkInput v-model="usageInfo">
@@ -138,7 +138,7 @@ const isSensitive = ref(props.emoji ? props.emoji.isSensitive : false);
 const localOnly = ref(props.emoji ? props.emoji.localOnly : false);
 
 const description = ref<string>(props.emoji ? props.emoji.description : null);
-const creator = ref<string>(props.emoji ? props.emoji.creator : null);
+const author = ref<string>(props.emoji ? props.emoji.author : null);
 const usageInfo = ref<string>(props.emoji ? props.emoji.usageInfo : null);
 const isBasedOn = ref<string>(props.emoji ? props.emoji.isBasedOn : null);
 const copyPermission = ref<string>(props.emoji ? props.emoji.copyPermission : 'allow');
@@ -192,7 +192,7 @@ async function done() {
 		isSensitive: isSensitive.value,
 		localOnly: localOnly.value,
 		description: description.value,
-		creator: creator.value,
+		author: author.value,
 		usageInfo: usageInfo.value,
 		isBasedOn: isBasedOn.value,
 		copyPermission: copyPermission.value,

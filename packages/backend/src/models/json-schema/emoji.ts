@@ -106,7 +106,7 @@ export const packedEmojiDetailedSchema = {
 		},
 		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, },
 		usageInfo: { type: 'string', nullable: true, },
-		creator: { type: 'string', nullable: true, },
+		author: { type: 'string', nullable: true, },
 		description: { type: 'string', nullable: true, },
 		isBasedOn: { type: 'string', nullable: true, },
 		importFrom: { type: 'string', nullable: true, },

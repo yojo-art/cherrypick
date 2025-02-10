@@ -142,7 +142,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
 		copyPermission?: 'allow' | 'deny' | 'conditional' | null,
 		usageInfo?: string | null,
-		creator?: string | null,
+		author?: string | null,
 		description?: string | null,
 		isBasedOn?: string | null,
 	}, moderator?: MiUser): Promise<
@@ -177,7 +177,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			roleIdsThatCanBeUsedThisEmojiAsReaction: data.roleIdsThatCanBeUsedThisEmojiAsReaction ?? undefined,
 			copyPermission: data.copyPermission,
 			usageInfo: data.usageInfo,
-			creator: data.creator,
+			author: data.author,
 			description: data.description,
 			isBasedOn: data.isBasedOn,
 		});
@@ -258,7 +258,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 			roleIdsThatCanBeUsedThisEmojiAsReaction: remoteEmoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
 			copyPermission: remoteEmoji.copyPermission,
 			usageInfo: remoteEmoji.usageInfo,
-			creator: remoteEmoji.creator,
+			author: remoteEmoji.author,
 			description: remoteEmoji.description,
 			isBasedOn: basedOn,
 			importFrom: remoteEmoji.host,

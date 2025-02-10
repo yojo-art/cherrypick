@@ -63,7 +63,7 @@ export class EmojiEntityService {
 			roleIdsThatCanBeUsedThisEmojiAsReaction: emoji.roleIdsThatCanBeUsedThisEmojiAsReaction,
 			copyPermission: emoji.copyPermission,
 			usageInfo: emoji.usageInfo,
-			creator: emoji.creator,
+			author: emoji.author,
 			description: emoji.description,
 			isBasedOn: emoji.isBasedOn,
 			importFrom: emoji.importFrom,
