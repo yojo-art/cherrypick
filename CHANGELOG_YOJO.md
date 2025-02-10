@@ -11,6 +11,8 @@ Misskey 2024.10.1
 ### Client
 - リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
 
+### Server
+- 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
 
 ## 1.3.0
 Cherrypick 4.13.0  
