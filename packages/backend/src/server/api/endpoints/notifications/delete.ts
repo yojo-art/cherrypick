@@ -7,7 +7,7 @@ import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ApiError } from '../../error.js';
-import {IdentifiableError} from "@/misc/identifiable-error.js";
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 export const meta = {
 	tags: ['notification', 'account'],
