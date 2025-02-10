@@ -96,7 +96,7 @@ export class MiEmoji {
 		default: null,
 		nullable: true,
 	})
-	public author: string | null;
+	public creator: string | null;
 
 	@Column('enum',
 		{
