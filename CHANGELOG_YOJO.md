@@ -10,7 +10,7 @@ Misskey 2024.10.1
 - Fix: ログイン通知を削除できる問題[#642](https://github.com/yojo-art/cherrypick/pull/642)
 
 ### Client
-- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように[#640](https://github.com/yojo-art/cherrypick/pull/640)
+- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
 
 ### Server
 - 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
