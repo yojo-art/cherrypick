@@ -21,6 +21,7 @@ import type { Config } from '@/config.js';
 import { UserListService } from '@/core/UserListService.js';
 import type { FilterUnionByProperty } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 @Injectable()
 export class NotificationService implements OnApplicationShutdown {
@@ -236,15 +237,15 @@ export class NotificationService implements OnApplicationShutdown {
 
 	@bindThis
 	async getRedisNotificationId(userId: MiUser['id'], notificationId: MiNotification['id']) {
-		//取れるだけ取るのはやりすぎかも
 		const res = await this.redisClient.xrange(
 			`notificationTimeline:${userId}`,
 			'-',
 			'+',
-			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
 		);
 		for (let i = 0; i < res.length; i++) {
-			if (JSON.parse(res[i][1].toString().replace('data,', '')).id === notificationId) {
+			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
+			if (notification.id === notificationId) {
+				if (notification.type === 'login') throw new IdentifiableError('32f27781-daf0-4b7b-8b23-ca6d4616952d', 'is login');
 				return res[i][0];
 			}
 		}
@@ -264,12 +265,10 @@ export class NotificationService implements OnApplicationShutdown {
 
 	@bindThis
 	async getRedisInvitedNotificationId(userId: MiUser['id'], invitationId: string) {
-		//取れるだけ取るのはやりすぎかも
 		const res = await this.redisClient.xrange(
 			`notificationTimeline:${userId}`,
 			'-',
 			'+',
-			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
 		);
 		for (let i = 0; i < res.length; i++) {
 			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));

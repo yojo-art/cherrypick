@@ -7,9 +7,10 @@ Misskey 2024.10.1
 ### General
 - Fix: Docker のビルドに失敗する問題を修正  
   (Cherry-picked from https://github.com/misskey-dev/misskey/pull/15387)
+- Fix: ログイン通知を削除できる問題[#642](https://github.com/yojo-art/cherrypick/pull/642)
 
 ### Client
-- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
+- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように[#640](https://github.com/yojo-art/cherrypick/pull/640)
 
 ### Server
 - 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
