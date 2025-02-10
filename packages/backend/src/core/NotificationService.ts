@@ -237,10 +237,12 @@ export class NotificationService implements OnApplicationShutdown {
 
 	@bindThis
 	async getRedisNotificationId(userId: MiUser['id'], notificationId: MiNotification['id']) {
+		//取れるだけ取るのはやりすぎかも
 		const res = await this.redisClient.xrange(
 			`notificationTimeline:${userId}`,
 			'-',
 			'+',
+			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
 		);
 		for (let i = 0; i < res.length; i++) {
 			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
@@ -265,10 +267,12 @@ export class NotificationService implements OnApplicationShutdown {
 
 	@bindThis
 	async getRedisInvitedNotificationId(userId: MiUser['id'], invitationId: string) {
+		//取れるだけ取るのはやりすぎかも
 		const res = await this.redisClient.xrange(
 			`notificationTimeline:${userId}`,
 			'-',
 			'+',
+			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
 		);
 		for (let i = 0; i < res.length; i++) {
 			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
