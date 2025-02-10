@@ -196,7 +196,10 @@ export class ApRendererService {
 			...(emoji.category === null ? { } : { category: emoji.category }),
 			...(emoji.license === null ? { } : { license: emoji.license }),
 			...(emoji.usageInfo === null ? { } : { usageInfo: emoji.usageInfo }),
-			...(emoji.author === null ? { } : { author: emoji.author }),
+			...(emoji.author === null ? { } : {
+				author: emoji.author,
+				creator: emoji.author,
+			}),
 			...(emoji.description === null ? { } : { description: emoji.description }),
 			...(emoji.isBasedOn === null ? { } : { isBasedOn: emoji.isBasedOn }),
 		};

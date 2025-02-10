@@ -525,7 +525,7 @@ export class ApNoteService {
 						license: tag.license,
 						aliases: tag.keywords,
 						usageInfo: tag.usageInfo,
-						author: tag.author,
+						author: tag.author ?? tag.crator,
 						description: tag.description,
 						isBasedOn: tag.isBasedOn,
 					});
@@ -554,7 +554,7 @@ export class ApNoteService {
 				license: tag.license,
 				aliases: tag.keywords,
 				usageInfo: tag.usageInfo,
-				author: tag.author,
+				author: tag.author ?? tag.crator,
 				description: tag.description,
 				isBasedOn: tag.isBasedOn,
 			});
