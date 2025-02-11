@@ -74,7 +74,8 @@ export class ScheduleNotePostProcessorService {
 					//キューに積んだときは有った物が消滅してたら予約投稿をキャンセルする
 					this.logger.warn('cancel schedule note');
 					await this.noteScheduleRepository.remove(data);
-					if (data.userId && me) {//ユーザーが特定できる場合に失敗を通知
+
+					if (data.userId && me) {	//ユーザーが特定できる場合に失敗を通知
 						let errorType = 'unknown';
 						if (note.renote && !renote) {
 							errorType = 'renoteTargetNotFound';

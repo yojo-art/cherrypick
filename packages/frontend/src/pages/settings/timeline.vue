@@ -12,6 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkSwitch v-model="enableLocalTimeline"><i class="ti ti-planet"></i> {{ i18n.ts._timelines.local }}</MkSwitch>
 			<MkSwitch v-model="enableSocialTimeline"><i class="ti ti-universe"></i> {{ i18n.ts._timelines.social }}</MkSwitch>
 			<MkSwitch v-model="enableGlobalTimeline"><i class="ti ti-world"></i> {{ i18n.ts._timelines.global }}</MkSwitch>
+			<MkSwitch v-model="enableBubbleTimeline"><i class="ti ti-droplet"></i> {{ i18n.ts._timelines.bubble }}</MkSwitch>
 			<MkSwitch v-model="enableMediaTimeline"><i class="ti ti-photo"></i> {{ i18n.ts._timelines.media }}</MkSwitch>
 		</div>
 	</FormSection>
@@ -46,6 +47,7 @@ const enableHomeTimeline = computed(defaultStore.makeGetterSetter('enableHomeTim
 const enableLocalTimeline = computed(defaultStore.makeGetterSetter('enableLocalTimeline'));
 const enableSocialTimeline = computed(defaultStore.makeGetterSetter('enableSocialTimeline'));
 const enableGlobalTimeline = computed(defaultStore.makeGetterSetter('enableGlobalTimeline'));
+const enableBubbleTimeline = computed(defaultStore.makeGetterSetter('enableBubbleTimeline'));
 const enableListTimeline = computed(defaultStore.makeGetterSetter('enableListTimeline'));
 const enableAntennaTimeline = computed(defaultStore.makeGetterSetter('enableAntennaTimeline'));
 const enableMediaTimeline = computed(defaultStore.makeGetterSetter('enableMediaTimeline'));

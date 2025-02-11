@@ -410,6 +410,18 @@ export class MiMeta {
 		length: 1024,
 		nullable: true,
 	})
+	public libreTranslateEndPoint: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public libreTranslateApiKey: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
 	public termsOfServiceUrl: string | null;
 
 	@Column('varchar', {
@@ -834,4 +846,16 @@ export class MiMeta {
 		default: false,
 	})
 	public disablePublicNoteWhenInactive: boolean;
+
+	@Column('integer', {
+		nullable: false,
+	})
+	public moderatorInactivityLimitDays: number;
+
+	@Column('varchar', {
+		length: 256,
+		array: true,
+		default: '{}',
+	})
+	public bubbleInstances: string[];
 }

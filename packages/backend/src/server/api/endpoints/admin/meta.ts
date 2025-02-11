@@ -468,6 +468,14 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			libreTranslateEndPoint: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			libreTranslateApiKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			defaultDarkTheme: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -633,6 +641,17 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			moderatorInactivityLimitDays: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			bubbleInstances: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+				},
+			},
 		},
 	},
 } as const;
@@ -767,6 +786,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				ctav3Location: instance.ctav3Location,
 				ctav3Model: instance.ctav3Model,
 				ctav3Glossary: instance.ctav3Glossary,
+				libreTranslateEndPoint: instance.libreTranslateEndPoint,
+				libreTranslateApiKey: instance.libreTranslateApiKey,
 				enableIpLogging: instance.enableIpLogging,
 				enableActiveEmailValidation: instance.enableActiveEmailValidation,
 				enableVerifymailApi: instance.enableVerifymailApi,
@@ -809,6 +830,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				customSplashText: instance.customSplashText,
 				disableRegistrationWhenInactive: instance.disableRegistrationWhenInactive,
 				disablePublicNoteWhenInactive: instance.disablePublicNoteWhenInactive,
+				moderatorInactivityLimitDays: instance.moderatorInactivityLimitDays,
+				bubbleInstances: instance.bubbleInstances,
 			};
 		});
 	}

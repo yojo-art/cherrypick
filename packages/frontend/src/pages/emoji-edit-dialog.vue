@@ -8,9 +8,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	ref="windowEl"
 	:initialWidth="400"
 	:initialHeight="500"
-	:canResize="false"
+	:canResize="true"
 	@close="windowEl?.close()"
-	@closed="$emit('closed')"
+	@closed="emit('closed')"
 >
 	<template v-if="emoji" #header>:{{ emoji.name }}:</template>
 	<template v-else #header>New emoji</template>
@@ -120,20 +120,25 @@ import { customEmojiCategories } from '@/custom-emojis.js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import { selectFile } from '@/scripts/select-file.js';
 import MkRolePreview from '@/components/MkRolePreview.vue';
-import MkSelect from "@/components/MkSelect.vue";
-import MkKeyValue from "@/components/MkKeyValue.vue";
+import MkSelect from '@/components/MkSelect.vue';
+import MkKeyValue from '@/components/MkKeyValue.vue';
 
 const props = defineProps<{
-	emoji?: any,
+	emoji?: Misskey.entities.EmojiDetailed,
 	showFetchResult?: boolean,
 	fetchSuccess?: boolean,
 }>();
 
+const emit = defineEmits<{
+	(ev: 'done', v: { deleted?: boolean; updated?: Misskey.entities.AdminEmojiUpdateRequest; created?: Misskey.entities.AdminEmojiUpdateRequest }): void,
+	(ev: 'closed'): void
+}>();
+
 const windowEl = ref<InstanceType<typeof MkWindow> | null>(null);
 const name = ref<string>(props.emoji ? props.emoji.name : '');
-const category = ref<string>(props.emoji ? props.emoji.category : '');
+const category = ref<string>(props.emoji?.category ? props.emoji.category : '');
 const aliases = ref<string>(props.emoji ? props.emoji.aliases.join(' ') : '');
-const license = ref<string>(props.emoji ? (props.emoji.license ?? '') : '');
+const license = ref<string>(props.emoji?.license ? props.emoji.license : '');
 const isSensitive = ref(props.emoji ? props.emoji.isSensitive : false);
 const localOnly = ref(props.emoji ? props.emoji.localOnly : false);
 
@@ -152,14 +157,9 @@ watch(roleIdsThatCanBeUsedThisEmojiAsReaction, async () => {
 	rolesThatCanBeUsedThisEmojiAsReaction.value = (await Promise.all(roleIdsThatCanBeUsedThisEmojiAsReaction.value.map((id) => misskeyApi('admin/roles/show', { roleId: id }).catch(() => null)))).filter(x => x != null);
 }, { immediate: true });
 
-const imgUrl = computed(() => file.value ? file.value.url : props.emoji ? `/emoji/${props.emoji.name}.webp` : null);
+const imgUrl = computed(() => file.value ? file.value.url : props.emoji ? props.emoji.url : null);
 
-const emit = defineEmits<{
-	(ev: 'done', v: { deleted?: boolean; updated?: any; created?: any }): void,
-	(ev: 'closed'): void
-}>();
-
-async function changeImage(ev) {
+async function changeImage(ev: Event) {
 	file.value = await selectFile(ev.currentTarget ?? ev.target, null);
 	const candidate = file.value.name.replace(/\.(.+)$/, '');
 	if (candidate.match(/^[a-z0-9_]+$/)) {
@@ -179,7 +179,7 @@ async function addRole() {
 	rolesThatCanBeUsedThisEmojiAsReaction.value.push(role);
 }
 
-async function removeRole(role, ev) {
+async function removeRole(role: Misskey.entities.RoleLite, ev: Event) {
 	rolesThatCanBeUsedThisEmojiAsReaction.value = rolesThatCanBeUsedThisEmojiAsReaction.value.filter(x => x.id !== role.id);
 }
 
@@ -229,6 +229,7 @@ async function done() {
 }
 
 async function del() {
+	if (!props.emoji) return;
 	const { canceled } = await os.confirm({
 		type: 'warning',
 		text: i18n.tsx.removeAreYouSure({ x: name.value }),

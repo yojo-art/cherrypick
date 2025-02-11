@@ -254,7 +254,7 @@ async function remoteNote(
 		note = await apNoteService.fetchNote(uri);
 		if (note == null) {
 			//ダメそうなら照会
-			note = await apNoteService.createNote(uri, undefined, true);
+			note = await apNoteService.createNote(uri, undefined, undefined, true);
 			is_create = true;
 		}
 	} catch (e) {

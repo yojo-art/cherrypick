@@ -148,7 +148,7 @@ export function openInstanceMenu(ev: MouseEvent) {
 		});
 	}
 
-	if (!instance.impressumUrl && !instance.tosUrl && !instance.privacyPolicyUrl && !instance.statusUrl) {
+	if (instance.impressumUrl != null || instance.tosUrl != null || instance.privacyPolicyUrl != null && !instance.statusUrl) {
 		menuItems.push({ type: 'divider' });
 	}
 

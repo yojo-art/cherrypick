@@ -274,7 +274,19 @@ import { $i } from '@/account.js';
 
 const patronsWithIconWithYojoArt = [];
 
-const patronsWithIconWithCherryPick = [];
+const patronsWithIconWithCherryPick = [{
+	name: 'Etone Sabasappugawa',
+	icon: 'https://s3.kokonect.link/cherrypick/patreons/b3bd97949b664c81857cc7286552c65e.png',
+}, {
+	name: 'okin',
+	icon: 'https://s3.kokonect.link/cherrypick/patreons/c185756cf04d483b9c7687d98ce1103c.png',
+}, {
+	name: 'Kitty',
+	icon: 'https://s3.kokonect.link/cherrypick/patreons/5f8e4bac9cf34984bc59875f6d8d5c1d.gif',
+}, {
+	name: 'breadguy',
+	icon: 'https://s3.kokonect.link/cherrypick/patreons/04cd46fba69c4953949cd1cc15d8c691.jpg',
+}];
 
 const patronsWithIconWithMisskey = [{
 	name: 'カイヤン',
@@ -399,6 +411,12 @@ const patronsWithIconWithMisskey = [{
 }, {
 	name: '如月ユカ',
 	icon: 'https://assets.misskey-hub.net/patrons/f24a042076a041b6811a2f124eb620ca.jpg',
+}, {
+	name: 'Yatoigawa',
+	icon: 'https://assets.misskey-hub.net/patrons/505e3568885a4a488431a8f22b4553d0.jpg',
+}, {
+	name: '秋瀬カヲル',
+	icon: 'https://assets.misskey-hub.net/patrons/0f22aeb866484f4fa51db6721e3f9847.jpg',
 }];
 
 const patronsWithYojoArt = [
@@ -513,6 +531,10 @@ const patronsWithMisskey = [
 	'はとぽぷさん',
 	'100の人 (エスパー・イーシア)',
 	'ケモナーのケシン',
+	'こまつぶり',
+	'まゆつな空高',
+	'asata',
+	'ruru',
 ];
 
 let isKokonect = false;

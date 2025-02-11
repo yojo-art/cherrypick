@@ -69,6 +69,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<span v-else-if="notification.type === 'test'">{{ i18n.ts._notification.testNotification }}</span>
 			<span v-else-if="notification.type === 'exportCompleted'">{{ i18n.tsx._notification.exportOfXCompleted({ x: exportEntityName[notification.exportedEntity] }) }}</span>
 			<MkA v-else-if="notification.type === 'follow' || notification.type === 'mention' || notification.type === 'reply' || notification.type === 'renote' || notification.type === 'quote' || notification.type === 'reaction' || notification.type === 'receiveFollowRequest' || notification.type === 'followRequestAccepted'" v-user-preview="notification.user.id" :class="$style.headerName" :to="userPage(notification.user)"><MkUserName :user="notification.user"/></MkA>
+			<span v-else-if="notification.type === 'groupInvited'">{{ i18n.ts.groupInvited }}</span>
 			<span v-else-if="notification.type === 'reaction:grouped' && notification.note.reactionAcceptance === 'likeOnly'">{{ i18n.tsx._notification.likedBySomeUsers({ n: getActualReactedUsersCount(notification) }) }}</span>
 			<span v-else-if="notification.type === 'reaction:grouped'">{{ i18n.tsx._notification.reactedBySomeUsers({ n: getActualReactedUsersCount(notification) }) }}</span>
 			<span v-else-if="notification.type === 'note:grouped'">{{ i18n.tsx._notification.notedBySomeUsers({ n: notification.noteIds.length }) }}</span>
@@ -142,12 +143,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</template>
 			<template v-else-if="notification.type === 'groupInvited'">
-				<span :class="$style.text" style="opacity: 0.6;">{{ i18n.ts.groupInvited }}:<span style="font-weight: bold; margin-left: 5px;">{{ notification.invitation.group.name }}</span></span>
+				<span style="font-weight: bold;">{{ notification.invitation.group.name }}</span>
 				<div v-if="full && !groupInviteDone" :class="$style.followRequestCommands">
 					<MkButton :class="$style.followRequestCommandButton" rounded primary @click="acceptGroupInvitation()"><i class="ti ti-check"/> {{ i18n.ts.accept }}</MkButton>
 					<MkButton :class="$style.followRequestCommandButton" rounded danger @click="rejectGroupInvitation()"><i class="ti ti-x"/> {{ i18n.ts.reject }}</MkButton>
 				</div>
 			</template>
+			<span v-else-if="notification.type === 'scheduleNote'" :class="$style.text">{{ i18n.ts._notification._scheduleNote[notification.errorType] }}</span>
 			<span v-else-if="notification.type === 'test'" :class="$style.text">{{ i18n.ts._notification.notificationWillBeDisplayedLikeThis }}</span>
 			<span v-else-if="notification.type === 'app'" :class="$style.text">
 				<Mfm :text="notification.body" :nowrap="false"/>
@@ -302,7 +304,8 @@ const rejectGroupInvitation = () => {
 .icon_reactionGroup,
 .icon_reactionGroupHeart,
 .icon_renoteGroup,
-.icon_noteGroup {
+.icon_noteGroup,
+.icon_scheduleNote {
 	display: grid;
 	align-items: center;
 	justify-items: center;
@@ -328,6 +331,13 @@ const rejectGroupInvitation = () => {
 .icon_noteGroup {
 	background: var(--eventRenote);
 }
+.icon_scheduleNote {
+	width: 100%;
+	height: 100%;
+	color: var(--warn);
+	background: var(--eventOther);
+}
+
 .icon_scheduleNote {
 	width: 100%;
 	height: 100%;
