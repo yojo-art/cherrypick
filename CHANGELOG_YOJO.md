@@ -1,3 +1,21 @@
+## 1.3.1
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+2025-02-11
+
+### General
+- Fix: Docker のビルドに失敗する問題を修正  
+  (Cherry-picked from https://github.com/misskey-dev/misskey/pull/15387)
+- Fix: ログイン通知を削除できる問題[#642](https://github.com/yojo-art/cherrypick/pull/642)
+
+### Client
+- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
+
+### Server
+- 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
+- Fix: 管理者のコントロールパネルでシステムにしたときリモートファイルも表示される[#641](https://github.com/yojo-art/cherrypick/pull/641)
 ## 1.3.0
 Cherrypick 4.13.0  
 Misskey 2024.10.1
