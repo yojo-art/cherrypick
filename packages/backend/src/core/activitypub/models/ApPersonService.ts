@@ -450,6 +450,7 @@ export class ApPersonService implements OnModuleInit {
 					isBot,
 					isCat: (person as any).isCat === true,
 					emojis,
+					recommendCollections: person.recommendCollections ? getApId(person.recommendCollections) : undefined,
 				})) as MiRemoteUser;
 
 				let _description: string | null = null;
