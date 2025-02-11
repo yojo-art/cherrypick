@@ -14,7 +14,7 @@ Misskey 2024.10.1
 
 ### Server
 - 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
-
+- Fix: 管理者のコントロールパネルでシステムにしたときリモートファイルも表示される[#641](https://github.com/yojo-art/cherrypick/pull/641)
 ## 1.3.0
 Cherrypick 4.13.0  
 Misskey 2024.10.1
