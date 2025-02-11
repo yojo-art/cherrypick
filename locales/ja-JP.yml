@@ -277,7 +277,6 @@ selectWidget: "ウィジェットを選択"
 editWidgets: "ウィジェットを編集"
 editWidgetsExit: "編集を終了"
 customEmojis: "カスタム絵文字"
-emojiRemoteDetailedUnavailable: "詳細情報が利用できません"
 emoji: "絵文字"
 emojis: "絵文字"
 emojiName: "絵文字名"
@@ -3379,6 +3378,7 @@ _renoteConfirm:
   title: "このノートはリノートしたばかりです"
   caption: "リノートしますか？"
   confirm: 'リノートする'
+
 _searchbility:
     tooltip: "検索可能範囲"
     canSearch: "が検索できます"
@@ -3397,3 +3397,10 @@ _emoji:
   deny: "禁止"
   conditional: "条件付き"
   isBasedOn: "絵文字ベース"
+  importFrom: "コピー元"
+  imported: "インポートしました"
+
+_emojiRemoteFetch:
+  title: "リモートAPIからの情報取得"
+  Error: "エラー"
+  Success: "成功"

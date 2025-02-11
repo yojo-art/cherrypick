@@ -1138,10 +1138,6 @@ export interface Locale extends ILocale {
      */
     "customEmojis": string;
     /**
-     * 詳細情報が利用できません
-     */
-    "emojiRemoteDetailedUnavailable": string;
-    /**
      * 絵文字
      */
     "emoji": string;
@@ -1353,6 +1349,10 @@ export interface Locale extends ILocale {
      * サーバーをメディアサイレンス
      */
     "mediaSilenceThisInstance": string;
+    /**
+     * サーバーに公開投稿のみ配送
+     */
+    "quarantineThisInstance": string;
     /**
      * 操作
      */
@@ -11737,6 +11737,14 @@ export interface Locale extends ILocale {
          * ジョブキューを再試行
          */
         "promoteQueue": string;
+        /**
+         * 公開投稿のみ配送に制限
+         */
+        "quarantineRemoteInstance": string;
+        /**
+         * 公開投稿のみ配送を解除
+         */
+        "unquarantineRemoteInstance": string;
     };
     "_fileViewer": {
         /**
@@ -12709,6 +12717,28 @@ export interface Locale extends ILocale {
          * 絵文字ベース
          */
         "isBasedOn": string;
+        /**
+         * コピー元
+         */
+        "importFrom": string;
+        /**
+         * インポートしました
+         */
+        "imported": string;
+    };
+    "_emojiRemoteFetch": {
+        /**
+         * リモートAPIからの情報取得
+         */
+        "title": string;
+        /**
+         * エラー
+         */
+        "Error": string;
+        /**
+         * 成功
+         */
+        "Success": string;
     };
 }
 declare const locales: {

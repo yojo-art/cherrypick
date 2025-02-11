@@ -20,6 +20,10 @@ on:
       # for e2e
       - packages/backend/**
       - .github/workflows/test-frontend.yml
+
+env:
+  COREPACK_DEFAULT_TO_LATEST: 0
+
 jobs:
   vitest:
     runs-on: ubuntu-latest

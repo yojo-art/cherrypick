@@ -1,15 +1,32 @@
+## 1.3.1
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+
+### General
+- Fix: Docker のビルドに失敗する問題を修正  
+  (Cherry-picked from https://github.com/misskey-dev/misskey/pull/15387)
+- Fix: ログイン通知を削除できる問題[#642](https://github.com/yojo-art/cherrypick/pull/642)
+
+### Client
+- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
+
+### Server
+- 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
+
 ## 1.3.0
 Cherrypick 4.13.0  
 Misskey 2024.10.1
 
 ### Release Date
-2025-01-28
+2025-01-30
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
 - Feat: 公開投稿以外の配送を制限する機能 [#574](https://github.com/yojo-art/cherrypick/pull/574)
 - Enhance: Fedibird形式の絵文字情報連合に対応 [#604](https://github.com/yojo-art/cherrypick/pull/604)
-	- 以下の情報が対応ソフト間で連合されます
+  - 以下の情報が対応ソフト間で連合されます
     - キーワード
     - コピー条件
     - カテゴリ
@@ -17,7 +34,7 @@ Misskey 2024.10.1
     - ライセンス
     - 説明
     - 使用に関しての説明
-
+- Enhance: `emoji`の拡張プロパティ`isSensitive?: boolean`が定義されている場合、カスタム絵文字のセンシティブフラグを連合するように
 ### Client
 - Fix: チュートリアルを現状に合わせて更新[#586](https://github.com/yojo-art/cherrypick/pull/586)
 - Fix: 自分自身のリアクション一覧が公開設定に影響される問題を修正 [#614](https://github.com/yojo-art/cherrypick/pull/614)

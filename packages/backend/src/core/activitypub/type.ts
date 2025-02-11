@@ -274,11 +274,13 @@ export interface IApEmoji extends IObject {
 	name: string;
 	updated: string;
 	copyPermission?: 'allow' | 'deny' | 'conditional';
+	isSensitive?: boolean;
 	category?: string;
 	license?: string;
 	keywords?: string[];
 	usageInfo?: string;
 	author?: string;
+	crator?: string;
 	description?: string;
 	isBasedOn?: string;
 }

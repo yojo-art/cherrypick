@@ -5125,6 +5125,7 @@ export type components = {
       author: string | null;
       description: string | null;
       isBasedOn: string | null;
+      importFrom: string | null;
     };
     Flash: {
       /**
@@ -7930,7 +7931,8 @@ export type operations = {
         'application/json': {
           /** Format: misskey:id */
           emojiId: string;
-          usageInfoReaded?: boolean;
+          /** @default null */
+          licenseReadText?: string | null;
         };
       };
     };
@@ -8523,7 +8525,8 @@ export type operations = {
         'application/json': {
           name: string;
           host: string;
-          usageInfoReaded?: boolean;
+          /** @default null */
+          licenseReadText?: string | null;
         };
       };
     };
