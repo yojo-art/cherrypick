@@ -254,6 +254,7 @@ import MkUrlPreview from '@/components/MkUrlPreview.vue';
 import MkEvent from '@/components/MkEvent.vue';
 import { pleaseLogin, type OpenOnRemoteOptions } from '@/scripts/please-login.js';
 import { checkWordMute } from '@/scripts/check-word-mute.js';
+import { notePage } from '@/filters/note.js';
 import { userPage } from '@/filters/user.js';
 import number from '@/filters/number.js';
 import * as os from '@/os.js';
@@ -279,7 +280,6 @@ import { getAppearNote } from '@/scripts/get-appear-note.js';
 import { globalEvents } from '@/events.js';
 import { mainRouter } from '@/router/main.js';
 import { useRouter } from '@/router/supplier.js';
-import { notePage } from '@/filters/note.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
@@ -305,6 +305,7 @@ const emit = defineEmits<{
 }>();
 
 const inTimeline = inject<boolean>('inTimeline', false);
+const tl_withSensitive = inject<Ref<boolean>>('tl_withSensitive', ref(true));
 const inChannel = inject('inChannel', null);
 const currentClip = inject<Ref<Misskey.entities.Clip> | null>('currentClip', null);
 
@@ -387,15 +388,18 @@ function checkMute(noteToCheck: Misskey.entities.Note, mutedWords: Array<string 
 function checkMute(noteToCheck: Misskey.entities.Note, mutedWords: Array<string | string[]> | undefined | null, checkOnly: false): boolean | 'sensitiveMute';
 */
 function checkMute(noteToCheck: Misskey.entities.Note, mutedWords: Array<string | string[]> | undefined | null, checkOnly = false): boolean | 'sensitiveMute' {
-	if (mutedWords == null) return false;
-
-	if (checkWordMute(noteToCheck, $i, mutedWords)) return true;
-	if (noteToCheck.reply && checkWordMute(noteToCheck.reply, $i, mutedWords)) return true;
-	if (noteToCheck.renote && checkWordMute(noteToCheck.renote, $i, mutedWords)) return true;
+	if (mutedWords != null) {
+		if (checkWordMute(noteToCheck, $i, mutedWords)) return true;
+		if (noteToCheck.reply && checkWordMute(noteToCheck.reply, $i, mutedWords)) return true;
+		if (noteToCheck.renote && checkWordMute(noteToCheck.renote, $i, mutedWords)) return true;
+	}
 
 	if (checkOnly) return false;
 
-	if (inTimeline && !defaultStore.state.tl.filter.withSensitive && noteToCheck.files?.some((v) => v.isSensitive)) return 'sensitiveMute';
+	if (inTimeline && tl_withSensitive.value === false && noteToCheck.files?.some((v) => v.isSensitive)) {
+		return 'sensitiveMute';
+	}
+
 	return false;
 }
 
@@ -545,7 +549,7 @@ function noteDblClick(ev: MouseEvent) {
 }
 
 function renote() {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
 	const { menu } = getRenoteMenu({ note: note.value, renoteButton, mock: props.mock });
@@ -553,14 +557,14 @@ function renote() {
 }
 
 async function renoteOnly() {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
 	await getRenoteOnly({ note: note.value, renoteButton, mock: props.mock });
 }
 
 function quote(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	if (props.mock) {
 		return;
 	}
@@ -586,7 +590,7 @@ function quote(): void {
 }
 
 function reply(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	if (props.mock) {
 		return;
 	}
@@ -599,7 +603,7 @@ function reply(): void {
 }
 
 function react(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 	if (appearNote.value.reactionAcceptance === 'likeOnly') {
 		sound.playMisskeySfx('reaction');
@@ -671,7 +675,7 @@ async function toggleReaction(reaction) {
 }
 
 function heartReact(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
 	sound.playMisskeySfx('reaction');
@@ -828,15 +832,24 @@ function showRenoteMenu(): void {
 		};
 	}
 
+	const renoteDetailsMenu: MenuItem = {
+		type: 'link',
+		text: i18n.ts.renoteDetails,
+		icon: 'ti ti-info-circle',
+		to: notePage(note.value),
+	};
+
 	if (isMyRenote) {
-		pleaseLogin(undefined, pleaseLoginContext.value);
+		pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 		os.popupMenu([
+			renoteDetailsMenu,
 			getCopyNoteLinkMenu(note.value, i18n.ts.copyLinkRenote),
 			{ type: 'divider' },
 			getUnrenote(),
 		], renoteTime.value);
 	} else {
 		os.popupMenu([
+			renoteDetailsMenu,
 			getCopyNoteLinkMenu(note.value, i18n.ts.copyLinkRenote),
 			{ type: 'divider' },
 			getAbuseNoteMenu(note.value, i18n.ts.reportAbuseRenote),

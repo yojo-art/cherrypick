@@ -37,6 +37,7 @@ import type {
 	AdminAnnouncementsListResponse,
 	AdminAnnouncementsUpdateRequest,
 	AdminAvatarDecorationsCreateRequest,
+	AdminAvatarDecorationsCreateResponse,
 	AdminAvatarDecorationsDeleteRequest,
 	AdminAvatarDecorationsListRequest,
 	AdminAvatarDecorationsListResponse,
@@ -272,6 +273,8 @@ import type {
 	FollowingRequestsCancelResponse,
 	FollowingRequestsListRequest,
 	FollowingRequestsListResponse,
+	FollowingRequestsSentRequest,
+	FollowingRequestsSentResponse,
 	FollowingRequestsRejectRequest,
 	GalleryFeaturedRequest,
 	GalleryFeaturedResponse,
@@ -428,6 +431,8 @@ import type {
 	NotesFavoritesDeleteRequest,
 	NotesFeaturedRequest,
 	NotesFeaturedResponse,
+	NotesBubbleTimelineRequest,
+	NotesBubbleTimelineResponse,
 	NotesGlobalTimelineRequest,
 	NotesGlobalTimelineResponse,
 	NotesHybridTimelineRequest,
@@ -643,7 +648,7 @@ export type Endpoints = {
 	'admin/announcements/delete': { req: AdminAnnouncementsDeleteRequest; res: EmptyResponse };
 	'admin/announcements/list': { req: AdminAnnouncementsListRequest; res: AdminAnnouncementsListResponse };
 	'admin/announcements/update': { req: AdminAnnouncementsUpdateRequest; res: EmptyResponse };
-	'admin/avatar-decorations/create': { req: AdminAvatarDecorationsCreateRequest; res: EmptyResponse };
+	'admin/avatar-decorations/create': { req: AdminAvatarDecorationsCreateRequest; res: AdminAvatarDecorationsCreateResponse };
 	'admin/avatar-decorations/delete': { req: AdminAvatarDecorationsDeleteRequest; res: EmptyResponse };
 	'admin/avatar-decorations/list': { req: AdminAvatarDecorationsListRequest; res: AdminAvatarDecorationsListResponse };
 	'admin/avatar-decorations/update': { req: AdminAvatarDecorationsUpdateRequest; res: EmptyResponse };
@@ -800,6 +805,7 @@ export type Endpoints = {
 	'following/requests/accept': { req: FollowingRequestsAcceptRequest; res: EmptyResponse };
 	'following/requests/cancel': { req: FollowingRequestsCancelRequest; res: FollowingRequestsCancelResponse };
 	'following/requests/list': { req: FollowingRequestsListRequest; res: FollowingRequestsListResponse };
+	'following/requests/sent': { req: FollowingRequestsSentRequest; res: FollowingRequestsSentResponse };
 	'following/requests/reject': { req: FollowingRequestsRejectRequest; res: EmptyResponse };
 	'gallery/featured': { req: GalleryFeaturedRequest; res: GalleryFeaturedResponse };
 	'gallery/popular': { req: EmptyRequest; res: GalleryPopularResponse };
@@ -911,6 +917,7 @@ export type Endpoints = {
 	'notes/favorites/create': { req: NotesFavoritesCreateRequest; res: EmptyResponse };
 	'notes/favorites/delete': { req: NotesFavoritesDeleteRequest; res: EmptyResponse };
 	'notes/featured': { req: NotesFeaturedRequest; res: NotesFeaturedResponse };
+	'notes/bubble-timeline': { req: NotesBubbleTimelineRequest; res: NotesBubbleTimelineResponse };
 	'notes/global-timeline': { req: NotesGlobalTimelineRequest; res: NotesGlobalTimelineResponse };
 	'notes/hybrid-timeline': { req: NotesHybridTimelineRequest; res: NotesHybridTimelineResponse };
 	'notes/local-timeline': { req: NotesLocalTimelineRequest; res: NotesLocalTimelineResponse };

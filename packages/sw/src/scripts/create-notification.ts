@@ -227,11 +227,6 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 						data,
 						tag: `achievement:${data.body.achievement}`,
 					}];
-				case 'scheduleNote':
-					return [i18n.ts.schedulePost, {
-						body: i18n.ts._notification._scheduleNote[`${data.body.errorType}`].title,
-						data,
-					}];
 
 				case 'login':
 					return [i18n.ts._notification.login, {
@@ -263,6 +258,12 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 					return [i18n.ts._notification.pollEnded, {
 						body: data.body.note.text ?? '',
 						badge: iconUrl('chart-arrows'),
+						data,
+					}];
+
+				case 'scheduleNote':
+					return [i18n.ts._notification._types.scheduleNote, {
+						body: data.body.errorType,
 						data,
 					}];
 

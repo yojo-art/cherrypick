@@ -37,6 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { defineAsyncComponent, computed, watch, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import * as os from '@/os.js';
+import { $i } from '@/account.js';
 import { acct as getAcct } from '@/filters/user.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
@@ -46,6 +47,7 @@ import { mainRouter } from '@/router/main.js';
 import { defaultStore } from '@/store.js';
 import { deviceKind } from '@/scripts/device-kind.js';
 import MkHorizontalSwipe from '@/components/MkHorizontalSwipe.vue';
+import { serverContext, assertServerContext } from '@/server-context.js';
 
 const MOBILE_THRESHOLD = 500;
 
@@ -66,6 +68,9 @@ const XFlashs = defineAsyncComponent(() => import('./flashs.vue'));
 const XGallery = defineAsyncComponent(() => import('./gallery.vue'));
 const XRaw = defineAsyncComponent(() => import('./raw.vue'));
 
+// contextは非ログイン状態の情報しかないためログイン時は利用できない
+const CTX_USER = !$i && assertServerContext(serverContext, 'user') ? serverContext.user : null;
+
 const props = withDefaults(defineProps<{
 	acct: string;
 	page?: string;
@@ -75,13 +80,24 @@ const props = withDefaults(defineProps<{
 
 const tab = ref(props.page);
 
-const user = ref<null | Misskey.entities.UserDetailed>(null);
+const user = ref<null | Misskey.entities.UserDetailed>(CTX_USER);
 const error = ref<any>(null);
 
 function fetchUser(): void {
 	if (props.acct == null) return;
+
+	const { username, host } = Misskey.acct.parse(props.acct);
+
+	if (CTX_USER && CTX_USER.username === username && CTX_USER.host === host) {
+		user.value = CTX_USER;
+		return;
+	}
+
 	user.value = null;
-	misskeyApi('users/show', Misskey.acct.parse(props.acct)).then(u => {
+	misskeyApi('users/show', {
+		username,
+		host,
+	}).then(u => {
 		user.value = u;
 	}).catch(err => {
 		error.value = err;

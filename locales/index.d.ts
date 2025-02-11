@@ -14,6 +14,18 @@ export interface Locale extends ILocale {
      */
     "_lang_": string;
     /**
+     * バブルタイムライン
+     */
+    "bubbleTimeline": string;
+    /**
+     * このオプションを有効にし、モデレーションに移動して、表示するサーバを設定します。
+     */
+    "bubbleTimelineDescription": string;
+    /**
+     * バブルタイムラインに表示するサーバのホスト名を改行で区切って設定します。
+     */
+    "bubbleInstancesDescription": string;
+    /**
      * いいねボタンで使うリアクションを選択
      */
     "selectReaction": string;
@@ -130,7 +142,7 @@ export interface Locale extends ILocale {
      */
     "noteFooterButton": string;
     /**
-     * 返信のリノートのスマート省略
+     * 返信のスマート省略
      */
     "collapseReplies": string;
     /**
@@ -2022,10 +2034,6 @@ export interface Locale extends ILocale {
      */
     "registration": string;
     /**
-     * 誰でも新規登録できるようにする
-     */
-    "enableRegistration": string;
-    /**
      * 招待
      */
     "invite": string;
@@ -2918,6 +2926,10 @@ export interface Locale extends ILocale {
      */
     "details": string;
     /**
+     * リノートの詳細
+     */
+    "renoteDetails": string;
+    /**
      * 絵文字を選択
      */
     "chooseEmoji": string;
@@ -3156,7 +3168,7 @@ export interface Locale extends ILocale {
     /**
      * ポストを展開する
      */
-    "expandTweet": string;
+    "expandPost": string;
     /**
      * テーマエディター
      */
@@ -4423,6 +4435,18 @@ export interface Locale extends ILocale {
      * 1ヶ月
      */
     "oneMonth": string;
+    /**
+     * 3ヶ月
+     */
+    "threeMonths": string;
+    /**
+     * 1年
+     */
+    "oneYear": string;
+    /**
+     * 3日
+     */
+    "threeDays": string;
     /**
      * 反映されるまで時間がかかる場合があります。
      */
@@ -5848,6 +5872,26 @@ export interface Locale extends ILocale {
      */
     "yourNameContainsProhibitedWordsDescription": string;
     /**
+     * 投稿者により、表示にはログインが必要と設定されています
+     */
+    "thisContentsAreMarkedAsSigninRequiredByAuthor": string;
+    /**
+     * ロックダウン
+     */
+    "lockdown": string;
+    /**
+     * アカウントを選択してください
+     */
+    "pleaseSelectAccount": string;
+    /**
+     * 利用可能なロール
+     */
+    "availableRoles": string;
+    /**
+     * 注意事項を理解した上でオンにします。
+     */
+    "acknowledgeNotesAndEnable": string;
+    /**
      * 未読の通知の数を表示する
      */
     "showUnreadNotificationsCount": string;
@@ -5978,6 +6022,52 @@ export interface Locale extends ILocale {
          * ダイレクトメッセージ
          */
         "direct": string;
+    };
+    "_accountSettings": {
+        /**
+         * コンテンツの表示にログインを必須にする
+         */
+        "requireSigninToViewContents": string;
+        /**
+         * あなたが作成した全てのノートなどのコンテンツを表示するのにログインを必須にします。クローラーに情報が収集されるのを防ぐ効果が期待できます。
+         */
+        "requireSigninToViewContentsDescription1": string;
+        /**
+         * URLプレビュー(OGP)、Webページへの埋め込み、ノートの引用に対応していないサーバーからの表示も不可になります。
+         */
+        "requireSigninToViewContentsDescription2": string;
+        /**
+         * リモートサーバーに連合されたコンテンツでは、これらの制限が適用されない場合があります。
+         */
+        "requireSigninToViewContentsDescription3": string;
+        /**
+         * 過去のノートをフォロワーのみ表示可能にする
+         */
+        "makeNotesFollowersOnlyBefore": string;
+        /**
+         * この機能が有効になっている間、設定された日時より過去、または設定された時間を経過しているノートがフォロワーのみ表示可能になります。無効に戻すと、ノートの公開状態も元に戻ります。
+         */
+        "makeNotesFollowersOnlyBeforeDescription": string;
+        /**
+         * 過去のノートを非公開化する
+         */
+        "makeNotesHiddenBefore": string;
+        /**
+         * この機能が有効になっている間、設定された日時より過去、または設定された時間を経過しているノートが自分のみ表示可能(非公開化)になります。無効に戻すと、ノートの公開状態も元に戻ります。
+         */
+        "makeNotesHiddenBeforeDescription": string;
+        /**
+         * リモートサーバーに連合されたノートには効果が及ばない場合があります。
+         */
+        "mayNotEffectForFederatedNotes": string;
+        /**
+         * 指定した時間を経過しているノート
+         */
+        "notesHavePassedSpecifiedPeriod": string;
+        /**
+         * 指定した日時より前のノート
+         */
+        "notesOlderThanSpecifiedDateAndTime": string;
     };
     "_abuseUserReport": {
         /**
@@ -6717,6 +6807,10 @@ export interface Locale extends ILocale {
          */
         "global": string;
         /**
+         * バブルタイムラインでは、管理者が設定したサーバーの投稿を見ることができます。
+         */
+        "bubble": string;
+        /**
          * メディアタイムラインでは、グローバルタイムラインからファイル付きのみが表示されます。
          */
         "media": string;
@@ -6886,6 +6980,14 @@ export interface Locale extends ILocale {
          * サーバー運営者へのお問い合わせフォームのURLや、運営者の連絡先等が記載されたWebページのURLを指定します。
          */
         "inquiryUrlDescription": string;
+        /**
+         * アカウントの作成をオープンにする
+         */
+        "openRegistration": string;
+        /**
+         * 登録を開放することはリスクが伴います。サーバーを常に監視し、トラブルが発生した際にすぐに対応できる体制がある場合のみオンにすることを推奨します。
+         */
+        "openRegistrationWarning": string;
         /**
          * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
          */
@@ -8045,6 +8147,10 @@ export interface Locale extends ILocale {
              * ローカルタイムラインの閲覧
              */
             "ltlAvailable": string;
+            /**
+             * バブルタイムラインの閲覧
+             */
+            "btlAvailable": string;
             /**
              * パブリック投稿の許可
              */
@@ -10065,13 +10171,25 @@ export interface Locale extends ILocale {
          */
         "callback": string;
         /**
+         * アクセスを許可しました
+         */
+        "accepted": string;
+        /**
          * アクセスを拒否しました
          */
         "denied": string;
         /**
+         * 以下のユーザーとして操作しています
+         */
+        "scopeUser": string;
+        /**
          * アプリケーションにアクセス許可を与えるには、ログインが必要です。
          */
         "pleaseLogin": string;
+        /**
+         * アクセスを許可すると、自動で以下のURLに遷移します
+         */
+        "byClickingYouWillBeRedirectedToThisUrl": string;
     };
     "_antennaSources": {
         /**
@@ -10728,6 +10846,10 @@ export interface Locale extends ILocale {
          * グローバル
          */
         "global": string;
+        /**
+         * バブル
+         */
+        "bubble": string;
     };
     "_play": {
         /**
@@ -11029,7 +11151,7 @@ export interface Locale extends ILocale {
          */
         "youGotReact": ParameterizedString<"name">;
         /**
-         * {name}がRenoteしました
+         * {name}がリノートしました
          */
         "youRenoted": ParameterizedString<"name">;
         /**
@@ -11125,28 +11247,6 @@ export interface Locale extends ILocale {
          * 承認されていない機器であれば、セキュリティのために「{text}」を通じてすべての機器でログアウトを行ってください。
          */
         "loginDescription": ParameterizedString<"ip" | "text">;
-        "_scheduleNote": {
-            /**
-             * 原因は不明です
-             */
-            "unknown": string;
-            /**
-             * 引用元がありません
-             */
-            "renoteTargetNotFound": string;
-            /**
-             * 対象のチャンネルがありません
-             */
-            "channelTargetNotFound": string;
-            /**
-             * 返信先がありません
-             */
-            "replyTargetNotFound": string;
-            /**
-             * 添付ファイルがありません
-             */
-            "invalidFilesCount": string;
-        };
         "_types": {
             /**
              * すべて
@@ -11169,7 +11269,7 @@ export interface Locale extends ILocale {
              */
             "reply": string;
             /**
-             * Renote
+             * リノート
              */
             "renote": string;
             /**
@@ -11235,9 +11335,31 @@ export interface Locale extends ILocale {
              */
             "reply": string;
             /**
-             * Renote
+             * リノート
              */
             "renote": string;
+        };
+        "_scheduleNote": {
+            /**
+             * 原因は不明です
+             */
+            "unknown": string;
+            /**
+             * 引用元がありません
+             */
+            "renoteTargetNotFound": string;
+            /**
+             * 対象のチャンネルがありません
+             */
+            "channelTargetNotFound": string;
+            /**
+             * 返信先がありません
+             */
+            "replyTargetNotFound": string;
+            /**
+             * 添付ファイルがありません
+             */
+            "invalidFilesCount": string;
         };
     };
     "_deck": {
@@ -12316,6 +12438,97 @@ export interface Locale extends ILocale {
          */
         "codeGeneratedDescription": string;
     };
+    "_selfXssPrevention": {
+        /**
+         * 警告
+         */
+        "warning": string;
+        /**
+         * 「この画面に何か貼り付けろ」はすべて詐欺です。
+         */
+        "title": string;
+        /**
+         * ここに何かを貼り付けると、悪意のあるユーザーにアカウントを乗っ取られたり、個人情報を盗まれたりする可能性があります。
+         */
+        "description1": string;
+        /**
+         * 貼り付けようとしているものが何なのかを正確に理解していない場合は、%c今すぐ作業を中止してこのウィンドウを閉じてください。
+         */
+        "description2": string;
+        /**
+         * 詳しくはこちらをご確認ください。 {link}
+         */
+        "description3": ParameterizedString<"link">;
+    };
+    "_followRequest": {
+        /**
+         * 受け取った申請
+         */
+        "recieved": string;
+        /**
+         * 送った申請
+         */
+        "sent": string;
+    };
+    "_remoteLookupErrors": {
+        "_federationNotAllowed": {
+            /**
+             * このサーバーとは通信できません
+             */
+            "title": string;
+            /**
+             * このサーバーとの通信が無効化されているか、このサーバーをブロックしている・ブロックされている可能性があります。
+             * サーバー管理者にお問い合わせください。
+             */
+            "description": string;
+        };
+        "_uriInvalid": {
+            /**
+             * URIが不正です
+             */
+            "title": string;
+            /**
+             * 入力されたURIに問題があります。URIに使用できない文字を入力していないか確認してください。
+             */
+            "description": string;
+        };
+        "_requestFailed": {
+            /**
+             * リクエストに失敗しました
+             */
+            "title": string;
+            /**
+             * このサーバーとの通信に失敗しました。相手サーバーがダウンしている可能性があります。また、不正なURIや存在しないURIを入力していないか確認してください。
+             */
+            "description": string;
+        };
+        "_responseInvalid": {
+            /**
+             * レスポンスが不正です
+             */
+            "title": string;
+            /**
+             * このサーバーと通信することはできましたが、得られたデータが不正なものでした。
+             */
+            "description": string;
+        };
+        "_responseInvalidIdHostNotMatch": {
+            /**
+             * 入力されたURIのドメインと最終的に得られたURIのドメインとが異なります。第三者のサーバーを介してリモートのコンテンツを照会している場合は、発信元のサーバーで取得できるURIを使用して照会し直してください。
+             */
+            "description": string;
+        };
+        "_noSuchObject": {
+            /**
+             * 見つかりません
+             */
+            "title": string;
+            /**
+             * 要求されたリソースは見つかりませんでした。URIをもう一度お確かめください。
+             */
+            "description": string;
+        };
+    };
     "_abuse": {
         "_resolver": {
             /**
@@ -12419,6 +12632,30 @@ export interface Locale extends ILocale {
          * このデバイスで今後このドメインを信頼する
          */
         "trustThisDomain": string;
+        /**
+         * 外部サイトに移動する際の警告
+         */
+        "externalNavigationWarning": string;
+        /**
+         * 外部サイトに移動する際の警告を表示
+         */
+        "enableExternalNavigationWarning": string;
+        /**
+         * 信頼するドメインリスト
+         */
+        "trustedDomainList": string;
+        /**
+         * `http://`と`https://`を省略して入力してください。
+         */
+        "trustedDomainListDescription": string;
+        /**
+         * 改行で区切って設定します
+         */
+        "trustedDomainListDescription2": string;
+        /**
+         * 信頼するドメインリストのリセット
+         */
+        "deleteTrustedDomainList": string;
     };
     "_altWarning": {
         /**
@@ -12479,6 +12716,32 @@ export interface Locale extends ILocale {
          * 以下のQRコードをスキャンまたは共有できます。
          */
         "description": string;
+    };
+    "_searchSite": {
+        /**
+         * 検索エンジン
+         */
+        "title": string;
+        /**
+         * MFCの検索構文で検索できるサイトを変更します。
+         */
+        "description": string;
+        /**
+         * その他の検索エンジン
+         */
+        "otherSearchEngine": string;
+        /**
+         * その他の検索エンジンを使用します。
+         */
+        "otherDescription": string;
+        /**
+         * 検索クエリ
+         */
+        "query": string;
+        /**
+         * 検索エンジンが使用するクエリを入力します。(例: https://www.google.com/search?q=test の場合qを入れる)
+         */
+        "queryDescription": string;
     };
     "_advancedSearch": {
         "_fileOption": {

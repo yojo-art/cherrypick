@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div v-if="note.files.length > 0" :class="$style.root">
+<div v-if="note.files.length > 0" :class="[$style.root, $style.visible]">
 	<div v-if="!showingFiles.includes(note.files[0].id)" :key="note.id + note.files[0].id" :class="$style.img" @click="onClick($event,note.files[0])" @dblclick="onDblClick(note.files[0])">
 		<!-- TODO: 画像以外のファイルに対応 -->
 		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="note.files[0].blurhash" :src="thumbnail(note.files[0])" :title="note.files[0].name" :forceBlurhash="true"/>
@@ -182,6 +182,24 @@ onUnmounted(() => {
 	font-size: 0.8em;
 	color: #fff;
 	cursor: pointer;
+}
+
+.visible {
+	position: relative;
+	-webkit-tap-highlight-color: transparent;
+	//box-shadow: 0 0 0 1px var(--MI_THEME-divider) inset;
+	background: var(--MI_THEME-bg);
+	background-size: 16px 16px;
+}
+
+html[data-color-scheme=dark] .visible {
+	--c: rgb(255 255 255 / 2%);
+	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--MI_THEME-bg) 16.67%, var(--MI_THEME-bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--MI_THEME-bg) 66.67%, var(--MI_THEME-bg) 100%);
+}
+
+html[data-color-scheme=light] .visible {
+	--c: rgb(0 0 0 / 2%);
+	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--MI_THEME-bg) 16.67%, var(--MI_THEME-bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--MI_THEME-bg) 66.67%, var(--MI_THEME-bg) 100%);
 }
 .sensitive > div{
 	display: flex;

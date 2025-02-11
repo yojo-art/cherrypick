@@ -37,7 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</transition>
 
 				<div :class="$style.tl">
-					<div v-if="!isAvailableBasicTimeline(src)" :class="$style.disabled">
+					<div v-if="!isAvailableBasicTimeline(src) && !src.startsWith('list:')" :class="$style.disabled">
 						<p :class="$style.disabledTitle">
 							<i class="ti ti-circle-minus"></i>
 							{{ i18n.ts._disabledTimeline.title }}
@@ -47,11 +47,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkTimeline
 						v-else
 						ref="tlComponent"
-						:key="src + withRenotes + withReplies + onlyFiles + onlyCats"
+						:key="src + withRenotes + withReplies + withSensitive + onlyFiles + onlyCats"
 						:src="src.split(':')[0]"
 						:list="src.split(':')[1]"
 						:withRenotes="withRenotes"
 						:withReplies="withReplies"
+						:withSensitive="withSensitive"
 						:onlyFiles="onlyFiles"
 						:onlyCats="onlyCats"
 						:sound="true"
@@ -174,6 +175,7 @@ const enableHomeTimeline = ref(defaultStore.state.enableHomeTimeline);
 const enableLocalTimeline = ref(defaultStore.state.enableLocalTimeline);
 const enableSocialTimeline = ref(defaultStore.state.enableSocialTimeline);
 const enableGlobalTimeline = ref(defaultStore.state.enableGlobalTimeline);
+const enableBubbleTimeline = ref(defaultStore.state.enableBubbleTimeline);
 const enableMediaTimeline = ref(defaultStore.state.enableMediaTimeline);
 const enableListTimeline = ref(defaultStore.state.enableListTimeline);
 const enableAntennaTimeline = ref(defaultStore.state.enableAntennaTimeline);
@@ -187,12 +189,7 @@ const alwaysShowCw = ref(defaultStore.state.alwaysShowCw);
 
 watch(src, () => {
 	queue.value = 0;
-	queueUpdated(queue);
-});
-
-watch(withSensitive, () => {
-	// これだけはクライアント側で完結する処理なので手動でリロード
-	tlComponent.value?.reloadTimeline();
+	queueUpdated(queue.value);
 });
 
 watch(enableWidgetsArea, (x) => {
@@ -222,6 +219,11 @@ watch(enableSocialTimeline, (x) => {
 
 watch(enableGlobalTimeline, (x) => {
 	defaultStore.set('enableGlobalTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(enableBubbleTimeline, (x) => {
+	defaultStore.set('enableBubbleTimeline', x);
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
@@ -519,6 +521,11 @@ const headerActions = computed(() => {
 							text: i18n.ts._timelines.global,
 							icon: 'ti ti-world',
 							ref: enableGlobalTimeline,
+						}, {
+							type: 'switch',
+							text: i18n.ts._timelines.bubble,
+							icon: 'ti ti-droplet',
+							ref: enableBubbleTimeline,
 						}, {
 							type: 'switch',
 							text: i18n.ts._timelines.media,
