@@ -3,6 +3,7 @@ Cherrypick 4.13.0
 Misskey 2024.10.1
 
 ### Release Date
+2025-02-11
 
 ### General
 - Fix: Docker のビルドに失敗する問題を修正  
