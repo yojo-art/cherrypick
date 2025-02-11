@@ -968,9 +968,9 @@ export class AdvancedSearchService {
 					const fields = ['tags', 'text', 'pollChoices'];
 					if (!opts.excludeCW)fields.push('cw');
 					osFilter.bool.must.push({ simple_query_string: {
-							fields: fields, 'query': q,
-							default_operator: 'and',
-						},
+						fields: fields, 'query': q,
+						default_operator: 'and',
+					},
 					});
 				}
 			}
@@ -1040,7 +1040,7 @@ export class AdvancedSearchService {
 			}
 
 			if (q && q !== '') {
-				if (this.config.pgroonga) {
+				if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
 					query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
 				} else {
 					query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });

@@ -216,6 +216,8 @@ export interface IActor extends IObject {
 	};
 	'vcard:bday'?: string;
 	'vcard:Address'?: string;
+	setFederationAvatarShape?: boolean,
+	isSquareAvatars?: boolean,
 	banner?: {
 		sectionName?: string | null;
 		_misskey_sectionName?: string | null;
@@ -276,6 +278,11 @@ export interface IApEmoji extends IObject {
 	type: 'Emoji';
 	name: string;
 	updated: string;
+	// Misskey拡張。後方互換性のためにoptional。
+	// 将来の拡張性を考慮してobjectにしている
+	_misskey_license?: {
+		freeText: string | null;
+	};
 	copyPermission?: 'allow' | 'deny' | 'conditional';
 	isSensitive?: boolean;
 	category?: string;

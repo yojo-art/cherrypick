@@ -848,7 +848,7 @@ export class MiMeta {
 	public disablePublicNoteWhenInactive: boolean;
 
 	@Column('integer', {
-		nullable: false,
+		default: 7,
 	})
 	public moderatorInactivityLimitDays: number;
 
@@ -858,4 +858,9 @@ export class MiMeta {
 		default: '{}',
 	})
 	public bubbleInstances: string[];
+
+	@Column('varchar', {
+		length: 2048, nullable: true,
+	})
+	public customRobotsTxt: string | null;
 }

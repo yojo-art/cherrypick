@@ -68,6 +68,8 @@ export type RolePolicies = {
 	canImportFollowing: boolean;
 	canImportMuting: boolean;
 	canImportUserLists: boolean;
+	noteDraftLimit: number;
+	canSetFederationAvatarShape: boolean;
 	fileSizeLimit: number;
 	mutualLinkSectionLimit: number;
 	mutualLinkLimit: number;
@@ -110,6 +112,8 @@ export const DEFAULT_POLICIES: RolePolicies = {
 	canImportFollowing: true,
 	canImportMuting: true,
 	canImportUserLists: true,
+	noteDraftLimit: 10,
+	canSetFederationAvatarShape: true,
 	fileSizeLimit: 50,
 	mutualLinkSectionLimit: 1,
 	mutualLinkLimit: 15,
@@ -425,6 +429,8 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			canImportFollowing: calc('canImportFollowing', vs => vs.some(v => v === true)),
 			canImportMuting: calc('canImportMuting', vs => vs.some(v => v === true)),
 			canImportUserLists: calc('canImportUserLists', vs => vs.some(v => v === true)),
+			noteDraftLimit: calc('noteDraftLimit', vs => Math.max(...vs)),
+			canSetFederationAvatarShape: calc('canSetFederationAvatarShape', vs => vs.some(v => v === true)),
 			fileSizeLimit: calc('fileSizeLimit', vs => Math.max(...vs)),
 			mutualLinkSectionLimit: calc('mutualLinkSectionLimit', vs => Math.max(...vs)),
 			mutualLinkLimit: calc('mutualLinkLimit', vs => Math.max(...vs)),

@@ -30,10 +30,10 @@ export const meta = {
 			sourceLang: { type: 'string' },
 			text: {
 				type: 'array',
-				optional: false, nullable: false,
+				optional: true, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
+					optional: false, nullable: true,
 				},
 			},
 		},

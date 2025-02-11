@@ -247,6 +247,8 @@ export const paramDef = {
 			uniqueItems: true,
 			items: { type: 'string' },
 		},
+		setFederationAvatarShape: { type: 'boolean', nullable: true },
+		isSquareAvatars: { type: 'boolean', nullable: true },
 		mutualLinkSections: {
 			type: 'array',
 			items: {
@@ -545,6 +547,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				updates.alsoKnownAs = newAlsoKnownAs.size > 0 ? Array.from(newAlsoKnownAs) : null;
 			}
 
+			if (typeof ps.setFederationAvatarShape === 'boolean') updates.setFederationAvatarShape = ps.setFederationAvatarShape;
+			if (typeof ps.isSquareAvatars === 'boolean') updates.isSquareAvatars = ps.isSquareAvatars;
+
 			//#region emojis/tags
 
 			let emojis = [] as string[];
@@ -642,7 +647,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const html = await this.httpRequestService.getHtml(url);
 
 			const { window } = new JSDOM(html);
-			const doc = window.document;
+			const doc: Document = window.document;
 
 			const myLink = `${this.config.url}/@${user.username}`;
 

@@ -43,6 +43,8 @@ const props = defineProps<{
 	noteId: string;
 	poll: NonNullable<Misskey.entities.Note['poll']>;
 	readOnly?: boolean;
+	emojiUrls?: Record<string, string>;
+	author?: Misskey.entities.UserLite;
 	isTranslation?: boolean;
 	emojiUrls?: Record<string, string>;
 	author?: Misskey.entities.UserLite;

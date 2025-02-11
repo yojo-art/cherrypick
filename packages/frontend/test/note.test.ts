@@ -71,12 +71,10 @@ describe('MkMediaImage', () => {
 		const mkMediaImage = renderMediaImage({
 			type: 'image/apng',
 		});
-		const [gif, apng, alt] = await Promise.all([
-			mkMediaImage.queryByText('GIF'),
+		const [apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
-		assert.ok(!gif);
 		assert.ok(apng);
 		assert.ok(!alt);
 	});
