@@ -41,7 +41,6 @@ export const paramDef = {
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
-		origin: { type: 'string', enum: ['local', 'remote', 'combined'], default: 'combined' },
 		offset: { type: 'integer', default: 0 },
 		host: {
 			type: 'string',

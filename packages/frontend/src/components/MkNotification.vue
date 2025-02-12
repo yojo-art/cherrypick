@@ -46,7 +46,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<i v-else-if="notification.type === 'exportCompleted'" class="ti ti-archive"></i>
 			<i v-else-if="notification.type === 'login'" class="ti ti-login-2"></i>
 			<template v-else-if="notification.type === 'roleAssigned'">
-				<img v-if="notification.role.iconUrl" style="height: 1.3em; vertical-align: -22%;" :src="notification.role.iconUrl" alt=""/>
+				<img v-if="notification.role.iconUrl" style="height: 1.3em; vertical-align: -22%; border-radius: 0.4em;" :src="notification.role.iconUrl" alt=""/>
 				<i v-else class="ti ti-badges"></i>
 			</template>
 			<MkReactionIcon
@@ -149,7 +149,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkButton :class="$style.followRequestCommandButton" rounded danger @click="rejectGroupInvitation()"><i class="ti ti-x"/> {{ i18n.ts.reject }}</MkButton>
 				</div>
 			</template>
-			<span v-else-if="notification.type === 'scheduleNote'" :class="$style.text">{{ i18n.ts._notification._scheduleNote[notification.errorType] }}</span>
+			<span v-if="notification.type === 'scheduleNote'" :class="$style.text">{{ i18n.ts._notification._scheduleNote[notification.errorType] }}</span>
 			<span v-else-if="notification.type === 'test'" :class="$style.text">{{ i18n.ts._notification.notificationWillBeDisplayedLikeThis }}</span>
 			<span v-else-if="notification.type === 'app'" :class="$style.text">
 				<Mfm :text="notification.body" :nowrap="false"/>

@@ -427,6 +427,16 @@ export class QueueService {
 	}
 
 	@bindThis
+	public createTruncateAccountJob(user: ThinUser) {
+		return this.dbQueue.add('truncateAccount', {
+			user: { id: user.id },
+		}, {
+			removeOnComplete: true,
+			removeOnFail: true,
+		});
+	}
+
+	@bindThis
 	public createReportAbuseJob(report: MiAbuseUserReport) {
 		return this.dbQueue.add('reportAbuse', report);
 	}

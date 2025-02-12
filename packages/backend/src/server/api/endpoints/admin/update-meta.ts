@@ -230,6 +230,7 @@ export const paramDef = {
 		disablePublicNoteWhenInactive: { type: 'boolean', nullable: true },
 		moderatorInactivityLimitDays: { type: 'integer', nullable: false },
 		bubbleInstances: { type: 'array', items: { type: 'string' } },
+		customRobotsTxt: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -861,6 +862,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.bubbleInstances !== undefined) {
 				set.bubbleInstances = ps.bubbleInstances;
+			}
+
+			if (ps.customRobotsTxt !== undefined) {
+				set.customRobotsTxt = ps.customRobotsTxt;
 			}
 
 			const before = await this.metaService.fetch(true);

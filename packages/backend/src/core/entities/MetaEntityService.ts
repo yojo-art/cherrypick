@@ -130,6 +130,7 @@ export class MetaEntityService {
 			notesPerOneAd: instance.notesPerOneAd,
 			enableEmail: instance.enableEmail,
 			enableServiceWorker: instance.enableServiceWorker,
+			customRobotsTxt: instance.customRobotsTxt,
 
 			translatorAvailable: instance.translatorType != null,
 
@@ -141,6 +142,7 @@ export class MetaEntityService {
 			enableUrlPreview: instance.urlPreviewEnabled,
 			noteSearchableScope: (this.config.meilisearch == null || this.config.meilisearch.scope !== 'local') ? 'global' : 'local',
 			maxFileSize: this.config.maxFileSize,
+			federation: this.meta.federation,
 			urlPreviewEndpoint: instance.directSummalyProxy ? (instance.urlPreviewSummaryProxyUrl || `${this.config.url}/url` ) : `${this.config.url}/url`,
 			reversiVersion: NodeinfoServerService.reversiVersion,
 		};
