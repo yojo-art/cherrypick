@@ -120,7 +120,9 @@ async function init() {
 
 		if (compareVersions(skipCherryPickVersion.value ?? '0.0.0', releasesYojoArt.value[0].tag_name) < 0) {
 			skipVersion.value = false;
-			await misskeyApi('admin/update-meta', { skipVersion: skipVersion.value });
+			if (meta.skipVersion !== skipVersion.value) {
+				await misskeyApi('admin/update-meta', { skipVersion: skipVersion.value });
+			}
 		}
 	} catch (error) {
 		console.error('Failed to fetch YojoArt releases:', error);
