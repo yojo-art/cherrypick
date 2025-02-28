@@ -5,8 +5,13 @@ Misskey 2025.2.0
 ### Release Date
 
 ### General
-- ロックダウン機能を削除[#650](https://github.com/yojo-art/cherrypick/pull/650)
+- ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
   - リモートユーザーの設定は反映します
+
+### Client
+- yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
+
+### Server
 
 ## 1.3.1
 Cherrypick 4.13.0  
@@ -26,6 +31,7 @@ Misskey 2024.10.1
 ### Server
 - 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
 - Fix: 管理者のコントロールパネルでシステムにしたときリモートファイルも表示される[#641](https://github.com/yojo-art/cherrypick/pull/641)
+
 ## 1.3.0
 Cherrypick 4.13.0  
 Misskey 2024.10.1
