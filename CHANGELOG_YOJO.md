@@ -5,7 +5,7 @@ Misskey 2025.2.0
 ### Release Date
 
 ### General
-- ロックダウン機能を削除
+- ロックダウン機能を削除[#650](https://github.com/yojo-art/cherrypick/pull/650)
   - リモートユーザーの設定は反映します
 
 ## 1.3.1
