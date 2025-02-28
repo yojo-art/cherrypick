@@ -131,11 +131,11 @@ import MkRadios from '@/components/MkRadios.vue';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 
 const props = withDefaults(defineProps<{
-		query?: string;
-		userId?: string;
-		username?: string;
-		host?: string | null;
-	}>(), {
+	query?: string;
+	userId?: string;
+	username?: string;
+	host?: string | null;
+}>(), {
 	query: '',
 	userId: undefined,
 	username: undefined,
@@ -282,7 +282,7 @@ async function search() {
 				router.push(`/notes/${res.object.id}`);
 			}
 		}
-	} else if (isApUserName.test(query)) {
+	} else if (isApUserName.test(searchParams.value.query)) {
 		const { canceled } = await os.confirm({
 			type: 'question',
 			text: i18n.ts._searchOrApShow.question,
@@ -290,7 +290,7 @@ async function search() {
 			cancelText: i18n.ts._searchOrApShow.search,
 		});
 		if (!canceled) {
-			const querys = query.split('@');
+			const querys = searchParams.value.query.split('@');
 			const promise = misskeyApi('users/show', {
 				username: querys[1],
 				host: querys[2],

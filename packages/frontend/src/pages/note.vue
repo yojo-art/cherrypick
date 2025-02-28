@@ -83,8 +83,8 @@ const props = defineProps<{
 const note = ref<null | Misskey.entities.Note>(CTX_NOTE);
 const clips = ref<Misskey.entities.Clip[]>();
 type TimelineType = 'user' | 'home' | 'local' | 'channel' | false;
-const showPrev = ref<Paging|false>(false);
-const showNext = ref<Paging|false>(false);
+const showPrev = ref<Paging | false>(false);
+const showNext = ref<Paging | false>(false);
 const error = ref();
 
 function showPrevPagination(tl:TimelineType): Paging {

@@ -89,8 +89,8 @@ async function remote(
 	userEntityService: UserEntityService,
 	user:MiUser,
 	limit:number,
-	sinceId:string|undefined,
-	untilId:string|undefined,
+	sinceId:string | undefined,
+	untilId:string | undefined,
 ) {
 	const cache_key = 'clip:user:' + user.id + '-' + sinceId + '-' + untilId;
 	const cache_value = await redisForRemoteApis.get(cache_key);

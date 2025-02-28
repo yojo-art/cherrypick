@@ -28,15 +28,15 @@ type OpenSearchHit = {
 	_id: string
 	_score?: number
 	_source:{
-    id: string
-    userId: string
-    visibility: string
-    searchableBy: string
-    visibleUserIds?: string[]
+		id: string
+		userId: string
+		visibility: string
+		searchableBy: string
+		visibleUserIds?: string[]
 		referenceUserId?: string
 		noteId?: string
 	}
-}
+};
 type K = string;
 type V = string | number | boolean;
 type Q =
@@ -46,8 +46,8 @@ type Q =
 	{ op: '<', k: K, v: number } |
 	{ op: '>=', k: K, v: number } |
 	{ op: '<=', k: K, v: number } |
-	{ op: 'is null', k: K} |
-	{ op: 'is not null', k: K} |
+	{ op: 'is null', k: K } |
+	{ op: 'is not null', k: K } |
 	{ op: 'and', qs: Q[] } |
 	{ op: 'or', qs: Q[] } |
 	{ op: 'not', q: Q };
@@ -222,14 +222,14 @@ export class AdvancedSearchService {
 			this.opensearch?.indices.exists({
 				index: notesIndexname,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: notesIndexname,
 						body: noteIndexBody,
 					}).catch((error) => {
 						this.logger.error(error);
-					}),
-				];
+					});
+				}
 			}).catch((error) => {
 				this.logger.error(error);
 			});
@@ -238,7 +238,7 @@ export class AdvancedSearchService {
 			this.opensearch?.indices.exists({
 				index: this.renoteIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.renoteIndex,
 						body: {
@@ -250,15 +250,15 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				}
 			}).catch((error) => this.logger.error(error));
 
 			//reactionIndex
 			this.opensearch?.indices.exists({
 				index: this.reactionIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.reactionIndex,
 						body: {
@@ -271,15 +271,15 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				};
 			}).catch((error) => this.logger.error(error));
 
 			//favoriteIndex
 			this.opensearch?.indices.exists({
 				index: this.favoriteIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.favoriteIndex,
 						body: {
@@ -291,15 +291,15 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				};
 			}).catch((error) => this.logger.error(error));
 
 			//pollVoteIndex
 			this.opensearch?.indices.exists({
 				index: this.pollVoteIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.pollVoteIndex,
 						body: {
@@ -310,8 +310,8 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				};
 			}).catch((error) => this.logger.error(error));
 		} else {
 			this.logger.info('OpenSearch is not available');
@@ -344,7 +344,7 @@ export class AdvancedSearchService {
 		let reactions: {
 			emoji: string;
 			count: number;
-	}[];
+		}[];
 
 		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
@@ -474,7 +474,7 @@ export class AdvancedSearchService {
 		opts: {
 			noteId: string;
 			userId: string;
-	}) {
+		}) {
 		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
 			userId: opts.userId,
@@ -483,10 +483,10 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexFavorite(id: string,
 		opts: {
-		noteId: string,
-		userId: string,
-		clipId?: string,
-	}) {
+			noteId: string,
+			userId: string,
+			clipId?: string,
+		}) {
 		this.index(this.favoriteIndex, id, opts);
 	}
 	@bindThis
@@ -713,7 +713,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.opensearchNoteIndex as string, {
 			term: {
 				renoteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -721,7 +721,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {
 				noteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -729,7 +729,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.pollVoteIndex, {
 			term: {
 				noteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -737,7 +737,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.reactionIndex, {
 			term: {
 				noteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -806,7 +806,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {
 				clipId: {
-					 value: id,
+					value: id,
 				},
 			},
 		});
@@ -823,7 +823,7 @@ export class AdvancedSearchService {
 			{
 				term: {
 					userId: {
-						 value: id,
+						value: id,
 					},
 				},
 			});
@@ -1115,7 +1115,7 @@ export class AdvancedSearchService {
 		let Followings = [] as string[];
 		if (meUserId) {
 			const FollowingsCache = await this.cacheService.userFollowingsCache.fetch(meUserId);
-			 Followings = Object.keys(FollowingsCache);
+			Followings = Object.keys(FollowingsCache);
 		}
 		let notes = [] as OpenSearchHit[];
 		const FilterdNotes = [] as OpenSearchHit[];
@@ -1155,7 +1155,7 @@ export class AdvancedSearchService {
 		Filter: string[],
 		Followings: string[],
 		followingFilter: string,
-		meUserId?: string ): Promise<OpenSearchHit| null> {
+		meUserId?: string ): Promise<OpenSearchHit | null> {
 		if (meUserId) {
 			if (Note._source.userId === meUserId) return Note;//自分のノート
 			//ミュートしているか、ブロックされている

@@ -68,7 +68,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			let myFavorites: {id:string, flash:Packed<'Flash'>}[] = [];
+			let myFavorites: { id: string, flash: Packed<'Flash'> }[] = [];
 			if (ps.withLocal) {
 				const query = this.queryService.makePaginationQuery(this.flashLikesRepository.createQueryBuilder('like'), ps.sinceId, ps.untilId)
 					.andWhere('like.userId = :meId', { meId: me.id })

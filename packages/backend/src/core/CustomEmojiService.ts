@@ -19,7 +19,7 @@ import type { DriveFilesRepository, EmojisRepository, MiRole, MiUser } from '@/m
 import type { MiEmoji } from '@/models/Emoji.js';
 import { emojiCopyPermissions, Serialized } from '@/types.js';
 import { DriveService } from '@/core/DriveService.js';
-import { IdentifiableError } from "@/misc/identifiable-error.js";
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 const parseEmojiStrRegexp = /^([-\w]+)(?:@([\w.-]+))?$/;
 
@@ -259,7 +259,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		id?: string;
 		name?: string;
 		host?: string;
-		licenseReadText: string| null;
+		licenseReadText: string | null;
 	}, moderator: MiUser): Promise<MiEmoji> {
 		if ((!data.id && !data.name && !data.host)) throw new IdentifiableError('7884f9a9-878f-454c-af3a-f2a75ee59a57', 'InvalidData');
 

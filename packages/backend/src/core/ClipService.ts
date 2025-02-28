@@ -187,7 +187,7 @@ export class ClipService {
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);
 	}
 	@bindThis
-	async showRemoteOrDummy(clipId: string, author: MiUser|null) : Promise<Packed<'Clip'>> {
+	async showRemoteOrDummy(clipId: string, author: MiUser | null) : Promise<Packed<'Clip'>> {
 		if (author == null) {
 			throw new Error();
 		}

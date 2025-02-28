@@ -9,12 +9,12 @@ import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { MiUser } from '@/models/User.js';
 
-export type FetchRemoteApiOpts={
+export type FetchRemoteApiOpts = {
 	/** リモートで割り当てられているid */
-	userId?:string,
-	limit?:number,
-	sinceId?:string,
-	untilId?:string,
+	userId?: string,
+	limit?: number,
+	sinceId?: string,
+	untilId?: string,
 };
 
 export async function emojis(
@@ -23,7 +23,7 @@ export async function emojis(
 	redisForRemoteApis: Redis.Redis,
 	host: string,
 	text:string,
-):Promise<{[k: string]: string}> {
+):Promise<{ [k: string]: string }> {
 	const emojis = new Map<string, string>();
 	const remote_emojis = await fetch_remote_emojis(config, httpRequestService, redisForRemoteApis, host);
 	for (const [key, value] of remote_emojis) {

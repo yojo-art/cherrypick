@@ -202,8 +202,8 @@ const event = ref<{
 	metadata: Record<string, string>;
 } | null>(null);
 const schedule = ref<{
-  expiresAt: number | null;
-}| null>(null);
+	expiresAt: number | null;
+} | null>(null);
 const useCw = ref<boolean>(!!props.initialCw);
 const showPreview = ref(defaultStore.state.showPreview);
 const showProfilePreview = ref(defaultStore.state.showProfilePreview);

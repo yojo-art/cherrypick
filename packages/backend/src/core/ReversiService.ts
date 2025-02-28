@@ -178,7 +178,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 
 		for (const invite of invitations) {
 			if (invite.from_user_id === targetUser.id) {
-				const game_session_id:string|undefined = invite.game_session_id;
+				const game_session_id:string | undefined = invite.game_session_id;
 				this.logger.info('ゲーム開始 共通セッションid=' + game_session_id);
 				await this.redisClient.zrem(`reversi:matchSpecific:${me.id}`, JSON.stringify(invite));
 
@@ -331,7 +331,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	public async matchSpecificUserCancel(user: MiUser, targetUser: MiUser, game_session_id:string|undefined = undefined) {
+	public async matchSpecificUserCancel(user: MiUser, targetUser: MiUser, game_session_id:string | undefined = undefined) {
 		await this.redisClient.zrem(`reversi:matchSpecific:${targetUser.id}`, JSON.stringify({
 			from_user_id: user.id,
 			game_session_id,
@@ -418,7 +418,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 
 	@bindThis
-	private async matched(parentId: MiUser['id'], childId: MiUser['id'], options: { noIrregularRules: boolean;}, federationId:string|null = null): Promise<MiReversiGame> {
+	private async matched(parentId: MiUser['id'], childId: MiUser['id'], options: { noIrregularRules: boolean; }, federationId:string | null = null): Promise<MiReversiGame> {
 		const game = await this.reversiGamesRepository.insertOne({
 			id: this.idService.gen(),
 			user1Id: parentId,
