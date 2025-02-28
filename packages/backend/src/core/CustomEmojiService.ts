@@ -174,25 +174,25 @@ export class CustomEmojiService implements OnApplicationShutdown {
 	public async update(data: (
 		{ id: MiEmoji['id'], name?: string; } | { name: string; id?: MiEmoji['id'], }
 		) & {
-		originalUrl?: string;
-		publicUrl?: string;
-		fileType?: string;
-		category?: string | null;
-		aliases?: string[];
-		license?: string | null;
-		isSensitive?: boolean;
-		localOnly?: boolean;
-		roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
-		copyPermission?: 'allow' | 'deny' | 'conditional' | null,
-		usageInfo?: string | null,
-		author?: string | null,
-		description?: string | null,
-		isBasedOn?: string | null,
-	}, moderator?: MiUser): Promise<
+			originalUrl?: string;
+			publicUrl?: string;
+			fileType?: string;
+			category?: string | null;
+			aliases?: string[];
+			license?: string | null;
+			isSensitive?: boolean;
+			localOnly?: boolean;
+			roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
+			copyPermission?: 'allow' | 'deny' | 'conditional' | null,
+			usageInfo?: string | null,
+			author?: string | null,
+			description?: string | null,
+			isBasedOn?: string | null,
+		}, moderator?: MiUser): Promise<
 		null
 		| 'NO_SUCH_EMOJI'
 		| 'SAME_NAME_EMOJI_EXISTS'
-	> {
+		> {
 		const emoji = data.id
 			? await this.getEmojiById(data.id)
 			: await this.getEmojiByName(data.name!);

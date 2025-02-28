@@ -1527,6 +1527,7 @@ _notification:
   youWereFollowed: "يتابعك"
   youReceivedFollowRequest: "تلقيتَ طلب متابعة"
   yourFollowRequestAccepted: "قُبل طلب المتابعة"
+  youWereInvitedToGroup: "دُعيت إلى فريقٍ {userName}ٍ"
   pollEnded: "انتهى الاستطلاع"
   unreadAntennaNote: "هوائي {name}"
   _types:
@@ -1599,3 +1600,7 @@ _offlineScreen:
 _remoteLookupErrors:
   _noSuchObject:
     title: "غير موجود"
+_search:
+  searchScopeAll: "الكل"
+  searchScopeLocal: "المحلي"
+  searchScopeUser: "مستخدم محدد"

@@ -87,6 +87,7 @@ export const paramDef = {
 		turnstileSiteKey: { type: 'string', nullable: true },
 		turnstileSecretKey: { type: 'string', nullable: true },
 		enableTestcaptcha: { type: 'boolean' },
+		googleAnalyticsMeasurementId: { type: 'string', nullable: true },
 		sensitiveMediaDetection: { type: 'string', enum: ['none', 'all', 'local', 'remote'] },
 		sensitiveMediaDetectionSensitivity: { type: 'string', enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'] },
 		setSensitiveFlagAutomatically: { type: 'boolean' },
@@ -129,7 +130,7 @@ export const paramDef = {
 		useObjectStorage: { type: 'boolean' },
 		objectStorageBaseUrl: { type: 'string', nullable: true },
 		objectStorageBucket: { type: 'string', nullable: true },
-		objectStoragePrefix: { type: 'string', nullable: true },
+		objectStoragePrefix: { type: 'string', pattern: /^[a-zA-Z0-9-._]*$/.source, nullable: true },
 		objectStorageEndpoint: { type: 'string', nullable: true },
 		objectStorageRegion: { type: 'string', nullable: true },
 		objectStoragePort: { type: 'integer', nullable: true },
@@ -142,7 +143,7 @@ export const paramDef = {
 		useRemoteObjectStorage: { type: 'boolean' },
 		remoteObjectStorageBaseUrl: { type: 'string', nullable: true },
 		remoteObjectStorageBucket: { type: 'string', nullable: true },
-		remoteObjectStoragePrefix: { type: 'string', nullable: true },
+		remoteObjectStoragePrefix: { type: 'string', pattern: /^[a-zA-Z0-9-._]*$/.source, nullable: true },
 		remoteObjectStorageEndpoint: { type: 'string', nullable: true },
 		remoteObjectStorageRegion: { type: 'string', nullable: true },
 		remoteObjectStoragePort: { type: 'integer', nullable: true },
@@ -420,6 +421,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.enableTestcaptcha !== undefined) {
 				set.enableTestcaptcha = ps.enableTestcaptcha;
+			}
+
+			if (ps.googleAnalyticsMeasurementId !== undefined) {
+				// 空文字列をnullにしたいので??は使わない
+				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+				set.googleAnalyticsMeasurementId = ps.googleAnalyticsMeasurementId || null;
 			}
 
 			if (ps.sensitiveMediaDetection !== undefined) {

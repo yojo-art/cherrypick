@@ -1645,6 +1645,7 @@ _notification:
   youWereFollowed: "Новий підписник"
   youReceivedFollowRequest: "Ви отримали запит на підписку"
   yourFollowRequestAccepted: "Запит на підписку прийнято"
+  youWereInvitedToGroup: "{userName} Запрошення до групи"
   achievementEarned: "Досягнення відкрито"
   _types:
     all: "Все"
@@ -1702,3 +1703,6 @@ _reversi:
 _remoteLookupErrors:
   _noSuchObject:
     title: "Не знайдено"
+_search:
+  searchScopeAll: "Всі"
+  searchScopeLocal: "Локальна"

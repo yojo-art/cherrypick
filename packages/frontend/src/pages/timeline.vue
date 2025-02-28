@@ -99,7 +99,7 @@ const MOBILE_THRESHOLD = 500;
 
 // デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
 const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
-const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+const isMobile = ref(['smartphone', 'tablet'].includes(<string>deviceKind) || window.innerWidth <= MOBILE_THRESHOLD);
 window.addEventListener('resize', () => {
 	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
 });
@@ -185,11 +185,13 @@ const enableListTimeline = ref(defaultStore.state.enableListTimeline);
 const enableAntennaTimeline = ref(defaultStore.state.enableAntennaTimeline);
 const enableTagTimeline = ref(defaultStore.state.enableTagTimeline);
 
+const forceCollapseAllRenotes = ref(defaultStore.state.forceCollapseAllRenotes);
 const collapseRenotes = ref(defaultStore.state.collapseRenotes);
 const collapseReplies = ref(defaultStore.state.collapseReplies);
 const collapseLongNoteContent = ref(defaultStore.state.collapseLongNoteContent);
 const collapseDefault = ref(defaultStore.state.collapseDefault);
 const alwaysShowCw = ref(defaultStore.state.alwaysShowCw);
+const showReplyTargetNote = ref(defaultStore.state.showReplyTargetNote);
 
 watch(src, () => {
 	queue.value = 0;
@@ -251,6 +253,11 @@ watch(enableTagTimeline, (x) => {
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
+watch(forceCollapseAllRenotes, (x) => {
+	defaultStore.set('forceCollapseAllRenotes', x);
+	reloadTimeline();
+});
+
 watch(collapseRenotes, (x) => {
 	defaultStore.set('collapseRenotes', x);
 	reloadTimeline();
@@ -275,6 +282,12 @@ watch(collapseDefault, (x) => {
 
 watch(alwaysShowCw, (x) => {
 	defaultStore.set('alwaysShowCw', x);
+	reloadTimeline();
+	reloadNotification();
+});
+
+watch(showReplyTargetNote, (x) => {
+	defaultStore.set('showReplyTargetNote', x);
 	reloadTimeline();
 	reloadNotification();
 });
@@ -593,7 +606,12 @@ const headerActions = computed(() => {
 							ref: onlyCats,
 						}, { type: 'divider' }, {
 							type: 'switch',
+							text: i18n.ts.forceCollapseAllRenotes,
+							ref: forceCollapseAllRenotes,
+						}, {
+							type: 'switch',
 							text: i18n.ts.collapseRenotes,
+							disabled: forceCollapseAllRenotes.value,
 							ref: collapseRenotes,
 						}, {
 							type: 'switch',
@@ -611,6 +629,10 @@ const headerActions = computed(() => {
 							type: 'switch',
 							text: i18n.ts.alwaysShowCw,
 							ref: alwaysShowCw,
+						}, {
+							type: 'switch',
+							text: i18n.ts.showReplyTargetNote,
+							ref: showReplyTargetNote,
 						});
 
 						return displayOfNoteChildMenu;

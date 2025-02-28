@@ -1590,6 +1590,7 @@ _notification:
   youWereFollowed: "Zaobserwował(a) Cię"
   youReceivedFollowRequest: "Otrzymałeś(-aś) prośbę o możliwość obserwacji"
   yourFollowRequestAccepted: "Twoja prośba o możliwość obserwacji została przyjęta"
+  youWereInvitedToGroup: "{userName} Zaproszony(-a) do grupy"
   pollEnded: "Wyniki ankiety stały się dostępne"
   unreadAntennaNote: "Antena {name}"
   emptyPushNotificationMessage: "Powiadomienia push zostały zaktualizowane"
@@ -1660,3 +1661,6 @@ _reversi:
 _remoteLookupErrors:
   _noSuchObject:
     title: "Nie znaleziono"
+_search:
+  searchScopeAll: "Wszystkie"
+  searchScopeLocal: "Lokalne"

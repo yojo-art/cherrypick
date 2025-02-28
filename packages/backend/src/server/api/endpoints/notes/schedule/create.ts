@@ -252,7 +252,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private queueService: QueueService,
 		private roleService: RoleService,
-    private idService: IdService,
+		private idService: IdService,
 	) {
 		super({
 			...meta,

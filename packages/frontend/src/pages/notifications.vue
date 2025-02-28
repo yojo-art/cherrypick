@@ -127,7 +127,7 @@ definePageMetadata(() => ({
 }));
 </script>
 
-<style module lang="scss">
+<style lang="scss" module>
 .notifications {
 	border-radius: var(--MI-radius);
 	overflow: clip;

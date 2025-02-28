@@ -72,6 +72,7 @@ export const notificationTypes = [
 	'app',
 	'exportCompleted',
 	'login',
+	'createToken',
 	'scheduleNote',
 	'test',
 	'pollVote',
