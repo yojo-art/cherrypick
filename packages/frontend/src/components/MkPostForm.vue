@@ -1340,15 +1340,7 @@ function showOtherMenu(ev: MouseEvent) {
 			text: i18n.ts.schedulePost,
 			icon: 'ti ti-calendar-time',
 			action: toggleScheduleNote,
-		});
-	}
-
-	if ($i.policies.noteDraftLimit > 0 || $i.policies.scheduleNoteMax > 0) {
-		menuItems.push({ type: 'divider' });
-	}
-
-	if ($i.policies.scheduleNoteMax > 0) {
-		menuItems.push({
+		}, {
 			type: 'button',
 			text: i18n.ts.schedulePostList,
 			icon: 'ti ti-calendar-event',
