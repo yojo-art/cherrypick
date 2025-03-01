@@ -24,7 +24,7 @@ initChart();
 
 const props = defineProps<{
 	data: InstanceForPie[];
-	total?:number;
+	total?: number;
 }>();
 
 const chartEl = shallowRef<HTMLCanvasElement>(null);

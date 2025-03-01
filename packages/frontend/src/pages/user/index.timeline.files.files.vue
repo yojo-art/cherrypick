@@ -57,7 +57,7 @@ import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
-	note: Misskey.entities.Note & { files:Misskey.entities.DriveFile[] };
+	note: Misskey.entities.Note & { files: Misskey.entities.DriveFile[] };
 }>();
 
 const showingFiles = ref<string[]>([]);

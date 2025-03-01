@@ -3,8 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { App } from 'vue';
-
 import CPPageHeader from './global/CPPageHeader.vue';
 import Mfm from './global/MkMfm.js';
 import MkA from './global/MkA.vue';
@@ -28,6 +26,7 @@ import MkFooterSpacer from './global/MkFooterSpacer.vue';
 import MkStickyContainer from './global/MkStickyContainer.vue';
 import MkLazy from './global/MkLazy.vue';
 import MkOfficialTag from './global/MkOfficialTag.vue';
+import type { App } from 'vue';
 
 export default function(app: App) {
 	for (const [key, value] of Object.entries(components)) {

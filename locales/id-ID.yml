@@ -2425,6 +2425,7 @@ _notification:
   youWereFollowed: "Mengikuti kamu"
   youReceivedFollowRequest: "Kamu menerima permintaan mengikuti"
   yourFollowRequestAccepted: "Permintaan mengikuti kamu telah diterima"
+  youWereInvitedToGroup: "{userName} Telah diundang ke grup"
   pollEnded: "Hasil Kuesioner telah keluar"
   newNote: "Catatan baru"
   unreadAntennaNote: "Antena {name}"
@@ -2693,3 +2694,7 @@ _mediaControls:
 _remoteLookupErrors:
   _noSuchObject:
     title: "Tidak dapat ditemukan"
+_search:
+  searchScopeAll: "Semua"
+  searchScopeLocal: "Lokal"
+  searchScopeUser: "Pengguna spesifik"

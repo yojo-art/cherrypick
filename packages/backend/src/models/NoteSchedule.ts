@@ -19,7 +19,7 @@ type MinimumUser = {
 	uri: MiUser['uri'];
 };
 
-export type MiScheduleNoteType={
+export type MiScheduleNoteType = {
 	/** Date.toISOString() */
 	createdAt: string;
 	visibility: 'public' | 'home' | 'followers' | 'specified';
@@ -52,7 +52,7 @@ export type MiScheduleNoteType={
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
 	deleteAt?: Date | null;
-}
+};
 
 @Entity('note_schedule')
 export class MiNoteSchedule {

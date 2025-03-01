@@ -19,7 +19,7 @@ import type { DriveFilesRepository, EmojisRepository, MiRole, MiUser } from '@/m
 import type { MiEmoji } from '@/models/Emoji.js';
 import { emojiCopyPermissions, Serialized } from '@/types.js';
 import { DriveService } from '@/core/DriveService.js';
-import { IdentifiableError } from "@/misc/identifiable-error.js";
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 const parseEmojiStrRegexp = /^([-\w]+)(?:@([\w.-]+))?$/;
 
@@ -174,25 +174,25 @@ export class CustomEmojiService implements OnApplicationShutdown {
 	public async update(data: (
 		{ id: MiEmoji['id'], name?: string; } | { name: string; id?: MiEmoji['id'], }
 		) & {
-		originalUrl?: string;
-		publicUrl?: string;
-		fileType?: string;
-		category?: string | null;
-		aliases?: string[];
-		license?: string | null;
-		isSensitive?: boolean;
-		localOnly?: boolean;
-		roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
-		copyPermission?: 'allow' | 'deny' | 'conditional' | null,
-		usageInfo?: string | null,
-		author?: string | null,
-		description?: string | null,
-		isBasedOn?: string | null,
-	}, moderator?: MiUser): Promise<
+			originalUrl?: string;
+			publicUrl?: string;
+			fileType?: string;
+			category?: string | null;
+			aliases?: string[];
+			license?: string | null;
+			isSensitive?: boolean;
+			localOnly?: boolean;
+			roleIdsThatCanBeUsedThisEmojiAsReaction?: MiRole['id'][];
+			copyPermission?: 'allow' | 'deny' | 'conditional' | null,
+			usageInfo?: string | null,
+			author?: string | null,
+			description?: string | null,
+			isBasedOn?: string | null,
+		}, moderator?: MiUser): Promise<
 		null
 		| 'NO_SUCH_EMOJI'
 		| 'SAME_NAME_EMOJI_EXISTS'
-	> {
+		> {
 		const emoji = data.id
 			? await this.getEmojiById(data.id)
 			: await this.getEmojiByName(data.name!);
@@ -259,7 +259,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		id?: string;
 		name?: string;
 		host?: string;
-		licenseReadText: string| null;
+		licenseReadText: string | null;
 	}, moderator: MiUser): Promise<MiEmoji> {
 		if ((!data.id && !data.name && !data.host)) throw new IdentifiableError('7884f9a9-878f-454c-af3a-f2a75ee59a57', 'InvalidData');
 

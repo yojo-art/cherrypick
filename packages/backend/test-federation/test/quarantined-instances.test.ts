@@ -26,7 +26,7 @@ describe('quarantine instance', () => {
 	});
 	describe('isQuarantineLimit true', () => {
 		let alicePublicNote: Misskey.entities.Note, alicePublicRenote: Misskey.entities.Note;
-		const expected :{text:string|null, createdAt:string}[] = [];
+		const expected :{ text: string | null, createdAt: string }[] = [];
 		beforeAll(async () => {
 			await aAdmin.client.request('admin/federation/update-instance', { host: 'b.test', isQuarantineLimit: true });
 			await sleep();
@@ -75,8 +75,8 @@ describe('quarantine instance', () => {
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
 		test('followers', async () => {
-			(await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' })).createdNote;
-			(await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'followers' })).createdNote;
+			await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' });
+			await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'followers' });
 			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
@@ -88,7 +88,7 @@ describe('quarantine instance', () => {
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
 		test('specified', async () => {
-			(await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] })).createdNote;
+			await alice.client.request('notes/create', { text: 'specified note', visibility: 'specified', visibleUserIds: [bobInAliceHost.id] });
 			await sleep();
 			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
 			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
@@ -112,7 +112,7 @@ describe('quarantine instance', () => {
 	});
 	describe('isQuarantineLimit false', () => {
 		let carolPublicNote: Misskey.entities.Note, carolPublicRenote: Misskey.entities.Note;
-		const expected :{text:string|null, createdAt:string}[] = [];
+		const expected :{ text: string | null, createdAt: string }[] = [];
 		beforeAll(async () => {
 			await aAdmin.client.request('admin/federation/update-instance', { host: 'b.test', isQuarantineLimit: false });
 			await sleep();

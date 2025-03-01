@@ -1,7 +1,7 @@
-/*
- * SPDX-FileCopyrightText: syuilo and misskey-project, noridev, cherrypick-project, esurio
- * SPDX-License-Identifier: AGPL-3.0-only
- */
+<!--
+SPDX-FileCopyrightText: noridev and cherrypick-project
+SPDX-License-Identifier: AGPL-3.0-only
+-->
 
 <template>
 <MkContainer :naked="widgetProps.transparent" :showHeader="false">
@@ -16,8 +16,9 @@
 </template>
 
 <script lang="ts" setup>
-import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
-import { GetFormResultType } from '@/scripts/form.js';
+import { useWidgetPropsManager } from './widget.js';
+import type { WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
+import type { GetFormResultType } from '@/scripts/form.js';
 import MkDice from '@/components/MkDice.vue';
 import MkContainer from '@/components/MkContainer.vue';
 

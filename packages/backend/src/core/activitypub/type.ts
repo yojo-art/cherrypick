@@ -222,10 +222,10 @@ export interface IActor extends IObject {
 		sectionName?: string | null;
 		_misskey_sectionName?: string | null;
 		entrys: {
-				description?: string | null;
-				_misskey_description: string | null;
-				image: string | IObject | null;//ap image
-				url: string | null;//link to
+			description?: string | null;
+			_misskey_description: string | null;
+			image: string | IObject | null;//ap image
+			url: string | null;//link to
 		}[] | [];
 	}[];
 }
@@ -328,12 +328,12 @@ export interface IApReversi extends IApGame {
 	game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312';
 	extent_flags: string[];
 	game_state: {
-		game_session_id:string,
-		type?:string,
-		key?:string, //設定変更
-		value?:any, //設定変更
-		ready?:boolean, //準備完了
-		pos?:number, //石配置
+		game_session_id: string,
+		type?: string,
+		key?: string, //設定変更
+		value?: any, //設定変更
+		ready?: boolean, //準備完了
+		pos?: number, //石配置
 	};
 }
 export const isGame = (object: IObject): object is IApGame =>

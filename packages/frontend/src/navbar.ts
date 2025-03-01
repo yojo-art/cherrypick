@@ -150,7 +150,7 @@ export const navbarItemDef = reactive({
 				text: 'Friendly',
 				active: ui === 'friendly' || ui === null,
 				action: () => {
-					localStorage.setItem('ui', 'friendly');
+					miLocalStorage.setItem('ui', 'friendly');
 					unisonReload();
 				},
 			}, {

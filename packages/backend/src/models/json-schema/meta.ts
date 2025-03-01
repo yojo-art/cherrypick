@@ -131,6 +131,10 @@ export const packedMetaLiteSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		googleAnalyticsMeasurementId: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
 		swPublickey: {
 			type: 'string',
 			optional: false, nullable: true,
