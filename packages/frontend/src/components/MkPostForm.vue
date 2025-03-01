@@ -1368,28 +1368,6 @@ function showOtherMenu(ev: MouseEvent) {
 	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
-function showPostMenu(ev: MouseEvent) {
-	const menuItems: MenuItem[] = [];
-
-	if ($i.policies.noteDraftLimit > 0) {
-		menuItems.push({
-			type: 'switch',
-			text: i18n.ts.saveAsDraft,
-			icon: 'ti ti-pencil-minus',
-			ref: saveAsDraft,
-		});
-	}
-
-	menuItems.push({ type: 'divider' }, {
-		type: 'switch',
-		text: i18n.ts.disableRightClick,
-		icon: 'ti ti-mouse-off',
-		ref: disableRightClick,
-	});
-
-	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
-}
-
 onMounted(() => {
 	if (props.autofocus) {
 		focus();
