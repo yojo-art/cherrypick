@@ -594,11 +594,6 @@ function showOtherSettings() {
 			action: () => {
 				toggleReactionAcceptance();
 			},
-		}, {
-			type: 'switch',
-			text: i18n.ts.disableRightClick,
-			icon: 'ti ti-mouse-off',
-			ref: disableRightClick,
 		}, { type: 'divider' },
 	);
 	if ($i.policies.noteDraftLimit > 0) {
@@ -1318,25 +1313,26 @@ function toggleScheduleNote() {
 
 function showOtherMenu(ev: MouseEvent) {
 	const menuItems: MenuItem[] = [];
-
-	menuItems.push({
-		type: 'button',
-		text: i18n.ts.event,
-		icon: 'ti ti-calendar',
-		action: toggleEvent,
-	});
+	menuItems.push(
+		{
+			type: 'switch',
+			text: i18n.ts.disableRightClick,
+			icon: 'ti ti-mouse-off',
+			ref: disableRightClick,
+		}, {
+			type: 'button',
+			text: i18n.ts.event,
+			icon: 'ti ti-calendar',
+			action: toggleEvent,
+		}, { type: 'divider' },
+	);
 
 	if ($i.policies.scheduleNoteMax > 0) {
-		menuItems.push({ type: 'divider' }, {
+		menuItems.push({
 			type: 'button',
 			text: i18n.ts.schedulePost,
 			icon: 'ti ti-calendar-time',
 			action: toggleScheduleNote,
-		}, {
-			type: 'button',
-			text: i18n.ts.schedulePostList,
-			icon: 'ti ti-calendar-event',
-			action: os.listScheduleNotePost,
 		});
 	}
 
@@ -1346,14 +1342,25 @@ function showOtherMenu(ev: MouseEvent) {
 		icon: 'ti ti-clock-hour-9',
 		action: toggleScheduledNoteDelete,
 	});
-
+	if ($i.policies.noteDraftLimit > 0 || $i.policies.scheduleNoteMax > 0) {
+		menuItems.push({ type: 'divider' });
+	}
 	if ($i.policies.noteDraftLimit > 0) {
-		menuItems.push({ type: 'divider' }, {
+		menuItems.push({
 			type: 'button',
 			text: i18n.ts.draftNoteList,
 			icon: 'ti ti-pencil-minus',
 			action: showDraftMenu,
 			active: postAccount.value != null && postAccount.value.id !== $i.id,
+		});
+	}
+
+	if ($i.policies.scheduleNoteMax > 0) {
+		menuItems.push({
+			type: 'button',
+			text: i18n.ts.schedulePostList,
+			icon: 'ti ti-calendar-event',
+			action: os.listScheduleNotePost,
 		});
 	}
 
