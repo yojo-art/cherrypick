@@ -49,11 +49,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<i style="margin-left: 6px;" :class="posted ? 'ti ti-check' : saveAsDraft ? 'ti ti-pencil-minus' : replyTargetNote ? 'ti ti-arrow-back-up' : renoteTargetNote ? 'ti ti-quote' : updateMode ? 'ti ti-pencil' : defaultStore.state.renameTheButtonInPostFormToNya ? 'ti ti-paw-filled' : 'ti ti-send'"></i>
 					</div>
 				</button>
-				<button v-click-anime class="_button" style="margin-left: 2px;" :class="$style.submitButton" @click="showPostMenu">
-					<div :class="$style.submitInnerMenu">
-						<i class="ti ti-caret-down-filled"></i>
-					</div>
-				</button>
 			</div>
 		</div>
 	</header>
