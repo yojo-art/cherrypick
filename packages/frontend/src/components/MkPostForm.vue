@@ -586,32 +586,51 @@ function showOtherSettings() {
 		reactionAcceptanceIcon = 'ti ti-heart-plus';
 	}
 
-	const menuDef = [{
-		icon: reactionAcceptanceIcon,
-		text: i18n.ts.reactionAcceptance,
-		action: () => {
-			toggleReactionAcceptance();
+	const menuDef:MenuItem[] = [];
+	menuDef.push(
+		{
+			icon: reactionAcceptanceIcon,
+			text: i18n.ts.reactionAcceptance,
+			action: () => {
+				toggleReactionAcceptance();
+			},
+		}, {
+			type: 'switch',
+			text: i18n.ts.disableRightClick,
+			icon: 'ti ti-mouse-off',
+			ref: disableRightClick,
+		}, { type: 'divider' },
+	);
+	if ($i.policies.noteDraftLimit > 0) {
+		menuDef.push({
+			type: 'switch',
+			text: i18n.ts.saveAsDraft,
+			icon: 'ti ti-pencil-minus',
+			ref: saveAsDraft,
+		}, { type: 'divider' });
+	}
+	menuDef.push(
+		{
+			icon: 'ti ti-help-circle',
+			text: i18n.ts._mfc.cheatSheet,
+			action: () => {
+				openMfmCheatSheet();
+			},
+		}, { type: 'divider' }, {
+			icon: 'ti ti-trash',
+			text: i18n.ts.reset,
+			danger: true,
+			action: async () => {
+				if (props.mock) return;
+				const { canceled } = await os.confirm({
+					type: 'question',
+					text: i18n.ts.resetAreYouSure,
+				});
+				if (canceled) return;
+				clear();
+			},
 		},
-	}, { type: 'divider' }, {
-		icon: 'ti ti-help-circle',
-		text: i18n.ts._mfc.cheatSheet,
-		action: () => {
-			openMfmCheatSheet();
-		},
-	}, { type: 'divider' }, {
-		icon: 'ti ti-trash',
-		text: i18n.ts.reset,
-		danger: true,
-		action: async () => {
-			if (props.mock) return;
-			const { canceled } = await os.confirm({
-				type: 'question',
-				text: i18n.ts.resetAreYouSure,
-			});
-			if (canceled) return;
-			clear();
-		},
-	}] satisfies MenuItem[];
+	);
 
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkPostFormOtherMenu.vue')), {
 		items: menuDef,
@@ -1582,7 +1601,7 @@ defineExpose({
 	padding: 0 12px;
 	line-height: 34px;
 	font-weight: bold;
-	border-radius: 6px 0 0 6px;
+	border-radius: 6px;
 	min-width: 90px;
 	box-sizing: border-box;
 	color: var(--MI_THEME-fgOnAccent);
