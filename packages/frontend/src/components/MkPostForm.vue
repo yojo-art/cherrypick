@@ -1327,6 +1327,13 @@ function showOtherMenu(ev: MouseEvent) {
 		}, { type: 'divider' },
 	);
 
+	menuItems.push({
+		type: 'button',
+		text: i18n.ts.scheduledNoteDelete,
+		icon: 'ti ti-clock-hour-9',
+		action: toggleScheduledNoteDelete,
+	});
+
 	if ($i.policies.scheduleNoteMax > 0) {
 		menuItems.push({
 			type: 'button',
@@ -1336,23 +1343,8 @@ function showOtherMenu(ev: MouseEvent) {
 		});
 	}
 
-	menuItems.push({
-		type: 'button',
-		text: i18n.ts.scheduledNoteDelete,
-		icon: 'ti ti-clock-hour-9',
-		action: toggleScheduledNoteDelete,
-	});
 	if ($i.policies.noteDraftLimit > 0 || $i.policies.scheduleNoteMax > 0) {
 		menuItems.push({ type: 'divider' });
-	}
-	if ($i.policies.noteDraftLimit > 0) {
-		menuItems.push({
-			type: 'button',
-			text: i18n.ts.draftNoteList,
-			icon: 'ti ti-pencil-minus',
-			action: showDraftMenu,
-			active: postAccount.value != null && postAccount.value.id !== $i.id,
-		});
 	}
 
 	if ($i.policies.scheduleNoteMax > 0) {
@@ -1361,6 +1353,15 @@ function showOtherMenu(ev: MouseEvent) {
 			text: i18n.ts.schedulePostList,
 			icon: 'ti ti-calendar-event',
 			action: os.listScheduleNotePost,
+		});
+	}
+	if ($i.policies.noteDraftLimit > 0) {
+		menuItems.push({
+			type: 'button',
+			text: i18n.ts.draftNoteList,
+			icon: 'ti ti-pencil-minus',
+			action: showDraftMenu,
+			active: postAccount.value != null && postAccount.value.id !== $i.id,
 		});
 	}
 
