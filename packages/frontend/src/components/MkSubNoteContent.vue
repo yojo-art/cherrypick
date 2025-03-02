@@ -33,7 +33,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkLoading v-if="translating" mini/>
 			<div v-else-if="translation">
 				<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-				<Mfm v-if="note.text"
+				<Mfm
+					v-if="note.text"
 					:text="translation.text"
 					:author="note.user"
 					:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -176,6 +177,7 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 import detectLanguage from '@/scripts/detect-language.js';
 import number from '@/filters/number.js';
 import { userPage } from '@/filters/user.js';
+import { notesReactionsCreate } from '@/scripts/check-reaction-create';
 
 const props = withDefaults(defineProps<{
 	note: Misskey.entities.Note & {
@@ -343,12 +345,10 @@ function react(): void {
 	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 	if (props.note.reactionAcceptance === 'likeOnly') {
-		sound.playMisskeySfx('reaction');
-
 		if (props.mock) {
 			return;
 		}
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: props.note.id,
 			reaction: '❤️',
 		});
@@ -402,9 +402,7 @@ async function toggleReaction(reaction) {
 			}
 		});
 	} else {
-		sound.playMisskeySfx('reaction');
-
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: note.value.id,
 			reaction: reaction,
 		});
@@ -418,13 +416,11 @@ function heartReact(): void {
 	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
-	sound.playMisskeySfx('reaction');
-
 	if (props.mock) {
 		return;
 	}
 
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: props.note.id,
 		reaction: defaultStore.state.selectReaction,
 	});

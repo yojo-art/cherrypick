@@ -137,7 +137,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkLoading v-if="translating" mini/>
 					<div v-else-if="translation">
 						<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-						<Mfm v-if="appearNote.text"
+						<Mfm
+							v-if="appearNote.text"
 							:text="translation.text"
 							:author="appearNote.user"
 							:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -332,10 +333,10 @@ import * as Misskey from 'cherrypick-js';
 import { CodeDiff } from 'v-code-diff';
 import { isLink } from '@@/js/is-link.js';
 import { host } from '@@/js/config.js';
+import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import type { Paging } from '@/components/MkPagination.vue';
 import type { Keymap } from '@/scripts/hotkey.js';
 import type { OpenOnRemoteOptions } from '@/scripts/please-login.js';
-import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
@@ -378,6 +379,7 @@ import MkPostForm from '@/components/MkPostFormSimple.vue';
 import { deviceKind } from '@/scripts/device-kind.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
+import { notesReactionsCreate } from '@/scripts/check-reaction-create';
 
 const MOBILE_THRESHOLD = 500;
 const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
@@ -469,7 +471,7 @@ const keymap = {
 } as const satisfies Keymap;
 
 provide('react', (reaction: string) => {
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: appearNote.value.id,
 		reaction: reaction,
 	});
@@ -595,9 +597,7 @@ function react(): void {
 	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 	if (appearNote.value.reactionAcceptance === 'likeOnly') {
-		sound.playMisskeySfx('reaction');
-
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: appearNote.value.id,
 			reaction: '❤️',
 		});
@@ -651,9 +651,7 @@ async function toggleReaction(reaction) {
 			}
 		});
 	} else {
-		sound.playMisskeySfx('reaction');
-
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: appearNote.value.id,
 			reaction: reaction,
 		});
@@ -668,9 +666,7 @@ function heartReact(): void {
 	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
-	sound.playMisskeySfx('reaction');
-
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: appearNote.value.id,
 		reaction: defaultStore.state.selectReaction,
 	});

@@ -10,6 +10,7 @@ Misskey 2025.2.0
 
 ### Client
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
+- リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
 
 ### Server
 

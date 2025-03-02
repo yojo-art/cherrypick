@@ -60,6 +60,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="welcomeBackToast">{{ i18n.ts.welcomeBackToast }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="disableNyaize">{{ i18n.ts.noNyaization }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">yojo-art</span></MkSwitch>
+				<MkSwitch v-model="checkReactionDialog">{{ i18n.ts.showReactionCheckDialog }} <span class="_beta">yojo-art</span></MkSwitch>
 			</div>
 			<MkSelect v-model="serverDisconnectedBehavior">
 				<template #label>{{ i18n.ts.whenServerDisconnected }} <span class="_beta" style="vertical-align: middle;">CherryPick</span></template>
@@ -220,6 +221,7 @@ const searchEngine = computed(defaultStore.makeGetterSetter('searchEngine'));
 const searchEngineUrl = computed(defaultStore.makeGetterSetter('searchEngineUrl'));
 const searchEngineUrlQuery = computed(defaultStore.makeGetterSetter('searchEngineUrlQuery'));
 const checkMultipleRenote = computed(defaultStore.makeGetterSetter('checkMultipleRenote'));
+const checkReactionDialog = computed(defaultStore.makeGetterSetter('checkReactionDialog'));
 
 watch(lang, () => {
 	miLocalStorage.setItem('lang', lang.value as string);
