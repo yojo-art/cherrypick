@@ -28,7 +28,12 @@ export class ApEventService {
 	public async extractEventFromNote(source: string | IObject, resolverParam?: Resolver): Promise<IEvent> {
 		const resolver = resolverParam ?? this.apResolverService.createResolver();
 
-		const note = await resolver.resolve(source);
+		let note:IObject;
+		if (typeof source === 'object') {
+			note = source;
+		} else {
+			note = await resolver.resolve(source);
+		}
 
 		if (!isEvent(note)) {
 			throw new Error('invalid type');
