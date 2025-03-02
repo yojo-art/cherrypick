@@ -474,7 +474,7 @@ provide('react', (reaction: string) => {
 	notesReactionsCreate({
 		noteId: appearNote.value.id,
 		reaction: reaction,
-	}, { mute: true });
+	});
 });
 
 const tab = ref(props.initialTab);

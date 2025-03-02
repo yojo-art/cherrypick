@@ -501,7 +501,7 @@ provide('react', (reaction: string) => {
 	notesReactionsCreate({
 		noteId: appearNote.value.id,
 		reaction: reaction,
-	}, { mute: true });
+	});
 });
 
 onMounted(() => {
@@ -643,8 +643,6 @@ function react(): void {
 	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 	if (appearNote.value.reactionAcceptance === 'likeOnly') {
-		sound.playMisskeySfx('reaction');
-
 		if (props.mock) {
 			return;
 		}
