@@ -105,7 +105,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkLoading v-if="translating" mini/>
 						<div v-else-if="translation">
 							<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-							<Mfm v-if="appearNote.text"
+							<Mfm
+								v-if="appearNote.text"
 								:text="translation.text"
 								:author="appearNote.user"
 								:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -299,6 +300,7 @@ import { useRouter } from '@/router/supplier.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { vibrate } from '@/scripts/vibrate.js';
 import detectLanguage from '@/scripts/detect-language.js';
+import { notesReactionsCreate } from '@/scripts/check-reaction-create';
 
 const showEl = ref(false);
 
@@ -496,10 +498,10 @@ const replyTo = computed(() => {
 });
 
 provide('react', (reaction: string) => {
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: appearNote.value.id,
 		reaction: reaction,
-	});
+	}, { mute: true });
 });
 
 onMounted(() => {
@@ -647,7 +649,7 @@ function react(): void {
 			return;
 		}
 
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: appearNote.value.id,
 			reaction: '❤️',
 		});
@@ -706,9 +708,7 @@ async function toggleReaction(reaction) {
 			}
 		});
 	} else {
-		sound.playMisskeySfx('reaction');
-
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: appearNote.value.id,
 			reaction: reaction,
 		});
@@ -723,13 +723,10 @@ function heartReact(): void {
 	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
-	sound.playMisskeySfx('reaction');
-
 	if (props.mock) {
 		return;
 	}
-
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: appearNote.value.id,
 		reaction: defaultStore.state.selectReaction,
 	});

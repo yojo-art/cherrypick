@@ -176,6 +176,7 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'expandOnNoteClick',
 	'expandOnNoteClickBehavior',
 	'checkMultipleRenote',
+	'checkReactionDialog',
 	'displayHeaderNavBarWhenScroll',
 	'reactableRemoteReactionEnabled',
 	'showFollowingMessageInsteadOfButtonEnabled',
