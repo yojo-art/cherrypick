@@ -693,6 +693,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: false,
 	},
+	checkReactionDialog: {
+		where: 'device',
+		default: false,
+	},
 	showFixedPostFormInReplies: {
 		where: 'device',
 		default: true,

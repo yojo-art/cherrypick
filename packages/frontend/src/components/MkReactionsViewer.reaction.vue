@@ -40,7 +40,8 @@ import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import { useRouter } from '@/router/supplier.js';
 import { advanccedNotesSearchAvailable } from '@/scripts/check-permissions.js';
-import { stealEmoji } from "@/scripts/import-emoji.js";
+import { stealEmoji } from '@/scripts/import-emoji.js';
+import { notesReactionsCreate } from '@/scripts/check-reaction-create';
 
 const props = defineProps<{
 	reaction: string;
@@ -121,14 +122,12 @@ async function toggleReaction(ev: MouseEvent) {
 			if (confirm.canceled) return;
 		}
 
-		sound.playMisskeySfx('reaction');
-
 		if (mock) {
 			emit('reactionToggled', props.reaction, (props.count + 1));
 			return;
 		}
 
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: props.note.id,
 			reaction: props.reaction,
 		});
@@ -224,10 +223,10 @@ function chooseAlternative(ev) {
 	// メニュー表示にして、モデレーター以上の場合は登録もできるように
 	if (!alternative.value) return;
 	console.log(alternative.value);
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: props.note.id,
 		reaction: `:${alternative.value}:`,
-	});
+	}, { mute: true });
 }
 
 watch(() => props.count, (newCount, oldCount) => {
