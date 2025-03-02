@@ -15,7 +15,7 @@ export async function notesReactionsCreate(data:{ noteId: string, reaction: stri
 			title: i18n.tsx._reactionConfirm.title({ emoji: data.reaction }),
 			caption: i18n.ts._reactionConfirm.caption,
 			okText: i18n.ts._reactionConfirm.confirm,
-			cancelText: i18n.ts.thisPostMayBeAnnoyingCancel,
+			cancelText: i18n.ts.cancel,
 		});
 		if (canceled) return;
 	}
