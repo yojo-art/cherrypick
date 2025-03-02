@@ -3653,3 +3653,8 @@ _emojiRemoteFetch:
   title: "リモートAPIからの情報取得"
   Error: "エラー"
   Success: "成功"
+
+_reactionConfirm:
+  title: "{emoji}をリアクションしますか？"
+  caption: "設定>全般>動作でダイアログが有効になっています"
+  confirm: 'リアクションする'

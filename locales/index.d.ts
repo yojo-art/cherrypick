@@ -266,6 +266,10 @@ export interface Locale extends ILocale {
      */
     "showMultipleRenoteWarning": string;
     /**
+     * リアクションする時に確認する
+     */
+    "showReactionCheckDialog": string;
+    /**
      * リノートの公開範囲オプションを表示
      */
     "showRenoteVisibilitySelector": string;
@@ -13602,6 +13606,20 @@ export interface Locale extends ILocale {
          * 成功
          */
         "Success": string;
+    };
+    "_reactionConfirm": {
+        /**
+         * {emoji}をリアクションしますか？
+         */
+        "title": ParameterizedString<"emoji">;
+        /**
+         * 設定>全般>動作でダイアログが有効になっています
+         */
+        "caption": string;
+        /**
+         * リアクションする
+         */
+        "confirm": string;
     };
 }
 declare const locales: {
