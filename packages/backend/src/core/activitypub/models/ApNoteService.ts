@@ -335,7 +335,12 @@ export class ApNoteService {
 
 		const apEmojis = emojis.map(emoji => emoji.name);
 
-		const event = await this.apEventService.extractEventFromNote(note, resolver).catch(() => undefined);
+		const event = await this.apEventService.extractEventFromNote(note, resolver).catch((e) => {
+			console.log('extractEventFromNote\n' + e);
+			return undefined;
+		});
+
+		if (event)console.log(JSON.stringify(event));
 
 		if (isMessaging) {
 			for (const recipient of visibleUsers) {
