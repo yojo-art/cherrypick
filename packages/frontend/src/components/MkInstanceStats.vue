@@ -77,6 +77,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div class="title">Pub</div>
 					<canvas ref="pubDoughnutEl"></canvas>
 				</div>
+				<div class="soft">
+					<div class="title">Software</div>
+					<canvas ref="softwareDoughnutEl"></canvas>
+				</div>
 			</div>
 		</div>
 	</MkFoldableSection>
@@ -111,6 +115,7 @@ const chartSrc = ref('active-users');
 const heatmapSrc = ref<HeatmapSource>('active-users');
 const subDoughnutEl = shallowRef<HTMLCanvasElement>();
 const pubDoughnutEl = shallowRef<HTMLCanvasElement>();
+const softwareDoughnutEl = shallowRef<HTMLCanvasElement>();
 
 function createDoughnut(chartEl, tooltip, data) {
 	const chartInstance = new Chart(chartEl, {
@@ -162,6 +167,30 @@ function createDoughnut(chartEl, tooltip, data) {
 }
 
 onMounted(() => {
+	misskeyApiGet('federation/federated-softwares', {}).then(response => {
+		console.log(response);
+		type ChartData = {
+			name: string,
+			color: string | null,
+			value: number,
+			onClick?: () => void,
+		}[];
+
+		const data: ChartData = response.softwareAndCounts.map(x => ({
+			name: x.softwareName,
+			color: x.color,
+			value: x.count,
+			onClick: () => {},
+		}));
+		const sortedData = data.sort((a,b) => a.value > b.value ? -1 : 1 );
+
+		const totalServerCount = response.softwareAndCounts.reduce((partialSum, a) => partialSum + a.count, 0);
+		const { handler: externalTooltipHandler } = useChartTooltip({
+			position: 'middle',
+			total: totalServerCount,
+		});
+		createDoughnut(softwareDoughnutEl.value, externalTooltipHandler, sortedData);
+	});
 	misskeyApiGet('federation/stats', { limit: 30 }).then(fedStats => {
 		type ChartData = {
 			name: string,
@@ -260,7 +289,7 @@ onMounted(() => {
 			display: flex;
 			gap: 16px;
 
-			> .sub, > .pub {
+			> .sub, > .pub, > .soft {
 				flex: 1;
 				min-width: 0;
 				position: relative;
