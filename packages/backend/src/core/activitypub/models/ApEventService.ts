@@ -34,7 +34,7 @@ export class ApEventService {
 		} else {
 			note = await resolver.resolve(source);
 		}
-		console.log('extractEventFromNote' + note.id + '*' + JSON.stringify(note));
+
 		if (!isEvent(note)) {
 			throw new Error('invalid type');
 		}

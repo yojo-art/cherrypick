@@ -466,6 +466,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		// 投稿を作成
 		try {
 			if (insert.hasPoll || insert.hasEvent) {
+				console.log('db text=' + data.text);
 				// Start transaction
 				await this.db.transaction(async transactionalEntityManager => {
 					await transactionalEntityManager.insert(MiNote, insert);
