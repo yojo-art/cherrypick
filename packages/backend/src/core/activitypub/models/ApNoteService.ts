@@ -337,8 +337,6 @@ export class ApNoteService {
 
 		const event = await this.apEventService.extractEventFromNote(note, resolver).catch(() => undefined);
 
-		if (event)console.log('text\n' + text);
-
 		if (isMessaging) {
 			for (const recipient of visibleUsers) {
 				await this.messagingService.createMessage(actor, recipient, null, text ?? undefined, (files && files.length > 0) ? files[0] : null, object.id);
