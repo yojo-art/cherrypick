@@ -12,6 +12,7 @@ Misskey 2025.2.0
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
 
 ### Server
+- リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
 
 ## 1.3.1
 Cherrypick 4.13.0  

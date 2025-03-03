@@ -26,12 +26,11 @@ export class ApEventService {
 
 	@bindThis
 	public async extractEventFromNote(source: string | IObject, resolverParam?: Resolver): Promise<IEvent> {
-		const resolver = resolverParam ?? this.apResolverService.createResolver();
-
 		let note:IObject;
 		if (typeof source === 'object') {
 			note = source;
 		} else {
+			const resolver = resolverParam ?? this.apResolverService.createResolver();
 			note = await resolver.resolve(source);
 		}
 
