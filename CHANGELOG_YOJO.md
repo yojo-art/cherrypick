@@ -7,6 +7,9 @@ Misskey 2025.2.0
 ### General
 - ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
   - リモートユーザーの設定は反映します
+- 観測済みインスタンスのソフトウェア数を表示できるように [#659](https://github.com/yojo-art/cherrypick/pull/659)
+  -　エンドポイント:`api/federation/remote-software` 
+  - フロントエンドでは`/about#charts` で確認できます
 
 ### Client
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)

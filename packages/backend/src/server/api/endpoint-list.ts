@@ -181,7 +181,6 @@ export * as 'export-custom-emojis' from './endpoints/export-custom-emojis.js';
 export * as 'federation/followers' from './endpoints/federation/followers.js';
 export * as 'federation/following' from './endpoints/federation/following.js';
 export * as 'federation/instances' from './endpoints/federation/instances.js';
-export * as 'federation/federated-softwares' from './endpoints/federation/federated-softwares.js';
 export * as 'federation/show-instance' from './endpoints/federation/show-instance.js';
 export * as 'federation/stats' from './endpoints/federation/stats.js';
 export * as 'federation/update-remote-user' from './endpoints/federation/update-remote-user.js';
@@ -433,6 +432,7 @@ export * as 'admin/unset-user-mutual-link' from './endpoints/admin/unset-user-mu
 export * as 'admin/full-index' from './endpoints/admin/full-index.js';
 export * as 'admin/recreate-index' from './endpoints/admin/recreate-index.js';
 export * as 'ap/fetch-outbox' from './endpoints/ap/fetch-outbox.js';
+export * as 'federation/remote-software' from './endpoints/federation/remote-software.js';
 export * as 'messaging/messages/search' from './endpoints/messaging/messages/search.js';
 export * as 'notes/advanced-search' from './endpoints/notes/advanced-search.js';
 export * as 'notifications/delete' from './endpoints/notifications/delete.js';

@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import type { InstancesRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
+import { MoreThan } from "typeorm";
 
 export const meta = {
 	tags: ['federation'],
@@ -17,30 +18,30 @@ export const meta = {
 	cacheSec: 60 * 60,
 
 	res: {
-		type: 'object',
+		type: 'array',
 		optional: false,
 		nullable: false,
-		properties: {
-			softwareAndCounts: {
-				type: 'array',
-				optional: false,
-				nullable: false,
-				items: {
-					type: 'object',
-					optional: false,
-					nullable: false,
-				},
-			},
-			knownSoftwares: {
-				type: 'array',
-				optional: false,
-				nullable: false,
-				items: {
+		items: {
+			type: 'object',
+			optional: false,
+			nullable: false,
+			properties: {
+				softwareName: {
 					type: 'string',
 					optional: false,
 					nullable: false,
 				},
-			},
+				color: {
+					type: 'string',
+					optional: false,
+					nullable: true,
+				},
+				count: {
+					type: 'integer',
+					optional: false,
+					nullable: false,
+				}
+			}
 		},
 	},
 } as const;
@@ -48,7 +49,11 @@ export const meta = {
 export const paramDef = {
 	type: 'object',
 	properties: {
-		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+		allInstance: {
+			type: 'boolean',
+			default: false,
+			description: '`true`にすると連合していないインスタンスも含めます'
+			},
 	},
 	required: [],
 } as const;
@@ -60,46 +65,54 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private instancesRepository: InstancesRepository,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const queryResult = await this.instancesRepository.find({
+		const queryResult = ps.allInstance ? await this.instancesRepository.find({
+				select: ['softwareName'],
+			}
+		) : await this.instancesRepository.find({
+					where: [
+						{ followersCount: MoreThan(0) },
+						{ followingCount: MoreThan(0) },
+					],
 					select: ['softwareName'],
 				}
 			);
 
-			const knownSoftware = [...new Set (queryResult.map( x=> x.softwareName))];
-			const softwareAndCounts = knownSoftware.map(s => {
+			const softwareName = [ ...new Set (queryResult.map( x => x.softwareName))];
+			return  softwareName.map(s => {
 				return {
 					softwareName: s ?? 'null',
 					count: queryResult.filter(x => x.softwareName === s).length,
 					color: getColor(s)
 				};
 			});
-			return {
-				softwareAndCounts,
-				knownSoftwares: knownSoftware
-			};
 		});
 	}
 }
+
 function getColor(name: string | null): string | null
 {
 	switch (name)
 	{
 		case 'misskey':
 			return '#86b300';
-		case 'yojo-art':
-			return '#ffbcdc';
+		case 'sharkey':
+			return '#86b300';
+
 		case 'cherrypick':
 			return '#ffa9c3';
+		case 'yojo-art':
+			return '#ffbcdc';
+
+		case 'mastodon':
+			return '#6364FF';
 		case 'fedibird':
 			return '#282c37';
-		/*
-	case 'mastodon':
-		return '#593196';
-	case 'akkoma':
-		return '#593196';
-	case 'sharkey':
-		return '#ffbcdc';
-	*/
+
+		case 'pleroma':
+			return '#FAA459';
+		case 'akkoma':
+			return '#462E7A';
+
 			//hollo,mitra,null
 			default:
 				return null;

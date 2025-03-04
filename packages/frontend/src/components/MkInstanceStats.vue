@@ -167,8 +167,7 @@ function createDoughnut(chartEl, tooltip, data) {
 }
 
 onMounted(() => {
-	misskeyApiGet('federation/federated-softwares', {}).then(response => {
-		console.log(response);
+	misskeyApiGet('federation/remote-software', { allInstance: true }).then(response => {
 		type ChartData = {
 			name: string,
 			color: string | null,
@@ -176,15 +175,15 @@ onMounted(() => {
 			onClick?: () => void,
 		}[];
 
-		const data: ChartData = response.softwareAndCounts.map(x => ({
+		const data: ChartData = response.map(x => ({
 			name: x.softwareName,
 			color: x.color,
 			value: x.count,
 			onClick: () => {},
 		}));
-		const sortedData = data.sort((a,b) => a.value > b.value ? -1 : 1 );
+		const sortedData = data.sort((a, b) => a.value > b.value ? -1 : 1 );
 
-		const totalServerCount = response.softwareAndCounts.reduce((partialSum, a) => partialSum + a.count, 0);
+		const totalServerCount = response.reduce((partialSum, a) => partialSum + a.count, 0);
 		const { handler: externalTooltipHandler } = useChartTooltip({
 			position: 'middle',
 			total: totalServerCount,
