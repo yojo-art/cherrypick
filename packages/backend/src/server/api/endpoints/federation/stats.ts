@@ -101,7 +101,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						followerHost: Not(IsNull()),
 					},
 				}),
-
 			]);
 
 			const gotSubCount = topSubInstances.map(x => x.followersCount).reduce((a, b) => a + b, 0);
