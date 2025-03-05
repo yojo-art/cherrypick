@@ -13,6 +13,7 @@ import type { NotesRepository } from '@/models/_.js';
 import { MiUser } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
+import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
@@ -90,6 +91,7 @@ export class SearchService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		private advancedSearchService: AdvancedSearchService,
 		private cacheService: CacheService,
 		private queryService: QueryService,
 		private idService: IdService,
@@ -188,6 +190,13 @@ export class SearchService {
 			}
 			case 'meilisearch': {
 				return this.searchNoteByMeiliSearch(q, me, opts, pagination);
+			}
+			case 'opensearch': {
+				return this.advancedSearchService.searchNote(me, {
+					userId: opts.userId,
+					host: opts.host,
+					useStrictSearch: true,
+				}, pagination, q);
 			}
 			default: {
 				// eslint-disable-next-line @typescript-eslint/no-unused-vars

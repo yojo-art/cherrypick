@@ -848,6 +848,7 @@ export class AdvancedSearchService {
 		followingFilter?: string | null;
 		offset?: number | null;
 		useStrictSearch?: boolean | null;
+		wildCard?: boolean;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -950,16 +951,16 @@ export class AdvancedSearchService {
 					osFilter.bool.must.push({ range: { sensitiveFileCount: { gte: 1 } } });
 				}
 			}
-
 			if (q && q !== '') {
 				if (opts.useStrictSearch) {
+					const query = opts.wildCard ? `*${q}*` : q;
 					osFilter.bool.must.push({
 						bool: {
 							should: [
-								{ wildcard: { 'text.keyword': q } },
-								{ wildcard: { 'cw.keyword': q } },
-								{ wildcard: { 'pollChoices.keyword': q } },
-								{ wildcard: { 'tags': q } },
+								{ wildcard: { 'text.keyword': query } },
+								{ wildcard: { 'cw.keyword': query } },
+								{ wildcard: { 'pollChoices.keyword': query } },
+								{ wildcard: { 'tags': query } },
 							],
 							minimum_should_match: 1,
 						},
