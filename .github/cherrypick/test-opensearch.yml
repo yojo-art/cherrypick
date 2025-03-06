@@ -14,6 +14,9 @@ redis:
   port: 56312
 id: aidx
 
+fulltextSearch:
+  provider: opensearch
+
 opensearch:
   host: 127.0.0.1
   port: 59200
