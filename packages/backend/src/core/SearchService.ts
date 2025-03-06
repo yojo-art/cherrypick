@@ -192,10 +192,11 @@ export class SearchService {
 				return this.searchNoteByMeiliSearch(q, me, opts, pagination);
 			}
 			case 'opensearch': {
-				return this.advancedSearchService.searchNote(me, {
+				return this.advancedSearchService.searchOrFail(me, {
 					userId: opts.userId,
 					host: opts.host,
 					useStrictSearch: true,
+					wildCard: true,
 				}, pagination, q);
 			}
 			default: {
