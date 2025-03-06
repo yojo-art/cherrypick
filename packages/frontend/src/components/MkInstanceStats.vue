@@ -167,7 +167,7 @@ function createDoughnut(chartEl, tooltip, data) {
 }
 
 onMounted(() => {
-	misskeyApiGet('federation/remote-software', { allInstance: true }).then(response => {
+	misskeyApiGet('federation/remote-software', { }).then(response => {
 		type ChartData = {
 			name: string,
 			color: string | null,

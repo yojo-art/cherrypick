@@ -16539,11 +16539,14 @@ export type operations = {
     requestBody: {
       content: {
         'application/json': {
-          /**
-           * @description `true`にすると連合していないインスタンスも含めます
-           * @default false
-           */
-          allInstance?: boolean;
+          blocked?: boolean | null;
+          notResponding?: boolean | null;
+          suspended?: boolean | null;
+          silenced?: boolean | null;
+          federating?: boolean | null;
+          subscribing?: boolean | null;
+          publishing?: boolean | null;
+          quarantined?: boolean | null;
         };
       };
     };
