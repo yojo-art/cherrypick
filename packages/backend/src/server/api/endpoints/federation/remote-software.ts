@@ -20,26 +20,26 @@ export const meta = {
 
 	res: {
 		type: 'array',
-		optionsal: false,
+		optional: false,
 		nullable: false,
 		items: {
 			type: 'object',
-			optionsal: false,
+			optional: false,
 			nullable: false,
 			properties: {
 				softwareName: {
 					type: 'string',
-					optionsal: false,
+					optional: false,
 					nullable: false,
 				},
 				color: {
 					type: 'string',
-					optionsal: false,
+					optional: false,
 					nullable: true,
 				},
 				count: {
 					type: 'integer',
-					optionsal: false,
+					optional: false,
 					nullable: false,
 				},
 			},
@@ -58,7 +58,6 @@ export const paramDef = {
 		subscribing: { type: 'boolean', nullable: true },
 		publishing: { type: 'boolean', nullable: true },
 		quarantined: { type: 'boolean', nullable: true },
-
 	},
 	required: [],
 } as const;
