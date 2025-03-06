@@ -50,7 +50,7 @@ import { bindThis } from '@/decorators.js';
 import { DB_MAX_NOTE_TEXT_LENGTH } from '@/const.js';
 import { RoleService } from '@/core/RoleService.js';
 import { SearchService } from '@/core/SearchService.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { FeaturedService } from '@/core/FeaturedService.js';
 import { FanoutTimelineService } from '@/core/FanoutTimelineService.js';
 import { UtilityService } from '@/core/UtilityService.js';
@@ -225,7 +225,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		private apRendererService: ApRendererService,
 		private roleService: RoleService,
 		private searchService: SearchService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
 		private activeUsersChart: ActiveUsersChart,
@@ -745,7 +745,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		// Register to search database
 		if (note.text !== null && note.cw !== null) this.searchService.indexNote(note);//MeiliSearch
-		this.advancedSearchService.indexNote(note, data.poll?.choices ?? undefined); //OpenSearch
+		this.openSearchService.indexNote(note, data.poll?.choices ?? undefined); //OpenSearch
 	}
 
 	@bindThis

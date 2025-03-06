@@ -11,7 +11,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { GetterService } from '@/server/api/GetterService.js';
 import { DI } from '@/di-symbols.js';
 import { AchievementService } from '@/core/AchievementService.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -59,7 +59,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private idService: IdService,
 		private getterService: GetterService,
 		private achievementService: AchievementService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Get favoritee
@@ -88,7 +88,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				userId: me.id,
 			});
 
-			await this.advancedSearchService.indexFavorite(id, {
+			await this.openSearchService.indexFavorite(id, {
 				userId: me.id,
 				noteId: note.id,
 			});

@@ -79,6 +79,7 @@ import { UtilityService } from './UtilityService.js';
 import { FileInfoService } from './FileInfoService.js';
 import { SearchService } from './SearchService.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
+import { OpenSearchService } from './OpenSearchService.js';
 import { ClipService } from './ClipService.js';
 import { FeaturedService } from './FeaturedService.js';
 import { FanoutTimelineService } from './FanoutTimelineService.js';
@@ -239,6 +240,7 @@ const $FileInfoService: Provider = { provide: 'FileInfoService', useExisting: Fi
 const $FlashService: Provider = { provide: 'FlashService', useExisting: FlashService };
 const $SearchService: Provider = { provide: 'SearchService', useExisting: SearchService };
 const $AdvancedSearchService: Provider = { provide: 'AdvancedSearchService', useExisting: AdvancedSearchService };
+const $OpenSearchService: Provider = { provide: 'OpenSearchService', useExisting: OpenSearchService };
 const $ClipService: Provider = { provide: 'ClipService', useExisting: ClipService };
 const $FeaturedService: Provider = { provide: 'FeaturedService', useExisting: FeaturedService };
 const $FanoutTimelineService: Provider = { provide: 'FanoutTimelineService', useExisting: FanoutTimelineService };
@@ -403,6 +405,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		FlashService,
 		SearchService,
 		AdvancedSearchService,
+		OpenSearchService,
 		ClipService,
 		FeaturedService,
 		FanoutTimelineService,
@@ -563,6 +566,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$FlashService,
 		$SearchService,
 		$AdvancedSearchService,
+		$OpenSearchService,
 		$ClipService,
 		$FeaturedService,
 		$FanoutTimelineService,
@@ -724,6 +728,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		FlashService,
 		SearchService,
 		AdvancedSearchService,
+		OpenSearchService,
 		ClipService,
 		FeaturedService,
 		FanoutTimelineService,
@@ -882,6 +887,7 @@ const $ApGameService: Provider = { provide: 'ApGameService', useExisting: ApGame
 		$FileInfoService,
 		$SearchService,
 		$AdvancedSearchService,
+		$OpenSearchService,
 		$ClipService,
 		$FlashService,
 		$FeaturedService,

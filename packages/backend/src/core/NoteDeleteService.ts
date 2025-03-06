@@ -21,7 +21,7 @@ import { ApDeliverManagerService } from '@/core/activitypub/ApDeliverManagerServ
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { SearchService } from '@/core/SearchService.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 
@@ -50,7 +50,7 @@ export class NoteDeleteService {
 		private apRendererService: ApRendererService,
 		private apDeliverManagerService: ApDeliverManagerService,
 		private searchService: SearchService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 		private moderationLogService: ModerationLogService,
 		private notesChart: NotesChart,
 		private perUserNotesChart: PerUserNotesChart,
@@ -129,7 +129,7 @@ export class NoteDeleteService {
 		}
 		 */
 		this.searchService.unindexNote(note);
-		this.advancedSearchService.unindexNote(note);
+		this.openSearchService.unindexNote(note);
 
 		await this.notesRepository.delete({
 			id: note.id,

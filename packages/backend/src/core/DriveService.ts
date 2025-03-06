@@ -45,7 +45,7 @@ import { isMimeImage } from '@/misc/is-mime-image.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { RegistryApiService } from '@/core/RegistryApiService.js';
-import { AdvancedSearchService } from './AdvancedSearchService.js';
+import { OpenSearchService } from './OpenSearchService.js';
 
 type AddFileArgs = {
 	/** User who wish to add file */
@@ -96,7 +96,7 @@ export class DriveService {
 	private registerLogger: Logger;
 	private downloaderLogger: Logger;
 	private deleteLogger: Logger;
-	private advancedSearchService: AdvancedSearchService;
+	private openSearchService: OpenSearchService;
 
 	constructor(
 		@Inject(DI.config)
@@ -141,10 +141,6 @@ export class DriveService {
 		this.registerLogger = logger.createSubLogger('register', 'yellow');
 		this.downloaderLogger = logger.createSubLogger('downloader');
 		this.deleteLogger = logger.createSubLogger('delete');
-	}
-
-	onModuleInit() {
-		this.advancedSearchService = this.moduleRef.get('AdvancedSearchService');
 	}
 
 	/***
@@ -796,7 +792,7 @@ export class DriveService {
 				}
 			}
 		}
-		this.advancedSearchService.updateNoteSensitive(file.id);
+		this.openSearchService.updateNoteSensitive(file.id);
 
 		return fileObj;
 	}

@@ -8,7 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { GetterService } from '@/server/api/GetterService.js';
 import { DI } from '@/di-symbols.js';
 import type { NoteFavoritesRepository } from '@/models/_.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -48,7 +48,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private noteFavoritesRepository: NoteFavoritesRepository,
 
 		private getterService: GetterService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Get favoritee
@@ -69,7 +69,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			// Delete favorite
 			await this.noteFavoritesRepository.delete(exist.id);
-			await this.advancedSearchService.unindexFavorite(exist.id, note.id, undefined, me.id);
+			await this.openSearchService.unindexFavorite(exist.id, note.id, undefined, me.id);
 		});
 	}
 }
