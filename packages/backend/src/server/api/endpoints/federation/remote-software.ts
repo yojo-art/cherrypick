@@ -4,8 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { FindOptionsWhere, MoreThan, In, Not } from 'typeorm';
-import type { InstancesRepository, MiInstance } from '@/models/_.js';
+import type { InstancesRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { MetaService } from '@/core/MetaService.js';
@@ -71,87 +70,61 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private metaService: MetaService,
 	) {
 		super(meta, paramDef, async (ps) => {
-			let options: FindOptionsWhere<MiInstance>[] | undefined = undefined;
+			const query = this.instancesRepository
+				.createQueryBuilder('instance')
+				.select('"softwareName"');
 
-			if (ps.blocked || ps.silenced || ps.federating || ps.subscribing || ps.publishing || ps.suspended || ps.quarantined || ps.notResponding ) {
-				options = [];
-				if (typeof ps.blocked === 'boolean' || typeof ps.silenced === 'boolean') {
-					const meta = await this.metaService.fetch(true);
+			if (typeof ps.blocked === 'boolean' || typeof ps.silenced === 'boolean') {
+				const meta = await this.metaService.fetch(true);
 
-					if (typeof ps.blocked === 'boolean') {
-						if (ps.blocked) {
-							options.push({ host: In(meta.blockedHosts) });
-						} else {
-							options.push({ host: Not(In(meta.blockedHosts)) });
-						}
-					}
+				if (typeof ps.blocked === 'boolean') {
+					if (meta.blockedHosts.length === 0) return [];
 
-					if (typeof ps.silenced === 'boolean') {
-						if (ps.silenced) {
-							options.push({ host: In(meta.silencedHosts) });
-						} else {
-							options.push({ host: Not(In(meta.silencedHosts)) });
-						}
-					}
-				}
-				if (typeof ps.federating === 'boolean') {
-					if (ps.federating) {
-						options.push({
-							followersCount: MoreThan(0),
-							followingCount: MoreThan(0),
-						});
-					} else {
-						options.push({
-							followersCount: 0,
-							followingCount: 0,
-						});
-					}
-				} else {
-					if (typeof ps.subscribing === 'boolean') {
-						if (ps.subscribing) {
-							options.push({ followersCount: MoreThan(0) });
-						} else {
-							options.push({ followersCount: 0 });
-						}
-					}
-					if (typeof ps.publishing === 'boolean') {
-						if (ps.publishing) {
-							options.push({ followingCount: MoreThan(0) });
-						} else {
-							options.push({ followingCount: 0 });
-						}
-					}
-				}
-				if (typeof ps.suspended === 'boolean') {
-					if (ps.suspended) {
-						options.push({ suspensionState: 'none' });
-					} else {
-						options.push({ suspensionState: Not('none') });
-					}
+					query.andWhere(`instance.host ${ ps.blocked ? 'IN' : 'NOT IN'} (:...blocked)`, {
+						blocked: meta.blockedHosts,
+					});
 				}
 
-				if (typeof ps.quarantined === 'boolean') {
-					if (ps.quarantined) {
-						options.push({ quarantineLimited: true });
-					} else {
-						options.push({ quarantineLimited: false });
-					}
-				}
+				if (typeof ps.silenced === 'boolean') {
+					if (meta.silencedHosts.length === 0) return [];
 
-				if (typeof ps.notResponding === 'boolean') {
-					if (ps.notResponding) {
-						options.push({ isNotResponding: true });
-					} else {
-						options.push({ isNotResponding: false });
-					}
+					query.andWhere(`instance.host ${ ps.silenced ? 'IN' : 'NOT IN'} (:...silences)`, {
+						silences: meta.silencedHosts,
+					});
 				}
 			}
 
-			const queryResult = await this.instancesRepository.find({
-				where: options,
-				select: ['softwareName'],
-			});
+			if (typeof ps.federating === 'boolean') {
+				if (typeof ps.subscribing === 'boolean' && ps.subscribing !== ps.federating) return [];
+				if (typeof ps.publishing === 'boolean' && ps.publishing !== ps.federating) return [];
+				query.andWhere(ps.federating ?
+					'(("followingCount" > 0) OR ("followersCount" > 0))' :
+					'(("followingCount" = 0) AND ("followersCount" = 0))');
+			} else {
+				if (typeof ps.subscribing === 'boolean') {
+					query.andWhere( ps.subscribing ?
+						'instance.followersCount > 0' : 'instance.followersCount = 0');
+				}
 
+				if (typeof ps.publishing === 'boolean') {
+					query.andWhere( ps.subscribing ?
+						'instance.followingCount > 0' : 'instance.followingCount = 0');
+				}
+			}
+
+			if (typeof ps.suspended === 'boolean') {
+				query.andWhere(`instance.suspensionState ${ ps.suspended ? '!=' : '='} 'none'`);
+			}
+
+			if (typeof ps.quarantined === 'boolean') {
+				query.andWhere('instance.quarantineLimited = :quarantineLimited', { quarantineLimited: ps.quarantined });
+			}
+
+			if (typeof ps.notResponding === 'boolean') {
+				query.andWhere('instance.isNotResponding = :isNotResponding', { isNotResponding: ps.notResponding });
+			}
+
+			const queryResult = await query.getRawMany();
 			const softwareName = [...new Set(queryResult.map( x => x.softwareName))];
 			return softwareName.map(s => ({
 				softwareName: s ?? 'null',
