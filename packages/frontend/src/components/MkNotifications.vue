@@ -57,6 +57,7 @@ const pagination = computed(() => props.notUseGrouped ? {
 	limit: 20,
 	params: computed(() => ({
 		excludeTypes: props.excludeTypes ?? undefined,
+		groupNote: true,
 	})),
 } : {
 	endpoint: 'i/notifications' as const,
