@@ -13,7 +13,8 @@ Misskey 2025.2.0
 - リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
 
 ### Server
-- 通常の検索でもOpenSearchを利用できるように
+- リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
+- 通常の検索でもOpenSearchを利用できるように [#661](https://github.com/yojo-art/cherrypick/pull/661)
 
 ## 1.3.1
 Cherrypick 4.13.0  
