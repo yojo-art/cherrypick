@@ -8,7 +8,7 @@ export class UrlKokonectToYojoart1741959929443 {
 
     async up(queryRunner) {
         await queryRunner.query(`UPDATE "meta" SET "repositoryUrl" = 'https://github.com/yojo-art/cherrypick' WHERE "repositoryUrl" = ''https://github.com/kokonect-link/cherrypick'`);
-        await queryRunner.query(`UPDATE "meta" SET "feedbackUrl" = 'https://github.com/yojo-art/cherrypick/issues/new' WHERE "repositoryUrl" = ''https://github.com/kokonect-link/cherrypick/issues/new'`);
+        await queryRunner.query(`UPDATE "meta" SET "feedbackUrl" = 'https://github.com/yojo-art/cherrypick' WHERE "repositoryUrl" = ''https://github.com/kokonect-link/cherrypick'`);
     }
 
     async down(queryRunner) {
