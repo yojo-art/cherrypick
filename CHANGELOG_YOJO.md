@@ -10,6 +10,8 @@ Misskey 2025.2.0
 - Feat: リモートインスタンスのソフトウェア一覧 [#659](https://github.com/yojo-art/cherrypick/pull/659)
   -　エンドポイント:`api/federation/remote-software` 
   - フロントエンドでは`/about#charts` で確認できます
+- リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題も修正) [#666](https://github.com/yojo-art/cherrypick/pull/666)
+
 
 ### Client
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
