@@ -7,6 +7,7 @@ Misskey 2025.2.0
 ### General
 - ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
   - リモートユーザーの設定は反映します
+- リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題) [#666](https://github.com/yojo-art/cherrypick/pull/666)
 
 ### Client
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
