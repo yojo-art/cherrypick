@@ -13,6 +13,7 @@ Misskey 2025.2.0
 - リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題も修正) [#666](https://github.com/yojo-art/cherrypick/pull/666)
 
 
+
 ### Client
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
 - リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
@@ -20,6 +21,7 @@ Misskey 2025.2.0
 ### Server
 - リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
 - 通常の検索でもOpenSearchを利用できるように [#661](https://github.com/yojo-art/cherrypick/pull/661)
+- `api/i/notifications-grouped`で新着ノートをデフォルトでまとめないように[#662](https://github.com/yojo-art/cherrypick/pull/662)
 
 ## 1.3.1
 Cherrypick 4.13.0  
