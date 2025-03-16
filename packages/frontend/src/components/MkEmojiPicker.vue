@@ -121,11 +121,13 @@ import * as Misskey from 'cherrypick-js';
 import {
 	emojilist,
 	emojiCharByCategory,
-	UnicodeEmojiDef,
 	unicodeEmojiCategories as categories,
 	getEmojiName,
-	CustomEmojiFolderTree,
 	getUnicodeEmoji,
+} from '@@/js/emojilist.js';
+import type {
+	UnicodeEmojiDef,
+	CustomEmojiFolderTree,
 } from '@@/js/emojilist.js';
 import XSection from '@/components/MkEmojiPicker.section.vue';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
@@ -140,7 +142,7 @@ import { checkReactionPermissions } from '@/scripts/check-reaction-permissions.j
 
 const props = withDefaults(defineProps<{
 	showPinned?: boolean;
-  pinnedEmojis?: string[];
+	pinnedEmojis?: string[];
 	maxHeight?: number;
 	asDrawer?: boolean;
 	asWindow?: boolean;
@@ -410,7 +412,7 @@ function computeButtonTitle(ev: MouseEvent): void {
 	elm.title = getEmojiName(emoji);
 }
 
-function chosen(emoji: any, ev?: MouseEvent) {
+function chosen(emoji: string | Misskey.entities.EmojiSimple | UnicodeEmojiDef, ev?: MouseEvent) {
 	const el = ev && (ev.currentTarget ?? ev.target) as HTMLElement | null | undefined;
 	if (el) {
 		const rect = el.getBoundingClientRect();
@@ -427,7 +429,7 @@ function chosen(emoji: any, ev?: MouseEvent) {
 	// 最近使った絵文字更新
 	if (!pinned.value?.includes(key)) {
 		let recents = defaultStore.state.recentlyUsedEmojis;
-		recents = recents.filter((emoji: any) => emoji !== key);
+		recents = recents.filter((emoji) => emoji !== key);
 		recents.unshift(key);
 		defaultStore.set('recentlyUsedEmojis', recents.splice(0, 32));
 	}
@@ -581,7 +583,7 @@ defineExpose({
 
 						&:disabled {
 							cursor: not-allowed;
-							background: linear-gradient(-45deg, transparent 0% 48%, var(--MI_THEME-X6) 48% 52%, transparent 52% 100%);
+							background: linear-gradient(-45deg, transparent 0% 48%, light-dark(rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0.15)) 48% 52%, transparent 52% 100%);
 							opacity: 1;
 
 							> .emoji {
@@ -616,7 +618,7 @@ defineExpose({
 
 						&:disabled {
 							cursor: not-allowed;
-							background: linear-gradient(-45deg, transparent 0% 48%, var(--MI_THEME-X6) 48% 52%, transparent 52% 100%);
+							background: linear-gradient(-45deg, transparent 0% 48%, light-dark(rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0.15)) 48% 52%, transparent 52% 100%);
 							opacity: 1;
 
 							> .emoji {
@@ -737,7 +739,7 @@ defineExpose({
 
 					&:disabled {
 						cursor: not-allowed;
-						background: linear-gradient(-45deg, transparent 0% 48%, var(--MI_THEME-X6) 48% 52%, transparent 52% 100%);
+						background: linear-gradient(-45deg, transparent 0% 48%, light-dark(rgba(0, 0, 0, 0.25), rgba(255, 255, 255, 0.15)) 48% 52%, transparent 52% 100%);
 						opacity: 1;
 
 						> .emoji {

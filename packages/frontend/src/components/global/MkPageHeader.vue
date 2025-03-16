@@ -71,7 +71,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, onUnmounted, ref, inject, shallowRef, computed } from 'vue';
 import tinycolor from 'tinycolor2';
 import { getScrollPosition, scrollToTop } from '@@/js/scroll.js';
-import XTabs, { Tab } from './MkPageHeader.tabs.vue';
+import XTabs from './MkPageHeader.tabs.vue';
+import type { Tab } from './MkPageHeader.tabs.vue';
+import type { PageMetadata } from '@/scripts/page-metadata.js';
+import type { PageHeaderItem } from '@/types/page-header.js';
 import { globalEvents } from '@/events.js';
 import { injectReactiveMetadata } from '@/scripts/page-metadata.js';
 import { $i, openAccountMenu as openAccountMenu_ } from '@/account.js';
@@ -80,17 +83,18 @@ import { mainRouter } from '@/router/main.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
-import { PageHeaderItem } from '@/types/page-header.js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 
 const isFriendly = ref(miLocalStorage.getItem('ui') === 'friendly');
 const canBack = ref(['index', 'explore', 'my-notifications', 'messaging'].includes(<string>mainRouter.currentRoute.value.name));
 
 const props = withDefaults(defineProps<{
+	overridePageMetadata?: PageMetadata;
 	tabs?: Tab[];
 	tab?: string;
 	actions?: PageHeaderItem[] | null;
 	thin?: boolean;
+	hideTitle?: boolean;
 	displayMyAvatar?: boolean;
 	disableFollowButton?: boolean;
 }>(), {
@@ -101,9 +105,10 @@ const emit = defineEmits<{
 	(ev: 'update:tab', key: string);
 }>();
 
-const pageMetadata = injectReactiveMetadata();
+const injectedPageMetadata = injectReactiveMetadata();
+const pageMetadata = computed(() => props.overridePageMetadata ?? injectedPageMetadata.value);
 
-const hideTitle = inject('shouldOmitHeaderTitle', false);
+const hideTitle = computed(() => inject('shouldOmitHeaderTitle', false) || props.hideTitle);
 const thin_ = props.thin || inject('shouldHeaderThin', false);
 
 const el = shallowRef<HTMLElement | undefined>(undefined);
@@ -112,7 +117,7 @@ const narrow = ref(false);
 const hasTabs = computed(() => props.tabs.length > 0);
 const hasActions = computed(() => props.actions && props.actions.length > 0);
 const show = computed(() => {
-	return !hideTitle || hasTabs.value || hasActions.value;
+	return !hideTitle.value || hasTabs.value || hasActions.value;
 });
 
 const preventDrag = (ev: TouchEvent) => {

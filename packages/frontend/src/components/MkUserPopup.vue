@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.banner" :style="user.bannerUrl ? `background-image: url(${defaultStore.state.disableShowingAnimatedImages ? getStaticImageUrl(user.bannerUrl) : user.bannerUrl})` : ''">
 				<span v-if="$i && $i.id != user.id && user.isFollowed" :class="$style.followed">{{ i18n.ts.followsYou }}</span>
 			</div>
-			<svg v-if="!defaultStore.state.squareAvatars" viewBox="0 0 128 128" :class="$style.avatarBack">
+			<svg v-if="(!defaultStore.state.setFederationAvatarShape && !defaultStore.state.squareAvatars) || (defaultStore.state.setFederationAvatarShape && !user.setFederationAvatarShape && !defaultStore.state.squareAvatars) || (defaultStore.state.setFederationAvatarShape && user.setFederationAvatarShape && !user.isSquareAvatars)" viewBox="0 0 128 128" :class="$style.avatarBack">
 				<g transform="matrix(1.6,0,0,1.6,-38.4,-51.2)">
 					<path d="M64,32C81.661,32 96,46.339 96,64C95.891,72.184 104,72 104,72C104,72 74.096,80 64,80C52.755,80 24,72 24,72C24,72 31.854,72.018 32,64C32,46.339 46.339,32 64,32Z" style="fill: var(--MI_THEME-popup);"/>
 				</g>
@@ -25,24 +25,30 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.title">
 				<MkA :class="$style.name" :to="userPage(user)"><MkUserName :user="user" :nowrap="false"/></MkA>
 				<div :class="$style.username"><MkAcct :user="user"/></div>
+				<div v-if="user.isAdmin || user.isLocked || user.isBot || user.isProxy" style="margin-top: 4px;">
+					<span v-if="user.isAdmin" v-tooltip="i18n.ts.administrator" :title="i18n.ts.isAdmin" style="color: var(--MI_THEME-badge);"><i class="ti ti-shield"></i></span>
+					<span v-if="user.isLocked" :title="i18n.ts.isLocked"><i class="ti ti-lock"></i></span>
+					<span v-if="user.isBot" :title="i18n.ts.isBot"><i class="ti ti-robot"></i></span>
+					<span v-if="user.isProxy" v-tooltip="i18n.ts.proxyAccount" :title="i18n.ts.proxyAccount"><i class="ti ti-ghost"></i></span>
+				</div>
 			</div>
 			<div :class="$style.description">
 				<Mfm v-if="user.description" :class="$style.mfm" :text="user.description" :author="user"/>
 				<div v-else style="opacity: 0.7;">{{ i18n.ts.noAccountDescription }}</div>
 			</div>
 			<div :class="$style.status">
-				<div :class="$style.statusItem">
+				<MkA :to="userPage(user)" :class="$style.statusItem">
 					<div :class="$style.statusItemLabel">{{ i18n.ts.notes }}</div>
-					<div>{{ number(user.notesCount) }}</div>
-				</div>
-				<div v-if="isFollowingVisibleForMe(user)" :class="$style.statusItem">
+					<b>{{ number(user.notesCount) }}</b>
+				</MkA>
+				<MkA v-if="isFollowingVisibleForMe(user)" :class="$style.statusItem" :to="userPage(user, 'following')">
 					<div :class="$style.statusItemLabel">{{ i18n.ts.following }}</div>
-					<div>{{ number(user.followingCount) }}</div>
-				</div>
-				<div v-if="isFollowersVisibleForMe(user)" :class="$style.statusItem">
+					<b>{{ number(user.followingCount) }}</b>
+				</MkA>
+				<MkA v-if="isFollowersVisibleForMe(user)" :class="$style.statusItem" :to="userPage(user, 'followers')">
 					<div :class="$style.statusItemLabel">{{ i18n.ts.followers }}</div>
-					<div>{{ number(user.followersCount) }}</div>
-				</div>
+					<b>{{ number(user.followersCount) }}</b>
+				</MkA>
 			</div>
 			<button class="_button" :class="[$style.menu, { [$style.isBlocked]: user.isBlocked || user.isBlocking }]" @click="showMenu"><i class="ti ti-dots"></i></button>
 			<button v-tooltip="user.notify === 'none' ? i18n.ts.notifyNotes : i18n.ts.unnotifyNotes" class="_button" :class="[$style.notify, { [$style.isBlocked]: user.isBlocked || user.isBlocking }]" @click="toggleNotify"><i :class="user.notify === 'none' ? 'ti ti-bell-plus' : 'ti ti-bell-minus'"></i></button>
@@ -243,6 +249,10 @@ onMounted(() => {
 	width: 33%;
 	text-align: center;
 	flex: 1;
+
+	&:hover {
+		text-decoration: none;
+	}
 }
 
 .statusItemLabel {

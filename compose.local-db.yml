@@ -38,6 +38,12 @@ services:
 #    volumes:
 #      - ./meili_data:/meili_data
 
+#  translator:
+#    restart: always
+#    image: libretranslate/libretranslate:latest
+#    healthcheck:
+#    test: ['CMD-SHELL', './venv/bin/python scripts/healthcheck.py']
+
 # opensearchとopensearch-dashboardsのdockerfileは実装時の最新版の辞書なのでopensearch/dockerfileを適宜書き換えてください
 # opensearchはUID:1000で実行されるので読み書きできるよう所有者を書き換える chown 1000:1000 ./data/opensearch
 #  opensearch:

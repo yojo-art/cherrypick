@@ -55,13 +55,13 @@ body:
         Examples:
           * Model and OS of the device(s): MacBook Pro (14inch, 2021), macOS Ventura 13.4
           * Browser: Chrome 113.0.5672.126
-          * Server URL: cherrypick.example.com
-          * CherryPick: 4.x.x-yojox.x.x (Misskey: 2024.x.x)
+          * Server URL: yojo-art.example.com
+          * yojo-art: 1.x.x (Misskey: 2025.x.x)
       value: |
         * Model and OS of the device(s):
         * Browser:
         * Server URL:
-        * CherryPick:
+        * yojo-art:
       render: markdown
     validations:
       required: false
@@ -76,14 +76,14 @@ body:
 
         Examples:
           * Installation Method or Hosting Service: docker compose, k8s/docker, systemd, "CherryPick install shell script", development environment
-          * CherryPick: 4.x.x-yojox.x.x (Misskey: 2024.x.x)
+          * yojo-art: 1.x.x (Misskey: 2025.x.x)
           * Node: 20.x.x
           * PostgreSQL: 15.x.x
           * Redis: 7.x.x
           * OS and Architecture: Ubuntu 24.04.2 LTS aarch64
       value: |
         * Installation Method or Hosting Service:
-        * CherryPick:
+        * yojo-art:
         * Node:
         * PostgreSQL:
         * Redis:

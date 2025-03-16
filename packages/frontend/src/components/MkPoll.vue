@@ -43,6 +43,8 @@ const props = defineProps<{
 	noteId: string;
 	poll: NonNullable<Misskey.entities.Note['poll']>;
 	readOnly?: boolean;
+	emojiUrls?: Record<string, string>;
+	author?: Misskey.entities.UserLite;
 	isTranslation?: boolean;
 	emojiUrls?: Record<string, string>;
 	author?: Misskey.entities.UserLite;
@@ -92,7 +94,7 @@ if (props.poll.expiresAt) {
 const vote = async (id) => {
 	if (props.readOnly || closed.value || isVoted.value) return;
 
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 
 	const { canceled } = await os.confirm({
 		type: 'question',

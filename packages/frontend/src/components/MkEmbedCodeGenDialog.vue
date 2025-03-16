@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:scroll="false"
 	:withOkButton="false"
 	@close="cancel()"
-	@closed="$emit('closed')"
+	@closed="emit('closed')"
 >
 	<template #header><i class="ti ti-code"></i> {{ i18n.ts._embedCodeGen.title }}</template>
 
@@ -279,7 +279,7 @@ onUnmounted(() => {
 //#endregion
 </script>
 
-<style module>
+<style lang="scss" module>
 .transition_x_enterActive,
 .transition_x_leaveActive {
 	transition: opacity 0.3s cubic-bezier(0,0,.35,1), transform 0.3s cubic-bezier(0,0,.35,1);

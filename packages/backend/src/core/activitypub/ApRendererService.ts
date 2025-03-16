@@ -28,6 +28,7 @@ import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFil
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { searchableTypes } from '@/types.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
@@ -67,6 +68,7 @@ export class ApRendererService {
 		private apMfmService: ApMfmService,
 		private mfmService: MfmService,
 		private idService: IdService,
+		private utilityService: UtilityService,
 	) {
 	}
 
@@ -189,6 +191,9 @@ export class ApRendererService {
 				mediaType: emoji.type ?? 'image/png',
 				// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
 				url: emoji.publicUrl || emoji.originalUrl,
+			},
+			_misskey_license: {
+				freeText: emoji.license,
 			},
 			keywords: emoji.aliases,
 			isSensitive: emoji.isSensitive,
@@ -392,7 +397,7 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
-		let searchableBy: string[]| undefined = [];
+		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
 			searchableBy = undefined;
 		} else	if (note.searchableBy === searchableTypes[0]) {
@@ -572,6 +577,9 @@ export class ApRendererService {
 			summary: profile.description ? this.mfmService.toHtml(mfm.parse(profile.description)) : null,
 			_misskey_summary: profile.description,
 			_misskey_followedMessage: profile.followedMessage,
+			_misskey_requireSigninToViewContents: user.requireSigninToViewContents,
+			_misskey_makeNotesFollowersOnlyBefore: user.makeNotesFollowersOnlyBefore,
+			_misskey_makeNotesHiddenBefore: user.makeNotesHiddenBefore,
 			icon: avatar ? this.renderImage(avatar) : null,
 			image: banner ? this.renderImage(banner) : null,
 			tag,
@@ -582,6 +590,8 @@ export class ApRendererService {
 			publicKey: this.renderKey(user, keypair, '#main-key'),
 			isCat: user.isCat,
 			attachment: attachment.length ? attachment : undefined,
+			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
+			isSquareAvatars: user.isSquareAvatars ?? undefined,
 		};
 
 		if (user.movedToUri) {
@@ -678,7 +688,7 @@ export class ApRendererService {
 
 	@bindThis
 	public renderUndo(object: string | IObject, user: { id: MiUser['id'] }): IUndo {
-		const id = typeof object !== 'string' && typeof object.id === 'string' && object.id.startsWith(this.config.url) ? `${object.id}/undo` : undefined;
+		const id = typeof object !== 'string' && typeof object.id === 'string' && this.utilityService.isUriLocal(object.id) ? `${object.id}/undo` : undefined;
 
 		return {
 			type: 'Undo',
@@ -848,11 +858,11 @@ export class ApRendererService {
 	public async renderReversiUpdate(local_user:MiUser, remote_user:MiRemoteUser,
 		game_state: {
 			game_session_id: string;
-			type:string;
-			pos?:number;//石配置
-			key?:string;//設定変更
-			value?:any;//設定変更
-			ready?:boolean;//ゲーム開始
+			type: string;
+			pos?: number;//石配置
+			key?: string;//設定変更
+			value?: any;//設定変更
+			ready?: boolean;//ゲーム開始
 		},
 	) {
 		const game:IApReversi = {

@@ -300,6 +300,10 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		noteDraftLimit: {
+			type: 'integer',
+			optional: false, nullable: false,
+		},
 		fileSizeLimit: {
 			type: 'integer',
 			optional: false, nullable: false,
@@ -310,6 +314,10 @@ export const packedRolePoliciesSchema = {
 		},
 		scheduleNoteMax: {
 			type: 'integer',
+			optional: false, nullable: false,
+		},
+		canSetFederationAvatarShape: {
+			type: 'boolean',
 			optional: false, nullable: false,
 		},
 		mutualLinkSectionLimit: {

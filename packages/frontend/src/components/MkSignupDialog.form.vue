@@ -83,12 +83,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import { toUnicode } from 'punycode/';
+import { toUnicode } from 'punycode.js';
 import * as Misskey from 'cherrypick-js';
 import * as config from '@@/js/config.js';
 import MkButton from './MkButton.vue';
 import MkInput from './MkInput.vue';
-import MkCaptcha, { type Captcha } from '@/components/MkCaptcha.vue';
+import type { Captcha } from '@/components/MkCaptcha.vue';
+import MkCaptcha from '@/components/MkCaptcha.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { login } from '@/account.js';
@@ -292,7 +293,7 @@ async function onSubmit(): Promise<void> {
 		return null;
 	});
 
-	if (res) {
+	if (res && res.ok) {
 		if (res.status === 204 || instance.emailRequiredForSignup) {
 			os.alert({
 				type: 'success',
@@ -310,6 +311,8 @@ async function onSubmit(): Promise<void> {
 				await login(resJson.token);
 			}
 		}
+	} else {
+		onSignupApiError();
 	}
 
 	submitting.value = false;

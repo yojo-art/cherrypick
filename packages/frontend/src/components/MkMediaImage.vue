@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :data-is-hidden="hide ? 'true' : 'false'" :class="[hide ? $style.hidden : $style.visible, (image.isSensitive && defaultStore.state.highlightSensitiveMedia) && $style.sensitive]" @click="onClick" @dblclick="onDblClick">
+<div :data-is-hidden="hide ? 'true' : 'false'" :class="[hide ? $style.hidden : $style.visible, (image.isSensitive && defaultStore.state.highlightSensitiveMedia) && $style.sensitive]" @click="onClick($event)" @dblclick="onDblClick">
 	<component
 		:is="(disableImageLink || hide) ? 'div' : 'a'"
 		v-bind="(disableImageLink || hide) ? {
@@ -59,6 +59,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, onUnmounted, watch, ref, computed } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import type { MenuItem } from '@/types/menu.js';
+import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import bytes from '@/filters/bytes.js';
 import ImgWithBlurhash from '@/components/MkImgWithBlurhash.vue';
@@ -175,14 +176,36 @@ function showMenu(ev: MouseEvent) {
 		});
 	}
 
+	const details: MenuItem[] = [];
 	if ($i?.id === props.image.userId) {
-		menuItems.push({
-			type: 'divider',
-		}, {
+		details.push({
 			type: 'link',
 			text: i18n.ts._fileViewer.title,
 			icon: 'ti ti-info-circle',
 			to: `/my/drive/file/${props.image.id}`,
+		});
+	}
+
+	if (iAmModerator) {
+		details.push({
+			type: 'link',
+			text: i18n.ts.moderation,
+			icon: 'ti ti-photo-exclamation',
+			to: `/admin/file/${props.image.id}`,
+		});
+	}
+
+	if (details.length > 0) {
+		menuItems.push({ type: 'divider' }, ...details);
+	}
+
+	if (defaultStore.state.devMode) {
+		menuItems.push({ type: 'divider' }, {
+			icon: 'ti ti-id',
+			text: i18n.ts.copyFileId,
+			action: () => {
+				copyToClipboard(props.image.id);
+			},
 		});
 	}
 

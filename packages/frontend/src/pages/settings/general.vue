@@ -50,15 +50,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="enableHorizontalSwipe">{{ i18n.ts.enableHorizontalSwipe }}</MkSwitch>
 				<MkSwitch v-model="alwaysConfirmFollow">{{ i18n.ts.alwaysConfirmFollow }}</MkSwitch>
 				<MkSwitch v-model="confirmWhenRevealingSensitiveMedia">{{ i18n.ts.confirmWhenRevealingSensitiveMedia }}</MkSwitch>
+				<MkSwitch v-model="confirmOnReact">{{ i18n.ts.confirmOnReact }}</MkSwitch>
 				<MkSwitch v-model="autoLoadMoreReplies">{{ i18n.ts.autoLoadMoreReplies }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="autoLoadMoreConversation">{{ i18n.ts.autoLoadMoreConversation }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="useAutoTranslate" @update:modelValue="learnMoreAutoTranslate">
 					{{ i18n.ts.useAutoTranslate }} <span class="_beta">CherryPick</span>
-					<template v-if="!$i.policies.canUseAutoTranslate" #caption>{{ i18n.ts.cannotBeUsedFunc }} <a class="_link" @click="learnMoreCantUseAutoTranslate">{{ i18n.ts.learnMore }}</a></template>
+					<template v-if="!$i?.policies.canUseAutoTranslate" #caption>{{ i18n.ts.cannotBeUsedFunc }} <a class="_link" @click="learnMoreCantUseAutoTranslate">{{ i18n.ts.learnMore }}</a></template>
 				</MkSwitch>
 				<MkSwitch v-model="welcomeBackToast">{{ i18n.ts.welcomeBackToast }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="disableNyaize">{{ i18n.ts.noNyaization }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">yojo-art</span></MkSwitch>
+				<MkSwitch v-model="checkReactionDialog">{{ i18n.ts.showReactionCheckDialog }} <span class="_beta">yojo-art</span></MkSwitch>
 			</div>
 			<MkSelect v-model="serverDisconnectedBehavior">
 				<template #label>{{ i18n.ts.whenServerDisconnected }} <span class="_beta" style="vertical-align: middle;">CherryPick</span></template>
@@ -89,6 +91,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #caption>{{ i18n.ts.numberOfPageCacheDescription }}</template>
 			</MkRange>
 			<XDataSaver/>
+
+			<MkFolder>
+				<template #label>{{ i18n.ts._externalNavigationWarning.externalNavigationWarning }}</template>
+
+				<div class="_gaps_m">
+					<div class="_gaps_m">
+						<MkSwitch v-model="externalNavigationWarning">
+							{{ i18n.ts._externalNavigationWarning.enableExternalNavigationWarning }}
+						</MkSwitch>
+						<MkTextarea v-model="trustedDomains">
+							<template #label>{{ i18n.ts._externalNavigationWarning.trustedDomainList }}</template>
+							<template #caption><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._externalNavigationWarning.trustedDomainListDescription }}<br>{{ i18n.ts._externalNavigationWarning.trustedDomainListDescription2 }}</template>
+						</MkTextarea>
+						<div class="_buttons">
+							<MkButton primary :disabled="!trustedDomainsChanged" @click="trustedDomainsSave()"><i class="ti ti-device-floppy"></i> {{ i18n.ts.save }}</MkButton>
+							<MkButton :disabled="!defaultStore.reactiveState.trustedDomains.value.length" danger @click="removeTrustedDomains"><i class="ti ti-trash"></i> {{ i18n.ts._externalNavigationWarning.deleteTrustedDomainList }}</MkButton>
+						</div>
+					</div>
+				</div>
+			</MkFolder>
 		</div>
 	</FormSection>
 
@@ -102,6 +124,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<option value="S">{{ i18n.ts._hemisphere.S }}</option>
 				<template #caption>{{ i18n.ts._hemisphere.caption }}</template>
 			</MkRadios>
+			<MkSelect v-model="searchEngine">
+				<template #label>{{ i18n.ts._searchSite.title }}</template>
+				<template #caption>{{ i18n.ts._searchSite.description }}</template>
+				<option value="google">Google</option>
+				<option value="bing">Bing</option>
+				<option value="yahoo">Yahoo</option>
+				<option value="baidu">Baidu</option>
+				<option value="naver">NAVER</option>
+				<option value="daum">Daum</option>
+				<option value="duckduckgo">DuckDuckGo</option>
+				<option value="other">{{ i18n.ts.other }}</option>
+			</MkSelect>
+			<MkInput v-if="defaultStore.state.searchEngine == 'other'" v-model="searchEngineUrl">
+				<template #label>{{ i18n.ts._searchSite.otherSearchEngine }}</template>
+				<template #caption>{{ i18n.ts._searchSite.otherDescription }}</template>
+			</MkInput>
+			<MkInput v-if="defaultStore.state.searchEngine == 'other'" v-model="searchEngineUrlQuery">
+				<template #label>{{ i18n.ts._searchSite.query }}</template>
+				<template #caption>{{ i18n.ts._searchSite.queryDescription }}</template>
+			</MkInput>
 			<MkFolder>
 				<template #label>{{ i18n.ts.additionalEmojiDictionary }}</template>
 				<div class="_buttons">
@@ -132,6 +174,8 @@ import FormSection from '@/components/form/section.vue';
 import FormLink from '@/components/form/link.vue';
 import MkLink from '@/components/MkLink.vue';
 import MkInfo from '@/components/MkInfo.vue';
+import MkTextarea from '@/components/MkTextarea.vue';
+import MkInput from '@/components/MkInput.vue';
 import { defaultStore } from '@/store.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
@@ -143,6 +187,7 @@ import { globalEvents } from '@/events.js';
 import { $i } from '@/account.js';
 
 const lang = ref(miLocalStorage.getItem('lang'));
+const trustedDomains = ref(defaultStore.state.trustedDomains.join('\n'));
 
 function reloadTimeline() {
 	globalEvents.emit('reloadTimeline');
@@ -162,6 +207,7 @@ const disableStreamingTimeline = computed(defaultStore.makeGetterSetter('disable
 const enableHorizontalSwipe = computed(defaultStore.makeGetterSetter('enableHorizontalSwipe'));
 const alwaysConfirmFollow = computed(defaultStore.makeGetterSetter('alwaysConfirmFollow'));
 const confirmWhenRevealingSensitiveMedia = computed(defaultStore.makeGetterSetter('confirmWhenRevealingSensitiveMedia'));
+const confirmOnReact = computed(defaultStore.makeGetterSetter('confirmOnReact'));
 const contextMenu = computed(defaultStore.makeGetterSetter('contextMenu'));
 const newNoteReceivedNotificationBehavior = computed(defaultStore.makeGetterSetter('newNoteReceivedNotificationBehavior'));
 const requireRefreshBehavior = computed(defaultStore.makeGetterSetter('requireRefreshBehavior'));
@@ -170,7 +216,12 @@ const autoLoadMoreConversation = computed(defaultStore.makeGetterSetter('autoLoa
 const useAutoTranslate = computed(defaultStore.makeGetterSetter('useAutoTranslate'));
 const welcomeBackToast = computed(defaultStore.makeGetterSetter('welcomeBackToast'));
 const disableNyaize = computed(defaultStore.makeGetterSetter('disableNyaize'));
+const externalNavigationWarning = computed(defaultStore.makeGetterSetter('externalNavigationWarning'));
+const searchEngine = computed(defaultStore.makeGetterSetter('searchEngine'));
+const searchEngineUrl = computed(defaultStore.makeGetterSetter('searchEngineUrl'));
+const searchEngineUrlQuery = computed(defaultStore.makeGetterSetter('searchEngineUrlQuery'));
 const checkMultipleRenote = computed(defaultStore.makeGetterSetter('checkMultipleRenote'));
+const checkReactionDialog = computed(defaultStore.makeGetterSetter('checkReactionDialog'));
 
 watch(lang, () => {
 	miLocalStorage.setItem('lang', lang.value as string);
@@ -275,10 +326,45 @@ function learnMoreCantUseAutoTranslate() {
 	os.alert({
 		type: 'info',
 		title: i18n.ts.useAutoTranslate,
-		text: i18n.ts.cantUseAutoTranslateDescription,
-		caption: i18n.ts.cantUseAutoTranslateCaption,
+		text: i18n.tsx.cantUseThisFunctionDescription({ name: i18n.ts.useAutoTranslate }),
+		caption: i18n.tsx.cantUseThisFunctionCaption({ name: i18n.ts.useAutoTranslate }),
 	});
 }
+
+function removeTrustedDomains() {
+	async function main() {
+		await defaultStore.set('trustedDomains', []);
+
+		// Refresh filtered list to signal to the user how they've been saved
+		trustedDomains.value = '';
+	}
+
+	os.promiseDialog(main());
+}
+
+const trustedDomainsChanged = ref(false);
+
+async function trustedDomainsSave() {
+	async function main() {
+		let domains = trustedDomains.value
+			.trim().split('\n')
+			.map(el => el.trim())
+			.filter(el => el);
+
+		await defaultStore.set('trustedDomains', domains);
+
+		trustedDomainsChanged.value = false;
+
+		// Refresh filtered list to signal to the user how they've been saved
+		trustedDomains.value = domains.join('\n');
+	}
+
+	await os.promiseDialog(main());
+}
+
+watch(trustedDomains, () => {
+	trustedDomainsChanged.value = true;
+});
 
 const headerActions = computed(() => []);
 

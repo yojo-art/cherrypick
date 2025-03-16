@@ -6,7 +6,7 @@
 import { describe, test, assert, afterEach } from 'vitest';
 import { render, cleanup, type RenderResult } from '@testing-library/vue';
 import './init';
-import type * as Misskey from 'cherrypick-js';
+import * as Misskey from 'cherrypick-js';
 import { components } from '@/components/index.js';
 import { directives } from '@/directives/index.js';
 import MkMediaImage from '@/components/MkMediaImage.vue';
@@ -71,12 +71,10 @@ describe('MkMediaImage', () => {
 		const mkMediaImage = renderMediaImage({
 			type: 'image/apng',
 		});
-		const [gif, apng, alt] = await Promise.all([
-			mkMediaImage.queryByText('GIF'),
+		const [apng, alt] = await Promise.all([
 			mkMediaImage.queryByText('APNG'),
 			mkMediaImage.queryByText('ALT'),
 		]);
-		assert.ok(!gif);
 		assert.ok(apng);
 		assert.ok(!alt);
 	});

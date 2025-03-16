@@ -8,7 +8,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div>
 		<span v-if="note.isHidden" style="opacity: 0.5">({{ i18n.ts.private }})</span>
 		<span v-if="note.deletedAt" style="opacity: 0.5">({{ i18n.ts.deletedNote }})</span>
-		<MkA v-if="note.replyId" :class="$style.reply" :to="`/notes/${note.replyId}`"><i class="ti ti-arrow-back-up"></i></MkA>
+		<MkA v-if="note.replyId && defaultStore.state.showReplyTargetNote" :class="$style.reply" :to="`/notes/${note.replyId}`" @click.stop><i class="ti ti-arrow-back-up"></i></MkA>
+		<div v-else-if="note.replyId" style="margin-bottom: 4px;">
+			<MkA :class="$style.reply" :to="`/notes/${note.replyId}`" @click.stop><i class="ti ti-arrow-back-up"></i></MkA>
+			<MkA v-user-preview="note.reply.userId" :class="$style.replyToText" :to="userPage(note.reply.user)" @click.stop><span v-html="replyTo"></span></MkA>
+		</div>
 		<Mfm
 			v-if="note.text"
 			:parsedNodes="parsed"
@@ -29,7 +33,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkLoading v-if="translating" mini/>
 			<div v-else-if="translation">
 				<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
-				<Mfm v-if="note.text"
+				<Mfm
+					v-if="note.text"
 					:text="translation.text"
 					:author="note.user"
 					:nyaize="defaultStore.state.disableNyaize || noNyaize ? false : 'respect'"
@@ -39,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					@click.stop
 				/>
 				<div v-if="note.poll">
-					<MkPoll :noteId="note.id" :poll="note.poll" isTranslation @click.stop/>
+					<MkPoll :noteId="note.id" :poll="note.poll" :author="note.user" :emojiUrls="note.emojis" isTranslation @click.stop/>
 				</div>
 				<div v-if="translation.translator == 'ctav3'" style="margin-top: 10px; padding: 0 0 15px;">
 					<img v-if="!defaultStore.state.darkMode" src="/client-assets/color-short.svg" alt="" style="float: right;">
@@ -58,7 +63,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkMediaList v-else :mediaList="note.files" @click.stop/>
 			</div>
 			<div v-if="note.poll">
-				<MkPoll :noteId="note.id" :poll="note.poll" @click.stop/>
+				<MkPoll :noteId="note.id" :poll="note.poll" :author="note.user" :emojiUrls="note.emojis" @click.stop/>
 			</div>
 		</div>
 	</div>
@@ -137,12 +142,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, provide, Ref, ref, shallowRef, watch } from 'vue';
+import { computed, inject, provide, ref, shallowRef, watch } from 'vue';
 import * as mfm from 'mfc-js';
 import * as Misskey from 'cherrypick-js';
 import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@@/js/collapsed.js';
 import { concat } from '@@/js/array.js';
 import { host } from '@@/js/config.js';
+import type { Ref } from 'vue';
+import type { OpenOnRemoteOptions } from '@/scripts/please-login.js';
 import * as os from '@/os.js';
 import * as sound from '@/scripts/sound.js';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -158,7 +165,7 @@ import { miLocalStorage } from '@/local-storage.js';
 import { instance } from '@/instance.js';
 import { notePage } from '@/filters/note.js';
 import { useTooltip } from '@/scripts/use-tooltip.js';
-import { type OpenOnRemoteOptions, pleaseLogin } from '@/scripts/please-login.js';
+import { pleaseLogin } from '@/scripts/please-login.js';
 import { showMovedDialog } from '@/scripts/show-moved-dialog.js';
 import { getNoteClipMenu, getNoteMenu, getRenoteMenu, getRenoteOnly, getQuoteMenu } from '@/scripts/get-note-menu.js';
 import { deepClone } from '@/scripts/clone.js';
@@ -169,14 +176,16 @@ import { vibrate } from '@/scripts/vibrate.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import detectLanguage from '@/scripts/detect-language.js';
 import number from '@/filters/number.js';
+import { userPage } from '@/filters/user.js';
+import { notesReactionsCreate } from '@/scripts/check-reaction-create';
 
 const props = withDefaults(defineProps<{
-  note: Misskey.entities.Note & {
-		isSchedule? : boolean,
+	note: Misskey.entities.Note & {
+		isSchedule?: boolean,
 		scheduledNoteId?: string
 	};
-  mock?: boolean;
-  showSubNoteFooterButton?: boolean;
+	mock?: boolean;
+	showSubNoteFooterButton?: boolean;
 }>(), {
 	mock: false,
 });
@@ -184,8 +193,8 @@ const props = withDefaults(defineProps<{
 provide('mock', props.mock);
 
 const emit = defineEmits<{
-  (ev: 'reaction', emoji: string): void;
-  (ev: 'removeReaction', emoji: string): void;
+	(ev: 'reaction', emoji: string): void;
+	(ev: 'removeReaction', emoji: string): void;
 }>();
 
 const note = ref(deepClone(props.note));
@@ -220,13 +229,21 @@ const collapsed = ref((isLong && defaultStore.state.collapseLongNoteContent) || 
 
 const pleaseLoginContext = computed<OpenOnRemoteOptions>(() => ({
 	type: 'lookup',
-	url: `https://${host}/notes/${props.note.value.id}`,
+	url: `https://${host}/notes/${props.note.id}`,
 }));
 
 const collapseLabel = computed(() => {
 	return concat([
 		props.note.files && props.note.files.length !== 0 ? [i18n.tsx._cw.files({ count: props.note.files.length })] : [],
 	] as string[][]).join(' / ');
+});
+
+const replyTo = computed(() => {
+	const username = props.note.reply.user.username;
+	const text = i18n.tsx.replyTo({ user: username });
+	const user = `<span style="color: var(--MI_THEME-accent); margin-right: 0.25em;">@${username}</span>`;
+
+	return text.replace(username, user);
 });
 
 if (props.mock) {
@@ -271,7 +288,7 @@ watch(() => viewTextSource.value, () => {
 });
 
 function renote() {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
 	const { menu } = getRenoteMenu({ note: note.value, renoteButton, mock: props.mock });
@@ -279,14 +296,14 @@ function renote() {
 }
 
 async function renoteOnly() {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 
 	await getRenoteOnly({ note: note.value, renoteButton, mock: props.mock });
 }
 
 function quote(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	if (props.mock) {
 		return;
 	}
@@ -312,7 +329,7 @@ function quote(): void {
 }
 
 function reply(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	if (props.mock) {
 		return;
 	}
@@ -325,15 +342,13 @@ function reply(): void {
 }
 
 function react(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
 	if (props.note.reactionAcceptance === 'likeOnly') {
-		sound.playMisskeySfx('reaction');
-
 		if (props.mock) {
 			return;
 		}
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: props.note.id,
 			reaction: '❤️',
 		});
@@ -348,12 +363,17 @@ function react(): void {
 		}
 	} else {
 		blur();
-		reactionPicker.show(reactButton.value ?? null, note.value, reaction => {
-			if (props.mock) {
-				emit('reaction', reaction);
-				return;
+		reactionPicker.show(reactButton.value ?? null, note.value, async (reaction) => {
+			if (defaultStore.state.confirmOnReact) {
+				const confirm = await os.confirm({
+					type: 'question',
+					text: i18n.tsx.reactAreYouSure({ emoji: reaction.replace('@.', '') }),
+				});
+
+				if (confirm.canceled) return;
 			}
-			toggleReaction(reaction);
+
+			await toggleReaction(reaction);
 		}, () => {
 			focus();
 		});
@@ -382,9 +402,7 @@ async function toggleReaction(reaction) {
 			}
 		});
 	} else {
-		sound.playMisskeySfx('reaction');
-
-		misskeyApi('notes/reactions/create', {
+		notesReactionsCreate({
 			noteId: note.value.id,
 			reaction: reaction,
 		});
@@ -395,16 +413,14 @@ async function toggleReaction(reaction) {
 }
 
 function heartReact(): void {
-	pleaseLogin(undefined, pleaseLoginContext.value);
+	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	showMovedDialog();
-
-	sound.playMisskeySfx('reaction');
 
 	if (props.mock) {
 		return;
 	}
 
-	misskeyApi('notes/reactions/create', {
+	notesReactionsCreate({
 		noteId: props.note.id,
 		reaction: defaultStore.state.selectReaction,
 	});
@@ -581,6 +597,16 @@ function emitUpdReaction(emoji: string, delta: number) {
 .reply {
 	margin-right: 6px;
 	color: var(--MI_THEME-accent);
+
+	&:hover {
+		text-decoration: none;
+	}
+}
+
+.replyToText {
+	&:hover {
+		text-decoration: none;
+	}
 }
 
 .rp {
@@ -637,7 +663,7 @@ function emitUpdReaction(emoji: string, delta: number) {
 	opacity: .8;
 
 	&:hover {
-		background: var(--MI_THEME-X5);
+		background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
 	}
 }
 

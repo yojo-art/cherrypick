@@ -15,6 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInfo v-if="isBasicTimeline(src) && !defaultStore.reactiveState.timelineTutorials.value[src]" style="margin-bottom: var(--MI-margin);" closable @close="closeTutorial()">
 					{{ i18n.ts._timelineDescription[src] }}
 				</MkInfo>
+				<MkInfo v-if="schedulePostList > 0" style="margin-bottom: var(--MI-margin);"><button type="button" :class="$style.checkSchedulePostList" @click="os.listScheduleNotePost">{{ i18n.tsx.thereIsSchedulePost({ n: schedulePostList }) }}</button></MkInfo>
 				<MkPostForm v-if="defaultStore.reactiveState.showFixedPostForm.value" :class="$style.postForm" class="post-form _panel" fixed style="margin-bottom: var(--MI-margin);" :autofocus="false"/>
 
 				<transition
@@ -37,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</transition>
 
 				<div :class="$style.tl">
-					<div v-if="!isAvailableBasicTimeline(src)" :class="$style.disabled">
+					<div v-if="!isAvailableBasicTimeline(src) && !src.startsWith('list:')" :class="$style.disabled">
 						<p :class="$style.disabledTitle">
 							<i class="ti ti-circle-minus"></i>
 							{{ i18n.ts._disabledTimeline.title }}
@@ -47,11 +48,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkTimeline
 						v-else
 						ref="tlComponent"
-						:key="src + withRenotes + withReplies + onlyFiles + onlyCats"
+						:key="src + withRenotes + withReplies + withSensitive + onlyFiles + onlyCats"
 						:src="src.split(':')[0]"
 						:list="src.split(':')[1]"
 						:withRenotes="withRenotes"
 						:withReplies="withReplies"
+						:withSensitive="withSensitive"
 						:onlyFiles="onlyFiles"
 						:onlyCats="onlyCats"
 						:sound="true"
@@ -74,6 +76,7 @@ import MkTimeline from '@/components/MkTimeline.vue';
 import MkInfo from '@/components/MkInfo.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
 import MkHorizontalSwipe from '@/components/MkHorizontalSwipe.vue';
+import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore } from '@/store.js';
@@ -96,10 +99,12 @@ const MOBILE_THRESHOLD = 500;
 
 // デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
 const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
-const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
+const isMobile = ref(['smartphone', 'tablet'].includes(<string>deviceKind) || window.innerWidth <= MOBILE_THRESHOLD);
 window.addEventListener('resize', () => {
 	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
 });
+
+const schedulePostList = $i ? (await misskeyApi('notes/schedule/list')).length : 0;
 
 if (!isFriendly.value) provide('shouldOmitHeaderTitle', true);
 
@@ -174,25 +179,23 @@ const enableHomeTimeline = ref(defaultStore.state.enableHomeTimeline);
 const enableLocalTimeline = ref(defaultStore.state.enableLocalTimeline);
 const enableSocialTimeline = ref(defaultStore.state.enableSocialTimeline);
 const enableGlobalTimeline = ref(defaultStore.state.enableGlobalTimeline);
+const enableBubbleTimeline = ref(defaultStore.state.enableBubbleTimeline);
 const enableMediaTimeline = ref(defaultStore.state.enableMediaTimeline);
 const enableListTimeline = ref(defaultStore.state.enableListTimeline);
 const enableAntennaTimeline = ref(defaultStore.state.enableAntennaTimeline);
 const enableTagTimeline = ref(defaultStore.state.enableTagTimeline);
 
+const forceCollapseAllRenotes = ref(defaultStore.state.forceCollapseAllRenotes);
 const collapseRenotes = ref(defaultStore.state.collapseRenotes);
 const collapseReplies = ref(defaultStore.state.collapseReplies);
 const collapseLongNoteContent = ref(defaultStore.state.collapseLongNoteContent);
 const collapseDefault = ref(defaultStore.state.collapseDefault);
 const alwaysShowCw = ref(defaultStore.state.alwaysShowCw);
+const showReplyTargetNote = ref(defaultStore.state.showReplyTargetNote);
 
 watch(src, () => {
 	queue.value = 0;
-	queueUpdated(queue);
-});
-
-watch(withSensitive, () => {
-	// これだけはクライアント側で完結する処理なので手動でリロード
-	tlComponent.value?.reloadTimeline();
+	queueUpdated(queue.value);
 });
 
 watch(enableWidgetsArea, (x) => {
@@ -225,6 +228,11 @@ watch(enableGlobalTimeline, (x) => {
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });
 
+watch(enableBubbleTimeline, (x) => {
+	defaultStore.set('enableBubbleTimeline', x);
+	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
 watch(enableMediaTimeline, (x) => {
 	defaultStore.set('enableMediaTimeline', x);
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
@@ -243,6 +251,11 @@ watch(enableAntennaTimeline, (x) => {
 watch(enableTagTimeline, (x) => {
 	defaultStore.set('enableTagTimeline', x);
 	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+});
+
+watch(forceCollapseAllRenotes, (x) => {
+	defaultStore.set('forceCollapseAllRenotes', x);
+	reloadTimeline();
 });
 
 watch(collapseRenotes, (x) => {
@@ -269,6 +282,12 @@ watch(collapseDefault, (x) => {
 
 watch(alwaysShowCw, (x) => {
 	defaultStore.set('alwaysShowCw', x);
+	reloadTimeline();
+	reloadNotification();
+});
+
+watch(showReplyTargetNote, (x) => {
+	defaultStore.set('showReplyTargetNote', x);
 	reloadTimeline();
 	reloadNotification();
 });
@@ -521,6 +540,11 @@ const headerActions = computed(() => {
 							ref: enableGlobalTimeline,
 						}, {
 							type: 'switch',
+							text: i18n.ts._timelines.bubble,
+							icon: 'ti ti-droplet',
+							ref: enableBubbleTimeline,
+						}, {
+							type: 'switch',
 							text: i18n.ts._timelines.media,
 							icon: 'ti ti-photo',
 							ref: enableMediaTimeline,
@@ -582,7 +606,12 @@ const headerActions = computed(() => {
 							ref: onlyCats,
 						}, { type: 'divider' }, {
 							type: 'switch',
+							text: i18n.ts.forceCollapseAllRenotes,
+							ref: forceCollapseAllRenotes,
+						}, {
+							type: 'switch',
 							text: i18n.ts.collapseRenotes,
+							disabled: forceCollapseAllRenotes.value,
 							ref: collapseRenotes,
 						}, {
 							type: 'switch',
@@ -600,6 +629,10 @@ const headerActions = computed(() => {
 							type: 'switch',
 							text: i18n.ts.alwaysShowCw,
 							ref: alwaysShowCw,
+						}, {
+							type: 'switch',
+							text: i18n.ts.showReplyTargetNote,
+							ref: showReplyTargetNote,
 						});
 
 						return displayOfNoteChildMenu;
@@ -712,5 +745,15 @@ definePageMetadata(() => ({
 	background: var(--MI_THEME-bg);
 	border-radius: var(--MI-radius);
 	overflow: clip;
+}
+
+.checkSchedulePostList {
+	background: none;
+	border: none;
+	color: inherit;
+
+	&:hover {
+		text-decoration: underline;
+	}
 }
 </style>

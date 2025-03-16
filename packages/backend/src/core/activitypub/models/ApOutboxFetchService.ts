@@ -145,7 +145,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (!activity.id) continue;
 						let renote = await this.apNoteService.fetchNote(activity.object);
 						if (renote === null) {
-							renote = await this.apNoteService.createNote(activity.object, undefined, true);
+							renote = await this.apNoteService.createNote(activity.object, undefined, undefined, true);
 							if (renote === null) {
 								this.logger.info('announce target is null');
 								continue;
@@ -191,7 +191,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 					}
 					const fetch = await this.apNoteService.fetchNote(activity.object);
 					if (fetch) continue;
-					await this.apNoteService.createNote(activity.object, undefined, true);
+					await this.apNoteService.createNote(activity.object, undefined, undefined, true);
 				}
 			} catch (err) {
 				//リモートのリモートが落ちてるなどで止まるとほかが見れなくなってしまうので再スローしない

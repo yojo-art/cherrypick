@@ -77,6 +77,7 @@ export const soundsTypes = [
 export const operationTypes = [
 	'noteMy',
 	'note',
+	'noteSchedulePost',
 	'noteEdited',
 	'chat',
 	'chatBg',
@@ -99,6 +100,10 @@ export async function loadAudio(url: string, options?: { useCache?: boolean; }) 
 	// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 	if (ctx == null) {
 		ctx = new AudioContext();
+
+		window.addEventListener('beforeunload', () => {
+			ctx.close();
+		});
 	}
 	if (options?.useCache ?? true) {
 		if (cache.has(url)) {
@@ -200,10 +205,10 @@ export function createSourceNode(buffer: AudioBuffer, opts: {
 	pan?: number;
 	playbackRate?: number;
 }): {
-	soundSource: AudioBufferSourceNode;
-	panNode: StereoPannerNode;
-	gainNode: GainNode;
-} {
+		soundSource: AudioBufferSourceNode;
+		panNode: StereoPannerNode;
+		gainNode: GainNode;
+	} {
 	const panNode = ctx.createStereoPanner();
 	panNode.pan.value = opts.pan ?? 0;
 

@@ -2,12 +2,12 @@
  * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
  * SPDX-License-Identifier: AGPL-3.0-only
  */
+import { defineAsyncComponent } from 'vue';
 import { i18n } from '@/i18n.js';
-import * as os from "@/os.js";
+import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
-import { defineAsyncComponent } from "vue";
 
-export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null> {
+export async function copyEmoji(emoji: any, showDialog = true): Promise<any | null> {
 	let readText = '';
 
 	//条件付きか、ライセンス情報などがある場合その情報を表示する
@@ -21,15 +21,15 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 		if (canceled) return null;
 		readText = emoji.license;
 	} else if (emoji.copyPermission === 'deny') {
-		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny, });
+		await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny });
 		return null;
 	}
 
-	let emojiInfo: any|null = null;
+	let emojiInfo: any | null = null;
 
 	const promise = misskeyApi('admin/emoji/copy', {
 		emojiId: emoji.id,
-		...(readText === '' ? {} : { licenseReadText: readText })
+		...(readText === '' ? {} : { licenseReadText: readText }),
 	}, undefined);
 
 	await os.promiseDialog(promise, (res) => {
@@ -43,8 +43,8 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any|null
 	return showDialog ? importEmojiMeta(emoji, emoji.host) : emoji;
 }
 
-export async function stealEmoji(emojiName: string, host: string): Promise<any|null> {
-	let emoji:any|null = null;
+export async function stealEmoji(emojiName: string, host: string): Promise<any | null> {
+	let emoji:any | null = null;
 	const promise = misskeyApi('admin/emoji/steal', { name: emojiName, host: host }, undefined);
 	await os.promiseDialog(promise, (res) => {
 		emoji = res;
@@ -52,7 +52,7 @@ export async function stealEmoji(emojiName: string, host: string): Promise<any|n
 	}, async (err) => {
 		//コピー不可
 		if (err.id === '1beadfcc-3882-f3c9-ee57-ded45e4741e4') {
-			await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny, });
+			await os.alert({ type: 'warning', title: i18n.ts._emoji.copyPermissionIsDeny });
 			return;
 		}
 		//条件付きのため絵文字情報を取得して再度インポート

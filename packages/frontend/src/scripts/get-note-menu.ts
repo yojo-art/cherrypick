@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { defineAsyncComponent, Ref, ShallowRef } from 'vue';
+import { defineAsyncComponent } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { url } from '@@/js/config.js';
 import { shouldCollapsed } from '@@/js/collapsed.js';
 import { claimAchievement } from './achievements.js';
+import type { Ref, ShallowRef } from 'vue';
 import { confirmRenote } from './check-last-renote.js';
 import type { MenuItem } from '@/types/menu.js';
 import { $i } from '@/account.js';
@@ -202,7 +203,7 @@ export function getNoteMenu(props: {
 				noteId: appearNote.id,
 			});
 
-			if (Date.now() - new Date(appearNote.createdAt).getTime() < 1000 * 60) {
+			if (Date.now() - new Date(appearNote.createdAt).getTime() < 1000 * 60 && appearNote.userId === $i.id) {
 				claimAchievement('noteDeletedWithin1min');
 			}
 		});
@@ -221,7 +222,7 @@ export function getNoteMenu(props: {
 
 			os.post({ initialNote: appearNote, renote: appearNote.renote, reply: appearNote.reply, channel: appearNote.channel });
 
-			if (Date.now() - new Date(appearNote.createdAt).getTime() < 1000 * 60) {
+			if (Date.now() - new Date(appearNote.createdAt).getTime() < 1000 * 60 && appearNote.userId === $i.id) {
 				claimAchievement('noteDeletedWithin1min');
 			}
 		});
@@ -291,11 +292,6 @@ export function getNoteMenu(props: {
 	function copyContent(): void {
 		copyToClipboard(appearNote.text);
 		os.toast(i18n.ts.copiedContent, 'copied');
-	}
-
-	function copyLink(): void {
-		copyToClipboard(`${url}/notes/${appearNote.id}`);
-		os.toast(i18n.ts.copiedLink, 'copied');
 	}
 
 	function openInNewTab(): void {
@@ -504,6 +500,13 @@ export function getNoteMenu(props: {
 
 				if (appearNote.url ?? appearNote.uri) {
 					noteChildMenu.push({
+						icon: 'ti ti-link',
+						text: i18n.ts.copyRemoteLink,
+						action: () => {
+							copyToClipboard(appearNote.url ?? appearNote.uri);
+							os.success();
+						},
+					}, {
 						icon: 'ti ti-external-link',
 						text: i18n.ts.showOnRemote,
 						action: () => {
@@ -668,6 +671,13 @@ export function getNoteMenu(props: {
 
 				if (appearNote.url ?? appearNote.uri) {
 					noteChildMenu.push({
+						icon: 'ti ti-link',
+						text: i18n.ts.copyRemoteLink,
+						action: () => {
+							copyToClipboard(appearNote.url ?? appearNote.uri);
+							os.success();
+						},
+					}, {
 						icon: 'ti ti-external-link',
 						text: i18n.ts.showOnRemote,
 						action: () => {

@@ -8,6 +8,7 @@ import * as Misskey from 'cherrypick-js';
 import { apiUrl } from '@@/js/config.js';
 import type { MenuItem, MenuButton } from '@/types/menu.js';
 import * as os from '@/os.js';
+import { defaultMemoryStorage } from '@/memory-storage';
 import { showSuspendedDialog } from '@/scripts/show-suspended-dialog.js';
 import { i18n } from '@/i18n.js';
 import { miLocalStorage } from '@/local-storage.js';
@@ -41,7 +42,15 @@ export function incNotesCount() {
 export async function signout() {
 	if (!$i) return;
 
+	defaultMemoryStorage.clear();
+
 	waiting();
+	document.cookie.split(';').forEach((cookie) => {
+		const cookieName = cookie.split('=')[0].trim();
+		if (cookieName === 'token') {
+			document.cookie = `${cookieName}=; max-age=0; path=/`;
+		}
+	});
 	miLocalStorage.removeItem('account');
 	await removeAccount($i.id);
 	const accounts = await getAccounts();
@@ -139,6 +148,9 @@ export async function removeAccount(idOrToken: Account['id']) {
 }
 
 function fetchAccount(token: string, id?: string, forceShowDialog?: boolean): Promise<Account> {
+	document.cookie = 'token=; path=/; max-age=0';
+	document.cookie = `token=${token}; path=/queue; max-age=86400; SameSite=Strict; Secure`; // bull dashboardの認証とかで使う
+
 	return new Promise((done, fail) => {
 		window.fetch(`${apiUrl}/i`, {
 			method: 'POST',
@@ -203,7 +215,18 @@ function fetchAccount(token: string, id?: string, forceShowDialog?: boolean): Pr
 	});
 }
 
-export function updateAccount(accountData: Partial<Account>) {
+export function updateAccount(accountData: Account) {
+	if (!$i) return;
+	for (const key of Object.keys($i)) {
+		delete $i[key];
+	}
+	for (const [key, value] of Object.entries(accountData)) {
+		$i[key] = value;
+	}
+	miLocalStorage.setItem('account', JSON.stringify($i));
+}
+
+export function updateAccountPartial(accountData: Partial<Account>) {
 	if (!$i) return;
 	for (const [key, value] of Object.entries(accountData)) {
 		$i[key] = value;
@@ -240,7 +263,6 @@ export async function login(token: Account['token'], redirect?: string) {
 			throw reason;
 		});
 	miLocalStorage.setItem('account', JSON.stringify(me));
-	document.cookie = `token=${token}; path=/; max-age=31536000`; // bull dashboardの認証とかで使う
 	await addAccount(me.id, token);
 
 	if (redirect) {
@@ -262,26 +284,6 @@ export async function openAccountMenu(opts: {
 	onChoose?: (account: Misskey.entities.UserDetailed) => void;
 }, ev: MouseEvent) {
 	if (!$i) return;
-
-	function showSigninDialog() {
-		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
-			done: (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
-				addAccount(res.id, res.i);
-				success();
-			},
-			closed: () => dispose(),
-		});
-	}
-
-	function createAccount() {
-		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSignupDialog.vue')), {}, {
-			done: (res: Misskey.entities.SignupResponse) => {
-				addAccount(res.id, res.token);
-				switchAccountWithToken(res.token);
-			},
-			closed: () => dispose(),
-		});
-	}
 
 	async function switchAccount(account: Misskey.entities.UserDetailed) {
 		const storedAccounts = await getAccounts();
@@ -351,10 +353,22 @@ export async function openAccountMenu(opts: {
 			text: i18n.ts.addAccount,
 			children: [{
 				text: i18n.ts.existingAccount,
-				action: () => { showSigninDialog(); },
+				action: () => {
+					getAccountWithSigninDialog().then(res => {
+						if (res != null) {
+							success();
+						}
+					});
+				},
 			}, {
 				text: i18n.ts.createAccount,
-				action: () => { createAccount(); },
+				action: () => {
+					getAccountWithSignupDialog().then(res => {
+						if (res != null) {
+							switchAccountWithToken(res.token);
+						}
+					});
+				},
 			}],
 		}, {
 			type: 'link',
@@ -401,6 +415,40 @@ export async function openAccountMenu(opts: {
 
 	popupMenu(menuItems, ev.currentTarget ?? ev.target, {
 		align: 'left',
+	});
+}
+
+export function getAccountWithSigninDialog(): Promise<{ id: string, token: string } | null> {
+	return new Promise((resolve) => {
+		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSigninDialog.vue')), {}, {
+			done: async (res: Misskey.entities.SigninFlowResponse & { finished: true }) => {
+				await addAccount(res.id, res.i);
+				resolve({ id: res.id, token: res.i });
+			},
+			cancelled: () => {
+				resolve(null);
+			},
+			closed: () => {
+				dispose();
+			},
+		});
+	});
+}
+
+export function getAccountWithSignupDialog(): Promise<{ id: string, token: string } | null> {
+	return new Promise((resolve) => {
+		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkSignupDialog.vue')), {}, {
+			done: async (res: Misskey.entities.SignupResponse) => {
+				await addAccount(res.id, res.token);
+				resolve({ id: res.id, token: res.token });
+			},
+			cancelled: () => {
+				resolve(null);
+			},
+			closed: () => {
+				dispose();
+			},
+		});
 	});
 }
 

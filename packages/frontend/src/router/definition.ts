@@ -3,24 +3,22 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { AsyncComponentLoader, defineAsyncComponent } from 'vue';
+import { defineAsyncComponent } from 'vue';
+import type { AsyncComponentLoader } from 'vue';
 import type { IRouter, RouteDef } from '@/nirax.js';
 import { Router } from '@/nirax.js';
 import { $i, iAmModerator } from '@/account.js';
 import MkLoading from '@/pages/_loading_.vue';
 import MkError from '@/pages/_error_.vue';
 
-export const page = (loader: AsyncComponentLoader<any>) => defineAsyncComponent({
+export const page = (loader: AsyncComponentLoader) => defineAsyncComponent({
 	loader: loader,
 	loadingComponent: MkLoading,
 	errorComponent: MkError,
 });
 
 const routes: RouteDef[] = [{
-	path: '/@:initUser/pages/:initPageName/view-source',
-	component: page(() => import('@/pages/page-editor/page-editor.vue')),
-}, {
-	path: '/@:username/pages/:pageName',
+	path: '/@:username/pages/:pageName(*)',
 	component: page(() => import('@/pages/page.vue')),
 }, {
 	path: '/@:acct/following',
@@ -233,7 +231,7 @@ const routes: RouteDef[] = [{
 	component: page(() => import('@/pages/theme-editor.vue')),
 	loginRequired: true,
 }, {
-	path: '/roles/:role',
+	path: '/roles/:roleId',
 	component: page(() => import('@/pages/role.vue')),
 }, {
 	path: '/user-tags/:tag',
@@ -398,6 +396,10 @@ const routes: RouteDef[] = [{
 		path: '/emojis',
 		name: 'emojis',
 		component: page(() => import('@/pages/custom-emojis-manager.vue')),
+	}, {
+		path: '/emojis2',
+		name: 'emojis2',
+		component: page(() => import('@/pages/admin/custom-emojis-manager2.vue')),
 	}, {
 		path: '/avatar-decorations',
 		name: 'avatarDecorations',
@@ -633,6 +635,9 @@ const routes: RouteDef[] = [{
 }, {
 	path: '/mfc-cheat-sheet',
 	component: page(() => import('@/pages/mfc-cheat-sheet.vue')),
+}, {
+	path: '/keyboard-shortcuts',
+	component: page(() => import('@/pages/keyboard-shortcut.vue')),
 }, {
 	name: 'index',
 	path: '/',

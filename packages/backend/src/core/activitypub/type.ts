@@ -14,6 +14,9 @@ export interface IObject {
 	summary?: string;
 	_misskey_summary?: string;
 	_misskey_followedMessage?: string | null;
+	_misskey_requireSigninToViewContents?: boolean;
+	_misskey_makeNotesFollowersOnlyBefore?: number | null;
+	_misskey_makeNotesHiddenBefore?: number | null;
 	published?: string;
 	updated?: string;
 	cc?: ApObject;
@@ -213,14 +216,16 @@ export interface IActor extends IObject {
 	};
 	'vcard:bday'?: string;
 	'vcard:Address'?: string;
+	setFederationAvatarShape?: boolean,
+	isSquareAvatars?: boolean,
 	banner?: {
 		sectionName?: string | null;
 		_misskey_sectionName?: string | null;
 		entrys: {
-				description?: string | null;
-				_misskey_description: string | null;
-				image: string | IObject | null;//ap image
-				url: string | null;//link to
+			description?: string | null;
+			_misskey_description: string | null;
+			image: string | IObject | null;//ap image
+			url: string | null;//link to
 		}[] | [];
 	}[];
 }
@@ -273,6 +278,11 @@ export interface IApEmoji extends IObject {
 	type: 'Emoji';
 	name: string;
 	updated: string;
+	// Misskey拡張。後方互換性のためにoptional。
+	// 将来の拡張性を考慮してobjectにしている
+	_misskey_license?: {
+		freeText: string | null;
+	};
 	copyPermission?: 'allow' | 'deny' | 'conditional';
 	isSensitive?: boolean;
 	category?: string;
@@ -318,12 +328,12 @@ export interface IApReversi extends IApGame {
 	game_type_uuid: '1c086295-25e3-4b82-b31e-3e3959906312';
 	extent_flags: string[];
 	game_state: {
-		game_session_id:string,
-		type?:string,
-		key?:string, //設定変更
-		value?:any, //設定変更
-		ready?:boolean, //準備完了
-		pos?:number, //石配置
+		game_session_id: string,
+		type?: string,
+		key?: string, //設定変更
+		value?: any, //設定変更
+		ready?: boolean, //準備完了
+		pos?: number, //石配置
 	};
 }
 export const isGame = (object: IObject): object is IApGame =>

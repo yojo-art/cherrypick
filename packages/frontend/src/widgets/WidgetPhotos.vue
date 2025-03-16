@@ -19,7 +19,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				@mouseout="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 				@touchstart="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 				@touchend="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
-			></div>
+			>
+				<div :class="$style.indicators">
+					<div v-if="['image/gif'].includes(image.type)" :class="$style.indicator">GIF</div>
+					<div v-if="['image/apng'].includes(image.type)" :class="$style.indicator">APNG</div>
+					<div v-if="image.comment" :class="$style.indicator">ALT</div>
+					<div v-if="image.isSensitive" :class="$style.indicator" style="color: var(--MI_THEME-warn);" :title="i18n.ts.sensitive"><i class="ti ti-eye-exclamation"></i></div>
+				</div>
+			</div>
 		</div>
 	</div>
 </MkContainer>
@@ -28,8 +35,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
-import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
-import { GetFormResultType } from '@/scripts/form.js';
+import { useWidgetPropsManager } from './widget.js';
+import type { WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
+import type { GetFormResultType } from '@/scripts/form.js';
 import { useStream } from '@/stream.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
@@ -75,10 +83,10 @@ const onDriveFileCreated = (file) => {
 const playAnimation = ref(true);
 if (defaultStore.state.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = setTimeout(() => playAnimation.value = false, 5000);
-const thumbnail = (image: any): string => {
+const thumbnail = (image: Misskey.entities.DriveFile): string => {
 	return (defaultStore.state.disableShowingAnimatedImages || defaultStore.state.dataSaver.media) || (['interaction', 'inactive'].includes(<string>defaultStore.state.showingAnimatedImages) && !playAnimation.value)
 		? getStaticImageUrl(image.url)
-		: image.thumbnailUrl;
+		: image.thumbnailUrl ?? image.url;
 };
 
 function resetTimer() {
@@ -151,5 +159,24 @@ defineExpose<WidgetComponentExpose>({
 		border: solid 2px transparent;
 		border-radius: 4px;
 	}
+}
+
+.indicators {
+	display: inline-flex;
+	margin: 3px 0 0 3px;
+	pointer-events: none;
+	opacity: .5;
+	gap: 6px;
+}
+
+.indicator {
+	/* Hardcode to black because either --MI_THEME-bg or --MI_THEME-fg makes it hard to read in dark/light mode */
+	background-color: black;
+	border-radius: 6px;
+	color: var(--MI_THEME-accentLighten);
+	display: inline-block;
+	font-weight: bold;
+	font-size: 0.8em;
+	padding: 2px 5px;
 }
 </style>

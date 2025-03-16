@@ -85,11 +85,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 	}
 	@bindThis
 	async remote(
-		me:MiUser|null,
+		me:MiUser | null,
 		user:MiUser,
 		limit:number,
-		sinceId:string|undefined,
-		untilId:string|undefined,
+		sinceId:string | undefined,
+		untilId:string | undefined,
 	) {
 		const cache_key = 'flash:user:' + user.id + '-' + sinceId + '-' + untilId;
 		const cache_value = await this.redisForRemoteApis.get(cache_key);

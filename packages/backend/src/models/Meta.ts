@@ -410,6 +410,18 @@ export class MiMeta {
 		length: 1024,
 		nullable: true,
 	})
+	public libreTranslateEndPoint: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
+	public libreTranslateApiKey: string | null;
+
+	@Column('varchar', {
+		length: 1024,
+		nullable: true,
+	})
 	public termsOfServiceUrl: string | null;
 
 	@Column('varchar', {
@@ -792,6 +804,12 @@ export class MiMeta {
 	})
 	public federationHosts: string[];
 
+	@Column('varchar', {
+		length: 64,
+		nullable: true,
+	})
+	public googleAnalyticsMeasurementId: string | null;
+
 	@Column('boolean', {
 		default: false,
 	})
@@ -834,4 +852,21 @@ export class MiMeta {
 		default: false,
 	})
 	public disablePublicNoteWhenInactive: boolean;
+
+	@Column('integer', {
+		default: 7,
+	})
+	public moderatorInactivityLimitDays: number;
+
+	@Column('varchar', {
+		length: 256,
+		array: true,
+		default: '{}',
+	})
+	public bubbleInstances: string[];
+
+	@Column('varchar', {
+		length: 2048, nullable: true,
+	})
+	public customRobotsTxt: string | null;
 }

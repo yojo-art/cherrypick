@@ -7,22 +7,16 @@ import { Injectable } from '@nestjs/common';
 import { MiAbuseUserReport, MiNote, MiUser, MiWebhook } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { MiSystemWebhook, type SystemWebhookEventType } from '@/models/SystemWebhook.js';
-import { SystemWebhookService } from '@/core/SystemWebhookService.js';
+import { AbuseReportPayload, SystemWebhookPayload, SystemWebhookService } from '@/core/SystemWebhookService.js';
 import { Packed } from '@/misc/json-schema.js';
 import { type WebhookEventTypes } from '@/models/Webhook.js';
-import { UserWebhookService } from '@/core/UserWebhookService.js';
+import { type UserWebhookPayload, UserWebhookService } from '@/core/UserWebhookService.js';
 import { QueueService } from '@/core/QueueService.js';
 import { ModeratorInactivityRemainingTime } from '@/queue/processors/CheckModeratorsActivityProcessorService.js';
 
 const oneDayMillis = 24 * 60 * 60 * 1000;
 
-type AbuseUserReportDto = Omit<MiAbuseUserReport, 'targetUser' | 'reporter' | 'assignee'> & {
-	targetUser: Packed<'UserLite'> | null,
-	reporter: Packed<'UserLite'> | null,
-	assignee: Packed<'UserLite'> | null,
-};
-
-function generateAbuseReport(override?: Partial<MiAbuseUserReport>): AbuseUserReportDto {
+function generateAbuseReport(override?: Partial<MiAbuseUserReport>): AbuseReportPayload {
 	const result: MiAbuseUserReport = {
 		id: 'dummy-abuse-report1',
 		targetUserId: 'dummy-target-user',
@@ -86,6 +80,9 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		isExplorable: true,
 		isHibernated: false,
 		isDeleted: false,
+		requireSigninToViewContents: false,
+		makeNotesFollowersOnlyBefore: null,
+		makeNotesHiddenBefore: null,
 		emojis: [],
 		score: 0,
 		host: null,
@@ -95,6 +92,8 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		uri: null,
 		followersUri: null,
 		token: null,
+		setFederationAvatarShape: null,
+		isSquareAvatars: null,
 		...override,
 	};
 }
@@ -207,11 +206,14 @@ function toPackedUserLite(user: MiUser, override?: Packed<'UserLite'>): Packed<'
 			offsetX: it.offsetX,
 			offsetY: it.offsetY,
 		})),
+		isLocked: user.isLocked,
 		isBot: user.isBot,
 		isCat: user.isCat,
 		emojis: user.emojis,
 		onlineStatus: 'active',
 		badgeRoles: [],
+		setFederationAvatarShape: user.setFederationAvatarShape,
+		isSquareAvatars: user.isSquareAvatars,
 		...override,
 	};
 }
@@ -228,7 +230,6 @@ function toPackedUserDetailedNotMe(user: MiUser, override?: Packed<'UserDetailed
 		lastFetchedAt: user.lastFetchedAt?.toISOString() ?? null,
 		bannerUrl: user.bannerUrl,
 		bannerBlurhash: user.bannerBlurhash,
-		isLocked: user.isLocked,
 		isSilenced: false,
 		isSuspended: user.isSuspended,
 		description: null,
@@ -316,10 +317,10 @@ export class WebhookTestService {
 	 * - 送信対象イベント（on）に関する設定
 	 */
 	@bindThis
-	public async testUserWebhook(
+	public async testUserWebhook<T extends WebhookEventTypes>(
 		params: {
 			webhookId: MiWebhook['id'],
-			type: WebhookEventTypes,
+			type: T,
 			override?: Partial<Omit<MiWebhook, 'id'>>,
 		},
 		sender: MiUser | null,
@@ -331,7 +332,7 @@ export class WebhookTestService {
 		}
 
 		const webhook = webhooks[0];
-		const send = (contents: unknown) => {
+		const send = <U extends WebhookEventTypes>(type: U, contents: UserWebhookPayload<U>) => {
 			const merged = {
 				...webhook,
 				...params.override,
@@ -339,7 +340,7 @@ export class WebhookTestService {
 
 			// テスト目的なのでUserWebhookServiceの機能を経由せず直接キューに追加する（チェック処理などをスキップする意図）.
 			// また、Jobの試行回数も1回だけ.
-			this.queueService.userWebhookDeliver(merged, params.type, contents, { attempts: 1 });
+			this.queueService.userWebhookDeliver(merged, type, contents, { attempts: 1 });
 		};
 
 		const dummyNote1 = generateDummyNote({
@@ -371,32 +372,40 @@ export class WebhookTestService {
 
 		switch (params.type) {
 			case 'note': {
-				send(toPackedNote(dummyNote1));
+				send('note', { note: toPackedNote(dummyNote1) });
 				break;
 			}
 			case 'reply': {
-				send(toPackedNote(dummyReply1));
+				send('reply', { note: toPackedNote(dummyReply1) });
 				break;
 			}
 			case 'renote': {
-				send(toPackedNote(dummyRenote1));
+				send('renote', { note: toPackedNote(dummyRenote1) });
 				break;
 			}
 			case 'mention': {
-				send(toPackedNote(dummyMention1));
+				send('mention', { note: toPackedNote(dummyMention1) });
 				break;
 			}
 			case 'follow': {
-				send(toPackedUserDetailedNotMe(dummyUser1));
+				send('follow', { user: toPackedUserDetailedNotMe(dummyUser1) });
 				break;
 			}
 			case 'followed': {
-				send(toPackedUserLite(dummyUser2));
+				send('followed', { user: toPackedUserLite(dummyUser2) });
 				break;
 			}
 			case 'unfollow': {
-				send(toPackedUserDetailedNotMe(dummyUser3));
+				send('unfollow', { user: toPackedUserDetailedNotMe(dummyUser3) });
 				break;
+			}
+			// まだ実装されていない (#9485)
+			case 'reaction':
+				return;
+			default: {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const _exhaustiveAssertion: never = params.type;
+				return;
 			}
 		}
 	}
@@ -410,10 +419,10 @@ export class WebhookTestService {
 	 * - 送信対象イベント（on）に関する設定
 	 */
 	@bindThis
-	public async testSystemWebhook(
+	public async testSystemWebhook<T extends SystemWebhookEventType>(
 		params: {
 			webhookId: MiSystemWebhook['id'],
-			type: SystemWebhookEventType,
+			type: T,
 			override?: Partial<Omit<MiSystemWebhook, 'id'>>,
 		},
 	) {
@@ -423,7 +432,7 @@ export class WebhookTestService {
 		}
 
 		const webhook = webhooks[0];
-		const send = (contents: unknown) => {
+		const send = <U extends SystemWebhookEventType>(type: U, contents: SystemWebhookPayload<U>) => {
 			const merged = {
 				...webhook,
 				...params.override,
@@ -431,12 +440,12 @@ export class WebhookTestService {
 
 			// テスト目的なのでSystemWebhookServiceの機能を経由せず直接キューに追加する（チェック処理などをスキップする意図）.
 			// また、Jobの試行回数も1回だけ.
-			this.queueService.systemWebhookDeliver(merged, params.type, contents, { attempts: 1 });
+			this.queueService.systemWebhookDeliver(merged, type, contents, { attempts: 1 });
 		};
 
 		switch (params.type) {
 			case 'abuseReport': {
-				send(generateAbuseReport({
+				send('abuseReport', generateAbuseReport({
 					targetUserId: dummyUser1.id,
 					targetUser: dummyUser1,
 					reporterId: dummyUser2.id,
@@ -445,7 +454,7 @@ export class WebhookTestService {
 				break;
 			}
 			case 'abuseReportResolved': {
-				send(generateAbuseReport({
+				send('abuseReportResolved', generateAbuseReport({
 					targetUserId: dummyUser1.id,
 					targetUser: dummyUser1,
 					reporterId: dummyUser2.id,
@@ -457,7 +466,7 @@ export class WebhookTestService {
 				break;
 			}
 			case 'userCreated': {
-				send(toPackedUserLite(dummyUser1));
+				send('userCreated', toPackedUserLite(dummyUser1));
 				break;
 			}
 			case 'inactiveModeratorsWarning': {
@@ -467,18 +476,23 @@ export class WebhookTestService {
 					asHours: 24,
 				};
 
-				send({
+				send('inactiveModeratorsWarning', {
 					remainingTime: dummyTime,
 				});
 				break;
 			}
 			case 'inactiveModeratorsInvitationOnlyChanged': {
-				send({});
+				send('inactiveModeratorsInvitationOnlyChanged', {});
 				break;
 			}
 			case 'inactiveModeratorsDisablePublicNoteChanged': {
-				send({});
+				send('inactiveModeratorsDisablePublicNoteChanged', {});
 				break;
+			}
+			default: {
+				// eslint-disable-next-line @typescript-eslint/no-unused-vars
+				const _exhaustiveAssertion: never = params.type;
+				return;
 			}
 		}
 	}

@@ -22,7 +22,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					}}
 				</template>
 
-				<XNotificationConfig :userLists="userLists" :value="$i.notificationRecieveConfig[type] ?? { type: 'all' }" @update="(res) => updateReceiveConfig(type, res)"/>
+				<XNotificationConfig
+					:userLists="userLists"
+					:value="$i.notificationRecieveConfig[type] ?? { type: 'all' }"
+					:configurableTypes="onlyOnOrOffNotificationTypes.includes(type) ? ['all', 'never'] : undefined"
+					@update="(res) => updateReceiveConfig(type, res)"
+				/>
 			</MkFolder>
 		</div>
 	</FormSection>
@@ -61,6 +66,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { shallowRef, computed } from 'vue';
 import { notificationTypes } from '@@/js/const.js';
 import XNotificationConfig from './notifications.notification-config.vue';
+import type { NotificationConfig } from './notifications.notification-config.vue';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkFolder from '@/components/MkFolder.vue';
@@ -75,7 +81,9 @@ import { flushNotification } from '@/scripts/check-nortification-delete.js';
 
 const $i = signinRequired();
 
-const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'achievementEarned', 'test', 'exportCompleted'] as const satisfies (typeof notificationTypes[number])[];
+const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted'] satisfies (typeof notificationTypes[number])[] as string[];
+
+const onlyOnOrOffNotificationTypes = ['app', 'achievementEarned', 'login', 'createToken'] satisfies (typeof notificationTypes[number])[] as string[];
 
 const allowButton = shallowRef<InstanceType<typeof MkPushNotificationAllowButton>>();
 const pushRegistrationInServer = computed(() => allowButton.value?.pushRegistrationInServer);
@@ -94,7 +102,7 @@ async function readAllNotifications() {
 	await os.apiWithDialog('notifications/mark-all-as-read');
 }
 
-async function updateReceiveConfig(type, value) {
+async function updateReceiveConfig(type: typeof notificationTypes[number], value: NotificationConfig) {
 	await os.apiWithDialog('i/update', {
 		notificationRecieveConfig: {
 			...$i.notificationRecieveConfig,

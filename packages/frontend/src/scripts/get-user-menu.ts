@@ -3,11 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { toUnicode } from 'punycode';
+import { toUnicode } from 'punycode.js';
 import { defineAsyncComponent, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { host, url } from '@@/js/config.js';
 import type { MenuItem } from '@/types/menu.js';
+import type { IRouter } from '@/nirax.js';
 import { i18n } from '@/i18n.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import * as os from '@/os.js';
@@ -15,7 +16,6 @@ import { misskeyApi } from '@/scripts/misskey-api.js';
 import { defaultStore, userActions } from '@/store.js';
 import { $i, iAmAdmin, iAmModerator } from '@/account.js';
 import { notesSearchAvailable, canSearchNonLocalNotes } from '@/scripts/check-permissions.js';
-import { IRouter } from '@/nirax.js';
 import { antennasCache, rolesCache, userListsCache } from '@/cache.js';
 import { mainRouter } from '@/router/main.js';
 import { genEmbedCode } from '@/scripts/get-embed-code.js';

@@ -22,13 +22,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { toUnicode } from 'punycode';
+import { toUnicode } from 'punycode.js';
 import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { host as localHost } from '@@/js/config.js';
+import type { MkABehavior } from '@/components/global/MkA.vue';
 import { $i } from '@/account.js';
 import { defaultStore } from '@/store.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
-import { MkABehavior } from '@/components/global/MkA.vue';
 
 const props = defineProps<{
 	username: string;

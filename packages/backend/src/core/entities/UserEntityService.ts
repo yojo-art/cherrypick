@@ -29,6 +29,7 @@ import type {
 	FollowRequestsRepository,
 	MessagingMessagesRepository,
 	MiFollowing,
+	MiMeta,
 	MiUserNotePining,
 	MiUserProfile,
 	MutingsRepository,
@@ -58,12 +59,14 @@ const ajv = new Ajv();
 
 function isLocalUser(user: MiUser): user is MiLocalUser;
 function isLocalUser<T extends { host: MiUser['host'] }>(user: T): user is (T & { host: null; });
+
 function isLocalUser(user: MiUser | { host: MiUser['host'] }): boolean {
 	return user.host == null;
 }
 
 function isRemoteUser(user: MiUser): user is MiRemoteUser;
 function isRemoteUser<T extends { host: MiUser['host'] }>(user: T): user is (T & { host: string; });
+
 function isRemoteUser(user: MiUser | { host: MiUser['host'] }): boolean {
 	return !isLocalUser(user);
 }
@@ -79,7 +82,7 @@ export type UserRelation = {
 	isBlocked: boolean
 	isMuted: boolean
 	isRenoteMuted: boolean
-}
+};
 
 @Injectable()
 export class UserEntityService implements OnModuleInit {
@@ -98,6 +101,9 @@ export class UserEntityService implements OnModuleInit {
 
 		@Inject(DI.config)
 		private config: Config,
+
+		@Inject(DI.meta)
+		private meta: MiMeta,
 
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
@@ -527,8 +533,13 @@ export class UserEntityService implements OnModuleInit {
 				opacity: ud.opacity || undefined,
 				url: decorations.find(d => d.id === ud.id)!.url,
 			}))) : [],
+			isLocked: user.isLocked,
 			isBot: user.isBot,
 			isCat: user.isCat,
+			isProxy: this.meta.proxyAccountId === user.id,
+			requireSigninToViewContents: user.requireSigninToViewContents === false ? undefined : true,
+			makeNotesFollowersOnlyBefore: user.makeNotesFollowersOnlyBefore ?? undefined,
+			makeNotesHiddenBefore: user.makeNotesHiddenBefore ?? undefined,
 			instance: user.host ? this.federatedInstanceService.federatedInstanceCache.fetch(user.host).then(instance => instance ? {
 				name: instance.name,
 				softwareName: instance.softwareName,
@@ -549,6 +560,8 @@ export class UserEntityService implements OnModuleInit {
 					displayOrder: r.displayOrder,
 				})),
 			) : undefined,
+			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
+			isSquareAvatars: user.isSquareAvatars ?? undefined,
 
 			...(isDetailed ? {
 				url: profile!.url,
@@ -563,7 +576,6 @@ export class UserEntityService implements OnModuleInit {
 				lastFetchedAt: user.lastFetchedAt ? user.lastFetchedAt.toISOString() : null,
 				bannerUrl: user.bannerUrl,
 				bannerBlurhash: user.bannerBlurhash,
-				isLocked: user.isLocked,
 				isSilenced: this.roleService.getUserPolicies(user.id).then(r => !r.canPublicNote),
 				isSuspended: user.isSuspended,
 				isIndexable: user.isIndexable,
@@ -574,9 +586,9 @@ export class UserEntityService implements OnModuleInit {
 				lang: profile!.lang,
 				fields: profile!.fields,
 				verifiedLinks: profile!.verifiedLinks,
+				followersCount: followersCount ?? 0,
+				followingCount: followingCount ?? 0,
 				mutualLinkSections: profile!.mutualLinkSections,
-				followersCount: followersCount ?? '?',
-				followingCount: followingCount ?? '?',
 				notesCount: user.notesCount,
 				pinnedNoteIds: pins.map(pin => pin.noteId),
 				pinnedNotes: this.noteEntityService.packMany(pins.map(pin => pin.note!), me, {

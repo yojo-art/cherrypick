@@ -155,8 +155,8 @@ async function remote(
 	host:string,
 	local_id:string,
 	limit:number,
-	sinceId:string|undefined,
-	untilId:string|undefined,
+	sinceId:string | undefined,
+	untilId:string | undefined,
 ) {
 	const cache_key = 'clip:notes:' + local_id + '-' + (sinceId ? sinceId : '') + '-' + (untilId ? untilId : '') + '-' + limit;
 	const cache_value = await redisForRemoteApis.get(cache_key);
@@ -229,8 +229,8 @@ async function remote(
 }
 
 class RemoteNote {
-	note:MiNote;
-	is_create:boolean;
+	note: MiNote;
+	is_create: boolean;
 }
 
 async function remoteNote(
@@ -254,7 +254,7 @@ async function remoteNote(
 		note = await apNoteService.fetchNote(uri);
 		if (note == null) {
 			//ダメそうなら照会
-			note = await apNoteService.createNote(uri, undefined, true);
+			note = await apNoteService.createNote(uri, undefined, undefined, true);
 			is_create = true;
 		}
 	} catch (e) {

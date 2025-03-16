@@ -20,19 +20,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkAvatar style="width: 64px; height: 64px; margin-bottom: 20px;" :user="$i" :decorations="decorationsForPreview" forceShowDecoration/>
 			</div>
 			<div class="_gaps_s">
-				<MkRange v-model="angle" continuousUpdate :min="-0.5" :max="0.5" :step="0.025" :textConverter="(v) => `${Math.floor(v * 360)}°`">
+				<MkRange v-model="angle" continuousUpdate :min="-0.5" :max="0.5" :step="0.001" :textConverter="(v) => `${Math.round(v * 360)}°`">
 					<template #label>{{ i18n.ts.angle }}</template>
 				</MkRange>
-				<MkRange v-model="offsetX" continuousUpdate :min="-0.25" :max="0.25" :step="0.025" :textConverter="(v) => `${Math.floor(v * 100)}%`">
+				<MkRange v-model="offsetX" continuousUpdate :min="-0.25" :max="0.25" :step="0.001" :textConverter="(v) => `${Math.round(v * 100)}%`">
 					<template #label>X {{ i18n.ts.position }}</template>
 				</MkRange>
-				<MkRange v-model="offsetY" continuousUpdate :min="-0.25" :max="0.25" :step="0.025" :textConverter="(v) => `${Math.floor(v * 100)}%`">
+				<MkRange v-model="offsetY" continuousUpdate :min="-0.25" :max="0.25" :step="0.001" :textConverter="(v) => `${Math.round(v * 100)}%`">
 					<template #label>Y {{ i18n.ts.position }}</template>
 				</MkRange>
 				<MkRange v-model="scale" continuousUpdate :min="0.5" :max="1.5" :step="0.05" :textConverter="(v) => `${v.toFixed(2)}x`">
 					<template #label>{{ i18n.ts.scale }}</template>
 				</MkRange>
-				<MkRange v-model="opacity" continuousUpdate :min="0.1" :max="1" :step="0.05" :textConverter="(v) => `${(v * 100).toFixed(2)}%`">
+				<MkRange v-model="opacity" continuousUpdate :min="0" :max="1" :step="0.01" :textConverter="(v) => `${Math.round(v * 100)}%`">
 					<template #label>{{ i18n.ts.opacity }}</template>
 				</MkRange>
 				<MkSwitch v-model="flipH">
@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.footer" class="_buttonsCenter">
 			<MkButton v-if="usingIndex != null" primary rounded @click="update"><i class="ti ti-check"></i> {{ i18n.ts.update }}</MkButton>
 			<MkButton v-if="usingIndex != null" rounded @click="detach"><i class="ti ti-x"></i> {{ i18n.ts.detach }}</MkButton>
-			<MkButton v-else :disabled="exceeded" primary rounded @click="attach"><i class="ti ti-check"></i> {{ i18n.ts.attach }}</MkButton>
+			<MkButton v-else :disabled="exceeded || locked" primary rounded @click="attach"><i class="ti ti-check"></i> {{ i18n.ts.attach }}</MkButton>
 		</div>
 	</div>
 </MkModalWindow>
@@ -67,6 +67,7 @@ const props = defineProps<{
 		id: string;
 		url: string;
 		name: string;
+		roleIdsThatCanBeUsedThisDecoration: string[];
 	};
 }>();
 
@@ -93,6 +94,7 @@ const emit = defineEmits<{
 
 const dialog = shallowRef<InstanceType<typeof MkModalWindow>>();
 const exceeded = computed(() => ($i.policies.avatarDecorationLimit - $i.avatarDecorations.length) <= 0);
+const locked = computed(() => props.decoration.roleIdsThatCanBeUsedThisDecoration.length > 0 && !$i.roles.some(r => props.decoration.roleIdsThatCanBeUsedThisDecoration.includes(r.id)));
 const angle = ref((props.usingIndex != null ? $i.avatarDecorations[props.usingIndex].angle : null) ?? 0);
 const flipH = ref((props.usingIndex != null ? $i.avatarDecorations[props.usingIndex].flipH : null) ?? false);
 const offsetX = ref((props.usingIndex != null ? $i.avatarDecorations[props.usingIndex].offsetX : null) ?? 0);

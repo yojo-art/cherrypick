@@ -57,7 +57,7 @@ import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
 
 let last_id = 0;
-type OfficialTag ={
+type OfficialTag = {
 	id: number;
 	tag: string;
 	description: string | null;

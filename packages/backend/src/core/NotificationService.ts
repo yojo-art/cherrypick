@@ -225,6 +225,28 @@ export class NotificationService implements OnApplicationShutdown {
 	}
 
 	@bindThis
+	public async deleteUserGroupInvitation(userId: MiUser['id'], invitationId: string) {
+		const streamKey = `notificationTimeline:${userId}`;
+		const entries = await this.redisClient.xrange(streamKey, '-', '+');
+
+		for (const [entryId, fields] of entries) {
+			const dataIndex = fields.indexOf('data');
+			if (dataIndex !== -1) {
+				try {
+					const data = JSON.parse(fields[dataIndex + 1]);
+
+					if (data.userGroupInvitationId === invitationId) {
+						await this.redisClient.xdel(streamKey, entryId);
+						break;
+					}
+				} catch (e) {
+					console.error('(UserGroupInvitationNotification) JSON Parsing Error:', e);
+				}
+			} else console.log('(UserGroupInvitationNotification) Data field not found in fields:', fields);
+		}
+	}
+
+	@bindThis
 	public async deleteNotification(userId: MiUser['id'], notificationId: MiNotification['id']) : Promise<MiNotification['id'] | void> {
 		const id = await this.getRedisNotificationId(userId, notificationId);
 		if (id) {
@@ -252,17 +274,6 @@ export class NotificationService implements OnApplicationShutdown {
 			}
 		}
 		return null;
-	}
-
-	@bindThis
-	public async deleteInvitedNotification(userId: MiUser['id'], invitationId: string) : Promise<string | void> {
-		const ids = await this.getRedisInvitedNotificationId(userId, invitationId);
-		if (ids) {
-			await this.redisClient.xdel(`notificationTimeline:${userId}`, ids[0]);
-
-			this.globalEventService.publishMainStream(userId, 'notificationDeleted', ids[1]);
-			return ids[1];
-		}
 	}
 
 	@bindThis
