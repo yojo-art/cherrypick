@@ -15,13 +15,13 @@ import { MiUser } from '@/models/_.js';
 import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
-import { DriveService } from './DriveService.js';
 
 type OpenSearchHit = {
 	_index: string
@@ -452,10 +452,10 @@ export class AdvancedSearchService {
 				script: {
 					lang: 'painless',
 					source: 'if (ctx._source.containsKey("reactions")) {' +
-										'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
-										' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji && r.count < 32700).forEach(r -> r.count += 1); }' +
-										' else { ctx._source.reactions.add(params.record); }' +
-									'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
+						'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
+						' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji && r.count < 32700).forEach(r -> r.count += 1); }' +
+						' else { ctx._source.reactions.add(params.record); }' +
+						'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
 					params: {
 						emoji: opts.reaction,
 						record: {
@@ -506,7 +506,7 @@ export class AdvancedSearchService {
 			await this.opensearch.indices.create({
 				index: this.opensearchNoteIndex as string,
 				body: noteIndexBody,
-			},
+				},
 			).catch((error) => {
 				this.logger.error(error);
 				throw error;
@@ -754,13 +754,13 @@ export class AdvancedSearchService {
 				script: {
 					lang: 'painless',
 					source: 'if (ctx._source.containsKey("reactions")) {' +
-										'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
-										' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
-										//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
-										//' if (ctx._source.reactions[i].count <= 0) { ctx._source.reactions.remove(i) }' +
-										'break; }' +
-										'}' +
-									'}',
+						'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
+						' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
+						//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
+						//' if (ctx._source.reactions[i].count <= 0) { ctx._source.reactions.remove(i) }' +
+						'break; }' +
+						'}' +
+						'}',
 					params: {
 						emoji: emoji,
 					},
@@ -813,10 +813,10 @@ export class AdvancedSearchService {
 	}
 
 	/**
-	* user削除時に使う
-	* お気に入りとクリップの削除
-	* ノートは個別で削除されるからそこで
-	*/
+	 * user削除時に使う
+	 * お気に入りとクリップの削除
+	 * ノートは個別で削除されるからそこで
+	 */
 	@bindThis
 	public async unindexUserFavorites (id: string) {
 		this.unindexByQuery(this.favoriteIndex,
@@ -827,6 +827,33 @@ export class AdvancedSearchService {
 					},
 				},
 			});
+	}
+
+	@bindThis
+	public async searchOrFail(me: MiUser | null, opts: {
+		reactions?: string[] | null;
+		reactionsExclude?: string[] | null;
+		userId?: MiNote['userId'] | null;
+		host?: string | null;
+		origin?: string | null;
+		fileOption?: string | null;
+		visibility?: MiNote['visibility'] | null;
+		excludeCW?: boolean;
+		excludeReply?: boolean;
+		excludeQuote?: boolean;
+		sensitiveFilter?: string | null;
+		followingFilter?: string | null;
+		offset?: number | null;
+		useStrictSearch?: boolean | null;
+		wildCard?: boolean;
+	}, pagination: {
+		untilId?: MiNote['id'];
+		sinceId?: MiNote['id'];
+		limit?: number;
+	},
+	q?: string): Promise<MiNote[]> {
+		if (!this.opensearch) throw new Error('OpenSearch is not available');
+		return await this.searchNote(me, opts, pagination, q);
 	}
 
 	/**
@@ -848,6 +875,7 @@ export class AdvancedSearchService {
 		followingFilter?: string | null;
 		offset?: number | null;
 		useStrictSearch?: boolean | null;
+		wildCard?: boolean;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -883,6 +911,7 @@ export class AdvancedSearchService {
 				});
 				osFilter.bool.must.push(reactionsQuery);
 			}
+
 			if (opts.reactionsExclude && 0 < opts.reactionsExclude.length) {
 				const reactionsExcludeQuery = {
 					nested: {
@@ -922,6 +951,7 @@ export class AdvancedSearchService {
 					}
 				}
 			}
+
 			if (opts.origin) {
 				if (opts.origin === 'local') {
 					osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
@@ -953,13 +983,14 @@ export class AdvancedSearchService {
 
 			if (q && q !== '') {
 				if (opts.useStrictSearch) {
+					const query = opts.wildCard ? `*${q}*` : q;
 					osFilter.bool.must.push({
 						bool: {
 							should: [
-								{ wildcard: { 'text.keyword': q } },
-								{ wildcard: { 'cw.keyword': q } },
-								{ wildcard: { 'pollChoices.keyword': q } },
-								{ wildcard: { 'tags': q } },
+								{ wildcard: { 'text.keyword': query } },
+								{ wildcard: { 'cw.keyword': query } },
+								{ wildcard: { 'pollChoices.keyword': query } },
+								{ wildcard: { 'tags': query } },
 							],
 							minimum_should_match: 1,
 						},

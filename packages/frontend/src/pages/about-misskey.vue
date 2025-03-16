@@ -430,7 +430,7 @@ const patronsWithIconWithMisskey = [{
 }];
 
 const patronsWithYojoArt = [
-	'',
+	'しろは',
 ];
 
 const patronsWithCherryPick = [
