@@ -141,6 +141,8 @@ fulltextSearch:
   # - meilisearch
   #   Use Meilisearch.
   #   You need to install Meilisearch and configure.
+  # - opensearch
+  #   高度な検索と同様の部分一致検索になります
   provider: sqlLike
 
 # For Meilisearch settings.

@@ -432,6 +432,7 @@ export * as 'admin/unset-user-mutual-link' from './endpoints/admin/unset-user-mu
 export * as 'admin/full-index' from './endpoints/admin/full-index.js';
 export * as 'admin/recreate-index' from './endpoints/admin/recreate-index.js';
 export * as 'ap/fetch-outbox' from './endpoints/ap/fetch-outbox.js';
+export * as 'federation/remote-software' from './endpoints/federation/remote-software.js';
 export * as 'messaging/messages/search' from './endpoints/messaging/messages/search.js';
 export * as 'notes/advanced-search' from './endpoints/notes/advanced-search.js';
 export * as 'notifications/delete' from './endpoints/notifications/delete.js';

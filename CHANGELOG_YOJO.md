@@ -7,13 +7,19 @@ Misskey 2025.2.0
 ### General
 - ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
   - リモートユーザーの設定は反映します
-- リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題) [#666](https://github.com/yojo-art/cherrypick/pull/666)
+- Feat: リモートインスタンスのソフトウェア一覧 [#659](https://github.com/yojo-art/cherrypick/pull/659)
+  -　エンドポイント:`api/federation/remote-software` 
+  - フロントエンドでは`/about#charts` で確認できます
+- リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題も修正) [#666](https://github.com/yojo-art/cherrypick/pull/666)
+
 
 ### Client
 - yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
 - リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
 
 ### Server
+- リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
+- 通常の検索でもOpenSearchを利用できるように [#661](https://github.com/yojo-art/cherrypick/pull/661)
 
 ## 1.3.1
 Cherrypick 4.13.0  
