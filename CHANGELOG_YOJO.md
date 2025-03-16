@@ -3,26 +3,26 @@ Cherrypick 4.15.0
 Misskey 2025.2.0
 
 ### Release Date
+2025-03-16
 
 ### General
-- ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
-  - リモートユーザーの設定は反映します
+- Fix: リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題も修正) [#666](https://github.com/yojo-art/cherrypick/pull/666)
 - Feat: リモートインスタンスのソフトウェア一覧 [#659](https://github.com/yojo-art/cherrypick/pull/659)
   -　エンドポイント:`api/federation/remote-software` 
   - フロントエンドでは`/about#charts` で確認できます
-- リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題も修正) [#666](https://github.com/yojo-art/cherrypick/pull/666)
-
-
+- Change: ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
+  - リモートユーザーの設定は反映します
 
 ### Client
-- yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
-- リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
-- 非ログインでローカル/グローバルタイムラインが表示できない不具合の修正 [#667](https://github.com/yojo-art/cherrypick/pull/667)
+- Fix: yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
+- Fix: 非ログインでローカル/グローバルタイムラインが表示できない不具合の修正 [#667](https://github.com/yojo-art/cherrypick/pull/667)
+- Feat: リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
+- Change: 投稿フォームのUI変更 [#655](https://github.com/yojo-art/cherrypick/pull/655)
 
 ### Server
-- リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
-- 通常の検索でもOpenSearchを利用できるように [#661](https://github.com/yojo-art/cherrypick/pull/661)
-- `api/i/notifications-grouped`で新着ノートをデフォルトでまとめないように[#662](https://github.com/yojo-art/cherrypick/pull/662)
+- Fix: リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
+- Change: `api/i/notifications-grouped`で新着ノートをデフォルトでまとめないように[#662](https://github.com/yojo-art/cherrypick/pull/662)
+- Enhance: 通常の検索でもOpenSearchを利用できるように [#661](https://github.com/yojo-art/cherrypick/pull/661)
 
 ## 1.3.1
 Cherrypick 4.13.0  
@@ -37,11 +37,11 @@ Misskey 2024.10.1
 - Fix: ログイン通知を削除できる問題[#642](https://github.com/yojo-art/cherrypick/pull/642)
 
 ### Client
-- リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
+- Change: リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように
 
 ### Server
-- 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
 - Fix: 管理者のコントロールパネルでシステムにしたときリモートファイルも表示される[#641](https://github.com/yojo-art/cherrypick/pull/641)
+- Change: 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
 
 ## 1.3.0
 Cherrypick 4.13.0  
