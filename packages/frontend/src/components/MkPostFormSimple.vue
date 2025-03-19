@@ -1294,15 +1294,29 @@ function toggleScheduleNote() {
 function showOtherMenu(ev: MouseEvent) {
 	const menuItems: MenuItem[] = [];
 
+	menuItems.push(
+		{
+			type: 'switch',
+			text: i18n.ts.disableRightClick,
+			icon: 'ti ti-mouse-off',
+			ref: disableRightClick,
+		}, {
+			type: 'button',
+			text: i18n.ts.event,
+			icon: 'ti ti-calendar',
+			action: toggleEvent,
+		}, { type: 'divider' },
+	);
+
 	menuItems.push({
 		type: 'button',
-		text: i18n.ts.event,
-		icon: 'ti ti-calendar',
-		action: toggleEvent,
+		text: i18n.ts.scheduledNoteDelete,
+		icon: 'ti ti-clock-hour-9',
+		action: toggleScheduledNoteDelete,
 	});
 
 	if ($i.policies.scheduleNoteMax > 0) {
-		menuItems.push({ type: 'divider' }, {
+		menuItems.push({
 			type: 'button',
 			text: i18n.ts.schedulePost,
 			icon: 'ti ti-calendar-time',
@@ -1314,16 +1328,8 @@ function showOtherMenu(ev: MouseEvent) {
 			action: os.listScheduleNotePost,
 		});
 	}
-
-	menuItems.push({
-		type: 'button',
-		text: i18n.ts.scheduledNoteDelete,
-		icon: 'ti ti-clock-hour-9',
-		action: toggleScheduledNoteDelete,
-	});
-
 	if ($i.policies.noteDraftLimit > 0) {
-		menuItems.push({ type: 'divider' }, {
+		menuItems.push({
 			type: 'button',
 			text: i18n.ts.draftNoteList,
 			icon: 'ti ti-pencil-minus',
