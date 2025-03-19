@@ -200,7 +200,7 @@ const cwInputEl = shallowRef<HTMLInputElement | null>(null);
 const hashtagsInputEl = shallowRef<HTMLInputElement | null>(null);
 const visibilityButton = shallowRef<HTMLElement>();
 const otherSettingsButton = shallowRef<HTMLElement>();
-const searchableByButton = shallowRef<HTMLElement | null>(null);
+const searchbilityButton = shallowRef<HTMLElement>();
 
 const showForm = ref(false);
 
@@ -532,7 +532,7 @@ function setVisibility() {
 function setSearchbility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/CPSearchbilityPicker.vue')), {
 		currentSearchbility: searchableBy.value,
-		src: searchableByButton.value,
+		src: searchbilityButton.value,
 	}, {
 		changeSearchbility: v => {
 			searchableBy.value = v;
