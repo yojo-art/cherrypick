@@ -44,10 +44,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<span :class="$style.headerRightButtonText">{{ targetChannel.name }}</span>
 					</button>
 				</template>
-				<button v-click-anime v-tooltip="i18n.ts._visibility.disableFederation" class="_button" :class="[$style.headerRightItem, { [$style.danger]: localOnly }]" :disabled="targetChannel != null || visibility === 'specified'" @click="toggleLocalOnly">
-					<span v-if="!localOnly"><i class="ti ti-rocket"></i></span>
-					<span v-else><i class="ti ti-rocket-off"></i></span>
-				</button>
 				<button ref="otherSettingsButton" v-tooltip="i18n.ts.other" class="_button" :class="$style.headerRightItem" @click="showOtherSettings"><i class="ti ti-dots"></i></button>
 				<div :class="$style.submit">
 					<button v-click-anime class="_button" :class="$style.submitButton" :disabled="!canPost" data-cy-open-post-form-submit @click="post">
@@ -56,11 +52,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template v-else-if="posting"><MkEllipsis/></template>
 							<template v-else>{{ submitText }}</template>
 							<i style="margin-left: 6px;" :class="posted ? 'ti ti-check' : saveAsDraft ? 'ti ti-pencil-minus' : replyTargetNote ? 'ti ti-arrow-back-up' : renoteTargetNote ? 'ti ti-quote' : updateMode ? 'ti ti-pencil' : defaultStore.state.renameTheButtonInPostFormToNya ? 'ti ti-paw-filled' : 'ti ti-send'"></i>
-						</div>
-					</button>
-					<button v-click-anime class="_button" style="margin-left: 2px;" :class="$style.submitButton" @click="showPostMenu">
-						<div :class="$style.submitInnerMenu">
-							<i class="ti ti-caret-down-filled"></i>
 						</div>
 					</button>
 				</div>
@@ -95,11 +86,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template v-else-if="posting"><MkEllipsis/></template>
 					<template v-else>{{ submitText }}</template>
 					<i v-if="$i" style="margin-left: 6px;" :class="posted ? 'ti ti-check' : saveAsDraft ? 'ti ti-pencil-minus' : replyTargetNote ? 'ti ti-arrow-back-up' : renoteTargetNote ? 'ti ti-quote' : updateMode ? 'ti ti-pencil' : defaultStore.state.renameTheButtonInPostFormToNya ? 'ti ti-paw-filled' : 'ti ti-send'"></i>
-				</div>
-			</button>
-			<button v-click-anime class="_button" style="margin-left: 2px;" :class="$style.submitButton" @click="showPostMenu">
-				<div :class="$style.submitInnerMenu">
-					<i class="ti ti-caret-down-filled"></i>
 				</div>
 			</button>
 		</div>
@@ -214,7 +200,7 @@ const cwInputEl = shallowRef<HTMLInputElement | null>(null);
 const hashtagsInputEl = shallowRef<HTMLInputElement | null>(null);
 const visibilityButton = shallowRef<HTMLElement>();
 const otherSettingsButton = shallowRef<HTMLElement>();
-const searchableByButton = shallowRef<HTMLElement | null>(null);
+const searchbilityButton = shallowRef<HTMLElement>();
 
 const showForm = ref(false);
 
@@ -546,7 +532,7 @@ function setVisibility() {
 function setSearchbility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/CPSearchbilityPicker.vue')), {
 		currentSearchbility: searchableBy.value,
-		src: searchableByButton.value,
+		src: searchbilityButton.value,
 	}, {
 		changeSearchbility: v => {
 			searchableBy.value = v;
@@ -584,13 +570,24 @@ function showOtherSettings() {
 		reactionAcceptanceIcon = 'ti ti-heart-plus';
 	}
 
-	const menuDef = [{
+	const menuItems:MenuItem[] = [];
+	menuItems.push({
 		icon: reactionAcceptanceIcon,
 		text: i18n.ts.reactionAcceptance,
 		action: () => {
 			toggleReactionAcceptance();
 		},
-	}, { type: 'divider' }, {
+	});
+
+	if ($i.policies.noteDraftLimit > 0) {
+		menuItems.push({ type: 'divider' }, {
+			type: 'switch',
+			text: i18n.ts.saveAsDraft,
+			icon: 'ti ti-pencil-minus',
+			ref: saveAsDraft,
+		});
+	}
+	menuItems.push({ type: 'divider' }, {
 		icon: 'ti ti-help-circle',
 		text: i18n.ts._mfc.cheatSheet,
 		action: () => {
@@ -609,10 +606,9 @@ function showOtherSettings() {
 			if (canceled) return;
 			clear();
 		},
-	}] satisfies MenuItem[];
-
+	});
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkPostFormOtherMenu.vue')), {
-		items: menuDef,
+		items: menuItems,
 		textLength: textLength.value,
 		src: otherSettingsButton.value,
 	}, {
@@ -1298,15 +1294,29 @@ function toggleScheduleNote() {
 function showOtherMenu(ev: MouseEvent) {
 	const menuItems: MenuItem[] = [];
 
+	menuItems.push(
+		{
+			type: 'switch',
+			text: i18n.ts.disableRightClick,
+			icon: 'ti ti-mouse-off',
+			ref: disableRightClick,
+		}, {
+			type: 'button',
+			text: i18n.ts.event,
+			icon: 'ti ti-calendar',
+			action: toggleEvent,
+		}, { type: 'divider' },
+	);
+
 	menuItems.push({
 		type: 'button',
-		text: i18n.ts.event,
-		icon: 'ti ti-calendar',
-		action: toggleEvent,
+		text: i18n.ts.scheduledNoteDelete,
+		icon: 'ti ti-clock-hour-9',
+		action: toggleScheduledNoteDelete,
 	});
 
 	if ($i.policies.scheduleNoteMax > 0) {
-		menuItems.push({ type: 'divider' }, {
+		menuItems.push({
 			type: 'button',
 			text: i18n.ts.schedulePost,
 			icon: 'ti ti-calendar-time',
@@ -1318,16 +1328,8 @@ function showOtherMenu(ev: MouseEvent) {
 			action: os.listScheduleNotePost,
 		});
 	}
-
-	menuItems.push({
-		type: 'button',
-		text: i18n.ts.scheduledNoteDelete,
-		icon: 'ti ti-clock-hour-9',
-		action: toggleScheduledNoteDelete,
-	});
-
 	if ($i.policies.noteDraftLimit > 0) {
-		menuItems.push({ type: 'divider' }, {
+		menuItems.push({
 			type: 'button',
 			text: i18n.ts.draftNoteList,
 			icon: 'ti ti-pencil-minus',
@@ -1628,7 +1630,7 @@ defineExpose({
 	padding: 0 12px;
 	line-height: 34px;
 	font-weight: bold;
-	border-radius: 6px 0 0 6px;
+	border-radius: 6px;
 	min-width: 90px;
 	box-sizing: border-box;
 	color: var(--MI_THEME-fgOnAccent);
