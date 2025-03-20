@@ -8,7 +8,7 @@ Misskey 2025.2.0
 
 ### Client
 - Fix: ノート詳細から前後TL見る機能の修正 [#677](https://github.com/yojo-art/cherrypick/pull/677)
-- Fix: 返信用投稿フォームを通常投稿フォームと統一 [#673](https://github.com/yojo-art/cherrypick/pull/673)
+- Fix: 返信用投稿フォームを通常投稿フォームと統一 [#676](https://github.com/yojo-art/cherrypick/pull/676)
 
 ### Server
 
