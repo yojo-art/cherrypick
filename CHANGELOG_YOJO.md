@@ -1,3 +1,16 @@
+## 1.4.1
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+
+### General
+
+### Client
+- Fix:ノート詳細から前後TL見る機能の修正 [#677](https://github.com/yojo-art/cherrypick/pull/677)
+
+### Server
+
 ## 1.4.0
 Cherrypick 4.15.0  
 Misskey 2025.2.0
