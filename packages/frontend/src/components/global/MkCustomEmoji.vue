@@ -128,6 +128,11 @@ function onClick(ev: MouseEvent) {
 					react(`:${props.name}:`);
 				},
 			});
+
+			//ローカルに絵文字が無い時メニューから消す
+			if (props.host && !customEmojisMap.get(props.name)) {
+				menuItems.pop();
+			}
 		}
 
 		menuItems.push({
