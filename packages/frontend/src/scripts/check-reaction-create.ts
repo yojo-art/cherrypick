@@ -12,7 +12,7 @@ export async function notesReactionsCreate(data:{ noteId: string, reaction: stri
 	if (defaultStore.state.checkReactionDialog === true ) {
 		const { canceled } = await os.confirm({
 			type: 'warning',
-			title: i18n.tsx._reactionConfirm.title({ emoji: data.reaction }),
+			title: i18n.tsx._reactionConfirm.title({ emoji: data.reaction.replace('@.', '') }),
 			caption: i18n.ts._reactionConfirm.caption,
 			okText: i18n.ts._reactionConfirm.confirm,
 			cancelText: i18n.ts.cancel,
