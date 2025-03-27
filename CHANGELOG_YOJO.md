@@ -9,6 +9,8 @@ Misskey 2025.2.0
 ### Client
 - Fix: ノート詳細から前後TL見る機能の修正 [#677](https://github.com/yojo-art/cherrypick/pull/677)
 - Fix: 返信用投稿フォームを通常投稿フォームと統一 [#676](https://github.com/yojo-art/cherrypick/pull/676)
+- Fix: 右クリックメニューにスクロールバーがある時、派生メニューで考慮されない不具合の修正 [#680](https://github.com/yojo-art/cherrypick/pull/680)
+  - 問題が起きていた変更部分を1.3.1時点に戻しました
 
 ### Server
 
