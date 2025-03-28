@@ -3,6 +3,7 @@ Cherrypick 4.15.0
 Misskey 2025.2.0
 
 ### Release Date
+2025-03-29
 
 ### General
 
