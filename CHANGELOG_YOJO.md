@@ -13,7 +13,7 @@ Misskey 2025.2.0
   - 問題が起きていた変更部分を1.3.1時点に戻しました
 - Fix: ローカルのリアクションに相乗りする時の確認ダイアログを修正 [#682](https://github.com/yojo-art/cherrypick/pull/682)
 - Fix: ノート内絵文字を付ける機能でローカルに無い絵文字は機能を非表示に [#683](https://github.com/yojo-art/cherrypick/pull/683)
-- Fix: ート詳細リアクション詳細が画像部分にクリック判定が無い問題を修正 [#684](https://github.com/yojo-art/cherrypick/pull/684)
+- Fix: ノート詳細リアクションタブ内のリアクションボタンの画像部分にクリック判定が無い問題を修正 [#684](https://github.com/yojo-art/cherrypick/pull/684)
 
 ### Server
 
