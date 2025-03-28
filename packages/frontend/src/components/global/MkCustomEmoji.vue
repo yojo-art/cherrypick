@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	decoding="async"
 	@error="errored = true"
 	@load="errored = false"
-	@click.stop="onClick"
+	@click="onClick"
 	@mouseover="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 	@mouseout="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 	@touchstart="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
