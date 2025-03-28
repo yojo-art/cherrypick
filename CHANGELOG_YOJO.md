@@ -1,3 +1,23 @@
+## 1.4.1
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+2025-03-29
+
+### General
+
+### Client
+- Fix: ノート詳細から前後TL見る機能の修正 [#677](https://github.com/yojo-art/cherrypick/pull/677)
+- Fix: 返信用投稿フォームを通常投稿フォームと統一 [#676](https://github.com/yojo-art/cherrypick/pull/676)
+- Fix: 右クリックメニューにスクロールバーがある時、派生メニューで考慮されない不具合の修正 [#680](https://github.com/yojo-art/cherrypick/pull/680)
+  - 問題が起きていた変更部分を1.3.1時点に戻しました
+- Fix: ローカルのリアクションに相乗りする時の確認ダイアログを修正 [#682](https://github.com/yojo-art/cherrypick/pull/682)
+- Fix: ノート内絵文字を付ける機能でローカルに無い絵文字は機能を非表示に [#683](https://github.com/yojo-art/cherrypick/pull/683)
+- Fix: ノート詳細リアクションタブ内のリアクションボタンの画像部分にクリック判定が無い問題を修正 [#684](https://github.com/yojo-art/cherrypick/pull/684)
+
+### Server
+
 ## 1.4.0
 Cherrypick 4.15.0  
 Misskey 2025.2.0

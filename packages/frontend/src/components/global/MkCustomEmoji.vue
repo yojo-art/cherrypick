@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	decoding="async"
 	@error="errored = true"
 	@load="errored = false"
-	@click.stop="onClick"
+	@click="onClick"
 	@mouseover="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 	@mouseout="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 	@touchstart="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
@@ -121,13 +121,18 @@ function onClick(ev: MouseEvent) {
 		}
 
 		if (props.menuReaction && react) {
-			menuItems.push({
-				text: i18n.ts.doReaction,
-				icon: 'ti ti-mood-plus',
-				action: () => {
-					react(`:${props.name}:`);
-				},
-			});
+			if (props.host && !customEmojisMap.get(props.name)) {
+				//ローカルに絵文字が無い時メニューに追加しない
+				//https://github.com/yojo-art/cherrypick/pull/683
+			} else {
+				menuItems.push({
+					text: i18n.ts.doReaction,
+					icon: 'ti ti-mood-plus',
+					action: () => {
+						react(`:${props.name}:`);
+					},
+				});
+			}
 		}
 
 		menuItems.push({
