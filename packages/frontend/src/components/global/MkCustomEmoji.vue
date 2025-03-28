@@ -121,17 +121,17 @@ function onClick(ev: MouseEvent) {
 		}
 
 		if (props.menuReaction && react) {
-			menuItems.push({
-				text: i18n.ts.doReaction,
-				icon: 'ti ti-mood-plus',
-				action: () => {
-					react(`:${props.name}:`);
-				},
-			});
-
-			//ローカルに絵文字が無い時メニューから消す
 			if (props.host && !customEmojisMap.get(props.name)) {
-				menuItems.pop();
+				//ローカルに絵文字が無い時メニューに追加しない
+				//https://github.com/yojo-art/cherrypick/pull/683
+			} else {
+				menuItems.push({
+					text: i18n.ts.doReaction,
+					icon: 'ti ti-mood-plus',
+					action: () => {
+						react(`:${props.name}:`);
+					},
+				});
 			}
 		}
 
