@@ -46,6 +46,7 @@ export const paramDef = {
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
 		markAsRead: { type: 'boolean', default: true },
+		groupNote: { type: 'boolean', default: false, description: '新着ノート通知をまとめるか' },
 		// 後方互換のため、廃止された通知タイプも受け付ける
 		includeTypes: { type: 'array', items: {
 			type: 'string', enum: [...groupedNotificationTypes, ...obsoleteNotificationTypes],
@@ -157,7 +158,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					prevGroupedNotification.id = notification.id;
 					continue;
 				}
-				if (prev.type === 'note' && notification.type === 'note') {
+				if (prev.type === 'note' && notification.type === 'note' && ps.groupNote) {
 					if (prevGroupedNotification.type !== 'note:grouped') {
 						groupedNotifications[groupedNotifications.length - 1] = {
 							type: 'note:grouped',

@@ -20896,6 +20896,11 @@ export type operations = {
           untilId?: string;
           /** @default true */
           markAsRead?: boolean;
+          /**
+           * @description 新着ノート通知をまとめるか
+           * @default false
+           */
+          groupNote?: boolean;
           includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'groupInvited' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'scheduleNote' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'note:grouped' | 'pollVote')[];
           excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'groupInvited' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'scheduleNote' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'note:grouped' | 'pollVote')[];
         };
