@@ -1,3 +1,14 @@
+## 1.5.0
+
+### Release Date
+
+### General
+
+### Client
+
+### Server
+UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
+
 ## 1.4.1
 Cherrypick 4.15.0  
 Misskey 2025.2.0
