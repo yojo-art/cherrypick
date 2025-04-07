@@ -7,7 +7,7 @@
 ### Client
 
 ### Server
-UserAgentをyojo-artに変える [#691](https://github.com/yojo-art/cherrypick/pull/691)
+UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
 
 ## 1.4.1
 Cherrypick 4.15.0  
