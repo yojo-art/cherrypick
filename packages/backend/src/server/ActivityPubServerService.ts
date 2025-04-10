@@ -446,7 +446,7 @@ export class ActivityPubServerService {
 		const notes_count : number = await this.clipNotesRepository.countBy({
 			clipId: clip.id,
 		});
-		let rendered :IOrderedCollection|IOrderedCollectionPage|null = null;
+		let rendered :IOrderedCollection | IOrderedCollectionPage | null = null;
 		if (page) {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
 				.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
@@ -480,9 +480,9 @@ export class ActivityPubServerService {
 		if (rendered == null) return;
 		const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
 		rendered.name = clip.name;
-		rendered.summary = summary ? summary : undefined;
+		rendered.summary = summary ?? undefined;
 		rendered._misskey_summary = clip.description ?? undefined;
-		rendered.published = this.idService.parse(clip.id).date.toISOString(),
+		rendered.published = this.idService.parse(clip.id).date.toISOString();
 		rendered.to = ['https://www.w3.org/ns/activitystreams#Public'];
 		rendered.cc = [`${this.config.url}/users/${clip.userId}/followers`];
 		rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
@@ -493,8 +493,8 @@ export class ActivityPubServerService {
 
 	@bindThis
 	private async recommend(request: FastifyRequest<{
-			Params: { user: string; };
-			Querystring: { since_id?: string; until_id?: string; page?: string; };
+		Params: { user: string; };
+		Querystring: { since_id?: string; until_id?: string; page?: string; };
 	}>, reply: FastifyReply) {
 		const userId = request.params.user;
 
