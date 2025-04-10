@@ -4,14 +4,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <script lang="ts">
-import { defineComponent, h, PropType, TransitionGroup, useCssModule } from 'vue';
+import { defineComponent, h, TransitionGroup, useCssModule } from 'vue';
+import type { PropType } from 'vue';
+import type { MisskeyEntity } from '@/types/date-separated-list.js';
 import MkAd from '@/components/global/MkAd.vue';
 import { isDebuggerEnabled, stackTraceInstances } from '@/debug.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { instance } from '@/instance.js';
 import { defaultStore } from '@/store.js';
-import { MisskeyEntity } from '@/types/date-separated-list.js';
 
 export default defineComponent({
 	props: {
@@ -135,14 +136,14 @@ export default defineComponent({
 			return children;
 		};
 
-		function onBeforeLeave(element: Element) {
-			const el = element as HTMLElement;
+		function onBeforeLeave(el: Element) {
+			if (!(el instanceof HTMLElement)) return;
 			el.style.top = `${el.offsetTop}px`;
 			el.style.left = `${el.offsetLeft}px`;
 		}
 
-		function onLeaveCancelled(element: Element) {
-			const el = element as HTMLElement;
+		function onLeaveCancelled(el: Element) {
+			if (!(el instanceof HTMLElement)) return;
 			el.style.top = '';
 			el.style.left = '';
 		}

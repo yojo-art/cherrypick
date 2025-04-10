@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -37,7 +37,7 @@ withDefaults(defineProps<{
 });
 </script>
 
-<style module lang="scss">
+<style lang="scss" module>
 .root {
 	--fukidashi-radius: var(--MI-radius);
 	--fukidashi-bg: var(--MI_THEME-panel);

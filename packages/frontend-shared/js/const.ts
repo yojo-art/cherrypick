@@ -72,6 +72,8 @@ export const notificationTypes = [
 	'app',
 	'exportCompleted',
 	'login',
+	'createToken',
+	'scheduleNote',
 	'test',
 	'pollVote',
 ] as const;
@@ -80,6 +82,7 @@ export const obsoleteNotificationTypes = ['pollVote'/*, 'groupInvited'*/] as con
 export const ROLE_POLICIES = [
 	'gtlAvailable',
 	'ltlAvailable',
+	'btlAvailable',
 	'canPublicNote',
 	'canEditNote',
 	'scheduleNoteMax',
@@ -113,6 +116,8 @@ export const ROLE_POLICIES = [
 	'canImportFollowing',
 	'canImportMuting',
 	'canImportUserLists',
+	'noteDraftLimit',
+	'canSetFederationAvatarShape',
 	'fileSizeLimit',
 	'scheduleNoteMax',
 	'mutualLinkSectionLimit',

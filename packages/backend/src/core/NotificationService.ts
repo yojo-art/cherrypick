@@ -21,6 +21,7 @@ import type { Config } from '@/config.js';
 import { UserListService } from '@/core/UserListService.js';
 import type { FilterUnionByProperty } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
+import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 @Injectable()
 export class NotificationService implements OnApplicationShutdown {
@@ -224,6 +225,28 @@ export class NotificationService implements OnApplicationShutdown {
 	}
 
 	@bindThis
+	public async deleteUserGroupInvitation(userId: MiUser['id'], invitationId: string) {
+		const streamKey = `notificationTimeline:${userId}`;
+		const entries = await this.redisClient.xrange(streamKey, '-', '+');
+
+		for (const [entryId, fields] of entries) {
+			const dataIndex = fields.indexOf('data');
+			if (dataIndex !== -1) {
+				try {
+					const data = JSON.parse(fields[dataIndex + 1]);
+
+					if (data.userGroupInvitationId === invitationId) {
+						await this.redisClient.xdel(streamKey, entryId);
+						break;
+					}
+				} catch (e) {
+					console.error('(UserGroupInvitationNotification) JSON Parsing Error:', e);
+				}
+			} else console.log('(UserGroupInvitationNotification) Data field not found in fields:', fields);
+		}
+	}
+
+	@bindThis
 	public async deleteNotification(userId: MiUser['id'], notificationId: MiNotification['id']) : Promise<MiNotification['id'] | void> {
 		const id = await this.getRedisNotificationId(userId, notificationId);
 		if (id) {
@@ -244,22 +267,13 @@ export class NotificationService implements OnApplicationShutdown {
 			'COUNT', this.config.perUserNotificationsMaxCount.toString(),
 		);
 		for (let i = 0; i < res.length; i++) {
-			if (JSON.parse(res[i][1].toString().replace('data,', '')).id === notificationId) {
+			const notification = JSON.parse(res[i][1].toString().replace('data,', ''));
+			if (notification.id === notificationId) {
+				if (notification.type === 'login') throw new IdentifiableError('32f27781-daf0-4b7b-8b23-ca6d4616952d', 'is login');
 				return res[i][0];
 			}
 		}
 		return null;
-	}
-
-	@bindThis
-	public async deleteInvitedNotification(userId: MiUser['id'], invitationId: string) : Promise<string | void> {
-		const ids = await this.getRedisInvitedNotificationId(userId, invitationId);
-		if (ids) {
-			await this.redisClient.xdel(`notificationTimeline:${userId}`, ids[0]);
-
-			this.globalEventService.publishMainStream(userId, 'notificationDeleted', ids[1]);
-			return ids[1];
-		}
 	}
 
 	@bindThis

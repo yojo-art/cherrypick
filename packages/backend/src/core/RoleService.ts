@@ -34,6 +34,7 @@ import type { OnApplicationShutdown, OnModuleInit } from '@nestjs/common';
 export type RolePolicies = {
 	gtlAvailable: boolean;
 	ltlAvailable: boolean;
+	btlAvailable: boolean;
 	canPublicNote: boolean;
 	canEditNote: boolean;
 	scheduleNoteMax: number;
@@ -67,6 +68,8 @@ export type RolePolicies = {
 	canImportFollowing: boolean;
 	canImportMuting: boolean;
 	canImportUserLists: boolean;
+	noteDraftLimit: number;
+	canSetFederationAvatarShape: boolean;
 	fileSizeLimit: number;
 	mutualLinkSectionLimit: number;
 	mutualLinkLimit: number;
@@ -75,6 +78,7 @@ export type RolePolicies = {
 export const DEFAULT_POLICIES: RolePolicies = {
 	gtlAvailable: true,
 	ltlAvailable: true,
+	btlAvailable: false,
 	canPublicNote: true,
 	canEditNote: true,
 	scheduleNoteMax: 5,
@@ -108,6 +112,8 @@ export const DEFAULT_POLICIES: RolePolicies = {
 	canImportFollowing: true,
 	canImportMuting: true,
 	canImportUserLists: true,
+	noteDraftLimit: 10,
+	canSetFederationAvatarShape: true,
 	fileSizeLimit: 50,
 	mutualLinkSectionLimit: 1,
 	mutualLinkLimit: 15,
@@ -389,6 +395,7 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 		return {
 			gtlAvailable: calc('gtlAvailable', vs => vs.some(v => v === true)),
 			ltlAvailable: calc('ltlAvailable', vs => vs.some(v => v === true)),
+			btlAvailable: calc('btlAvailable', vs => vs.some(v => v === true)),
 			canPublicNote: calc('canPublicNote', vs => vs.some(v => v === true)),
 			canEditNote: calc('canEditNote', vs => vs.some(v => v === true)),
 			scheduleNoteMax: calc('scheduleNoteMax', vs => Math.max(...vs)),
@@ -422,6 +429,8 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			canImportFollowing: calc('canImportFollowing', vs => vs.some(v => v === true)),
 			canImportMuting: calc('canImportMuting', vs => vs.some(v => v === true)),
 			canImportUserLists: calc('canImportUserLists', vs => vs.some(v => v === true)),
+			noteDraftLimit: calc('noteDraftLimit', vs => Math.max(...vs)),
+			canSetFederationAvatarShape: calc('canSetFederationAvatarShape', vs => vs.some(v => v === true)),
 			fileSizeLimit: calc('fileSizeLimit', vs => Math.max(...vs)),
 			mutualLinkSectionLimit: calc('mutualLinkSectionLimit', vs => Math.max(...vs)),
 			mutualLinkLimit: calc('mutualLinkLimit', vs => Math.max(...vs)),

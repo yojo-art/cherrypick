@@ -92,7 +92,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const error = await this.customEmojiService.update({
 				...required,
-				driveFile,
+				originalUrl: driveFile != null ? driveFile.url : undefined,
+				publicUrl: driveFile != null ? (driveFile.webpublicUrl ?? driveFile.url) : undefined,
+				fileType: driveFile != null ? (driveFile.webpublicType ?? driveFile.type) : undefined,
 				category: ps.category,
 				aliases: ps.aliases,
 				license: ps.license,

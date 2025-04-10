@@ -92,6 +92,7 @@ export class MetaEntityService {
 			disableRegistration: instance.disableRegistration,
 			disableRegistrationWhenInactive: instance.disableRegistrationWhenInactive,
 			disablePublicNoteWhenInactive: instance.disablePublicNoteWhenInactive,
+			moderatorInactivityLimitDays: instance.moderatorInactivityLimitDays,
 			emailRequiredForSignup: instance.emailRequiredForSignup,
 			enableHcaptcha: instance.enableHcaptcha,
 			hcaptchaSiteKey: instance.hcaptchaSiteKey,
@@ -103,6 +104,7 @@ export class MetaEntityService {
 			enableTurnstile: instance.enableTurnstile,
 			turnstileSiteKey: instance.turnstileSiteKey,
 			enableTestcaptcha: instance.enableTestcaptcha,
+			googleAnalyticsMeasurementId: instance.googleAnalyticsMeasurementId,
 			swPublickey: instance.swPublicKey,
 			themeColor: instance.themeColor,
 			mascotImageUrl: instance.mascotImageUrl ?? '/assets/ai.png',
@@ -129,6 +131,7 @@ export class MetaEntityService {
 			notesPerOneAd: instance.notesPerOneAd,
 			enableEmail: instance.enableEmail,
 			enableServiceWorker: instance.enableServiceWorker,
+			customRobotsTxt: instance.customRobotsTxt,
 
 			translatorAvailable: instance.translatorType != null,
 
@@ -140,6 +143,7 @@ export class MetaEntityService {
 			enableUrlPreview: instance.urlPreviewEnabled,
 			noteSearchableScope: (this.config.meilisearch == null || this.config.meilisearch.scope !== 'local') ? 'global' : 'local',
 			maxFileSize: this.config.maxFileSize,
+			federation: this.meta.federation,
 			urlPreviewEndpoint: instance.directSummalyProxy ? (instance.urlPreviewSummaryProxyUrl || `${this.config.url}/url` ) : `${this.config.url}/url`,
 			reversiVersion: NodeinfoServerService.reversiVersion,
 		};

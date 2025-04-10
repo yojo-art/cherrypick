@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { App, defineAsyncComponent } from 'vue';
+import { defineAsyncComponent } from 'vue';
+import type { App } from 'vue';
 
 export default function(app: App) {
 	app.component('WidgetProfile', defineAsyncComponent(() => import('./WidgetProfile.vue')));
@@ -36,9 +37,16 @@ export default function(app: App) {
 	app.component('WidgetBirthdayFollowings', defineAsyncComponent(() => import('./WidgetBirthdayFollowings.vue')));
 	app.component('WidgetSearch', defineAsyncComponent(() => import('./WidgetSearch.vue')));
 	app.component('WidgetDice', defineAsyncComponent(() => import('./WidgetDice.vue')));
+	app.component('WidgetWeather', defineAsyncComponent(() => import('./WidgetWeather.vue')));
 	app.component('WidgetMascot', defineAsyncComponent(() => import('./WidgetMascot.vue')));
 	app.component('WidgetDataSaver', defineAsyncComponent(() => import('./WidgetDataSaver.vue')));
 }
+
+// 連合関連のウィジェット（連合無効時に隠す）
+export const federationWidgets = [
+	'federation',
+	'instanceCloud',
+];
 
 export const widgets = [
 	'profile',
@@ -55,8 +63,6 @@ export const widgets = [
 	'photos',
 	'digitalClock',
 	'unixClock',
-	'federation',
-	'instanceCloud',
 	'postForm',
 	'slideshow',
 	'serverMetric',
@@ -71,6 +77,9 @@ export const widgets = [
 	'birthdayFollowings',
 	'search',
 	'dice',
+	'weather',
 	'mascot',
 	'dataSaver',
+
+	...federationWidgets,
 ];

@@ -69,7 +69,7 @@ export class FlashService {
 	@bindThis
 	async showRemoteOrDummy(
 		flashId: string,
-		author: MiUser|null,
+		author: MiUser | null,
 		fetch_emoji = false,
 	) : Promise<Packed<'Flash'>> {
 		if (author == null) {

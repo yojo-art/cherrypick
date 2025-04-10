@@ -8,8 +8,11 @@ import * as Misskey from 'cherrypick-js';
 import { hemisphere } from '@@/js/intl-const.js';
 import lightTheme from '@@/themes/l-cherrypick.json5';
 import darkTheme from '@@/themes/d-cherrypick.json5';
-import { miLocalStorage } from './local-storage.js';
 import type { SoundType } from '@/scripts/sound.js';
+import type { Ast } from '@syuilo/aiscript';
+import type { DeviceKind } from '@/scripts/device-kind.js';
+import { DEFAULT_DEVICE_KIND } from '@/scripts/device-kind.js';
+import { miLocalStorage } from '@/local-storage.js';
 import { Storage } from '@/pizzax.js';
 
 interface PostFormAction {
@@ -53,7 +56,7 @@ export type SoundStore = {
 	fileUrl: string;
 
 	volume: number;
-}
+};
 
 export const postFormActions: PostFormAction[] = [];
 export const userActions: UserAction[] = [];
@@ -153,10 +156,6 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'account',
 		default: [] as string[],
 	},
-	searchEngine: {
-		where: 'account',
-		default: 'https://www.google.com/search?q=%s',
-	},
 
 	menu: {
 		where: 'deviceAccount',
@@ -169,6 +168,8 @@ export const defaultStore = markRaw(new Storage('base', {
 			'explore',
 			'search',
 			'announcements',
+			'-',
+			'support',
 		],
 	},
 	visibility: {
@@ -236,7 +237,7 @@ export const defaultStore = markRaw(new Storage('base', {
 
 	overridedDeviceKind: {
 		where: 'device',
-		default: null as null | 'smartphone' | 'tablet' | 'desktop',
+		default: null as DeviceKind | null,
 	},
 	serverDisconnectedBehavior: {
 		where: 'device',
@@ -296,15 +297,15 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	useBlurEffectForModal: {
 		where: 'device',
-		default: !/mobile|iphone|android/.test(navigator.userAgent.toLowerCase()), // 循環参照するのでdevice-kind.tsは参照できない
+		default: DEFAULT_DEVICE_KIND === 'desktop',
 	},
 	useBlurEffect: {
 		where: 'device',
-		default: !/mobile|iphone|android/.test(navigator.userAgent.toLowerCase()), // 循環参照するのでdevice-kind.tsは参照できない
+		default: DEFAULT_DEVICE_KIND === 'desktop',
 	},
 	removeModalBgColorForBlur: {
 		where: 'device',
-		default: !/mobile|iphone|android/.test(navigator.userAgent.toLowerCase()), // 循環参照するのでdevice-kind.tsは参照できない
+		default: DEFAULT_DEVICE_KIND === 'desktop',
 	},
 	showFixedPostForm: {
 		where: 'device',
@@ -371,7 +372,7 @@ export const defaultStore = markRaw(new Storage('base', {
 		default: false,
 	},
 	squareAvatars: {
-		where: 'device',
+		where: 'account',
 		default: true,
 	},
 	showAvatarDecorations: {
@@ -510,9 +511,21 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: true,
 	},
+	showSoftWordMutedWord: {
+		where: 'device',
+		default: false,
+	},
+	confirmOnReact: {
+		where: 'device',
+		default: false,
+	},
 	showUnreadNotificationsCount: {
 		where: 'deviceAccount',
 		default: false,
+	},
+	externalNavigationWarning: {
+		where: 'device',
+		default: true,
 	},
 	trustedDomains: {
 		where: 'device',
@@ -538,6 +551,10 @@ export const defaultStore = markRaw(new Storage('base', {
 	sound_noteMy: {
 		where: 'device',
 		default: { type: 'syuilo/n-cea-4va', volume: 1 } as SoundStore,
+	},
+	sound_noteSchedulePost: {
+		where: 'device',
+		default: { type: 'syuilo/n-cea', volume: 1 } as SoundStore,
 	},
 	sound_noteEdited: {
 		where: 'device',
@@ -594,8 +611,24 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: false,
 	},
+	searchEngine: {
+		where: 'device',
+		default: 'google' as 'google' | 'bing' | 'yahoo' | 'baidu' | 'naver' | 'daum' | 'duckduckgo' | 'other',
+	},
+	searchEngineUrl: {
+		where: 'device',
+		default: 'https://www.ecosia.org/search?',
+	},
+	searchEngineUrlQuery: {
+		where: 'device',
+		default: 'q',
+	},
 
 	// - Settings/Appearance
+	forceCollapseAllRenotes: {
+		where: 'account',
+		default: false,
+	},
 	collapseReplies: {
 		where: 'account',
 		default: false,
@@ -660,6 +693,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: false,
 	},
+	checkReactionDialog: {
+		where: 'device',
+		default: false,
+	},
 	showFixedPostFormInReplies: {
 		where: 'device',
 		default: true,
@@ -675,6 +712,10 @@ export const defaultStore = markRaw(new Storage('base', {
 	alwaysShowCw: {
 		where: 'device',
 		default: false,
+	},
+	showReplyTargetNote: {
+		where: 'device',
+		default: true,
 	},
 	showReplyTargetNoteInSemiTransparent: {
 		where: 'device',
@@ -711,6 +752,10 @@ export const defaultStore = markRaw(new Storage('base', {
 	selectReaction: {
 		where: 'device',
 		default: '❤️' as string,
+	},
+	setFederationAvatarShape: {
+		where: 'account',
+		default: true,
 	},
 
 	// - Settings/Navigation bar
@@ -761,6 +806,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		default: true,
 	},
 	enableGlobalTimeline: {
+		where: 'device',
+		default: true,
+	},
+	enableBubbleTimeline: {
 		where: 'device',
 		default: true,
 	},
@@ -892,7 +941,7 @@ export type Plugin = {
 	token: string;
 	src: string | null;
 	version: string;
-	ast: any[];
+	ast: Ast.Node[];
 	author?: string;
 	description?: string;
 	permissions?: string[];
@@ -930,13 +979,13 @@ export class ColdDeviceStorage {
 	}
 
 	public static getAll(): Partial<typeof this.default> {
-		return (Object.keys(this.default) as (keyof typeof this.default)[]).reduce((acc, key) => {
+		return (Object.keys(this.default) as (keyof typeof this.default)[]).reduce<Partial<typeof this.default>>((acc, key) => {
 			const value = localStorage.getItem(PREFIX + key);
 			if (value != null) {
 				acc[key] = JSON.parse(value);
 			}
 			return acc;
-		}, {} as any);
+		}, {});
 	}
 
 	public static set<T extends keyof typeof ColdDeviceStorage.default>(key: T, value: typeof ColdDeviceStorage.default[T]): void {
@@ -981,7 +1030,7 @@ export class ColdDeviceStorage {
 			get: () => {
 				return valueRef.value;
 			},
-			set: (value: unknown) => {
+			set: (value: typeof ColdDeviceStorage.default[K]) => {
 				const val = value;
 				ColdDeviceStorage.set(key, val);
 			},

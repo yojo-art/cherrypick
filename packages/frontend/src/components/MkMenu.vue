@@ -184,12 +184,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts">
 import { computed, defineAsyncComponent, inject, nextTick, onBeforeUnmount, onMounted, ref, shallowRef, unref, watch } from 'vue';
+import type { Keymap } from '@/scripts/hotkey.js';
+import type { MenuItem, InnerMenuItem, MenuPending, MenuAction, MenuSwitch, MenuRadio, MenuRadioOption, MenuParent } from '@/types/menu.js';
 import MkSwitchButton from '@/components/MkSwitch.button.vue';
-import { MenuItem, InnerMenuItem, MenuPending, MenuAction, MenuSwitch, MenuRadio, MenuRadioOption, MenuParent } from '@/types/menu.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { isTouchUsing } from '@/scripts/touch.js';
-import { type Keymap } from '@/scripts/hotkey.js';
 import { isFocusable } from '@/scripts/focus.js';
 import { getNodeOrNull } from '@/scripts/get-dom-node-or-null.js';
 import { defaultStore } from '@/store.js';
@@ -433,252 +433,252 @@ onBeforeUnmount(() => {
 });
 </script>
 
-<style lang="scss" module>
-.root {
-	&.center {
-		> .menu {
-			> .item {
-				text-align: center;
-			}
-		}
-	}
-
-	&.big:not(.asDrawer) {
-		> .menu {
-			min-width: 230px;
-
-			> .item {
-				padding: 6px 20px;
-				font-size: 0.95em;
-				line-height: 24px;
-			}
-		}
-	}
-
-	&.asDrawer {
-		max-width: 600px;
-		margin: auto;
-
-		> .menu {
-			padding: 12px 0 max(env(safe-area-inset-bottom, 0px), 12px) 0;
-			width: 100%;
-			border-radius: 24px;
-			border-bottom-right-radius: 0;
-			border-bottom-left-radius: 0;
-
-			> .item {
-				font-size: 1em;
-				padding: 12px 24px;
-
-				&::before {
-					width: calc(100% - 24px);
-					border-radius: 12px;
-				}
-
-				> .icon {
-					margin-right: 14px;
-					width: 24px;
+	<style lang="scss" module>
+	.root {
+		&.center {
+			> .menu {
+				> .item {
+					text-align: center;
 				}
 			}
-
-			> .divider {
-				margin: 12px 0;
-			}
 		}
-	}
-}
 
-.menu {
-	padding: 8px 0;
-	box-sizing: border-box;
-	max-width: 100vw;
-	min-width: 200px;
-	overflow: auto;
-	overscroll-behavior: contain;
+		&.big:not(.asDrawer) {
+			> .menu {
+				min-width: 230px;
 
-	&:focus-visible {
-		outline: none;
-	}
-}
-
-.item {
-	display: flex;
-	align-items: center;
-	position: relative;
-	padding: 5px 16px;
-	width: 100%;
-	box-sizing: border-box;
-	white-space: nowrap;
-	font-size: 0.9em;
-	line-height: 20px;
-	text-align: left;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	text-decoration: none !important;
-	color: var(--menuFg, var(--MI_THEME-fg));
-
-	&::before {
-		content: "";
-		display: block;
-		position: absolute;
-		z-index: -1;
-		top: 0;
-		left: 0;
-		right: 0;
-		margin: auto;
-		width: calc(100% - 16px);
-		height: 100%;
-		border-radius: 6px;
-	}
-
-	&:focus-visible {
-		outline: none;
-
-		&:not(:hover):not(:active)::before {
-			outline: var(--MI_THEME-focus) solid 2px;
-			outline-offset: -2px;
-		}
-	}
-
-	&:not(:disabled) {
-		&:hover,
-		&:focus-visible:active,
-		&:focus-visible.active {
-			color: var(--menuHoverFg, var(--MI_THEME-accent));
-
-			&::before {
-				background-color: var(--menuHoverBg, var(--MI_THEME-accentedBg));
+				> .item {
+					padding: 6px 20px;
+					font-size: 0.95em;
+					line-height: 24px;
+				}
 			}
 		}
 
-		&:not(:focus-visible):active,
-		&:not(:focus-visible).active {
-			color: var(--menuActiveFg, var(--MI_THEME-fgOnAccent));
+		&.asDrawer {
+			max-width: 600px;
+			margin: auto;
 
-			&::before {
-				background-color: var(--menuActiveBg, var(--MI_THEME-accent));
+			> .menu {
+				padding: 12px 0 max(env(safe-area-inset-bottom, 0px), 12px) 0;
+				width: 100%;
+				border-radius: 24px;
+				border-bottom-right-radius: 0;
+				border-bottom-left-radius: 0;
+
+				> .item {
+					font-size: 1em;
+					padding: 12px 24px;
+
+					&::before {
+						width: calc(100% - 24px);
+						border-radius: 12px;
+					}
+
+					> .icon {
+						margin-right: 14px;
+						width: 24px;
+					}
+				}
+
+				> .divider {
+					margin: 12px 0;
+				}
 			}
 		}
 	}
 
-	&:disabled {
-		cursor: not-allowed;
+	.menu {
+		padding: 8px 0;
+		box-sizing: border-box;
+		max-width: 100vw;
+		min-width: 200px;
+		overflow: auto;
+		overscroll-behavior: contain;
+
+		&:focus-visible {
+			outline: none;
+		}
 	}
 
-	&.danger {
-		--menuFg: #ff2a2a;
-		--menuHoverFg: #fff;
-		--menuHoverBg: #ff4242;
-		--menuActiveFg: #fff;
-		--menuActiveBg: #d42e2e;
-	}
+	.item {
+		display: flex;
+		align-items: center;
+		position: relative;
+		padding: 5px 16px;
+		width: 100%;
+		box-sizing: border-box;
+		white-space: nowrap;
+		font-size: 0.9em;
+		line-height: 20px;
+		text-align: left;
+		overflow: hidden;
+		text-overflow: ellipsis;
+		text-decoration: none !important;
+		color: var(--menuFg, var(--MI_THEME-fg));
 
-	&.radio {
-		--menuActiveFg: var(--MI_THEME-accent);
-		--menuActiveBg: var(--MI_THEME-accentedBg);
-	}
-
-	&.parent {
-		--menuActiveFg: var(--MI_THEME-accent);
-		--menuActiveBg: var(--MI_THEME-accentedBg);
-	}
-
-	&.label {
-		pointer-events: none;
-		font-size: 0.7em;
-		padding-bottom: 4px;
-	}
-
-	&.pending {
-		pointer-events: none;
-		opacity: 0.7;
-	}
-
-	&.none {
-		pointer-events: none;
-		opacity: 0.7;
-	}
-}
-
-.item_content {
-	width: 100%;
-	max-width: 100vw;
-	display: flex;
-	align-items: center;
-	justify-content: space-between;
-	gap: 8px;
-	text-overflow: ellipsis;
-}
-
-.item_content_text {
-	max-width: calc(100vw - 4rem);
-	text-overflow: ellipsis;
-	overflow: hidden;
-}
-
-.switchButton {
-	margin-left: -2px;
-	--height: 1.35em;
-}
-
-.switchText {
-	margin-left: 8px;
-	overflow: hidden;
-	text-overflow: ellipsis;
-}
-
-.icon {
-	margin-right: 8px;
-	line-height: 1;
-}
-
-.caret {
-	margin-left: auto;
-}
-
-.avatar {
-	margin-right: 5px;
-	width: 20px;
-	height: 20px;
-}
-
-.indicator {
-	display: flex;
-	align-items: center;
-	color: var(--MI_THEME-indicator);
-	font-size: 12px;
-}
-
-.divider {
-	margin: 8px 0;
-	border-top: solid 0.5px var(--MI_THEME-divider);
-}
-
-.radioIcon {
-	display: inline-block;
-	position: relative;
-	width: 1em;
-	height: 1em;
-	vertical-align: -0.125em;
-	border-radius: 50%;
-	border: solid 2px var(--MI_THEME-divider);
-	background-color: var(--MI_THEME-panel);
-
-	&.radioChecked {
-		border-color: var(--MI_THEME-accent);
-
-		&::after {
+		&::before {
 			content: "";
 			display: block;
 			position: absolute;
-			top: 50%;
-			left: 50%;
-			transform: translate(-50%, -50%);
-			width: 50%;
-			height: 50%;
-			border-radius: 50%;
-			background-color: var(--MI_THEME-accent);
+			z-index: -1;
+			top: 0;
+			left: 0;
+			right: 0;
+			margin: auto;
+			width: calc(100% - 16px);
+			height: 100%;
+			border-radius: 6px;
+		}
+
+		&:focus-visible {
+			outline: none;
+
+			&:not(:hover):not(:active)::before {
+				outline: var(--MI_THEME-focus) solid 2px;
+				outline-offset: -2px;
+			}
+		}
+
+		&:not(:disabled) {
+			&:hover,
+			&:focus-visible:active,
+			&:focus-visible.active {
+				color: var(--menuHoverFg, var(--MI_THEME-accent));
+
+				&::before {
+					background-color: var(--menuHoverBg, var(--MI_THEME-accentedBg));
+				}
+			}
+
+			&:not(:focus-visible):active,
+			&:not(:focus-visible).active {
+				color: var(--menuActiveFg, var(--MI_THEME-fgOnAccent));
+
+				&::before {
+					background-color: var(--menuActiveBg, var(--MI_THEME-accent));
+				}
+			}
+		}
+
+		&:disabled {
+			cursor: not-allowed;
+		}
+
+		&.danger {
+			--menuFg: #ff2a2a;
+			--menuHoverFg: #fff;
+			--menuHoverBg: #ff4242;
+			--menuActiveFg: #fff;
+			--menuActiveBg: #d42e2e;
+		}
+
+		&.radio {
+			--menuActiveFg: var(--MI_THEME-accent);
+			--menuActiveBg: var(--MI_THEME-accentedBg);
+		}
+
+		&.parent {
+			--menuActiveFg: var(--MI_THEME-accent);
+			--menuActiveBg: var(--MI_THEME-accentedBg);
+		}
+
+		&.label {
+			pointer-events: none;
+			font-size: 0.7em;
+			padding-bottom: 4px;
+		}
+
+		&.pending {
+			pointer-events: none;
+			opacity: 0.7;
+		}
+
+		&.none {
+			pointer-events: none;
+			opacity: 0.7;
 		}
 	}
-}
-</style>
+
+	.item_content {
+		width: 100%;
+		max-width: 100vw;
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+		text-overflow: ellipsis;
+	}
+
+	.item_content_text {
+		max-width: calc(100vw - 4rem);
+		text-overflow: ellipsis;
+		overflow: hidden;
+	}
+
+	.switchButton {
+		margin-left: -2px;
+		--height: 1.35em;
+	}
+
+	.switchText {
+		margin-left: 8px;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.icon {
+		margin-right: 8px;
+		line-height: 1;
+	}
+
+	.caret {
+		margin-left: auto;
+	}
+
+	.avatar {
+		margin-right: 5px;
+		width: 20px;
+		height: 20px;
+	}
+
+	.indicator {
+		display: flex;
+		align-items: center;
+		color: var(--MI_THEME-indicator);
+		font-size: 12px;
+	}
+
+	.divider {
+		margin: 8px 0;
+		border-top: solid 0.5px var(--MI_THEME-divider);
+	}
+
+	.radioIcon {
+		display: inline-block;
+		position: relative;
+		width: 1em;
+		height: 1em;
+		vertical-align: -0.125em;
+		border-radius: 50%;
+		border: solid 2px var(--MI_THEME-divider);
+		background-color: var(--MI_THEME-panel);
+
+		&.radioChecked {
+			border-color: var(--MI_THEME-accent);
+
+			&::after {
+				content: "";
+				display: block;
+				position: absolute;
+				top: 50%;
+				left: 50%;
+				transform: translate(-50%, -50%);
+				width: 50%;
+				height: 50%;
+				border-radius: 50%;
+				background-color: var(--MI_THEME-accent);
+			}
+		}
+	}
+	</style>

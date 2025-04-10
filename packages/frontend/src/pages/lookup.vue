@@ -1,5 +1,5 @@
 <!--
-SPDX-FileCopyrightText: syuilo and other misskey contributors
+SPDX-FileCopyrightText: syuilo and misskey-project
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
@@ -40,7 +40,7 @@ function fetch() {
 		return;
 	}
 
-	let promise: Promise<any>;
+	let promise: Promise<unknown>;
 
 	if (uri.startsWith('https://')) {
 		promise = misskeyApi('ap/show', {

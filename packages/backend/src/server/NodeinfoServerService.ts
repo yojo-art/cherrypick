@@ -124,6 +124,7 @@ export class NodeinfoServerService {
 					disableRegistration: meta.disableRegistration,
 					disableLocalTimeline: !basePolicies.ltlAvailable,
 					disableGlobalTimeline: !basePolicies.gtlAvailable,
+					disableBubbleTimeline: !basePolicies.btlAvailable,
 					emailRequiredForSignup: meta.emailRequiredForSignup,
 					enableHcaptcha: meta.enableHcaptcha,
 					enableRecaptcha: meta.enableRecaptcha,
@@ -135,6 +136,13 @@ export class NodeinfoServerService {
 					proxyAccountName: proxyAccount ? proxyAccount.username : null,
 					themeColor: meta.themeColor ?? '#ffbcdc',
 					reversiVersion: NodeinfoServerService.reversiVersion,
+					features: [
+						'enable_wide_emoji',
+						'enable_wide_emoji_reaction',
+						'emoji_keywords',
+						'emoji_reaction',
+						'quote',
+					],
 				},
 			};
 			if (version >= 21) {

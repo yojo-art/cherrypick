@@ -68,6 +68,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					query.andWhere('file.userHost IS NOT NULL');
 				} else if (ps.origin === 'system') {
 					query.andWhere('file.userId IS NULL');
+					query.andWhere('file.userHost IS NULL');
 				}
 
 				if (ps.hostname) {

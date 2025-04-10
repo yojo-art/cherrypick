@@ -1,12 +1,91 @@
-## 1.3.0
+## 1.5.0
 
 ### Release Date
+
+### General
+
+### Client
+
+### Server
+UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
+
+## 1.4.1
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+2025-03-29
+
+### General
+
+### Client
+- Fix: ノート詳細から前後TL見る機能の修正 [#677](https://github.com/yojo-art/cherrypick/pull/677)
+- Fix: 返信用投稿フォームを通常投稿フォームと統一 [#676](https://github.com/yojo-art/cherrypick/pull/676)
+- Fix: 右クリックメニューにスクロールバーがある時、派生メニューで考慮されない不具合の修正 [#680](https://github.com/yojo-art/cherrypick/pull/680)
+  - 問題が起きていた変更部分を1.3.1時点に戻しました
+- Fix: ローカルのリアクションに相乗りする時の確認ダイアログを修正 [#682](https://github.com/yojo-art/cherrypick/pull/682)
+- Fix: ノート内絵文字を付ける機能でローカルに無い絵文字は機能を非表示に [#683](https://github.com/yojo-art/cherrypick/pull/683)
+- Fix: ノート詳細リアクションタブ内のリアクションボタンの画像部分にクリック判定が無い問題を修正 [#684](https://github.com/yojo-art/cherrypick/pull/684)
+
+### Server
+
+## 1.4.0
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+2025-03-16
+
+### General
+- Fix: リポジトリURLとフィードバックURLを変更(改変版を利用してると表示される問題も修正) [#666](https://github.com/yojo-art/cherrypick/pull/666)
+- Feat: リモートインスタンスのソフトウェア一覧 [#659](https://github.com/yojo-art/cherrypick/pull/659)
+  -　エンドポイント:`api/federation/remote-software` 
+  - フロントエンドでは`/about#charts` で確認できます
+- Change: ロックダウン機能を削除 [#650](https://github.com/yojo-art/cherrypick/pull/650)
+  - リモートユーザーの設定は反映します
+
+### Client
+- Fix: yojo-art アップデートを開くとサーバー設定が更新される問題を修正 [#651](https://github.com/yojo-art/cherrypick/pull/651)
+- Fix: 非ログインでローカル/グローバルタイムラインが表示できない不具合の修正 [#667](https://github.com/yojo-art/cherrypick/pull/667)
+- Feat: リアクション付ける前に確認ダイアログを追加するオプション [#657](https://github.com/yojo-art/cherrypick/pull/657)
+- Change: 投稿フォームのUI変更 [#655](https://github.com/yojo-art/cherrypick/pull/655)
+
+### Server
+- Fix: リモートのイベントを表示できるように [#658](https://github.com/yojo-art/cherrypick/pull/658)
+- Change: `api/i/notifications-grouped`で新着ノートをデフォルトでまとめないように[#662](https://github.com/yojo-art/cherrypick/pull/662)
+- Enhance: 通常の検索でもOpenSearchを利用できるように [#661](https://github.com/yojo-art/cherrypick/pull/661)
+
+## 1.3.1
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+2025-02-11
+
+### General
+- Fix: Docker のビルドに失敗する問題を修正  
+  (Cherry-picked from https://github.com/misskey-dev/misskey/pull/15387)
+- Fix: ログイン通知を削除できる問題 [#642](https://github.com/yojo-art/cherrypick/pull/642)
+
+### Client
+- Change: リモートユーザーのユーザーページでは`登録日`を`初観測`と表記するように [#633](https://github.com/yojo-art/cherrypick/pull/633)
+
+### Server
+- Fix: 管理者のコントロールパネルでシステムにしたときリモートファイルも表示される [#641](https://github.com/yojo-art/cherrypick/pull/641)
+- Change: 絵文字連合で`author`がなければ`creator`の値を使うように [#640](https://github.com/yojo-art/cherrypick/pull/640)
+
+## 1.3.0
+Cherrypick 4.13.0  
+Misskey 2024.10.1
+
+### Release Date
+2025-01-30
 
 ### General
 - Feat: システムユーザーのファイル一覧を追加 [#595](https://github.com/yojo-art/cherrypick/pull/595)
 - Feat: 公開投稿以外の配送を制限する機能 [#574](https://github.com/yojo-art/cherrypick/pull/574)
 - Enhance: Fedibird形式の絵文字情報連合に対応 [#604](https://github.com/yojo-art/cherrypick/pull/604)
-	- 以下の情報が対応ソフト間で連合されます
+  - 以下の情報が対応ソフト間で連合されます
     - キーワード
     - コピー条件
     - カテゴリ
@@ -14,10 +93,11 @@
     - ライセンス
     - 説明
     - 使用に関しての説明
-
+- Enhance: `emoji`の拡張プロパティ`isSensitive?: boolean`が定義されている場合、カスタム絵文字のセンシティブフラグを連合するように
 ### Client
 - Fix: チュートリアルを現状に合わせて更新[#586](https://github.com/yojo-art/cherrypick/pull/586)
 - Fix: 自分自身のリアクション一覧が公開設定に影響される問題を修正 [#614](https://github.com/yojo-art/cherrypick/pull/614)
+- Fix: 検索可能範囲の設定UIを改善  [#623](https://github.com/yojo-art/cherrypick/pull/623)
 - Feat: コンパネのファイルに絵文字として利用中ラベルを表示する [#603](https://github.com/yojo-art/cherrypick/pull/603)
 - Enhance: データセーバーウィジェットを追加[#608](https://github.com/yojo-art/cherrypick/pull/608)
 - Enhance: ノート詳細から前後のHTL/LTLを開く機能を追加 [#572](https://github.com/yojo-art/cherrypick/pull/572)
@@ -30,6 +110,7 @@
 - Feat: フォローしているユーザーなら鍵ノートでもアンテナにひっかかるように [#568](https://github.com/yojo-art/cherrypick/pull/568)
 	- based-on https://github.com/team-shahu/misskey/pull/38
 - Enhance: リバーシ連合時にリアクションを送れるように(v1.1.0) [#569](https://github.com/yojo-art/cherrypick/pull/569)
+- Enhance: nodeinfoで対応する機能を示す(kmyblue互換) [#624](https://github.com/yojo-art/cherrypick/pull/624)
 
 ## 1.2.2
 Cherrypick 4.13.0  

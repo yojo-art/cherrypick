@@ -36,7 +36,7 @@ import { $i } from '@/account';
 const props = defineProps<{
 	flash: Misskey.entities.Flash;
 }>();
-const isLiked = ref<boolean|null>(false);
+const isLiked = ref<boolean | null>(false);
 watchEffect(() => {
 	isLiked.value = props.flash.isLiked ?? null;
 });

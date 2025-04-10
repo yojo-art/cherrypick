@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	decoding="async"
 	@error="errored = true"
 	@load="errored = false"
-	@click.stop="onClick"
+	@click="onClick"
 	@mouseover="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 	@mouseout="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 	@touchstart="defaultStore.state.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
@@ -29,19 +29,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onMounted, onUnmounted, inject, ref, defineAsyncComponent } from 'vue';
+import { computed, defineAsyncComponent, onMounted, onUnmounted, inject, ref } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
 import { getProxiedImageUrl, getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { defaultStore } from '@/store.js';
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import * as os from '@/os.js';
-import { misskeyApiGet } from '@/scripts/misskey-api.js';
+import { misskeyApi, misskeyApiGet } from '@/scripts/misskey-api.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import * as sound from '@/scripts/sound.js';
 import { i18n } from '@/i18n.js';
 import MkCustomEmojiDetailedDialog from '@/components/MkCustomEmojiDetailedDialog.vue';
 import { $i } from '@/account.js';
-import { importEmojiMeta } from '@/scripts/import-emoji.js';
+import { stealEmoji } from '@/scripts/import-emoji.js';
 
 const props = defineProps<{
 	name: string;
@@ -110,32 +110,29 @@ function onClick(ev: MouseEvent) {
 		}] : []),
 		);
 
-		if (props.host && $i && ($i.isAdmin ?? $i.policies.canManageCustomEmojis)) {
+		if (props.host && $i && ($i.isAdmin || $i.policies.canManageCustomEmojis)) {
 			menuItems.push({
 				text: i18n.ts.import,
 				icon: 'ti ti-plus',
 				action: async() => {
-					let emoji = await os.apiWithDialog('admin/emoji/steal', {
-						name: customEmojiName.value,
-						host: props.host,
-					});
-					emoji = await importEmojiMeta(emoji, props.host);
-					os.popup(defineAsyncComponent(() => import('@/pages/emoji-edit-dialog.vue')), {
-						emoji: emoji,
-					});
+					await stealEmoji(customEmojiName.value, props.host);
 				},
 			});
 		}
 
 		if (props.menuReaction && react) {
-			menuItems.push({
-				text: i18n.ts.doReaction,
-				icon: 'ti ti-mood-plus',
-				action: () => {
-					react(`:${props.name}:`);
-					sound.playMisskeySfx('reaction');
-				},
-			});
+			if (props.host && !customEmojisMap.get(props.name)) {
+				//ローカルに絵文字が無い時メニューに追加しない
+				//https://github.com/yojo-art/cherrypick/pull/683
+			} else {
+				menuItems.push({
+					text: i18n.ts.doReaction,
+					icon: 'ti ti-mood-plus',
+					action: () => {
+						react(`:${props.name}:`);
+					},
+				});
+			}
 		}
 
 		menuItems.push({
@@ -153,8 +150,29 @@ function onClick(ev: MouseEvent) {
 			},
 		});
 
+		if ($i?.isModerator ?? $i?.isAdmin) {
+			menuItems.push({
+				text: i18n.ts.edit,
+				icon: 'ti ti-pencil',
+				action: async () => {
+					await edit(props.name);
+				},
+			});
+		}
+
 		os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 	}
+}
+
+async function edit(name: string) {
+	const emoji = await misskeyApi('emoji', {
+		name: name,
+	});
+	const { dispose } = os.popup(defineAsyncComponent(() => import('@/pages/emoji-edit-dialog.vue')), {
+		emoji: emoji,
+	}, {
+		closed: () => dispose(),
+	});
 }
 
 function resetTimer() {

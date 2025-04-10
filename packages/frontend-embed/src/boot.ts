@@ -13,7 +13,7 @@ import { createApp, defineAsyncComponent } from 'vue';
 import defaultLightTheme from '@@/themes/l-light.json5';
 import defaultDarkTheme from '@@/themes/d-dark.json5';
 import { MediaProxy } from '@@/js/media-proxy.js';
-import { url } from '@@/js/config.js';
+import { url, version, basedMisskeyVersion, locale, lang, updateLocale } from '@@/js/config.js';
 import { parseEmbedParams } from '@@/js/embed-page.js';
 import type { Theme } from '@/theme.js';
 import { applyTheme, assertIsTheme } from '@/theme.js';
@@ -22,6 +22,7 @@ import { DI } from '@/di.js';
 import { serverMetadata } from '@/server-metadata.js';
 import { postMessageToParentWindow, setIframeId } from '@/post-message.js';
 import { serverContext } from '@/server-context.js';
+import { i18n, updateI18n } from '@/i18n.js';
 
 console.log('yojo-art Embed');
 
@@ -66,6 +67,23 @@ if (embedParams.colorMode === 'dark') {
 			applyTheme(lightTheme);
 		}
 	});
+}
+//#endregion
+
+//#region Detect language & fetch translations
+const localeVersion = localStorage.getItem('localeVersion');
+const lastBasedMisskeyVersion = localStorage.getItem('lastBasedMisskeyVersion');
+const localeOutdated = (localeVersion == null || localeVersion !== version || lastBasedMisskeyVersion !== basedMisskeyVersion || locale == null);
+if (localeOutdated) {
+	const res = await window.fetch(`/assets/locales/${lang}.${version}.json`);
+	if (res.status === 200) {
+		const newLocale = await res.text();
+		const parsedNewLocale = JSON.parse(newLocale);
+		localStorage.setItem('locale', newLocale);
+		localStorage.setItem('localeVersion', version);
+		updateLocale(parsedNewLocale);
+		updateI18n(parsedNewLocale);
+	}
 }
 //#endregion
 
@@ -125,6 +143,31 @@ window.onerror = null;
 window.onunhandledrejection = null;
 
 removeSplash();
+
+//#region Self-XSS 対策メッセージ
+console.log(
+	`%c${i18n.ts._selfXssPrevention.warning}`,
+	'color: #f00; background-color: #ff0; font-size: 36px; padding: 4px;',
+);
+console.log(
+	`%c${i18n.ts._selfXssPrevention.title}`,
+	'color: #f00; font-weight: 900; font-family: "Hiragino Sans W9", "Hiragino Kaku Gothic ProN", sans-serif; font-size: 24px;',
+);
+console.log(
+	`%c${i18n.ts._selfXssPrevention.description1}`,
+	'font-size: 16px; font-weight: 700;',
+);
+console.log(
+	`%c${i18n.ts._selfXssPrevention.description2}`,
+	'font-size: 16px;',
+	'font-size: 20px; font-weight: 700; color: #f00;',
+);
+console.log(
+	`%c${i18n.tsx._selfXssPrevention.description3({ link: 'https://github.com/kokonect-link/cherrypick' })}`,
+	'font-size: 14px;',
+);
+console.log(i18n.tsx._selfXssPrevention.description4({ link: 'https://misskey-hub.net/docs/for-users/resources/self-xss/' }));
+//#endregion
 
 function removeSplash() {
 	const splash = document.getElementById('splash');

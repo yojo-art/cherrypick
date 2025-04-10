@@ -48,16 +48,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				id: ps.invitationId,
 			});
 
-			if (invitation == null) {
+			if (invitation == null || invitation.userId !== me.id) {
 				throw new ApiError(meta.errors.noSuchInvitation);
 			}
 
-			if (invitation.userId !== me.id) {
-				throw new ApiError(meta.errors.noSuchInvitation);
-			}
-			//Redisから通知を消す
-			await this.notificationService.deleteInvitedNotification(me.id, invitation.id);
-			await this.userGroupInvitationsRepository.delete(invitation.id);
+			await this.notificationService.deleteUserGroupInvitation(me.id, invitation.id);
+			return await this.userGroupInvitationsRepository.delete(invitation.id);
 		});
 	}
 }

@@ -51,7 +51,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, computed, watch, ref, shallowRef } from 'vue';
-import { version } from '@@/js/config.js';
 import { openInstanceMenu } from './_common_/common.js';
 // import { host } from '@@/js/config.js';
 import * as os from '@/os.js';
@@ -65,6 +64,7 @@ import MkButton from '@/components/MkButton.vue';
 import { defaultStore } from '@/store.js';
 import { instance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
+import { fetchCherrypickReleases } from '@/scripts/fetch-cherrypick-releases.js';
 
 const WINDOW_THRESHOLD = 1400;
 
@@ -83,9 +83,8 @@ const el = shallowRef<HTMLElement>();
 const iconOnly = ref(false);
 const settingsWindowed = ref(false);
 const controlPanelIndicated = ref(false);
-const releasesYojoArt = ref(null);
 
-if ($i.isAdmin ?? $i.isModerator) {
+if ($i && ($i.isAdmin ?? $i.isModerator)) {
 	misskeyApi('admin/abuse-user-reports', {
 		state: 'unresolved',
 		limit: 1,
@@ -93,34 +92,9 @@ if ($i.isAdmin ?? $i.isModerator) {
 		if (reports.length > 0) controlPanelIndicated.value = true;
 	});
 
-	misskeyApi('admin/meta')
-		.then(meta => {
-			return fetch('https://api.github.com/repos/yojo-art/cherrypick/releases')
-				.then(res => res.json())
-				.then(cherryPickData => {
-					releasesYojoArt.value = meta.enableReceivePrerelease ? cherryPickData : cherryPickData.filter(x => !x.prerelease);
-					if ((compareVersions(version, releasesYojoArt.value[0].tag_name) < 0) && (compareVersions(meta.skipCherryPickVersion, releasesYojoArt.value[0].tag_name) < 0)) {
-						controlPanelIndicated.value = true;
-					}
-				});
-		})
-		.catch(error => {
-			console.error('Failed to fetch CherryPick releases:', error);
-		});
-}
-
-function compareVersions(v1: string, v2: string): number {
-	const v1Parts = v1.split('.').map(Number);
-	const v2Parts = v2.split('.').map(Number);
-
-	for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-		const part1 = v1Parts[i] || 0;
-		const part2 = v2Parts[i] || 0;
-
-		if (part1 < part2) return -1;
-		if (part1 > part2) return 1;
-	}
-	return 0;
+	fetchCherrypickReleases().then((result) => {
+		if (result) controlPanelIndicated.value = true;
+	});
 }
 
 function calcViewState() {

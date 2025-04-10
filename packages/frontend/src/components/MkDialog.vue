@@ -28,8 +28,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<header v-if="title" :class="$style.title"><Mfm :text="title"/></header>
 		<div v-if="text" :class="$style.text"><Mfm :text="text"/></div>
 		<div v-if="caption" :class="$style.caption"><small><Mfm :text="caption"/></small></div>
-		<MkInput v-if="input" v-model="inputValue" autofocus :type="input.type || 'text'" :placeholder="input.placeholder || undefined" :autocomplete="input.autocomplete" @keydown="onInputKeydown">
+		<MkInput v-if="input" ref="inputValueEl" v-model="inputValue" autofocus :type="input.type || 'text'" :placeholder="input.placeholder || undefined" :autocomplete="input.autocomplete" @keydown="onInputKeydown">
 			<template v-if="input.type === 'password'" #prefix><i class="ti ti-lock"></i></template>
+			<template v-if="inputValue != null && inputValue !== ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="inputValue = ''; inputValueEl?.focus();"><i class="ti ti-x"></i></button></template>
 			<template #caption>
 				<span v-if="okButtonDisabledReason === 'charactersExceeded'" v-text="i18n.tsx._dialog.charactersExceeded({ current: (inputValue as string)?.length ?? 0, max: input.maxLength ?? 'NaN' })"/>
 				<span v-else-if="okButtonDisabledReason === 'charactersBelow'" v-text="i18n.tsx._dialog.charactersBelow({ current: (inputValue as string)?.length ?? 0, min: input.minLength ?? 'NaN' })"/>
@@ -46,7 +47,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</template>
 		</MkSelect>
 		<div v-if="(showOkButton || showCancelButton) && !actions" :class="$style.buttons">
-			<MkButton v-if="showOkButton" data-cy-modal-dialog-ok inline primary rounded :autofocus="!input && !select" :disabled="okButtonDisabledReason" @click="ok">{{ okText ?? ((showCancelButton || input || select) ? i18n.ts.ok : i18n.ts.gotIt) }}</MkButton>
+			<MkButton v-if="showOkButton" data-cy-modal-dialog-ok inline primary rounded :autofocus="!input && !select" :disabled="okButtonDisabledReason != null" @click="ok">{{ okText ?? ((showCancelButton || input || select) ? i18n.ts.ok : i18n.ts.gotIt) }}</MkButton>
 			<MkButton v-if="showCancelButton || input || select" data-cy-modal-dialog-cancel inline rounded @click="cancel">{{ cancelText ?? i18n.ts.cancel }}</MkButton>
 		</div>
 		<div v-if="actions" :class="[$style.buttons, { [$style.changeButtonAlign]: actions.length > 2 }]">
@@ -100,7 +101,7 @@ const props = withDefaults(defineProps<{
 		text: string;
 		primary?: boolean,
 		danger?: boolean,
-		callback: (...args: any[]) => void;
+		callback: (...args: unknown[]) => void;
 	}[];
 	showOkButton?: boolean;
 	showCancelButton?: boolean;
@@ -141,9 +142,12 @@ const okButtonDisabledReason = computed<null | 'charactersExceeded' | 'character
 	return null;
 });
 
+const inputValueEl = ref(null);
+
 // overload function を使いたいので lint エラーを無視する
 function done(canceled: true): void;
 function done(canceled: false, result: Result): void; // eslint-disable-line no-redeclare
+
 function done(canceled: boolean, result?: Result): void { // eslint-disable-line no-redeclare
 	emit('done', { canceled, result } as { canceled: true } | { canceled: false, result: Result });
 	modal.value?.close();
@@ -168,6 +172,7 @@ function onBgClick() {
 	if (props.cancelableByBgClick) cancel();
 }
 */
+
 function onInputKeydown(evt: KeyboardEvent) {
 	if (evt.key === 'Enter' && okButtonDisabledReason.value === null) {
 		evt.preventDefault();
@@ -248,5 +253,16 @@ function onInputKeydown(evt: KeyboardEvent) {
 	&.changeButtonAlign {
 		flex-direction: column;
 	}
+}
+
+.deleteBtn {
+	position: relative;
+	z-index: 2;
+	margin: 0 auto;
+	border: none;
+	background: none;
+	color: inherit;
+	font-size: 0.8em;
+	pointer-events: auto;
 }
 </style>

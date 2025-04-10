@@ -47,13 +47,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, onUnmounted, nextTick, ref, shallowRef, watch, computed, toRefs } from 'vue';
 import { debounce } from 'throttle-debounce';
 import { useInterval } from '@@/js/use-interval.js';
+import type { InputHTMLAttributes } from 'vue';
+import type { SuggestionType } from '@/scripts/autocomplete.js';
 import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
-import { Autocomplete, SuggestionType } from '@/scripts/autocomplete.js';
+import { Autocomplete } from '@/scripts/autocomplete.js';
 
 const props = defineProps<{
 	modelValue: string | number | null;
-	type?: 'text' | 'number' | 'password' | 'email' | 'url' | 'date' | 'time' | 'search' | 'datetime-local';
+	type?: InputHTMLAttributes['type'];
 	required?: boolean;
 	readonly?: boolean;
 	disabled?: boolean;
@@ -64,8 +66,8 @@ const props = defineProps<{
 	mfmAutocomplete?: boolean | SuggestionType[],
 	autocapitalize?: string;
 	spellcheck?: boolean;
-	inputmode?: 'none' | 'text' | 'search' | 'email' | 'url' | 'numeric' | 'tel' | 'decimal';
-	step?: any;
+	inputmode?: InputHTMLAttributes['inputmode'];
+	step?: InputHTMLAttributes['step'];
 	datalist?: string[];
 	min?: number;
 	max?: number;
@@ -280,7 +282,7 @@ defineExpose({
 	white-space: nowrap;
 	text-overflow: ellipsis;
 	box-sizing: border-box;
-	pointer-events: none;
+	// pointer-events: none;
 
 	&:empty {
 		display: none;
@@ -296,6 +298,7 @@ defineExpose({
 	right: 0;
 	padding-left: 6px;
 }
+
 .save {
 	margin: 8px 0 0 0;
 }

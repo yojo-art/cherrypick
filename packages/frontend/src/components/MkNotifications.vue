@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onUnmounted, onDeactivated, onMounted, computed, shallowRef, onActivated } from 'vue';
 import * as Misskey from 'cherrypick-js';
-import { notificationTypes } from '@@/js/const.js';
+import type { notificationTypes } from '@@/js/const.js';
 import MkPagination from '@/components/MkPagination.vue';
 import XNotification from '@/components/MkNotification.vue';
 import MkDateSeparatedList from '@/components/MkDateSeparatedList.vue';
@@ -57,6 +57,7 @@ const pagination = computed(() => props.notUseGrouped ? {
 	limit: 20,
 	params: computed(() => ({
 		excludeTypes: props.excludeTypes ?? undefined,
+		groupNote: true,
 	})),
 } : {
 	endpoint: 'i/notifications' as const,

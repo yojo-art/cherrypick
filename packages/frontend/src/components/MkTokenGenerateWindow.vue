@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:okButtonDisabled="false"
 	:canClose="false"
 	@close="dialog?.close()"
-	@closed="$emit('closed')"
+	@closed="emit('closed')"
 	@ok="ok()"
 >
 	<template #header>{{ title || i18n.ts.generateAccessToken }}</template>
@@ -132,7 +132,7 @@ function enableAll(): void {
 }
 </script>
 
-<style module lang="scss">
+<style lang="scss" module>
 .adminPermissions {
 	margin: 8px -6px 0;
 	padding: 24px 6px 6px;

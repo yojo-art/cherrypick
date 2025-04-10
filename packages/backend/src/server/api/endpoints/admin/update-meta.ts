@@ -87,6 +87,7 @@ export const paramDef = {
 		turnstileSiteKey: { type: 'string', nullable: true },
 		turnstileSecretKey: { type: 'string', nullable: true },
 		enableTestcaptcha: { type: 'boolean' },
+		googleAnalyticsMeasurementId: { type: 'string', nullable: true },
 		sensitiveMediaDetection: { type: 'string', enum: ['none', 'all', 'local', 'remote'] },
 		sensitiveMediaDetectionSensitivity: { type: 'string', enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'] },
 		setSensitiveFlagAutomatically: { type: 'boolean' },
@@ -107,6 +108,8 @@ export const paramDef = {
 		ctav3Location: { type: 'string', nullable: true },
 		ctav3Model: { type: 'string', nullable: true },
 		ctav3Glossary: { type: 'string', nullable: true },
+		libreTranslateEndPoint: { type: 'string', nullable: true },
+		libreTranslateApiKey: { type: 'string', nullable: true },
 		enableEmail: { type: 'boolean' },
 		email: { type: 'string', nullable: true },
 		smtpSecure: { type: 'boolean' },
@@ -127,7 +130,7 @@ export const paramDef = {
 		useObjectStorage: { type: 'boolean' },
 		objectStorageBaseUrl: { type: 'string', nullable: true },
 		objectStorageBucket: { type: 'string', nullable: true },
-		objectStoragePrefix: { type: 'string', nullable: true },
+		objectStoragePrefix: { type: 'string', pattern: /^[a-zA-Z0-9-._]*$/.source, nullable: true },
 		objectStorageEndpoint: { type: 'string', nullable: true },
 		objectStorageRegion: { type: 'string', nullable: true },
 		objectStoragePort: { type: 'integer', nullable: true },
@@ -140,7 +143,7 @@ export const paramDef = {
 		useRemoteObjectStorage: { type: 'boolean' },
 		remoteObjectStorageBaseUrl: { type: 'string', nullable: true },
 		remoteObjectStorageBucket: { type: 'string', nullable: true },
-		remoteObjectStoragePrefix: { type: 'string', nullable: true },
+		remoteObjectStoragePrefix: { type: 'string', pattern: /^[a-zA-Z0-9-._]*$/.source, nullable: true },
 		remoteObjectStorageEndpoint: { type: 'string', nullable: true },
 		remoteObjectStorageRegion: { type: 'string', nullable: true },
 		remoteObjectStoragePort: { type: 'integer', nullable: true },
@@ -226,6 +229,9 @@ export const paramDef = {
 		},
 		disableRegistrationWhenInactive: { type: 'boolean', nullable: true },
 		disablePublicNoteWhenInactive: { type: 'boolean', nullable: true },
+		moderatorInactivityLimitDays: { type: 'integer', nullable: false },
+		bubbleInstances: { type: 'array', items: { type: 'string' } },
+		customRobotsTxt: { type: 'string', nullable: true },
 	},
 	required: [],
 } as const;
@@ -415,6 +421,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.enableTestcaptcha !== undefined) {
 				set.enableTestcaptcha = ps.enableTestcaptcha;
+			}
+
+			if (ps.googleAnalyticsMeasurementId !== undefined) {
+				// 空文字列をnullにしたいので??は使わない
+				// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
+				set.googleAnalyticsMeasurementId = ps.googleAnalyticsMeasurementId || null;
 			}
 
 			if (ps.sensitiveMediaDetection !== undefined) {
@@ -661,6 +673,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				set.ctav3Glossary = ps.ctav3Glossary;
 			}
 
+			if (ps.libreTranslateEndPoint !== undefined) {
+				set.libreTranslateEndPoint = ps.libreTranslateEndPoint;
+			}
+
+			if (ps.libreTranslateApiKey !== undefined) {
+				set.libreTranslateApiKey = ps.libreTranslateApiKey;
+			}
+
 			if (ps.enableIpLogging !== undefined) {
 				set.enableIpLogging = ps.enableIpLogging;
 			}
@@ -841,6 +861,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (typeof ps.disablePublicNoteWhenInactive === 'boolean') {
 				set.disablePublicNoteWhenInactive = ps.disablePublicNoteWhenInactive;
+			}
+
+			if (ps.moderatorInactivityLimitDays !== undefined) {
+				set.moderatorInactivityLimitDays = ps.moderatorInactivityLimitDays;
+			}
+
+			if (ps.bubbleInstances !== undefined) {
+				set.bubbleInstances = ps.bubbleInstances;
+			}
+
+			if (ps.customRobotsTxt !== undefined) {
+				set.customRobotsTxt = ps.customRobotsTxt;
 			}
 
 			const before = await this.metaService.fetch(true);

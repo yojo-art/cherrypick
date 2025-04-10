@@ -3,11 +3,13 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { VNode, h, SetupContext, provide } from 'vue';
+import { h, provide } from 'vue';
 import * as mfm from 'mfc-js';
 import * as Misskey from 'cherrypick-js';
 import temml from 'temml/dist/temml.mjs';
 import { host } from '@@/js/config.js';
+import type { VNode, SetupContext } from 'vue';
+import type { MkABehavior } from '@/components/global/MkA.vue';
 import MkUrl from '@/components/global/MkUrl.vue';
 import MkTime from '@/components/global/MkTime.vue';
 import MkLink from '@/components/MkLink.vue';
@@ -18,7 +20,7 @@ import MkCode from '@/components/MkCode.vue';
 import MkCodeInline from '@/components/MkCodeInline.vue';
 import MkGoogle from '@/components/MkGoogle.vue';
 import MkSparkle from '@/components/MkSparkle.vue';
-import MkA, { MkABehavior } from '@/components/global/MkA.vue';
+import MkA from '@/components/global/MkA.vue';
 import { defaultStore } from '@/store.js';
 
 function safeParseFloat(str: unknown): number | null {
@@ -485,8 +487,8 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 			}
 
 			default: {
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				console.error('unrecognized ast type:', (token as any).type);
+				// @ts-expect-error 存在しないASTタイプ
+				console.error('unrecognized ast type:', token.type);
 
 				return [];
 			}

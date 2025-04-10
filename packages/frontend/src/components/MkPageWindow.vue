@@ -13,7 +13,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:buttonsLeft="buttonsLeft"
 	:buttonsRight="buttonsRight"
 	:contextmenu="contextmenu"
-	@closed="$emit('closed')"
+	@closed="emit('closed')"
 >
 	<template #header>
 		<template v-if="pageMetadata">
@@ -32,24 +32,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { computed, onMounted, onUnmounted, provide, ref, shallowRef } from 'vue';
 import { url } from '@@/js/config.js';
 import { getScrollContainer } from '@@/js/scroll.js';
+import type { PageMetadata } from '@/scripts/page-metadata.js';
 import RouterView from '@/components/global/RouterView.vue';
 import MkWindow from '@/components/MkWindow.vue';
 import { popout as _popout } from '@/scripts/popout.js';
 import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
 import { useScrollPositionManager } from '@/nirax.js';
 import { i18n } from '@/i18n.js';
-import { PageMetadata, provideMetadataReceiver, provideReactiveMetadata } from '@/scripts/page-metadata.js';
+import { provideMetadataReceiver, provideReactiveMetadata } from '@/scripts/page-metadata.js';
 import { openingWindowsCount } from '@/os.js';
 import { claimAchievement } from '@/scripts/achievements.js';
 import { useRouterFactory } from '@/router/supplier.js';
 import { mainRouter } from '@/router/main.js';
+import { analytics } from '@/analytics.js';
 import * as os from '@/os.js';
 
 const props = defineProps<{
 	initialPath: string;
 }>();
 
-defineEmits<{
+const emit = defineEmits<{
 	(ev: 'closed'): void;
 }>();
 
@@ -59,7 +61,7 @@ const windowRouter = routerFactory(props.initialPath);
 const contents = shallowRef<HTMLElement | null>(null);
 const pageMetadata = ref<null | PageMetadata>(null);
 const windowEl = shallowRef<InstanceType<typeof MkWindow>>();
-const history = ref<{ path: string; key: any; }[]>([{
+const history = ref<{ path: string; key: string; }[]>([{
 	path: windowRouter.getCurrentPath(),
 	key: windowRouter.getCurrentKey(),
 }]);
@@ -97,6 +99,14 @@ windowRouter.addListener('push', ctx => {
 windowRouter.addListener('replace', ctx => {
 	history.value.pop();
 	history.value.push({ path: ctx.path, key: ctx.key });
+});
+
+windowRouter.addListener('change', ctx => {
+	console.log('windowRouter: change', ctx.path);
+	analytics.page({
+		path: ctx.path,
+		title: ctx.path,
+	});
 });
 
 windowRouter.init();
@@ -161,6 +171,11 @@ function popout() {
 useScrollPositionManager(() => getScrollContainer(contents.value), windowRouter);
 
 onMounted(() => {
+	analytics.page({
+		path: props.initialPath,
+		title: props.initialPath,
+	});
+
 	openingWindowsCount.value++;
 	if (openingWindowsCount.value >= 3) {
 		claimAchievement('open3windows');

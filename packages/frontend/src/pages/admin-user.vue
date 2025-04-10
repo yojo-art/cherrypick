@@ -432,7 +432,7 @@ async function deleteAccount() {
 }
 
 async function assignRole() {
-	const roles = await misskeyApi('admin/roles/list');
+	const roles = await misskeyApi('admin/roles/list').then(it => it.filter(r => r.target === 'manual'));
 
 	const { canceled, result: roleId } = await os.select({
 		title: i18n.ts._role.chooseRoleToAssign,
@@ -641,6 +641,7 @@ definePageMetadata(() => ({
 <style lang="scss" module>
 .ip {
 	display: flex;
+	word-break: break-all;
 
 	> :global(.date) {
 		opacity: 0.7;

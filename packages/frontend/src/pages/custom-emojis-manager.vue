@@ -10,9 +10,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkSpacer :contentMax="900">
 			<div class="ogwlenmc">
 				<div v-if="tab === 'local'" class="local">
-					<MkInput v-model="query" :debounce="true" type="search" autocapitalize="off">
+					<MkInput ref="queryEl" v-model="query" :debounce="true" type="search" autocapitalize="off">
 						<template #prefix><i class="ti ti-search"></i></template>
 						<template #label>{{ i18n.ts.search }}</template>
+						<template v-if="query != null && query !== ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="query = null; queryEl?.focus();"><i class="ti ti-x"></i></button></template>
 					</MkInput>
 					<MkSwitch v-model="selectMode" style="margin: 8px 0;">
 						<template #label>Select mode</template>
@@ -31,7 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #default="{items}">
 							<div class="ldhfsamy">
 								<button v-for="emoji in items" :key="emoji.id" class="emoji _panel _button" :class="{ selected: selectedEmojis.includes(emoji.id) }" @click="selectMode ? toggleSelect(emoji) : edit(emoji)">
-									<img :src="`/emoji/${emoji.name}.webp`" class="img" :alt="emoji.name"/>
+									<img :src="emoji.url" class="img" :alt="emoji.name"/>
 									<div class="body">
 										<div class="name _monospace">{{ emoji.name }}</div>
 										<div class="info">{{ emoji.category }}</div>
@@ -44,9 +45,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 				<div v-else-if="tab === 'remote'" class="remote">
 					<FormSplit>
-						<MkInput v-model="queryRemote" :debounce="true" type="search" autocapitalize="off">
+						<MkInput ref="queryRemoteEl" v-model="queryRemote" :debounce="true" type="search" autocapitalize="off">
 							<template #prefix><i class="ti ti-search"></i></template>
 							<template #label>{{ i18n.ts.search }}</template>
+							<template v-if="queryRemote != null && queryRemote !== ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="queryRemote = null; queryRemoteEl?.focus();"><i class="ti ti-x"></i></button></template>
 						</MkInput>
 						<MkInput v-model="host" :debounce="true">
 							<template #label>{{ i18n.ts.host }}</template>
@@ -57,7 +59,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #default="{items}">
 							<div class="ldhfsamy">
 								<div v-for="emoji in items" :key="emoji.id" class="emoji _panel _button" @click="remoteMenu(emoji, $event)">
-									<img :src="`/emoji/${emoji.name}@${emoji.host}.webp`" class="img" :alt="emoji.name"/>
+									<img :src="getProxiedImageUrl(emoji.url, 'emoji')" class="img" :alt="emoji.name"/>
 									<div class="body">
 										<div class="name _monospace">{{ emoji.name }}</div>
 										<div class="info">{{ emoji.host }}</div>
@@ -78,14 +80,16 @@ import { computed, defineAsyncComponent, ref, shallowRef } from 'vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkPagination from '@/components/MkPagination.vue';
+import MkRemoteEmojiEditDialog from '@/components/MkRemoteEmojiEditDialog.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import FormSplit from '@/components/form/split.vue';
 import { selectFile, selectFiles } from '@/scripts/select-file.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
+import { getProxiedImageUrl } from '@/scripts/media-proxy.js';
 import { i18n } from '@/i18n.js';
 import { definePageMetadata } from '@/scripts/page-metadata.js';
-import { importEmojiMeta } from '@/scripts/import-emoji.js';
+import { copyEmoji } from '@/scripts/import-emoji.js';
 
 const emojisPaginationComponent = shallowRef<InstanceType<typeof MkPagination>>();
 
@@ -113,11 +117,14 @@ const remotePagination = {
 	})),
 };
 
+const queryEl = ref(null);
+const queryRemoteEl = ref(null);
+
 const selectAll = () => {
 	if (selectedEmojis.value.length > 0) {
 		selectedEmojis.value = [];
 	} else {
-		selectedEmojis.value = Array.from(emojisPaginationComponent.value.items.values(), item => item.id);
+		selectedEmojis.value = Array.from(emojisPaginationComponent.value?.items.values(), item => item.id);
 	}
 };
 
@@ -134,7 +141,7 @@ const add = async (ev: MouseEvent) => {
 	}, {
 		done: result => {
 			if (result.created) {
-				emojisPaginationComponent.value.prepend(result.created);
+				emojisPaginationComponent.value?.prepend(result.created);
 			}
 		},
 		closed: () => dispose(),
@@ -147,49 +154,43 @@ const edit = (emoji) => {
 	}, {
 		done: result => {
 			if (result.updated) {
-				emojisPaginationComponent.value.updateItem(result.updated.id, (oldEmoji: any) => ({
+				emojisPaginationComponent.value?.updateItem(result.updated.id, (oldEmoji) => ({
 					...oldEmoji,
 					...result.updated,
 				}));
 			} else if (result.deleted) {
-				emojisPaginationComponent.value.removeItem(emoji.id);
+				emojisPaginationComponent.value?.removeItem(emoji.id);
 			}
 		},
 		closed: () => dispose(),
 	});
 };
 
-const importEmoji = async(emoji) => {
-	if (emoji.copyPermission && emoji.copyPermission === 'deny') {
-		await os.alert({
-			type: 'error',
-			title: i18n.ts._emoji.copyPermissionIsDeny,
-		});
-		return;
-	}
-
-	let readed = false;
-	if (emoji.license || emoji.usageInfo) {
-		const { canceled } = await os.confirm({
-			type: 'warning',
-			title: i18n.ts._emoji.seeLicense,
-			text: `${i18n.ts.license}: ${emoji.license}\r\n`
-					+ `${i18n.ts._emoji.usageInfo}: ${emoji.usageInfo}`,
-		});
-		if (canceled) return;
-	}
-	let res = await os.apiWithDialog('admin/emoji/copy', {
-		emojiId: emoji.id,
-		...(readed ? { usageInfoReaded: true } : { }),
+const detailRemoteEmoji = (emoji) => {
+	const { dispose } = os.popup(MkRemoteEmojiEditDialog, {
+		emoji: emoji,
+	}, {
+		done: () => {
+			dispose();
+		},
+		closed: () => {
+			dispose();
+		},
 	});
-	res = await importEmojiMeta(res, emoji.host);
-	edit(res);
+};
+
+const importEmoji = async(emoji) => {
+	await copyEmoji(emoji, 'admin/emoji/import');
 };
 
 const remoteMenu = (emoji, ev: MouseEvent) => {
 	os.popupMenu([{
 		type: 'label',
 		text: ':' + emoji.name + ':',
+	}, {
+		text: i18n.ts.details,
+		icon: 'ti ti-info-circle',
+		action: () => { detailRemoteEmoji(emoji); },
 	}, {
 		text: i18n.ts.import,
 		icon: 'ti ti-plus',
@@ -270,7 +271,7 @@ const setCategoryBulk = async () => {
 		ids: selectedEmojis.value,
 		category: result,
 	});
-	emojisPaginationComponent.value.reload();
+	emojisPaginationComponent.value?.reload();
 };
 
 const setLicenseBulk = async () => {
@@ -282,43 +283,43 @@ const setLicenseBulk = async () => {
 		ids: selectedEmojis.value,
 		license: result,
 	});
-	emojisPaginationComponent.value.reload();
+	emojisPaginationComponent.value?.reload();
 };
 
 const addTagBulk = async () => {
 	const { canceled, result } = await os.inputText({
 		title: 'Tag',
 	});
-	if (canceled) return;
+	if (canceled || result == null) return;
 	await os.apiWithDialog('admin/emoji/add-aliases-bulk', {
 		ids: selectedEmojis.value,
 		aliases: result.split(' '),
 	});
-	emojisPaginationComponent.value.reload();
+	emojisPaginationComponent.value?.reload();
 };
 
 const removeTagBulk = async () => {
 	const { canceled, result } = await os.inputText({
 		title: 'Tag',
 	});
-	if (canceled) return;
+	if (canceled || result == null) return;
 	await os.apiWithDialog('admin/emoji/remove-aliases-bulk', {
 		ids: selectedEmojis.value,
 		aliases: result.split(' '),
 	});
-	emojisPaginationComponent.value.reload();
+	emojisPaginationComponent.value?.reload();
 };
 
 const setTagBulk = async () => {
 	const { canceled, result } = await os.inputText({
 		title: 'Tag',
 	});
-	if (canceled) return;
+	if (canceled || result == null) return;
 	await os.apiWithDialog('admin/emoji/set-aliases-bulk', {
 		ids: selectedEmojis.value,
 		aliases: result.split(' '),
 	});
-	emojisPaginationComponent.value.reload();
+	emojisPaginationComponent.value?.reload();
 };
 
 const delBulk = async () => {
@@ -330,7 +331,7 @@ const delBulk = async () => {
 	await os.apiWithDialog('admin/emoji/delete-bulk', {
 		ids: selectedEmojis.value,
 	});
-	emojisPaginationComponent.value.reload();
+	emojisPaginationComponent.value?.reload();
 };
 
 const headerActions = computed(() => [{
@@ -458,5 +459,18 @@ definePageMetadata(() => ({
 			}
 		}
 	}
+}
+</style>
+
+<style lang="scss" module>
+.deleteBtn {
+	position: relative;
+	z-index: 2;
+	margin: 0 auto;
+	border: none;
+	background: none;
+	color: inherit;
+	font-size: 0.8em;
+	pointer-events: auto;
 }
 </style>

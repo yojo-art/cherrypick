@@ -175,7 +175,7 @@ export class NotificationEntityService implements OnModuleInit {
 		if (needsRole && !role) {
 			return null;
 		}
-		let group_invitation: MiUserGroupInvitation|null = null;
+		let group_invitation: MiUserGroupInvitation | null = null;
 		if (notification.type === 'groupInvited') {
 			group_invitation = await this.userGroupInvitationsRepository.findOneBy({ id: notification.userGroupInvitationId });
 			if (group_invitation === null) {

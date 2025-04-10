@@ -4,8 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div v-if="note.files.length > 0" :class="$style.root">
-	<div v-if="!showingFiles.includes(note.files[0].id)" :key="note.id + note.files[0].id" :class="$style.img" @click="onClick($event,note.files[0])" @dblclick="onDblClick(note.files[0])">
+<div v-if="note.files.length > 0" :class="[$style.root, $style.visible]">
+	<div v-if="!showingFiles.includes(note.files[0].id)" :key="note.id + note.files[0].id" :class="$style.img" @click="onClick($event, note.files[0])" @dblclick="onDblClick(note.files[0])">
 		<!-- TODO: 画像以外のファイルに対応 -->
 		<ImgWithBlurhash :class="$style.sensitiveImg" :hash="note.files[0].blurhash" :src="thumbnail(note.files[0])" :title="note.files[0].name" :forceBlurhash="true"/>
 		<div :class="$style.sensitive">
@@ -30,11 +30,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.indicators">
 			<div v-if="['image/gif'].includes(note.files[0].type)" :class="$style.indicator">GIF</div>
 			<div v-if="['image/apng'].includes(note.files[0].type)" :class="$style.indicator">APNG</div>
+			<div v-if="note.files[0].comment" :class="$style.indicator">ALT</div>
 			<div v-if="note.files[0].isSensitive" :class="$style.indicator" style="color: var(--MI_THEME-warn);" :title="i18n.ts.sensitive"><i class="ti ti-eye-exclamation"></i></div>
 		</div>
 	</MkA>
 	<div v-if="note.files.length > 1" :class="$style.multiple">
-		<i class="ti ti-box-multiple"></i>
+		<span style="text-align: center; margin-right: 0.25em;">{{ note.files.length }}</span>
+		<i class="ti ti-box-multiple-filled"></i>
 	</div>
 </div>
 </template>
@@ -42,6 +44,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, watch } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import * as os from '@/os.js';
+import bytes from '@/filters/bytes.js';
 import { getStaticImageUrl } from '@/scripts/media-proxy.js';
 import { notePage } from '@/filters/note.js';
 import ImgWithBlurhash from '@/components/MkImgWithBlurhash.vue';
@@ -49,13 +53,11 @@ import MkA from '@/components/global/MkA.vue';
 import { defaultStore } from '@/store.js';
 import { i18n } from '@/i18n.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
-import * as os from '@/os.js';
 import { confirmR18, wasConfirmR18 } from '@/scripts/check-r18.js';
-import bytes from '@/filters/bytes.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
-	note: Misskey.entities.Note & { files:Misskey.entities.DriveFile[] };
+	note: Misskey.entities.Note & { files: Misskey.entities.DriveFile[] };
 }>();
 
 const showingFiles = ref<string[]>([]);
@@ -189,17 +191,44 @@ onUnmounted(() => {
 	align-items: center;
 }
 
+.visible {
+	position: relative;
+	-webkit-tap-highlight-color: transparent;
+	//box-shadow: 0 0 0 1px var(--MI_THEME-divider) inset;
+	background: var(--MI_THEME-bg);
+	background-size: 16px 16px;
+}
+
+html[data-color-scheme=dark] .visible {
+	--c: rgb(255 255 255 / 2%);
+	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--MI_THEME-bg) 16.67%, var(--MI_THEME-bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--MI_THEME-bg) 66.67%, var(--MI_THEME-bg) 100%);
+}
+
+html[data-color-scheme=light] .visible {
+	--c: rgb(0 0 0 / 2%);
+	background-image: linear-gradient(45deg, var(--c) 16.67%, var(--MI_THEME-bg) 16.67%, var(--MI_THEME-bg) 50%, var(--c) 50%, var(--c) 66.67%, var(--MI_THEME-bg) 66.67%, var(--MI_THEME-bg) 100%);
+}
+.sensitive > div{
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+}
+
 .multipleImg {
 	filter: brightness(0.9);
 }
 
 .multiple {
+	display: flex;
+	align-items: center;
+	justify-content: center;
 	position: absolute;
 	top: 10px;
 	right: 10px;
-	font-size: 1.45em;
+	font-size: 1.25em;
 	color: #fff;
 	opacity: .9;
+	filter: drop-shadow(0 0 1.5px #6060608a);
 }
 
 .indicators {
@@ -243,7 +272,7 @@ onUnmounted(() => {
 	.multiple {
 		top: 7px;
 		right: 7px;
-		font-size: 1.3em;
+		font-size: 1.1em;
 	}
 }
 </style>

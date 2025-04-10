@@ -115,6 +115,10 @@ export const packedUserLiteSchema = {
 				},
 			},
 		},
+		isLocked: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
 		isBot: {
 			type: 'boolean',
 			nullable: false, optional: true,
@@ -122,6 +126,22 @@ export const packedUserLiteSchema = {
 		isCat: {
 			type: 'boolean',
 			nullable: false, optional: true,
+		},
+		isProxy: {
+			type: 'boolean',
+			nullable: false, optional: true,
+		},
+		requireSigninToViewContents: {
+			type: 'boolean',
+			nullable: false, optional: true,
+		},
+		makeNotesFollowersOnlyBefore: {
+			type: 'number',
+			nullable: true, optional: true,
+		},
+		makeNotesHiddenBefore: {
+			type: 'number',
+			nullable: true, optional: true,
 		},
 		instance: {
 			type: 'object',
@@ -191,6 +211,14 @@ export const packedUserLiteSchema = {
 				},
 			},
 		},
+		setFederationAvatarShape: {
+			type: 'boolean',
+			nullable: true, optional: true,
+		},
+		isSquareAvatars: {
+			type: 'boolean',
+			nullable: true, optional: true,
+		},
 	},
 } as const;
 
@@ -244,10 +272,6 @@ export const packedUserDetailedNotMeOnlySchema = {
 		bannerBlurhash: {
 			type: 'string',
 			nullable: true, optional: false,
-		},
-		isLocked: {
-			type: 'boolean',
-			nullable: false, optional: false,
 		},
 		isSilenced: {
 			type: 'boolean',

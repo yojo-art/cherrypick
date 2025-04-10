@@ -12,12 +12,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import { url as local } from '@@/js/config.js';
 import { i18n } from '@/i18n.js';
 import { defaultStore } from '@/store.js';
-import { useRouter } from '@/router/supplier.js';
-
-const router = useRouter();
 
 const props = defineProps<{
 	q: string;
@@ -26,13 +22,45 @@ const props = defineProps<{
 const query = ref(props.q);
 
 const search = () => {
-	const searchUrl = String(defaultStore.state.searchEngine).replaceAll('%s', encodeURIComponent(query.value));
-	const url = new URL(searchUrl, local);
-	if (url.origin === local) {
-		router.push(url.toString().substring(local.length));
-	} else {
-		window.open(searchUrl, '_blank', 'noopener');
+	const sp = new URLSearchParams();
+	let url = '';
+	switch (defaultStore.state.searchEngine) {
+		case 'google':
+			sp.append('q', query.value);
+			url = `https://www.google.com/search?${sp.toString()}`;
+			break;
+		case 'bing':
+			sp.append('q', query.value);
+			url = `https://www.bing.com/search?${sp.toString()}`;
+			break;
+		case 'yahoo':
+			sp.append('p', query.value);
+			url = `https://search.yahoo.com/search?${sp.toString()}`;
+			break;
+		case 'baidu':
+			// see detail: https://www.jademond.com/magazine/baidu-search-url-parameters/
+			sp.append('wd', query.value);
+			url = `https://www.baidu.com/s?${sp.toString()}`;
+			break;
+		case 'naver':
+			sp.append('query', query.value);
+			url = `https://search.naver.com/search.naver?${sp.toString()}`;
+			break;
+		case 'daum':
+			sp.append('q', query.value);
+			url = `https://search.daum.net/search?${sp.toString()}`;
+			break;
+		case 'duckduckgo':
+			sp.append('q', query.value);
+			url = `https://duckduckgo.com/?${sp.toString()}`;
+			break;
+		case 'other':
+			sp.append(defaultStore.state.searchEngineUrlQuery, query.value);
+			url = `${defaultStore.state.searchEngineUrl}${sp.toString()}`;
+			break;
 	}
+
+	window.open(url, '_blank', 'noopener');
 };
 </script>
 

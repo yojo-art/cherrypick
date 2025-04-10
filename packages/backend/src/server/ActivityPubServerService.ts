@@ -30,6 +30,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IActivity, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import * as Acct from '@/misc/acct.js';
 import { MfmService } from '@/core/MfmService.js';
 import { IdService } from '@/core/IdService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
@@ -116,7 +117,7 @@ export class ActivityPubServerService {
 		let signature;
 
 		try {
-			signature = httpSignature.parseRequest(request.raw, { 'headers': [] });
+			signature = httpSignature.parseRequest(request.raw, { 'headers': ['(request-target)', 'host', 'date'], authorizationHeaderName: 'signature' });
 		} catch (e) {
 			reply.code(401);
 			return;
@@ -672,6 +673,16 @@ export class ActivityPubServerService {
 			return;
 		}
 
+		// リモートだったらリダイレクト
+		if (user.host != null) {
+			if (user.uri == null || this.utilityService.isSelfHost(user.host)) {
+				reply.code(500);
+				return;
+			}
+			reply.redirect(user.uri, 301);
+			return;
+		}
+
 		reply.header('Cache-Control', 'public, max-age=180');
 		this.setResponseType(request, reply);
 		return (this.apRendererService.addContext(await this.apRendererService.renderPerson(user as MiLocalUser)));
@@ -694,8 +705,8 @@ export class ActivityPubServerService {
 			},
 			deriveConstraint(request: IncomingMessage) {
 				const accepted = accepts(request).type(['html', ACTIVITY_JSON, LD_JSON]);
-				const isAp = typeof accepted === 'string' && !accepted.match(/html/);
-				return isAp ? 'ap' : 'html';
+				if (accepted === false) return null;
+				return accepted !== 'html' ? 'ap' : 'html';
 			},
 		});
 
@@ -852,7 +863,6 @@ export class ActivityPubServerService {
 
 			const user = await this.usersRepository.findOneBy({
 				id: userId,
-				host: IsNull(),
 				isSuspended: false,
 			});
 
@@ -873,12 +883,14 @@ export class ActivityPubServerService {
 			reply.code(404);
 		});
 
-		fastify.get<{ Params: { user: string; } }>('/@:user', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
+		fastify.get<{ Params: { acct: string; } }>('/@:acct', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
 			vary(reply.raw, 'Accept');
 
+			const acct = Acct.parse(request.params.acct);
+
 			const user = await this.usersRepository.findOneBy({
-				usernameLower: request.params.user.toLowerCase(),
-				host: IsNull(),
+				usernameLower: acct.username,
+				host: acct.host ?? IsNull(),
 				isSuspended: false,
 			});
 
@@ -951,7 +963,7 @@ export class ActivityPubServerService {
 		});
 
 		// follow
-		fastify.get<{ Params: { followRequestId: string ; } }>('/follows/:followRequestId', async (request, reply) => {
+		fastify.get<{ Params: { followRequestId: string; } }>('/follows/:followRequestId', async (request, reply) => {
 			// This may be used before the follow is completed, so we do not
 			// check if the following exists and only check if the follow request exists.
 

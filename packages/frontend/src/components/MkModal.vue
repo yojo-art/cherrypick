@@ -43,11 +43,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { nextTick, normalizeClass, onMounted, onUnmounted, provide, watch, ref, shallowRef, computed } from 'vue';
+import type { Keymap } from '@/scripts/hotkey.js';
 import * as os from '@/os.js';
 import { isTouchUsing } from '@/scripts/touch.js';
 import { defaultStore } from '@/store.js';
 import { deviceKind } from '@/scripts/device-kind.js';
-import { type Keymap } from '@/scripts/hotkey.js';
 import { focusTrap } from '@/scripts/focus-trap.js';
 import { focusParent } from '@/scripts/focus.js';
 
@@ -89,7 +89,7 @@ const emit = defineEmits<{
 	(ev: 'opening'): void;
 	(ev: 'opened'): void;
 	(ev: 'click'): void;
-	(ev: 'esc'): void;
+	(ev: 'esc', event: KeyboardEvent): void;
 	(ev: 'close'): void;
 	(ev: 'closed'): void;
 }>();
@@ -165,7 +165,7 @@ if (type.value === 'drawer') {
 const keymap = {
 	'esc': {
 		allowRepeat: true,
-		callback: () => emit('esc'),
+		callback: (ev) => emit('esc', ev),
 	},
 } as const satisfies Keymap;
 
@@ -288,20 +288,23 @@ const align = () => {
 const onOpened = () => {
 	emit('opened');
 
-	// NOTE: Chromatic テストの際に undefined になる場合がある
-	if (content.value == null) return;
+	// contentの子要素にアクセスするためレンダリングの完了を待つ必要がある（nextTickが必要）
+	nextTick(() => {
+		// NOTE: Chromatic テストの際に undefined になる場合がある
+		if (content.value == null) return;
 
-	// モーダルコンテンツにマウスボタンが押され、コンテンツ外でマウスボタンが離されたときにモーダルバックグラウンドクリックと判定させないためにマウスイベントを監視しフラグ管理する
-	const el = content.value.children[0];
-	el.addEventListener('mousedown', ev => {
-		contentClicking = true;
-		window.addEventListener('mouseup', ev => {
-			// click イベントより先に mouseup イベントが発生するかもしれないのでちょっと待つ
-			window.setTimeout(() => {
-				contentClicking = false;
-			}, 100);
-		}, { passive: true, once: true });
-	}, { passive: true });
+		// モーダルコンテンツにマウスボタンが押され、コンテンツ外でマウスボタンが離されたときにモーダルバックグラウンドクリックと判定させないためにマウスイベントを監視しフラグ管理する
+		const el = content.value.children[0];
+		el.addEventListener('mousedown', ev => {
+			contentClicking = true;
+			window.addEventListener('mouseup', ev => {
+				// click イベントより先に mouseup イベントが発生するかもしれないのでちょっと待つ
+				window.setTimeout(() => {
+					contentClicking = false;
+				}, 100);
+			}, { passive: true, once: true });
+		}, { passive: true });
+	});
 };
 
 const onClosed = () => {

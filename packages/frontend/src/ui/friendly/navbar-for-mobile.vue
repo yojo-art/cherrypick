@@ -5,9 +5,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<div v-if="['all', 'bg'].includes(<string>defaultStore.state.bannerDisplay)" :class="[$style.banner, $style.topBanner]" :style="{ backgroundImage: `url(${ instance.bannerUrl })` }"></div>
+	<div v-if="['all', 'bg'].includes(<string>bannerDisplay)" :class="[$style.banner, $style.topBanner]" :style="{ backgroundImage: `url(${ instance.bannerUrl })` }"></div>
 	<div :class="$style.top">
-		<div v-if="['all', 'topBottom', 'top'].includes(<string>defaultStore.state.bannerDisplay)" :class="[$style.banner, $style.topBanner]" :style="{ backgroundImage: `url(${ instance.bannerUrl })` }"></div>
+		<div v-if="['all', 'topBottom', 'top'].includes(<string>bannerDisplay)" :class="[$style.banner, $style.topBanner]" :style="{ backgroundImage: `url(${ instance.bannerUrl })` }"></div>
 		<button v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" class="_button" :class="$style.instance" @click="openInstanceMenu">
 			<img :src="instance.iconUrl || instance.faviconUrl || '/favicon.ico'" alt="" :class="$style.instanceIcon"/>
 		</button>
@@ -40,13 +40,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</MkA>
 	</div>
 	<div :class="$style.bottom">
-		<div v-if="['all', 'topBottom', 'bottom'].includes(<string>defaultStore.state.bannerDisplay)" :class="[$style.banner, $style.bottomBanner]" :style="{ backgroundImage: `url(${ $i.bannerUrl })` }"></div>
+		<div v-if="['all', 'topBottom', 'bottom'].includes(<string>bannerDisplay)" :class="[$style.banner, $style.bottomBanner]" :style="{ backgroundImage: `url(${ $i.bannerUrl })` }"></div>
 		<button v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" class="_button" :class="$style.post" data-cy-open-post-form @click="os.post">
 			<i :class="[$style.postIcon, defaultStore.state.renameTheButtonInPostFormToNya ? 'ti-paw-filled' : 'ti-pencil']" class="ti ti-fw"></i><span style="position: relative;">{{ defaultStore.state.renameTheButtonInPostFormToNya ? i18n.ts.nya : i18n.ts.note }}</span>
 		</button>
 		<div :class="$style.profile">
 			<button v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" class="_button" :class="$style.account" @click="openProfile">
-				<MkAvatar :user="$i" :class="$style.avatar"/><MkUserName :class="$style.acct" class="_nowrap" :user="$i"/>
+				<MkAvatar :user="$i" :class="$style.avatar"/><MkUserName :class="$style.acct" class="_nowrap" :user="$i"/><div v-if="$i.isLocked"><i class="ti ti-lock"></i></div>
 			</button>
 			<button v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" class="_button" :class="$style.drawer" @click="openAccountMenu"><i class="ti ti-chevron-up"/></button>
 		</div>
@@ -55,8 +55,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, ref, toRef } from 'vue';
-import { version } from '@@/js/config.js';
+import { computed, defineAsyncComponent, ref, toRef, watch } from 'vue';
 import { openInstanceMenu } from '@/ui/_common_/common.js';
 import * as os from '@/os.js';
 import { navbarItemDef } from '@/navbar.js';
@@ -66,6 +65,7 @@ import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 import { misskeyApi } from '@/scripts/misskey-api.js';
 import { mainRouter } from '@/router/main.js';
+import { fetchCherrypickReleases } from '@/scripts/fetch-cherrypick-releases.js';
 
 const menu = toRef(defaultStore.state, 'menu');
 const otherMenuItemIndicated = computed(() => {
@@ -76,9 +76,9 @@ const otherMenuItemIndicated = computed(() => {
 	return false;
 });
 const controlPanelIndicated = ref(false);
-const releasesYojoArt = ref(null);
+const bannerDisplay = ref(defaultStore.state.bannerDisplay);
 
-if ($i.isAdmin ?? $i.isModerator) {
+if ($i && ($i.isAdmin ?? $i.isModerator)) {
 	misskeyApi('admin/abuse-user-reports', {
 		state: 'unresolved',
 		limit: 1,
@@ -86,34 +86,17 @@ if ($i.isAdmin ?? $i.isModerator) {
 		if (reports.length > 0) controlPanelIndicated.value = true;
 	});
 
-	misskeyApi('admin/meta')
-		.then(meta => {
-			return fetch('https://api.github.com/repos/yojo-art/cherrypick/releases')
-				.then(res => res.json())
-				.then(cherryPickData => {
-					releasesYojoArt.value = meta.enableReceivePrerelease ? cherryPickData : cherryPickData.filter(x => !x.prerelease);
-					if ((compareVersions(version, releasesYojoArt.value[0].tag_name) < 0) && (compareVersions(meta.skipCherryPickVersion, releasesYojoArt.value[0].tag_name) < 0)) {
-						controlPanelIndicated.value = true;
-					}
-				});
-		})
-		.catch(error => {
-			console.error('Failed to fetch CherryPick releases:', error);
-		});
+	fetchCherrypickReleases().then((result) => {
+		if (result) controlPanelIndicated.value = true;
+	});
 }
 
-function compareVersions(v1: string, v2: string): number {
-	const v1Parts = v1.split('.').map(Number);
-	const v2Parts = v2.split('.').map(Number);
+watch(defaultStore.reactiveState.bannerDisplay, () => {
+	toggleBannerDisplay();
+});
 
-	for (let i = 0; i < Math.max(v1Parts.length, v2Parts.length); i++) {
-		const part1 = v1Parts[i] || 0;
-		const part2 = v2Parts[i] || 0;
-
-		if (part1 < part2) return -1;
-		if (part1 > part2) return 1;
-	}
-	return 0;
+function toggleBannerDisplay() {
+	bannerDisplay.value = defaultStore.state.bannerDisplay;
 }
 
 function openAccountMenu(ev: MouseEvent) {

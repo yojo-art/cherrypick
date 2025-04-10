@@ -111,6 +111,12 @@ export class MiEmoji {
 	})
 	public isBasedOn: string | null;
 
+	@Column('varchar', {
+		length: 1024,
+		default: null,
+	})
+	public importFrom: string | null;
+
 	// TODO: 定期ジョブで存在しなくなったロールIDを除去するようにする
 	@Column('varchar', {
 		array: true, length: 128, default: '{}',

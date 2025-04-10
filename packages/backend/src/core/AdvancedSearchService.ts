@@ -15,28 +15,28 @@ import { MiUser } from '@/models/_.js';
 import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
-import { DriveService } from './DriveService.js';
 
 type OpenSearchHit = {
 	_index: string
 	_id: string
 	_score?: number
 	_source:{
-    id: string
-    userId: string
-    visibility: string
-    searchableBy: string
-    visibleUserIds?: string[]
+		id: string
+		userId: string
+		visibility: string
+		searchableBy: string
+		visibleUserIds?: string[]
 		referenceUserId?: string
 		noteId?: string
 	}
-}
+};
 type K = string;
 type V = string | number | boolean;
 type Q =
@@ -46,8 +46,8 @@ type Q =
 	{ op: '<', k: K, v: number } |
 	{ op: '>=', k: K, v: number } |
 	{ op: '<=', k: K, v: number } |
-	{ op: 'is null', k: K} |
-	{ op: 'is not null', k: K} |
+	{ op: 'is null', k: K } |
+	{ op: 'is not null', k: K } |
 	{ op: 'and', qs: Q[] } |
 	{ op: 'or', qs: Q[] } |
 	{ op: 'not', q: Q };
@@ -222,14 +222,14 @@ export class AdvancedSearchService {
 			this.opensearch?.indices.exists({
 				index: notesIndexname,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: notesIndexname,
 						body: noteIndexBody,
 					}).catch((error) => {
 						this.logger.error(error);
-					}),
-				];
+					});
+				}
 			}).catch((error) => {
 				this.logger.error(error);
 			});
@@ -238,7 +238,7 @@ export class AdvancedSearchService {
 			this.opensearch?.indices.exists({
 				index: this.renoteIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.renoteIndex,
 						body: {
@@ -250,15 +250,15 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				}
 			}).catch((error) => this.logger.error(error));
 
 			//reactionIndex
 			this.opensearch?.indices.exists({
 				index: this.reactionIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.reactionIndex,
 						body: {
@@ -271,15 +271,15 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				};
 			}).catch((error) => this.logger.error(error));
 
 			//favoriteIndex
 			this.opensearch?.indices.exists({
 				index: this.favoriteIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.favoriteIndex,
 						body: {
@@ -291,15 +291,15 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				};
 			}).catch((error) => this.logger.error(error));
 
 			//pollVoteIndex
 			this.opensearch?.indices.exists({
 				index: this.pollVoteIndex,
 			}).then((indexExists) => {
-				if (indexExists.statusCode === 404) [
+				if (indexExists.statusCode === 404) {
 					this.opensearch?.indices.create({
 						index: this.pollVoteIndex,
 						body: {
@@ -310,8 +310,8 @@ export class AdvancedSearchService {
 								},
 							},
 						},
-					}),
-				];
+					});
+				};
 			}).catch((error) => this.logger.error(error));
 		} else {
 			this.logger.info('OpenSearch is not available');
@@ -344,7 +344,7 @@ export class AdvancedSearchService {
 		let reactions: {
 			emoji: string;
 			count: number;
-	}[];
+		}[];
 
 		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
@@ -452,10 +452,10 @@ export class AdvancedSearchService {
 				script: {
 					lang: 'painless',
 					source: 'if (ctx._source.containsKey("reactions")) {' +
-										'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
-										' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji && r.count < 32700).forEach(r -> r.count += 1); }' +
-										' else { ctx._source.reactions.add(params.record); }' +
-									'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
+						'if (ctx._source.reactions.stream().anyMatch(r -> r.emoji == params.emoji))' +
+						' { ctx._source.reactions.stream().filter(r -> r.emoji == params.emoji && r.count < 32700).forEach(r -> r.count += 1); }' +
+						' else { ctx._source.reactions.add(params.record); }' +
+						'} else { ctx._source.reactions = new ArrayList(); ctx._source.reactions.add(params.record);}',
 					params: {
 						emoji: opts.reaction,
 						record: {
@@ -474,7 +474,7 @@ export class AdvancedSearchService {
 		opts: {
 			noteId: string;
 			userId: string;
-	}) {
+		}) {
 		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
 			userId: opts.userId,
@@ -483,10 +483,10 @@ export class AdvancedSearchService {
 	@bindThis
 	public async indexFavorite(id: string,
 		opts: {
-		noteId: string,
-		userId: string,
-		clipId?: string,
-	}) {
+			noteId: string,
+			userId: string,
+			clipId?: string,
+		}) {
 		this.index(this.favoriteIndex, id, opts);
 	}
 	@bindThis
@@ -506,7 +506,7 @@ export class AdvancedSearchService {
 			await this.opensearch.indices.create({
 				index: this.opensearchNoteIndex as string,
 				body: noteIndexBody,
-			},
+				},
 			).catch((error) => {
 				this.logger.error(error);
 				throw error;
@@ -713,7 +713,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.opensearchNoteIndex as string, {
 			term: {
 				renoteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -721,7 +721,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {
 				noteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -729,7 +729,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.pollVoteIndex, {
 			term: {
 				noteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -737,7 +737,7 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.reactionIndex, {
 			term: {
 				noteId: {
-					 value: note.id,
+					value: note.id,
 				},
 			},
 		});
@@ -754,13 +754,13 @@ export class AdvancedSearchService {
 				script: {
 					lang: 'painless',
 					source: 'if (ctx._source.containsKey("reactions")) {' +
-										'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
-										' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
-										//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
-										//' if (ctx._source.reactions[i].count <= 0) { ctx._source.reactions.remove(i) }' +
-										'break; }' +
-										'}' +
-									'}',
+						'for (int i = 0; i < ctx._source.reactions.length; i++) {' +
+						' if (ctx._source.reactions[i].emoji == params.emoji) { ctx._source.reactions[i].count -= 1;' +
+						//DBに格納されるノートのリアクションデータは数が0でも保持されるのでそれに合わせてデータを消さない
+						//' if (ctx._source.reactions[i].count <= 0) { ctx._source.reactions.remove(i) }' +
+						'break; }' +
+						'}' +
+						'}',
 					params: {
 						emoji: emoji,
 					},
@@ -806,27 +806,54 @@ export class AdvancedSearchService {
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {
 				clipId: {
-					 value: id,
+					value: id,
 				},
 			},
 		});
 	}
 
 	/**
-	* user削除時に使う
-	* お気に入りとクリップの削除
-	* ノートは個別で削除されるからそこで
-	*/
+	 * user削除時に使う
+	 * お気に入りとクリップの削除
+	 * ノートは個別で削除されるからそこで
+	 */
 	@bindThis
 	public async unindexUserFavorites (id: string) {
 		this.unindexByQuery(this.favoriteIndex,
 			{
 				term: {
 					userId: {
-						 value: id,
+						value: id,
 					},
 				},
 			});
+	}
+
+	@bindThis
+	public async searchOrFail(me: MiUser | null, opts: {
+		reactions?: string[] | null;
+		reactionsExclude?: string[] | null;
+		userId?: MiNote['userId'] | null;
+		host?: string | null;
+		origin?: string | null;
+		fileOption?: string | null;
+		visibility?: MiNote['visibility'] | null;
+		excludeCW?: boolean;
+		excludeReply?: boolean;
+		excludeQuote?: boolean;
+		sensitiveFilter?: string | null;
+		followingFilter?: string | null;
+		offset?: number | null;
+		useStrictSearch?: boolean | null;
+		wildCard?: boolean;
+	}, pagination: {
+		untilId?: MiNote['id'];
+		sinceId?: MiNote['id'];
+		limit?: number;
+	},
+	q?: string): Promise<MiNote[]> {
+		if (!this.opensearch) throw new Error('OpenSearch is not available');
+		return await this.searchNote(me, opts, pagination, q);
 	}
 
 	/**
@@ -848,6 +875,7 @@ export class AdvancedSearchService {
 		followingFilter?: string | null;
 		offset?: number | null;
 		useStrictSearch?: boolean | null;
+		wildCard?: boolean;
 	}, pagination: {
 		untilId?: MiNote['id'];
 		sinceId?: MiNote['id'];
@@ -883,6 +911,7 @@ export class AdvancedSearchService {
 				});
 				osFilter.bool.must.push(reactionsQuery);
 			}
+
 			if (opts.reactionsExclude && 0 < opts.reactionsExclude.length) {
 				const reactionsExcludeQuery = {
 					nested: {
@@ -922,6 +951,7 @@ export class AdvancedSearchService {
 					}
 				}
 			}
+
 			if (opts.origin) {
 				if (opts.origin === 'local') {
 					osFilter.bool.must_not.push({ exists: { field: 'userHost' } });
@@ -953,13 +983,14 @@ export class AdvancedSearchService {
 
 			if (q && q !== '') {
 				if (opts.useStrictSearch) {
+					const query = opts.wildCard ? `*${q}*` : q;
 					osFilter.bool.must.push({
 						bool: {
 							should: [
-								{ wildcard: { 'text.keyword': q } },
-								{ wildcard: { 'cw.keyword': q } },
-								{ wildcard: { 'pollChoices.keyword': q } },
-								{ wildcard: { 'tags': q } },
+								{ wildcard: { 'text.keyword': query } },
+								{ wildcard: { 'cw.keyword': query } },
+								{ wildcard: { 'pollChoices.keyword': query } },
+								{ wildcard: { 'tags': query } },
 							],
 							minimum_should_match: 1,
 						},
@@ -968,9 +999,9 @@ export class AdvancedSearchService {
 					const fields = ['tags', 'text', 'pollChoices'];
 					if (!opts.excludeCW)fields.push('cw');
 					osFilter.bool.must.push({ simple_query_string: {
-							fields: fields, 'query': q,
-							default_operator: 'and',
-						},
+						fields: fields, 'query': q,
+						default_operator: 'and',
+					},
 					});
 				}
 			}
@@ -1040,7 +1071,7 @@ export class AdvancedSearchService {
 			}
 
 			if (q && q !== '') {
-				if (this.config.pgroonga) {
+				if (this.config.fulltextSearch?.provider === 'sqlPgroonga') {
 					query.andWhere('note.text &@~ :q', { q: `%${sqlLikeEscape(q)}%` });
 				} else {
 					query.andWhere('note.text ILIKE :q', { q: `%${sqlLikeEscape(q)}%` });
@@ -1115,7 +1146,7 @@ export class AdvancedSearchService {
 		let Followings = [] as string[];
 		if (meUserId) {
 			const FollowingsCache = await this.cacheService.userFollowingsCache.fetch(meUserId);
-			 Followings = Object.keys(FollowingsCache);
+			Followings = Object.keys(FollowingsCache);
 		}
 		let notes = [] as OpenSearchHit[];
 		const FilterdNotes = [] as OpenSearchHit[];
@@ -1155,7 +1186,7 @@ export class AdvancedSearchService {
 		Filter: string[],
 		Followings: string[],
 		followingFilter: string,
-		meUserId?: string ): Promise<OpenSearchHit| null> {
+		meUserId?: string ): Promise<OpenSearchHit | null> {
 		if (meUserId) {
 			if (Note._source.userId === meUserId) return Note;//自分のノート
 			//ミュートしているか、ブロックされている
