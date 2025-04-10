@@ -492,7 +492,7 @@ export class ActivityPubServerService {
 	}
 
 	@bindThis
-	private async recommend(request: FastifyRequest<{
+	private async featuredCollections(request: FastifyRequest<{
 		Params: { user: string; };
 		Querystring: { since_id?: string; until_id?: string; page?: string; };
 	}>, reply: FastifyReply) {
@@ -527,7 +527,7 @@ export class ActivityPubServerService {
 			return;
 		}
 		const limit = 20;
-		const partOf = `${this.config.url}/users/${userId}/collections/recommend`;
+		const partOf = `${this.config.url}/users/${userId}/collections/featuredCollections`;
 		const clips_count : number = await this.clipsRepository.countBy({
 			userId: user.id,
 			isPublic: true,
@@ -818,11 +818,11 @@ export class ActivityPubServerService {
 		// featured
 		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/featured', async (request, reply) => await this.featured(request, reply));
 
-		// recommend
+		// featuredCollections
 		fastify.get<{
 			Params: { user: string; };
 			Querystring: { since_id?: string; until_id?: string; page?: string; };
-		}>('/users/:user/collections/recommend', async (request, reply) => await this.recommend(request, reply));
+		}>('/users/:user/collections/featuredCollections', async (request, reply) => await this.featuredCollections(request, reply));
 
 		//clip
 		fastify.get<{

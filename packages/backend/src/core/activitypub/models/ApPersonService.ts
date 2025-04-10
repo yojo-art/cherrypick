@@ -8,7 +8,7 @@ import promiseLimit from 'promise-limit';
 import { DataSource } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, InstancesRepository, MiMeta, MiDriveFile, UserProfilesRepository, UserPublickeysRepository, UsersRepository } from '@/models/_.js';
+import { type FollowingsRepository, type InstancesRepository, type MiMeta, type MiDriveFile, type UserProfilesRepository, type UserPublickeysRepository, type UsersRepository, MiClip } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import { MiUser } from '@/models/User.js';
@@ -479,7 +479,7 @@ export class ApPersonService implements OnModuleInit {
 					emojis,
 					setFederationAvatarShape: person.setFederationAvatarShape,
 					isSquareAvatars: person.isSquareAvatars,
-					recommendCollections: person.recommendCollections ? getApId(person.recommendCollections) : undefined,
+					featuredCollections: person.featuredCollections ? getApId(person.featuredCollections) : undefined,
 				})) as MiRemoteUser;
 
 				let _description: string | null = null;
@@ -569,6 +569,7 @@ export class ApPersonService implements OnModuleInit {
 		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
+		await this.updateFeaturedCollections(user.id, resolver).catch(err => this.logger.error(err));
 
 		return user;
 	}
@@ -830,6 +831,7 @@ export class ApPersonService implements OnModuleInit {
 		);
 
 		await this.updateFeatured(exist.id, resolver).catch(err => this.logger.error(err));
+		await this.updateFeaturedCollections(exist.id, resolver).catch(err => this.logger.error(err));
 
 		const updated = { ...exist, ...updates };
 
@@ -859,13 +861,13 @@ export class ApPersonService implements OnModuleInit {
 	async mutualLinkSections(person: IActor, actor: MiRemoteUser, role_policy:RolePolicies) : Promise<[] | {
 		name: string | null;
 		mutualLinks: {
-				fileId: MiDriveFile['id'];
-				description: string | null;
-				imgSrc: string;
-				url: string;
-				id: string;
+			fileId: MiDriveFile['id'];
+			description: string | null;
+			imgSrc: string;
+			url: string;
+			id: string;
 		}[];
-}[]> {
+	}[]> {
 		const apMutualLinkSections = person.banner;
 
 		if (apMutualLinkSections === undefined) return [];
@@ -992,6 +994,27 @@ export class ApPersonService implements OnModuleInit {
 		});
 	}
 
+	@bindThis
+	public async updateFeaturedCollections(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
+		const user = await this.usersRepository.findOneByOrFail({ id: userId });
+		if (!this.userEntityService.isRemoteUser(user)) return;
+		if (!user.featuredCollections) return;
+
+		this.logger.info(`Updating the featured: ${user.uri}`);
+
+		const _resolver = resolver ?? this.apResolverService.createResolver();
+
+		// Resolve to (Ordered)Collection Object
+		const collection = await _resolver.resolveCollection(user.featuredCollections);
+		if (!isCollectionOrOrderedCollection(collection)) throw new Error('Object is not Collection or OrderedCollection');
+
+		// Resolve to Object(may be Note) arrays
+		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
+		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
+
+		//TODO transaction内でdelete(MiClip, { userId: user.id })してMiClipをinsert
+		console.log(JSON.stringify(items));
+	}
 	/**
 	 * リモート由来のアカウント移行処理を行います
 	 * @param src 移行元アカウント（リモートかつupdatePerson後である必要がある、というかこれ自体がupdatePersonで呼ばれる前提）

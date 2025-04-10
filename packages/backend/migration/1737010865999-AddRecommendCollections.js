@@ -3,14 +3,14 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-export class AddRecommendCollections1737010865999 {
-    name = 'AddRecommendCollections1737010865999'
+export class AddFeaturedCollections1737010865999 {
+    name = 'AddFeaturedCollections1737010865999'
 
     async up(queryRunner) {
-        await queryRunner.query(`ALTER TABLE "user" ADD "recommendCollections" character varying(512)`);
+        await queryRunner.query(`ALTER TABLE "user" ADD "featuredCollections" character varying(512)`);
 			}
 
     async down(queryRunner) {
-        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "recommendCollections"`);
+        await queryRunner.query(`ALTER TABLE "user" DROP COLUMN "featuredCollections"`);
     }
 }

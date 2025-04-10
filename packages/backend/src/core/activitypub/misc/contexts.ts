@@ -576,7 +576,7 @@ const extension_context_definition = {
 	yojoart: 'https://yojoart.kzkr.xyz/ns#',
 	'banner': 'yojoart:banner',
 	'Game': 'yojoart:Game',
-	'recommendCollections': 'yojoart:recommendCollections',
+	'featuredCollections': 'yojoart:featuredCollections',
 	// vcard
 	vcard: 'http://www.w3.org/2006/vcard/ns#',
 } satisfies Context;

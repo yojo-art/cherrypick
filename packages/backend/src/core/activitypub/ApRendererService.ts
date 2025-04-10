@@ -592,7 +592,7 @@ export class ApRendererService {
 			attachment: attachment.length ? attachment : undefined,
 			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
 			isSquareAvatars: user.isSquareAvatars ?? undefined,
-			recommendCollections: `${id}/collections/recommend`,
+			featuredCollections: `${id}/collections/recommend`,
 		};
 
 		if (user.movedToUri) {
