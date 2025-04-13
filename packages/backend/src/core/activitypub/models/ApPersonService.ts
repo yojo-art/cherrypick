@@ -1011,11 +1011,12 @@ export class ApPersonService implements OnModuleInit {
 
 		// Resolve to Object(may be Note) arrays
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
-		console.log(JSON.stringify(unresolvedItems));
+		console.log('raw ' + JSON.stringify(unresolvedItems));
+		console.log('array ' + JSON.stringify(toArray(unresolvedItems)));
 		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
 
 		//TODO transaction内でdelete(MiClip, { userId: user.id })してMiClipをinsert
-		console.log(JSON.stringify(items));
+		console.log('resolve ' + JSON.stringify(items));
 	}
 	/**
 	 * リモート由来のアカウント移行処理を行います
