@@ -1011,6 +1011,7 @@ export class ApPersonService implements OnModuleInit {
 
 		// Resolve to Object(may be Note) arrays
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
+		console.log('collection ' + JSON.stringify(collection));
 		console.log('raw ' + JSON.stringify(unresolvedItems));
 		console.log('array ' + JSON.stringify(toArray(unresolvedItems)));
 		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
