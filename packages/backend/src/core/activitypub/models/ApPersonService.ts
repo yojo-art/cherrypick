@@ -1001,7 +1001,7 @@ export class ApPersonService implements OnModuleInit {
 		if (!this.userEntityService.isRemoteUser(user)) return;
 		if (!user.featuredCollections) return;
 
-		this.logger.info(`Updating the featured: ${user.uri}`);
+		this.logger.info(`Updating the featuredCollections: ${user.uri}`);
 
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
@@ -1011,6 +1011,7 @@ export class ApPersonService implements OnModuleInit {
 
 		// Resolve to Object(may be Note) arrays
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
+		console.log(JSON.stringify(unresolvedItems));
 		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
 
 		//TODO transaction内でdelete(MiClip, { userId: user.id })してMiClipをinsert
