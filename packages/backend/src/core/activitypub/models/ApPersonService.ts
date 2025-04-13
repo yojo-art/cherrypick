@@ -1013,7 +1013,7 @@ export class ApPersonService implements OnModuleInit {
 		//とりあえずfirstだけ取得する
 		const next: string | IOrderedCollectionPage = featuredCollections.first;
 		const collection = (typeof(next) === 'string' ? await _resolver.resolveOrderedCollectionPage(next) : next);
-		if (collection.partOf !== user.outbox) throw new Error('featuredCollections part is invalid');
+		if (collection.partOf !== user.featuredCollections) throw new Error('featuredCollections part is invalid');
 
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');
