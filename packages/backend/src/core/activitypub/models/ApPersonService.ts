@@ -39,7 +39,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
-import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
+import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isOrderedCollection, isPropertyValue } from '../type.js';
 import { parseSearchableByFromTags, parseSearchableByFromProperty } from '../misc/searchableBy.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -49,7 +49,7 @@ import type { ApResolverService, Resolver } from '../ApResolverService.js';
 import type { ApLoggerService } from '../ApLoggerService.js';
 
 import type { ApImageService } from './ApImageService.js';
-import type { IActor, ICollection, IObject, IOrderedCollection } from '../type.js';
+import type { IActor, ICollection, IObject, IOrderedCollection, IOrderedCollectionPage } from '../type.js';
 
 const nameLength = 128;
 const summaryLength = 2048;
@@ -1006,15 +1006,21 @@ export class ApPersonService implements OnModuleInit {
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
 		// Resolve to (Ordered)Collection Object
-		const collection = await _resolver.resolveCollection(user.featuredCollections);
-		if (!isCollectionOrOrderedCollection(collection)) throw new Error('Object is not Collection or OrderedCollection');
+		const featuredCollections = await _resolver.resolveOrderedCollection(user.featuredCollections);
+		if (!isOrderedCollection(featuredCollections)) throw new Error('Object is not Collection or OrderedCollection');
 
-		// Resolve to Object(may be Note) arrays
-		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
+		if (!featuredCollections.first) throw new Error('featuredCollections first page not exist');
+		//とりあえずfirstだけ取得する
+		const next: string | IOrderedCollectionPage = featuredCollections.first;
+		const collection = (typeof(next) === 'string' ? await _resolver.resolveOrderedCollectionPage(next) : next);
+		if (collection.partOf !== user.outbox) throw new Error('featuredCollections part is invalid');
+
+		const activityes = (collection.orderedItems ?? collection.items);
+		if (!activityes) throw new Error('item is unavailable');
 		console.log('collection ' + JSON.stringify(collection));
-		console.log('raw ' + JSON.stringify(unresolvedItems));
-		console.log('array ' + JSON.stringify(toArray(unresolvedItems)));
-		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
+		console.log('raw ' + JSON.stringify(activityes));
+		console.log('array ' + JSON.stringify(toArray(activityes)));
+		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
 
 		//TODO transaction内でdelete(MiClip, { userId: user.id })してMiClipをinsert
 		console.log('resolve ' + JSON.stringify(items));
