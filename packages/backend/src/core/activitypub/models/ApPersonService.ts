@@ -1030,7 +1030,9 @@ export class ApPersonService implements OnModuleInit {
 			//uri必須
 			if (!clip.id) continue;
 			//とりあえずpublicのみ対応
-			if (clip.to !== 'https://www.w3.org/ns/activitystreams#Public') continue;
+			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
+				continue;
+			}
 			//作成時刻がわかる場合はそれを元にid生成
 			const id = clip.published ? new Date(clip.published).getTime() : Date.now() + td;
 			clips.push({
