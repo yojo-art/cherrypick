@@ -21,6 +21,7 @@ import { IObject } from '@/core/activitypub/type.js';
 import { MetaService } from '@/core/MetaService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { ApLoggerService } from '@/core/activitypub/ApLoggerService.js';
+import { ApClipService } from '@/core/activitypub/models/ApClipService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -94,6 +95,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private noteEntityService: NoteEntityService,
 		private queryService: QueryService,
 		private apLoggerService: ApLoggerService,
+		private apClipService: ApClipService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.clipId.split('@');
@@ -120,6 +122,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						//	lastFetchedAt: Date.now(),
 						//});
 						console.log('TODO UPDATE');
+						this.apClipService.update(clip).catch(e => {
+							apLoggerService.logger.warn('clip fetch failed ' + e);
+						}).then(() => {
+							apLoggerService.logger.info('clip update:' + clip.uri);
+						});
 					}
 				}
 

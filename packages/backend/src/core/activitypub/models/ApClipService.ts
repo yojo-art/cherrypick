@@ -4,21 +4,24 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import promiseLimit from 'promise-limit';
 import Redis from 'ioredis';
 import { DataSource } from 'typeorm';
 import type Logger from '@/logger.js';
 import type { MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
-import type { UsersRepository } from '@/models/_.js';
+import type { MiNote, UsersRepository } from '@/models/_.js';
 import { toArray } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
 import { MfmService } from '@/core/MfmService.js';
 import { MiClip } from '@/models/_.js';
+import { ClipService } from '@/core/ClipService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IOrderedCollectionPage, isOrderedCollection } from '../type.js';
+import { IOrderedCollectionPage, isIOrderedCollectionPage, isOrderedCollection } from '../type.js';
+import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
 export class ApClipService {
@@ -39,13 +42,44 @@ export class ApClipService {
 
 		private apResolverService: ApResolverService,
 		private userEntityService: UserEntityService,
+		private apNoteService: ApNoteService,
 		private idService: IdService,
 		private mfmService: MfmService,
 		private apLoggerService: ApLoggerService,
+		private clipService: ClipService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
 
+	public async update(clip: MiClip) {
+		if (!clip.uri) throw new Error('no uri');
+		const user = await this.usersRepository.findOneByOrFail({ id: clip.userId });
+		if (!this.userEntityService.isRemoteUser(user)) return;
+		const resolver = this.apResolverService.createResolver();
+		const ap_clip = await resolver.resolveOrderedCollection(clip.uri);
+		if (!isOrderedCollection(ap_clip)) return;
+		let next = ap_clip.first ?? null;
+		const limit = 10;
+		for (let i = 0; i < limit; i++) {
+			if (!next) return;
+			const ap_page = await resolver.resolveOrderedCollectionPage(next);
+			if (!isIOrderedCollectionPage(ap_page)) return;
+			next = ap_page.next;
+			const limit = promiseLimit<undefined>(2);
+			const items = ap_page.orderedItems ?? ap_page.items;
+			if (Array.isArray(items)) {
+				await Promise.all(items.map(item => limit(async() => {
+					const note = await this.apNoteService.resolveNote(item, {
+						resolver: resolver,
+						sentFrom: new URL(user.uri),
+					});
+					if (note) {
+						await this.clipService.addNote(user, clip.id, note.id);
+					}
+				})));
+			}
+		}
+	}
 	public async updateFeaturedCollections(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId });
 		if (!this.userEntityService.isRemoteUser(user)) return;
