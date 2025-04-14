@@ -67,7 +67,6 @@ export class ApClipService {
 			const limit = promiseLimit<undefined>(2);
 			const items = ap_page.orderedItems ?? ap_page.items;
 			if (Array.isArray(items)) {
-				console.log(items);
 				await Promise.all(items.map(item => limit(async() => {
 					const note = await this.apNoteService.resolveNote(item, {
 						resolver: resolver,
