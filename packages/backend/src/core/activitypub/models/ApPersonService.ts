@@ -1017,7 +1017,6 @@ export class ApPersonService implements OnModuleInit {
 
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');
-		console.log('collection ' + JSON.stringify(collection));
 
 		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
 
@@ -1047,14 +1046,11 @@ export class ApPersonService implements OnModuleInit {
 				lastFetchedAt: new Date(0),
 			});
 		}
-		console.log('clips ' + JSON.stringify(clips));
 
 		await this.db.transaction(async transactionalEntityManager => {
 			await transactionalEntityManager.delete(MiClip, { userId: user.id });
 			await transactionalEntityManager.insert(MiClip, clips);
 		});
-		//TODO transaction内でdelete(MiClip, { userId: user.id })してMiClipをinsert
-		console.log('resolve ' + JSON.stringify(items));
 	}
 	/**
 	 * リモート由来のアカウント移行処理を行います
