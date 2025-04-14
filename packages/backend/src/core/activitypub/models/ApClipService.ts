@@ -53,21 +53,23 @@ export class ApClipService {
 
 	public async update(clip: MiClip) {
 		if (!clip.uri) throw new Error('no uri');
+		this.logger.info(`Updating the clip: ${clip.uri}`);
 		const user = await this.usersRepository.findOneByOrFail({ id: clip.userId });
-		if (!this.userEntityService.isRemoteUser(user)) return;
+		if (!this.userEntityService.isRemoteUser(user)) throw new Error('is not remote user');
 		const resolver = this.apResolverService.createResolver();
 		const ap_clip = await resolver.resolveOrderedCollection(clip.uri);
-		if (!isOrderedCollection(ap_clip)) return;
+		if (!isOrderedCollection(ap_clip)) throw new Error('type error OrderedCollection');
 		let next = ap_clip.first ?? null;
 		const limit = 10;
 		for (let i = 0; i < limit; i++) {
 			if (!next) return;
 			const ap_page = await resolver.resolveOrderedCollectionPage(next);
-			if (!isIOrderedCollectionPage(ap_page)) return;
+			if (!isIOrderedCollectionPage(ap_page)) throw new Error('type error IOrderedCollectionPage');
 			next = ap_page.next;
 			const limit = promiseLimit<undefined>(2);
 			const items = ap_page.orderedItems ?? ap_page.items;
 			if (Array.isArray(items)) {
+				console.log(items);
 				await Promise.all(items.map(item => limit(async() => {
 					const note = await this.apNoteService.resolveNote(item, {
 						resolver: resolver,
