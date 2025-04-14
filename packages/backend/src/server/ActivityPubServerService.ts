@@ -461,14 +461,17 @@ export class ActivityPubServerService {
 			}))).filter(activitie => activitie != null);
 			rendered = this.apRendererService.renderOrderedCollectionPage(
 				`${partOf}?${url.query({
+					page: 'true',
 					since_id: sinceId,
 					until_id: untilId,
 				})}`,
 				notes_count, activities, partOf,
 				notes.length ? `${partOf}?${url.query({
+					page: 'true',
 					since_id: notes[0].id,
 				})}` : undefined,
 				notes.length ? `${partOf}?${url.query({
+					page: 'true',
 					until_id: notes.at(-1)!.id,
 				})}` : undefined,
 			);
