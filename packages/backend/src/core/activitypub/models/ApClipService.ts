@@ -74,7 +74,6 @@ export class ApClipService {
 						sentFrom: new URL(user.uri),
 					});
 					if (note) {
-						console.log('add Note:' + note.id);
 						await this.clipService.addNote(user, clip.id, note.id);
 					}
 				})));

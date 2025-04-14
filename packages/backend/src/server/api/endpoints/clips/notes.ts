@@ -118,10 +118,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				}
 				if (clip.uri) {
 					if (clip.lastFetchedAt == null || Date.now() - clip.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
-						//this.clipsRepository.update(clip.id, {
-						//	lastFetchedAt: Date.now(),
-						//});
-						console.log('TODO UPDATE');
+						this.clipsRepository.update(clip.id, {
+							lastFetchedAt: Date.now(),
+						});
 						this.apClipService.update(clip).catch(e => {
 							apLoggerService.logger.warn('clip fetch failed ' + e);
 						}).then(() => {
