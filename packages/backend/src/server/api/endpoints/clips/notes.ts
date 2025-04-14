@@ -114,6 +114,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (!clip.isPublic && (me == null || (clip.userId !== me.id))) {
 					throw new ApiError(meta.errors.noSuchClip);
 				}
+				if (clip.uri) {
+					if (clip.lastFetchedAt == null || Date.now() - clip.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
+						//this.clipsRepository.update(clip.id, {
+						//	lastFetchedAt: Date.now(),
+						//});
+						console.log('TODO UPDATE');
+					}
+				}
 
 				const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
 					.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')

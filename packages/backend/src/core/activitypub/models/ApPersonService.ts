@@ -42,6 +42,7 @@ import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
 import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isOrderedCollection, isPropertyValue } from '../type.js';
 import { parseSearchableByFromTags, parseSearchableByFromProperty } from '../misc/searchableBy.js';
 import { extractApHashtags } from './tag.js';
+import { ApClipService } from './ApClipService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
 import type { ApMfmService } from '../ApMfmService.js';
@@ -76,6 +77,7 @@ export class ApPersonService implements OnModuleInit {
 	private instanceChart: InstanceChart;
 	private apLoggerService: ApLoggerService;
 	private accountMoveService: AccountMoveService;
+	private apClipService: ApClipService;
 	private logger: Logger;
 
 	constructor(
@@ -130,6 +132,7 @@ export class ApPersonService implements OnModuleInit {
 		this.instanceChart = this.moduleRef.get('InstanceChart');
 		this.apLoggerService = this.moduleRef.get('ApLoggerService');
 		this.accountMoveService = this.moduleRef.get('AccountMoveService');
+		this.apClipService = this.moduleRef.get('ApClipService');
 		this.logger = this.apLoggerService.logger;
 	}
 
@@ -569,7 +572,7 @@ export class ApPersonService implements OnModuleInit {
 		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
-		await this.updateFeaturedCollections(user.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateFeaturedCollections(user.id, resolver).catch(err => this.logger.error(err));
 
 		return user;
 	}
@@ -832,7 +835,7 @@ export class ApPersonService implements OnModuleInit {
 		);
 
 		await this.updateFeatured(exist.id, resolver).catch(err => this.logger.error(err));
-		await this.updateFeaturedCollections(exist.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateFeaturedCollections(exist.id, resolver).catch(err => this.logger.error(err));
 
 		const updated = { ...exist, ...updates };
 
@@ -995,63 +998,6 @@ export class ApPersonService implements OnModuleInit {
 		});
 	}
 
-	@bindThis
-	public async updateFeaturedCollections(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
-		const user = await this.usersRepository.findOneByOrFail({ id: userId });
-		if (!this.userEntityService.isRemoteUser(user)) return;
-		if (!user.featuredCollections) return;
-
-		this.logger.info(`Updating the featuredCollections: ${user.uri}`);
-
-		const _resolver = resolver ?? this.apResolverService.createResolver();
-
-		// Resolve to (Ordered)Collection Object
-		const featuredCollections = await _resolver.resolveOrderedCollection(user.featuredCollections);
-		if (!isOrderedCollection(featuredCollections)) throw new Error('Object is not Collection or OrderedCollection');
-
-		if (!featuredCollections.first) throw new Error('featuredCollections first page not exist');
-		//とりあえずfirstだけ取得する
-		const next: string | IOrderedCollectionPage = featuredCollections.first;
-		const collection = (typeof(next) === 'string' ? await _resolver.resolveOrderedCollectionPage(next) : next);
-		if (collection.partOf !== user.featuredCollections) throw new Error('featuredCollections part is invalid');
-
-		const activityes = (collection.orderedItems ?? collection.items);
-		if (!activityes) throw new Error('item is unavailable');
-
-		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
-
-		const clips:MiClip[] = [];
-
-		let td = 0;
-		for (const clip of items) {
-			//衝突抑制
-			td -= 1000;
-			//uri必須
-			if (!clip.id) continue;
-			//とりあえずpublicのみ対応
-			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
-				continue;
-			}
-			//作成時刻がわかる場合はそれを元にid生成
-			const id = clip.published ? new Date(clip.published).getTime() : Date.now() + td;
-			clips.push({
-				id: this.idService.gen(id),
-				userId: user.id,
-				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
-				uri: clip.id,
-				lastClippedAt: clip.updated ? new Date(clip.updated) : null,
-				user,
-				name: clip.name ?? '',
-				isPublic: true,
-				lastFetchedAt: new Date(0),
-			});
-		}
-
-		await this.db.transaction(async transactionalEntityManager => {
-			await transactionalEntityManager.delete(MiClip, { userId: user.id });
-			await transactionalEntityManager.insert(MiClip, clips);
-		});
-	}
 	/**
 	 * リモート由来のアカウント移行処理を行います
 	 * @param src 移行元アカウント（リモートかつupdatePerson後である必要がある、というかこれ自体がupdatePersonで呼ばれる前提）
