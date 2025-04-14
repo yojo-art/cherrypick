@@ -98,8 +98,16 @@ export class ApClipService {
 		}
 
 		await this.db.transaction(async transactionalEntityManager => {
-			await transactionalEntityManager.delete(MiClip, { userId: user.id });
-			await transactionalEntityManager.insert(MiClip, clips);
+			for (const clip of clips) {
+				const find = await transactionalEntityManager.findOneBy(MiClip, { uri: clip.uri! });
+				if (find) {
+					//お気に入りが消えるのを回避するためにuriが一致した物をid変えずにupdateする
+					clip.id = find.id;
+					await transactionalEntityManager.update(MiClip, { id: find.id }, clip);
+				} else {
+					await transactionalEntityManager.insert(MiClip, clip);
+				}
+			}
 		});
 	}
 }
