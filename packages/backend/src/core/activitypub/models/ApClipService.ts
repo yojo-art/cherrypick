@@ -11,7 +11,7 @@ import type Logger from '@/logger.js';
 import type { MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
-import type { MiNote, UsersRepository } from '@/models/_.js';
+import type { UsersRepository } from '@/models/_.js';
 import { toArray } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
 import { MfmService } from '@/core/MfmService.js';
@@ -20,7 +20,7 @@ import { ClipService } from '@/core/ClipService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IOrderedCollectionPage, isIOrderedCollectionPage, isOrderedCollection } from '../type.js';
+import { IOrderedCollectionPage, isOrderedCollection } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
