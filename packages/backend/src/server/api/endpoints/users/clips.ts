@@ -66,9 +66,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const user = await this.usersRepository.findOneBy(q);
 			if (user === null) return [];
-			if (userEntityService.isRemoteUser(user)) {
-				//return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
-			}
 			const query = this.queryService.makePaginationQuery(this.clipsRepository.createQueryBuilder('clip'), ps.sinceId, ps.untilId)
 				.andWhere('clip.userId = :userId', { userId: ps.userId })
 				.andWhere('clip.isPublic = true');
@@ -77,6 +74,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.limit(ps.limit)
 				.getMany();
 
+			//DB叩いて無かったらリモートAPI
+			if (userEntityService.isRemoteUser(user) && clips.length < 1) {
+				return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
+			}
 			return await this.clipEntityService.packMany(clips, me);
 		});
 	}
