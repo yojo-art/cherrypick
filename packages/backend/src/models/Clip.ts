@@ -52,4 +52,10 @@ export class MiClip {
 		nullable: true,
 	})
 	public lastFetchedAt: Date | null;
+
+	@Index({ unique: true })
+	@Column('varchar', {
+		length: 1024, nullable: true,
+	})
+	public uri: string | null;
 }

@@ -1018,10 +1018,39 @@ export class ApPersonService implements OnModuleInit {
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');
 		console.log('collection ' + JSON.stringify(collection));
-		console.log('raw ' + JSON.stringify(activityes));
-		console.log('array ' + JSON.stringify(toArray(activityes)));
+
 		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
 
+		const clips:MiClip[] = [];
+
+		let td = 0;
+		for (const clip of items) {
+			//衝突抑制
+			td -= 1000;
+			//uri必須
+			if (!clip.id) continue;
+			//とりあえずpublicのみ対応
+			if (clip.to !== 'https://www.w3.org/ns/activitystreams#Public') continue;
+			//作成時刻がわかる場合はそれを元にid生成
+			const id = clip.published ? new Date(clip.published).getTime() : Date.now() + td;
+			clips.push({
+				id: this.idService.gen(id),
+				userId: user.id,
+				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
+				uri: clip.id,
+				lastClippedAt: clip.updated ? new Date(clip.updated) : null,
+				user,
+				name: clip.name ?? '',
+				isPublic: true,
+				lastFetchedAt: new Date(0),
+			});
+		}
+		console.log('clips ' + JSON.stringify(clips));
+
+		await this.db.transaction(async transactionalEntityManager => {
+			await transactionalEntityManager.delete(MiClip, { userId: user.id });
+			await transactionalEntityManager.insert(MiClip, clips);
+		});
 		//TODO transaction内でdelete(MiClip, { userId: user.id })してMiClipをinsert
 		console.log('resolve ' + JSON.stringify(items));
 	}

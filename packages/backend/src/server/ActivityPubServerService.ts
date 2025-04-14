@@ -478,10 +478,19 @@ export class ActivityPubServerService {
 			rendered = this.apRendererService.renderOrderedCollection(partOf, notes_count, first, last);
 		}
 		if (rendered == null) return;
-		const summary = clip.description ? this.mfmService.toHtml(mfm.parse(clip.description)) : null;
+		let noMisskeySummary = false;
+		if (clip.description) {
+			const parsed_description = mfm.parse(clip.description);
+			if (parsed_description.every(n => ['text', 'unicodeEmoji', 'emojiCode', 'mention', 'hashtag', 'url'].includes(n.type))) {
+				noMisskeySummary = true;
+			}
+			const summary = clip.description ? this.mfmService.toHtml(parsed_description) : null;
+			rendered.summary = summary ?? undefined;
+		}
 		rendered.name = clip.name;
-		rendered.summary = summary ?? undefined;
-		rendered._misskey_summary = clip.description ?? undefined;
+		if (!rendered.summary || !noMisskeySummary) {
+			rendered._misskey_summary = clip.description ?? undefined;
+		}
 		rendered.published = this.idService.parse(clip.id).date.toISOString();
 		rendered.to = ['https://www.w3.org/ns/activitystreams#Public'];
 		rendered.cc = [`${this.config.url}/users/${clip.userId}/followers`];
