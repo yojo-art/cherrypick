@@ -252,7 +252,7 @@ describe('User', () => {
 			//関係ないクリップは消しておく
 			await clearAllClips();
 			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await sleep();
 			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
@@ -261,6 +261,8 @@ describe('User', () => {
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
 			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			await sleep();
@@ -273,7 +275,7 @@ describe('User', () => {
 			await clearAllClips();
 			const followers_note = (await alice.client.request('notes/create', { text: 'followers note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'followers' })).createdNote;
 			await sleep();
-			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: followers_note.id });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
@@ -281,6 +283,7 @@ describe('User', () => {
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
 			//公開クリップがある
 			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
 			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			await sleep();
