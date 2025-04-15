@@ -192,6 +192,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (local != null) return local;
 		}
 
+		console.log('ap/show raw object ' + JSON.stringify(object));
 		// 同一ユーザーの情報を再度処理するので、使用済みのresolverを再利用してはいけない
 		return await this.mergePack(
 			me,
