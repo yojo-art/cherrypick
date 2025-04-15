@@ -250,7 +250,7 @@ describe('User', () => {
 		});
 		test('公開クリップ他人ノートが連合する', async () => {
 			//関係ないクリップは消しておく
-			clearAllClips();
+			await clearAllClips();
 			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
 			await sleep();
@@ -270,7 +270,7 @@ describe('User', () => {
 		});
 		test('公開クリップ限定ノートが連合しない', async () => {
 			//関係ないクリップは消しておく
-			clearAllClips();
+			await clearAllClips();
 			const followers_note = (await alice.client.request('notes/create', { text: 'followers note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'followers' })).createdNote;
 			await sleep();
 			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
@@ -290,7 +290,7 @@ describe('User', () => {
 		});
 		test('公開クリップ限定ノートが連合する', async () => {
 			//関係ないクリップは消しておく
-			clearAllClips();
+			await clearAllClips();
 			await alice.client.request('following/create', { userId: bobInA.id });
 			//フォロー処理待ち
 			await sleep(800);
@@ -316,7 +316,7 @@ describe('User', () => {
 		});
 		test('非公開クリップが連合しない', async () => {
 			//関係ないクリップは消しておく
-			clearAllClips();
+			await clearAllClips();
 			await alice.client.request('clips/create', { name: 'private', isPublic: false });
 			await alice.client.request('clips/create', { name: 'public', isPublic: true });
 			//ユーザー情報更新
