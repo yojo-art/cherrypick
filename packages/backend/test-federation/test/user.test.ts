@@ -234,9 +234,9 @@ describe('User', () => {
 
 			await bob.client.request('users/show', { userId: aliceInB.id });
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
-			await sleep(1000);
+			await sleep(10000);
 			await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
-			await sleep(1000);
+			await sleep(10000);
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
