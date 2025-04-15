@@ -76,7 +76,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			//DB叩いて無かったらリモートAPI
 			if (userEntityService.isRemoteUser(user) && clips.length < 1) {
-				return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
+				//return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
 			}
 			return await this.clipEntityService.packMany(clips, me);
 		});
