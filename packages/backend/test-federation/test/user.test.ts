@@ -223,7 +223,7 @@ describe('User', () => {
 		test('公開クリップ公開ノートが連合する', async () => {
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			const new_clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
 			//lastClippedAtを更新するために一覧から取得する
@@ -249,7 +249,6 @@ describe('User', () => {
 			strictEqual(notes[1].text, public_note.text);
 		});
 		test('公開クリップ他人ノートが連合する', async () => {
-			//関係ないクリップは消しておく
 			await clearAllClips();
 			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
@@ -271,7 +270,6 @@ describe('User', () => {
 			strictEqual(notes[0].text, bob_note.text);
 		});
 		test('公開クリップ限定ノートが連合しない', async () => {
-			//関係ないクリップは消しておく
 			await clearAllClips();
 			const followers_note = (await alice.client.request('notes/create', { text: 'followers note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'followers' })).createdNote;
 			await sleep();
@@ -292,7 +290,6 @@ describe('User', () => {
 			strictEqual(notes.length, 0);
 		});
 		test('公開クリップ限定ノートが連合する', async () => {
-			//関係ないクリップは消しておく
 			await clearAllClips();
 			await alice.client.request('following/create', { userId: bobInA.id });
 			//フォロー処理待ち
@@ -318,16 +315,35 @@ describe('User', () => {
 			strictEqual(notes[0].text, bob_note.text);
 		});
 		test('非公開クリップが連合しない', async () => {
-			//関係ないクリップは消しておく
 			await clearAllClips();
-			await alice.client.request('clips/create', { name: 'private', isPublic: false });
-			await alice.client.request('clips/create', { name: 'public', isPublic: true });
+			await alice.client.request('clips/create', { name: 'private', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: false });
+			const clip = await alice.client.request('clips/create', { name: 'public', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
 			//0件にするとリモートAPI呼び出しが発生してキャッシュ由来の変な値になる
 			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].description, clip.description);
+		});
+		test('名前と説明文が更新できる', async () => {
+			await clearAllClips();
+			const clip = await alice.client.request('clips/create', { name: 'name1', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			//ユーザー情報更新
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			const clip2 = await alice.client.request('clips/update', { clipId: clip.id, name: 'name2', description: 'description' + crypto.randomUUID().replaceAll('-', '') });
+			//ユーザー情報更新
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips2.length, 1);
+			strictEqual(aliceInBClips2[0].name, clip2.name);
+			strictEqual(aliceInBClips2[0].description, clip2.description);
 		});
 	});
 
