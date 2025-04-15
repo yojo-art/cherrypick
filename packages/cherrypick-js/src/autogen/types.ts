@@ -4253,6 +4253,7 @@ export type components = {
       /** @enum {string} */
       notify?: 'normal' | 'none';
       withReplies?: boolean;
+      clipsUri?: string | null;
     };
     MeDetailedOnly: {
       /** Format: id */

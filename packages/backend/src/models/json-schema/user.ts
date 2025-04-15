@@ -490,6 +490,10 @@ export const packedUserDetailedNotMeOnlySchema = {
 			type: 'boolean',
 			nullable: false, optional: true,
 		},
+		clipsUri: {
+			type: 'string',
+			nullable: true, optional: true,
+		},
 		//#endregion
 	},
 } as const;
