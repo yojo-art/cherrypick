@@ -220,6 +220,9 @@ describe('User', () => {
 				await alice.client.request('clips/delete', { clipId: aliceClip.id });
 			}
 		};
+		test('見る用', async () => {
+			strictEqual(await (await fetch('https://a.test/users/' + alice.id, { headers: { Accept: 'application/activity+json' } })).text(), 'DEBUG');
+		});
 		test('公開クリップ公開ノートが連合する', async () => {
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
@@ -227,7 +230,7 @@ describe('User', () => {
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
 
-			strictEqual((await fetch('https://a.test/clips/' + new_clip.id, { headers: { Accept: 'application/activity+json' } })).text(), 'DEBUG');
+			strictEqual(await (await fetch('https://a.test/clips/' + new_clip.id, { headers: { Accept: 'application/activity+json' } })).text(), 'DEBUG');
 
 			//lastClippedAtを更新するために一覧から取得する
 			const clip = (await alice.client.request('users/clips', { userId: alice.id, remoteApi: false }))[0];
