@@ -221,16 +221,23 @@ describe('User', () => {
 			}
 		};
 		test('見る用', async () => {
-			strictEqual(await (await fetch('https://a.test/users/' + alice.id, { headers: { Accept: 'application/activity+json' } })).text(), 'DEBUG');
+			const text = await (await fetch('https://a.test/users/' + alice.id, { headers: { Accept: 'application/activity+json' } })).text();
+			strictEqual(text, 'DEBUG', text);
+		});
+		test('見る用2', async () => {
+			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
+			const new_clip = await alice.client.request('clips/create', { name: '公開クリップ公開ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
+			const text = await (await fetch('https://a.test/clips/' + new_clip.id, { headers: { Accept: 'application/activity+json' } })).text();
+			strictEqual(text, 'DEBUG', text);
 		});
 		test('公開クリップ公開ノートが連合する', async () => {
+			await clearAllClips();
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
 			const new_clip = await alice.client.request('clips/create', { name: '公開クリップ公開ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
-
-			strictEqual(await (await fetch('https://a.test/clips/' + new_clip.id, { headers: { Accept: 'application/activity+json' } })).text(), 'DEBUG');
 
 			//lastClippedAtを更新するために一覧から取得する
 			const clip = (await alice.client.request('users/clips', { userId: alice.id, remoteApi: false }))[0];
