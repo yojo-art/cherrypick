@@ -111,6 +111,7 @@ export class ApClipService {
 			td -= 1000;
 			//uri必須
 			if (!clip.id) continue;
+			if (new URL(clip.id).origin !== new URL(user.uri).origin) continue;
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
 				continue;
@@ -120,11 +121,11 @@ export class ApClipService {
 			clips.push({
 				id: this.idService.gen(id),
 				userId: user.id,
+				name: clip.name ?? '',
 				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
 				uri: clip.id,
 				lastClippedAt: clip.updated ? new Date(clip.updated) : null,
 				user,
-				name: clip.name ?? '',
 				isPublic: true,
 				lastFetchedAt: new Date(0),
 			});
@@ -142,10 +143,19 @@ export class ApClipService {
 				const find = uri_map.get(clip.uri);
 				if (find) {
 					//お気に入りが消えるのを回避するためにuriが一致した物をid変えずにupdateする
-					clip.id = find.id;
-					clip.lastFetchedAt = find.lastFetchedAt;
 					uri_map.delete(clip.uri);
-					await transactionalEntityManager.update(MiClip, { id: find.id }, clip);
+					if (
+						find.description === clip.description &&
+						find.name === clip.name &&
+						find.lastClippedAt === clip.lastClippedAt
+					) continue;
+					await transactionalEntityManager.update(MiClip, { id: find.id }, {
+						description: find.description !== clip.description ? clip.description : undefined,
+						name: find.name !== clip.name ? clip.name : undefined,
+						lastClippedAt: find.lastClippedAt !== clip.lastClippedAt ? clip.lastClippedAt : undefined,
+						userId: find.userId !== user.id ? user.id : undefined,
+						lastFetchedAt: find.lastClippedAt !== clip.lastClippedAt ? new Date(0) : undefined,
+					});
 				} else {
 					//新規観測
 					await transactionalEntityManager.insert(MiClip, clip);
