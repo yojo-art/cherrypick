@@ -213,6 +213,13 @@ describe('User', () => {
 			aliceInB = await resolveRemoteUser('a.test', alice.id, bob);
 			bobInA = await resolveRemoteUser('b.test', bob.id, alice);
 		});
+		const clearAllClips = async () => {
+			const aliceClips = await alice.client.request('users/clips', { userId: alice.id });
+			for (const aliceClip of aliceClips) {
+				//関係ないクリップは消しておく
+				await alice.client.request('clips/delete', { clipId: aliceClip.id });
+			}
+		};
 		test('公開クリップ公開ノートが連合する', async () => {
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
@@ -233,17 +240,17 @@ describe('User', () => {
 			assert(clip.lastClippedAt != null);
 			strictEqual(new Date(aliceInBClips[0].lastClippedAt).getTime() - 1000 < new Date(clip.lastClippedAt).getTime() + 1000, true);//多少の誤差が出る
 			strictEqual(aliceInBClips[0].userId, aliceInB.id);
+			//非同期で取得されるから2回リクエスト飛ばす
+			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			await sleep();
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 2);
 			strictEqual(notes[0].text, home_note.text);
 			strictEqual(notes[1].text, public_note.text);
 		});
 		test('公開クリップ他人ノートが連合する', async () => {
-			const aliceClips = await alice.client.request('users/clips', { userId: alice.id });
-			for (const aliceClip of aliceClips) {
-				//関係ないクリップは消しておく
-				await alice.client.request('clips/delete', { clipId: aliceClip.id });
-			}
+			//関係ないクリップは消しておく
+			clearAllClips();
 			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
 			await sleep();
@@ -254,16 +261,36 @@ describe('User', () => {
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
-			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[1].id });
+			//非同期で取得されるから2回リクエスト飛ばす
+			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			await sleep();
+			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 1);
 			strictEqual(notes[1].text, bob_note.text);
 		});
+		test('公開クリップ限定ノートが連合しない', async () => {
+			//関係ないクリップは消しておく
+			clearAllClips();
+			const followers_note = (await alice.client.request('notes/create', { text: 'followers note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'followers' })).createdNote;
+			await sleep();
+			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: followers_note.id });
+			//ユーザー情報更新
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			//公開クリップがある
+			strictEqual(aliceInBClips.length, 1);
+			//非同期で取得されるから2回リクエスト飛ばす
+			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			await sleep();
+			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			//フォロワー限定ノートは見えない
+			strictEqual(notes.length, 0);
+		});
 		test('公開クリップ限定ノートが連合する', async () => {
-			const aliceClips = await alice.client.request('users/clips', { userId: alice.id });
-			for (const aliceClip of aliceClips) {
-				//関係ないクリップは消しておく
-				await alice.client.request('clips/delete', { clipId: aliceClip.id });
-			}
+			//関係ないクリップは消しておく
+			clearAllClips();
 			await alice.client.request('following/create', { userId: bobInA.id });
 			//フォロー処理待ち
 			await sleep(800);
@@ -280,9 +307,22 @@ describe('User', () => {
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			//非同期で取得されるから2回リクエスト飛ばす
+			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			await sleep();
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 1);
 			strictEqual(notes[1].text, bob_note.text);
+		});
+		test('非公開クリップが連合しない', async () => {
+			//関係ないクリップは消しておく
+			clearAllClips();
+			await alice.client.request('clips/create', { name: 'name', isPublic: false });
+			//ユーザー情報更新
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips.length, 0);
 		});
 	});
 
