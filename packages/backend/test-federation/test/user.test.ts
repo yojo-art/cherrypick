@@ -201,6 +201,41 @@ describe('User', () => {
 			});
 		});
 	});
+	describe('Clips', () => {
+		let alice: LoginUser, bob: LoginUser;
+		let aliceInB: Misskey.entities.UserDetailedNotMe, bobInA: Misskey.entities.UserDetailedNotMe;
+
+		beforeAll(async () => {
+			[alice, bob] = await Promise.all([
+				createAccount('a.test'),
+				createAccount('b.test'),
+			]);
+			aliceInB = await resolveRemoteUser('a.test', alice.id, bob);
+			bobInA = await resolveRemoteUser('b.test', bob.id, alice);
+		});
+		test('公開クリップ公開ノートが連合する', async () => {
+			const public_note = (await alice.client.request('notes/create', { text: 'public note' })).createdNote;
+			const home_note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
+			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: public_note.id });
+			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: home_note.id });
+			await sleep();
+
+			await bob.client.request('users/show', { userId: aliceInB.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			strictEqual(new Date(aliceInBClips[0].createdAt).getTime() - 1000 < new Date(clip.createdAt).getTime() + 1000, true);//多少の誤差が出る
+			assert(aliceInBClips[0].lastClippedAt != null);
+			assert(clip.lastClippedAt != null);
+			strictEqual(new Date(aliceInBClips[0].lastClippedAt).getTime() - 1000 < new Date(clip.lastClippedAt).getTime() + 1000, true);//多少の誤差が出る
+			strictEqual(aliceInBClips[0].userId, aliceInB.id);
+			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			strictEqual(notes[0].text, public_note.text);
+			strictEqual(notes[1].text, home_note.text);
+		});
+	});
 
 	describe('Follow / Unfollow', () => {
 		let alice: LoginUser, bob: LoginUser;
