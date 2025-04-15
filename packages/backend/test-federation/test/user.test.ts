@@ -227,11 +227,11 @@ describe('User', () => {
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
 			//lastClippedAtを更新するために一覧から取得する
-			const clip = (await alice.client.request('users/clips', { userId: alice.id }))[0];
+			const clip = (await alice.client.request('users/clips', { userId: alice.id, remoteApi: false }))[0];
 			await sleep();
 
 			await bob.client.request('users/show', { userId: aliceInB.id });
-			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
@@ -258,7 +258,7 @@ describe('User', () => {
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
-			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
@@ -278,7 +278,7 @@ describe('User', () => {
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
-			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			//公開クリップがある
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
@@ -307,7 +307,7 @@ describe('User', () => {
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
-			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
@@ -324,11 +324,10 @@ describe('User', () => {
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
-			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
-			strictEqual(aliceInBClips[0].name, clip.name);
-			strictEqual(aliceInBClips[0].description, clip.description);
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			//0件にするとリモートAPI呼び出しが発生してキャッシュ由来の変な値になる
 			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 		});
 		test('名前と説明文が更新できる', async () => {
@@ -337,7 +336,7 @@ describe('User', () => {
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
-			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
@@ -345,7 +344,7 @@ describe('User', () => {
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
-			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips2.length, 1);
 			strictEqual(aliceInBClips2[0].name, clip2.name);
 			strictEqual(aliceInBClips2[0].description, clip2.description);

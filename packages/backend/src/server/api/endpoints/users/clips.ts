@@ -40,6 +40,7 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		sinceId: { type: 'string' },
 		untilId: { type: 'string' },
+		remoteApi: { type: 'boolean', default: true },
 	},
 	required: ['userId'],
 } as const;
@@ -75,8 +76,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.getMany();
 
 			//DB叩いて無かったらリモートAPI
-			if (userEntityService.isRemoteUser(user) && clips.length < 1) {
-				//return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
+			if (userEntityService.isRemoteUser(user) && clips.length < 1 && ps.remoteApi) {
+				return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
 			}
 			return await this.clipEntityService.packMany(clips, me);
 		});
