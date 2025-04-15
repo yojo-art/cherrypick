@@ -255,11 +255,13 @@ describe('User', () => {
 			await sleep();
 			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
-			await sleep();
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const aliceClips = await alice.client.request('clips/list', {});
+			strictEqual(aliceClips.length, 1);
+			strictEqual(aliceClips[0].description, clip.description);
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
