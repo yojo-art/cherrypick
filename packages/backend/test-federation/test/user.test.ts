@@ -223,7 +223,7 @@ describe('User', () => {
 		test('公開クリップ公開ノートが連合する', async () => {
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			const new_clip = await alice.client.request('clips/create', { name: '公開クリップ公開ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
 			//lastClippedAtを更新するために一覧から取得する
@@ -251,7 +251,7 @@ describe('User', () => {
 		test('公開クリップ他人ノートが連合する', async () => {
 			await clearAllClips();
 			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			const clip = await alice.client.request('clips/create', { name: '公開クリップ他人ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await sleep();
 			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
@@ -259,10 +259,8 @@ describe('User', () => {
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
-			const aliceClips = await alice.client.request('clips/list', {});
-			strictEqual(aliceClips.length, 1);
-			strictEqual(aliceClips[0].description, clip.description);
 			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
 			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
@@ -275,7 +273,7 @@ describe('User', () => {
 			await clearAllClips();
 			const followers_note = (await alice.client.request('notes/create', { text: 'followers note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'followers' })).createdNote;
 			await sleep();
-			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			const clip = await alice.client.request('clips/create', { name: '公開クリップ限定ノートが連合しない', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: followers_note.id });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
@@ -283,6 +281,7 @@ describe('User', () => {
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
 			//公開クリップがある
 			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
 			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
@@ -303,12 +302,14 @@ describe('User', () => {
 			//フォロワーに配送来てるはず
 			const bob_noteInA = user_notes[0];
 			strictEqual(bob_noteInA.text, bob_note.text);
-			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			const clip = await alice.client.request('clips/create', { name: '公開クリップ限定ノートが連合する', description: 'description', isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: bob_noteInA.id });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
 			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			await sleep();
@@ -324,13 +325,15 @@ describe('User', () => {
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
 			//0件にするとリモートAPI呼び出しが発生してキャッシュ由来の変な値になる
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].description, clip.description);
 		});
 		test('名前と説明文が更新できる', async () => {
 			await clearAllClips();
-			const clip = await alice.client.request('clips/create', { name: 'name1', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			const clip = await alice.client.request('clips/create', { name: '更新前', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
@@ -338,7 +341,7 @@ describe('User', () => {
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
-			const clip2 = await alice.client.request('clips/update', { clipId: clip.id, name: 'name2', description: 'description' + crypto.randomUUID().replaceAll('-', '') });
+			const clip2 = await alice.client.request('clips/update', { clipId: clip.id, name: '更新後', description: 'description' + crypto.randomUUID().replaceAll('-', '') });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
