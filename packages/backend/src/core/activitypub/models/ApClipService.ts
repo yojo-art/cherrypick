@@ -103,7 +103,7 @@ export class ApClipService {
 
 		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
 
-		const clips:MiClip[] = [];
+		const clips : MiClip[] & { uri: string }[] = [];
 
 		let td = 0;
 		for (const clip of items) {
@@ -131,16 +131,28 @@ export class ApClipService {
 		}
 
 		await this.db.transaction(async transactionalEntityManager => {
+			const old_clips = await transactionalEntityManager.findBy(MiClip, { userId: user.id });
+			const uri_map = new Map<string, MiClip>();
+			for (const clip of old_clips) {
+				if (clip.uri) {
+					uri_map.set(clip.uri, clip);
+				}
+			};
 			for (const clip of clips) {
-				const find = await transactionalEntityManager.findOneBy(MiClip, { uri: clip.uri! });
+				const find = uri_map.get(clip.uri);
 				if (find) {
 					//お気に入りが消えるのを回避するためにuriが一致した物をid変えずにupdateする
 					clip.id = find.id;
+					clip.lastFetchedAt = find.lastFetchedAt;
+					uri_map.delete(clip.uri);
 					await transactionalEntityManager.update(MiClip, { id: find.id }, clip);
 				} else {
+					//新規観測
 					await transactionalEntityManager.insert(MiClip, clip);
 				}
 			}
+			//元から認識してるクリップが無かったら消す
+			await Promise.all(uri_map.values().map(v => transactionalEntityManager.delete(MiClip, { id: v.id })));
 		});
 	}
 }

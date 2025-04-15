@@ -214,7 +214,7 @@ describe('User', () => {
 			bobInA = await resolveRemoteUser('b.test', bob.id, alice);
 		});
 		const clearAllClips = async () => {
-			const aliceClips = await alice.client.request('users/clips', { userId: alice.id });
+			const aliceClips = await alice.client.request('clips/list', {});
 			for (const aliceClip of aliceClips) {
 				//関係ないクリップは消しておく
 				await alice.client.request('clips/delete', { clipId: aliceClip.id });
