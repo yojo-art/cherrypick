@@ -226,6 +226,9 @@ describe('User', () => {
 			const new_clip = await alice.client.request('clips/create', { name: '公開クリップ公開ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
+
+			strictEqual((await fetch('https://a.test/clips/' + new_clip.id, { headers: { Accept: 'application/activity+json' } })).text(), 'DEBUG');
+
 			//lastClippedAtを更新するために一覧から取得する
 			const clip = (await alice.client.request('users/clips', { userId: alice.id, remoteApi: false }))[0];
 			await sleep();
