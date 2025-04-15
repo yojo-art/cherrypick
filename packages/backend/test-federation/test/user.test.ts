@@ -216,9 +216,11 @@ describe('User', () => {
 		test('公開クリップ公開ノートが連合する', async () => {
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' })).createdNote;
 			const home_note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
-			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
-			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: public_note.id });
-			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: home_note.id });
+			const new_clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
+			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
+			//lastClippedAtを更新するために一覧から取得する
+			const clip = (await alice.client.request('users/clips', { userId: alice.id }))[0];
 			await sleep();
 
 			await bob.client.request('users/show', { userId: aliceInB.id });
@@ -232,8 +234,19 @@ describe('User', () => {
 			strictEqual(new Date(aliceInBClips[0].lastClippedAt).getTime() - 1000 < new Date(clip.lastClippedAt).getTime() + 1000, true);//多少の誤差が出る
 			strictEqual(aliceInBClips[0].userId, aliceInB.id);
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			strictEqual(notes.length, 2);
 			strictEqual(notes[0].text, public_note.text);
 			strictEqual(notes[1].text, home_note.text);
+		});
+		test('公開クリップ他人ノートが連合する', async () => {
+			const bob_note = (await bob.client.request('notes/create', { text: 'public note' })).createdNote;
+			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
+			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			strictEqual(notes.length, 1);
+			strictEqual(notes[1].text, bob_note.text);
 		});
 	});
 
