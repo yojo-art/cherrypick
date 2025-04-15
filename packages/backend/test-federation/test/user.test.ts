@@ -214,8 +214,8 @@ describe('User', () => {
 			bobInA = await resolveRemoteUser('b.test', bob.id, alice);
 		});
 		test('公開クリップ公開ノートが連合する', async () => {
-			const public_note = (await alice.client.request('notes/create', { text: 'public note' })).createdNote;
-			const home_note = (await alice.client.request('notes/create', { text: 'home note', visibility: 'home' })).createdNote;
+			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
+			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
 			const new_clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
@@ -235,14 +235,50 @@ describe('User', () => {
 			strictEqual(aliceInBClips[0].userId, aliceInB.id);
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 2);
-			strictEqual(notes[0].text, public_note.text);
-			strictEqual(notes[1].text, home_note.text);
+			strictEqual(notes[0].text, home_note.text);
+			strictEqual(notes[1].text, public_note.text);
 		});
 		test('公開クリップ他人ノートが連合する', async () => {
-			const bob_note = (await bob.client.request('notes/create', { text: 'public note' })).createdNote;
+			const aliceClips = await alice.client.request('users/clips', { userId: alice.id });
+			for (const aliceClip of aliceClips) {
+				//関係ないクリップは消しておく
+				await alice.client.request('clips/delete', { clipId: aliceClip.id });
+			}
+			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			await sleep();
 			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
+			await sleep();
+			//ユーザー情報更新
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
+			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[1].id });
+			strictEqual(notes.length, 1);
+			strictEqual(notes[1].text, bob_note.text);
+		});
+		test('公開クリップ限定ノートが連合する', async () => {
+			const aliceClips = await alice.client.request('users/clips', { userId: alice.id });
+			for (const aliceClip of aliceClips) {
+				//関係ないクリップは消しておく
+				await alice.client.request('clips/delete', { clipId: aliceClip.id });
+			}
+			await alice.client.request('following/create', { userId: bobInA.id });
+			//フォロー処理待ち
+			await sleep(800);
+			const bob_note = (await bob.client.request('notes/create', { text: 'followers note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'followers' })).createdNote;
+			//ノート配送待ち
+			await sleep();
+			const user_notes = await alice.client.request('users/notes', { userId: bobInA.id });
+			//フォロワーに配送来てるはず
+			const bob_noteInA = user_notes[0];
+			strictEqual(bob_noteInA.text, bob_note.text);
+			const clip = await alice.client.request('clips/create', { name: 'name', description: 'description', isPublic: true });
+			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: bob_noteInA.id });
+			//ユーザー情報更新
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 1);
