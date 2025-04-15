@@ -451,7 +451,6 @@ export class ActivityPubServerService {
 			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
 				.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
 				.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
-			this.queryService.generateVisibilityQuery(query, null);
 			const notes = await query.limit(limit).getMany();
 
 			if (sinceId) notes.reverse();
