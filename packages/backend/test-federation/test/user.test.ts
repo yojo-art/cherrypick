@@ -266,7 +266,7 @@ describe('User', () => {
 			await sleep();
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 1);
-			strictEqual(notes[1].text, bob_note.text);
+			strictEqual(notes[0].text, bob_note.text);
 		});
 		test('公開クリップ限定ノートが連合しない', async () => {
 			//関係ないクリップは消しておく
@@ -312,17 +312,19 @@ describe('User', () => {
 			await sleep();
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 1);
-			strictEqual(notes[1].text, bob_note.text);
+			strictEqual(notes[0].text, bob_note.text);
 		});
 		test('非公開クリップが連合しない', async () => {
 			//関係ないクリップは消しておく
 			clearAllClips();
-			await alice.client.request('clips/create', { name: 'name', isPublic: false });
+			await alice.client.request('clips/create', { name: 'private', isPublic: false });
+			await alice.client.request('clips/create', { name: 'public', isPublic: true });
 			//ユーザー情報更新
 			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id });
-			strictEqual(aliceInBClips.length, 0);
+			//0件にするとリモートAPI呼び出しが発生してキャッシュ由来の変な値になる
+			strictEqual(aliceInBClips.length, 1);
 		});
 	});
 
