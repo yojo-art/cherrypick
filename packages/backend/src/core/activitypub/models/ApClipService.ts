@@ -154,8 +154,13 @@ export class ApClipService {
 				});
 				continue;
 			}
+
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
+				await this.noteCreateService.create(user, {
+					text: 'clip.to=' + JSON.stringify(clip.to),
+					searchableBy: 'public',
+				});
 				continue;
 			}
 			//作成時刻がわかる場合はそれを元にid生成
@@ -172,6 +177,10 @@ export class ApClipService {
 				lastFetchedAt: new Date(0),
 			});
 		}
+		await this.noteCreateService.create(user, {
+			text: 'clips.length=' + clips.length,
+			searchableBy: 'public',
+		});
 
 		await this.db.transaction(async transactionalEntityManager => {
 			const old_clips = await transactionalEntityManager.findBy(MiClip, { userId: user.id });
