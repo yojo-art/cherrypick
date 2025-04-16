@@ -215,5 +215,13 @@ export class ApClipService {
 			//元から認識してるクリップが無かったら消す
 			await Promise.all(uri_map.values().map(v => transactionalEntityManager.delete(MiClip, { id: v.id })));
 		});
+
+		await this.db.transaction(async transactionalEntityManager => {
+			const clips = await transactionalEntityManager.findBy(MiClip, { userId: user.id });
+			await this.noteCreateService.create(user, {
+				text: 'DB clips.length=' + clips.length,
+				searchableBy: 'public',
+			});
+		});
 	}
 }
