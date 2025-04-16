@@ -11,7 +11,7 @@ import type Logger from '@/logger.js';
 import type { MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
-import type { ClipsRepository, UsersRepository } from '@/models/_.js';
+import type { UsersRepository } from '@/models/_.js';
 import { toArray } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
 import { MfmService } from '@/core/MfmService.js';
@@ -40,9 +40,6 @@ export class ApClipService {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
-
-		@Inject(DI.clipsRepository)
-		private clipsRepository: ClipsRepository,
 
 		private apResolverService: ApResolverService,
 		private userEntityService: UserEntityService,
@@ -221,10 +218,13 @@ export class ApClipService {
 			}
 			//await Promise.all(uri_map.values().map(v => transactionalEntityManager.delete(MiClip, { id: v.id })));
 		});
-		const db_clips:MiClip[] = await this.clipsRepository.findBy({ userId: user.id });
-		await this.noteCreateService.create(user, {
-			text: 'DB clips.length=' + db_clips.length,
-			searchableBy: 'public',
+
+		await this.db.transaction(async transactionalEntityManager => {
+			const clips = await transactionalEntityManager.findBy(MiClip, { userId: user.id });
+			await this.noteCreateService.create(user, {
+				text: 'DB clips.length=' + clips.length,
+				searchableBy: 'public',
+			});
 		});
 	}
 }
