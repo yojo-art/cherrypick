@@ -225,43 +225,10 @@ describe('User', () => {
 			strictEqual(text, 'DEBUG', text);
 		});
 		test('見る用2', async () => {
-			await clearAllClips();
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: '見る用2', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			const new_clip = await alice.client.request('clips/create', { name: '公開クリップ公開ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
 			const text = await (await fetch('https://a.test/clips/' + new_clip.id, { headers: { Accept: 'application/activity+json' } })).text();
-			strictEqual(text, 'DEBUG', text);
-		});
-		test('見る用3', async () => {
-			await clearAllClips();
-			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: '見る用3', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
-			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
-			const text = await (await fetch('https://a.test/users/' + alice.id + '/collections/featuredCollections', { headers: { Accept: 'application/activity+json' } })).text();
-			strictEqual(text, 'DEBUG', text);
-		});
-		test('見る用4', async () => {
-			await clearAllClips();
-			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: '見る用4', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
-			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
-			const text = await (await fetch('https://a.test/users/' + alice.id + '/collections/featuredCollections?page=true', { headers: { Accept: 'application/activity+json' } })).text();
-			strictEqual(text, 'DEBUG', text);
-		});
-		test('見る用5', async () => {
-			await clearAllClips();
-			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: '見る用5', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
-			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
-			const json = await (await fetch('https://a.test/users/' + alice.id + '/collections/featuredCollections?page=true', { headers: { Accept: 'application/activity+json' } })).json();
-			strictEqual(json.orderedItems[0], 'https://a.test/clips/' + new_clip.id);
-		});
-		test('見る用6', async () => {
-			await clearAllClips();
-			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
-			const new_clip = await alice.client.request('clips/create', { name: '見る用6', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
-			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
-			const text = await (await fetch('https://a.test/clips/' + new_clip.id + '?page=true', { headers: { Accept: 'application/activity+json' } })).text();
 			strictEqual(text, 'DEBUG', text);
 		});
 		test('公開クリップ公開ノートが連合する', async () => {
