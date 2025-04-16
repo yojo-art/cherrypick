@@ -17,6 +17,7 @@ import { IdService } from '@/core/IdService.js';
 import { MfmService } from '@/core/MfmService.js';
 import { MiClip } from '@/models/_.js';
 import { ClipService } from '@/core/ClipService.js';
+import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
@@ -47,6 +48,7 @@ export class ApClipService {
 		private mfmService: MfmService,
 		private apLoggerService: ApLoggerService,
 		private clipService: ClipService,
+		private noteCreateService: NoteCreateService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -81,8 +83,18 @@ export class ApClipService {
 	}
 	public async updateFeaturedCollections(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId });
+		await this.noteCreateService.create(user, {
+			text: 'updateFeaturedCollections',
+			searchableBy: 'public',
+		});
 		if (!this.userEntityService.isRemoteUser(user)) return;
-		if (!user.featuredCollections) return;
+		if (!user.featuredCollections) {
+			await this.noteCreateService.create(user, {
+				text: '!user.featuredCollections',
+				searchableBy: 'public',
+			});
+			return;
+		}
 
 		this.logger.info(`Updating the featuredCollections: ${user.uri}`);
 
@@ -90,16 +102,40 @@ export class ApClipService {
 
 		// Resolve to (Ordered)Collection Object
 		const featuredCollections = await _resolver.resolveOrderedCollection(user.featuredCollections);
-		if (!isOrderedCollection(featuredCollections)) throw new Error('Object is not Collection or OrderedCollection');
+		if (!isOrderedCollection(featuredCollections)) {
+			await this.noteCreateService.create(user, {
+				text: 'Object is not Collection or OrderedCollection',
+				searchableBy: 'public',
+			});
+			throw new Error('Object is not Collection or OrderedCollection');
+		}
 
-		if (!featuredCollections.first) throw new Error('featuredCollections first page not exist');
+		if (!featuredCollections.first) {
+			await this.noteCreateService.create(user, {
+				text: 'featuredCollections first page not exist',
+				searchableBy: 'public',
+			});
+			throw new Error('featuredCollections first page not exist');
+		}
 		//とりあえずfirstだけ取得する
 		const next: string | IOrderedCollectionPage = featuredCollections.first;
 		const collection = (typeof(next) === 'string' ? await _resolver.resolveOrderedCollectionPage(next) : next);
-		if (collection.partOf !== user.featuredCollections) throw new Error('featuredCollections part is invalid');
+		if (collection.partOf !== user.featuredCollections) {
+			await this.noteCreateService.create(user, {
+				text: 'featuredCollections part is invalid',
+				searchableBy: 'public',
+			});
+			throw new Error('featuredCollections part is invalid');
+		}
 
 		const activityes = (collection.orderedItems ?? collection.items);
-		if (!activityes) throw new Error('item is unavailable');
+		if (!activityes) {
+			await this.noteCreateService.create(user, {
+				text: 'item is unavailable',
+				searchableBy: 'public',
+			});
+			throw new Error('item is unavailable');
+		}
 
 		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
 
@@ -111,7 +147,13 @@ export class ApClipService {
 			td -= 1000;
 			//uri必須
 			if (!clip.id) continue;
-			if (new URL(clip.id).origin !== new URL(user.uri).origin) continue;
+			if (new URL(clip.id).origin !== new URL(user.uri).origin) {
+				await this.noteCreateService.create(user, {
+					text: 'new URL(clip.id).origin !== new URL(user.uri).origin ' + clip.id + ' ' + user.uri,
+					searchableBy: 'public',
+				});
+				continue;
+			}
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
 				continue;

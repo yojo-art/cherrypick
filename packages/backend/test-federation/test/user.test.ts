@@ -272,6 +272,23 @@ describe('User', () => {
 			const text = JSON.stringify(json);
 			strictEqual(text, 'DEBUG', text);
 		});
+		test('見る用7', async () => {
+			await clearAllClips();
+			await clearAllClips();
+			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
+			const home_note = (await alice.client.request('notes/create', { text: 'home note' + crypto.randomUUID().replaceAll('-', ''), visibility: 'home' })).createdNote;
+			const new_clip = await alice.client.request('clips/create', { name: '見る用7', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: public_note.id });
+			await alice.client.request('clips/add-note', { clipId: new_clip.id, noteId: home_note.id });
+
+			await bob.client.request('users/show', { userId: aliceInB.id });
+			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+			await sleep();
+			await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			await sleep(500);
+			const notes = await bob.client.request('users/notes', { userId: aliceInB.id });
+			strictEqual(JSON.stringify(notes.map(x => x.text)), 'DEBUG');
+		});
 		test('公開クリップ公開ノートが連合する', async () => {
 			await clearAllClips();
 			const public_note = (await alice.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
