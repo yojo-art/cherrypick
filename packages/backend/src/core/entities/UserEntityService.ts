@@ -611,7 +611,6 @@ export class UserEntityService implements OnModuleInit {
 				}))),
 				memo: memo,
 				moderationNote: iAmModerator ? (profile!.moderationNote ?? '') : undefined,
-				clipsUri: user.featuredCollections,
 			} : {}),
 
 			...(isDetailed && (isMe || iAmModerator) ? {
