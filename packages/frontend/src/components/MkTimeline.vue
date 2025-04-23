@@ -103,8 +103,7 @@ let paginationQuery: Paging | null = null;
 
 const stream = useStream();
 const gridMediaTimeline = computed(() => {
-	//デフォルトは元と同じ、非ログイン時はグリッド
-	return $i == null ? true : defaultStore.state.gridLayoutMediaTimeline;
+	return defaultStore.state.gridLayoutMediaTimeline;
 });
 let grid = false;
 
