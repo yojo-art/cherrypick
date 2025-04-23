@@ -196,6 +196,7 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'selectReaction',
 	'setFederationAvatarShape',
 	// #endregion CherryPick
+	'gridLayoutMediaTimeline',
 ];
 const coldDeviceStorageSaveKeys: (keyof typeof ColdDeviceStorage.default)[] = [
 	'lightTheme',
