@@ -637,6 +637,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: true,
 	},
+	gridLayoutMediaTimeline: {
+		where: 'device',
+		default: false,
+	},
 	fontSize: {
 		where: 'device',
 		default: 8,
