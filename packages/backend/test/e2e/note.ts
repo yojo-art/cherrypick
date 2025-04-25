@@ -1035,5 +1035,33 @@ describe('Note', () => {
 			assert.strictEqual(res.status, 400);
 			assert.strictEqual(castAsError(res.body).error.code, 'NO_TRANSLATE_SERVICE');
 		});
+
+		test('お気に入り状態が返ってくる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+			const res = await api('notes/show', { noteId: aliceNote.id }, bob);
+
+			assert.strictEqual(res.body.favorite, false);
+		});
+		test('お気に入りしたら反映されて返ってくる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+
+			await api('notes/favorites/create', { noteId: aliceNote.id }, bob);
+			const res = await api('notes/show', { noteId: aliceNote.id }, bob);
+
+			assert.strictEqual(res.body.favorite, true);
+		});
+		test('お気に入りして消したら反映されて返ってくる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+
+			await api('notes/favorites/create', { noteId: aliceNote.id }, bob);
+			const res = await api('notes/show', { noteId: aliceNote.id }, bob);
+
+			assert.strictEqual(res.body.favorite, true);
+
+			await api('notes/favorites/delete', { noteId: aliceNote.id }, bob);
+			const res2 = await api('notes/show', { noteId: aliceNote.id }, bob);
+
+			assert.strictEqual(res2.body.favorite, false);
+		});
 	});
 });

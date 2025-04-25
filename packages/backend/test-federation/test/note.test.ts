@@ -43,6 +43,7 @@ describe('Note', () => {
 				'userId',
 				'user',
 				'uri',
+				'favorite',
 			]);
 			strictEqual(aliceInB.id, resolvedNote.userId);
 		});

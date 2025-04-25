@@ -483,7 +483,7 @@ export class NoteEntityService implements OnModuleInit {
 						reactionAndUserPairCache: reactionAndUserPairCache,
 					}, meId, options?._hint_),
 				} : {}),
-				favorite: meId ? (await this.cacheService.userNoteFavouriteCache.fetch(meId)).has(note.id) : false,
+				favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 			} : {}),
 		});
 

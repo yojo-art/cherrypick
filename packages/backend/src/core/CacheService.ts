@@ -28,7 +28,7 @@ export class CacheService implements OnApplicationShutdown {
 	public userBlockedCache: RedisKVCache<Set<string>>; // NOTE: 「被」Blockキャッシュ
 	public renoteMutingsCache: RedisKVCache<Set<string>>;
 	public userFollowingsCache: RedisKVCache<Record<string, Pick<MiFollowing, 'withReplies'> | undefined>>;
-	public userNoteFavouriteCache: RedisKVCache<Set<string>>;
+	public userNoteFavoritesCache: RedisKVCache<Set<string>>;
 
 	constructor(
 		@Inject(DI.redis)
@@ -131,7 +131,7 @@ export class CacheService implements OnApplicationShutdown {
 			fromRedisConverter: (value) => JSON.parse(value),
 		});
 
-		this.userNoteFavouriteCache = new RedisKVCache<Set<string>>(this.redisClient, 'userNoteFavourites', {
+		this.userNoteFavoritesCache = new RedisKVCache<Set<string>>(this.redisClient, 'userNoteFavourites', {
 			lifetime: 1000 * 60 * 30, // 30m
 			memoryCacheLifetime: 1000 * 60, // 1m
 			fetcher: (key) => this.noteFavoritesRepository.find({ where: { userId: key }, select: ['noteId'] }).then(xs => new Set(xs.map(x => x.noteId))),
