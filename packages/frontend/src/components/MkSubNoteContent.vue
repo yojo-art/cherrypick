@@ -214,7 +214,7 @@ const quoteButton = shallowRef<HTMLElement>();
 const clipButton = shallowRef<HTMLElement>();
 const favoriteButton = shallowRef<HTMLElement>();
 const showFavoriteButton = computed(() => {
-	return $i ? props.note.userId !== $i.id : false;
+	return props.note.renote ? false : $i ? props.note.userId !== $i.id : false;
 });
 const favorited = ref(props.note.favorite);
 

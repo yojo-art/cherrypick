@@ -368,7 +368,7 @@ const clipButton = shallowRef<HTMLElement>();
 const favoriteButton = shallowRef<HTMLElement>();
 const appearNote = computed(() => getAppearNote(note.value));
 const showFavoriteButton = computed(() => {
-	return $i ? appearNote.value.userId !== $i.id : false;
+	return appearNote.value.renote ? false : $i ? appearNote.value.userId !== $i.id : false;
 });
 
 const favorited = ref(appearNote.value.favorite);
