@@ -10,6 +10,7 @@ import { DI } from '@/di-symbols.js';
 import type { NoteFavoritesRepository } from '@/models/_.js';
 import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
 import { ApiError } from '../../../error.js';
+import { CacheService } from "@/core/CacheService.js";
 
 export const meta = {
 	tags: ['notes', 'favorites'],
@@ -49,6 +50,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private getterService: GetterService,
 		private advancedSearchService: AdvancedSearchService,
+		private cacheService: CacheService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Get favoritee
@@ -70,6 +72,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			// Delete favorite
 			await this.noteFavoritesRepository.delete(exist.id);
 			await this.advancedSearchService.unindexFavorite(exist.id, note.id, undefined, me.id);
+			this.cacheService.userNoteFavouriteCache.refresh(me.id);
 		});
 	}
 }

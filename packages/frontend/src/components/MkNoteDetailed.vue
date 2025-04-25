@@ -232,6 +232,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button v-if="canRenote && defaultStore.state.renoteQuoteButtonSeparation && defaultStore.state.showQuoteButtonInNoteFooter" ref="quoteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.quote" class="_button" :class="$style.noteFooterButton" @click="quote()">
 				<i class="ti ti-quote"></i>
 			</button>
+			<button v-if="showFavoriteButton" ref="favoriteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.favorite" :class="$style.footerButton" class="_button" @click.stop="favorite()">
+				<i v-if="favorited" class="ti ti-star-filled" style="color: var(--MI_THEME-accent);"></i>
+				<i v-else class="ti ti-star"></i>
+			</button>
 			<button v-if="defaultStore.state.showClipButtonInNoteFooter" ref="clipButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.clip" class="_button" :class="$style.noteFooterButton" @click="clip()">
 				<i class="ti ti-paperclip"></i>
 			</button>
@@ -426,7 +430,13 @@ const reactButton = shallowRef<HTMLElement>();
 const heartReactButton = shallowRef<HTMLElement>();
 const quoteButton = shallowRef<HTMLElement>();
 const clipButton = shallowRef<HTMLElement>();
+const favoriteButton = shallowRef<HTMLElement>();
 const appearNote = computed(() => getAppearNote(note.value));
+const showFavoriteButton = computed(() => {
+	return $i ? appearNote.value.userId !== $i.id : false;
+});
+
+const favorited = ref(appearNote.value.favorite);
 const galleryEl = shallowRef<InstanceType<typeof MkMediaList>>();
 const isMyRenote = $i && ($i.id === note.value.userId);
 const showContent = ref(false);
@@ -762,6 +772,13 @@ async function translate(): Promise<void> {
 
 async function clip(): Promise<void> {
 	os.popupMenu(await getNoteClipMenu({ note: note.value, isDeleted }), clipButton.value).then(focus);
+}
+
+async function favorite(): Promise<void> {
+	await os.apiWithDialog(favorited.value ? 'notes/favorites/delete' : 'notes/favorites/create', {
+		noteId: appearNote.value.id,
+	});
+	favorited.value = !favorited.value;
 }
 
 function showRenoteMenu(): void {
