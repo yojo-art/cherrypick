@@ -142,6 +142,7 @@ export class NodeinfoServerService {
 						'emoji_keywords',
 						'emoji_reaction',
 						'quote',
+						'https://yojoart.kzkr.xyz/ns#_yojoart_clips',
 					],
 				},
 			};

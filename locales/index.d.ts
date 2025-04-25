@@ -186,6 +186,15 @@ export interface Locale extends ILocale {
      */
     "filesGridLayoutInUserPageDescription": string;
     /**
+     * メディアタイムラインをグリッドレイアウトに変更
+     */
+    "gridLayoutMediaTimeline": string;
+    /**
+     * この設定をオンにすると、メディアタイムラインがアルバム形式で表示されます。
+     * オフにすると、元のノートのタイムラインに変更されます。
+     */
+    "gridLayoutMediaTimelineDescription": string;
+    /**
      * 返信対象ノートを表示
      */
     "showReplyTargetNote": string;

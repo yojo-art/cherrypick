@@ -3,9 +3,14 @@
 ### Release Date
 
 ### General
+クリップをActivityPub拡張表現で扱う [#617](https://github.com/yojo-art/cherrypick/pull/617)
+- Person Service Applicationが_yojoart_clipsを持つようになります
+- _yojoart_clipsはクリップの一覧を表現するOrderedCollectionです
+- nodeinfo内features配列に https://yojoart.kzkr.xyz/ns#_yojoart_clips として機能対応を示します
 
 ### Client
-
+- Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
+  - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
 ### Server
 UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
 
