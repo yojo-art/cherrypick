@@ -1038,7 +1038,7 @@ describe('Note', () => {
 	});
 
 	describe('非表示ハッシュタグ', () => {
-		test('作成時にtagTextからハッシュタグを抽出できる', async () => {
+		test('作成時にtagTextからハッシュタグを追加できる', async () => {
 			const aliceNote = await post(alice, { text: 'Hello', tagText: '#aaa #bbb #ccc' });
 			const res = await api('notes/show', {
 				noteId: aliceNote.id,
@@ -1054,7 +1054,7 @@ describe('Note', () => {
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
-		test('更新時にtagTextからハッシュタグを抽出できる', async () => {
+		test('更新時にtagTextからハッシュタグを追加できる', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
 
 			const first = await api('notes/show', {
@@ -1064,7 +1064,9 @@ describe('Note', () => {
 			assert.strictEqual(first.body.tags, undefined);
 
 			await api('notes/update', {
-				noteId: aliceNote.id, tagText: '#aaa #bbb #ccc',
+				noteId: aliceNote.id,
+				text: aliceNote.text,
+				tagText: '#aaa #bbb #ccc',
 			}, alice);
 
 			const res = await api('notes/show', {
