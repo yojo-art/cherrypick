@@ -1065,7 +1065,7 @@ describe('Note', () => {
 			await api('notes/favorites/delete', { noteId: aliceNote.id }, alice);
 			const res2 = await api('notes/show', { noteId: aliceNote.id }, alice);
 
-			assert.strictEqual(res2.body.favorite, true);
+			assert.strictEqual(res2.body.favorite, false);
 		});
 
 		test('お気に入り状態が返ってくる ホーム', async () => {
@@ -1104,6 +1104,7 @@ describe('Note', () => {
 			const clip = await api('clips/create', { name: 'test', isPublic: true, description: 'test' }, alice);
 			const aliceNote = await post(alice, { text: 'Hello' });
 			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
+			await api('clips/add-note', { clipId: clip.body.id, noteId: aliceNote.id }, alice);
 			const res = await api('clips/notes', { clipId: clip.body.id }, alice);
 
 			assert.strictEqual(res.body[0].favorite, true);
@@ -1111,9 +1112,10 @@ describe('Note', () => {
 
 		test('お気に入り状態が返ってくる リスト', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
-			const clip = await api('users/lists/create', { name: 'test' }, bob);
+			const list = await api('users/lists/create', { name: 'test' }, bob);
+			await api('users/lists/push', { listId: list.body.id, userId: alice.id }, bob);
 			await api('notes/favorites/create', { noteId: aliceNote.id }, bob);
-			const res = await api('notes/user-list-timeline', { listId: clip.body.id }, bob);
+			const res = await api('notes/user-list-timeline', { listId: list.body.id }, bob);
 
 			assert.strictEqual(res.body[0].favorite, true);
 		});
