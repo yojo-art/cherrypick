@@ -745,7 +745,7 @@ export class ApPersonService implements OnModuleInit {
 			isExplorable: person.discoverable,
 			setFederationAvatarShape: person.setFederationAvatarShape,
 			isSquareAvatars: person.isSquareAvatars,
-			_yojoart_clips: person._yojoart_clips,
+			clipsUri: person._yojoart_clips,
 			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;
 
