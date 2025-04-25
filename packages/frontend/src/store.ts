@@ -639,7 +639,7 @@ export const defaultStore = markRaw(new Storage('base', {
 	},
 	gridLayoutMediaTimeline: {
 		where: 'device',
-		default: false,
+		default: true,
 	},
 	fontSize: {
 		where: 'device',
