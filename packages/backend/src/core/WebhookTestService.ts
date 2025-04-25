@@ -94,6 +94,7 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		token: null,
 		setFederationAvatarShape: null,
 		isSquareAvatars: null,
+		clipsUri: null,
 		...override,
 	};
 }

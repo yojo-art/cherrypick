@@ -29108,6 +29108,8 @@ export type operations = {
           limit?: number;
           sinceId?: string;
           untilId?: string;
+          /** @default true */
+          remoteApi?: boolean;
         };
       };
     };
