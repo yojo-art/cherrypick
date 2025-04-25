@@ -977,6 +977,7 @@ async function post(ev?: MouseEvent) {
 		renoteId: renoteTargetNote.value ? renoteTargetNote.value.id : quoteId.value ? quoteId.value : undefined,
 		channelId: targetChannel.value ? targetChannel.value.id : undefined,
 		poll: poll.value,
+		tagText: withHashtags.value ? hashtags.value : null,
 		event: event.value,
 		cw: useCw.value ? cw.value ?? '' : null,
 		visibility: visibility.value,
@@ -988,7 +989,7 @@ async function post(ev?: MouseEvent) {
 		scheduleNote: scheduleNote.value ?? undefined,
 	};
 
-	if (withHashtags.value && hashtags.value && hashtags.value.trim() !== '') {
+	if (withHashtags.value && hashtags.value && hashtags.value.trim() !== '' && false) {
 		const hashtags_ = hashtags.value.trim().split(' ').map(x => x.startsWith('#') ? x : '#' + x).join(' ');
 		if (!postData.text) {
 			postData.text = hashtags_;

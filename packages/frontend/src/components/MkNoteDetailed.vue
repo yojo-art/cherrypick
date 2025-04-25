@@ -245,6 +245,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'renotes' }]" @click="tab = 'renotes'"><i class="ti ti-repeat"></i> {{ i18n.ts.renotes }}</button>
 		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'reactions' }]" @click="tab = 'reactions'"><i class="ti ti-icons"></i> {{ i18n.ts.reactions }}</button>
 		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'history' }]" @click="tab = 'history'"><i class="ti ti-pencil"></i> {{ i18n.ts.edited }}</button>
+		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'tag' }]" @click="tab = 'tag'"><i class="ti ti-hash"></i> {{ i18n.ts.hiddenTags }}</button>
 	</div>
 	<div>
 		<div v-if="tab === 'replies'">
@@ -312,6 +313,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div>{{ i18n.ts.nothing }}</div>
 				</div>
 			</div>
+		</div>
+		<div v-else-if="tab === 'tag'">
+			<MkA v-for="tag in appearNote.tags" :key="'tag:' + tag"
+					 :to="`/tags/${tag}`"
+					 style="margin-left: 6px;margin-right: 16px; font-weight: bold;">#{{ tag }}</MkA>
 		</div>
 	</div>
 </div>

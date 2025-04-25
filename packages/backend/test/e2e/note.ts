@@ -1036,4 +1036,47 @@ describe('Note', () => {
 			assert.strictEqual(castAsError(res.body).error.code, 'NO_TRANSLATE_SERVICE');
 		});
 	});
+
+	describe('非表示ハッシュタグ', async () => {
+		test('作成', async () => {
+			const aliceNote = await post(alice, { text: 'Hello', tagText: '#aaa #bbb #ccc' });
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+
+			// @ts-expect-error ダメならisArrayで落ちるため警告不要
+			assert.strictEqual(res.body.tags[0], '#aaa');
+			// @ts-expect-error ダメならisArrayで落ちるため警告不要
+			assert.strictEqual(res.body.tags[1], '#aaa');
+			// @ts-expect-error ダメならisArrayで落ちるため警告不要
+			assert.strictEqual(res.body.tags[2], '#aaa');
+		});
+		test('作成', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+
+			const first = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(first.body.tags, undefined);
+
+			await api('notes/update', {
+				noteId: aliceNote.id, tagText: '#aaa #bbb #ccc',
+			}, alice);
+
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			// @ts-expect-error ダメならisArrayで落ちるため警告不要
+			assert.strictEqual(res.body.tags[0], '#aaa');
+			// @ts-expect-error ダメならisArrayで落ちるため警告不要
+			assert.strictEqual(res.body.tags[1], '#aaa');
+			// @ts-expect-error ダメならisArrayで落ちるため警告不要
+			assert.strictEqual(res.body.tags[2], '#aaa');
+		});
+	});
 });
