@@ -358,11 +358,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			const combinedTokens = tokens.concat(cwTokens).concat(choiceTokens);
 
-			if (data.tagText) {
-				tags = data.apHashtags ?? extractHashtags(combinedTokens).concat(extractHashtags(mfm.parse(data.tagText)));
-			} else {
-				tags = data.apHashtags ?? extractHashtags(combinedTokens);
-			}
+			tags = data.apHashtags ?? data.tagText
+				? extractHashtags(combinedTokens).concat(extractHashtags(mfm.parse(data.tagText)))
+				: extractHashtags(combinedTokens);
 
 			emojis = data.apEmojis ?? extractCustomEmojisFromMfm(combinedTokens);
 

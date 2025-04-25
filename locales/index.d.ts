@@ -6063,6 +6063,14 @@ export interface Locale extends ILocale {
      * タグに使用できない文字が含まれています
      */
     "invalidTagName": string;
+    /**
+     * タグボタンで付けたタグを非表示にする
+     */
+    "hideTagUiTag": string;
+    /**
+     * 投稿フォームのタグボタンで利用できる、ハッシュタグ入力欄に入力したハッシュタグを非表示にします。
+     */
+    "hideTagUiTagDescription": string;
     "_official_tag": {
         /**
          * 公式タグ

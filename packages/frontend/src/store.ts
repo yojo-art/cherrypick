@@ -697,6 +697,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: false,
 	},
+	hideTagUiTags: {
+		where: 'device',
+		default: true,
+	},
 	showFixedPostFormInReplies: {
 		where: 'device',
 		default: true,
