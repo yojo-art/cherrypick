@@ -127,7 +127,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button v-if="canRenote && defaultStore.state.renoteQuoteButtonSeparation && defaultStore.state.showQuoteButtonInNoteFooter" ref="quoteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.quote" class="_button" :class="$style.footerButton" @click.stop="quote()">
 				<i class="ti ti-quote"></i>
 			</button>
-			<button v-if="showFavoriteButton" ref="favoriteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.favorite" :class="$style.footerButton" class="_button" @click.stop="favorite()">
+			<button ref="favoriteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.favorite" :class="$style.footerButton" class="_button" @click.stop="favorite()">
 				<i v-if="favorited" class="ti ti-star-filled" style="color: var(--MI_THEME-accent);"></i>
 				<i v-else class="ti ti-star"></i>
 			</button>
@@ -213,9 +213,6 @@ const heartReactButton = shallowRef<HTMLElement>();
 const quoteButton = shallowRef<HTMLElement>();
 const clipButton = shallowRef<HTMLElement>();
 const favoriteButton = shallowRef<HTMLElement>();
-const showFavoriteButton = computed(() => {
-	return $i ? props.note.userId !== $i.id : false;
-});
 const favorited = ref(props.note.favorite);
 
 const canRenote = computed(() => ['public', 'home'].includes(props.note.visibility) || (props.note.visibility === 'followers' && props.note.userId === $i.id));
