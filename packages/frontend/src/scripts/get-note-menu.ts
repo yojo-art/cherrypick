@@ -555,7 +555,12 @@ export function getNoteMenu(props: {
 						action: copyEdit,
 					});
 				}
-
+				noteChildMenu.push({ type: 'divider' });
+				noteChildMenu.push({
+					icon: 'ti ti-repeat',
+					text: i18n.ts.unRenoteAll,
+					action: unRenote,
+				});
 				return noteChildMenu;
 			},
 		});
@@ -716,11 +721,6 @@ export function getNoteMenu(props: {
 					});
 				}
 
-				noteChildMenu.push({
-					icon: 'ti ti-repeat-off',
-					text: i18n.ts.unRenoteAll,
-					action: unRenote,
-				});
 				return noteChildMenu;
 			},
 		});
