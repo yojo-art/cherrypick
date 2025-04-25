@@ -1048,11 +1048,11 @@ describe('Note', () => {
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags.length, 3);
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
-			assert.strictEqual(res.body.tags[0], '#aaa');
+			assert.strictEqual(res.body.tags[0], 'aaa');
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
-			assert.strictEqual(res.body.tags[1], '#bbb');
+			assert.strictEqual(res.body.tags[1], 'bbb');
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
-			assert.strictEqual(res.body.tags[2], '#ccc');
+			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
 		test('更新時にtagTextからハッシュタグを抽出できる', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
@@ -1075,11 +1075,11 @@ describe('Note', () => {
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags.length, 3);
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
-			assert.strictEqual(res.body.tags[0], '#aaa');
+			assert.strictEqual(res.body.tags[0], 'aaa');
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
-			assert.strictEqual(res.body.tags[1], '#bbb');
+			assert.strictEqual(res.body.tags[1], 'bbb');
 			// @ts-expect-error ダメならisArrayで落ちるため警告不要
-			assert.strictEqual(res.body.tags[2], '#ccc');
+			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
 	});
 });

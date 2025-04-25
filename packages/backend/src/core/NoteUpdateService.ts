@@ -45,6 +45,7 @@ type Option = {
 	files?: MiDriveFile[] | null;
 	name?: string | null;
 	text?: string | null;
+	tagText?: string | null;
 	disableRightClick?: boolean | null;
 	cw?: string | null;
 	apHashtags?: string[] | null;
@@ -110,7 +111,9 @@ export class NoteUpdateService implements OnApplicationShutdown {
 
 			const combinedTokens = tokens.concat(cwTokens).concat(choiceTokens);
 
-			tags = data.apHashtags ?? extractHashtags(combinedTokens);
+			tags = data.apHashtags ?? data.tagText
+				? extractHashtags(combinedTokens).concat(extractHashtags(mfm.parse(data.tagText)))
+				: extractHashtags(combinedTokens);
 
 			emojis = data.apEmojis ?? extractCustomEmojisFromMfm(combinedTokens);
 		}
