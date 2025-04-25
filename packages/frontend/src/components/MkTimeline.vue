@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		ref="tlComponent"
 		:pagination="paginationQuery"
 		:noGap="!defaultStore.state.showGapBetweenNotesInTimeline"
+		:grid="grid"
 		@queue="emit('queue', $event)"
 		@status="prComponent?.setDisabled($event)"
 	/>
@@ -101,8 +102,14 @@ let connection2: Misskey.ChannelConnection | null = null;
 let paginationQuery: Paging | null = null;
 
 const stream = useStream();
+const gridMediaTimeline = computed(() => {
+	return defaultStore.state.gridLayoutMediaTimeline;
+});
+let grid = false;
 
 function connectChannel() {
+	grid = gridMediaTimeline.value && props.src === 'media';
+
 	if (props.src === 'antenna') {
 		if (props.antenna == null) return;
 		connection = stream.useChannel('antenna', {

@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { shallowRef } from 'vue';
 import type { Paging } from '@/components/MkPagination.vue';
 import MkPagination from '@/components/MkPagination.vue';
-import XFiles from '@/pages/user/index.timeline.files.files.vue';
+import XFiles from '@/components/CPTimelineFile.vue';
 import { i18n } from '@/i18n.js';
 import { infoImageUrl } from '@/instance.js';
 
