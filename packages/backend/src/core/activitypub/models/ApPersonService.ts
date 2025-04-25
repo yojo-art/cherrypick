@@ -8,7 +8,7 @@ import promiseLimit from 'promise-limit';
 import { DataSource } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, InstancesRepository, MiMeta, MiDriveFile, UserProfilesRepository, UserPublickeysRepository, UsersRepository } from '@/models/_.js';
+import { type FollowingsRepository, type InstancesRepository, type MiMeta, type MiDriveFile, type UserProfilesRepository, type UserPublickeysRepository, type UsersRepository, MiClip } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import { MiUser } from '@/models/User.js';
@@ -45,6 +45,7 @@ import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { ApNoteService } from './ApNoteService.js';
 import type { ApMfmService } from '../ApMfmService.js';
+import type { ApClipService } from './ApClipService.js';
 import type { ApResolverService, Resolver } from '../ApResolverService.js';
 import type { ApLoggerService } from '../ApLoggerService.js';
 
@@ -76,6 +77,7 @@ export class ApPersonService implements OnModuleInit {
 	private instanceChart: InstanceChart;
 	private apLoggerService: ApLoggerService;
 	private accountMoveService: AccountMoveService;
+	private apClipService: ApClipService;
 	private logger: Logger;
 
 	constructor(
@@ -130,6 +132,7 @@ export class ApPersonService implements OnModuleInit {
 		this.instanceChart = this.moduleRef.get('InstanceChart');
 		this.apLoggerService = this.moduleRef.get('ApLoggerService');
 		this.accountMoveService = this.moduleRef.get('AccountMoveService');
+		this.apClipService = this.moduleRef.get('ApClipService');
 		this.logger = this.apLoggerService.logger;
 	}
 
@@ -479,6 +482,7 @@ export class ApPersonService implements OnModuleInit {
 					emojis,
 					setFederationAvatarShape: person.setFederationAvatarShape,
 					isSquareAvatars: person.isSquareAvatars,
+					clipsUri: person._yojoart_clips ? getApId(person._yojoart_clips) : undefined,
 				})) as MiRemoteUser;
 
 				let _description: string | null = null;
@@ -568,6 +572,7 @@ export class ApPersonService implements OnModuleInit {
 		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateClips(user.id, resolver).catch(err => this.logger.error(err));
 
 		return user;
 	}
@@ -740,6 +745,7 @@ export class ApPersonService implements OnModuleInit {
 			isExplorable: person.discoverable,
 			setFederationAvatarShape: person.setFederationAvatarShape,
 			isSquareAvatars: person.isSquareAvatars,
+			clipsUri: person._yojoart_clips,
 			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;
 
@@ -829,6 +835,7 @@ export class ApPersonService implements OnModuleInit {
 		);
 
 		await this.updateFeatured(exist.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateClips(exist.id, resolver).catch(err => this.logger.error(err));
 
 		const updated = { ...exist, ...updates };
 
@@ -858,13 +865,13 @@ export class ApPersonService implements OnModuleInit {
 	async mutualLinkSections(person: IActor, actor: MiRemoteUser, role_policy:RolePolicies) : Promise<[] | {
 		name: string | null;
 		mutualLinks: {
-				fileId: MiDriveFile['id'];
-				description: string | null;
-				imgSrc: string;
-				url: string;
-				id: string;
+			fileId: MiDriveFile['id'];
+			description: string | null;
+			imgSrc: string;
+			url: string;
+			id: string;
 		}[];
-}[]> {
+	}[]> {
 		const apMutualLinkSections = person.banner;
 
 		if (apMutualLinkSections === undefined) return [];
