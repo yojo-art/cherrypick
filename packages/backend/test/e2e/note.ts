@@ -1044,14 +1044,9 @@ describe('Note', () => {
 				noteId: aliceNote.id,
 			}, alice);
 
-			assert.strictEqual(Array.isArray(res.body.tags), true);
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags.length, 3);
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[0], 'aaa');
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[1], 'bbb');
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
 		test('更新時にtagTextからハッシュタグを追加できる', async () => {
@@ -1073,14 +1068,9 @@ describe('Note', () => {
 				noteId: aliceNote.id,
 			}, alice);
 
-			assert.strictEqual(Array.isArray(res.body.tags), true);
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags.length, 3);
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[0], 'aaa');
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[1], 'bbb');
-			// @ts-expect-error ダメならisArrayで落ちるため警告不要
 			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
 	});
