@@ -298,7 +298,7 @@ export const packedNoteSchema = {
 		},
 		favorite: {
 			type: 'boolean',
-			optional: true, nullable: false,
+			optional: false, nullable: false,
 		},
 	},
 } as const;
