@@ -3,7 +3,8 @@
 ### Release Date
 
 ### General
-
+- ノートにお気に入り状態が表示されるように [#710](https://github.com/yojo-art/cherrypick/pull/710)
+  - ノート取得APIのレスポンスで`favorite: boolean`が追加されます
 ### Client
 
 ### Server
