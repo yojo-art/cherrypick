@@ -109,7 +109,7 @@ export class ClipService {
 	}
 
 	@bindThis
-	public async addNote(me: MiLocalUser, clipId: MiClip['id'], noteId: MiNote['id']): Promise<void> {
+	public async addNote(me: MiUser, clipId: MiClip['id'], noteId: MiNote['id']): Promise<void> {
 		const clip = await this.clipsRepository.findOneBy({
 			id: clipId,
 			userId: me.id,

@@ -321,6 +321,10 @@ export class MiUser {
 			(this as any)[k] = v;
 		}
 	}
+	@Column('varchar', {
+		length: 512, nullable: true,
+	})
+	public clipsUri: string | null;
 }
 
 export type MiLocalUser = MiUser & {

@@ -13,14 +13,11 @@ import { QueryService } from '@/core/QueryService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
-import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import { awaitAll } from '@/misc/prelude/await-all.js';
-import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
 import { ApNoteService } from '@/core/activitypub/models/ApNoteService.js';
-import { IObject } from '@/core/activitypub/type.js';
 import { MetaService } from '@/core/MetaService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { ApLoggerService } from '@/core/activitypub/ApLoggerService.js';
+import { ApClipService } from '@/core/activitypub/models/ApClipService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -94,6 +91,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private noteEntityService: NoteEntityService,
 		private queryService: QueryService,
 		private apLoggerService: ApLoggerService,
+		private apClipService: ApClipService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.clipId.split('@');
@@ -113,6 +111,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 				if (!clip.isPublic && (me == null || (clip.userId !== me.id))) {
 					throw new ApiError(meta.errors.noSuchClip);
+				}
+				if (clip.uri) {
+					if (clip.lastFetchedAt == null || Date.now() - clip.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
+						this.clipsRepository.update(clip.id, {
+							lastFetchedAt: new Date(),
+						});
+						this.apClipService.update(clip).catch(e => {
+							apLoggerService.logger.warn('clip fetch failed ' + e);
+						}).then(() => {
+							apLoggerService.logger.info('clip update:' + clip.uri);
+						});
+					}
 				}
 
 				const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
