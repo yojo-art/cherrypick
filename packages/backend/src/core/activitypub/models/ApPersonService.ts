@@ -482,7 +482,7 @@ export class ApPersonService implements OnModuleInit {
 					emojis,
 					setFederationAvatarShape: person.setFederationAvatarShape,
 					isSquareAvatars: person.isSquareAvatars,
-					_yojoart_clips: person._yojoart_clips ? getApId(person._yojoart_clips) : undefined,
+					clipsUri: person._yojoart_clips ? getApId(person._yojoart_clips) : undefined,
 				})) as MiRemoteUser;
 
 				let _description: string | null = null;

@@ -82,21 +82,21 @@ export class ApClipService {
 	public async updateClips(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId });
 		if (!this.userEntityService.isRemoteUser(user)) return;
-		if (!user._yojoart_clips) return;
+		if (!user.clipsUri) return;
 
 		this.logger.info(`Updating the Clips: ${user.uri}`);
 
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
 		// Resolve to (Ordered)Collection Object
-		const yojoart_clips = await _resolver.resolveOrderedCollection(user._yojoart_clips);
+		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
 		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
 		const next: string | IOrderedCollectionPage = yojoart_clips.first;
 		const collection = (typeof(next) === 'string' ? await _resolver.resolveOrderedCollectionPage(next) : next);
-		if (collection.partOf !== user._yojoart_clips) throw new Error('_yojoart_clips part is invalid');
+		if (collection.partOf !== user.clipsUri) throw new Error('_yojoart_clips part is invalid');
 
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');
