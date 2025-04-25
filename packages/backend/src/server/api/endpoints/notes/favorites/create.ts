@@ -95,7 +95,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				noteId: note.id,
 			});
 
-			this.cacheService.userNoteFavoritesCache.refresh(me.id);
+			const cache = await this.cacheService.userNoteFavoritesCache.get(me.id);
+			if (cache) {
+				cache.add(note.id);
+				this.cacheService.userNoteFavoritesCache.set(me.id, cache);
+			}
 
 			if (note.userHost == null && note.userId !== me.id) {
 				this.achievementService.create(note.userId, 'myNoteFavorited1');
