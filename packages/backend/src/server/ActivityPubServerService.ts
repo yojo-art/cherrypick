@@ -503,7 +503,7 @@ export class ActivityPubServerService {
 	}
 
 	@bindThis
-	private async featuredCollections(request: FastifyRequest<{
+	private async collectionsClips(request: FastifyRequest<{
 		Params: { user: string; };
 		Querystring: { since_id?: string; until_id?: string; page?: string; };
 	}>, reply: FastifyReply) {
@@ -538,7 +538,7 @@ export class ActivityPubServerService {
 			return;
 		}
 		const limit = 20;
-		const partOf = `${this.config.url}/users/${userId}/collections/featuredCollections`;
+		const partOf = `${this.config.url}/users/${userId}/collections/clips`;
 		const clips_count : number = await this.clipsRepository.countBy({
 			userId: user.id,
 			isPublic: true,
@@ -829,11 +829,11 @@ export class ActivityPubServerService {
 		// featured
 		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/featured', async (request, reply) => await this.featured(request, reply));
 
-		// featuredCollections
+		// _yojoart_clips
 		fastify.get<{
 			Params: { user: string; };
 			Querystring: { since_id?: string; until_id?: string; page?: string; };
-		}>('/users/:user/collections/featuredCollections', async (request, reply) => await this.featuredCollections(request, reply));
+		}>('/users/:user/collections/clips', async (request, reply) => await this.collectionsClips(request, reply));
 
 		//clip
 		fastify.get<{

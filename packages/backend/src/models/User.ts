@@ -324,7 +324,7 @@ export class MiUser {
 	@Column('varchar', {
 		length: 512, nullable: true,
 	})
-	public featuredCollections: string | null;
+	public clipsUri: string | null;
 }
 
 export type MiLocalUser = MiUser & {

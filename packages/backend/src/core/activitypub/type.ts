@@ -228,7 +228,7 @@ export interface IActor extends IObject {
 			url: string | null;//link to
 		}[] | [];
 	}[];
-	featuredCollections?: string | null;
+	_yojoart_clips?: string | null;
 }
 
 export const isCollection = (object: IObject): object is ICollection =>

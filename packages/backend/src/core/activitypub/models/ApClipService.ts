@@ -79,24 +79,24 @@ export class ApClipService {
 			}
 		}
 	}
-	public async updateFeaturedCollections(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
+	public async updateClips(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId });
 		if (!this.userEntityService.isRemoteUser(user)) return;
-		if (!user.featuredCollections) return;
+		if (!user._yojoart_clips) return;
 
-		this.logger.info(`Updating the featuredCollections: ${user.uri}`);
+		this.logger.info(`Updating the Clips: ${user.uri}`);
 
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
 		// Resolve to (Ordered)Collection Object
-		const featuredCollections = await _resolver.resolveOrderedCollection(user.featuredCollections);
-		if (!isOrderedCollection(featuredCollections)) throw new Error('Object is not Collection or OrderedCollection');
+		const yojoart_clips = await _resolver.resolveOrderedCollection(user._yojoart_clips);
+		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
 
-		if (!featuredCollections.first) throw new Error('featuredCollections first page not exist');
+		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
-		const next: string | IOrderedCollectionPage = featuredCollections.first;
+		const next: string | IOrderedCollectionPage = yojoart_clips.first;
 		const collection = (typeof(next) === 'string' ? await _resolver.resolveOrderedCollectionPage(next) : next);
-		if (collection.partOf !== user.featuredCollections) throw new Error('featuredCollections part is invalid');
+		if (collection.partOf !== user._yojoart_clips) throw new Error('_yojoart_clips part is invalid');
 
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');

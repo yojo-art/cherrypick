@@ -482,7 +482,7 @@ export class ApPersonService implements OnModuleInit {
 					emojis,
 					setFederationAvatarShape: person.setFederationAvatarShape,
 					isSquareAvatars: person.isSquareAvatars,
-					featuredCollections: person.featuredCollections ? getApId(person.featuredCollections) : undefined,
+					_yojoart_clips: person._yojoart_clips ? getApId(person._yojoart_clips) : undefined,
 				})) as MiRemoteUser;
 
 				let _description: string | null = null;
@@ -572,7 +572,7 @@ export class ApPersonService implements OnModuleInit {
 		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
-		await this.apClipService.updateFeaturedCollections(user.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateClips(user.id, resolver).catch(err => this.logger.error(err));
 
 		return user;
 	}
@@ -745,7 +745,7 @@ export class ApPersonService implements OnModuleInit {
 			isExplorable: person.discoverable,
 			setFederationAvatarShape: person.setFederationAvatarShape,
 			isSquareAvatars: person.isSquareAvatars,
-			featuredCollections: person.featuredCollections,
+			_yojoart_clips: person._yojoart_clips,
 			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;
 
@@ -835,7 +835,7 @@ export class ApPersonService implements OnModuleInit {
 		);
 
 		await this.updateFeatured(exist.id, resolver).catch(err => this.logger.error(err));
-		await this.apClipService.updateFeaturedCollections(exist.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateClips(exist.id, resolver).catch(err => this.logger.error(err));
 
 		const updated = { ...exist, ...updates };
 

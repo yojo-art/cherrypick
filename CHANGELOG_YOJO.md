@@ -4,9 +4,9 @@
 
 ### General
 クリップをActivityPub拡張表現で扱う [#617](https://github.com/yojo-art/cherrypick/pull/617)
-- Person Service ApplicationがfeaturedCollectionsを持つようになります
-- featuredCollectionsはクリップの一覧を表現するOrderedCollectionです
-- nodeinfo内features配列にfeatured_collectionsとして機能対応を示します
+- Person Service Applicationが_yojoart_clipsを持つようになります
+- _yojoart_clipsはクリップの一覧を表現するOrderedCollectionです
+- nodeinfo内features配列に https://yojoart.kzkr.xyz/ns#_yojoart_clips として機能対応を示します
 
 ### Client
 

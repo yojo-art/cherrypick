@@ -592,7 +592,7 @@ export class ApRendererService {
 			attachment: attachment.length ? attachment : undefined,
 			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
 			isSquareAvatars: user.isSquareAvatars ?? undefined,
-			featuredCollections: `${id}/collections/featuredCollections`,
+			_yojoart_clips: `${id}/collections/clips`,
 		};
 
 		if (user.movedToUri) {
