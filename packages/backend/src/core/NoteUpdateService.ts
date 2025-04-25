@@ -111,9 +111,9 @@ export class NoteUpdateService implements OnApplicationShutdown {
 
 			const combinedTokens = tokens.concat(cwTokens).concat(choiceTokens);
 
-			tags = data.apHashtags ?? data.tagText
-				? extractHashtags(combinedTokens).concat(extractHashtags(mfm.parse(data.tagText)))
-				: extractHashtags(combinedTokens);
+			if (data.apHashtags) tags = data.apHashtags;
+			else if (data.tagText) tags = extractHashtags(combinedTokens).concat(extractHashtags(mfm.parse(data.tagText)));
+			else tags = extractHashtags(combinedTokens);
 
 			emojis = data.apEmojis ?? extractCustomEmojisFromMfm(combinedTokens);
 		}
