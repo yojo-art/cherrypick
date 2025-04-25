@@ -1044,9 +1044,14 @@ describe('Note', () => {
 				noteId: aliceNote.id,
 			}, alice);
 
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags.length, 3);
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags[0], 'aaa');
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags[1], 'bbb');
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
 		test('更新時にtagTextからハッシュタグを追加できる', async () => {
@@ -1059,18 +1064,24 @@ describe('Note', () => {
 			assert.strictEqual(first.body.tags, undefined);
 
 			await api('notes/update', {
+				cw: null,
 				noteId: aliceNote.id,
-				text: aliceNote.text,
 				tagText: '#aaa #bbb #ccc',
+				text: 'Hello',
 			}, alice);
 
 			const res = await api('notes/show', {
 				noteId: aliceNote.id,
 			}, alice);
 
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags.length, 3);
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags[0], 'aaa');
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags[1], 'bbb');
+			// @ts-expect-error TS18048
 			assert.strictEqual(res.body.tags[2], 'ccc');
 		});
 	});
