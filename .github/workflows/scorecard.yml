@@ -9,8 +9,8 @@ on:
   branch_protection_rule:
   # To guarantee Maintained check is occasionally updated. See
   # https://github.com/ossf/scorecard/blob/main/docs/checks.md#maintained
-  schedule:
-    - cron: '26 20 * * 5'
+  #schedule:
+  #  - cron: '26 20 * * 5'
   push:
     branches: [ "develop" ]
 
