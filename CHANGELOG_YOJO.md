@@ -9,6 +9,7 @@
 - nodeinfo内features配列に https://yojoart.kzkr.xyz/ns#_yojoart_clips として機能対応を示します
 
 ### Client
+- Fix: ロール設定に予約投稿の最大数が2個ある [#714](https://github.com/yojo-art/cherrypick/pull/714)
 - Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
   - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
 ### Server
