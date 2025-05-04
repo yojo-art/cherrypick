@@ -11,6 +11,7 @@
 ### Client
 - Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
   - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
+- Enhance: フロントエンド上からnotes/unrenoteを呼べるように [#711](https://github.com/yojo-art/cherrypick/pull/711)
 ### Server
 UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
 
