@@ -61,7 +61,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkSwitch v-model="disableNyaize">{{ i18n.ts.noNyaization }} <span class="_beta">CherryPick</span></MkSwitch>
 				<MkSwitch v-model="checkMultipleRenote">{{ i18n.ts.showMultipleRenoteWarning }} <span class="_beta">yojo-art</span></MkSwitch>
 				<MkSwitch v-model="checkReactionDialog">{{ i18n.ts.showReactionCheckDialog }} <span class="_beta">yojo-art</span></MkSwitch>
-				<MkSwitch v-model="hideTagUiTags">{{ i18n.ts.hideTagUiTags }} <span class="_beta">yojo-art</span>
+				<MkSwitch v-model="hideTagUiTags">{{ i18n.ts.hideTagUiTag }} <span class="_beta">yojo-art</span>
 					<template #caption>{{ i18n.ts.hideTagUiTagDescription }}</template>
 				</MkSwitch>
 			</div>
