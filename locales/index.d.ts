@@ -1015,6 +1015,10 @@ export interface Locale extends ILocale {
      */
     "unrenote": string;
     /**
+     * 全リノート解除
+     */
+    "unRenoteAll": string;
+    /**
      * リノートしました。
      */
     "renoted": string;
