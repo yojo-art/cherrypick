@@ -296,5 +296,9 @@ export const packedNoteSchema = {
 			optional: true, nullable: true,
 			format: 'date-time',
 		},
+		favorite: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 	},
 } as const;
