@@ -1130,7 +1130,7 @@ describe('Note', () => {
 
 			assert.strictEqual(Array.isArray(res.body.tags), true);
 			const arr = res.body.tags as string[];
-			assert.strictEqual(arr, 3);
+			assert.strictEqual(arr.length, 3);
 			assert.strictEqual(arr[0], 'aaa');
 			assert.strictEqual(arr[1], 'bbb');
 			assert.strictEqual(arr[2], 'ccc');
@@ -1156,7 +1156,7 @@ describe('Note', () => {
 
 			assert.strictEqual(Array.isArray(res.body.tags), true);
 			const arr = res.body.tags as string[];
-			assert.strictEqual(arr, 3);
+			assert.strictEqual(arr.length, 3);
 			assert.strictEqual(arr[0], 'aaa');
 			assert.strictEqual(arr[1], 'bbb');
 			assert.strictEqual(arr[2], 'ccc');
