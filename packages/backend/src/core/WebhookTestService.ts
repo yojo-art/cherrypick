@@ -144,7 +144,6 @@ function generateDummyNote(override?: Partial<MiNote>): MiNote {
 		replyUserHost: null,
 		renoteUserId: null,
 		renoteUserHost: null,
-		favorite: false,
 		...override,
 	};
 }
@@ -181,6 +180,7 @@ function toPackedNote(note: MiNote, detail = true, override?: Packed<'Note'>): P
 		repliesCount: note.repliesCount,
 		uri: note.uri ?? undefined,
 		url: note.url ?? undefined,
+		favorite: false,
 		reactionAndUserPairCache: note.reactionAndUserPairCache,
 		...(detail ? {
 			clippedCount: note.clippedCount,

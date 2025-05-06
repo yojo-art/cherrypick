@@ -455,6 +455,7 @@ export class NoteEntityService implements OnModuleInit {
 			mentions: note.mentions.length > 0 ? note.mentions : undefined,
 			uri: note.uri ?? undefined,
 			url: note.url ?? undefined,
+			favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 
 			...(opts.detail ? {
 				clippedCount: note.clippedCount,
@@ -475,7 +476,6 @@ export class NoteEntityService implements OnModuleInit {
 
 				poll: note.hasPoll ? this.populatePoll(note, meId) : undefined,
 				event: note.hasEvent ? this.populateEvent(note) : undefined,
-				favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 
 				...(meId && Object.keys(reactions).length > 0 ? {
 					myReaction: this.populateMyReaction({
