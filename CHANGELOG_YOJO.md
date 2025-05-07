@@ -3,6 +3,7 @@
 ### Release Date
 
 ### General
+- ハッシュタグを非表示で投稿できるように [#712](https://github.com/yojo-art/cherrypick/pull/712)
 クリップをActivityPub拡張表現で扱う [#617](https://github.com/yojo-art/cherrypick/pull/617)
 - Person Service Applicationが_yojoart_clipsを持つようになります
 - _yojoart_clipsはクリップの一覧を表現するOrderedCollectionです

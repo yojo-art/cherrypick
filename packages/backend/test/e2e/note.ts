@@ -1071,7 +1071,7 @@ describe('Note', () => {
 		test('お気に入り状態が返ってくる ホーム', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
 			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/timeline', { }, alice);
+			const res = await api('notes/timeline', {}, alice);
 
 			assert.strictEqual(res.body[0].favorite, true);
 		});
@@ -1079,7 +1079,7 @@ describe('Note', () => {
 		test('お気に入り状態が返ってくる グローバル', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
 			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/global-timeline', { }, alice);
+			const res = await api('notes/global-timeline', {}, alice);
 
 			assert.strictEqual(res.body[0].favorite, true);
 		});
@@ -1087,7 +1087,7 @@ describe('Note', () => {
 		test('お気に入り状態が返ってくる ソーシャル', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
 			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/hybrid-timeline', { }, alice);
+			const res = await api('notes/hybrid-timeline', {}, alice);
 
 			assert.strictEqual(res.body[0].favorite, true);
 		});
@@ -1095,7 +1095,7 @@ describe('Note', () => {
 		test('お気に入り状態が返ってくる ローカル', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
 			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/local-timeline', { }, alice);
+			const res = await api('notes/local-timeline', {}, alice);
 
 			assert.strictEqual(res.body[0].favorite, true);
 		});
@@ -1118,6 +1118,48 @@ describe('Note', () => {
 			const res = await api('notes/user-list-timeline', { listId: list.body.id }, bob);
 
 			assert.strictEqual(res.body[0].favorite, true);
+		});
+	});
+
+	describe('非表示ハッシュタグ', () => {
+		test('作成時にtagTextからハッシュタグを追加できる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello', tagText: '#aaa #bbb #ccc' });
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			const arr = res.body.tags as string[];
+			assert.strictEqual(arr.length, 3);
+			assert.strictEqual(arr[0], 'aaa');
+			assert.strictEqual(arr[1], 'bbb');
+			assert.strictEqual(arr[2], 'ccc');
+		});
+		test('更新時にtagTextからハッシュタグを追加できる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+
+			const first = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+			assert.strictEqual(first.body.tags, undefined);
+
+			await api('notes/update', {
+				cw: null,
+				noteId: aliceNote.id,
+				tagText: '#aaa #bbb #ccc',
+				text: 'Hello',
+			}, alice);
+
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			const arr = res.body.tags as string[];
+			assert.strictEqual(arr.length, 3);
+			assert.strictEqual(arr[0], 'aaa');
+			assert.strictEqual(arr[1], 'bbb');
+			assert.strictEqual(arr[2], 'ccc');
 		});
 	});
 });
