@@ -354,6 +354,7 @@ export class OpenSearchService {
 			this.logger.error(error);
 		});
 	}
+
 	/**
 	 * リアクション
 	 */
@@ -414,6 +415,7 @@ export class OpenSearchService {
 			userId: opts.userId,
 		});
 	}
+
 	@bindThis
 	public async indexFavorite(id: string,
 		opts: {
@@ -423,6 +425,7 @@ export class OpenSearchService {
 		}) {
 		this.index(this.favoriteIndex, id, opts);
 	}
+
 	@bindThis
 	public async recreateIndex(): Promise<void> {
 		if (this.opensearch) {
@@ -555,6 +558,7 @@ export class OpenSearchService {
 		}
 		this.logger.info('All pollvotes has been indexed.');
 	}
+
 	@bindThis
 	public async fullIndexClipNotes(): Promise<void> {
 		const clipsCount = await this.clipNotesRepository.createQueryBuilder('clipnote').getCount();
@@ -581,6 +585,7 @@ export class OpenSearchService {
 			});
 		}
 	}
+
 	public async fullIndexFavorites(): Promise<void> {
 		const clipsCount = await this.noteFavoritesRepository.createQueryBuilder('fv').getCount();
 		const limit = 100;
@@ -604,6 +609,7 @@ export class OpenSearchService {
 			});
 		}
 	}
+
 	@bindThis
 	private async unindexById(index: string, id: string) {
 		if (!this.opensearch) return;
