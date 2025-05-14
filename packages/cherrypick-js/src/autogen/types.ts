@@ -1718,6 +1718,22 @@ export type paths = {
      */
     post: operations['federation___instances'];
   };
+  '/federation/remote-software': {
+    /**
+     * federation/remote-software
+     * @description No description provided.
+     *
+     * **Credential required**: *No*
+     */
+    get: operations['federation___remote-software'];
+    /**
+     * federation/remote-software
+     * @description No description provided.
+     *
+     * **Credential required**: *No*
+     */
+    post: operations['federation___remote-software'];
+  };
   '/federation/show-instance': {
     /**
      * federation/show-instance
@@ -4624,6 +4640,7 @@ export type components = {
       myReaction?: string | null;
       /** Format: date-time */
       deleteAt?: string | null;
+      favorite: boolean;
     };
     NoteDraft: {
       /**
@@ -16514,6 +16531,70 @@ export type operations = {
     };
   };
   /**
+   * federation/remote-software
+   * @description No description provided.
+   *
+   * **Credential required**: *No*
+   */
+  'federation___remote-software': {
+    requestBody: {
+      content: {
+        'application/json': {
+          blocked?: boolean | null;
+          notResponding?: boolean | null;
+          suspended?: boolean | null;
+          silenced?: boolean | null;
+          federating?: boolean | null;
+          subscribing?: boolean | null;
+          publishing?: boolean | null;
+          quarantined?: boolean | null;
+        };
+      };
+    };
+    responses: {
+      /** @description OK (with results) */
+      200: {
+        content: {
+          'application/json': ({
+              softwareName: string;
+              color: string | null;
+              count: number;
+            })[];
+        };
+      };
+      /** @description Client error */
+      400: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Authentication error */
+      401: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Forbidden error */
+      403: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description I'm Ai */
+      418: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+      /** @description Internal server error */
+      500: {
+        content: {
+          'application/json': components['schemas']['Error'];
+        };
+      };
+    };
+  };
+  /**
    * federation/show-instance
    * @description No description provided.
    *
@@ -20816,6 +20897,11 @@ export type operations = {
           untilId?: string;
           /** @default true */
           markAsRead?: boolean;
+          /**
+           * @description 新着ノート通知をまとめるか
+           * @default false
+           */
+          groupNote?: boolean;
           includeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'groupInvited' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'scheduleNote' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'note:grouped' | 'pollVote')[];
           excludeTypes?: ('note' | 'follow' | 'mention' | 'reply' | 'renote' | 'quote' | 'reaction' | 'pollEnded' | 'receiveFollowRequest' | 'followRequestAccepted' | 'groupInvited' | 'roleAssigned' | 'achievementEarned' | 'exportCompleted' | 'login' | 'createToken' | 'scheduleNote' | 'app' | 'test' | 'reaction:grouped' | 'renote:grouped' | 'note:grouped' | 'pollVote')[];
         };
@@ -24037,6 +24123,8 @@ export type operations = {
           renoteId?: string | null;
           /** Format: misskey:id */
           channelId?: string | null;
+          /** @description ハッシュタグ文字列 自動的にパースされます */
+          tagText?: string | null;
           text?: string | null;
           fileIds?: string[];
           mediaIds?: string[];
@@ -25500,6 +25588,8 @@ export type operations = {
           noExtractHashtags?: boolean;
           /** @default false */
           noExtractEmojis?: boolean;
+          /** @description ハッシュタグ文字列 自動的にパースされます */
+          tagText?: string | null;
           /** Format: misskey:id */
           replyId?: string | null;
           /** Format: misskey:id */
@@ -26298,6 +26388,8 @@ export type operations = {
             expiresAt?: number | null;
             expiredAfter?: number | null;
           }) | null;
+          /** @description ハッシュタグ文字列 自動的にパースされます */
+          tagText?: string | null;
           event?: ({
             title?: string;
             start?: number;
@@ -29023,6 +29115,8 @@ export type operations = {
           limit?: number;
           sinceId?: string;
           untilId?: string;
+          /** @default true */
+          remoteApi?: boolean;
         };
       };
     };

@@ -137,6 +137,7 @@ type Option = {
 	renote?: MiNote | null;
 	files?: MiDriveFile[] | null;
 	poll?: IPoll | null;
+	tagText?: string;
 	event?: IEvent | null;
 	schedule?: MiNoteSchedule | null;
 	localOnly?: boolean | null;
@@ -357,7 +358,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			const combinedTokens = tokens.concat(cwTokens).concat(choiceTokens);
 
-			tags = data.apHashtags ?? extractHashtags(combinedTokens);
+			if (data.apHashtags) tags = data.apHashtags;
+			else if (data.tagText) tags = extractHashtags(combinedTokens).concat(extractHashtags(mfm.parse(data.tagText)));
+			else tags = extractHashtags(combinedTokens);
 
 			emojis = data.apEmojis ?? extractCustomEmojisFromMfm(combinedTokens);
 

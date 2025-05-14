@@ -106,6 +106,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					{{ i18n.ts.filesGridLayoutInUserPage }} <span class="_beta">CherryPick</span>
 					<template #caption>{{ i18n.ts.filesGridLayoutInUserPageDescription }}</template>
 				</MkSwitch>
+				<MkSwitch v-model="gridLayoutMediaTimeline">
+					{{ i18n.ts.gridLayoutMediaTimeline }} <span class="_beta">yojo-art</span>
+					<template #caption>{{ i18n.ts.gridLayoutMediaTimelineDescription }}</template>
+				</MkSwitch>
 			</div>
 
 			<MkSelect v-model="menuStyle">
@@ -342,6 +346,7 @@ const enableSeasonalScreenEffect = computed(defaultStore.makeGetterSetter('enabl
 const useNativeUIForVideoAudioPlayer = computed(defaultStore.makeGetterSetter('useNativeUIForVideoAudioPlayer'));
 const showUnreadNotificationsCount = computed(defaultStore.makeGetterSetter('showUnreadNotificationsCount'));
 const filesGridLayoutInUserPage = computed(defaultStore.makeGetterSetter('filesGridLayoutInUserPage'));
+const gridLayoutMediaTimeline = computed(defaultStore.makeGetterSetter('gridLayoutMediaTimeline'));
 const fontSize = computed(defaultStore.makeGetterSetter('fontSize'));
 const collapseLongNoteContent = computed(defaultStore.makeGetterSetter('collapseLongNoteContent'));
 const collapseDefault = computed(defaultStore.makeGetterSetter('collapseDefault'));

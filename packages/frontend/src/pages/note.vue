@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<Transition :name="defaultStore.state.animation ? 'fade' : ''" mode="out-in">
 				<div v-if="note">
 					<div v-if="showNext" class="_margin">
-						<MkNotes class="" :pagination="showNext === 'channel' ? nextChannelPagination : nextUserPagination" :noGap="!defaultStore.state.showGapBetweenNotesInTimeline" :disableAutoLoad="true"/>
+						<MkNotes class="" :pagination="showNext" :noGap="!defaultStore.state.showGapBetweenNotesInTimeline" :disableAutoLoad="true"/>
 					</div>
 
 					<div class="_margin">
@@ -40,7 +40,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 
 					<div v-if="showPrev" class="_margin">
-						<MkNotes class="" :pagination="showPrev === 'channel' ? prevChannelPagination : prevUserPagination" :noGap="!defaultStore.state.showGapBetweenNotesInTimeline"/>
+						<MkNotes class="" :pagination="showPrev" :noGap="!defaultStore.state.showGapBetweenNotesInTimeline"/>
 					</div>
 				</div>
 				<MkError v-else-if="error" @retry="fetchNote()"/>
@@ -83,8 +83,8 @@ const props = defineProps<{
 const note = ref<null | Misskey.entities.Note>(CTX_NOTE);
 const clips = ref<Misskey.entities.Clip[]>();
 type TimelineType = 'user' | 'home' | 'local' | 'channel' | false;
-const showPrev = ref<Paging | false>(false);
-const showNext = ref<Paging | false>(false);
+const showPrev = ref<Paging>();
+const showNext = ref<Paging>();
 const error = ref();
 
 function showPrevPagination(tl:TimelineType): Paging {
@@ -178,8 +178,8 @@ function showNextPagination(tl:TimelineType):Paging {
 }
 
 function fetchNote() {
-	showPrev.value = false;
-	showNext.value = false;
+	showPrev.value = undefined;
+	showNext.value = undefined;
 	note.value = null;
 
 	if (CTX_NOTE && CTX_NOTE.id === props.noteId) {

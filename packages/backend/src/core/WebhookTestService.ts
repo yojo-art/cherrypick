@@ -94,6 +94,7 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		token: null,
 		setFederationAvatarShape: null,
 		isSquareAvatars: null,
+		clipsUri: null,
 		...override,
 	};
 }
@@ -179,6 +180,7 @@ function toPackedNote(note: MiNote, detail = true, override?: Packed<'Note'>): P
 		repliesCount: note.repliesCount,
 		uri: note.uri ?? undefined,
 		url: note.url ?? undefined,
+		favorite: false,
 		reactionAndUserPairCache: note.reactionAndUserPairCache,
 		...(detail ? {
 			clippedCount: note.clippedCount,

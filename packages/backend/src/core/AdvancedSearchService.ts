@@ -14,6 +14,7 @@ import { MiUser } from '@/models/_.js';
 import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';

@@ -16,6 +16,7 @@ import { bindThis } from '@/decorators.js';
 import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import { ReactionsBufferingService } from '@/core/ReactionsBufferingService.js';
+import { CacheService } from '../CacheService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { CustomEmojiService } from '../CustomEmojiService.js';
 import type { ReactionService } from '../ReactionService.js';
@@ -85,6 +86,8 @@ export class NoteEntityService implements OnModuleInit {
 
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
+
+		private cacheService: CacheService,
 
 		//private userEntityService: UserEntityService,
 		//private driveFileEntityService: DriveFileEntityService,
@@ -394,7 +397,7 @@ export class NoteEntityService implements OnModuleInit {
 
 		let text = note.text;
 
-		if (note.name && (note.url ?? note.uri)) {
+		if (note.name && (note.url ?? note.uri) && !note.hasEvent) {
 			text = `【${note.name}】\n${(note.text ?? '').trim()}\n\n${note.url ?? note.uri}`;
 		}
 
@@ -452,6 +455,7 @@ export class NoteEntityService implements OnModuleInit {
 			mentions: note.mentions.length > 0 ? note.mentions : undefined,
 			uri: note.uri ?? undefined,
 			url: note.url ?? undefined,
+			favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 
 			...(opts.detail ? {
 				clippedCount: note.clippedCount,
