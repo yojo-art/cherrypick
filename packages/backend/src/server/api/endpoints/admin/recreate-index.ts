@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -25,10 +25,10 @@ export const paramDef = {
 // eslint-disable-next-line import/no-default-export
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			await this.advancedSearchService.recreateIndex();
+			await this.openSearchService.recreateIndex();
 		});
 	}
 }

@@ -21,7 +21,7 @@ import { IdService } from '@/core/IdService.js';
 import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
 import { emojis } from '@/misc/remote-api-utils.js';
-import { AdvancedSearchService } from './AdvancedSearchService.js';
+import { OpenSearchService } from './OpenSearchService.js';
 
 @Injectable()
 export class ClipService {
@@ -51,7 +51,7 @@ export class ClipService {
 		private remoteUserResolveService: RemoteUserResolveService,
 		private roleService: RoleService,
 		private idService: IdService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 	}
 
@@ -105,7 +105,7 @@ export class ClipService {
 		}
 
 		await this.clipsRepository.delete(clip.id);
-		await this.advancedSearchService.unindexUserClip(clip.id);
+		await this.openSearchService.unindexUserClip(clip.id);
 	}
 
 	@bindThis
@@ -134,7 +134,7 @@ export class ClipService {
 				clipId: clip.id,
 			});
 
-			await this.advancedSearchService.indexFavorite(
+			await this.openSearchService.indexFavorite(
 				ID,
 				{
 					clipId: clip.id,
@@ -183,7 +183,7 @@ export class ClipService {
 			clipId: clip.id,
 		});
 
-		await this.advancedSearchService.unindexFavorite(undefined, noteId, clip.id, me.id);
+		await this.openSearchService.unindexFavorite(undefined, noteId, clip.id, me.id);
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);
 	}
 	@bindThis

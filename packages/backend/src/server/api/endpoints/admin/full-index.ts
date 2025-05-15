@@ -5,7 +5,7 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -21,7 +21,7 @@ export const paramDef = {
 		index: {
 			type: 'string',
 			enum: ['notes', 'reaction', 'pollVote', 'clipNotes', 'Favorites'],
-		 },
+		},
 	},
 	required: ['index'],
 } as const;
@@ -30,24 +30,24 @@ export const paramDef = {
 // eslint-disable-next-line import/no-default-export
 export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			switch (ps.index) {
 				case 'notes':
-					this.advancedSearchService.fullIndexNote();
+					this.openSearchService.fullIndexNote();
 					break;
 				case 'reaction':
-					this.advancedSearchService.fullIndexReaction();
+					this.openSearchService.fullIndexReaction();
 					break;
 				case 'pollVote':
-					this.advancedSearchService.fullIndexPollVote();
+					this.openSearchService.fullIndexPollVote();
 					break;
 				case 'clipNotes':
-					this.advancedSearchService.fullIndexClipNotes();
+					this.openSearchService.fullIndexClipNotes();
 					break;
 				case 'Favorites':
-					this.advancedSearchService.fullIndexFavorites();
+					this.openSearchService.fullIndexFavorites();
 					break;
 			}
 		},

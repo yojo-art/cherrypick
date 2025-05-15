@@ -15,7 +15,7 @@ import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
-import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
@@ -96,7 +96,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private apRendererService: ApRendererService,
 		private globalEventService: GlobalEventService,
 		private userBlockingService: UserBlockingService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const createdAt = new Date();
@@ -154,7 +154,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				choice: ps.choice,
 			});
 			if (note.userHost === null) {
-				this.advancedSearchService.indexVote(id, {
+				this.openSearchService.indexVote(id, {
 					noteId: note.id,
 					userId: me.id,
 				});

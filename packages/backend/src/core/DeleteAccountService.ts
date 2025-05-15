@@ -13,7 +13,7 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
-import { AdvancedSearchService } from './AdvancedSearchService.js';
+import { OpenSearchService } from './OpenSearchService.js';
 @Injectable()
 export class DeleteAccountService {
 	constructor(
@@ -28,7 +28,7 @@ export class DeleteAccountService {
 		private queueService: QueueService,
 		private globalEventService: GlobalEventService,
 		private moderationLogService: ModerationLogService,
-		private advancedSearchService: AdvancedSearchService,
+		private openSearchService: OpenSearchService,
 	) {
 	}
 
@@ -73,7 +73,7 @@ export class DeleteAccountService {
 				this.queueService.deliver(user, content, inbox, true);
 			}
 
-			this.advancedSearchService.unindexUserFavorites(user.id);
+			this.openSearchService.unindexUserFavorites(user.id);
 			this.queueService.createDeleteAccountJob(user, {
 				soft: false,
 			});
