@@ -20,7 +20,7 @@ import { ClipService } from '@/core/ClipService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IOrderedCollectionPage } from '../type.js';
+import { IClip, IObject, IOrderedCollection, IOrderedCollectionPage, isOrderedCollection } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -88,8 +88,9 @@ export class ApClipService {
 
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
-		// Resolve to Clip Object
-		const yojoart_clips = await _resolver.resolveClip(user.clipsUri);
+		// Resolve to (Ordered)Collection Object
+		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
+		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
@@ -100,7 +101,10 @@ export class ApClipService {
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');
 
-		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
+		const limit = promiseLimit<IObject>(2);
+		const items = await Promise.all(toArray(activityes).map(x => limit(async() => {
+			return await _resolver.resolve(x);
+		})));
 
 		const clips : MiClip[] & { uri: string }[] = [];
 		const id_map = new Map<string, MiClip>();
@@ -111,6 +115,7 @@ export class ApClipService {
 			td -= 1000;
 			//uri必須
 			if (!clip.id) continue;
+			if (clip.type !== 'Clip') continue;
 			if (new URL(clip.id).origin !== new URL(user.uri).origin) continue;
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
