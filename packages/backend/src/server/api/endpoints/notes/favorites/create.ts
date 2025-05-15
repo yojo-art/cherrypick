@@ -10,6 +10,7 @@ import { IdService } from '@/core/IdService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { GetterService } from '@/server/api/GetterService.js';
 import { DI } from '@/di-symbols.js';
+import { AchievementService } from '@/core/AchievementService.js';
 import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { CacheService } from '@/core/CacheService.js';
 import { ApiError } from '../../../error.js';

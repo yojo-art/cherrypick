@@ -251,6 +251,35 @@ export class OpenSearchService {
 			this.logger.info('OpenSearch is not available');
 			this.opensearchNoteIndex = null;
 		}
+
+	}
+
+	@bindThis
+	public configuredOpensearch(): boolean{
+		return	this.opensearchNoteIndex !== null;
+	}
+
+
+	@bindThis
+	public async search(option: any, index: 'note' | 'renote' | 'reaction' | 'vote' | 'favorite'): Promise<any> {
+		switch (index) {
+			case 'note':
+				option.index =this.opensearchNoteIndex;
+				break;
+			case 'renote':
+				option.index =this.renoteIndex;
+				break;
+			case 'reaction':
+				option.index =this.reactionIndex;
+			break;
+			case 'vote':
+				option.index =this.pollVoteIndex;
+			break;
+			case 'favorite':
+				option.index =this.favoriteIndex;
+			break;
+		}
+		return await this.opensearch.search();
 	}
 
 	@bindThis

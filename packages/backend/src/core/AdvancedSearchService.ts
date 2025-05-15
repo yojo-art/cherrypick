@@ -5,7 +5,6 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
-import { Client as OpenSearch } from '@opensearch-project/opensearch';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
@@ -14,7 +13,7 @@ import { MiUser } from '@/models/_.js';
 import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
-import { DriveService } from '@/core/DriveService.js';
+import { OpenSearchService } from '@/core/OpenSearchService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
@@ -80,20 +79,10 @@ function compileQuery(q: Q): string {
 
 @Injectable()
 export class AdvancedSearchService {
-	private opensearchNoteIndex: string | null = null;
-	private renoteIndex: string;
-	private reactionIndex: string;
-	private pollVoteIndex: string;
-	private favoriteIndex: string;
-
-	private logger: Logger;
 
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
-
-		@Inject(DI.opensearch)
-		private opensearch: OpenSearch | null,
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
@@ -102,23 +91,10 @@ export class AdvancedSearchService {
 		private usersRepository: UsersRepository,
 
 		private cacheService: CacheService,
+		private openSearchService: OpenSearchService,
 		private queryService: QueryService,
 		private idService: IdService,
-		private loggerService: LoggerService,
 	) {
-		this.logger = this.loggerService.getLogger('search');
-		if (opensearch && config.opensearch && config.opensearch.index) {
-			const notesIndexname = `${config.opensearch.index}---notes`;
-			this.renoteIndex = `${config.opensearch.index}---renotes`;//単純Renoteだけここ
-			this.reactionIndex = `${config.opensearch.index}---reaction`;
-			this.pollVoteIndex = `${config.opensearch.index}---pollvote`;//
-			this.favoriteIndex = `${config.opensearch.index}---favorite`;//お気に入りとclip
-
-			this.opensearchNoteIndex = notesIndexname;
-		} else {
-			this.logger.info('OpenSearch is not available');
-			this.opensearchNoteIndex = null;
-		}
 	}
 
 	@bindThis
@@ -144,7 +120,7 @@ export class AdvancedSearchService {
 		limit?: number;
 	},
 	q?: string): Promise<MiNote[]> {
-		if (!this.opensearch) throw new Error('OpenSearch is not available');
+		if (!this.openSearchService.configuredOpensearch()) throw new Error('OpenSearch is not available');
 		return await this.searchNote(me, opts, pagination, q);
 	}
 
@@ -174,7 +150,7 @@ export class AdvancedSearchService {
 		limit?: number;
 	},
 	q?: string): Promise<MiNote[]> {
-		if (this.opensearch) {
+		if (this.openSearchService.configuredOpensearch()) {
 			const osFilter: any = {
 				bool: {
 					must: [],
@@ -299,7 +275,7 @@ export class AdvancedSearchService {
 			}
 
 			const Option = {
-				index: this.opensearchNoteIndex as string,
+				index: '',
 				body: {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
@@ -429,7 +405,6 @@ export class AdvancedSearchService {
 		followingFilter: string,
 		meUserId?: string,
 	): Promise<any[]> {
-		if (!this.opensearch) throw new Error();
 		/*ブロックされている or ミュートしているフィルタ*/
 		const userIdsWhoMeMuting = meUserId ? await this.cacheService.userMutingsCache.fetch(meUserId) : new Set<string>;
 		const	userIdsWhoMeBlockingMe = meUserId ? await this.cacheService.userBlockedCache.fetch(meUserId) : new Set<string>;
@@ -443,7 +418,7 @@ export class AdvancedSearchService {
 		let notes = [] as OpenSearchHit[];
 		const FilterdNotes = [] as OpenSearchHit[];
 		while ( FilterdNotes.length < OpenSearchOption.size) {
-			const res = await this.opensearch.search(OpenSearchOption);
+			const res = await this.openSearchService.search(OpenSearchOption);
 			notes = res.body.hits.hits as OpenSearchHit[];
 			if (notes.length === 0) break;//これ以上探してもない
 
@@ -532,10 +507,9 @@ export class AdvancedSearchService {
 			}
 
 			if (requireReaction) { //検索許可されていないが、
-				if (!this.opensearch) return null;
 
 				const Option = {
-					index: this.reactionIndex,
+					index: '',
 					body: {
 						query: {
 							bool: {
@@ -551,43 +525,39 @@ export class AdvancedSearchService {
 				} as any;
 
 				//リアクションしているか、
-				let res = await this.opensearch.search(Option);
+				let res = await this.openSearchService.search(Option, 'reaction');
 				if (res.body.hits.total.value > 0) {
 					return Note;
 				}
 
 				//投票しているか、
-				Option.index = this.pollVoteIndex;
-				res = await this.opensearch.search(Option);
+				res = await this.openSearchService.search(Option, 'vote');
 				if (res.body.hits.total.value > 0) {
 					return Note;
 				}
 
-				//クリップもしくはお気に入りしてるか、
-				Option.index = this.favoriteIndex;
-				res = await this.opensearch.search(Option);
+				//クリップもしくはお気に入りしてる
+				res = await this.openSearchService.search(Option,'favorite');
 				if (res.body.hits.total.value > 0) {
 					return Note;
 				}
 
 				//Renoteしている
-				Option.index = this.renoteIndex;
 				Option.body.query.bool.must = [
 					{ term: { renoteId: Note._id } },
 					{ term: { userId: meUserId } },
 				];
-				res = await this.opensearch.search(Option);
+				res = await this.openSearchService.search(Option, 'renote');
 				if (res.body.hits.total.value > 0) {
 					return Note;
 				}
 				//返信している
-				Option.index = this.opensearchNoteIndex as string;
 				Option.body.query.bool.must = [
 					{ term: { replyId: Note._id } },
 					{ term: { userId: meUserId } },
 				];
 
-				res = await this.opensearch.search(Option);
+				res = await this.openSearchService.search(Option,'note');
 				if (res.body.hits.total.value > 0) {
 					return Note;
 				}
