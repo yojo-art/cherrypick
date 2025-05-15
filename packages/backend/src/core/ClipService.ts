@@ -23,7 +23,7 @@ import { Packed } from '@/misc/json-schema.js';
 import { emojis } from '@/misc/remote-api-utils.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
-import { ICreate } from './activitypub/type.js';
+import { IActivity, ICreate, IObject } from './activitypub/type.js';
 import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
 
 @Injectable()
@@ -76,7 +76,7 @@ export class ClipService {
 			isPublic: isPublic,
 			description: description,
 		});
-		if (this.userEntityService.isLocalUser(me)) {
+		if (this.userEntityService.isLocalUser(me) && isPublic) {
 			const activity: ICreate = {
 				id: `${this.config.url}/clips/${clip.id}`,
 				actor: this.userEntityService.genLocalUserUri(me.id),
@@ -112,14 +112,35 @@ export class ClipService {
 			description: description,
 			isPublic: isPublic,
 		});
+		const updated_clip = {
+			...clip,
+			name,
+			description,
+			isPublic,
+		} as MiClip;
 		if (this.userEntityService.isLocalUser(me)) {
-			const updated_clip = {
-				...clip,
-				name,
-				description,
-				isPublic,
-			} as MiClip;
-			const activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
+			let activity: IActivity;
+			if (updated_clip.isPublic !== clip.isPublic) {
+				if (updated_clip.isPublic) {
+					//公開に変更
+					const createActivity: ICreate = {
+						id: `${this.config.url}/clips/${clip.id}`,
+						actor: this.userEntityService.genLocalUserUri(me.id),
+						type: 'Create',
+						published: this.idService.parse(clip.id).date.toISOString(),
+						object: this.apRendererService.renderClip(clip),
+						to: ['https://www.w3.org/ns/activitystreams#Public'],
+						cc: [`${this.config.url}/users/${clip.userId}/followers`],
+					};
+					activity = createActivity;
+				} else {
+					//非公開に変更
+					activity = this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`), me);
+				}
+			} else {
+				//公開設定に変更なし
+				activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
+			}
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
@@ -139,7 +160,7 @@ export class ClipService {
 
 		await this.clipsRepository.delete(clip.id);
 		await this.advancedSearchService.unindexUserClip(clip.id);
-		if (this.userEntityService.isLocalUser(me)) {
+		if (this.userEntityService.isLocalUser(me) && clip.isPublic) {
 			const activity = this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`), me);
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
@@ -198,7 +219,7 @@ export class ClipService {
 		});
 
 		this.notesRepository.increment({ id: noteId }, 'clippedCount', 1);
-		if (this.userEntityService.isLocalUser(me)) {
+		if (this.userEntityService.isLocalUser(me) && clip.isPublic) {
 			const updated_clip = {
 				...clip,
 				lastClippedAt,
@@ -234,7 +255,7 @@ export class ClipService {
 
 		await this.advancedSearchService.unindexFavorite(undefined, noteId, clip.id, me.id);
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);
-		if (this.userEntityService.isLocalUser(me)) {
+		if (this.userEntityService.isLocalUser(me) && clip.isPublic) {
 			const activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(clip), me);
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
