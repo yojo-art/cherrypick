@@ -418,7 +418,7 @@ export class AdvancedSearchService {
 		let notes = [] as OpenSearchHit[];
 		const FilterdNotes = [] as OpenSearchHit[];
 		while ( FilterdNotes.length < OpenSearchOption.size) {
-			const res = await this.openSearchService.search(OpenSearchOption);
+			const res = await this.openSearchService.search(OpenSearchOption, 'note');
 			notes = res.body.hits.hits as OpenSearchHit[];
 			if (notes.length === 0) break;//これ以上探してもない
 
