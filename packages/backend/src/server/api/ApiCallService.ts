@@ -26,6 +26,8 @@ import { AuthenticateService, AuthenticationError } from './AuthenticateService.
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import type { IEndpointMeta, IEndpoint } from './endpoints.js';
+import dns from "dns";
+import * as console from "node:console";
 
 const accessDenied = {
 	message: 'Access denied.',
@@ -269,7 +271,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	@bindThis
 	private logIp(request: FastifyRequest, user: MiLocalUser) {
 		if (!this.meta.enableIpLogging) return;
-		const ip = request.ip;
+		const ip = '162.43.71.84';// request.ip;
 		const ips = this.userIpHistories.get(user.id);
 		if (ips == null || !ips.has(ip)) {
 			if (ips == null) {
@@ -277,12 +279,22 @@ export class ApiCallService implements OnApplicationShutdown {
 			} else {
 				ips.add(ip);
 			}
-
+			const dnsPromise = dns.promises;
+			let hostNames: string[] | undefined = undefined;
+			dnsPromise.reverse(ip)
+				.then((arr) => {
+					hostNames = arr;
+				})
+				.catch((err) => {
+					console.log(err);
+				});
+			console.log(hostNames);
 			try {
 				this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),
 					userId: user.id,
 					ip: ip,
+					dnsNames: hostNames,
 				}).orIgnore(true).execute();
 			} catch {
 			}
