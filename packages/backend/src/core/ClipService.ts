@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { forwardRef, Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import got, * as Got from 'got';
+import got from 'got';
 import * as Redis from 'ioredis';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -18,12 +18,12 @@ import { bindThis } from '@/decorators.js';
 import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
-import type { MiLocalUser, MiUser } from '@/models/User.js';
+import type { MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
 import { emojis } from '@/misc/remote-api-utils.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
-import { IActivity, ICreate, IObject } from './activitypub/type.js';
+import { IActivity, ICreate } from './activitypub/type.js';
 import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
 
 @Injectable()
@@ -274,7 +274,7 @@ export class ClipService {
 			return await this.showRemote(clipId, author.host);
 		} catch {
 			return await awaitAll({
-				id: clipId + '@' + (author.host ? author.host : ''),
+				id: clipId + '@' + (author.host ?? ''),
 				createdAt: new Date(0).toISOString(),
 				lastClippedAt: new Date(0).toISOString(),
 				userId: author.id,
@@ -340,7 +340,7 @@ export class ClipService {
 		if (remote_clip.user == null || remote_clip.user.username == null) {
 			throw new ClipService.FailedToResolveRemoteUserError();
 		}
-		const user = await this.remoteUserResolveService.resolveUser(remote_clip.user.username, host).catch(err => {
+		const user = await this.remoteUserResolveService.resolveUser(remote_clip.user.username, host).catch(() => {
 			throw new ClipService.FailedToResolveRemoteUserError();
 		});
 		return await awaitAll({

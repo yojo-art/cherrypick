@@ -20,7 +20,7 @@ import { ClipService } from '@/core/ClipService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IClip, IOrderedCollection, IOrderedCollectionPage } from '../type.js';
+import { IOrderedCollectionPage } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
