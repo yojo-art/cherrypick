@@ -20,7 +20,7 @@ import { ClipService } from '@/core/ClipService.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IOrderedCollectionPage, isOrderedCollection } from '../type.js';
+import { IClip, IOrderedCollection, IOrderedCollectionPage } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -89,8 +89,9 @@ export class ApClipService {
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
 		// Resolve to (Ordered)Collection Object
-		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
-		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
+		const object = await _resolver.resolve(user.clipsUri);
+		if (object.type !== 'Clip') throw new Error('Object is not Clip');
+		const yojoart_clips = object as IClip;
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
@@ -104,6 +105,7 @@ export class ApClipService {
 		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
 
 		const clips : MiClip[] & { uri: string }[] = [];
+		const id_map = new Map<string, MiClip>();
 
 		let td = 0;
 		for (const clip of items) {
@@ -117,9 +119,15 @@ export class ApClipService {
 				continue;
 			}
 			//作成時刻がわかる場合はそれを元にid生成
-			const id = clip.published ? new Date(clip.published).getTime() : Date.now() + td;
-			clips.push({
-				id: this.idService.gen(id),
+			const published = clip.published ? new Date(clip.published).getTime() : 0;
+			const id_source = published > 0 ? published : Date.now() + td;
+			let id = this.idService.gen(id_source);
+			//id重複したら現在時刻を元に適当に生成
+			if (id_map.has(id)) {
+				id = this.idService.gen(Date.now() + td);
+			}
+			const miclip = {
+				id,
 				userId: user.id,
 				name: clip.name ?? '',
 				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
@@ -128,7 +136,9 @@ export class ApClipService {
 				user,
 				isPublic: true,
 				lastFetchedAt: new Date(0),
-			});
+			};
+			id_map.set(miclip.id, miclip);
+			clips.push(miclip);
 		}
 
 		await this.db.transaction(async transactionalEntityManager => {

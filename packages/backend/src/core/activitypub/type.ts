@@ -111,6 +111,13 @@ export interface ICollection extends IObject {
 	items?: ApObject;
 }
 
+export interface IClip extends IObject {
+	type: 'Clip';
+	totalItems?: number;
+	orderedItems?: ApObject;
+	first?: IOrderedCollectionPage | string;
+	last?: IObject | string;
+}
 export interface IOrderedCollection extends IObject {
 	type: 'OrderedCollection';
 	totalItems?: number;

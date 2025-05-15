@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
 import got, * as Got from 'got';
 import * as Redis from 'ioredis';
@@ -22,6 +22,9 @@ import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
 import { emojis } from '@/misc/remote-api-utils.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
+import { ApRendererService } from './activitypub/ApRendererService.js';
+import { ICreate } from './activitypub/type.js';
+import { ApDeliverManagerService } from './activitypub/ApDeliverManagerService.js';
 
 @Injectable()
 export class ClipService {
@@ -52,11 +55,13 @@ export class ClipService {
 		private roleService: RoleService,
 		private idService: IdService,
 		private advancedSearchService: AdvancedSearchService,
+		private apRendererService: ApRendererService,
+		private apDeliverManagerService: ApDeliverManagerService,
 	) {
 	}
 
 	@bindThis
-	public async create(me: MiLocalUser, name: string, isPublic: boolean, description: string | null): Promise<MiClip> {
+	public async create(me: MiUser, name: string, isPublic: boolean, description: string | null): Promise<MiClip> {
 		const currentCount = await this.clipsRepository.countBy({
 			userId: me.id,
 		});
@@ -71,12 +76,28 @@ export class ClipService {
 			isPublic: isPublic,
 			description: description,
 		});
-
+		if (this.userEntityService.isLocalUser(me)) {
+			const activity: ICreate = {
+				id: `${this.config.url}/clips/${clip.id}`,
+				actor: this.userEntityService.genLocalUserUri(me.id),
+				type: 'Create',
+				published: this.idService.parse(clip.id).date.toISOString(),
+				object: this.apRendererService.renderClip(clip),
+				to: ['https://www.w3.org/ns/activitystreams#Public'],
+				cc: [`${this.config.url}/users/${clip.userId}/followers`],
+			};
+			const createActivity = this.apRendererService.addContext(activity);
+			const dm = this.apDeliverManagerService.createDeliverManager(me, createActivity);
+			// フォロワーに配送
+			dm.addFollowersRecipe();
+			//リレーはNoteしか対応しないだろう
+			//this.relayService.deliverToRelays(me, createActivity);
+		}
 		return clip;
 	}
 
 	@bindThis
-	public async update(me: MiLocalUser, clipId: MiClip['id'], name: string | undefined, isPublic: boolean | undefined, description: string | null | undefined): Promise<void> {
+	public async update(me: MiUser, clipId: MiClip['id'], name: string | undefined, isPublic: boolean | undefined, description: string | null | undefined): Promise<void> {
 		const clip = await this.clipsRepository.findOneBy({
 			id: clipId,
 			userId: me.id,
@@ -91,10 +112,22 @@ export class ClipService {
 			description: description,
 			isPublic: isPublic,
 		});
+		if (this.userEntityService.isLocalUser(me)) {
+			const updated_clip = {
+				...clip,
+				name,
+				description,
+				isPublic,
+			} as MiClip;
+			const activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
+			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
+			// フォロワーに配送
+			dm.addFollowersRecipe();
+		}
 	}
 
 	@bindThis
-	public async delete(me: MiLocalUser, clipId: MiClip['id']): Promise<void> {
+	public async delete(me: MiUser, clipId: MiClip['id']): Promise<void> {
 		const clip = await this.clipsRepository.findOneBy({
 			id: clipId,
 			userId: me.id,
@@ -106,6 +139,12 @@ export class ClipService {
 
 		await this.clipsRepository.delete(clip.id);
 		await this.advancedSearchService.unindexUserClip(clip.id);
+		if (this.userEntityService.isLocalUser(me)) {
+			const activity = this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`), me);
+			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
+			// フォロワーに配送
+			dm.addFollowersRecipe();
+		}
 	}
 
 	@bindThis
@@ -153,16 +192,26 @@ export class ClipService {
 
 			throw e;
 		}
-
+		const lastClippedAt = new Date();
 		this.clipsRepository.update(clip.id, {
-			lastClippedAt: new Date(),
+			lastClippedAt,
 		});
 
 		this.notesRepository.increment({ id: noteId }, 'clippedCount', 1);
+		if (this.userEntityService.isLocalUser(me)) {
+			const updated_clip = {
+				...clip,
+				lastClippedAt,
+			} as MiClip;
+			const activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
+			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
+			// フォロワーに配送
+			dm.addFollowersRecipe();
+		}
 	}
 
 	@bindThis
-	public async removeNote(me: MiLocalUser, clipId: MiClip['id'], noteId: MiNote['id']): Promise<void> {
+	public async removeNote(me: MiUser, clipId: MiClip['id'], noteId: MiNote['id']): Promise<void> {
 		const clip = await this.clipsRepository.findOneBy({
 			id: clipId,
 			userId: me.id,
@@ -185,6 +234,12 @@ export class ClipService {
 
 		await this.advancedSearchService.unindexFavorite(undefined, noteId, clip.id, me.id);
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);
+		if (this.userEntityService.isLocalUser(me)) {
+			const activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(clip), me);
+			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
+			// フォロワーに配送
+			dm.addFollowersRecipe();
+		}
 	}
 	@bindThis
 	async showRemoteOrDummy(clipId: string, author: MiUser | null) : Promise<Packed<'Clip'>> {
