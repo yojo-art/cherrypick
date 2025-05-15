@@ -57,7 +57,7 @@ export class ApClipService {
 		const user = await this.usersRepository.findOneByOrFail({ id: clip.userId });
 		if (!this.userEntityService.isRemoteUser(user)) throw new Error('is not remote user');
 		const resolver = this.apResolverService.createResolver();
-		const ap_clip = await resolver.resolveOrderedCollection(clip.uri);
+		const ap_clip = await resolver.resolveClip(clip.uri);
 		let next = ap_clip.first ?? null;
 		const limit = 10;
 		for (let i = 0; i < limit; i++) {
@@ -88,10 +88,8 @@ export class ApClipService {
 
 		const _resolver = resolver ?? this.apResolverService.createResolver();
 
-		// Resolve to (Ordered)Collection Object
-		const object = await _resolver.resolve(user.clipsUri);
-		if (object.type !== 'Clip') throw new Error('Object is not Clip');
-		const yojoart_clips = object as IClip;
+		// Resolve to Clip Object
+		const yojoart_clips = await _resolver.resolveClip(user.clipsUri);
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
