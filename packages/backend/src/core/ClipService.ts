@@ -92,7 +92,6 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, createActivity);
 			// フォロワーに配送
 			dm.addFollowersRecipe();
-			console.log('create Clip' + activity.id);
 			//リレーはNoteしか対応しないだろう
 			//this.relayService.deliverToRelays(me, createActivity);
 			trackPromise(dm.execute());
@@ -145,13 +144,15 @@ export class ClipService {
 				}
 			} else {
 				//公開設定に変更なし
+				if (!updated_clip.isPublic) {
+					return;
+				}
 				activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
 			}
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
 			trackPromise(dm.execute());
-			console.log('update Clip ' + activity.type + ' ' + activity.id);
 		}
 	}
 
@@ -176,7 +177,6 @@ export class ClipService {
 			// フォロワーに配送
 			dm.addFollowersRecipe();
 			trackPromise(dm.execute());
-			console.log('delete Clip' + activity.id);
 		}
 	}
 

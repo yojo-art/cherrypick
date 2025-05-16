@@ -188,7 +188,6 @@ export class ApClipService {
 	}
 	@bindThis
 	public async delete(actor: MiRemoteUser, uri: string) : Promise<string> {
-		console.log('DELETE Clip ' + uri);
 		const clip = await this.clipsRepository.findOneBy({
 			uri: uri,
 			userId: actor.id,
@@ -207,7 +206,6 @@ export class ApClipService {
 
 	@bindThis
 	public async create(user: MiRemoteUser, clip: IClip) {
-		console.log('CREATE Clip' + clip.id);
 		if (typeof clip.id !== 'string') return;
 		const description = clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null);
 		await this.clipService.create(user, clip.name ?? '', true, description, clip.id);
@@ -215,7 +213,6 @@ export class ApClipService {
 
 	@bindThis
 	public async update(actor: MiRemoteUser, object: IClip) : Promise<string> {
-		console.log('UPDATE Clip' + object.id);
 		const clip = await this.clipsRepository.findOneBy({
 			uri: object.id,
 			userId: actor.id,

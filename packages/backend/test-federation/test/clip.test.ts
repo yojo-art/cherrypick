@@ -176,7 +176,8 @@ describe('Clips', () => {
 			const aliceClips = await alice.client.request('users/clips', { userId: alice.id, remoteApi: false });
 			strictEqual(aliceClips.length, 2);
 			await sleep(800);
-			strictEqual(aliceInBClips.length, 2);
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips2.length, 2);
 		});
 		test('名前と説明文が更新できる', async () => {
 			await clearAllClips();
