@@ -21,6 +21,7 @@ import { IdService } from '@/core/IdService.js';
 import type { MiUser } from '@/models/User.js';
 import { Packed } from '@/misc/json-schema.js';
 import { emojis } from '@/misc/remote-api-utils.js';
+import { trackPromise } from '@/misc/promise-tracker.js';
 import { AdvancedSearchService } from './AdvancedSearchService.js';
 import { ApRendererService } from './activitypub/ApRendererService.js';
 import { IActivity, ICreate } from './activitypub/type.js';
@@ -93,6 +94,7 @@ export class ClipService {
 			dm.addFollowersRecipe();
 			//リレーはNoteしか対応しないだろう
 			//this.relayService.deliverToRelays(me, createActivity);
+			trackPromise(dm.execute());
 		}
 		return clip;
 	}
@@ -147,6 +149,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			trackPromise(dm.execute());
 		}
 	}
 
@@ -170,6 +173,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			trackPromise(dm.execute());
 		}
 	}
 
@@ -233,6 +237,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			trackPromise(dm.execute());
 		}
 	}
 
@@ -265,6 +270,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			trackPromise(dm.execute());
 		}
 	}
 	@bindThis
