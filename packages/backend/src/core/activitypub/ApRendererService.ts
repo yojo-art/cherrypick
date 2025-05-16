@@ -338,6 +338,7 @@ export class ApRendererService {
 	@bindThis
 	public renderClip(clip: MiClip): IClip {
 		const rendered = {
+			type: 'Clip',
 			id: `${this.config.url}/clips/${clip.id}`,
 			first: `${this.config.url}/clips/${clip.id}?page=true`,
 			last: `${this.config.url}/clips/${clip.id}?page=true&since_id=000000000000000000000000`,
