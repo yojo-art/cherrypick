@@ -91,6 +91,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, createActivity);
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			console.log('create Clip' + activity.id);
 			//リレーはNoteしか対応しないだろう
 			//this.relayService.deliverToRelays(me, createActivity);
 		}
@@ -147,6 +148,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			console.log('update Clip ' + activity.type + ' ' + activity.id);
 		}
 	}
 
@@ -170,6 +172,7 @@ export class ClipService {
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();
+			console.log('delete Clip' + activity.id);
 		}
 	}
 
