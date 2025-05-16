@@ -161,6 +161,7 @@ describe('Clips', () => {
 	describe('配送', () => {
 		test('非公開クリップが連合しない', async () => {
 			await bob.client.request('following/create', { userId: aliceInB.id });
+			await sleep(800);
 			await clearAllClips();
 			const clip = await alice.client.request('clips/create', { name: 'public', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			const clip2 = await alice.client.request('clips/create', { name: 'private', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: false });
