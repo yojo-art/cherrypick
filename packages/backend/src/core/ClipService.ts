@@ -116,11 +116,12 @@ export class ClipService {
 			description: description,
 			isPublic: isPublic,
 		});
-		const updated_clip = Object.assign(structuredClone(clip), {
-			name,
-			description,
-			isPublic,
-		}) as MiClip;
+		const updated_clip = {
+			...clip,
+			name: name ?? clip.name,
+			description: description ?? clip.description,
+			isPublic: isPublic ?? clip.isPublic,
+		} as MiClip;
 		if (this.userEntityService.isLocalUser(me)) {
 			let activity: IActivity;
 			if (updated_clip.isPublic !== clip.isPublic) {
