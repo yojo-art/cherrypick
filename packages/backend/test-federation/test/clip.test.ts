@@ -160,6 +160,7 @@ describe('Clips', () => {
 	});
 	describe('配送', () => {
 		test('非公開クリップが連合しない', async () => {
+			await bob.client.request('following/create', { userId: aliceInB.id });
 			await clearAllClips();
 			const clip = await alice.client.request('clips/create', { name: 'public', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			const clip2 = await alice.client.request('clips/create', { name: 'private', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: false });
@@ -196,8 +197,6 @@ describe('Clips', () => {
 			await sleep();
 			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
-			//ユーザー情報更新
-			await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
 			await sleep();
 			await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			await sleep();
