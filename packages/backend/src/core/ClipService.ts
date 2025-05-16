@@ -116,7 +116,7 @@ export class ClipService {
 			description: description,
 			isPublic: isPublic,
 		});
-		const updated_clip = Object.assign(clip, {
+		const updated_clip = Object.assign(structuredClone(clip), {
 			name,
 			description,
 			isPublic,
