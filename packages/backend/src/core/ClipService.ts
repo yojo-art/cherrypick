@@ -116,12 +116,11 @@ export class ClipService {
 			description: description,
 			isPublic: isPublic,
 		});
-		const updated_clip = {
-			...clip,
+		const updated_clip = Object.assign(clip, {
 			name,
 			description,
 			isPublic,
-		} as MiClip;
+		}) as MiClip;
 		if (this.userEntityService.isLocalUser(me)) {
 			let activity: IActivity;
 			if (updated_clip.isPublic !== clip.isPublic) {
