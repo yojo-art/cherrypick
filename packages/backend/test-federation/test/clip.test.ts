@@ -171,7 +171,10 @@ describe('Clips', () => {
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
-			await alice.client.request('clips/update', { clipId: clip2.id, isPublic: true });
+			const clip2u = await alice.client.request('clips/update', { clipId: clip2.id, isPublic: true });
+			strictEqual(clip2u.isPublic, true);
+			const aliceClips = await alice.client.request('users/clips', { userId: alice.id, remoteApi: false });
+			strictEqual(aliceClips.length, 2);
 			await sleep(800);
 			strictEqual(aliceInBClips.length, 2);
 		});
@@ -184,6 +187,8 @@ describe('Clips', () => {
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			const clip2 = await alice.client.request('clips/update', { clipId: clip.id, name: '更新後', description: 'description' + crypto.randomUUID().replaceAll('-', '') });
+			strictEqual(clip2.name, '更新後');
+			strictEqual(clip2.isPublic, true);
 			await sleep(800);
 			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips2.length, 1);
