@@ -165,26 +165,26 @@ describe('Clips', () => {
 			await clearAllClips();
 			const clip = await alice.client.request('clips/create', { name: 'public', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
 			const clip2 = await alice.client.request('clips/create', { name: 'private', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: false });
-			await sleep();
+			await sleep(800);
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			//0件にするとリモートAPI呼び出しが発生してキャッシュ由来の変な値になる
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			await alice.client.request('clips/update', { clipId: clip2.id, isPublic: true });
-			await sleep();
+			await sleep(800);
 			strictEqual(aliceInBClips.length, 2);
 		});
 		test('名前と説明文が更新できる', async () => {
 			await clearAllClips();
 			const clip = await alice.client.request('clips/create', { name: '更新前', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
-			await sleep();
+			await sleep(800);
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			const clip2 = await alice.client.request('clips/update', { clipId: clip.id, name: '更新後', description: 'description' + crypto.randomUUID().replaceAll('-', '') });
-			await sleep();
+			await sleep(800);
 			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips2.length, 1);
 			strictEqual(aliceInBClips2[0].name, clip2.name);
@@ -195,19 +195,19 @@ describe('Clips', () => {
 			await clearAllClips();
 			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
 			const clip = await alice.client.request('clips/create', { name: '公開クリップ他人ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
-			await sleep();
+			await sleep(800);
 			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
 			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
-			await sleep();
+			await sleep(800);
 			await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
-			await sleep();
+			await sleep(800);
 			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
 			strictEqual(aliceInBClips.length, 1);
 			strictEqual(aliceInBClips[0].name, clip.name);
 			strictEqual(aliceInBClips[0].description, clip.description);
 			//非同期で取得されるから2回リクエスト飛ばす
 			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
-			await sleep();
+			await sleep(800);
 			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
 			strictEqual(notes.length, 1);
 			strictEqual(notes[0].text, bob_note.text);
