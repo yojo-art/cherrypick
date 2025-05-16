@@ -448,15 +448,15 @@ export class ActivityPubServerService {
 		});
 		let rendered :IClip | IOrderedCollectionPage | null = null;
 		if (page) {
-			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
-				.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
-				.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
+			const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip'), sinceId, untilId)
+				.andWhere('clipId = :clipId', { clipId: clip.id })
+				.innerJoinAndSelect('clip.note', 'note');
 			const notes = await query.limit(limit).getMany();
 
 			if (sinceId) notes.reverse();
-			const activities : string[] = (await Promise.all(notes.map(async note => {
-				if (note.localOnly) return null;
-				return note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? null;
+			const activities : string[] = (await Promise.all(notes.map(async clip => {
+				if (clip.note?.localOnly) return null;
+				return clip.note?.userHost == null ? `${this.config.url}/notes/${clip.note?.id}` : clip.note.uri ?? null;
 			}))).filter(activitie => activitie != null);
 			rendered = this.apRendererService.renderOrderedCollectionPage(
 				`${partOf}?${url.query({
