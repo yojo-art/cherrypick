@@ -8,19 +8,20 @@ import promiseLimit from 'promise-limit';
 import Redis from 'ioredis';
 import { DataSource } from 'typeorm';
 import type Logger from '@/logger.js';
-import type { MiUser } from '@/models/User.js';
+import type { MiRemoteUser, MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
-import type { UsersRepository } from '@/models/_.js';
+import type { ClipsRepository, UsersRepository } from '@/models/_.js';
 import { toArray } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
 import { MfmService } from '@/core/MfmService.js';
 import { MiClip } from '@/models/_.js';
 import { ClipService } from '@/core/ClipService.js';
+import { bindThis } from '@/decorators.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IClip, IObject, IOrderedCollection, IOrderedCollectionPage, isOrderedCollection } from '../type.js';
+import { IObject, IOrderedCollectionPage, isOrderedCollection, type IClip } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -39,6 +40,8 @@ export class ApClipService {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
+		@Inject(DI.clipsRepository)
+		private clipsRepository: ClipsRepository,
 
 		private apResolverService: ApResolverService,
 		private userEntityService: UserEntityService,
@@ -51,7 +54,8 @@ export class ApClipService {
 		this.logger = this.apLoggerService.logger;
 	}
 
-	public async update(clip: MiClip) {
+	@bindThis
+	public async updateItems(clip: MiClip) {
 		if (!clip.uri) throw new Error('no uri');
 		this.logger.info(`Updating the clip: ${clip.uri}`);
 		const user = await this.usersRepository.findOneByOrFail({ id: clip.userId });
@@ -79,7 +83,8 @@ export class ApClipService {
 			}
 		}
 	}
-	public async updateClips(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
+	@bindThis
+	public async updateUserClips(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId });
 		if (!this.userEntityService.isRemoteUser(user)) return;
 		if (!user.clipsUri) return;
@@ -180,5 +185,52 @@ export class ApClipService {
 			}
 			//await Promise.all(uri_map.values().map(v => transactionalEntityManager.delete(MiClip, { id: v.id })));
 		});
+	}
+	@bindThis
+	public async delete(actor: MiRemoteUser, uri: string) : Promise<string> {
+		const clip = await this.clipsRepository.findOneBy({
+			uri: uri,
+			userId: actor.id,
+		});
+		if (clip) {
+			try {
+				await this.clipService.delete(actor, clip.id);
+				return 'ok: delete clip ' + clip.id;
+			} catch (e) {
+				return 'clip delete error:' + e;
+			}
+		} else {
+			return 'skip not found clip';
+		}
+	}
+
+	@bindThis
+	public async create(user: MiRemoteUser, clip: IClip) {
+		if (typeof clip.id !== 'string') return;
+		const description = clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null);
+		await this.clipService.create(user, clip.name ?? '', true, description, clip.id);
+	}
+
+	@bindThis
+	public async update(actor: MiRemoteUser, object: IClip) : Promise<string> {
+		const clip = await this.clipsRepository.findOneBy({
+			uri: object.id,
+			userId: actor.id,
+		});
+
+		if (clip) {
+			try {
+				this.clipsRepository.update(clip.id, {
+					name: object.name ?? undefined,
+					description: object._misskey_summary ?? (object.summary ? this.mfmService.fromHtml(object.summary) : undefined),
+					lastFetchedAt: null,
+				});
+				return 'ok: delete clip ' + clip.id;
+			} catch (e) {
+				return 'clip delete error:' + e;
+			}
+		} else {
+			return 'skip not found clip';
+		}
 	}
 }

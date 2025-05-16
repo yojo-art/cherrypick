@@ -61,7 +61,7 @@ export class ClipService {
 	}
 
 	@bindThis
-	public async create(me: MiUser, name: string, isPublic: boolean, description: string | null): Promise<MiClip> {
+	public async create(me: MiUser, name: string, isPublic: boolean, description: string | null, uri: string | null = null): Promise<MiClip> {
 		const currentCount = await this.clipsRepository.countBy({
 			userId: me.id,
 		});
@@ -75,6 +75,7 @@ export class ClipService {
 			name: name,
 			isPublic: isPublic,
 			description: description,
+			uri,
 		});
 		if (this.userEntityService.isLocalUser(me) && isPublic) {
 			const activity: ICreate = {
@@ -135,7 +136,9 @@ export class ClipService {
 					activity = createActivity;
 				} else {
 					//非公開に変更
-					activity = this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`), me);
+					const tombstone = this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`);
+					tombstone.formerType = 'Clip';
+					activity = this.apRendererService.renderDelete(tombstone, me);
 				}
 			} else {
 				//公開設定に変更なし
@@ -161,7 +164,9 @@ export class ClipService {
 		await this.clipsRepository.delete(clip.id);
 		await this.advancedSearchService.unindexUserClip(clip.id);
 		if (this.userEntityService.isLocalUser(me) && clip.isPublic) {
-			const activity = this.apRendererService.renderDelete(this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`), me);
+			const tombstone = this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`);
+			tombstone.formerType = 'Clip';
+			const activity = this.apRendererService.renderDelete(tombstone, me);
 			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
 			// フォロワーに配送
 			dm.addFollowersRecipe();

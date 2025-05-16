@@ -111,13 +111,6 @@ export interface ICollection extends IObject {
 	items?: ApObject;
 }
 
-export interface IClip extends IObject {
-	type: 'Clip';
-	totalItems?: number;
-	orderedItems?: ApObject;
-	first?: IOrderedCollectionPage | string;
-	last?: IObject | string;
-}
 export interface IOrderedCollection extends IObject {
 	type: 'OrderedCollection';
 	totalItems?: number;
@@ -134,6 +127,14 @@ export interface IOrderedCollectionPage extends IObject {
 	items?: IObject[];
 	prev: string;
 	next: string;
+}
+
+export interface IClip extends IObject {
+	type: 'Clip';
+	totalItems?: number;
+	orderedItems?: ApObject;
+	first?: IOrderedCollectionPage | string;
+	last?: IObject | string;
 }
 
 export const validPost = ['Note', 'Question', 'Article', 'Audio', 'Document', 'Image', 'Page', 'Video', 'Event'];
@@ -249,6 +250,9 @@ export const isCollectionOrOrderedCollection = (object: IObject): object is ICol
 
 export const isIOrderedCollectionPage = (object: IObject): object is IOrderedCollectionPage =>
 	getApType(object) === 'OrderedCollectionPage';
+
+export const isClip = (object: IObject): object is IClip =>
+	getApType(object) === 'Clip';
 
 export interface IApPropertyValue extends IObject {
 	type: 'PropertyValue';

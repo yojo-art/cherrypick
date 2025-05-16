@@ -31,7 +31,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi, isLeave } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isInvite, isJoin, isReversi, isLeave, isClip } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -40,6 +40,7 @@ import { ApAudienceService } from './ApAudienceService.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import { ApQuestionService } from './models/ApQuestionService.js';
 import { ApGameService } from './models/ApGameService.js';
+import { ApClipService } from './models/ApClipService.js';
 import type { Resolver } from './ApResolverService.js';
 import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IInvite, IApGame, IJoin, ILeave } from './type.js';
 
@@ -94,6 +95,7 @@ export class ApInboxService {
 		private globalEventService: GlobalEventService,
 		private messagingService: MessagingService,
 		private apgameService: ApGameService,
+		private apClipService: ApClipService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -478,6 +480,8 @@ export class ApInboxService {
 
 		if (isPost(object)) {
 			await this.createNote(resolver, actor, object, false, activity);
+		} else if (isClip(object)) {
+			await this.apClipService.create(actor, object);
 		} else {
 			return `Unknown type: ${getApType(object)}`;
 		}
@@ -555,6 +559,8 @@ export class ApInboxService {
 
 		if (validPost.includes(formerType)) {
 			return await this.deleteNote(actor, uri);
+		} else if (formerType === 'Clip') {
+			return await this.apClipService.delete(actor, uri);
 		} else if (validActor.includes(formerType)) {
 			return await this.deleteActor(actor, uri);
 		} else {
@@ -898,6 +904,8 @@ export class ApInboxService {
 		} else if (getApType(object) === 'Game') {
 			await this.updateGame(resolver, actor, object as IApGame, activity);
 			return 'ok: Note updated';
+		} else if (isClip(object)) {
+			return await this.apClipService.update(actor, object);
 		} else {
 			return `skip: Unknown type: ${getApType(object)}`;
 		}
