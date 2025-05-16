@@ -448,9 +448,9 @@ export class ActivityPubServerService {
 		});
 		let rendered :IClip | IOrderedCollectionPage | null = null;
 		if (page) {
-			const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip'), sinceId, untilId)
+			const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip_note'), sinceId, untilId)
 				.andWhere('clipId = :clipId', { clipId: clip.id })
-				.innerJoinAndSelect('clip.note', 'note');
+				.innerJoinAndSelect('clip_note.note', 'note');
 			const notes = await query.limit(limit).getMany();
 
 			if (sinceId) notes.reverse();
