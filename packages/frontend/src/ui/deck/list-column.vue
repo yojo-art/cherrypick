@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i class="ti ti-list"></i><span style="margin-left: 8px;">{{ column.name || column.timelineNameCache || i18n.ts._deck._columns.list }}</span>
 	</template>
 
-	<MkStreamingNotesTimeline v-if="column.listId" ref="timeline" src="list" :list="column.listId" :withRenotes="withRenotes"/>
+	<MkStreamingNotesTimeline v-if="column.listId" ref="timeline" src="list" :list="column.listId" :withRenotes="withRenotes" :withSensitive="withSensitive"/>
 </XColumn>
 </template>
 
@@ -35,6 +35,7 @@ const props = defineProps<{
 
 const timeline = useTemplateRef('timeline');
 const withRenotes = ref(props.column.withRenotes ?? true);
+const withSensitive = ref(props.column.withSensitive ?? true);
 const soundSetting = ref<SoundStore>(props.column.soundSetting ?? { type: null, volume: 1 });
 
 async function reloadTimeline() {
@@ -53,6 +54,12 @@ onMounted(() => {
 watch(withRenotes, v => {
 	updateColumn(props.column.id, {
 		withRenotes: v,
+	});
+});
+
+watch(withSensitive, v => {
+	updateColumn(props.column.id, {
+		withSensitive: v,
 	});
 });
 
@@ -120,6 +127,11 @@ const menu: MenuItem[] = [
 		type: 'switch',
 		text: i18n.ts.showRenotes,
 		ref: withRenotes,
+	},
+	{
+		type: 'switch',
+		text: i18n.ts.withSensitive,
+		ref: withSensitive,
 	},
 	{
 		icon: 'ti ti-bell',

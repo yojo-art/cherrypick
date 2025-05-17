@@ -11,6 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				ref="tlEl" :key="listId"
 				src="list"
 				:list="listId"
+				:withSensitive="withSensitive"
 				:sound="true"
 			/>
 		</div>
@@ -26,6 +27,7 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
 import { i18n } from '@/i18n.js';
 import { useRouter } from '@/router.js';
+import * as os from '@/os.js';
 
 const router = useRouter();
 
@@ -34,6 +36,8 @@ const props = defineProps<{
 }>();
 
 const list = ref<Misskey.entities.UserList | null>(null);
+
+const withSensitive = ref(false);
 
 watch(() => props.listId, async () => {
 	list.value = await misskeyApi('users/lists/show', {
@@ -49,11 +53,23 @@ function settings() {
 	});
 }
 
-const headerActions = computed(() => list.value ? [{
-	icon: 'ti ti-settings',
-	text: i18n.ts.settings,
-	handler: settings,
-}] : []);
+const headerActions = computed(() => list.value ? [
+	{
+		icon: 'ti ti-dots',
+		text: i18n.ts.options,
+		handler: (ev) => {
+			os.popupMenu([
+				{
+					icon: 'ti ti-settings',
+					text: i18n.ts.editList,
+					action: settings,
+				}, {
+					type: 'switch',
+					text: i18n.ts.withSensitive,
+					ref: withSensitive,
+				}], ev.currentTarget ?? ev.target);
+		},
+	}] : []);
 
 const headerTabs = computed(() => []);
 
