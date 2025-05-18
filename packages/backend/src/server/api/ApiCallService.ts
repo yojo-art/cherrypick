@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream/promises';
+import * as dns from 'node:dns';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { DI } from '@/di-symbols.js';
@@ -26,8 +27,6 @@ import { AuthenticateService, AuthenticationError } from './AuthenticateService.
 import type { FastifyRequest, FastifyReply } from 'fastify';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import type { IEndpointMeta, IEndpoint } from './endpoints.js';
-import dns from "dns";
-import * as console from "node:console";
 
 const accessDenied = {
 	message: 'Access denied.',
@@ -269,7 +268,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	private logIp(request: FastifyRequest, user: MiLocalUser) {
+	private async logIp(request: FastifyRequest, user: MiLocalUser) {
 		if (!this.meta.enableIpLogging) return;
 		const ip = '162.43.71.84';// request.ip;
 		const ips = this.userIpHistories.get(user.id);
@@ -279,15 +278,12 @@ export class ApiCallService implements OnApplicationShutdown {
 			} else {
 				ips.add(ip);
 			}
-			const dnsPromise = dns.promises;
 			let hostNames: string[] | undefined = undefined;
-			dnsPromise.reverse(ip)
-				.then((arr) => {
-					hostNames = arr;
-				})
-				.catch((err) => {
-					console.log(err);
-				});
+			try {
+				hostNames = await dns.promises.reverse(ip);
+			} catch (e) {
+				console.log(e);
+			}
 			console.log(hostNames);
 			try {
 				this.userIpsRepository.createQueryBuilder().insert().values({
