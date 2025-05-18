@@ -270,7 +270,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	@bindThis
 	private async logIp(request: FastifyRequest, user: MiLocalUser) {
 		if (!this.meta.enableIpLogging) return;
-		const ip = '162.43.71.84';// request.ip;
+		const ip = request.ip;
 		const ips = this.userIpHistories.get(user.id);
 		if (ips == null || !ips.has(ip)) {
 			if (ips == null) {
