@@ -455,7 +455,6 @@ export class NoteEntityService implements OnModuleInit {
 			mentions: note.mentions.length > 0 ? note.mentions : undefined,
 			uri: note.uri ?? undefined,
 			url: note.url ?? undefined,
-			favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 
 			...(opts.detail ? {
 				clippedCount: note.clippedCount,
@@ -484,6 +483,7 @@ export class NoteEntityService implements OnModuleInit {
 						reactionAndUserPairCache: reactionAndUserPairCache,
 					}, meId, options?._hint_),
 				} : {}),
+				favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 			} : {}),
 		});
 
