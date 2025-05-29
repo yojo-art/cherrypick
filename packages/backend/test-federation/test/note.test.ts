@@ -43,7 +43,6 @@ describe('Note', () => {
 				'userId',
 				'user',
 				'uri',
-				'favorite',
 			]);
 			strictEqual(aliceInB.id, resolvedNote.userId);
 		});
@@ -70,7 +69,6 @@ describe('Note', () => {
 				'userId',
 				'user',
 				'uri',
-				'favorite',
 			]);
 			assert(resolvedNote.replyId != null);
 			assert(resolvedNote.reply != null);
@@ -84,7 +82,6 @@ describe('Note', () => {
 				'uri',
 				// flaky because this is parallelly incremented, so let's check it below
 				'repliesCount',
-				'favorite',
 			]);
 			strictEqual(aliceInB.id, resolvedNote.userId);
 
@@ -114,7 +111,6 @@ describe('Note', () => {
 				'userId',
 				'user',
 				'uri',
-				'favorite',
 			]);
 			assert(resolvedNote.renoteId != null);
 			assert(resolvedNote.renote != null);
@@ -124,7 +120,6 @@ describe('Note', () => {
 				'userId',
 				'user',
 				'uri',
-				'favorite',
 			]);
 			strictEqual(aliceInB.id, resolvedNote.userId);
 		});
