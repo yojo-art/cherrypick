@@ -196,7 +196,11 @@ const defaultStoreSaveKeys: (keyof typeof defaultStore['state'])[] = [
 	'selectReaction',
 	'setFederationAvatarShape',
 	// #endregion CherryPick
+  
+	// #region yojo-art
 	'gridLayoutMediaTimeline',
+	'hideTagUiTags',
+	// #endregio
 ];
 const coldDeviceStorageSaveKeys: (keyof typeof ColdDeviceStorage.default)[] = [
 	'lightTheme',

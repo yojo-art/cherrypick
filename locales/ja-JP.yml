@@ -246,6 +246,7 @@ followRequestPending: "フォロー許可待ち"
 enterEmoji: "絵文字を入力"
 renote: "リノート"
 unrenote: "リノート解除"
+unRenoteAll: "全リノート解除"
 renoted: "リノートしました。"
 renotedToX: "{name} にリノートしました。"
 quoted: "ノートを引用しました。"
@@ -1509,6 +1510,8 @@ trustedLinkUrlPatternsDescription: "スペースで区切るとAND指定にな�
 open: "開く"
 enterTagName: "タグ名を入力"
 invalidTagName: "タグに使用できない文字が含まれています"
+hideTagUiTag: "タグボタンで付けたタグを非表示にする"
+hideTagUiTagDescription: "投稿フォームのタグボタンで利用できる、ハッシュタグ入力欄に入力したハッシュタグを非表示にします。"
 
 _official_tag:
   title: "公式タグ"

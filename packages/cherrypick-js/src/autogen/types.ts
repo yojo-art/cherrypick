@@ -4640,6 +4640,7 @@ export type components = {
       myReaction?: string | null;
       /** Format: date-time */
       deleteAt?: string | null;
+      favorite: boolean;
     };
     NoteDraft: {
       /**
@@ -24122,6 +24123,8 @@ export type operations = {
           renoteId?: string | null;
           /** Format: misskey:id */
           channelId?: string | null;
+          /** @description ハッシュタグ文字列 自動的にパースされます */
+          tagText?: string | null;
           text?: string | null;
           fileIds?: string[];
           mediaIds?: string[];
@@ -25585,6 +25588,8 @@ export type operations = {
           noExtractHashtags?: boolean;
           /** @default false */
           noExtractEmojis?: boolean;
+          /** @description ハッシュタグ文字列 自動的にパースされます */
+          tagText?: string | null;
           /** Format: misskey:id */
           replyId?: string | null;
           /** Format: misskey:id */
@@ -26383,6 +26388,8 @@ export type operations = {
             expiresAt?: number | null;
             expiredAfter?: number | null;
           }) | null;
+          /** @description ハッシュタグ文字列 自動的にパースされます */
+          tagText?: string | null;
           event?: ({
             title?: string;
             start?: number;
