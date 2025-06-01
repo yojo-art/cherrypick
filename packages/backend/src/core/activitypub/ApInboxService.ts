@@ -741,10 +741,23 @@ export class ApInboxService {
 		if (isAnnounce(object)) return await this.undoAnnounce(actor, object);
 		if (isAccept(object)) return await this.undoAccept(actor, object);
 		if (isInvite(object)) return await this.undoInvite(actor, object);
+		if (isDelete(object)) return await this.undoDelete(actor, object);
 
 		return `skip: unknown object type ${getApType(object)}`;
 	}
 
+	@bindThis
+	private async undoDelete(actor: MiRemoteUser, activity: IDelete): Promise<string> {
+		const resolver = this.apResolverService.createResolver();
+		const object = await resolver.resolve(activity.object).catch(e => {
+			this.logger.error(`Resolution failed: ${e}`);
+			throw e;
+		});
+		if (isClip(object)) {
+			return await this.apClipService.create(actor, object);
+		}
+		return 'skip: 不明な削除取り消し';
+	}
 	@bindThis
 	private async undoInvite(actor: MiRemoteUser, activity: IInvite): Promise<string> {
 		const resolver = this.apResolverService.createResolver();

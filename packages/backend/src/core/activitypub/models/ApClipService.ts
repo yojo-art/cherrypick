@@ -197,18 +197,24 @@ export class ApClipService {
 				await this.clipService.delete(actor, clip.id);
 				return 'ok: delete clip ' + clip.id;
 			} catch (e) {
-				return 'clip delete error:' + e;
+				return 'error: clip delete ' + e;
 			}
 		} else {
-			return 'skip not found clip';
+			return 'skip: not found clip';
 		}
 	}
 
 	@bindThis
-	public async create(user: MiRemoteUser, clip: IClip) {
-		if (typeof clip.id !== 'string') return;
+	public async create(user: MiRemoteUser, clip: IClip) : Promise<string> {
+		if (typeof clip.id !== 'string') return 'skip: id is not string';
+		const isExists = await this.clipsRepository.existsBy({
+			uri: clip.id,
+			userId: clip.id,
+		});
+		if (isExists) return 'skip: clip already exists';
 		const description = clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null);
 		await this.clipService.create(user, clip.name ?? '', true, description, clip.id);
+		return 'ok';
 	}
 
 	@bindThis
@@ -227,7 +233,7 @@ export class ApClipService {
 				});
 				return 'ok: delete clip ' + clip.id;
 			} catch (e) {
-				return 'clip delete error:' + e;
+				return 'error: clip delete ' + e;
 			}
 		} else {
 			return 'skip not found clip';

@@ -70,20 +70,29 @@ export class ClipService {
 			throw new ClipService.TooManyClipsError();
 		}
 
+		const clipId = this.idService.gen();
+		let uodateUri = uri;
+		if (this.userEntityService.isLocalUser(me)) {
+			uodateUri = null;
+			if (isPublic) {
+				//過去にCreateを配送したことがあればuriを入れる
+				uodateUri = `${this.config.url}/clips/${clipId}`;
+			}
+		}
 		const clip = await this.clipsRepository.insertOne({
-			id: this.idService.gen(),
+			id: clipId,
 			userId: me.id,
 			name: name,
 			isPublic: isPublic,
 			description: description,
-			uri,
+			uri: uodateUri,
 		});
 		if (this.userEntityService.isLocalUser(me) && isPublic) {
 			const activity: ICreate = {
 				id: `${this.config.url}/clips/${clip.id}`,
 				actor: this.userEntityService.genLocalUserUri(me.id),
 				type: 'Create',
-				published: this.idService.parse(clip.id).date.toISOString(),
+				published: new Date().toISOString(),
 				object: this.apRendererService.renderClip(clip),
 				to: ['https://www.w3.org/ns/activitystreams#Public'],
 				cc: [`${this.config.url}/users/${clip.userId}/followers`],
@@ -109,33 +118,52 @@ export class ClipService {
 		if (clip == null) {
 			throw new ClipService.NoSuchClipError();
 		}
+		if (
+			(name === undefined || clip.name === name) &&
+			(description === undefined || clip.description === description) &&
+			(isPublic === undefined || clip.isPublic === isPublic)
+		) {
+			//すべての項目が変更されない場合は何もしない
+			return;
+		}
+		//初めて公開設定に変更する時uriを割り当てる
+		let uri = (!clip.uri && isPublic !== clip.isPublic && isPublic) ? `${this.config.url}/clips/${clip.id}` : undefined;
 
 		await this.clipsRepository.update(clip.id, {
 			name: name,
 			description: description,
 			isPublic: isPublic,
+			uri,
 		});
 		const updated_clip = {
 			...clip,
 			name: name ?? clip.name,
 			description: description ?? clip.description,
 			isPublic: isPublic ?? clip.isPublic,
+			uri: uri ?? clip.uri,
 		} as MiClip;
 		if (this.userEntityService.isLocalUser(me)) {
-			let activity: IActivity;
+			let activity: IActivity | null;
 			if (updated_clip.isPublic !== clip.isPublic) {
 				if (updated_clip.isPublic) {
 					//公開に変更
-					const createActivity: ICreate = {
-						id: `${this.config.url}/clips/${clip.id}`,
-						actor: this.userEntityService.genLocalUserUri(me.id),
-						type: 'Create',
-						published: this.idService.parse(clip.id).date.toISOString(),
-						object: this.apRendererService.renderClip(clip),
-						to: ['https://www.w3.org/ns/activitystreams#Public'],
-						cc: [`${this.config.url}/users/${clip.userId}/followers`],
-					};
-					activity = createActivity;
+					if (clip.uri) {
+						//過去に公開設定だった事がある時、新規のCreateではなくDeleteをUndoする
+						activity = this.apRendererService.renderUndo(this.apRendererService.renderDelete(this.apRendererService.renderClip(updated_clip), me), me);
+					} else {
+						//uriが無い場合、一度もCreateされた事が無い
+						const createActivity: ICreate = {
+							id: `${this.config.url}/clips/${clip.id}`,
+							actor: this.userEntityService.genLocalUserUri(me.id),
+							type: 'Create',
+							published: new Date().toISOString(),
+							object: this.apRendererService.renderClip(clip),
+							to: ['https://www.w3.org/ns/activitystreams#Public'],
+							cc: [`${this.config.url}/users/${clip.userId}/followers`],
+						};
+						activity = createActivity;
+						uri = createActivity.id;
+					}
 				} else {
 					//非公開に変更
 					const tombstone = this.apRendererService.renderTombstone(`${this.config.url}/clips/${clip.id}`);
@@ -145,14 +173,17 @@ export class ClipService {
 			} else {
 				//公開設定に変更なし
 				if (!updated_clip.isPublic) {
-					return;
+					activity = null;
+				} else {
+					activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
 				}
-				activity = this.apRendererService.renderUpdate(this.apRendererService.renderClip(updated_clip), me);
 			}
-			const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
-			// フォロワーに配送
-			dm.addFollowersRecipe();
-			trackPromise(dm.execute());
+			if (activity) {
+				const dm = this.apDeliverManagerService.createDeliverManager(me, this.apRendererService.addContext(activity));
+				// フォロワーに配送
+				dm.addFollowersRecipe();
+				trackPromise(dm.execute());
+			}
 		}
 	}
 
