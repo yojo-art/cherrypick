@@ -8,8 +8,6 @@
 - Person Service Applicationが_yojoart_clipsを持つようになります
 - _yojoart_clipsはクリップの一覧を表現するOrderedCollectionです
 - nodeinfo内features配列に https://yojoart.kzkr.xyz/ns#_yojoart_clips として機能対応を示します
-- ノートにお気に入り状態が表示されるように [#710](https://github.com/yojo-art/cherrypick/pull/710)
-  - ノート取得APIのレスポンスで`favorite: boolean`が追加されます
 
 ### Client
 - Fix: ロール設定に予約投稿の最大数が2個ある [#714](https://github.com/yojo-art/cherrypick/pull/714)
