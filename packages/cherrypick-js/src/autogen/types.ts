@@ -4640,7 +4640,6 @@ export type components = {
       myReaction?: string | null;
       /** Format: date-time */
       deleteAt?: string | null;
-      favorite: boolean;
     };
     NoteDraft: {
       /**
