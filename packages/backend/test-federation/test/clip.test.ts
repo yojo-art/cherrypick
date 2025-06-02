@@ -218,5 +218,24 @@ describe('Clips', () => {
 			strictEqual(notes.length, 1);
 			strictEqual(notes[0].text, bob_note.text);
 		});
+		test('公開設定が更新できる', async () => {
+			await clearAllClips();
+			const clip = await alice.client.request('clips/create', { name: '更新前', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			await sleep(800);
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			await alice.client.request('clips/update', { clipId: clip.id, name: '更新後', isPublic: false });
+			await sleep(800);
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips2.length, 0);
+			const clip3 = await alice.client.request('clips/update', { clipId: clip.id, isPublic: true, description: 'description' + crypto.randomUUID().replaceAll('-', '') });
+			await sleep(800);
+			const aliceInBClips3 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips3.length, 1);
+			strictEqual(aliceInBClips3[0].name, clip3.name);
+			strictEqual(aliceInBClips3[0].description, clip3.description);
+		});
 	});
 });
