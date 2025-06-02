@@ -71,12 +71,12 @@ export class ClipService {
 		}
 
 		const clipId = this.idService.gen();
-		let uodateUri = uri;
+		let updateUri = uri;
 		if (this.userEntityService.isLocalUser(me)) {
-			uodateUri = null;
+			updateUri = null;
 			if (isPublic) {
 				//過去にCreateを配送したことがあればuriを入れる
-				uodateUri = `${this.config.url}/clips/${clipId}`;
+				updateUri = `${this.config.url}/clips/${clipId}`;
 			}
 		}
 		const clip = await this.clipsRepository.insertOne({
@@ -85,7 +85,7 @@ export class ClipService {
 			name: name,
 			isPublic: isPublic,
 			description: description,
-			uri: uodateUri,
+			uri: updateUri,
 		});
 		if (this.userEntityService.isLocalUser(me) && isPublic) {
 			const activity: ICreate = {
