@@ -284,7 +284,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			} catch (e) {
 				console.log(e);
 			}
-			console.log(hostNames);
+
 			try {
 				this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),

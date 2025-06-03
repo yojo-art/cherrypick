@@ -119,7 +119,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template v-if="iAmAdmin && ips">
 								<div v-for="record in ips" :key="record.ip" class="_monospace" :class="$style.ip" style="margin: 1em 0;">
 									<span class="date">{{ record.createdAt }}</span>
-									<span class="ip">{{ record.ip }}</span>
+									<span class="ip">{{ record.ip }}({{ record.dnsNames }})</span>
 								</div>
 							</template>
 						</MkFolder>
