@@ -138,7 +138,7 @@ export class ApClipService {
 				id,
 				userId: user.id,
 				name: clip.name ?? '',
-				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
+				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : clip.content ? this.mfmService.fromHtml(clip.content) : null),
 				uri: clip.id,
 				lastClippedAt: clip.updated ? new Date(clip.updated) : null,
 				user,
