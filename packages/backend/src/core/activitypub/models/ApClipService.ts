@@ -21,7 +21,7 @@ import { bindThis } from '@/decorators.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IObject, IOrderedCollectionPage, isIOrderedCollectionPage, type IClip } from '../type.js';
+import { getApType, IObject, IOrderedCollectionPage, isIOrderedCollectionPage, type IClip } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -78,7 +78,12 @@ export class ApClipService {
 			const limit = promiseLimit<undefined>(2);
 			if (Array.isArray(items)) {
 				await Promise.all(items.map(item => limit(async() => {
-					const note = await this.apNoteService.resolveNote(item, {
+					let object :IObject | string = await resolver.resolve(item);
+					if (getApType(object) === 'PlaylistElement') {
+						if (typeof object.url !== 'string') return;
+						object = object.url;
+					}
+					const note = await this.apNoteService.resolveNote(object, {
 						resolver: resolver,
 						sentFrom: new URL(user.uri),
 					});
