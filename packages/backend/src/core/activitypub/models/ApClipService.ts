@@ -21,7 +21,7 @@ import { bindThis } from '@/decorators.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IObject, IOrderedCollectionPage, isOrderedCollection, type IClip } from '../type.js';
+import { IObject, IOrderedCollectionPage, isIOrderedCollectionPage, type IClip } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -66,10 +66,16 @@ export class ApClipService {
 		const limit = 10;
 		for (let i = 0; i < limit; i++) {
 			if (!next) return;
-			const ap_page = await resolver.resolveOrderedCollectionPage(next);
-			next = ap_page.next;
-			const limit = promiseLimit<undefined>(2);
+			const ap_page = (typeof next === 'string' ? await resolver.resolve(next) : next) as IObject & { orderedItems?: IObject[], items?: IObject[] };
 			const items = ap_page.orderedItems ?? ap_page.items;
+			if (ap_page.type === 'PlayList' && items !== undefined) {
+				//playlist
+			} else if (isIOrderedCollectionPage(ap_page)) {
+				next = ap_page.next;
+			} else {
+				throw new Error(`unrecognized collection type: ${ap_page.type}`);
+			}
+			const limit = promiseLimit<undefined>(2);
 			if (Array.isArray(items)) {
 				await Promise.all(items.map(item => limit(async() => {
 					const note = await this.apNoteService.resolveNote(item, {
@@ -95,7 +101,6 @@ export class ApClipService {
 
 		// Resolve to (Ordered)Collection Object
 		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
-		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
