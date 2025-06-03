@@ -3,14 +3,19 @@
 ### Release Date
 
 ### General
+- ハッシュタグを非表示で投稿できるように [#712](https://github.com/yojo-art/cherrypick/pull/712)
 クリップをActivityPub拡張表現で扱う [#617](https://github.com/yojo-art/cherrypick/pull/617)
 - Person Service Applicationが_yojoart_clipsを持つようになります
 - _yojoart_clipsはクリップの一覧を表現するOrderedCollectionです
 - nodeinfo内features配列に https://yojoart.kzkr.xyz/ns#_yojoart_clips として機能対応を示します
+- ノートにお気に入り状態が表示されるように [#710](https://github.com/yojo-art/cherrypick/pull/710)
+  - ノート取得APIのレスポンスで`favorite: boolean`が追加されます
 
 ### Client
+- Fix: ロール設定に予約投稿の最大数が2個ある [#714](https://github.com/yojo-art/cherrypick/pull/714)
 - Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
   - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
+- Enhance: フロントエンド上からnotes/unrenoteを呼べるように [#711](https://github.com/yojo-art/cherrypick/pull/711)
 ### Server
 UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
 
