@@ -68,7 +68,7 @@ export class ApClipService {
 			if (!next) return;
 			const ap_page = (typeof next === 'string' ? await resolver.resolve(next) : next) as IObject & { orderedItems?: IObject[], items?: IObject[] };
 			const items = ap_page.orderedItems ?? ap_page.items;
-			if (ap_page.type === 'PlayList' && items !== undefined) {
+			if (ap_page.type === 'Playlist' && items !== undefined) {
 				//playlist
 			} else if (isIOrderedCollectionPage(ap_page)) {
 				next = ap_page.next;
