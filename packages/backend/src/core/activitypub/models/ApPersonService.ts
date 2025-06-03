@@ -572,7 +572,7 @@ export class ApPersonService implements OnModuleInit {
 		});
 
 		await this.updateFeatured(user.id, resolver).catch(err => this.logger.error(err));
-		await this.apClipService.updateClips(user.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateUserClips(user.id, resolver).catch(err => this.logger.error(err));
 
 		return user;
 	}
@@ -835,7 +835,7 @@ export class ApPersonService implements OnModuleInit {
 		);
 
 		await this.updateFeatured(exist.id, resolver).catch(err => this.logger.error(err));
-		await this.apClipService.updateClips(exist.id, resolver).catch(err => this.logger.error(err));
+		await this.apClipService.updateUserClips(exist.id, resolver).catch(err => this.logger.error(err));
 
 		const updated = { ...exist, ...updates };
 

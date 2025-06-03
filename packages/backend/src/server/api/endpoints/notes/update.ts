@@ -102,6 +102,7 @@ export const paramDef = {
 			},
 			required: ['choices'],
 		},
+		tagText: { type: 'string', nullable: true, description: 'ハッシュタグ文字列 自動的にパースされます' },
 		event: {
 			type: 'object',
 			nullable: true,
@@ -203,6 +204,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					multiple: ps.poll.multiple ?? false,
 					expiresAt: ps.poll.expiresAt ? new Date(ps.poll.expiresAt) : null,
 				} : undefined,
+				tagText: ps.tagText,
 				event: ps.event ? {
 					start: new Date(ps.event.start!),
 					end: ps.event.end ? new Date(ps.event.end) : null,

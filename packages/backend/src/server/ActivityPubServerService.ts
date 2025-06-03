@@ -28,7 +28,7 @@ import { QueryService } from '@/core/QueryService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
-import { IActivity, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
+import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import * as Acct from '@/misc/acct.js';
 import { MfmService } from '@/core/MfmService.js';
@@ -446,17 +446,17 @@ export class ActivityPubServerService {
 		const notes_count : number = await this.clipNotesRepository.countBy({
 			clipId: clip.id,
 		});
-		let rendered :IOrderedCollection | IOrderedCollectionPage | null = null;
+		let rendered :IClip | IOrderedCollectionPage | null = null;
 		if (page) {
-			const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), sinceId, untilId)
-				.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
-				.andWhere('clipNote.clipId = :clipId', { clipId: clip.id });
+			const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip_note'), sinceId, untilId)
+				.andWhere('clip_note.clipId = :clipId', { clipId: clip.id })
+				.innerJoinAndSelect('clip_note.note', 'note');
 			const notes = await query.limit(limit).getMany();
 
 			if (sinceId) notes.reverse();
-			const activities : string[] = (await Promise.all(notes.map(async note => {
-				if (note.localOnly) return null;
-				return note.userHost == null ? `${this.config.url}/notes/${note.id}` : note.uri ?? null;
+			const activities : string[] = (await Promise.all(notes.map(async clip => {
+				if (clip.note?.localOnly) return null;
+				return clip.note?.userHost == null ? `${this.config.url}/notes/${clip.note?.id}` : clip.note.uri ?? null;
 			}))).filter(activitie => activitie != null);
 			rendered = this.apRendererService.renderOrderedCollectionPage(
 				`${partOf}?${url.query({
@@ -477,7 +477,9 @@ export class ActivityPubServerService {
 		} else {
 			const first = `${this.config.url}/clips/${clip.id}?page=true`;
 			const last = `${this.config.url}/clips/${clip.id}?page=true&since_id=000000000000000000000000`;
-			rendered = this.apRendererService.renderOrderedCollection(partOf, notes_count, first, last);
+			const object = this.apRendererService.renderOrderedCollection(partOf, notes_count, first, last);
+			object.type = 'Clip';
+			rendered = object as IClip;
 		}
 		if (rendered == null) return;
 		let noMisskeySummary = false;
@@ -486,8 +488,7 @@ export class ActivityPubServerService {
 			if (parsed_description.every(n => ['text', 'unicodeEmoji', 'emojiCode', 'mention', 'hashtag', 'url'].includes(n.type))) {
 				noMisskeySummary = true;
 			}
-			const summary = clip.description ? this.mfmService.toHtml(parsed_description) : null;
-			rendered.summary = summary ?? undefined;
+			rendered.summary = this.mfmService.toHtml(parsed_description) ?? undefined;
 		}
 		rendered.name = clip.name;
 		if (!rendered.summary || !noMisskeySummary) {

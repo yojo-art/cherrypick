@@ -32,6 +32,7 @@ export type MiScheduleNoteType = {
 		/** Date.toISOString() */
 		expiresAt: string | null
 	} | undefined;
+	tagText?: string | null;
 	renote?: MiNote['id'];
 	localOnly: boolean;
 	cw?: string | null;

@@ -42,7 +42,7 @@ export class ClipEntityService {
 		const meId = me ? me.id : null;
 		const clip = typeof src === 'object' ? src : await this.clipsRepository.findOneByOrFail({ id: src });
 
-		return await awaitAll({
+		const packed = await awaitAll({
 			id: clip.id,
 			createdAt: this.idService.parse(clip.id).date.toISOString(),
 			lastClippedAt: clip.lastClippedAt ? clip.lastClippedAt.toISOString() : null,
@@ -54,7 +54,13 @@ export class ClipEntityService {
 			favoritedCount: await this.clipFavoritesRepository.countBy({ clipId: clip.id }),
 			isFavorited: meId ? await this.clipFavoritesRepository.exists({ where: { clipId: clip.id, userId: meId } }) : undefined,
 			notesCount: (meId === clip.userId) ? await this.clipNotesRepository.countBy({ clipId: clip.id }) : undefined,
+			uri: clip.uri,
 		});
+		if (!packed.user.host) {
+			//ローカルユーザーが作成したクリップはuriを付けない
+			packed.uri = null;
+		}
+		return packed;
 	}
 
 	@bindThis

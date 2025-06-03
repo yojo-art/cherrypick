@@ -16,7 +16,6 @@ import { bindThis } from '@/decorators.js';
 import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import { ReactionsBufferingService } from '@/core/ReactionsBufferingService.js';
-import { CacheService } from '../CacheService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { CustomEmojiService } from '../CustomEmojiService.js';
 import type { ReactionService } from '../ReactionService.js';
@@ -86,8 +85,6 @@ export class NoteEntityService implements OnModuleInit {
 
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
-
-		private cacheService: CacheService,
 
 		//private userEntityService: UserEntityService,
 		//private driveFileEntityService: DriveFileEntityService,
@@ -483,7 +480,6 @@ export class NoteEntityService implements OnModuleInit {
 						reactionAndUserPairCache: reactionAndUserPairCache,
 					}, meId, options?._hint_),
 				} : {}),
-				favorite: meId ? (await this.cacheService.userNoteFavoritesCache.fetch(meId)).has(note.id) : false,
 			} : {}),
 		});
 

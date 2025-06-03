@@ -232,10 +232,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<button v-if="canRenote && defaultStore.state.renoteQuoteButtonSeparation && defaultStore.state.showQuoteButtonInNoteFooter" ref="quoteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.quote" class="_button" :class="$style.noteFooterButton" @click="quote()">
 				<i class="ti ti-quote"></i>
 			</button>
-			<button ref="favoriteButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.favorite" :class="$style.footerButton" class="_button" @click.stop="favorite()">
-				<i v-if="favorited" class="ti ti-star-filled" style="color: var(--MI_THEME-accent);"></i>
-				<i v-else class="ti ti-star"></i>
-			</button>
 			<button v-if="defaultStore.state.showClipButtonInNoteFooter" ref="clipButton" v-vibrate="defaultStore.state.vibrateSystem ? 5 : []" v-tooltip="i18n.ts.clip" class="_button" :class="$style.noteFooterButton" @click="clip()">
 				<i class="ti ti-paperclip"></i>
 			</button>
@@ -249,6 +245,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'renotes' }]" @click="tab = 'renotes'"><i class="ti ti-repeat"></i> {{ i18n.ts.renotes }}</button>
 		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'reactions' }]" @click="tab = 'reactions'"><i class="ti ti-icons"></i> {{ i18n.ts.reactions }}</button>
 		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'history' }]" @click="tab = 'history'"><i class="ti ti-pencil"></i> {{ i18n.ts.edited }}</button>
+		<button class="_button" :class="[$style.tab, { [$style.tabActive]: tab === 'tag' }]" @click="tab = 'tag'"><i class="ti ti-hash"></i> {{ i18n.ts.hashtags }}</button>
 	</div>
 	<div>
 		<div v-if="tab === 'replies'">
@@ -316,6 +313,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div>{{ i18n.ts.nothing }}</div>
 				</div>
 			</div>
+		</div>
+		<div v-else-if="tab === 'tag'">
+			<MkA v-for="tag in appearNote.tags" :key="'tag:' + tag"
+					 :to="`/tags/${tag}`"
+					 style="margin-left: 6px;margin-right: 16px; color: #FF9900 ">#{{ tag }}</MkA>
 		</div>
 	</div>
 </div>
@@ -430,10 +432,7 @@ const reactButton = shallowRef<HTMLElement>();
 const heartReactButton = shallowRef<HTMLElement>();
 const quoteButton = shallowRef<HTMLElement>();
 const clipButton = shallowRef<HTMLElement>();
-const favoriteButton = shallowRef<HTMLElement>();
 const appearNote = computed(() => getAppearNote(note.value));
-
-const favorited = ref(appearNote.value.favorite);
 const galleryEl = shallowRef<InstanceType<typeof MkMediaList>>();
 const isMyRenote = $i && ($i.id === note.value.userId);
 const showContent = ref(false);
@@ -769,13 +768,6 @@ async function translate(): Promise<void> {
 
 async function clip(): Promise<void> {
 	os.popupMenu(await getNoteClipMenu({ note: note.value, isDeleted }), clipButton.value).then(focus);
-}
-
-async function favorite(): Promise<void> {
-	await os.apiWithDialog(favorited.value ? 'notes/favorites/delete' : 'notes/favorites/create', {
-		noteId: appearNote.value.id,
-	});
-	favorited.value = !favorited.value;
 }
 
 function showRenoteMenu(): void {

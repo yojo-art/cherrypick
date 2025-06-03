@@ -16,12 +16,12 @@ import { bindThis } from '@/decorators.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import type Logger from '@/logger.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
-import { isCollectionOrOrderedCollection, isIOrderedCollectionPage, isOrderedCollection } from './type.js';
+import { getApType, isCollectionOrOrderedCollection, isIOrderedCollectionPage, isOrderedCollection } from './type.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
 import { ApRendererService } from './ApRendererService.js';
 import { ApRequestService } from './ApRequestService.js';
 import { FetchAllowSoftFailMask } from './misc/check-against-url.js';
-import type { IObject, ICollection, IOrderedCollection, IOrderedCollectionPage } from './type.js';
+import type { IObject, ICollection, IOrderedCollection, IOrderedCollectionPage, IClip } from './type.js';
 
 export class Resolver {
 	private history: Set<string>;
@@ -72,6 +72,19 @@ export class Resolver {
 		}
 	}
 
+	@bindThis
+	public async resolveClip(value: string): Promise<IClip> {
+		const collection = await this.resolve(value);
+
+		if (getApType(collection) === 'Clip') {
+			return {
+				...collection,
+				type: 'Clip',
+			};
+		} else {
+			throw new Error(`unrecognized clip type: ${collection.type}`);
+		}
+	}
 	@bindThis
 	public async resolveOrderedCollection(value: string | IObject): Promise<IOrderedCollection> {
 		const collection = typeof value === 'string'

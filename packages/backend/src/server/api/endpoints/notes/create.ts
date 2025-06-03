@@ -166,7 +166,7 @@ export const paramDef = {
 		replyId: { type: 'string', format: 'misskey:id', nullable: true },
 		renoteId: { type: 'string', format: 'misskey:id', nullable: true },
 		channelId: { type: 'string', format: 'misskey:id', nullable: true },
-
+		tagText: { type: 'string', nullable: true, description: 'ハッシュタグ文字列 自動的にパースされます' },
 		// anyOf内にバリデーションを書いても最初の一つしかチェックされない
 		// See https://github.com/misskey-dev/misskey/pull/10082
 		text: {
@@ -416,6 +416,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						multiple: ps.poll.multiple ?? false,
 						expiresAt: ps.poll.expiresAt ? new Date(ps.poll.expiresAt) : null,
 					} : undefined,
+					tagText: ps.tagText ?? undefined,
 					text: ps.text ?? undefined,
 					reply,
 					renote,

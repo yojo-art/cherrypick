@@ -65,5 +65,9 @@ export const packedClipSchema = {
 				}],
 			},
 		},
+		uri: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
 	},
 } as const;

@@ -158,4 +158,84 @@ describe('Clips', () => {
 		strictEqual(aliceInBClips2[0].name, clip2.name);
 		strictEqual(aliceInBClips2[0].description, clip2.description);
 	});
+	describe('配送', () => {
+		test('非公開クリップが連合しない', async () => {
+			await bob.client.request('following/create', { userId: aliceInB.id });
+			await sleep(800);
+			await clearAllClips();
+			const clip = await alice.client.request('clips/create', { name: 'public', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			const clip2 = await alice.client.request('clips/create', { name: 'private', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: false });
+			await sleep(800);
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			//0件にするとリモートAPI呼び出しが発生してキャッシュ由来の変な値になる
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			const clip2u = await alice.client.request('clips/update', { clipId: clip2.id, isPublic: true });
+			strictEqual(clip2u.isPublic, true);
+			const aliceClips = await alice.client.request('users/clips', { userId: alice.id, remoteApi: false });
+			strictEqual(aliceClips.length, 2);
+			await sleep(800);
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips2.length, 2);
+		});
+		test('名前と説明文が更新できる', async () => {
+			await clearAllClips();
+			const clip = await alice.client.request('clips/create', { name: '更新前', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			await sleep(800);
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			const clip2 = await alice.client.request('clips/update', { clipId: clip.id, name: '更新後', description: 'description' + crypto.randomUUID().replaceAll('-', '') });
+			strictEqual(clip2.name, '更新後');
+			strictEqual(clip2.isPublic, true);
+			await sleep(800);
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips2.length, 1);
+			strictEqual(aliceInBClips2[0].name, clip2.name);
+			strictEqual(aliceInBClips2[0].description, clip2.description);
+		});
+
+		test('公開クリップ他人ノートが連合する', async () => {
+			await clearAllClips();
+			const bob_note = (await bob.client.request('notes/create', { text: 'public note' + crypto.randomUUID().replaceAll('-', '') })).createdNote;
+			const clip = await alice.client.request('clips/create', { name: '公開クリップ他人ノートが連合する', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			await sleep(800);
+			const show_note = await alice.client.request('ap/show', { uri: `https://b.test/notes/${bob_note.id}` });
+			await alice.client.request('clips/add-note', { clipId: clip.id, noteId: show_note.object.id });
+			await sleep(800);
+			await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			await sleep(800);
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			//非同期で取得されるから2回リクエスト飛ばす
+			await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			await sleep(800);
+			const notes = await bob.client.request('clips/notes', { clipId: aliceInBClips[0].id });
+			strictEqual(notes.length, 1);
+			strictEqual(notes[0].text, bob_note.text);
+		});
+		test('公開設定が更新できる', async () => {
+			await clearAllClips();
+			const clip = await alice.client.request('clips/create', { name: '更新前', description: 'description' + crypto.randomUUID().replaceAll('-', ''), isPublic: true });
+			await sleep(800);
+			const aliceInBClips = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips.length, 1);
+			strictEqual(aliceInBClips[0].name, clip.name);
+			strictEqual(aliceInBClips[0].description, clip.description);
+			await alice.client.request('clips/update', { clipId: clip.id, name: '更新後', isPublic: false });
+			await sleep(800);
+			const aliceInBClips2 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips2.length, 0);
+			const clip3 = await alice.client.request('clips/update', { clipId: clip.id, isPublic: true, description: 'description' + crypto.randomUUID().replaceAll('-', '') });
+			await sleep(800);
+			const aliceInBClips3 = await bob.client.request('users/clips', { userId: aliceInB.id, remoteApi: false });
+			strictEqual(aliceInBClips3.length, 1);
+			strictEqual(aliceInBClips3[0].name, clip3.name);
+			strictEqual(aliceInBClips3[0].description, clip3.description);
+		});
+	});
 });
