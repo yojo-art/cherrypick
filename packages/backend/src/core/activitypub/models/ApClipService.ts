@@ -120,7 +120,7 @@ export class ApClipService {
 			td -= 1000;
 			//uri必須
 			if (!clip.id) continue;
-			if (clip.type !== 'Clip') continue;
+			if (clip.type !== 'Clip' && clip.type !== 'Playlist') continue;
 			if (new URL(clip.id).origin !== new URL(user.uri).origin) continue;
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
