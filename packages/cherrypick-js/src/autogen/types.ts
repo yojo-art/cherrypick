@@ -5231,6 +5231,7 @@ export type components = {
       emojis?: {
         [key: string]: string;
       };
+      uri: string | null;
     };
     FederationInstance: {
       /** Format: id */

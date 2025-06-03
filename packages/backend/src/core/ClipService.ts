@@ -330,6 +330,7 @@ export class ClipService {
 				favoritedCount: 0,
 				isFavorited: false,
 				notesCount: 0,
+				uri: 'https://' + author.host + '/clips/' + clipId,
 			});
 		}
 	}
@@ -401,6 +402,7 @@ export class ClipService {
 			isFavorited: false,
 			notesCount: remote_clip.notesCount,
 			emojis: (remote_clip.description && fetch_emoji) ? emojis(this.config, this.httpRequestService, this.redisForRemoteApis, host, remote_clip.description) : {},
+			uri: 'https://' + host + '/clips/' + clipId,
 		});
 	}
 }
