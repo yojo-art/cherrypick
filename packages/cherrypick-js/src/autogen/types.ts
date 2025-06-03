@@ -4640,7 +4640,6 @@ export type components = {
       myReaction?: string | null;
       /** Format: date-time */
       deleteAt?: string | null;
-      favorite: boolean;
     };
     NoteDraft: {
       /**
@@ -5232,6 +5231,7 @@ export type components = {
       emojis?: {
         [key: string]: string;
       };
+      uri: string | null;
     };
     FederationInstance: {
       /** Format: id */
