@@ -6,6 +6,7 @@
 import { randomUUID } from 'node:crypto';
 import * as fs from 'node:fs';
 import * as stream from 'node:stream/promises';
+import * as dns from 'node:dns';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Sentry from '@sentry/node';
 import { DI } from '@/di-symbols.js';
@@ -267,7 +268,7 @@ export class ApiCallService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	private logIp(request: FastifyRequest, user: MiLocalUser) {
+	private async logIp(request: FastifyRequest, user: MiLocalUser) {
 		if (!this.meta.enableIpLogging) return;
 		const ip = request.ip;
 		const ips = this.userIpHistories.get(user.id);
@@ -277,12 +278,19 @@ export class ApiCallService implements OnApplicationShutdown {
 			} else {
 				ips.add(ip);
 			}
+			let hostNames: string[] | undefined = undefined;
+			try {
+				hostNames = await dns.promises.reverse(ip);
+			} catch (e) {
+				console.log(e);
+			}
 
 			try {
 				this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),
 					userId: user.id,
 					ip: ip,
+					dnsNames: hostNames,
 				}).orIgnore(true).execute();
 			} catch {
 			}
