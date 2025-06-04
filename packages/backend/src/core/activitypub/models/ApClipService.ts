@@ -21,7 +21,7 @@ import { bindThis } from '@/decorators.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IObject, IOrderedCollectionPage, isOrderedCollection, type IClip } from '../type.js';
+import { getApType, IObject, IOrderedCollectionPage, isIOrderedCollectionPage, type IClip } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -66,13 +66,24 @@ export class ApClipService {
 		const limit = 10;
 		for (let i = 0; i < limit; i++) {
 			if (!next) return;
-			const ap_page = await resolver.resolveOrderedCollectionPage(next);
-			next = ap_page.next;
-			const limit = promiseLimit<undefined>(2);
+			const ap_page = (typeof next === 'string' ? await resolver.resolve(next) : next) as IObject & { orderedItems?: IObject[], items?: IObject[] };
 			const items = ap_page.orderedItems ?? ap_page.items;
+			if (ap_page.type === 'Playlist' && items !== undefined) {
+				next = null;
+			} else if (isIOrderedCollectionPage(ap_page)) {
+				next = ap_page.next;
+			} else {
+				throw new Error(`unrecognized collection type: ${ap_page.type}`);
+			}
+			const limit = promiseLimit<undefined>(2);
 			if (Array.isArray(items)) {
 				await Promise.all(items.map(item => limit(async() => {
-					const note = await this.apNoteService.resolveNote(item, {
+					let object :IObject | string = await resolver.resolve(item);
+					if (getApType(object) === 'PlaylistElement') {
+						if (typeof object.url !== 'string') return;
+						object = object.url;
+					}
+					const note = await this.apNoteService.resolveNote(object, {
 						resolver: resolver,
 						sentFrom: new URL(user.uri),
 					});
@@ -95,7 +106,6 @@ export class ApClipService {
 
 		// Resolve to (Ordered)Collection Object
 		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
-		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
@@ -120,7 +130,7 @@ export class ApClipService {
 			td -= 1000;
 			//uri必須
 			if (!clip.id) continue;
-			if (clip.type !== 'Clip') continue;
+			if (clip.type !== 'Clip' && clip.type !== 'Playlist') continue;
 			if (new URL(clip.id).origin !== new URL(user.uri).origin) continue;
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
@@ -138,7 +148,7 @@ export class ApClipService {
 				id,
 				userId: user.id,
 				name: clip.name ?? '',
-				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
+				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : clip.content ? this.mfmService.fromHtml(clip.content) : null),
 				uri: clip.id,
 				lastClippedAt: clip.updated ? new Date(clip.updated) : null,
 				user,

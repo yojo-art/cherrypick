@@ -76,7 +76,7 @@ export class Resolver {
 	public async resolveClip(value: string): Promise<IClip> {
 		const collection = await this.resolve(value);
 
-		if (getApType(collection) === 'Clip') {
+		if (getApType(collection) === 'Clip' || getApType(collection) === 'Playlist') {
 			return {
 				...collection,
 				type: 'Clip',

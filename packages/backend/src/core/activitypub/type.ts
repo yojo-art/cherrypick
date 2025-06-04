@@ -130,7 +130,7 @@ export interface IOrderedCollectionPage extends IObject {
 }
 
 export interface IClip extends IObject {
-	type: 'Clip';
+	type: 'Clip' | 'Playlist';
 	totalItems?: number;
 	orderedItems?: ApObject;
 	first?: IOrderedCollectionPage | string;
@@ -237,6 +237,7 @@ export interface IActor extends IObject {
 		}[] | [];
 	}[];
 	_yojoart_clips?: string | null;
+	playlists?: string | null,
 }
 
 export const isCollection = (object: IObject): object is ICollection =>
@@ -252,7 +253,7 @@ export const isIOrderedCollectionPage = (object: IObject): object is IOrderedCol
 	getApType(object) === 'OrderedCollectionPage';
 
 export const isClip = (object: IObject): object is IClip =>
-	getApType(object) === 'Clip';
+	getApType(object) === 'Clip' || getApType(object) === 'Playlist';
 
 export interface IApPropertyValue extends IObject {
 	type: 'PropertyValue';
