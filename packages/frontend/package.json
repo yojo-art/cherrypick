@@ -90,7 +90,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
-		"@misskey-dev/summaly": "5.2.0",
+		"@misskey-dev/summaly": "5.2.1",
 		"@storybook/addon-actions": "8.5.8",
 		"@storybook/addon-essentials": "8.5.8",
 		"@storybook/addon-interactions": "8.5.8",
