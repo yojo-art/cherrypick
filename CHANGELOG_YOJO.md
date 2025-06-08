@@ -1,3 +1,26 @@
+## 1.5.0
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+2025-06-08
+
+### General
+- Enhance: ハッシュタグを非表示で投稿できるように [#712](https://github.com/yojo-art/cherrypick/pull/712)
+- Feat: クリップをActivityPub拡張表現で扱う [#617](https://github.com/yojo-art/cherrypick/pull/617)
+  - Person Service Applicationが_yojoart_clipsを持つようになります
+  - _yojoart_clipsはクリップの一覧を表現するOrderedCollectionです
+	- nodeinfo内features配列に https://yojoart.kzkr.xyz/ns#_yojoart_clips として機能対応を示します
+- Enhance: Peertubeのプレイリストをクリップとして見れるように [#732](https://github.com/yojo-art/cherrypick/pull/732)
+
+### Client
+- Fix: ロール設定に予約投稿の最大数が2個ある [#714](https://github.com/yojo-art/cherrypick/pull/714)
+- Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
+  - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
+- Enhance: フロントエンド上からnotes/unrenoteを呼べるように [#711](https://github.com/yojo-art/cherrypick/pull/711)
+### Server
+- Fix UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
+
 ## 1.4.1
 Cherrypick 4.15.0  
 Misskey 2025.2.0

@@ -24,7 +24,7 @@ import { MfmService } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { MiUserKeypair } from '@/models/UserKeypair.js';
-import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository } from '@/models/_.js';
+import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiClip } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
@@ -34,7 +34,7 @@ import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
 import { toSerchableByProperty } from './misc/searchableBy.js';
-import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
+import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, IClip, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IOrderedCollection, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
 export class ApRendererService {
@@ -336,6 +336,33 @@ export class ApRendererService {
 	}
 
 	@bindThis
+	public renderClip(clip: MiClip): IClip {
+		const rendered = {
+			type: 'Clip',
+			id: `${this.config.url}/clips/${clip.id}`,
+			first: `${this.config.url}/clips/${clip.id}?page=true`,
+			last: `${this.config.url}/clips/${clip.id}?page=true&since_id=000000000000000000000000`,
+			name: clip.name,
+			published: this.idService.parse(clip.id).date.toISOString(),
+			to: ['https://www.w3.org/ns/activitystreams#Public'],
+			cc: [`${this.config.url}/users/${clip.userId}/followers`],
+			updated: clip.lastClippedAt?.toISOString() ?? undefined,
+		} as IClip;
+
+		if (clip.description) {
+			let noMisskeySummary = false;
+			const parsed_description = mfm.parse(clip.description);
+			if (parsed_description.every(n => ['text', 'unicodeEmoji', 'emojiCode', 'mention', 'hashtag', 'url'].includes(n.type))) {
+				noMisskeySummary = true;
+			}
+			rendered.summary = this.mfmService.toHtml(parsed_description) ?? undefined;
+			if (!rendered.summary || !noMisskeySummary) {
+				rendered._misskey_summary = clip.description;
+			}
+		}
+		return rendered;
+	}
+	@bindThis
 	public async renderNote(note: MiNote, dive = true, isTalk = false): Promise<IPost> {
 		const getPromisedFiles = async (ids: string[]): Promise<MiDriveFile[]> => {
 			if (ids.length === 0) return [];
@@ -592,6 +619,7 @@ export class ApRendererService {
 			attachment: attachment.length ? attachment : undefined,
 			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
 			isSquareAvatars: user.isSquareAvatars ?? undefined,
+			_yojoart_clips: `${id}/collections/clips`,
 		};
 
 		if (user.movedToUri) {

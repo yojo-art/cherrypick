@@ -1036,4 +1036,46 @@ describe('Note', () => {
 			assert.strictEqual(castAsError(res.body).error.code, 'NO_TRANSLATE_SERVICE');
 		});
 	});
+
+	describe('非表示ハッシュタグ', () => {
+		test('作成時にtagTextからハッシュタグを追加できる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello', tagText: '#aaa #bbb #ccc' });
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			const arr = res.body.tags as string[];
+			assert.strictEqual(arr.length, 3);
+			assert.strictEqual(arr[0], 'aaa');
+			assert.strictEqual(arr[1], 'bbb');
+			assert.strictEqual(arr[2], 'ccc');
+		});
+		test('更新時にtagTextからハッシュタグを追加できる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+
+			const first = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+			assert.strictEqual(first.body.tags, undefined);
+
+			await api('notes/update', {
+				cw: null,
+				noteId: aliceNote.id,
+				tagText: '#aaa #bbb #ccc',
+				text: 'Hello',
+			}, alice);
+
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			const arr = res.body.tags as string[];
+			assert.strictEqual(arr.length, 3);
+			assert.strictEqual(arr[0], 'aaa');
+			assert.strictEqual(arr[1], 'bbb');
+			assert.strictEqual(arr[2], 'ccc');
+		});
+	});
 });

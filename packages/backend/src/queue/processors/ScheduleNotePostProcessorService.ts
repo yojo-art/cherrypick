@@ -104,6 +104,7 @@ export class ScheduleNotePostProcessorService {
 						multiple: note.poll.multiple,
 						expiresAt: note.poll.expiresAt ? new Date(note.poll.expiresAt) : null,
 					} : undefined,
+					tagText: note.tagText ?? undefined,
 					event: note.event ? {
 						start: new Date(note.event.start),
 						end: note.event.end ? new Date(note.event.end) : null,

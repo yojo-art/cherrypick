@@ -85,6 +85,9 @@ watch(() => props.clipId, async () => {
 		clipId: props.clipId,
 	});
 	favorited.value = clip.value.isFavorited;
+	if (clip.value?.uri) {
+		remoteUrl.value = clip.value.uri;
+	}
 }, {
 	immediate: true,
 });

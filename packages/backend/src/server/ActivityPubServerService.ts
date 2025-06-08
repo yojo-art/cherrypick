@@ -12,8 +12,9 @@ import { Brackets, In, IsNull, LessThan, Not } from 'typeorm';
 import accepts from 'accepts';
 import vary from 'vary';
 import secureJson from 'secure-json-parse';
+import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository } from '@/models/_.js';
+import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
 import * as url from '@/misc/prelude/url.js';
 import type { Config } from '@/config.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -27,9 +28,12 @@ import { QueryService } from '@/core/QueryService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
-import { IActivity } from '@/core/activitypub/type.js';
+import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import * as Acct from '@/misc/acct.js';
+import { MfmService } from '@/core/MfmService.js';
+import { IdService } from '@/core/IdService.js';
+import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import type { FastifyInstance, FastifyRequest, FastifyReply, FastifyPluginOptions, FastifyBodyParser } from 'fastify';
 import type { FindOptionsWhere } from 'typeorm';
 
@@ -66,12 +70,20 @@ export class ActivityPubServerService {
 		@Inject(DI.followRequestsRepository)
 		private followRequestsRepository: FollowRequestsRepository,
 
+		@Inject(DI.clipsRepository)
+		private clipsRepository: ClipsRepository,
+
+		@Inject(DI.clipNotesRepository)
+		private clipNotesRepository: ClipNotesRepository,
+
 		private utilityService: UtilityService,
 		private userEntityService: UserEntityService,
 		private apRendererService: ApRendererService,
 		private queueService: QueueService,
 		private userKeypairService: UserKeypairService,
 		private queryService: QueryService,
+		private mfmService: MfmService,
+		private idService: IdService,
 	) {
 		//this.createServer = this.createServer.bind(this);
 	}
@@ -397,6 +409,186 @@ export class ActivityPubServerService {
 	}
 
 	@bindThis
+	private async clips(request: FastifyRequest<{
+		Params: { clip: string; };
+		Querystring: { since_id?: string; until_id?: string; page?: string; };
+	}>, reply: FastifyReply) {
+		const clipId = request.params.clip;
+		const clip = await this.clipsRepository.findOneBy({
+			id: clipId,
+			isPublic: true,
+		});
+		if (clip == null) {
+			reply.code(404);
+			return;
+		}
+		const limit = 20;
+
+		const sinceId = request.query.since_id;
+		if (sinceId != null && typeof sinceId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		const untilId = request.query.until_id;
+		if (untilId != null && typeof untilId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		const page = request.query.page === 'true';
+
+		if (countIf(x => x != null, [sinceId, untilId]) > 1) {
+			reply.code(400);
+			return;
+		}
+		const partOf = `${this.config.url}/clips/${clip.id}`;
+		const notes_count : number = await this.clipNotesRepository.countBy({
+			clipId: clip.id,
+		});
+		let rendered :IClip | IOrderedCollectionPage | null = null;
+		if (page) {
+			const query = this.queryService.makePaginationQuery(this.clipNotesRepository.createQueryBuilder('clip_note'), sinceId, untilId)
+				.andWhere('clip_note.clipId = :clipId', { clipId: clip.id })
+				.innerJoinAndSelect('clip_note.note', 'note');
+			const notes = await query.limit(limit).getMany();
+
+			if (sinceId) notes.reverse();
+			const activities : string[] = (await Promise.all(notes.map(async clip => {
+				if (clip.note?.localOnly) return null;
+				return clip.note?.userHost == null ? `${this.config.url}/notes/${clip.note?.id}` : clip.note.uri ?? null;
+			}))).filter(activitie => activitie != null);
+			rendered = this.apRendererService.renderOrderedCollectionPage(
+				`${partOf}?${url.query({
+					page: 'true',
+					since_id: sinceId,
+					until_id: untilId,
+				})}`,
+				notes_count, activities, partOf,
+				notes.length ? `${partOf}?${url.query({
+					page: 'true',
+					since_id: notes[0].id,
+				})}` : undefined,
+				notes.length ? `${partOf}?${url.query({
+					page: 'true',
+					until_id: notes.at(-1)!.id,
+				})}` : undefined,
+			);
+		} else {
+			const first = `${this.config.url}/clips/${clip.id}?page=true`;
+			const last = `${this.config.url}/clips/${clip.id}?page=true&since_id=000000000000000000000000`;
+			const object = this.apRendererService.renderOrderedCollection(partOf, notes_count, first, last);
+			object.type = 'Clip';
+			rendered = object as IClip;
+		}
+		if (rendered == null) return;
+		let noMisskeySummary = false;
+		if (clip.description) {
+			const parsed_description = mfm.parse(clip.description);
+			if (parsed_description.every(n => ['text', 'unicodeEmoji', 'emojiCode', 'mention', 'hashtag', 'url'].includes(n.type))) {
+				noMisskeySummary = true;
+			}
+			rendered.summary = this.mfmService.toHtml(parsed_description) ?? undefined;
+		}
+		rendered.name = clip.name;
+		if (!rendered.summary || !noMisskeySummary) {
+			rendered._misskey_summary = clip.description ?? undefined;
+		}
+		rendered.published = this.idService.parse(clip.id).date.toISOString();
+		rendered.to = ['https://www.w3.org/ns/activitystreams#Public'];
+		rendered.cc = [`${this.config.url}/users/${clip.userId}/followers`];
+		rendered.updated = clip.lastClippedAt?.toISOString() ?? undefined;
+		reply.header('Cache-Control', 'private, max-age=180');
+		this.setResponseType(request, reply);
+		return (this.apRendererService.addContext(rendered));
+	}
+
+	@bindThis
+	private async collectionsClips(request: FastifyRequest<{
+		Params: { user: string; };
+		Querystring: { since_id?: string; until_id?: string; page?: string; };
+	}>, reply: FastifyReply) {
+		const userId = request.params.user;
+
+		const user = await this.usersRepository.findOneBy({
+			id: userId,
+			host: IsNull(),
+		});
+
+		if (user == null) {
+			reply.code(404);
+			return;
+		}
+
+		const sinceId = request.query.since_id;
+		if (sinceId != null && typeof sinceId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		const untilId = request.query.until_id;
+		if (untilId != null && typeof untilId !== 'string') {
+			reply.code(400);
+			return;
+		}
+
+		const page = request.query.page === 'true';
+
+		if (countIf(x => x != null, [sinceId, untilId]) > 1) {
+			reply.code(400);
+			return;
+		}
+		const limit = 20;
+		const partOf = `${this.config.url}/users/${userId}/collections/clips`;
+		const clips_count : number = await this.clipsRepository.countBy({
+			userId: user.id,
+			isPublic: true,
+		});
+		if (page) {
+			const query = this.queryService.makePaginationQuery(this.clipsRepository.createQueryBuilder('clips'), sinceId, untilId)
+				.andWhere('clips.userId = :userId', { userId: user.id })
+				.andWhere('clips.isPublic = TRUE');
+
+			const clips = await query.limit(limit).getMany();
+
+			if (sinceId) clips.reverse();
+
+			const activities : string[] = await Promise.all(clips.map(async clip => {
+				return `${this.config.url}/clips/${clip.id}`;
+			}));
+			const rendered = this.apRendererService.renderOrderedCollectionPage(
+				`${partOf}?${url.query({
+					page: 'true',
+					since_id: sinceId,
+					until_id: untilId,
+				})}`,
+				clips_count, activities, partOf,
+				clips.length ? `${partOf}?${url.query({
+					page: 'true',
+					since_id: clips[0].id,
+				})}` : undefined,
+				clips.length ? `${partOf}?${url.query({
+					page: 'true',
+					until_id: clips.at(-1)!.id,
+				})}` : undefined,
+			);
+
+			this.setResponseType(request, reply);
+			return (this.apRendererService.addContext(rendered));
+		} else {
+			const rendered = this.apRendererService.renderOrderedCollection(
+				partOf,
+				clips_count,
+				`${partOf}?page=true`,
+				`${partOf}?page=true&since_id=000000000000000000000000`,
+			);
+			reply.header('Cache-Control', 'public, max-age=180');
+			this.setResponseType(request, reply);
+			return (this.apRendererService.addContext(rendered));
+		}
+	}
+
+	@bindThis
 	private async outbox(
 		request: FastifyRequest<{
 			Params: { user: string; };
@@ -637,6 +829,18 @@ export class ActivityPubServerService {
 
 		// featured
 		fastify.get<{ Params: { user: string; }; }>('/users/:user/collections/featured', async (request, reply) => await this.featured(request, reply));
+
+		// _yojoart_clips
+		fastify.get<{
+			Params: { user: string; };
+			Querystring: { since_id?: string; until_id?: string; page?: string; };
+		}>('/users/:user/collections/clips', async (request, reply) => await this.collectionsClips(request, reply));
+
+		//clip
+		fastify.get<{
+			Params: { clip: string; };
+			Querystring: { since_id?: string; until_id?: string; page?: string; };
+		}>('/clips/:clip', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => await this.clips(request, reply));
 
 		// publickey
 		fastify.get<{ Params: { user: string; } }>('/users/:user/publickey', async (request, reply) => {

@@ -375,6 +375,12 @@ export function getNoteMenu(props: {
 		props.viewTextSource.value = true;
 	}
 
+	async function unRenote(): Promise<void> {
+		await os.apiWithDialog('notes/unrenote', {
+			noteId: appearNote.id,
+		});
+	}
+
 	function noNyaizeText(): void {
 		props.noNyaize.value = true;
 	}
@@ -549,7 +555,12 @@ export function getNoteMenu(props: {
 						action: copyEdit,
 					});
 				}
-
+				noteChildMenu.push({ type: 'divider' });
+				noteChildMenu.push({
+					icon: 'ti ti-repeat-off',
+					text: i18n.ts.unRenoteAll,
+					action: unRenote,
+				});
 				return noteChildMenu;
 			},
 		});

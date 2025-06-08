@@ -637,6 +637,10 @@ export const defaultStore = markRaw(new Storage('base', {
 		where: 'device',
 		default: true,
 	},
+	gridLayoutMediaTimeline: {
+		where: 'device',
+		default: true,
+	},
 	fontSize: {
 		where: 'device',
 		default: 8,
@@ -696,6 +700,10 @@ export const defaultStore = markRaw(new Storage('base', {
 	checkReactionDialog: {
 		where: 'device',
 		default: false,
+	},
+	hideTagUiTags: {
+		where: 'device',
+		default: true,
 	},
 	showFixedPostFormInReplies: {
 		where: 'device',
