@@ -119,7 +119,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template v-if="iAmAdmin && ips">
 								<div v-for="record in ips" :key="record.ip" class="_monospace" :class="$style.ip" style="margin: 1em 0;">
 									<span class="date">{{ record.createdAt }}</span>
-									<span class="ip">{{ record.ip }}({{ record.dnsNames[0] ?? i18n.ts.none }})</span>
+									<span v-if="record.dnsNames.length === 0" class="ip">{{ record.ip }}({{ i18n.ts.none }})</span>
+									<span v-else-if="record.dnsNames.length > 0" class="ip">{{ record.ip }} ({{ record.dnsNames[0] }} <i v-if="record.dnsNames.length > 1" class="ti ti-info-circle" @mouseover="showIpToolTip = true" @mouseleave="showIpToolTip = false"><MkTooltip :showing="showIpToolTip"><div v-for="host in record.dnsNames" :key="host">{{ host }}</div></MkTooltip></i>)</span>
 								</div>
 							</template>
 						</MkFolder>
@@ -218,6 +219,7 @@ import MkChart from '@/components/MkChart.vue';
 import MkObjectView from '@/components/MkObjectView.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
+import MkTooltip from '@/components/MkTooltip.vue';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -235,7 +237,6 @@ import { i18n } from '@/i18n.js';
 import { iAmAdmin, $i, iAmModerator } from '@/account.js';
 import MkRolePreview from '@/components/MkRolePreview.vue';
 import MkPagination from '@/components/MkPagination.vue';
-import { globalEvents } from '@/events.js';
 
 const props = withDefaults(defineProps<{
 	userId: string;
@@ -250,6 +251,7 @@ const user = ref<null | Misskey.entities.UserDetailed>();
 const init = ref<ReturnType<typeof createFetcher>>();
 const info = ref<any>();
 const ips = ref<Misskey.entities.AdminGetUserIpsResponse | null>(null);
+const showIpToolTip = ref(false);
 const ap = ref<any>(null);
 const moderator = ref(false);
 const silenced = ref(false);
