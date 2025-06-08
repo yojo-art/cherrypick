@@ -278,20 +278,22 @@ export class ApiCallService implements OnApplicationShutdown {
 			} else {
 				ips.add(ip);
 			}
+
 			let hostNames: string[] | undefined = undefined;
 			try {
-				hostNames = await dns.promises.reverse(ip);
+				const names = await dns.promises.reverse(ip);
+				hostNames = names.map(x =>
+					x.length < 512 ? x : x.substring(0, 512));
 			} catch (e) {
 				console.log(e);
 			}
-			const hosts = hostNames !== undefined ? hostNames.map(x =>
-				x.length < 512 ? x : x.substring(0, 512)) : undefined;
+
 			try {
 				this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),
 					userId: user.id,
 					ip: ip,
-					dnsNames: hosts,
+					dnsNames: hostNames,
 				}).orIgnore(true).execute();
 			} catch {
 			}
