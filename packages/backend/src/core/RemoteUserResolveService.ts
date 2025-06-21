@@ -96,7 +96,7 @@ export class RemoteUserResolveService {
 
 		// ユーザー情報が古い場合は、WebFingerからやりなおして返す
 		if (user.lastFetchedAt == null || Date.now() - user.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
-			//APIがタイムアウトするほど長いので更新は非同期に
+			//APIがタイムアウトするほど長いので非同期更新に。更新完了を待たずに一旦古い情報を返す
 			this.updateRemote(user,usernameLower,acctLower,username,host);
 		}
 
