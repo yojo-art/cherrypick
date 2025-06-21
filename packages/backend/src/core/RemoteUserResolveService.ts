@@ -96,6 +96,16 @@ export class RemoteUserResolveService {
 
 		// ユーザー情報が古い場合は、WebFingerからやりなおして返す
 		if (user.lastFetchedAt == null || Date.now() - user.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
+			//APIがタイムアウトするほど長いので更新は非同期に
+			this.updateRemote(user,usernameLower,acctLower,username,host);
+		}
+
+		this.logger.info(`return existing remote user: ${acctLower}`);
+		return user;
+	}
+
+	@bindThis
+	private async updateRemote(user: MiRemoteUser, usernameLower: string, acctLower: string, username: string, host: string): Promise<MiLocalUser|MiRemoteUser>{
 			// 繋がらないインスタンスに何回も試行するのを防ぐ, 後続の同様処理の連続試行を防ぐ ため 試行前にも更新する
 			await this.usersRepository.update(user.id, {
 				lastFetchedAt: new Date(),
@@ -135,10 +145,6 @@ export class RemoteUserResolveService {
 					return u as MiLocalUser | MiRemoteUser;
 				}
 			});
-		}
-
-		this.logger.info(`return existing remote user: ${acctLower}`);
-		return user;
 	}
 
 	@bindThis
