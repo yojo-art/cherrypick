@@ -117,7 +117,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						this.clipsRepository.update(clip.id, {
 							lastFetchedAt: new Date(),
 						});
-						this.apClipService.update(clip).catch(e => {
+						this.apClipService.updateItems(clip).catch(e => {
 							apLoggerService.logger.warn('clip fetch failed ' + e);
 						}).then(() => {
 							apLoggerService.logger.info('clip update:' + clip.uri);

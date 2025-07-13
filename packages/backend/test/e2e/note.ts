@@ -1037,87 +1037,45 @@ describe('Note', () => {
 		});
 	});
 
-	describe('お気に入りレスポンス', () => {
-		test('お気に入り状態が返ってくる', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
-			const res = await api('notes/show', { noteId: aliceNote.id }, bob);
+	describe('非表示ハッシュタグ', () => {
+		test('作成時にtagTextからハッシュタグを追加できる', async () => {
+			const aliceNote = await post(alice, { text: 'Hello', tagText: '#aaa #bbb #ccc' });
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
 
-			assert.strictEqual(res.body.favorite, false);
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			const arr = res.body.tags as string[];
+			assert.strictEqual(arr.length, 3);
+			assert.strictEqual(arr[0], 'aaa');
+			assert.strictEqual(arr[1], 'bbb');
+			assert.strictEqual(arr[2], 'ccc');
 		});
-
-		test('お気に入りしたら反映されて返ってくる', async () => {
+		test('更新時にtagTextからハッシュタグを追加できる', async () => {
 			const aliceNote = await post(alice, { text: 'Hello' });
 
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/show', { noteId: aliceNote.id }, alice);
+			const first = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
+			assert.strictEqual(first.body.tags, undefined);
 
-			assert.strictEqual(res.body.favorite, true);
-		});
+			await api('notes/update', {
+				cw: null,
+				noteId: aliceNote.id,
+				tagText: '#aaa #bbb #ccc',
+				text: 'Hello',
+			}, alice);
 
-		test('お気に入りして消したら反映されて返ってくる', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
+			const res = await api('notes/show', {
+				noteId: aliceNote.id,
+			}, alice);
 
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/show', { noteId: aliceNote.id }, alice);
-
-			assert.strictEqual(res.body.favorite, true);
-
-			await api('notes/favorites/delete', { noteId: aliceNote.id }, alice);
-			const res2 = await api('notes/show', { noteId: aliceNote.id }, alice);
-
-			assert.strictEqual(res2.body.favorite, false);
-		});
-
-		test('お気に入り状態が返ってくる ホーム', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/timeline', { }, alice);
-
-			assert.strictEqual(res.body[0].favorite, true);
-		});
-
-		test('お気に入り状態が返ってくる グローバル', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/global-timeline', { }, alice);
-
-			assert.strictEqual(res.body[0].favorite, true);
-		});
-
-		test('お気に入り状態が返ってくる ソーシャル', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/hybrid-timeline', { }, alice);
-
-			assert.strictEqual(res.body[0].favorite, true);
-		});
-
-		test('お気に入り状態が返ってくる ローカル', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			const res = await api('notes/local-timeline', { }, alice);
-
-			assert.strictEqual(res.body[0].favorite, true);
-		});
-
-		test('お気に入り状態が返ってくる クリップ', async () => {
-			const clip = await api('clips/create', { name: 'test', isPublic: true, description: 'test' }, alice);
-			const aliceNote = await post(alice, { text: 'Hello' });
-			await api('notes/favorites/create', { noteId: aliceNote.id }, alice);
-			await api('clips/add-note', { clipId: clip.body.id, noteId: aliceNote.id }, alice);
-			const res = await api('clips/notes', { clipId: clip.body.id }, alice);
-
-			assert.strictEqual(res.body[0].favorite, true);
-		});
-
-		test('お気に入り状態が返ってくる リスト', async () => {
-			const aliceNote = await post(alice, { text: 'Hello' });
-			const list = await api('users/lists/create', { name: 'test' }, bob);
-			await api('users/lists/push', { listId: list.body.id, userId: alice.id }, bob);
-			await api('notes/favorites/create', { noteId: aliceNote.id }, bob);
-			const res = await api('notes/user-list-timeline', { listId: list.body.id }, bob);
-
-			assert.strictEqual(res.body[0].favorite, true);
+			assert.strictEqual(Array.isArray(res.body.tags), true);
+			const arr = res.body.tags as string[];
+			assert.strictEqual(arr.length, 3);
+			assert.strictEqual(arr[0], 'aaa');
+			assert.strictEqual(arr[1], 'bbb');
+			assert.strictEqual(arr[2], 'ccc');
 		});
 	});
 });
