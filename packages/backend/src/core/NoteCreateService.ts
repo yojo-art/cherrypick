@@ -5,7 +5,7 @@
 
 import { setImmediate } from 'node:timers/promises';
 import * as mfm from 'mfc-js';
-import { In, DataSource, IsNull, LessThan } from 'typeorm';
+import { In, DataSource, IsNull, LessThan, Any } from 'typeorm';
 import * as Redis from 'ioredis';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { extractMentions } from '@/misc/extract-mentions.js';
@@ -76,6 +76,7 @@ class NotificationManager {
 	constructor(
 		private mutingsRepository: MutingsRepository,
 		private notificationService: NotificationService,
+		private followingsRepository: FollowingsRepository,
 		notifier: { id: MiUser['id']; },
 		note: MiNote,
 	) {
@@ -106,7 +107,28 @@ class NotificationManager {
 
 	@bindThis
 	public async notify() {
+		let followers = [] as string[];
+		if (this.note.visibility === 'followers') {
+			const target_users = this.queue.map(x => x.target);
+			const raw_followers = await this.followingsRepository.find({
+				where: {
+					followeeId: this.note.userId,
+					followerHost: IsNull(),
+					followerId: Any(target_users),
+					isFollowerHibernated: false,
+				},
+				select: ['followerId'],
+			});
+			followers = raw_followers.map(x => x.followerId);
+		}
 		for (const x of this.queue) {
+			if (this.note.visibility === 'public' || this.note.visibility === 'home' || //無条件に公開
+				 (this.note.visibility === 'specified' && this.note.visibleUserIds.includes(x.target)) || //宛先のユーザーである場合
+				 (this.note.visibility === 'followers' && followers.includes(x.target))) { //フォロワーである場合
+				//visibleUser
+			} else {
+				continue;
+			}
 			if (x.reason === 'renote') {
 				this.notificationService.createNotification(x.target, 'renote', {
 					noteId: this.note.id,
