@@ -1,3 +1,16 @@
+## 1.5.1
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+
+### General
+- Fix: フロントエンドで検索許可範囲が設定されない不具合を修正 [#742](https://github.com/yojo-art/cherrypick/pull/742)
+
+### Client
+
+### Server
+
 ## 1.5.0
 Cherrypick 4.15.0  
 Misskey 2025.2.0
@@ -18,6 +31,7 @@ Misskey 2025.2.0
 - Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
   - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
 - Enhance: フロントエンド上からnotes/unrenoteを呼べるように [#711](https://github.com/yojo-art/cherrypick/pull/711)
+
 ### Server
 - Fix UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
 
