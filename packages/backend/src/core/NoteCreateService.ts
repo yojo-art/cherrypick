@@ -107,6 +107,9 @@ class NotificationManager {
 
 	@bindThis
 	public async notify() {
+		if (this.queue.length === 0) {
+			return;
+		}
 		let followers = [] as string[];
 		if (this.note.visibility === 'followers') {
 			const target_users = this.queue.map(x => x.target);
