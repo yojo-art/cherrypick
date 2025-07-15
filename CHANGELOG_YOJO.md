@@ -11,6 +11,7 @@ Misskey 2025.2.0
 - Fix: タグUIから添付するタグを隠す場合#が先頭にないとハッシュタグにならない問題を修正 [#738](https://github.com/yojo-art/cherrypick/pull/738)
 
 ### Server
+- Change: `users/show`で更新対象のリモートユーザーが指定されたとき、APIがタイムアウトすることがあるため非同期更新をするように [#740](https://github.com/yojo-art/cherrypick/pull/740)
 - Fix: ノート通知(新着,リノートetc)を作成するときにそのノートの公開範囲を考慮し、可視ユーザーにのみ通知を作成するように [#743](https://github.com/yojo-art/cherrypick/pull/743)
 
 ## 1.5.0
