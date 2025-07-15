@@ -5,13 +5,13 @@ Misskey 2025.2.0
 ### Release Date
 
 ### General
-- Fix: フロントエンドで検索許可範囲が設定されない不具合を修正 [#742](https://github.com/yojo-art/cherrypick/pull/742)
 
 ### Client
-- Fix: ノート通知(新着,リノートetc)を作成するときにそのノートの公開範囲を考慮し、可視ユーザーにのみ通知を作成する [#743](https://github.com/yojo-art/cherrypick/pull/743)
+- Fix: 検索許可範囲が設定されない不具合を修正 [#742](https://github.com/yojo-art/cherrypick/pull/742)
 - Fix: タグUIから添付するタグを隠す場合#が先頭にないとハッシュタグにならない問題を修正 [#738](https://github.com/yojo-art/cherrypick/pull/738)
 
 ### Server
+- Fix: ノート通知(新着,リノートetc)を作成するときにそのノートの公開範囲を考慮し、可視ユーザーにのみ通知を作成するように [#743](https://github.com/yojo-art/cherrypick/pull/743)
 
 ## 1.5.0
 Cherrypick 4.15.0  
