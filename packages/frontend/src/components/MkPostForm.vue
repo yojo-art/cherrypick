@@ -990,6 +990,7 @@ async function post(ev?: MouseEvent) {
 		noteId: props.updateMode ? props.initialNote?.id : undefined,
 		scheduledDelete: scheduledNoteDelete.value,
 		scheduleNote: scheduleNote.value ?? undefined,
+		searchableBy: searchableBy.value,
 	};
 
 	if (withHashtags.value && hashtags.value && hashtags.value.trim() !== '') {
