@@ -579,6 +579,12 @@ const extension_context_definition = {
 	'_yojoart_clips': 'yojoart:_yojoart_clips',
 	// vcard
 	vcard: 'http://www.w3.org/2006/vcard/ns#',
+	//配送しないから不要
+	//pt: 'https://joinpeertube.org/ns#',
+	//'playlists': {
+	//	'@id': 'pt:playlists',
+	//	'@type': '@id',
+	//},
 } satisfies Context;
 
 export const CONTEXT: (string | Context)[] = [...context_iris, extension_context_definition];

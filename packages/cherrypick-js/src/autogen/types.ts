@@ -4640,7 +4640,6 @@ export type components = {
       myReaction?: string | null;
       /** Format: date-time */
       deleteAt?: string | null;
-      favorite: boolean;
     };
     NoteDraft: {
       /**
@@ -5232,6 +5231,7 @@ export type components = {
       emojis?: {
         [key: string]: string;
       };
+      uri: string | null;
     };
     FederationInstance: {
       /** Format: id */
@@ -9275,6 +9275,7 @@ export type operations = {
         content: {
           'application/json': {
               ip: string;
+              dnsNames: string[];
               /** Format: date-time */
               createdAt: string;
             }[];

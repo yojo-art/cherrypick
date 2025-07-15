@@ -8,19 +8,20 @@ import promiseLimit from 'promise-limit';
 import Redis from 'ioredis';
 import { DataSource } from 'typeorm';
 import type Logger from '@/logger.js';
-import type { MiUser } from '@/models/User.js';
+import type { MiRemoteUser, MiUser } from '@/models/User.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
-import type { UsersRepository } from '@/models/_.js';
+import type { ClipsRepository, UsersRepository } from '@/models/_.js';
 import { toArray } from '@/misc/prelude/array.js';
 import { IdService } from '@/core/IdService.js';
 import { MfmService } from '@/core/MfmService.js';
 import { MiClip } from '@/models/_.js';
 import { ClipService } from '@/core/ClipService.js';
+import { bindThis } from '@/decorators.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService, Resolver } from '../ApResolverService.js';
 import { UserEntityService } from '../../entities/UserEntityService.js';
-import { IOrderedCollectionPage, isOrderedCollection } from '../type.js';
+import { getApType, IObject, IOrderedCollectionPage, isIOrderedCollectionPage, type IClip } from '../type.js';
 import { ApNoteService } from './ApNoteService.js';
 
 @Injectable()
@@ -39,6 +40,8 @@ export class ApClipService {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
+		@Inject(DI.clipsRepository)
+		private clipsRepository: ClipsRepository,
 
 		private apResolverService: ApResolverService,
 		private userEntityService: UserEntityService,
@@ -51,24 +54,36 @@ export class ApClipService {
 		this.logger = this.apLoggerService.logger;
 	}
 
-	public async update(clip: MiClip) {
+	@bindThis
+	public async updateItems(clip: MiClip) {
 		if (!clip.uri) throw new Error('no uri');
 		this.logger.info(`Updating the clip: ${clip.uri}`);
 		const user = await this.usersRepository.findOneByOrFail({ id: clip.userId });
 		if (!this.userEntityService.isRemoteUser(user)) throw new Error('is not remote user');
 		const resolver = this.apResolverService.createResolver();
-		const ap_clip = await resolver.resolveOrderedCollection(clip.uri);
+		const ap_clip = await resolver.resolveClip(clip.uri);
 		let next = ap_clip.first ?? null;
 		const limit = 10;
 		for (let i = 0; i < limit; i++) {
 			if (!next) return;
-			const ap_page = await resolver.resolveOrderedCollectionPage(next);
-			next = ap_page.next;
-			const limit = promiseLimit<undefined>(2);
+			const ap_page = (typeof next === 'string' ? await resolver.resolve(next) : next) as IObject & { orderedItems?: IObject[], items?: IObject[] };
 			const items = ap_page.orderedItems ?? ap_page.items;
+			if (ap_page.type === 'Playlist' && items !== undefined) {
+				next = null;
+			} else if (isIOrderedCollectionPage(ap_page)) {
+				next = ap_page.next;
+			} else {
+				throw new Error(`unrecognized collection type: ${ap_page.type}`);
+			}
+			const limit = promiseLimit<undefined>(2);
 			if (Array.isArray(items)) {
 				await Promise.all(items.map(item => limit(async() => {
-					const note = await this.apNoteService.resolveNote(item, {
+					let object :IObject | string = await resolver.resolve(item);
+					if (getApType(object) === 'PlaylistElement') {
+						if (typeof object.url !== 'string') return;
+						object = object.url;
+					}
+					const note = await this.apNoteService.resolveNote(object, {
 						resolver: resolver,
 						sentFrom: new URL(user.uri),
 					});
@@ -79,7 +94,8 @@ export class ApClipService {
 			}
 		}
 	}
-	public async updateClips(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
+	@bindThis
+	public async updateUserClips(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
 		const user = await this.usersRepository.findOneByOrFail({ id: userId });
 		if (!this.userEntityService.isRemoteUser(user)) return;
 		if (!user.clipsUri) return;
@@ -90,7 +106,6 @@ export class ApClipService {
 
 		// Resolve to (Ordered)Collection Object
 		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
-		if (!isOrderedCollection(yojoart_clips)) throw new Error('Object is not Collection or OrderedCollection');
 
 		if (!yojoart_clips.first) throw new Error('_yojoart_clips first page not exist');
 		//とりあえずfirstだけ取得する
@@ -101,9 +116,13 @@ export class ApClipService {
 		const activityes = (collection.orderedItems ?? collection.items);
 		if (!activityes) throw new Error('item is unavailable');
 
-		const items = await Promise.all(toArray(activityes).map(x => _resolver.resolve(x)));
+		const limit = promiseLimit<IObject>(2);
+		const items = await Promise.all(toArray(activityes).map(x => limit(async() => {
+			return await _resolver.resolve(x);
+		})));
 
 		const clips : MiClip[] & { uri: string }[] = [];
+		const id_map = new Map<string, MiClip>();
 
 		let td = 0;
 		for (const clip of items) {
@@ -111,24 +130,33 @@ export class ApClipService {
 			td -= 1000;
 			//uri必須
 			if (!clip.id) continue;
+			if (clip.type !== 'Clip' && clip.type !== 'Playlist') continue;
 			if (new URL(clip.id).origin !== new URL(user.uri).origin) continue;
 			//とりあえずpublicのみ対応
 			if (!toArray(clip.to).includes('https://www.w3.org/ns/activitystreams#Public') && clip.to !== 'https://www.w3.org/ns/activitystreams#Public') {
 				continue;
 			}
 			//作成時刻がわかる場合はそれを元にid生成
-			const id = clip.published ? new Date(clip.published).getTime() : Date.now() + td;
-			clips.push({
-				id: this.idService.gen(id),
+			const published = clip.published ? new Date(clip.published).getTime() : 0;
+			const id_source = published > 0 ? published : Date.now() + td;
+			let id = this.idService.gen(id_source);
+			//id重複したら現在時刻を元に適当に生成
+			if (id_map.has(id)) {
+				id = this.idService.gen(Date.now() + td);
+			}
+			const miclip = {
+				id,
 				userId: user.id,
 				name: clip.name ?? '',
-				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null),
+				description: clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : clip.content ? this.mfmService.fromHtml(clip.content) : null),
 				uri: clip.id,
 				lastClippedAt: clip.updated ? new Date(clip.updated) : null,
 				user,
 				isPublic: true,
 				lastFetchedAt: new Date(0),
-			});
+			};
+			id_map.set(miclip.id, miclip);
+			clips.push(miclip);
 		}
 
 		await this.db.transaction(async transactionalEntityManager => {
@@ -167,5 +195,58 @@ export class ApClipService {
 			}
 			//await Promise.all(uri_map.values().map(v => transactionalEntityManager.delete(MiClip, { id: v.id })));
 		});
+	}
+	@bindThis
+	public async delete(actor: MiRemoteUser, uri: string) : Promise<string> {
+		const clip = await this.clipsRepository.findOneBy({
+			uri: uri,
+			userId: actor.id,
+		});
+		if (clip) {
+			try {
+				await this.clipService.delete(actor, clip.id);
+				return 'ok: delete clip ' + clip.id;
+			} catch (e) {
+				return 'error: clip delete ' + e;
+			}
+		} else {
+			return 'skip: not found clip';
+		}
+	}
+
+	@bindThis
+	public async create(user: MiRemoteUser, clip: IClip) : Promise<string> {
+		if (typeof clip.id !== 'string') return 'skip: id is not string';
+		const isExists = await this.clipsRepository.existsBy({
+			uri: clip.id,
+			userId: clip.id,
+		});
+		if (isExists) return 'skip: clip already exists';
+		const description = clip._misskey_summary ?? (clip.summary ? this.mfmService.fromHtml(clip.summary) : null);
+		await this.clipService.create(user, clip.name ?? '', true, description, clip.id);
+		return 'ok';
+	}
+
+	@bindThis
+	public async update(actor: MiRemoteUser, object: IClip) : Promise<string> {
+		const clip = await this.clipsRepository.findOneBy({
+			uri: object.id,
+			userId: actor.id,
+		});
+
+		if (clip) {
+			try {
+				this.clipsRepository.update(clip.id, {
+					name: object.name ?? undefined,
+					description: object._misskey_summary ?? (object.summary ? this.mfmService.fromHtml(object.summary) : undefined),
+					lastFetchedAt: null,
+				});
+				return 'ok: delete clip ' + clip.id;
+			} catch (e) {
+				return 'error: clip delete ' + e;
+			}
+		} else {
+			return 'skip not found clip';
+		}
 	}
 }

@@ -129,6 +129,14 @@ export interface IOrderedCollectionPage extends IObject {
 	next: string;
 }
 
+export interface IClip extends IObject {
+	type: 'Clip' | 'Playlist';
+	totalItems?: number;
+	orderedItems?: ApObject;
+	first?: IOrderedCollectionPage | string;
+	last?: IObject | string;
+}
+
 export const validPost = ['Note', 'Question', 'Article', 'Audio', 'Document', 'Image', 'Page', 'Video', 'Event'];
 
 export const isPost = (object: IObject): object is IPost => {
@@ -229,6 +237,7 @@ export interface IActor extends IObject {
 		}[] | [];
 	}[];
 	_yojoart_clips?: string | null;
+	playlists?: string | null,
 }
 
 export const isCollection = (object: IObject): object is ICollection =>
@@ -242,6 +251,9 @@ export const isCollectionOrOrderedCollection = (object: IObject): object is ICol
 
 export const isIOrderedCollectionPage = (object: IObject): object is IOrderedCollectionPage =>
 	getApType(object) === 'OrderedCollectionPage';
+
+export const isClip = (object: IObject): object is IClip =>
+	getApType(object) === 'Clip' || getApType(object) === 'Playlist';
 
 export interface IApPropertyValue extends IObject {
 	type: 'PropertyValue';

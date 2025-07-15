@@ -557,7 +557,7 @@ export function getNoteMenu(props: {
 				}
 				noteChildMenu.push({ type: 'divider' });
 				noteChildMenu.push({
-					icon: 'ti ti-repeat',
+					icon: 'ti ti-repeat-off',
 					text: i18n.ts.unRenoteAll,
 					action: unRenote,
 				});
