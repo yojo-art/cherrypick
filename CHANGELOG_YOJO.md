@@ -10,6 +10,7 @@ Misskey 2025.2.0
 ### Client
 
 ### Server
+- Change: `users/show`で更新対象のリモートユーザーが指定されたとき、APIがタイムアウトすることがあるため非同期更新をするように
 
 ## 1.5.0
 Cherrypick 4.15.0  

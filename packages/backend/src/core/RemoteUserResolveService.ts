@@ -97,8 +97,10 @@ export class RemoteUserResolveService {
 		// ユーザー情報が古い場合は、WebFingerからやりなおして返す
 		if (user.lastFetchedAt == null || Date.now() - user.lastFetchedAt.getTime() > 1000 * 60 * 60 * 24) {
 			if (sync) {
+				this.logger.info(`return resynced remote user: ${acctLower}`);
 				return await this.updateRemote(user, usernameLower, acctLower, username, host);
 			}
+
 			this.updateRemote(user, usernameLower, acctLower, username, host);
 			this.logger.info(`return existing remote user: ${acctLower}`);
 			return user;
@@ -141,7 +143,6 @@ export class RemoteUserResolveService {
 
 		await this.apPersonService.updatePerson(self.href);
 
-		this.logger.info(`return resynced remote user: ${acctLower}`);
 		return await this.usersRepository.findOneBy({ uri: self.href }).then(u => {
 			if (u == null) {
 				throw new Error('user not found');
