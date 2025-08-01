@@ -123,7 +123,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			} else {
 				// Lookup user
 				if (typeof ps.host === 'string' && typeof ps.username === 'string') {
-					user = await this.remoteUserResolveService.resolveUser(ps.username, ps.host).catch(err => {
+					user = await this.remoteUserResolveService.resolveUser(ps.username, ps.host, false).catch(err => {
 						this.apiLoggerService.logger.warn(`failed to resolve remote user: ${err}`);
 						throw new ApiError(meta.errors.failedToResolveRemoteUser);
 					});
