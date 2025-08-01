@@ -1,3 +1,21 @@
+## 1.5.1
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+2025-08-01
+
+### General
+
+### Client
+- Fix: タグUIから添付するタグを隠す場合#が先頭にないとハッシュタグにならない問題を修正 [#738](https://github.com/yojo-art/cherrypick/pull/738)
+- Fix: 検索許可範囲が設定されない不具合を修正 [#742](https://github.com/yojo-art/cherrypick/pull/742)
+- Fix: 下書きの保存でエラーが発生した場合その内容を表示するように [#748](https://github.com/yojo-art/cherrypick/pull/748)
+
+### Server
+- Change: `users/show`で更新対象のリモートユーザーが指定されたとき、APIがタイムアウトすることがあるため非同期更新をするように [#740](https://github.com/yojo-art/cherrypick/pull/740)
+- Fix: ノート通知(新着,リノートetc)を作成するときにそのノートの公開範囲を考慮し、可視ユーザーにのみ通知を作成するように [#743](https://github.com/yojo-art/cherrypick/pull/743)
+
 ## 1.5.0
 Cherrypick 4.15.0  
 Misskey 2025.2.0
@@ -18,6 +36,7 @@ Misskey 2025.2.0
 - Enhance: メディアタイムラインをグリッドレイアウトに変更する機能 [#709](https://github.com/yojo-art/cherrypick/pull/709)
   - `設定->アピアランス->メディアタイムラインをグリッドレイアウトに変更`　で変更できます
 - Enhance: フロントエンド上からnotes/unrenoteを呼べるように [#711](https://github.com/yojo-art/cherrypick/pull/711)
+
 ### Server
 - Fix UserAgentをyojo-artに変更 [#691](https://github.com/yojo-art/cherrypick/pull/691)
 

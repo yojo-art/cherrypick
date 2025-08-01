@@ -862,7 +862,12 @@ async function saveServerDraft(clearLocal = false): Promise<{ canClosePostForm: 
 		cancel();
 		os.toast(i18n.ts.noteDrafted, 'drafted');
 		return { canClosePostForm: true };
-	}).catch((err) => {
+	}).catch(async (err) => {
+		if (err.id === '9ee33bbe-fde3-4c71-9b51-e50492c6b9c8') {
+			await os.alert({ type: 'error', title: i18n.ts.saveAsDraftError, text: i18n.ts.saveAsDraftErrorTooMany });
+		} else {
+			await os.alert({ type: 'error', title: i18n.ts.saveAsDraftError, text: err.id as string });
+		}
 		return { canClosePostForm: false };
 	});
 }
@@ -959,7 +964,7 @@ async function post(ev?: MouseEvent) {
 		renoteId: renoteTargetNote.value ? renoteTargetNote.value.id : quoteId.value ? quoteId.value : undefined,
 		channelId: targetChannel.value ? targetChannel.value.id : undefined,
 		poll: poll.value,
-		tagText: withHashtags.value && hideTag.value ? hashtags.value : null,
+		tagText: undefined as undefined | string,
 		event: event.value,
 		cw: useCw.value ? cw.value ?? '' : null,
 		visibility: visibility.value,
@@ -972,17 +977,21 @@ async function post(ev?: MouseEvent) {
 		scheduleNote: scheduleNote.value ?? undefined,
 	};
 
-	if (withHashtags.value && hashtags.value && hashtags.value.trim() !== '' && !hideTag.value) {
+	if (withHashtags.value && hashtags.value && hashtags.value.trim() !== '') {
 		const hashtags_ = hashtags.value.trim().split(' ').map(x => x.startsWith('#') ? x : '#' + x).join(' ');
 		if (!postData.text) {
-			postData.text = hashtags_;
+			if (hideTag.value) postData.tagText = hashtags_;
+			else postData.text = hashtags_;
 		} else {
 			const postTextLines = postData.text.split('\n');
 			if (postTextLines[postTextLines.length - 1].trim() === '') {
-				postTextLines[postTextLines.length - 1] += hashtags_;
+				if (hideTag.value) postData.tagText = hashtags_;
+				else postTextLines[postTextLines.length - 1] += hashtags_;
 			} else {
-				postTextLines[postTextLines.length - 1] += ' ' + hashtags_;
+				if (hideTag.value) postData.tagText = hashtags_;
+				else postTextLines[postTextLines.length - 1] += ' ' + hashtags_;
 			}
+			if (hideTag.value) postData.tagText = hashtags_;
 			postData.text = postTextLines.join('\n');
 		}
 	}
