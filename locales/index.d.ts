@@ -6033,6 +6033,14 @@ export interface Locale extends ILocale {
      */
     "saveAsDraft": string;
     /**
+     * 下書きの保存に失敗しました
+     */
+    "saveAsDraftError": string;
+    /**
+     * 下書きをこれ以上作成できません。
+     */
+    "saveAsDraftErrorTooMany": string;
+    /**
      * 未読の通知の数を表示する
      */
     "showUnreadNotificationsCount": string;
