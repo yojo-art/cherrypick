@@ -7,6 +7,7 @@ Misskey 2025.2.0
 ### General
 
 ### Client
+- Fix: タグUIから添付するタグを隠す場合#が先頭にないとハッシュタグにならない問題を修正 [#738](https://github.com/yojo-art/cherrypick/pull/738)
 - Fix: 検索許可範囲が設定されない不具合を修正 [#742](https://github.com/yojo-art/cherrypick/pull/742)
 - Fix: 下書きの保存でエラーが発生した場合その内容を表示するように [#748](https://github.com/yojo-art/cherrypick/pull/748)
 
