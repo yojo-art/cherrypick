@@ -862,7 +862,12 @@ async function saveServerDraft(clearLocal = false): Promise<{ canClosePostForm: 
 		cancel();
 		os.toast(i18n.ts.noteDrafted, 'drafted');
 		return { canClosePostForm: true };
-	}).catch((err) => {
+	}).catch(async (err) => {
+		if (err.id === '9ee33bbe-fde3-4c71-9b51-e50492c6b9c8') {
+			await os.alert({ type: 'error', title: i18n.ts.saveAsDraftError, text: i18n.ts.saveAsDraftErrorTooMany });
+		} else {
+			await os.alert({ type: 'error', title: i18n.ts.saveAsDraftError, text: err.id as string });
+		}
 		return { canClosePostForm: false };
 	});
 }
