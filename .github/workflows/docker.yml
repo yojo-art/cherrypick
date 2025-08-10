@@ -19,8 +19,19 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-          - linux/arm64
+    if: github.repository == 'yojo-art/cherrypick'
     steps:
+      - name: Free Disk Space
+        uses: jlumbroso/free-disk-space@main
+        with:
+          # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
+          tool-cache: false
+          # All of these default to true, but feel free to set to "false" if necessary for your workflow
+          android: true
+          dotnet: true
+          haskell: true
+          large-packages: true
+          swap-storage: true
       - name: Prepare
         run: |
           platform=${{ matrix.platform }}
@@ -81,7 +92,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }},
+          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
