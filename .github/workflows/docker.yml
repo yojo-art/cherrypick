@@ -79,12 +79,13 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          tags: ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//}
+          tags: |
+            ${{ env.REGISTRY_IMAGE }}:latest
+            ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//}
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create --tag latest \
-            ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//} \
+          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//} \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       - name: Inspect image
         run: |
