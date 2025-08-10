@@ -65,8 +65,6 @@ jobs:
     needs:
       - build
     steps:
-      - name: Check out the repo
-        uses: actions/checkout@v4.2.2
       - name: get tag name
         run: echo "TAG_NAME=${GITHUB_REF#refs/*/}" >> $GITHUB_ENV
       - name: Download digests
