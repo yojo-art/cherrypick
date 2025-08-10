@@ -20,6 +20,7 @@ services:
     # env_file:
     #   - .config/docker.env
     volumes:
+    #オブジェクトストレージを使用しない場合`chown -hR 991.991 ./files`を実行してください。
       - ./files:/cherrypick/files
       - ./.config:/cherrypick/.config:ro
 
