@@ -8,7 +8,6 @@ on:
 
 env:
   REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
-  VERSION_TAG: ${GITHUB_REF/refs\/tags\//}
 
 jobs:
   # see https://docs.docker.com/build/ci/github-actions/multi-platform/#distribute-build-across-multiple-runners
@@ -50,7 +49,7 @@ jobs:
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
           tags: |
             ${{ env.REGISTRY_IMAGE }}:latest
-            ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_TAG }}
+            ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -83,12 +82,12 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_TAG }}
+          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_TAG }} \
+          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }} \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.VERSION_TAG }}
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
