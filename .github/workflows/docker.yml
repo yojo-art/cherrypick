@@ -19,7 +19,6 @@ jobs:
       matrix:
         platform:
           - linux/amd64
-    if: github.repository == 'yojo-art/cherrypick'
     steps:
       - name: Free Disk Space
         uses: jlumbroso/free-disk-space@main
