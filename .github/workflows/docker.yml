@@ -21,17 +21,6 @@ jobs:
           - linux/amd64
           - linux/arm64
     steps:
-      - name: Free Disk Space
-        uses: jlumbroso/free-disk-space@main
-        with:
-          # This might remove tools that are actually needed, if set to "true" but frees about 6 GB
-          tool-cache: false
-          # All of these default to true, but feel free to set to "false" if necessary for your workflow
-          android: true
-          dotnet: true
-          haskell: true
-          large-packages: true
-          swap-storage: true
       - name: Prepare
         run: |
           platform=${{ matrix.platform }}
@@ -94,8 +83,8 @@ jobs:
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create  --tag latest \
-            --tag ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//} \
+          docker buildx imagetools create --tag latest \
+            ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//} \
             $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       - name: Inspect image
         run: |
