@@ -77,6 +77,8 @@ jobs:
     needs:
       - build
     steps:
+      - name: get tag name
+        run: echo "TAG_NAME=${x#refs/*/}" >> $GITHUB_ENV
       - name: Download digests
         uses: actions/download-artifact@v4
         with:
@@ -91,12 +93,14 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          tags: ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//}
+          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create --tag ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//} \
-            $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
+          docker buildx imagetools create \
+          --tag ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }} \
+          --tag ${{ env.REGISTRY_IMAGE }}:latest \
+          $(printf '${{ env.REGISTRY_IMAGE }}@sha256:%s ' *)
       - name: Inspect image
         run: |
-          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${GITHUB_REF/refs\/tags\//}
+          docker buildx imagetools inspect ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}

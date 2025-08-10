@@ -1,6 +1,6 @@
 services:
   web:
-    build: .
+    image: ghcr.io/yojo-art/cherrypick:latest
     restart: always
     links:
       - db
