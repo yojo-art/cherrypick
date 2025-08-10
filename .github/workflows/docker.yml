@@ -47,6 +47,7 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           outputs: type=image,name=${{ env.REGISTRY_IMAGE }},push-by-digest=true,name-canonical=true,push=true
+          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }},${{ env.REGISTRY_IMAGE }}:latest
       - name: Export digest
         run: |
           mkdir -p /tmp/digests
@@ -83,7 +84,7 @@ jobs:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }}
+          tags: ${{ env.REGISTRY_IMAGE }}:${{ env.TAG_NAME }},
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
