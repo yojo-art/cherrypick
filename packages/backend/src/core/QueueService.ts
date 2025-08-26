@@ -113,11 +113,11 @@ export class QueueService {
 		let toPublicOnly = false;
 		if (isAnnounce(content)) {
 			toPublicOnly = true;
-		}
-		if (isBlock(content)) {
+		} else if (isBlock(content)) {
 			toPublicOnly = true;
-		}
-		if (typeof content.object !== 'string') {
+		} else if (isRead(content)) {
+			toPublicOnly = true;
+		} else if (typeof content.object === 'object') {
 			if (isUndo(content)) {
 				if (isBlock(content.object)) {
 					toPublicOnly = true;
