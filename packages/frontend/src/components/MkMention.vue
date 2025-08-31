@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkA v-user-preview="canonical" :class="[$style.root, { [$style.isMe]: isMe }]" :to="url" :behavior="navigationBehavior">
 	<img
 		:class="$style.icon"
-		:src="avatarUrl"
+		:src="getProxiedImageUrl(avatarUrl,'avatar')"
 		alt=""
 		@mouseover="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 		@mouseout="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
@@ -29,6 +29,7 @@ import type { MkABehavior } from '@/components/global/MkA.vue';
 import { $i } from '@/i.js';
 import { getStaticImageUrl } from '@/utility/media-proxy.js';
 import { prefer } from '@/preferences.js';
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const props = defineProps<{
 	username: string;

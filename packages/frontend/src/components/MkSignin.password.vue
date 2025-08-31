@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_gaps" :class="$style.root">
 		<div
 			:class="[$style.avatar, { [$style.square]: prefer.s.squareAvatars }]"
-			:style="{ backgroundImage: user ? `url('${url}')` : undefined }"
+			:style="{ backgroundImage: user ? `url('${(url) ? getProxiedImageUrl(url,'avatar') : undefined}')` : undefined }"
 			@mouseover="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 			@mouseout="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 			@touchstart="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
@@ -77,6 +77,7 @@ import { getStaticImageUrl } from '@/utility/media-proxy.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkCaptcha from '@/components/MkCaptcha.vue';
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
