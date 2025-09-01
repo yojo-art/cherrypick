@@ -87,7 +87,7 @@ export class FeedService {
 				date: this.idService.parse(note.id).date,
 				description: note.cw ?? undefined,
 				content: text ? this.mfmService.toHtml(mfmParse(text), JSON.parse(note.mentionedRemoteUsers)) ?? undefined : undefined,
-				image: file ? this.driveFileEntityService.getPublicUrl(file) : undefined,
+				image: file ? this.driveFileEntityService.getPublicUrl({ file: file, allowProxiedUrl: true }) : undefined,
 			});
 		}
 
