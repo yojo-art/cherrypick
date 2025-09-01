@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <MkA v-user-preview="canonical" :class="[$style.root, { [$style.isMe]: isMe }]" :to="url" :behavior="navigationBehavior">
 	<img
 		:class="$style.icon"
-		:src="getProxiedImageUrl(avatarUrl,'avatar')"
+		:src="avatarUrl"
 		alt=""
 		@mouseover="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 		@mouseout="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
@@ -27,9 +27,9 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { host as localHost } from '@@/js/config.js';
 import type { MkABehavior } from '@/components/global/MkA.vue';
 import { $i } from '@/i.js';
-import { getStaticImageUrl } from '@/utility/media-proxy.js';
+import { getStaticImageUrl, getProxiedImageUrl } from '@/utility/media-proxy.js';
 import { prefer } from '@/preferences.js';
-import { getProxiedImageUrl } from '@/utility/media-proxy.js';
+import { instance } from '@/instance.js';
 
 const props = defineProps<{
 	username: string;
@@ -48,10 +48,12 @@ const isMe = $i && (
 const playAnimation = ref(true);
 if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
-const avatarUrl = computed(() => (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar) || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)
-	? getStaticImageUrl(`/avatar/@${props.username}@${props.host}`)
-	: `/avatar/@${props.username}@${props.host}`,
-);
+const avatarUrl = computed(() => {
+	const v = `${instance.uri}/avatar/@${props.username}@${props.host}`;
+	return (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar) || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)
+		? getStaticImageUrl(v)
+		: getProxiedImageUrl(v);
+});
 
 function resetTimer() {
 	playAnimation.value = true;
