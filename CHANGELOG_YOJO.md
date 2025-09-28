@@ -1,3 +1,17 @@
+## 1.5.2
+Cherrypick 4.15.0  
+Misskey 2025.2.0
+
+### Release Date
+
+### General
+
+### Client
+
+### Server
+- Fix: 制限されたインスタンスに既読を配送しない [#757](https://github.com/yojo-art/cherrypick/pull/757)
+  - リモートユーザーとチャットできない不具合が修正されます
+
 ## 1.5.1
 Cherrypick 4.15.0  
 Misskey 2025.2.0
