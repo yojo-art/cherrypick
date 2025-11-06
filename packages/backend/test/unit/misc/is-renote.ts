@@ -49,6 +49,7 @@ const base: MiNote = {
 	hasEvent: false,
 	searchableBy: 'public',
 	deleteAt: null,
+	renoteChannelId: null,
 };
 
 describe('misc:is-renote', () => {

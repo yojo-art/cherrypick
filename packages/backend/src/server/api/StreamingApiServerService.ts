@@ -13,6 +13,7 @@ import { bindThis } from '@/decorators.js';
 import { MiLocalUser } from '@/models/User.js';
 import { UserService } from '@/core/UserService.js';
 import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { AuthenticateService, AuthenticationError } from './AuthenticateService.js';
 import MainStreamConnection, { ConnectionRequest } from './stream/Connection.js';
 import type * as http from 'node:http';
@@ -32,6 +33,7 @@ export class StreamingApiServerService {
 		private authenticateService: AuthenticateService,
 		private usersService: UserService,
 		private channelFollowingService: ChannelFollowingService,
+		private channelMutingService: ChannelMutingService,
 	) {
 	}
 
