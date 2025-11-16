@@ -176,6 +176,10 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		btlAvailable: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 		canPublicNote: {
 			type: 'boolean',
 			optional: false, nullable: false,
@@ -229,6 +233,10 @@ export const packedRolePoliciesSchema = {
 			optional: false, nullable: false,
 		},
 		driveCapacityMb: {
+			type: 'integer',
+			optional: false, nullable: false,
+		},
+		maxFileSizeMb: {
 			type: 'integer',
 			optional: false, nullable: false,
 		},
@@ -301,10 +309,6 @@ export const packedRolePoliciesSchema = {
 			optional: false, nullable: false,
 		},
 		noteDraftLimit: {
-			type: 'integer',
-			optional: false, nullable: false,
-		},
-		fileSizeLimit: {
 			type: 'integer',
 			optional: false, nullable: false,
 		},
@@ -417,6 +421,11 @@ export const packedRoleSchema = {
 					example: false,
 				},
 				asBadge: {
+					type: 'boolean',
+					optional: false, nullable: false,
+					example: false,
+				},
+				preserveAssignmentOnMoveAccount: {
 					type: 'boolean',
 					optional: false, nullable: false,
 					example: false,

@@ -78,7 +78,7 @@ jobs:
       - build
     steps:
       - name: get tag name
-        run: echo "TAG_NAME=${x#refs/*/}" >> $GITHUB_ENV
+        run: echo "TAG_NAME=${GITHUB_REF/refs/tags//}" >> $GITHUB_ENV
       - name: Download digests
         uses: actions/download-artifact@v4
         with:

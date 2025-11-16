@@ -130,6 +130,7 @@ export const moderationLogTypes = [
 	'deletePage',
 	'deleteFlash',
 	'deleteGalleryPost',
+	'updateProxyAccountDescription',
 	'updateOfficialTags',
 	'unsetUserMutualLink',
 	'quarantineRemoteInstance',
@@ -385,6 +386,10 @@ export type ModerationLogPayloads = {
 		postUserId: string;
 		postUserUsername: string;
 		post: any;
+	};
+	updateProxyAccountDescription: {
+		before: string | null;
+		after: string | null;
 	};
 	updateOfficialTags: {
 		insert_data: {

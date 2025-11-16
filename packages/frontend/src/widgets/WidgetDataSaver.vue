@@ -4,12 +4,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-	<XDataSaver :showDescription="false" />
+<XDataSaver :showDescription="false"/>
 </template>
 
 <script lang="ts" setup>
 import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
-import { GetFormResultType } from '@/scripts/form.js';
+import { GetFormResultType } from '@/utility/form.js';
 import XDataSaver from '@/components/CPDataSaver.vue';
 const name = 'dataSaver';
 

@@ -24,8 +24,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
+import { definePage } from '@/page.js';
 import { i18n } from '@/i18n.js';
 
 const tags = ref<string[]>([]);
@@ -87,7 +87,7 @@ function addTag () {
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts.tags,
 	icon: 'ti ti-hash',
 }));

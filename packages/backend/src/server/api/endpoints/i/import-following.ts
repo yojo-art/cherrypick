@@ -16,7 +16,7 @@ export const meta = {
 	tags: ['account'],
 	secure: true,
 	requireCredential: true,
-	requireRolePolicy: 'canImportFollowing',
+	requiredRolePolicy: 'canImportFollowing',
 	prohibitMoved: true,
 	limit: {
 		duration: ms('1hour'),

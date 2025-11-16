@@ -4,101 +4,97 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div class="_gaps_m">
-	<MkSwitch v-model="isLocked" @update:modelValue="save()">{{ i18n.ts.makeFollowManuallyApprove }}<template #caption>{{ i18n.ts.lockedAccountInfo }}</template></MkSwitch>
-	<MkSwitch v-if="isLocked" v-model="autoAcceptFollowed" @update:modelValue="save()">{{ i18n.ts.autoAcceptFollowed }}</MkSwitch>
+<SearchMarker path="/settings/privacy" :label="i18n.ts.privacy" :keywords="['privacy']" icon="ti ti-lock-open">
+	<div class="_gaps_m">
+		<MkFeatureBanner icon="/client-assets/unlocked_3d.png" color="#aeff00">
+			<SearchKeyword>{{ i18n.ts._settings.privacyBanner }}</SearchKeyword>
+		</MkFeatureBanner>
 
-	<MkSwitch v-model="publicReactions" @update:modelValue="save()">
-		{{ i18n.ts.makeReactionsPublic }}
-		<template #caption>{{ i18n.ts.makeReactionsPublicDescription }}</template>
-	</MkSwitch>
+		<SearchMarker :keywords="['follow', 'lock']">
+			<MkSwitch v-model="isLocked" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.makeFollowManuallyApprove }}</SearchLabel></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.lockedAccountInfo }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
 
-	<MkSelect v-model="followingVisibility" @update:modelValue="save()">
-		<template #label>{{ i18n.ts.followingVisibility }}</template>
-		<option value="public">{{ i18n.ts._ffVisibility.public }}</option>
-		<option value="followers">{{ i18n.ts._ffVisibility.followers }}</option>
-		<option value="private">{{ i18n.ts._ffVisibility.private }}</option>
-	</MkSelect>
+		<MkDisableSection :disabled="!isLocked">
+			<SearchMarker :keywords="['follow', 'auto', 'accept']">
+				<MkSwitch v-model="autoAcceptFollowed" @update:modelValue="save()">
+					<template #label><SearchLabel>{{ i18n.ts.autoAcceptFollowed }}</SearchLabel></template>
+				</MkSwitch>
+			</SearchMarker>
+		</MkDisableSection>
 
-	<MkSelect v-model="followersVisibility" @update:modelValue="save()">
-		<template #label>{{ i18n.ts.followersVisibility }}</template>
-		<option value="public">{{ i18n.ts._ffVisibility.public }}</option>
-		<option value="followers">{{ i18n.ts._ffVisibility.followers }}</option>
-		<option value="private">{{ i18n.ts._ffVisibility.private }}</option>
-	</MkSelect>
+		<SearchMarker :keywords="['reaction', 'public']">
+			<MkSwitch v-model="publicReactions" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.makeReactionsPublic }}</SearchLabel></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.makeReactionsPublicDescription }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
 
-	<MkSwitch v-model="hideOnlineStatus" @update:modelValue="save()">
-		{{ i18n.ts.hideOnlineStatus }}
-		<template #caption>{{ i18n.ts.hideOnlineStatusDescription }}</template>
-	</MkSwitch>
-	<MkSwitch v-model="noCrawle" @update:modelValue="save()">
-		{{ i18n.ts.noCrawle }}
-		<template #caption>{{ i18n.ts.noCrawleDescription }}</template>
-	</MkSwitch>
-	<MkSwitch v-model="preventAiLearning" @update:modelValue="save()">
-		{{ i18n.ts.preventAiLearning }}
-		<template #caption>{{ i18n.ts.preventAiLearningDescription }}</template>
-	</MkSwitch>
-	<MkSwitch v-model="isExplorable" @update:modelValue="save()">
-		{{ i18n.ts.makeExplorable }}
-		<template #caption>{{ i18n.ts.makeExplorableDescription }}</template>
-	</MkSwitch>
+		<SearchMarker :keywords="['following', 'visibility']">
+			<MkSelect v-model="followingVisibility" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.followingVisibility }}</SearchLabel></template>
+				<option value="public">{{ i18n.ts._ffVisibility.public }}</option>
+				<option value="followers">{{ i18n.ts._ffVisibility.followers }}</option>
+				<option value="private">{{ i18n.ts._ffVisibility.private }}</option>
+			</MkSelect>
+		</SearchMarker>
 
-	<MkSwitch v-model="isIndexable" @update:modelValue="save()">
-		{{ i18n.ts.makeIndexable }}
-		<span class="_beta">yojo-art</span>
-		<template #caption>{{ i18n.ts.makeIndexableDescription }}</template>
-	</MkSwitch>
-	<MkSelect v-model="searchableBy" @update:modelValue="save()">
-		<template #label>{{ i18n.ts._searchbility.tooltip }}<span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
-		<option value="public">{{ i18n.ts._searchbility.public }}</option>
-		<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
-		<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
-		<option value="private">{{ i18n.ts._searchbility.private }}</option>
-		<template #caption>{{ i18n.ts.makeSearchableByDescription }}</template>
-	</MkSelect>
+		<SearchMarker :keywords="['follower', 'visibility']">
+			<MkSelect v-model="followersVisibility" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.followersVisibility }}</SearchLabel></template>
+				<option value="public">{{ i18n.ts._ffVisibility.public }}</option>
+				<option value="followers">{{ i18n.ts._ffVisibility.followers }}</option>
+				<option value="private">{{ i18n.ts._ffVisibility.private }}</option>
+			</MkSelect>
+		</SearchMarker>
 
-	<FormSection>
-		<div class="_gaps_m">
-			<MkSwitch v-model="rememberNoteVisibility" @update:modelValue="save()">{{ i18n.ts.rememberNoteVisibility }}</MkSwitch>
-			<MkFolder v-if="!rememberNoteVisibility">
-				<template #label>{{ i18n.ts.defaultNoteVisibility }}</template>
-				<template v-if="defaultNoteVisibility === 'public'" #suffix>{{ i18n.ts._visibility.public }}</template>
-				<template v-else-if="defaultNoteVisibility === 'home'" #suffix>{{ i18n.ts._visibility.home }}</template>
-				<template v-else-if="defaultNoteVisibility === 'followers'" #suffix>{{ i18n.ts._visibility.followers }}</template>
-				<template v-else-if="defaultNoteVisibility === 'specified'" #suffix>{{ i18n.ts._visibility.specified }}</template>
+		<SearchMarker :keywords="['online', 'status']">
+			<MkSwitch v-model="hideOnlineStatus" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.hideOnlineStatus }}</SearchLabel></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.hideOnlineStatusDescription }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
 
-				<div class="_gaps_m">
-					<MkSelect v-model="defaultNoteVisibility">
-						<option value="public">{{ i18n.ts._visibility.public }}</option>
-						<option value="home">{{ i18n.ts._visibility.home }}</option>
-						<option value="followers">{{ i18n.ts._visibility.followers }}</option>
-						<option value="specified">{{ i18n.ts._visibility.specified }}</option>
-					</MkSelect>
-				</div>
-			</MkFolder>
-			<MkSwitch v-model="rememberNoteSearchbility" @update:modelValue="save()">{{ i18n.ts.rememberNoteSearchbility }}</MkSwitch>
-			<MkFolder v-if="!rememberNoteSearchbility">
-				<template #label>{{ i18n.ts.makeSearchableBy }}</template>
-				<template #icon><i class="ti ti-search"></i></template>
-				<div class="_gaps_m">
-					<MkInfo>{{ i18n.ts.makeSearchableByDescription }}</MkInfo>
-					<MkSelect v-model="defaultNoteSearchbility">
-						<!--
-						<option value="null">{{ i18n.ts.notSet }}</option>
-						-->
-						<option value="public">{{ i18n.ts._searchbility.public }}</option>
-						<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
-						<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
-						<option value="private">{{ i18n.ts._searchbility.private }}</option>
-					</MkSelect>
-				</div>
-			</MkFolder>
-		</div>
-	</FormSection>
+		<SearchMarker :keywords="['crawle', 'index', 'search']">
+			<MkSwitch v-model="noCrawle" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.noCrawle }}</SearchLabel></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.noCrawleDescription }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
 
-	<MkSwitch v-model="keepCw" @update:modelValue="save()">{{ i18n.ts.keepCw }}</MkSwitch>
-</div>
+		<SearchMarker :keywords="['crawle', 'ai']">
+			<MkSwitch v-model="preventAiLearning" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.preventAiLearning }}</SearchLabel></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.preventAiLearningDescription }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
+
+		<SearchMarker :keywords="['explore']">
+			<MkSwitch v-model="isExplorable" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.makeExplorable }}</SearchLabel></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.makeExplorableDescription }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
+		<SearchMarker :keywords="['indexable','index','search','yojo-art']">
+			<MkSwitch v-model="isIndexable" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts.makeIndexable }}</SearchLabel><span class="_beta">yojo-art</span></template>
+				<template #caption><SearchKeyword>{{ i18n.ts.makeIndexableDescription }}</SearchKeyword></template>
+			</MkSwitch>
+		</SearchMarker>
+		<SearchMarker :keywords="['searchable','index','search','yojo-art']">
+			<MkSelect v-model="searchableBy" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts._searchbility.tooltip }}</SearchLabel><span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
+				<option value="public">{{ i18n.ts._searchbility.public }}</option>
+				<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
+				<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
+				<option value="private">{{ i18n.ts._searchbility.private }}</option>
+				<template #caption><SearchKeyword>{{ i18n.ts.makeSearchableByDescription }}</SearchKeyword></template>
+			</MkSelect>
+		</SearchMarker>
+	</div>
+</SearchMarker>
 </template>
 
 <script lang="ts" setup>
@@ -106,20 +102,20 @@ import { ref, computed, watch } from 'vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import FormSection from '@/components/form/section.vue';
-import MkFolder from '@/components/MkFolder.vue';
 import MkInfo from '@/components/MkInfo.vue';
-import { misskeyApi } from '@/scripts/misskey-api.js';
-import { defaultStore } from '@/store.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
-import { signinRequired } from '@/account.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { ensureSignin } from '@/i.js';
+import { definePage } from '@/page.js';
 import FormSlot from '@/components/form/slot.vue';
-import { formatDateTimeString } from '@/scripts/format-time-string.js';
+import { formatDateTimeString } from '@/utility/format-time-string.js';
 import MkInput from '@/components/MkInput.vue';
 import * as os from '@/os.js';
+import MkDisableSection from '@/components/MkDisableSection.vue';
+import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 
-const $i = signinRequired();
+const $i = ensureSignin();
 
 const isLocked = ref($i.isLocked);
 const autoAcceptFollowed = ref($i.autoAcceptFollowed);
@@ -135,12 +131,6 @@ const publicReactions = ref($i.publicReactions);
 const followingVisibility = ref($i.followingVisibility);
 const followersVisibility = ref($i.followersVisibility);
 const searchableBy = ref($i.searchableBy);
-
-const defaultNoteVisibility = computed(defaultStore.makeGetterSetter('defaultNoteVisibility'));
-const defaultNoteSearchbility = computed(defaultStore.makeGetterSetter('defaultNoteSearchbility'));
-const rememberNoteSearchbility = computed(defaultStore.makeGetterSetter('rememberNoteSearchbility'));
-const rememberNoteVisibility = computed(defaultStore.makeGetterSetter('rememberNoteVisibility'));
-const keepCw = computed(defaultStore.makeGetterSetter('keepCw'));
 
 const makeNotesFollowersOnlyBefore_type = computed(() => {
 	if (makeNotesFollowersOnlyBefore.value == null) {
@@ -205,7 +195,7 @@ const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts.privacy,
 	icon: 'ti ti-lock-open',
 }));

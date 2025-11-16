@@ -110,6 +110,15 @@ export class DeliverProcessorService {
 			}
 		}
 
+		const i = await (this.meta.enableStatsForFederatedInstances
+			? this.federatedInstanceService.fetchOrRegister(host)
+			: this.federatedInstanceService.fetch(host));
+
+		// suspend server by software
+		if (i != null && this.utilityService.isDeliverSuspendedSoftware(i)) {
+			return 'skip (software suspended)';
+		}
+
 		try {
 			await this.apRequestService.signedPost(job.data.user, job.data.to, job.data.content, job.data.digest);
 
@@ -118,10 +127,6 @@ export class DeliverProcessorService {
 
 			// Update instance stats
 			process.nextTick(async () => {
-				const i = await (this.meta.enableStatsForFederatedInstances
-					? this.federatedInstanceService.fetchOrRegister(host)
-					: this.federatedInstanceService.fetch(host));
-
 				if (i == null) return;
 
 				if (i.isNotResponding) {

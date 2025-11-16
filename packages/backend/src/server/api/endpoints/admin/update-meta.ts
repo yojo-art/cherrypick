@@ -92,7 +92,6 @@ export const paramDef = {
 		sensitiveMediaDetectionSensitivity: { type: 'string', enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'] },
 		setSensitiveFlagAutomatically: { type: 'boolean' },
 		enableSensitiveMediaDetectionForVideos: { type: 'boolean' },
-		proxyAccountId: { type: 'string', format: 'misskey:id', nullable: true },
 		maintainerName: { type: 'string', nullable: true },
 		maintainerEmail: { type: 'string', nullable: true },
 		langs: {
@@ -210,6 +209,17 @@ export const paramDef = {
 			type: 'array',
 			items: {
 				type: 'string',
+			},
+		},
+		deliverSuspendedSoftware: {
+			type: 'array',
+			items: {
+				type: 'object',
+				properties: {
+					software: { type: 'string' },
+					versionRange: { type: 'string' },
+				},
+				required: ['software', 'versionRange'],
 			},
 		},
 		doNotSendNotificationEmailsForAbuseReport: { type: 'boolean' },
@@ -443,10 +453,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.enableSensitiveMediaDetectionForVideos !== undefined) {
 				set.enableSensitiveMediaDetectionForVideos = ps.enableSensitiveMediaDetectionForVideos;
-			}
-
-			if (ps.proxyAccountId !== undefined) {
-				set.proxyAccountId = ps.proxyAccountId;
 			}
 
 			if (ps.maintainerName !== undefined) {
@@ -821,6 +827,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.federation !== undefined) {
 				set.federation = ps.federation;
+			}
+
+			if (ps.deliverSuspendedSoftware !== undefined) {
+				set.deliverSuspendedSoftware = ps.deliverSuspendedSoftware;
 			}
 
 			if (Array.isArray(ps.federationHosts)) {
