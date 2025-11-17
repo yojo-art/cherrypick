@@ -506,7 +506,7 @@ export class AdvancedSearchService {
 			await this.opensearch.indices.create({
 				index: this.opensearchNoteIndex as string,
 				body: noteIndexBody,
-				},
+			},
 			).catch((error) => {
 				this.logger.error(error);
 				throw error;
@@ -1119,8 +1119,8 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (me) this.queryService.generateMutedUserQuery(query, me);
-			if (me) this.queryService.generateBlockedUserQuery(query, me);
+			if (me) this.queryService.generateMutedUserQueryForNotes(query, me);
+			if (me) this.queryService.generateBlockedUserQueryForNotes(query, me);
 			if (opts.followingFilter) {
 				this.queryService.generateVisibilityQuery(query, me, { search: true, followingFilter: opts.followingFilter });
 			} else {

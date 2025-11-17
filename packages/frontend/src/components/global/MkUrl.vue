@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <component
-	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="self ? url_string.substring(local.length) : url_string" :rel="rel ?? 'nofollow noopener'" :target="target"
+	:is="self ? 'MkA' : 'a'" ref="el" :class="$style.root" class="_link" :[attr]="maybeRelativeUrl" :rel="rel ?? 'nofollow noopener'" :target="target"
 	:behavior="props.navigationBehavior"
 	@click.stop="(ev: MouseEvent) => warningExternalWebsite(ev, url_string)"
 	@contextmenu.stop="() => {}"
@@ -29,11 +29,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { defineAsyncComponent, ref } from 'vue';
 import { toUnicode as decodePunycode } from 'punycode.js';
 import { url as local } from '@@/js/config.js';
+import { maybeMakeRelative } from '@@/js/url.js';
 import type { MkABehavior } from '@/components/global/MkA.vue';
 import * as os from '@/os.js';
-import { useTooltip } from '@/scripts/use-tooltip.js';
+import { useTooltip } from '@/use/use-tooltip.js';
 import { isEnabledUrlPreview } from '@/instance.js';
-import { warningExternalWebsite } from '@/scripts/warning-external-website.js';
+import { warningExternalWebsite } from '@/utility/warning-external-website.js';
 
 function safeURIDecode(str: string): string {
 	try {
@@ -53,7 +54,8 @@ const props = withDefaults(defineProps<{
 	showUrlPreview: true,
 });
 
-let self = props.url.startsWith(local);
+const maybeRelativeUrl = maybeMakeRelative(props.url, local);
+let self = maybeRelativeUrl !== props.url;
 let url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
 

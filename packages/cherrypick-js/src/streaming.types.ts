@@ -260,7 +260,7 @@ export type Channels = {
 			claimTimeIsUp: null | Record<string, never>;
 			reaction: string;
 		}
-	}
+	};
 };
 
 export type NoteUpdatedEvent = { id: Note['id'] } & ({

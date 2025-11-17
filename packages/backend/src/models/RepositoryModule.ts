@@ -69,6 +69,7 @@ import {
 	MiRoleAssignment,
 	MiSignin,
 	MiSwSubscription,
+	MiSystemAccount,
 	MiSystemWebhook,
 	MiUsedUsername,
 	MiUser,
@@ -326,6 +327,12 @@ const $swSubscriptionsRepository: Provider = {
 	inject: [DI.db],
 };
 
+const $systemAccountsRepository: Provider = {
+	provide: DI.systemAccountsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiSystemAccount).extend(miRepository as MiRepository<MiSystemAccount>),
+	inject: [DI.db],
+};
+
 const $hashtagsRepository: Provider = {
 	provide: DI.hashtagsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiHashtag).extend(miRepository as MiRepository<MiHashtag>),
@@ -340,7 +347,7 @@ const $abuseUserReportsRepository: Provider = {
 
 const $abuseReportNotificationRecipientRepository: Provider = {
 	provide: DI.abuseReportNotificationRecipientRepository,
-	useFactory: (db: DataSource) => db.getRepository(MiAbuseReportNotificationRecipient),
+	useFactory: (db: DataSource) => db.getRepository(MiAbuseReportNotificationRecipient).extend(miRepository as MiRepository<MiAbuseReportNotificationRecipient>),
 	inject: [DI.db],
 };
 
@@ -484,7 +491,7 @@ const $webhooksRepository: Provider = {
 
 const $systemWebhooksRepository: Provider = {
 	provide: DI.systemWebhooksRepository,
-	useFactory: (db: DataSource) => db.getRepository(MiSystemWebhook),
+	useFactory: (db: DataSource) => db.getRepository(MiSystemWebhook).extend(miRepository as MiRepository<MiSystemWebhook>),
 	inject: [DI.db],
 };
 
@@ -614,6 +621,7 @@ const $officialTagRepository: Provider = {
 		$renoteMutingsRepository,
 		$blockingsRepository,
 		$swSubscriptionsRepository,
+		$systemAccountsRepository,
 		$hashtagsRepository,
 		$abuseUserReportsRepository,
 		$abuseReportNotificationRecipientRepository,
@@ -650,9 +658,9 @@ const $officialTagRepository: Provider = {
 		$flashLikesRepository,
 		$flashLikesRemoteRepository,
 		$userMemosRepository,
-		$abuseReportResolversRepository,
 		$bubbleGameRecordsRepository,
 		$reversiGamesRepository,
+		$abuseReportResolversRepository,
 		$noteScheduleRepository,
 		$officialTagRepository,
 	],
@@ -696,6 +704,7 @@ const $officialTagRepository: Provider = {
 		$renoteMutingsRepository,
 		$blockingsRepository,
 		$swSubscriptionsRepository,
+		$systemAccountsRepository,
 		$hashtagsRepository,
 		$abuseUserReportsRepository,
 		$abuseReportNotificationRecipientRepository,
@@ -732,9 +741,9 @@ const $officialTagRepository: Provider = {
 		$flashLikesRepository,
 		$flashLikesRemoteRepository,
 		$userMemosRepository,
-		$abuseReportResolversRepository,
 		$bubbleGameRecordsRepository,
 		$reversiGamesRepository,
+		$abuseReportResolversRepository,
 		$noteScheduleRepository,
 		$officialTagRepository,
 	],

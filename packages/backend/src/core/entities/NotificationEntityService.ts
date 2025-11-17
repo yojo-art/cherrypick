@@ -48,10 +48,6 @@ export class NotificationEntityService implements OnModuleInit {
 		private userGroupInvitationsRepository: UserGroupInvitationsRepository,
 
 		private cacheService: CacheService,
-
-		//private userEntityService: UserEntityService,
-		//private noteEntityService: NoteEntityService,
-		//private userGroupInvitationEntityService: UserGroupInvitationEntityService,
 	) {
 	}
 
@@ -101,7 +97,7 @@ export class NotificationEntityService implements OnModuleInit {
 		// if the user has been deleted, don't show this notification
 		if (needsUser && !userIfNeed) return null;
 
-		// #region Grouped notifications
+		//#region Grouped notifications
 		if (notification.type === 'reaction:grouped') {
 			const reactions = (await Promise.all(notification.reactions.map(async reaction => {
 				const user = hint?.packedUsers != null
@@ -167,7 +163,7 @@ export class NotificationEntityService implements OnModuleInit {
 				users,
 			});
 		}
-		// #endregion
+		//#endregion
 
 		const needsRole = notification.type === 'roleAssigned';
 		const role = needsRole ? await this.roleEntityService.pack(notification.roleId) : undefined;

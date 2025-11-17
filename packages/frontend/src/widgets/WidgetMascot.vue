@@ -12,9 +12,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { shallowRef, watchEffect } from 'vue';
 import { useWidgetPropsManager, WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
-import { GetFormResultType } from '@/scripts/form.js';
+import { GetFormResultType } from '@/utility/form.js';
 import { instance } from '@/instance.js';
-import { getProxiedImageUrl } from '@/scripts/media-proxy.js';
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const name = 'mascot';
 

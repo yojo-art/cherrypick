@@ -579,6 +579,10 @@ const extension_context_definition = {
 	'_yojoart_clips': 'yojoart:_yojoart_clips',
 	// vcard
 	vcard: 'http://www.w3.org/2006/vcard/ns#',
+	// CherryPick
+	cherrypick: 'https://kokonect.link/ns#',
+	setFederationAvatarShape: 'cherrypick:setFederationAvatarShape',
+	isSquareAvatars: 'cherrypick:isSquareAvatars',
 	//配送しないから不要
 	//pt: 'https://joinpeertube.org/ns#',
 	//'playlists': {

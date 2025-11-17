@@ -21,7 +21,7 @@ import { ref, computed } from 'vue';
 import { i18n } from '@/i18n.js';
 import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
-import { $i } from '@/account.js';
+import { $i } from '@/i.js';
 
 const props = defineProps<{
 	tagString: string;

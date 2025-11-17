@@ -31,7 +31,7 @@ import * as Misskey from 'cherrypick-js';
 import { computed, ref, watchEffect } from 'vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
-import { $i } from '@/account.js';
+import { $i } from '@/i.js';
 import number from '@/filters/number.js';
 
 const props = withDefaults(defineProps<{
