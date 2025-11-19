@@ -143,16 +143,10 @@ export class PreferencesManager {
 			return;
 		}
 		const v_str = JSON.stringify(value);
-		if (v_str === 'undefined' || v_str === 'null') {
+		if (v_str == null) {
 			return;//value==undefinedを飛ばす
 		}
-		let v:any;
-		try {
-			v = JSON.parse(v_str); // deep copy 兼 vueのプロキシ解除
-		} catch(e) {
-			console.log(v_str);
-			console.error(e);
-		}
+		const v = JSON.parse(v_str); // deep copy 兼 vueのプロキシ解除
 		if (deepEqual(this.s[key], v)) {
 			if (_DEV_) console.log('(skip) prefer:commit', key, v);
 			return;
