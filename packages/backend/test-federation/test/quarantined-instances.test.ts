@@ -74,6 +74,22 @@ describe('quarantine instance', () => {
 				};
 			})), JSON.stringify(Array.from(expected).reverse()));
 		});
+		test('home(has mention)', async () => {
+			const aliceHomeNote: Misskey.entities.Note = (await alice.client.request('notes/create', { text: `@${bob.username}@b.test home note`, visibility: 'home' })).createdNote;
+			expected.push({
+				text: aliceHomeNote.text,
+				createdAt: aliceHomeNote.createdAt,
+			});
+			await sleep();
+			const fetch_notes = await bob.client.request('users/notes', { userId: aliceInBobHost.id, withReplies: false, withRenotes: true });
+			strictEqual(fetch_notes.length, expected.length, JSON.stringify(fetch_notes));
+			deepStrictEqual(JSON.stringify(fetch_notes.map(note => {
+				return {
+					text: note.text,
+					createdAt: note.createdAt,
+				};
+			})), JSON.stringify(Array.from(expected).reverse()));
+		});
 		test('followers', async () => {
 			await alice.client.request('notes/create', { text: 'followers note', visibility: 'followers' });
 			await alice.client.request('notes/create', { renoteId: alicePublicNote.id, visibility: 'followers' });
