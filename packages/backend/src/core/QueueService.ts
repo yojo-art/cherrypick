@@ -150,6 +150,12 @@ export class QueueService {
 			}
 		}
 		if (toPublicOnly) {
+			if (Array.isArray(content.to) && content.to.includes('https://www.w3.org/ns/activitystreams#Public')) {
+				return true;
+			}
+			if (Array.isArray(content.cc) && content.cc.includes('https://www.w3.org/ns/activitystreams#Public')) {
+				return true;
+			}
 			return String(content.to) === 'https://www.w3.org/ns/activitystreams#Public' || String(content.cc) === 'https://www.w3.org/ns/activitystreams#Public';
 		} else {
 			return true;
