@@ -147,6 +147,7 @@ export class PreferencesManager {
 			return;//value==undefinedを飛ばす
 		}
 		const v = JSON.parse(v_str); // deep copy 兼 vueのプロキシ解除
+
 		if (deepEqual(this.s[key], v)) {
 			if (_DEV_) console.log('(skip) prefer:commit', key, v);
 			return;
