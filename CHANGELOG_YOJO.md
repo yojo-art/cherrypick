@@ -1,3 +1,17 @@
+## 1.6.0
+Cherrypick 4.16.0  
+Misskey 2025.5.0
+
+### Release Date
+
+### General
+
+### Client
+
+### Server
+- Fix: 制限されたインスタンスに宛先が複数ある投稿が配送されない不具合の修正 [#786](https://github.com/yojo-art/cherrypick/pull/786)
+  - 制限されたインスタンスにメンション付き投稿が配送されない不具合が修正されます
+
 ## 1.5.2
 Cherrypick 4.15.0  
 Misskey 2025.2.0
