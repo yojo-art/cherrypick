@@ -26,6 +26,10 @@ jobs:
       - run: |
           cp .config/docker_example.env .config/docker.env
           cp ./compose_example.yml ./compose.yml
+          echo "services:" > ./compose.override.yml
+          echo "  web:" >> ./compose.override.yml
+          echo "    build: ." >> ./compose.override.yml
+          echo "    image: misskey-web:latest" >> ./compose.override.yml
 
       - run: |
           docker compose up -d web
