@@ -143,7 +143,7 @@ export class PreferencesManager {
 			return;
 		}
 		const v_str = JSON.stringify(value);
-		if (v_str === 'undefined' || v_str === 'null') {
+		if (v_str == null) {
 			return;//value==undefinedを飛ばす
 		}
 		const v = JSON.parse(v_str); // deep copy 兼 vueのプロキシ解除
