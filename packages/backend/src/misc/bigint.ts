@@ -42,7 +42,8 @@ export function parseBigInt32(str: string): bigint {
 const CROCKFORD_TO_STANDARD_MAP: readonly string[] = (() => {
 	const CROCKFORD_CHARS = '0123456789ABCDEFGHJKMNPQRSTVWXYZ';
 	const STANDARD_BASE32_CHARS = '0123456789ABCDEFGHIJKLMNOPQRSTUV';
-	const map: string[] = new Array(91);
+	//最も大きい文字コードの位置まで配列を確保
+	const map: string[] = new Array('Z'.charCodeAt(0));
 	for (let i = 0; i < CROCKFORD_CHARS.length; i++) {
 		map[CROCKFORD_CHARS.charCodeAt(i)] = STANDARD_BASE32_CHARS[i];
 	}
@@ -53,6 +54,7 @@ function normalizeCrockfordBase32(str: string): string {
 	let result = '';
 	for (let i = 0; i < str.length; i++) {
 		const charCode = str.charCodeAt(i);
+		//文字コードの位置に対応する変換先の文字を取得
 		const normalized = CROCKFORD_TO_STANDARD_MAP[charCode];
 		if (normalized === undefined) {
 			throw new Error(`Invalid Crockford Base32 character: '${str[i]}'`);
