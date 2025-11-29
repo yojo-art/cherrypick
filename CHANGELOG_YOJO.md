@@ -12,6 +12,7 @@ Misskey 2025.2.0
 ### Server
 - Fix: 制限されたインスタンスに既読を配送しない [#757](https://github.com/yojo-art/cherrypick/pull/757)
   - リモートユーザーとチャットできない不具合が修正されます
+- Fix: ULID使用時の通知取得で発生するパースエラーと Redis stream ID エラーを修正 [#790](https://github.com/yojo-art/cherrypick/pull/790)
 
 ## 1.5.1
 Cherrypick 4.15.0  
