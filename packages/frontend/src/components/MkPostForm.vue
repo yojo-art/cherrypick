@@ -1797,6 +1797,9 @@ div.hashtags {
 	padding-bottom: 8px;
 	border-top: solid 0.5px var(--MI_THEME-divider);
 }
+input.hashtags {
+	padding: 0 2px;
+}
 
 .textOuter {
 	width: 100%;
