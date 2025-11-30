@@ -65,6 +65,7 @@ import {
 } from '@/models/json-schema/meta.js';
 import { packedSystemWebhookSchema } from '@/models/json-schema/system-webhook.js';
 import { packedAbuseReportNotificationRecipientSchema } from '@/models/json-schema/abuse-report-notification-recipient.js';
+import { packedAchievementNameSchema, packedAchievementSchema } from '@/models/json-schema/achievement.js';
 import { packedNoteDraftSchema } from '@/models/json-schema/note-draft.js';
 
 export const refs = {
@@ -78,6 +79,8 @@ export const refs = {
 
 	UserList: packedUserListSchema,
 	UserGroup: packedUserGroupSchema,
+	Achievement: packedAchievementSchema,
+	AchievementName: packedAchievementNameSchema,
 	Ad: packedAdSchema,
 	Announcement: packedAnnouncementSchema,
 	App: packedAppSchema,
@@ -172,6 +175,7 @@ export interface Schema extends OfSchema {
 	readonly maximum?: number;
 	readonly minimum?: number;
 	readonly pattern?: string;
+	readonly additionalProperties?: Schema | boolean;
 }
 
 type RequiredPropertyNames<s extends Obj> = {
@@ -223,7 +227,14 @@ type ObjectSchemaTypeDef<p extends Schema> =
 		:
 		p['anyOf'] extends ReadonlyArray<Schema> ? never : // see CONTRIBUTING.md
 		p['allOf'] extends ReadonlyArray<Schema> ? UnionToIntersection<UnionSchemaType<p['allOf']>> :
-		any;
+		p['additionalProperties'] extends true ? Record<string, any> :
+		p['additionalProperties'] extends Schema ?
+			p['additionalProperties'] extends infer AdditionalProperties ?
+				AdditionalProperties extends Schema ?
+					Record<string, SchemaType<AdditionalProperties>> :
+					never :
+				never :
+			any;
 
 type ObjectSchemaType<p extends Schema> = NullOrUndefined<p, ObjectSchemaTypeDef<p>>;
 

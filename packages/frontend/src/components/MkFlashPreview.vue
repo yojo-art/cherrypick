@@ -30,8 +30,8 @@ import * as Misskey from 'cherrypick-js';
 import { userName } from '@/filters/user.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
-import { pleaseLogin } from '@/scripts/please-login.js';
-import { $i } from '@/account';
+import { pleaseLogin } from '@/utility/please-login.js';
+import { $i } from '@/i.js';
 
 const props = defineProps<{
 	flash: Misskey.entities.Flash;

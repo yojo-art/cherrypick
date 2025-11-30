@@ -15,7 +15,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkA>
 			<div v-if="note.user.isLocked" :class="$style.userBadge"><i class="ti ti-lock"></i></div>
 			<div v-if="note.user.isBot" :class="$style.userBadge"><i class="ti ti-robot"></i></div>
-			<div v-if="note.user.isProxy" :class="$style.userBadge"><i class="ti ti-ghost"></i></div>
 			<div v-if="note.user.badgeRoles" :class="$style.badgeRoles">
 				<img v-for="(role, i) in note.user.badgeRoles" :key="i" v-tooltip="role.name" :class="$style.badgeRole" :src="role.iconUrl!"/>
 			</div>
@@ -44,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<MkTime v-else-if="note.isSchedule" mode="absolute" :time="note.createdAt" colored/>
 			<MkA v-else :class="$style.time" :to="notePage(note)">
-				<MkTime :time="note.createdAt" :mode="defaultStore.state.enableAbsoluteTime ? 'absolute' : 'relative'" colored/>
+				<MkTime :time="note.createdAt" :mode="prefer.s.enableAbsoluteTime ? 'absolute' : 'relative'" colored/>
 			</MkA>
 			<button v-if="notificationId" class="_button" style="margin-left: auto;" @click.stop="notificationDelete()">
 				<i class="ti ti-bell-x"></i>
@@ -61,10 +60,11 @@ import * as Misskey from 'cherrypick-js';
 import { i18n } from '@/i18n.js';
 import { notePage } from '@/filters/note.js';
 import { userPage } from '@/filters/user.js';
-import { defaultStore } from '@/store.js';
-import { useRouter } from '@/router/supplier.js';
+import { DI } from '@/di.js';
+import { prefer } from '@/preferences.js';
+import { useRouter } from '@/router.js';
 import MkInstanceTicker from '@/components/MkInstanceTicker.vue';
-import { misskeyApi } from '@/scripts/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 
 const props = defineProps<{
 	note: Misskey.entities.Note & {
@@ -74,9 +74,9 @@ const props = defineProps<{
 	notificationId?: string;
 }>();
 
-const mock = inject<boolean>('mock', false);
+const mock = inject(DI.mock, false);
 
-const showTicker = (defaultStore.state.instanceTicker === 'always') || (defaultStore.state.instanceTicker === 'remote' && props.note.user.instance);
+const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && props.note.user.instance);
 const router = useRouter();
 
 function showOnRemote() {

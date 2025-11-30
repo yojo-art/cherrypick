@@ -153,6 +153,7 @@ export const paramDef = {
 		replyId: { type: 'string', format: 'misskey:id', nullable: true },
 		renoteId: { type: 'string', format: 'misskey:id', nullable: true },
 		channelId: { type: 'string', format: 'misskey:id', nullable: true },
+		localOnly: { type: 'boolean', default: false },
 
 		// anyOf内にバリデーションを書いても最初の一つしかチェックされない
 		// See https://github.com/misskey-dev/misskey/pull/10082
@@ -411,7 +412,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				reply: reply?.id,
 				renote: renote?.id,
 				cw: ps.cw,
-				localOnly: false,
+				localOnly: ps.localOnly,
 				reactionAcceptance: ps.reactionAcceptance,
 				searchableBy: ps.searchableBy ?? 'public',
 				visibility: ps.visibility,

@@ -131,13 +131,13 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async remoteUserUpdate(user: MiUser) {
+	public async remoteUserUpdate(user: MiUser): Promise<string> {
 		const userHost = user.host ?? '';
 		const instance = await this.instancesRepository.findOneBy({ host: userHost });
 		const userHostUrl = `https://${user.host}`;
 		const showUserApiUrl = `${userHostUrl}/api/users/show`;
 
-		if (!instance || !['misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) return;
+		if (!instance || !['misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) return 'ok';
 
 		const res = await this.httpRequestService.send(showUserApiUrl, {
 			method: 'POST',
@@ -151,8 +151,12 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		if (!userAvatarDecorations || userAvatarDecorations.length === 0) {
 			const updates = {} as Partial<MiUser>;
 			updates.avatarDecorations = [];
-			await this.usersRepository.update({ id: user.id }, updates);
-			return;
+
+			if (!(await this.usersRepository.update({ id: user.id, isDeleted: false }, updates)).affected) {
+				return 'skip';
+			}
+
+			return 'ok';
 		}
 
 		const instanceHost = instance!.host;
@@ -218,7 +222,10 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 				opacity: avatarDecoration.opacity ?? 1,
 			});
 		}
-		await this.usersRepository.update({ id: user.id }, updates);
+		if (!(await this.usersRepository.update({ id: user.id, isDeleted: false }, updates)).affected) {
+			return 'skip';
+		}
+		return 'ok';
 	}
 
 	@bindThis

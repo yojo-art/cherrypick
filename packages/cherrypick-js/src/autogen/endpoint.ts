@@ -90,9 +90,15 @@ import type {
 	AdminInviteListResponse,
 	AdminMetaResponse,
 	AdminPromoCreateRequest,
+	AdminQueueClearRequest,
 	AdminQueueDeliverDelayedResponse,
 	AdminQueueInboxDelayedResponse,
-	AdminQueuePromoteRequest,
+	AdminQueueJobsRequest,
+	AdminQueuePromoteJobsRequest,
+	AdminQueueQueueStatsRequest,
+	AdminQueueRemoveJobRequest,
+	AdminQueueRetryJobRequest,
+	AdminQueueShowJobRequest,
 	AdminQueueStatsResponse,
 	AdminRelaysAddRequest,
 	AdminRelaysAddResponse,
@@ -138,6 +144,8 @@ import type {
 	AdminUnsuspendUserRequest,
 	AdminUpdateAbuseUserReportRequest,
 	AdminUpdateMetaRequest,
+	AdminUpdateProxyAccountRequest,
+	AdminUpdateProxyAccountResponse,
 	AdminUpdateUserNoteRequest,
 	AnnouncementsRequest,
 	AnnouncementsResponse,
@@ -708,10 +716,16 @@ export type Endpoints = {
 	'admin/invite/revoke': { req: EmptyRequest; res: EmptyResponse };
 	'admin/meta': { req: EmptyRequest; res: AdminMetaResponse };
 	'admin/promo/create': { req: AdminPromoCreateRequest; res: EmptyResponse };
-	'admin/queue/clear': { req: EmptyRequest; res: EmptyResponse };
+	'admin/queue/clear': { req: AdminQueueClearRequest; res: EmptyResponse };
 	'admin/queue/deliver-delayed': { req: EmptyRequest; res: AdminQueueDeliverDelayedResponse };
 	'admin/queue/inbox-delayed': { req: EmptyRequest; res: AdminQueueInboxDelayedResponse };
-	'admin/queue/promote': { req: AdminQueuePromoteRequest; res: EmptyResponse };
+	'admin/queue/jobs': { req: AdminQueueJobsRequest; res: EmptyResponse };
+	'admin/queue/promote-jobs': { req: AdminQueuePromoteJobsRequest; res: EmptyResponse };
+	'admin/queue/queue-stats': { req: AdminQueueQueueStatsRequest; res: EmptyResponse };
+	'admin/queue/queues': { req: EmptyRequest; res: EmptyResponse };
+	'admin/queue/remove-job': { req: AdminQueueRemoveJobRequest; res: EmptyResponse };
+	'admin/queue/retry-job': { req: AdminQueueRetryJobRequest; res: EmptyResponse };
+	'admin/queue/show-job': { req: AdminQueueShowJobRequest; res: EmptyResponse };
 	'admin/queue/stats': { req: EmptyRequest; res: AdminQueueStatsResponse };
 	'admin/recreate-index': { req: EmptyRequest; res: EmptyResponse };
 	'admin/relays/add': { req: AdminRelaysAddRequest; res: AdminRelaysAddResponse };
@@ -746,6 +760,7 @@ export type Endpoints = {
 	'admin/unsuspend-user': { req: AdminUnsuspendUserRequest; res: EmptyResponse };
 	'admin/update-abuse-user-report': { req: AdminUpdateAbuseUserReportRequest; res: EmptyResponse };
 	'admin/update-meta': { req: AdminUpdateMetaRequest; res: EmptyResponse };
+	'admin/update-proxy-account': { req: AdminUpdateProxyAccountRequest; res: AdminUpdateProxyAccountResponse };
 	'admin/update-user-note': { req: AdminUpdateUserNoteRequest; res: EmptyResponse };
 	'announcements': { req: AnnouncementsRequest; res: AnnouncementsResponse };
 	'announcements/show': { req: AnnouncementsShowRequest; res: AnnouncementsShowResponse };

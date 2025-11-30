@@ -88,22 +88,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, computed, shallowRef } from 'vue';
+import { onMounted, ref, computed, useTemplateRef, shallowRef } from 'vue';
 import { Chart } from 'chart.js';
 import type { HeatmapSource } from '@/components/MkHeatmap.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkChart from '@/components/MkChart.vue';
-import { useChartTooltip } from '@/scripts/use-chart-tooltip.js';
-import { $i } from '@/account.js';
+import { useChartTooltip } from '@/use/use-chart-tooltip.js';
+import { $i } from '@/i.js';
 import * as os from '@/os.js';
-import { misskeyApiGet } from '@/scripts/misskey-api.js';
+import { misskeyApiGet } from '@/utility/misskey-api.js';
 import { instance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import MkHeatmap from '@/components/MkHeatmap.vue';
 import MkFoldableSection from '@/components/MkFoldableSection.vue';
 import MkRetentionHeatmap from '@/components/MkRetentionHeatmap.vue';
 import MkRetentionLineChart from '@/components/MkRetentionLineChart.vue';
-import { initChart } from '@/scripts/init-chart.js';
+import { initChart } from '@/utility/init-chart.js';
 
 initChart();
 
@@ -113,8 +113,8 @@ const chartLimit = 500;
 const chartSpan = ref<'hour' | 'day'>('hour');
 const chartSrc = ref('active-users');
 const heatmapSrc = ref<HeatmapSource>('active-users');
-const subDoughnutEl = shallowRef<HTMLCanvasElement>();
-const pubDoughnutEl = shallowRef<HTMLCanvasElement>();
+const subDoughnutEl = useTemplateRef('subDoughnutEl');
+const pubDoughnutEl = useTemplateRef('pubDoughnutEl');
 const softwareDoughnutEl = shallowRef<HTMLCanvasElement>();
 
 function createDoughnut(chartEl, tooltip, data) {
@@ -124,7 +124,7 @@ function createDoughnut(chartEl, tooltip, data) {
 			labels: data.map(x => x.name),
 			datasets: [{
 				backgroundColor: data.map(x => x.color),
-				borderColor: getComputedStyle(document.documentElement).getPropertyValue('--MI_THEME-panel'),
+				borderColor: getComputedStyle(window.document.documentElement).getPropertyValue('--MI_THEME-panel'),
 				borderWidth: 2,
 				hoverOffset: 0,
 				data: data.map(x => x.value),

@@ -4,11 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkStickyContainer>
-	<template #header>
-		<XHeader :actions="headerActions" :tabs="headerTabs"/>
-	</template>
-	<MkSpacer :contentMax="900">
+<PageWithHeader :actions="headerActions" :tabs="headerTabs">
+	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div>
 			<MkInfo>{{ i18n.ts._official_tag.adminTopInfo }}</MkInfo>
 			<div v-for="tag in tags" :key="tag.id" class="_panel _gaps_m tag_entity">
@@ -40,21 +37,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkButton>
 			</div>
 		</div>
-	</MkSpacer>
-</MkStickyContainer>
+	</div>
+</PageWithHeader>
 </template>
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import * as Misskey from 'cherrypick-js';
-import XHeader from './_header_.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
 import MkFolder from '@/components/MkFolder.vue';
-import { misskeyApi } from '@/scripts/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { definePage } from '@/page.js';
 
 let last_id = 0;
 type OfficialTag = {
@@ -121,7 +117,7 @@ const headerActions = computed(() => [{
 
 const headerTabs = computed(() => []);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: i18n.ts._official_tag.navbar,
 	icon: 'ti ti-bookmarks',
 }));

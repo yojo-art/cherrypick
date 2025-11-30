@@ -14,6 +14,10 @@ export interface Locale extends ILocale {
      */
     "_lang_": string;
     /**
+     * ノートの本文を離して表示
+     */
+    "showGapBodyOfTheNote": string;
+    /**
      * {user}さんに返信
      */
     "replyTo": ParameterizedString<"user">;
@@ -248,10 +252,6 @@ export interface Locale extends ILocale {
      */
     "copiedContent": string;
     /**
-     * コピーしました！
-     */
-    "copied": string;
-    /**
      * ようこそ！
      */
     "welcome": string;
@@ -405,7 +405,7 @@ export interface Locale extends ILocale {
     "infoButtonForNoteActionsDescription": string;
     /**
      * 「サーバーのマシン情報を公開する」設定がオフになっています。
-     * サーバーメトリクスを表示するには、「コントロールパネル - その他」で「サーバーのマシン情報を公開する」設定を有効にしてください。
+     * サーバーメトリクスを表示するには、「コントロールパネル → その他」で「サーバーのマシン情報を公開する」設定を有効にしてください。
      */
     "disabledServerMachineStats": string;
     /**
@@ -449,7 +449,7 @@ export interface Locale extends ILocale {
      */
     "renoteConfirm": string;
     /**
-     * この設定は「設定 - CherryPick」で変更できます。
+     * この設定は「設定 → CherryPick」で変更できます。
      */
     "renoteConfirmDescription": string;
     /**
@@ -522,7 +522,7 @@ export interface Locale extends ILocale {
      */
     "cherrypickUpdatedCacheClear": string;
     /**
-     * あとでキャッシュをクリアするには、<b>設定</b> - <b>キャッシュをクリア</b>でできます！
+     * あとでキャッシュをクリアするには、<b>設定</b> → <b>キャッシュをクリア</b>でできます！
      */
     "cherrypickUpdatedCacheClearLater": string;
     /**
@@ -1467,6 +1467,10 @@ export interface Locale extends ILocale {
      */
     "software": string;
     /**
+     * ソフトウェア名
+     */
+    "softwareName": string;
+    /**
      * バージョン
      */
     "version": string;
@@ -1739,13 +1743,13 @@ export interface Locale extends ILocale {
      */
     "areYouSure": string;
     /**
-     * 保存しました
-     */
-    "saved": string;
-    /**
      * チャット
      */
     "messaging": string;
+    /**
+     * 保存しました
+     */
+    "saved": string;
     /**
      * アップロード
      */
@@ -2290,6 +2294,10 @@ export interface Locale extends ILocale {
      * ファイルが添付されたノートのみ
      */
     "withFileAntenna": string;
+    /**
+     * センシティブなチャンネルのノートを除外
+     */
+    "excludeNotesInSensitiveChannel": string;
     /**
      * ブラウザへのプッシュ通知を有効にする
      */
@@ -2983,6 +2991,10 @@ export interface Locale extends ILocale {
      */
     "playVibrationsDescription": string;
     /**
+     * 振動再生テスト
+     */
+    "testVibrations": string;
+    /**
      * 聴く
      */
     "listen": string;
@@ -3470,6 +3482,10 @@ export interface Locale extends ILocale {
      * コピー
      */
     "copy": string;
+    /**
+     * クリップボードにコピーされました！
+     */
+    "copiedToClipboard": string;
     /**
      * メトリクス
      */
@@ -4645,6 +4661,10 @@ export interface Locale extends ILocale {
      */
     "logoutConfirm": string;
     /**
+     * ログアウトするとクライアントの設定情報がブラウザから消去されます。再ログイン時に設定情報を復元できるようにするためには、設定の自動バックアップを有効にしてください。
+     */
+    "logoutWillClearClientData": string;
+    /**
      * 最終利用日時
      */
     "lastActiveDate": string;
@@ -5725,7 +5745,7 @@ export interface Locale extends ILocale {
      */
     "disableStreamingTimeline": string;
     /**
-     * 通知をグルーピングして表示する
+     * 通知をグルーピング
      */
     "useGroupedNotifications": string;
     /**
@@ -6017,9 +6037,156 @@ export interface Locale extends ILocale {
      */
     "reactAreYouSure": ParameterizedString<"emoji">;
     /**
+     * このメディアをセンシティブとして設定しますか？
+     */
+    "markAsSensitiveConfirm": string;
+    /**
+     * このメディアのセンシティブ指定を解除しますか？
+     */
+    "unmarkAsSensitiveConfirm": string;
+    /**
+     * 環境設定
+     */
+    "preferences": string;
+    /**
+     * アクセシビリティ
+     */
+    "accessibility": string;
+    /**
+     * 設定のプロファイル
+     */
+    "preferencesProfile": string;
+    /**
+     * 設定IDをコピー
+     */
+    "copyPreferenceId": string;
+    /**
+     * 初期値に戻す
+     */
+    "resetToDefaultValue": string;
+    /**
+     * アカウントで上書き
+     */
+    "overrideByAccount": string;
+    /**
+     * 無題
+     */
+    "untitled": string;
+    /**
+     * 名前はありません
+     */
+    "noName": string;
+    /**
+     * スキップ
+     */
+    "skip": string;
+    /**
+     * 復元
+     */
+    "restore": string;
+    /**
+     * デバイス間で同期
+     */
+    "syncBetweenDevices": string;
+    /**
+     * サーバーに設定値が存在します
+     */
+    "preferenceSyncConflictTitle": string;
+    /**
+     * 同期が有効にされた設定項目は設定値をサーバーに保存しますが、この設定項目のサーバーに保存された設定値が見つかりました。どちらの設定値で上書きしますか？
+     */
+    "preferenceSyncConflictText": string;
+    /**
+     * サーバーの設定値
+     */
+    "preferenceSyncConflictChoiceServer": string;
+    /**
+     * デバイスの設定値
+     */
+    "preferenceSyncConflictChoiceDevice": string;
+    /**
+     * 同期の有効化をキャンセル
+     */
+    "preferenceSyncConflictChoiceCancel": string;
+    /**
+     * ペースト
+     */
+    "paste": string;
+    /**
+     * 絵文字パレット
+     */
+    "emojiPalette": string;
+    /**
+     * 投稿フォーム
+     */
+    "postForm": string;
+    /**
      * 文字数
      */
     "textCount": string;
+    /**
+     * 情報
+     */
+    "information": string;
+    /**
+     * チャット
+     */
+    "chat": string;
+    /**
+     * 旧設定情報を移行
+     */
+    "migrateOldSettings": string;
+    /**
+     * 通常これは自動で行われていますが、何らかの理由により上手く移行されなかった場合は手動で移行処理をトリガーできます。現在の設定情報は上書きされます。
+     */
+    "migrateOldSettings_description": string;
+    /**
+     * 圧縮
+     */
+    "compress": string;
+    /**
+     * 右
+     */
+    "right": string;
+    /**
+     * 下
+     */
+    "bottom": string;
+    /**
+     * 上
+     */
+    "top": string;
+    /**
+     * 埋め込み
+     */
+    "embed": string;
+    /**
+     * 設定を移行しています。しばらくお待ちください... (後ほど、設定→その他→旧設定情報を移行 で手動で移行することもできます)
+     */
+    "settingsMigrating": string;
+    /**
+     * 読み取り専用
+     */
+    "readonly": string;
+    /**
+     * デッキへ戻る
+     */
+    "goToDeck": string;
+    /**
+     * 連合ジョブ
+     */
+    "federationJobs": string;
+    /**
+     * ドライブでは、過去にアップロードしたファイルの一覧が表示されます。<br>
+     * ノートに添付する際に再利用したり、あとで投稿するファイルを予めアップロードしておくこともできます。<br>
+     * <b>ファイルを削除すると、今までそのファイルを使用した全ての場所(ノート、ページ、アバター、バナー等)からも見えなくなるので注意してください。</b><br>
+     * フォルダを作って整理することもできます。
+     */
+    "driveAboutTip": string;
+    /**
+     * スクロールして閉じる
+     */
+    "scrollToClose": string;
     /**
      * 下書き
      */
@@ -6180,6 +6347,196 @@ export interface Locale extends ILocale {
          */
         "direct": string;
     };
+    "_emojiPalette": {
+        /**
+         * パレット
+         */
+        "palettes": string;
+        /**
+         * パレットのデバイス間同期を有効にする
+         */
+        "enableSyncBetweenDevicesForPalettes": string;
+        /**
+         * メインで使用するパレット
+         */
+        "paletteForMain": string;
+        /**
+         * リアクションで使用するパレット
+         */
+        "paletteForReaction": string;
+    };
+    "_settings": {
+        /**
+         * CherryPickの独自機能、パッチ、UIに関する設定を行えます。
+         */
+        "cherrypickBanner": string;
+        /**
+         * ドライブの管理と設定、使用量の確認、ファイルをアップロードする際の設定を行えます。
+         */
+        "driveBanner": string;
+        /**
+         * プラグインを利用するとクライアントの機能を拡張することができます。プラグインのインストール、個別の設定と管理が行えます。
+         */
+        "pluginBanner": string;
+        /**
+         * サーバーからの受信する通知の種類と範囲や、プッシュ通知の設定が行えます。
+         */
+        "notificationsBanner": string;
+        /**
+         * API
+         */
+        "api": string;
+        /**
+         * Webhook
+         */
+        "webhook": string;
+        /**
+         * サービス連携
+         */
+        "serviceConnection": string;
+        /**
+         * 外部のアプリ・サービスと連携するためのアクセストークンやWebhookの管理と設定が行えます。
+         */
+        "serviceConnectionBanner": string;
+        /**
+         * アカウントのデータ
+         */
+        "accountData": string;
+        /**
+         * アカウントデータのアーカイブをエクスポート/インポートして管理できます。
+         */
+        "accountDataBanner": string;
+        /**
+         * 非表示にするコンテンツの設定や、特定のユーザーからのアクションを制限する設定と管理を行えます。
+         */
+        "muteAndBlockBanner": string;
+        /**
+         * クライアントの視覚や動作に関するパーソナライズを行い、より最適に使用できるように設定できます。
+         */
+        "accessibilityBanner": string;
+        /**
+         * コンテンツの公開範囲、見つけやすさ、フォローの承認制などアカウントのプライバシーに関する設定を行えます。
+         */
+        "privacyBanner": string;
+        /**
+         * パスワード、ログイン方法、認証アプリ、パスキーなどアカウントのセキュリティに関する設定を行えます。
+         */
+        "securityBanner": string;
+        /**
+         * 好みに応じた、クライアントの全体的な動作の設定が行えます。
+         */
+        "preferencesBanner": string;
+        /**
+         * 好みに応じた、クライアントの見た目・表示方法に関する設定が行えます。
+         */
+        "appearanceBanner": string;
+        /**
+         * クライアントで再生するサウンドの設定が行えます。
+         */
+        "soundsBanner": string;
+        /**
+         * タイムラインとノート
+         */
+        "timelineAndNote": string;
+        /**
+         * 全てのテキスト要素を選択可能にする
+         */
+        "makeEveryTextElementsSelectable": string;
+        /**
+         * 有効にすると、一部のシチュエーションでのユーザビリティが低下する場合があります。
+         */
+        "makeEveryTextElementsSelectable_description": string;
+        /**
+         * アイコンをスクロールに追従させる
+         */
+        "useStickyIcons": string;
+        /**
+         * ナビゲーションバーに副ボタンを表示
+         */
+        "showNavbarSubButtons": string;
+        /**
+         * オンのとき
+         */
+        "ifOn": string;
+        /**
+         * オフのとき
+         */
+        "ifOff": string;
+        /**
+         * デバイス間でインストールしたテーマを同期
+         */
+        "enableSyncThemesBetweenDevices": string;
+        /**
+         * ひっぱって更新
+         */
+        "enablePullToRefresh": string;
+        /**
+         * マウスでは、ホイールを押し込みながらドラッグします。
+         */
+        "enablePullToRefresh_description": string;
+        "_chat": {
+            /**
+             * 送信者の名前を表示
+             */
+            "showSenderName": string;
+            /**
+             * Enterで送信
+             */
+            "sendOnEnter": string;
+        };
+    };
+    "_preferencesProfile": {
+        /**
+         * プロファイル名
+         */
+        "profileName": string;
+        /**
+         * このデバイスを識別する名前を設定してください。
+         */
+        "profileNameDescription": string;
+        /**
+         * 例: 「メインPC」、「スマホ」など
+         */
+        "profileNameDescription2": string;
+        /**
+         * プロファイルの管理
+         */
+        "manageProfiles": string;
+    };
+    "_preferencesBackup": {
+        /**
+         * 自動バックアップ
+         */
+        "autoBackup": string;
+        /**
+         * バックアップから復元
+         */
+        "restoreFromBackup": string;
+        /**
+         * バックアップが見つかりませんでした
+         */
+        "noBackupsFoundTitle": string;
+        /**
+         * 自動で作成されたバックアップは見つかりませんでしたが、バックアップファイルを手動で保存している場合、それをインポートして復元することはできます。
+         */
+        "noBackupsFoundDescription": string;
+        /**
+         * 復元するバックアップを選択してください
+         */
+        "selectBackupToRestore": string;
+        /**
+         * 自動バックアップを有効にするにはプロファイル名の設定が必要です。
+         */
+        "youNeedToNameYourProfileToEnableAutoBackup": string;
+        /**
+         * このデバイスで設定の自動バックアップは有効になっていません。
+         */
+        "autoPreferencesBackupIsNotEnabledForThisDevice": string;
+        /**
+         * 設定のバックアップが見つかりました
+         */
+        "backupFound": string;
+    };
     "_accountSettings": {
         /**
          * コンテンツの表示にログインを必須にする
@@ -6217,6 +6574,10 @@ export interface Locale extends ILocale {
          * リモートサーバーに連合されたノートには効果が及ばない場合があります。
          */
         "mayNotEffectForFederatedNotes": string;
+        /**
+         * これらの制限は簡易的なものです。リモートサーバーでの閲覧やモデレーション時など、一部のシチュエーションでは適用されない場合があります。
+         */
+        "mayNotEffectSomeSituations": string;
         /**
          * 指定した時間を経過しているノート
          */
@@ -6283,6 +6644,10 @@ export interface Locale extends ILocale {
              * サーバー応答なしのため停止中
              */
             "autoSuspendedForNotResponding": string;
+            /**
+             * 配信停止中のソフトウェアであるため停止中
+             */
+            "softwareSuspended": string;
         };
     };
     /**
@@ -6421,7 +6786,7 @@ export interface Locale extends ILocale {
          */
         "function": string;
         /**
-         * CherryPickが追加する独自機能を有効・無効にします。
+         * CherryPickが追加する独自機能を有効または無効にします。
          */
         "functionDescription": string;
         /**
@@ -6454,7 +6819,7 @@ export interface Locale extends ILocale {
          */
         "showRenoteConfirmPopup": string;
         /**
-         * この設定は「全般 - リノートと引用ボタンを分けて表示する」設定がオンになっている必要があります。
+         * この設定は「全般 → リノートと引用ボタンを分けて表示する」設定がオンになっている必要があります。
          */
         "showRenoteConfirmPopupDescription": string;
         /**
@@ -6672,7 +7037,7 @@ export interface Locale extends ILocale {
          */
         "skipAreYouSure": string;
         /**
-         * 今すぐ初期設定を中断しても、[もっと！ - ヘルプ - 初期設定のリプレイ]から再開することができます。
+         * 今すぐ初期設定を中断しても、[もっと！ → ヘルプ → 初期設定のリプレイ]から再開することができます。
          */
         "skipAreYouSureDescription": string;
         /**
@@ -7149,6 +7514,14 @@ export interface Locale extends ILocale {
          * 一定期間モデレーターのアクティビティが検出されなかった場合、スパム防止のためこの設定は自動でオフになります。
          */
         "thisSettingWillAutomaticallyOffWhenModeratorsInactive": string;
+        /**
+         * 配信停止中のソフトウェア
+         */
+        "deliverSuspendedSoftware": string;
+        /**
+         * 脆弱性などの理由で、サーバーのソフトウェアの名前及びバージョンの範囲を指定して配信を停止できます。このバージョン情報はサーバーが提供したものであり、信頼性は保証されません。バージョン指定には semver の範囲指定が使用できますが、>= 2024.3.1 と指定すると 2024.3.1-custom.0 のようなカスタムバージョンが含まれないため、>= 2024.3.1-0 のように prerelease の指定を行うことを推奨します。
+         */
+        "deliverSuspendedSoftwareDescription": string;
         /**
          * マスコット画像ウィジェットに表示されます
          */
@@ -8270,6 +8643,14 @@ export interface Locale extends ILocale {
          */
         "descriptionOfDisplayOrder": string;
         /**
+         * アサイン状態を移行先アカウントにも引き継ぐ
+         */
+        "preserveAssignmentOnMoveAccount": string;
+        /**
+         * オンにすると、このロールが付与されたアカウントが移行された際に、移行先アカウントにもこのロールが引き継がれるようになります。
+         */
+        "preserveAssignmentOnMoveAccount_description": string;
+        /**
          * モデレーターのメンバー編集を許可
          */
         "canEditMembersByModerator": string;
@@ -8353,9 +8734,9 @@ export interface Locale extends ILocale {
              */
             "driveCapacity": string;
             /**
-             * ファイルサイズ上限
+             * アップロード可能な最大ファイルサイズ
              */
-            "fileSizeLimit": string;
+            "maxFileSize": string;
             /**
              * ファイルにNSFWを常に付与
              */
@@ -9450,6 +9831,10 @@ export interface Locale extends ILocale {
          */
         "builtinThemes": string;
         /**
+         * サーバーのテーマ
+         */
+        "instanceTheme": string;
+        /**
          * そのテーマは既にインストールされています
          */
         "alreadyInstalled": string;
@@ -9567,23 +9952,19 @@ export interface Locale extends ILocale {
              */
             "header": string;
             /**
-             * サイドバーの背景
+             * ナビゲーションバーの背景
              */
             "navBg": string;
             /**
-             * サイドバーの文字
+             * ナビゲーションバーの文字
              */
             "navFg": string;
             /**
-             * サイドバー文字(ホバー)
-             */
-            "navHoverFg": string;
-            /**
-             * サイドバー文字(アクティブ)
+             * ナビゲーションバー文字(アクティブ)
              */
             "navActive": string;
             /**
-             * サイドバーのインジケーター
+             * ナビゲーションバーのインジケーター
              */
             "navIndicator": string;
             /**
@@ -9603,7 +9984,7 @@ export interface Locale extends ILocale {
              */
             "mentionMe": string;
             /**
-             * Renote
+             * リノート
              */
             "renote": string;
             /**
@@ -9667,10 +10048,6 @@ export interface Locale extends ILocale {
              */
             "driveFolderBg": string;
             /**
-             * 壁紙のオーバーレイ
-             */
-            "wallpaperOverlay": string;
-            /**
              * バッジ
              */
             "badge": string;
@@ -9678,14 +10055,6 @@ export interface Locale extends ILocale {
              * チャットの背景
              */
             "messageBg": string;
-            /**
-             * アクセント (暗め)
-             */
-            "accentDarken": string;
-            /**
-             * アクセント (明るめ)
-             */
-            "accentLighten": string;
             /**
              * 強調された文字
              */
@@ -9714,6 +10083,10 @@ export interface Locale extends ILocale {
          */
         "notification": string;
         /**
+         * リアクション選択時
+         */
+        "reaction": string;
+        /**
          * チャット
          */
         "chat": string;
@@ -9721,10 +10094,6 @@ export interface Locale extends ILocale {
          * チャット(バックグラウンド)
          */
         "chatBg": string;
-        /**
-         * リアクション選択時
-         */
-        "reaction": string;
     };
     "_soundSettings": {
         /**
@@ -10535,6 +10904,10 @@ export interface Locale extends ILocale {
          * 今日誕生日のユーザー
          */
         "birthdayFollowings": string;
+        /**
+         * チャット
+         */
+        "chat": string;
         /**
          * 検索
          */
@@ -11482,13 +11855,17 @@ export interface Locale extends ILocale {
              */
             "login": string;
             /**
-             * 通知のテスト
+             * アクセストークンの作成
              */
-            "test": string;
+            "createToken": string;
             /**
              * 予約投稿に失敗
              */
             "scheduleNote": string;
+            /**
+             * 通知のテスト
+             */
+            "test": string;
             /**
              * 連携アプリからの通知
              */
@@ -11540,6 +11917,18 @@ export interface Locale extends ILocale {
          * カラムの寄せ
          */
         "columnAlign": string;
+        /**
+         * カラム間のマージン
+         */
+        "columnGap": string;
+        /**
+         * デッキメニューの位置
+         */
+        "deckMenuPosition": string;
+        /**
+         * ナビゲーションバーの位置
+         */
+        "navbarPosition": string;
         /**
          * カラムを追加
          */
@@ -11593,7 +11982,7 @@ export interface Locale extends ILocale {
          */
         "introduction": string;
         /**
-         * 画面の右にある + を押して、いつでもカラムを追加できます。
+         * カラムを追加するには、画面の + をクリックします。
          */
         "introduction2": string;
         /**
@@ -11612,6 +12001,10 @@ export interface Locale extends ILocale {
          * 幅を自動調整
          */
         "flexible": string;
+        /**
+         * プロファイル情報のデバイス間同期を有効にする
+         */
+        "enableSyncBetweenDevicesForProfiles": string;
         "_columns": {
             /**
              * メイン
@@ -11653,6 +12046,10 @@ export interface Locale extends ILocale {
              * ロールタイムライン
              */
             "roleTimeline": string;
+            /**
+             * チャット
+             */
+            "chat": string;
         };
     };
     "_dialog": {
@@ -12021,6 +12418,10 @@ export interface Locale extends ILocale {
          */
         "deleteGalleryPost": string;
         /**
+         * プロキシアカウントの説明を更新
+         */
+        "updateProxyAccountDescription": string;
+        /**
          * 公式タグ一覧を更新
          */
         "updateOfficialTags": string;
@@ -12081,20 +12482,12 @@ export interface Locale extends ILocale {
              * このプラグインをインストールしますか？
              */
             "title": string;
-            /**
-             * プラグイン情報
-             */
-            "metaTitle": string;
         };
         "_theme": {
             /**
              * このテーマをインストールしますか？
              */
             "title": string;
-            /**
-             * テーマ情報
-             */
-            "metaTitle": string;
         };
         "_meta": {
             /**
@@ -13200,7 +13593,7 @@ export interface Locale extends ILocale {
          */
         "noAltWarning": string;
         /**
-         * この設定は「設定 - アピアランス」で変更できます。
+         * この設定は「設定 → アピアランス」で変更できます。
          */
         "noAltWarningDescription": string;
     };
@@ -13342,6 +13735,10 @@ export interface Locale extends ILocale {
              * 検索ページに移動
              */
             "redirectToSearch": string;
+            /**
+             * キーボードショートカット一覧を見る
+             */
+            "viewKeyboardShortCutList": string;
         };
         "_postForm": {
             /**
@@ -13353,7 +13750,7 @@ export interface Locale extends ILocale {
              */
             "toggleLocalOnly": string;
             /**
-             * この機能は「設定 - CherryPick」から該当の機能を有効にすることで利用できます。
+             * この機能は「設定 → CherryPick」から該当の機能を有効にすることで利用できます。
              */
             "featureWarn": string;
             /**

@@ -46,40 +46,40 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, onUnmounted, nextTick, ref, shallowRef, watch, computed, toRefs } from 'vue';
 import { debounce } from 'throttle-debounce';
 import MkButton from '@/components/MkButton.vue';
-import { useInterval } from '@/scripts/use-interval.js';
+import { useInterval } from '@/utility/use-interval.js';
 import { i18n } from '@/i18n.js';
-import { Autocomplete, SuggestionType } from '@/scripts/autocomplete.js';
+import { Autocomplete, SuggestionType } from '@/utility/autocomplete.js';
 
 const props = defineProps<{
-		modelValue: string | number | null;
-		type?: 'text' | 'number' | 'url' | 'date' | 'time' | 'search' | 'datetime-local';
-		required?: boolean;
-		readonly?: boolean;
-		disabled?: boolean;
-		pattern?: string;
-		placeholder?: string;
-		autofocus?: boolean;
-		autocomplete?: string;
-		mfmAutocomplete?: boolean | SuggestionType[],
-		autocapitalize?: string;
-		spellcheck?: boolean;
-		step?: any;
-		datalist?: string[];
-		min?: number;
-		max?: number;
-		inline?: boolean;
-		debounce?: boolean;
-		manualSave?: boolean;
-		small?: boolean;
-		large?: boolean;
-	}>();
+	modelValue: string | number | null;
+	type?: 'text' | 'number' | 'url' | 'date' | 'time' | 'search' | 'datetime-local';
+	required?: boolean;
+	readonly?: boolean;
+	disabled?: boolean;
+	pattern?: string;
+	placeholder?: string;
+	autofocus?: boolean;
+	autocomplete?: string;
+	mfmAutocomplete?: boolean | SuggestionType[],
+	autocapitalize?: string;
+	spellcheck?: boolean;
+	step?: any;
+	datalist?: string[];
+	min?: number;
+	max?: number;
+	inline?: boolean;
+	debounce?: boolean;
+	manualSave?: boolean;
+	small?: boolean;
+	large?: boolean;
+}>();
 
 const emit = defineEmits<{
-		(ev: 'change', _ev: KeyboardEvent): void;
-		(ev: 'keydown', _ev: KeyboardEvent): void;
-		(ev: 'enter'): void;
-		(ev: 'update:modelValue', value: string | number): void;
-	}>();
+	(ev: 'change', _ev: KeyboardEvent): void;
+	(ev: 'keydown', _ev: KeyboardEvent): void;
+	(ev: 'enter'): void;
+	(ev: 'update:modelValue', value: string | number): void;
+}>();
 
 const { modelValue, type, autofocus } = toRefs(props);
 const v = ref(modelValue.value);

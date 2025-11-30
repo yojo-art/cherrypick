@@ -4,9 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkStickyContainer>
-	<template #header><MkPageHeader :actions="headerActions"/></template>
-	<MkSpacer :contentMax="800">
+<PageWithHeader :actions="headerActions">
+	<div class="_spacer" style="--MI_SPACER-w: 800px;">
 		<MkRemoteCaution v-if="remoteUrl != null" :href="remoteUrl" class="warn" :class="$style.remote_caution"/>
 		<div v-if="clip" class="_gaps">
 			<div class="_panel">
@@ -27,8 +26,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 			<MkNotes :pagination="pagination" :detail="true"/>
 		</div>
-	</MkSpacer>
-</MkStickyContainer>
+	</div>
+</PageWithHeader>
 </template>
 
 <script lang="ts" setup>
@@ -38,16 +37,16 @@ import { url } from '@@/js/config.js';
 import type { MenuItem } from '@/types/menu.js';
 import MkNotes from '@/components/MkNotes.vue';
 import MkRemoteCaution from '@/components/MkRemoteCaution.vue';
-import { $i } from '@/account.js';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/scripts/misskey-api.js';
-import { definePageMetadata } from '@/scripts/page-metadata.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
+import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 import { clipsCache } from '@/cache.js';
-import { isSupportShare } from '@/scripts/navigator.js';
-import { copyToClipboard } from '@/scripts/copy-to-clipboard.js';
-import { genEmbedCode } from '@/scripts/get-embed-code.js';
+import { isSupportShare } from '@/utility/navigator.js';
+import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
+import { genEmbedCode } from '@/utility/get-embed-code.js';
 import { assertServerContext, serverContext } from '@/server-context.js';
 
 // contextは非ログイン状態の情報しかないためログイン時は利用できない
@@ -159,11 +158,10 @@ const headerActions = computed(() => clip.value && isOwned.value ? [{
 			text: i18n.ts.copyUrl,
 			action: () => {
 				copyToClipboard(`${url}/clips/${clip.value!.id}`);
-				os.success();
 			},
 		}, {
 			icon: 'ti ti-code',
-			text: i18n.ts.genEmbedCode,
+			text: i18n.ts.embed,
 			action: () => {
 				genEmbedCode('clips', clip.value!.id);
 			},
@@ -204,7 +202,7 @@ const headerActions = computed(() => clip.value && isOwned.value ? [{
 	},
 }] : null);
 
-definePageMetadata(() => ({
+definePage(() => ({
 	title: clip.value ? clip.value.name : i18n.ts.clip,
 	icon: 'ti ti-paperclip',
 }));

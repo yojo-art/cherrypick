@@ -557,14 +557,6 @@ export class DriveService {
 			sensitiveThresholdForPorn: 0.75,
 			enableSensitiveMediaDetectionForVideos: this.meta.enableSensitiveMediaDetectionForVideos,
 		});
-		//ファイル単位の容量制限チェック
-		if (user == null) {
-			//system user skip
-		} else if (user.host !== null) {
-			//remote user skip
-		} else if (info.size > (await this.roleService.getUserPolicies(user.id)).fileSizeLimit * 1024 * 1024) {
-			throw new IdentifiableError('e5989b6d-ae66-49ed-88af-516ded10ca0c', 'File size limit over');
-		}
 		this.registerLogger.info(`${JSON.stringify(info)}`);
 
 		// 現状 false positive が多すぎて実用に耐えない
@@ -608,8 +600,15 @@ export class DriveService {
 
 			const policies = await this.roleService.getUserPolicies(user.id);
 			const driveCapacity = 1024 * 1024 * policies.driveCapacityMb;
+			const maxFileSize = 1024 * 1024 * policies.maxFileSizeMb;
 			this.registerLogger.debug('drive capacity override applied');
 			this.registerLogger.debug(`overrideCap: ${driveCapacity}bytes, usage: ${usage}bytes, u+s: ${usage + info.size}bytes`);
+
+			if (maxFileSize < info.size) {
+				if (isLocalUser) {
+					throw new IdentifiableError('f9e4e5f3-4df4-40b5-b400-f236945f7073', 'Max file size exceeded.');
+				}
+			}
 
 			// If usage limit exceeded
 			if (driveCapacity < usage + info.size) {
