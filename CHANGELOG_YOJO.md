@@ -12,7 +12,7 @@ Misskey 2025.5.0
 ### Server
 
 ### Others
-- Fix: 公式Dockerイメージのビルドに失敗する問題を修正しました
+- Fix: 公式Dockerイメージのビルドに失敗する問題を修正しました [#795](https://github.com/yojo-art/cherrypick/pull/795)
 
 ## 1.6.0
 Cherrypick 4.16.0  
