@@ -239,9 +239,7 @@ const autocomplete = ref(null);
 const draghover = ref(false);
 const quoteId = ref<string | null>(null);
 const hasNotSpecifiedMentions = ref(false);
-const hideTag = computed(() => {
-	return prefer.s.hideTagUiTags;
-});
+const hideTag = ref(prefer.s.hideTagUiTags);
 watch(hideTag, () => prefer.commit('hideTagUiTags', hideTag.value));
 const recentHashtags = ref(JSON.parse(miLocalStorage.getItem('hashtags') ?? '[]'));
 const imeText = ref('');
