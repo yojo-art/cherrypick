@@ -3,15 +3,18 @@ Cherrypick 4.16.0
 Misskey 2025.5.0
 
 ### Release Date
+2025-11-30
 
 ### General
 
 ### Client
 - Enhance: 投稿フォームにタグ非表示を切り替えるボタンを追加 [#792](https://github.com/yojo-art/cherrypick/pull/792)
+- Fix: 絵文字をリモートからインポート時、リモートの絵文字情報が更新されてしまうのを修正 [#778](https://github.com/yojo-art/cherrypick/pull/778)
 
 ### Server
 - Fix: 制限されたインスタンスに宛先が複数ある投稿が配送されない不具合の修正 [#786](https://github.com/yojo-art/cherrypick/pull/786)
   - 制限されたインスタンスにメンション付き投稿が配送されない不具合が修正されます
+- Fix: ULID使用時の通知取得で発生するパースエラーと Redis stream ID エラーを修正 [#790](https://github.com/yojo-art/cherrypick/pull/790)
 
 ## 1.5.2
 Cherrypick 4.15.0  
@@ -27,7 +30,6 @@ Misskey 2025.2.0
 ### Server
 - Fix: 制限されたインスタンスに既読を配送しない [#757](https://github.com/yojo-art/cherrypick/pull/757)
   - リモートユーザーとチャットできない不具合が修正されます
-- Fix: ULID使用時の通知取得で発生するパースエラーと Redis stream ID エラーを修正 [#790](https://github.com/yojo-art/cherrypick/pull/790)
 
 ## 1.5.1
 Cherrypick 4.15.0  
