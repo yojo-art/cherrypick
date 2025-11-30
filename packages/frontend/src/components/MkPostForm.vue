@@ -76,7 +76,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-cy-post-form-text @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"/>
 		<div v-if="maxTextLength - textLength < 100" :class="['_acrylic', $style.textCount, { [$style.textOver]: textLength > maxTextLength }]">{{ maxTextLength - textLength }}</div>
 	</div>
-	<input v-show="withHashtags" ref="hashtagsInputEl" v-model="hashtags" :class="$style.hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
+	<div v-show="withHashtags" :class="$style.hashtags">
+		<button v-tooltip="i18n.ts.hideTagUiTag" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: hideTag }]" @click="hideTag = !hideTag"><i class="ti ti-eye-off"></i></button>
+		<input v-show="withHashtags" ref="hashtagsInputEl" v-model="hashtags" :class="$style.hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
+	</div>
 	<XPostFormAttaches v-model="files" @detach="detachFile" @changeSensitive="updateFileSensitive" @changeName="updateFileName" @replaceFile="replaceFile"/>
 	<MkPollEditor v-if="poll" v-model="poll" @destroyed="poll = null"/>
 	<MkSchedulePostEditor v-if="scheduleNote" v-model="scheduleNote" @destroyed="scheduleNote = null"/>
@@ -222,6 +225,7 @@ const hasNotSpecifiedMentions = ref(false);
 const hideTag = computed(() => {
 	return prefer.s.hideTagUiTags;
 });
+watch(hideTag, () => prefer.commit('hideTagUiTags', hideTag.value));
 const recentHashtags = ref(JSON.parse(miLocalStorage.getItem('hashtags') ?? '[]'));
 const imeText = ref('');
 const showingOptions = ref(false);
@@ -1923,6 +1927,11 @@ html[data-color-scheme=light] .preview {
 	}
 
 	.hashtags {
+		display: inline-block;
+	}
+
+	div.hashtags {
+		display: flex;
 		padding: 8px 22px;
 	}
 
