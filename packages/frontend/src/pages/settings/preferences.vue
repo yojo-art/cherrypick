@@ -580,6 +580,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 										</MkSwitch>
 									</MkPreferenceContainer>
 								</SearchMarker>
+
+								<SearchMarker :keywords="['check', 'multiple', 'renote', 'yojo-art']">
+									<MkPreferenceContainer k="checkMultipleRenote">
+										<MkSwitch v-model="checkMultipleRenote">
+											<template #label><SearchLabel>{{ i18n.ts.showMultipleRenoteWarning }}</SearchLabel> <span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
+										</MkSwitch>
+									</MkPreferenceContainer>
+								</SearchMarker>
+								<SearchMarker :keywords="['check', 'dialog', 'reaction', 'yojo-art']">
+									<MkPreferenceContainer k="checkReactionDialog">
+										<MkSwitch v-model="checkReactionDialog">
+											<template #label><SearchLabel>{{ i18n.ts.showReactionCheckDialog }}</SearchLabel> <span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
+										</MkSwitch>
+									</MkPreferenceContainer>
+								</SearchMarker>
 							</div>
 
 							<SearchMarker :keywords="['reaction', 'size', 'scale', 'display']">
@@ -688,6 +703,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkPreferenceContainer>
 								</SearchMarker>
 							</MkDisableSection>
+
+							<SearchMarker :keywords="['show','hide','form','hashtag', 'yojo-art']">
+								<MkPreferenceContainer k="hideTagUiTags">
+									<MkSwitch v-model="hideTagUiTags">
+										<template #label><SearchLabel>{{ i18n.ts.hideTagUiTag }}</SearchLabel> <span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
+										<template #caption>{{ i18n.ts.hideTagUiTagDescription }}</template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
 
 							<hr>
 
@@ -1375,6 +1399,9 @@ const showReplyTargetNoteInSemiTransparent = prefer.model('showReplyTargetNoteIn
 const nsfwOpenBehavior = prefer.model('nsfwOpenBehavior');
 const showProfilePreview = prefer.model('showProfilePreview');
 const showingAnimatedImages = prefer.model('showingAnimatedImages');
+const checkMultipleRenote = prefer.model('checkMultipleRenote');
+const checkReactionDialog = prefer.model('checkReactionDialog');
+const hideTagUiTags = prefer.model('hideTagUiTags');
 
 watch(lang, () => {
 	miLocalStorage.setItem('lang', lang.value as string);

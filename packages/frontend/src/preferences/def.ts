@@ -682,6 +682,9 @@ export const PREF_DEF = {
 	checkReactionDialog: {
 		default: false,
 	},
+	checkMultipleRenote: {
+		default: false,
+	},
 
 	// - Settings/Accessibility
 	showingAnimatedImages: {
