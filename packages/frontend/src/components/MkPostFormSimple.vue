@@ -90,7 +90,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</button>
 		</div>
 	</div>
-	<input v-show="withHashtags && showForm" ref="hashtagsInputEl" v-model="hashtags" :class="$style.hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
+	<div v-show="withHashtags && showForm" :class="$style.hashtags">
+		<button v-tooltip="i18n.ts.hideTagUiTag" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: hideTag }]" @click="hideTag = !hideTag"><i class="ti ti-eye-off"></i></button>
+		<input v-show="withHashtags && showForm" ref="hashtagsInputEl" v-model="hashtags" :class="$style.hashtags" :placeholder="i18n.ts.hashtags" list="hashtags">
+	</div>
 	<XPostFormAttaches v-if="showForm" v-model="files" @detach="detachFile" @changeSensitive="updateFileSensitive" @changeName="updateFileName" @replaceFile="replaceFile"/>
 	<MkPollEditor v-if="poll && showForm" v-model="poll" @destroyed="poll = null"/>
 	<MkSchedulePostEditor v-if="scheduleNote" v-model="scheduleNote" @destroyed="scheduleNote = null"/>
@@ -1829,7 +1832,12 @@ html[data-color-scheme=light] .preview {
 }
 
 .hashtags {
+	display: inline-block;
 	z-index: 1;
+}
+div.hashtags {
+	display: flex;
+	align-items: center;
 	padding-top: 8px;
 	padding-bottom: 8px;
 	border-top: solid 0.5px var(--MI_THEME-divider);
@@ -1970,7 +1978,7 @@ html[data-color-scheme=light] .preview {
 		padding: 0 22px 8px;
 	}
 
-	.hashtags {
+	div.hashtags {
 		padding: 8px 22px;
 	}
 
