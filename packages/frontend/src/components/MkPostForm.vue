@@ -1787,7 +1787,12 @@ html[data-color-scheme=light] .preview {
 }
 
 .hashtags {
+	display: inline-block;
 	z-index: 1;
+}
+div.hashtags {
+	display: flex;
+	align-items: center;
 	padding-top: 8px;
 	padding-bottom: 8px;
 	border-top: solid 0.5px var(--MI_THEME-divider);
@@ -1924,12 +1929,7 @@ html[data-color-scheme=light] .preview {
 		padding: 0 22px 8px;
 	}
 
-	.hashtags {
-		display: inline-block;
-	}
-
 	div.hashtags {
-		display: flex;
 		padding: 8px 22px;
 	}
 
