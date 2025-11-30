@@ -10,7 +10,7 @@ Misskey 2025.5.0
 - Enhance: 投稿フォームにタグ非表示を切り替えるボタンを追加 [#792](https://github.com/yojo-art/cherrypick/pull/792)
 
 ### Server
-- Fix: 制限されたインスタンスに宛先が複数ある投稿が配送されない不具合の修正 
+- Fix: 制限されたインスタンスに宛先が複数ある投稿が配送されない不具合の修正 [#786](https://github.com/yojo-art/cherrypick/pull/786)
   - 制限されたインスタンスにメンション付き投稿が配送されない不具合が修正されます
 
 ## 1.5.2
