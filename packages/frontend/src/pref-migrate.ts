@@ -204,6 +204,10 @@ export function migrateOldSettings() {
 		// yojo-art
 		prefer.commit('rememberNoteSearchbility', store.s.rememberNoteSearchbility);
 		prefer.commit('defaultNoteSearchbility', store.s.defaultNoteSearchbility);
+		prefer.commit('gridLayoutMediaTimeline', store.s.gridLayoutMediaTimeline);
+		prefer.commit('checkMultipleRenote', store.s.checkMultipleRenote);
+		prefer.commit('checkReactionDialog', store.s.checkReactionDialog);
+		prefer.commit('hideTagUiTags', store.s.hideTagUiTags);
 
 		// - Settings/Sounds & Vibrations
 		prefer.commit('vibrate', store.s.vibrate);
