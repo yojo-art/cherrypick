@@ -60,7 +60,7 @@
 		"eslint-plugin-import": "2.31.0",
 		"eslint-plugin-vue": "10.0.0",
 		"fast-glob": "3.3.3",
-		"happy-dom": "17.4.4",
+		"happy-dom": "20.0.2",
 		"intersection-observer": "0.12.2",
 		"micromatch": "4.0.8",
 		"msw": "2.7.5",
