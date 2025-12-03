@@ -139,7 +139,7 @@
 		"eslint-plugin-storybook": "^0.6.13",
 		"eslint-plugin-vue": "10.0.0",
 		"fast-glob": "3.3.3",
-		"happy-dom": "17.4.4",
+		"happy-dom": "20.0.2",
 		"intersection-observer": "0.12.2",
 		"micromatch": "4.0.8",
 		"minimatch": "10.0.1",
