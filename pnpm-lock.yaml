@@ -985,8 +985,8 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
       temml:
-        specifier: 0.11.06
-        version: 0.11.6
+        specifier: 0.12.1
+        version: 0.12.1
       textarea-caret:
         specifier: 3.1.0
         version: 3.1.0
@@ -1295,8 +1295,8 @@ importers:
         specifier: 3.3.0
         version: 3.3.0
       temml:
-        specifier: 0.11.06
-        version: 0.11.6
+        specifier: 0.12.1
+        version: 0.12.1
       tinycolor2:
         specifier: 1.6.0
         version: 1.6.0
@@ -10619,8 +10619,8 @@ packages:
     resolution: {integrity: sha512-jJZpA5He2y52yUhA7pyAGZlgQpcB+xLjcN0eUFxr9c8hP/H7uOXbBNVo/O0C/xVfJLJs680jvkFgVJEEvk9+ww==}
     engines: {node: '>=12'}
 
-  temml@0.11.6:
-    resolution: {integrity: sha512-XGgTdyP2tLse1IuCaGcHvbNja/yA7M6cNzOXB+slW1tnTuKReNx3egFUi25z9Rdg2wmhjZXDRLv1UV5BsaKjcw==}
+  temml@0.12.1:
+    resolution: {integrity: sha512-7rKps3v+yZ/1aWp2VQkuOgJKiwLgaL5hLR3q8gAglMCqUbofR98frEjHfutW+xncIRzGskucsdTD6aucJ557jg==}
     engines: {node: '>=18.13.0'}
 
   terser@5.39.0:
@@ -22548,7 +22548,7 @@ snapshots:
       - encoding
       - supports-color
 
-  temml@0.11.6: {}
+  temml@0.12.1: {}
 
   terser@5.39.0:
     dependencies:
