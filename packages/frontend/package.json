@@ -118,7 +118,7 @@
 		"@types/estree": "1.0.7",
 		"@types/matter-js": "0.19.8",
 		"@types/micromatch": "4.0.9",
-		"@types/node": "24.10.1",
+		"@types/node": "22.15.2",
 		"@types/prismjs": "^1.26.0",
 		"@types/punycode.js": "npm:@types/punycode@2.1.4",
 		"@types/qrcode": "^1.5.5",
