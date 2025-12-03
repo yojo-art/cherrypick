@@ -41,7 +41,7 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
-		"@microsoft/api-extractor": "7.52.5",
+		"@microsoft/api-extractor": "7.55.1",
 		"@swc/jest": "0.2.38",
 		"@types/jest": "29.5.14",
 		"@types/node": "22.15.2",
