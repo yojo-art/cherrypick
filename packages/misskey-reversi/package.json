@@ -27,8 +27,8 @@
 	"devDependencies": {
 		"@biomejs/biome": "1.9.4",
 		"@types/node": "22.15.2",
-		"@typescript-eslint/eslint-plugin": "8.31.0",
-		"@typescript-eslint/parser": "8.31.0",
+		"@typescript-eslint/eslint-plugin": "8.48.1",
+		"@typescript-eslint/parser": "8.48.1",
 		"execa": "9.5.2",
 		"nodemon": "3.1.10",
 		"typescript": "5.8.3",
