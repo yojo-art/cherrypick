@@ -8,6 +8,7 @@ Misskey 2025.5.0
 
 ### Client
 - Fix: リモートクリップ/play表示機能の修正 [#806](https://github.com/yojo-art/cherrypick/pull/806)
+- Enhance: 予約投稿ボタンの表記を変更 [#807](https://github.com/yojo-art/cherrypick/pull/807)
 
 ### Server
 
