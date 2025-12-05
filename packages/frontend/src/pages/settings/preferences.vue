@@ -221,6 +221,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</MkSwitch>
 							</MkPreferenceContainer>
 						</SearchMarker>
+
+						<SearchMarker :keywords="['file', 'grid', 'layout', 'timeline', 'tl']">
+							<MkPreferenceContainer k="gridLayoutMediaTimeline">
+								<MkSwitch v-model="gridLayoutMediaTimeline">
+									<template #label><SearchLabel>{{ i18n.ts.gridLayoutMediaTimeline }}</SearchLabel> <span class="_beta">yojo-art</span></template>
+									<template #caption><SearchKeyword>{{ i18n.ts.gridLayoutMediaTimelineDescription }}</SearchKeyword></template>
+								</MkSwitch>
+							</MkPreferenceContainer>
+						</SearchMarker>
 					</div>
 				</MkFolder>
 			</SearchMarker>
@@ -1399,6 +1408,7 @@ const showReplyTargetNoteInSemiTransparent = prefer.model('showReplyTargetNoteIn
 const nsfwOpenBehavior = prefer.model('nsfwOpenBehavior');
 const showProfilePreview = prefer.model('showProfilePreview');
 const showingAnimatedImages = prefer.model('showingAnimatedImages');
+const gridLayoutMediaTimeline = prefer.model('gridLayoutMediaTimeline');
 const checkMultipleRenote = prefer.model('checkMultipleRenote');
 const checkReactionDialog = prefer.model('checkReactionDialog');
 const hideTagUiTags = prefer.model('hideTagUiTags');
@@ -1478,6 +1488,7 @@ watch([
 	filesGridLayoutInUserPage,
 	disableShowingAnimatedImages,
 	showingAnimatedImages,
+	gridLayoutMediaTimeline,
 ], async () => {
 	await reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
 });

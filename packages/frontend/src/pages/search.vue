@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</div>
 
-	<div v-if="tab === 'note'" class="_spacer" style="--MI_SPACER-w: 800px;">
+	<div v-if="tab === 'anote'" class="_spacer" style="--MI_SPACER-w: 800px;">
 		<div v-if="advanccedNotesSearchAvailable">
 			<XAnote v-bind="props"/>
 		</div>

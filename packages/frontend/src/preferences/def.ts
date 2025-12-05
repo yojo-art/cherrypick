@@ -489,6 +489,9 @@ export const PREF_DEF = {
 	renoteVisibilitySelection: {
 		default: true,
 	},
+	gridLayoutMediaTimeline: {
+		default: true,
+	},
 	forceRenoteVisibilitySelection: {
 		default: 'none' as 'none' | 'public' | 'home' | 'followers',
 	},
