@@ -1,3 +1,16 @@
+## 1.6.2
+Cherrypick 4.16.0  
+Misskey 2025.5.0
+
+### Release Date
+
+### General
+
+### Client
+- Fix: リモートクリップ/play表示機能の修正 [#806](https://github.com/yojo-art/cherrypick/pull/806)
+
+### Server
+
 ## 1.6.1
 Cherrypick 4.16.0  
 Misskey 2025.5.0
