@@ -19,20 +19,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:moveClass="$style.transition_x_move"
 				tag="div"
 			>
-				<template v-for="(note, i) in notes" :key="note.id">
-					<div v-if="grid">
-						<div :class="$style.stream">
-							<XFiles :key="note.id" :note="note"/>
-						</div>
+				<div v-if="grid">
+					<div :class="$style.stream">
+						<XFiles v-for="item in notes" :key="item.id" :note="item"/>
 					</div>
-					<div v-else-if="note._shouldInsertAd_" :class="[$style.noteWithAd, { '_gaps': !noGap }]" :data-scroll-anchor="note.id">
-						<MkNote :class="$style.note" :note="note" :withHardMute="true"/>
-						<div :class="$style.ad">
-							<MkAd :preferForms="['horizontal', 'horizontal-big']"/>
+				</div>
+				<div v-else>
+					<template v-for="(note, i) in notes" :key="note.id">
+						<div v-if="note._shouldInsertAd_" :class="[$style.noteWithAd, { '_gaps': !noGap }]" :data-scroll-anchor="note.id">
+							<MkNote :class="$style.note" :note="note" :withHardMute="true"/>
+							<div :class="$style.ad">
+								<MkAd :preferForms="['horizontal', 'horizontal-big']"/>
+							</div>
 						</div>
-					</div>
-					<MkNote v-else :class="$style.note" :note="note" :withHardMute="true" :data-scroll-anchor="note.id"/>
-				</template>
+						<MkNote v-else :class="$style.note" :note="note" :withHardMute="true" :data-scroll-anchor="note.id"/>
+					</template>
+				</div>
 			</component>
 		</template>
 	</MkPagination>

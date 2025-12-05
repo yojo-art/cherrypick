@@ -11,6 +11,7 @@ Misskey 2025.5.0
 - Enhance: 予約投稿ボタンの表記を変更 [#807](https://github.com/yojo-art/cherrypick/pull/807)
 - Fix: 高度な検索タブの内容が表示される条件を修正 [#808](https://github.com/yojo-art/cherrypick/pull/808)
   - 高度な検索タブと通常検索タブが合体する不具合が修正されます
+- Fix: メディアタイムラインのグリッドレイアウト表示を修正 [#809](https://github.com/yojo-art/cherrypick/pull/809)
 
 ### Server
 
