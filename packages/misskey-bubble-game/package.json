@@ -29,13 +29,13 @@
 		"@types/matter-js": "0.19.8",
 		"@types/seedrandom": "3.0.8",
 		"@types/node": "22.15.2",
-		"@typescript-eslint/eslint-plugin": "8.31.0",
-		"@typescript-eslint/parser": "8.31.0",
+		"@typescript-eslint/eslint-plugin": "8.48.1",
+		"@typescript-eslint/parser": "8.48.1",
 		"nodemon": "3.1.10",
 		"execa": "9.5.2",
 		"typescript": "5.8.3",
 		"esbuild": "0.25.3",
-		"glob": "11.0.2"
+		"glob": "11.1.0"
 	},
 	"files": [
 		"built"

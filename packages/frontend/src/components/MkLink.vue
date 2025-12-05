@@ -35,12 +35,13 @@ const props = withDefaults(defineProps<{
 	hideIcon: false,
 });
 
-const maybeRelativeUrl = maybeMakeRelative(props.url, local);
+let maybeRelativeUrl = maybeMakeRelative(props.url, local);
 let self = maybeRelativeUrl !== props.url;
 let requestUrl = new URL(props.url);
 if (props.host === requestUrl.host && (requestUrl.pathname.startsWith('/clips/') || requestUrl.pathname.startsWith('/play/'))) {
 	let split = requestUrl.pathname.split('@');
 	requestUrl = new URL(local + split[0] + '@' + (split.length >= 2 ? split[1] : props.host));
+	maybeRelativeUrl = maybeMakeRelative(requestUrl.toString(), local);
 	self = true;
 }
 const url_string = requestUrl.toString();

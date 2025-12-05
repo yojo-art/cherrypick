@@ -54,7 +54,7 @@ const props = withDefaults(defineProps<{
 	showUrlPreview: true,
 });
 
-const maybeRelativeUrl = maybeMakeRelative(props.url, local);
+let maybeRelativeUrl = maybeMakeRelative(props.url, local);
 let self = maybeRelativeUrl !== props.url;
 let url = new URL(props.url);
 if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
@@ -62,6 +62,7 @@ if (!['http:', 'https:'].includes(url.protocol)) throw new Error('invalid url');
 if (props.host === url.host && (url.pathname.startsWith('/clips/') || url.pathname.startsWith('/play/'))) {
 	let split = url.pathname.split('@');
 	url = new URL(local + split[0] + '@' + (split.length >= 2 ? split[1] : props.host));
+	maybeRelativeUrl = maybeMakeRelative(url.toString(), local);
 	self = true;
 }
 const url_string = url.toString();

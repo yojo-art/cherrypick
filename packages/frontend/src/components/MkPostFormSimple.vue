@@ -51,7 +51,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template v-if="posted"></template>
 							<template v-else-if="posting"><MkEllipsis/></template>
 							<template v-else>{{ submitText }}</template>
-							<i style="margin-left: 6px;" :class="posted ? 'ti ti-check' : saveAsDraft ? 'ti ti-pencil-minus' : replyTargetNote ? 'ti ti-arrow-back-up' : renoteTargetNote ? 'ti ti-quote' : updateMode ? 'ti ti-pencil' : prefer.s.renameTheButtonInPostFormToNya ? 'ti ti-paw-filled' : 'ti ti-send'"></i>
+							<i style="margin-left: 6px;" :class="posted ? 'ti ti-check' : saveAsDraft ? 'ti ti-pencil-minus' : scheduleNote ? 'ti ti-calendar-time' : replyTargetNote ? 'ti ti-arrow-back-up' : renoteTargetNote ? 'ti ti-quote' : updateMode ? 'ti ti-pencil' : prefer.s.renameTheButtonInPostFormToNya ? 'ti ti-paw-filled' : 'ti ti-send'"></i>
 						</div>
 					</button>
 				</div>
@@ -307,15 +307,17 @@ const submitText = computed((): string => {
 		? i18n.ts.login
 		: saveAsDraft.value
 			? i18n.ts.draft
-			: renoteTargetNote.value
-				? i18n.ts.quote
-				: replyTargetNote.value
-					? i18n.ts.reply
-					: props.updateMode
-						? i18n.ts.edit
-						: prefer.s.renameTheButtonInPostFormToNya
-							? i18n.ts.nya
-							: i18n.ts.note;
+			: scheduleNote.value
+				? i18n.ts.schedulePost
+				: renoteTargetNote.value
+					? i18n.ts.quote
+					: replyTargetNote.value
+						? i18n.ts.reply
+						: props.updateMode
+							? i18n.ts.edit
+							: prefer.s.renameTheButtonInPostFormToNya
+								? i18n.ts.nya
+								: i18n.ts.note;
 });
 
 const textLength = computed((): number => {
