@@ -125,12 +125,7 @@ export class NoteEntityService implements OnModuleInit {
 	private treatVisibility(packedNote: Packed<'Note'>): Packed<'Note'>['visibility'] {
 		if (packedNote.visibility === 'public' || packedNote.visibility === 'home') {
 			const followersOnlyBefore = packedNote.user.makeNotesFollowersOnlyBefore;
-			if ((followersOnlyBefore != null)
-				&& (
-					(followersOnlyBefore <= 0 && (Date.now() - new Date(packedNote.createdAt).getTime() > 0 - (followersOnlyBefore * 1000)))
-					|| (followersOnlyBefore > 0 && (new Date(packedNote.createdAt).getTime() < followersOnlyBefore * 1000))
-				)
-			) {
+			if (shouldHideNoteByTime(followersOnlyBefore, packedNote.createdAt)) {
 				packedNote.visibility = 'followers';
 			}
 		}
