@@ -1,3 +1,16 @@
+## 1.6.3
+Cherrypick 4.16.0  
+Misskey 2025.5.0
+
+### Release Date
+
+### General
+
+### Client
+- Fix: タイムラインのノート間区切りとアニメーションの問題を修正 [#816](https://github.com/yojo-art/cherrypick/pull/816)
+
+### Server
+
 ## 1.6.2
 Cherrypick 4.16.0  
 Misskey 2025.5.0
