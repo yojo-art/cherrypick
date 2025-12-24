@@ -9,22 +9,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #empty><MkResult type="empty" :text="i18n.ts.noNotes"/></template>
 
 		<template #default="{ items: notes }">
-			<component
-				:is="prefer.s.animation ? TransitionGroup : 'div'"
-				:class="[$style.root, { [$style.noGap]: noGap, '_gaps': !noGap, [$style.reverse]: paginationQuery.reversed }]"
-				:enterActiveClass="$style.transition_x_enterActive"
-				:leaveActiveClass="$style.transition_x_leaveActive"
-				:enterFromClass="$style.transition_x_enterFrom"
-				:leaveToClass="$style.transition_x_leaveTo"
-				:moveClass="$style.transition_x_move"
-				tag="div"
-			>
-				<div v-if="grid">
-					<div :class="$style.stream">
-						<XFiles v-for="item in notes" :key="item.id" :note="item"/>
-					</div>
+			<div v-if="grid">
+				<div :class="$style.stream">
+					<XFiles v-for="item in notes" :key="item.id" :note="item"/>
 				</div>
-				<div v-else>
+			</div>
+			<div v-else>
+				<component
+					:is="prefer.s.animation ? TransitionGroup : 'div'"
+					:class="[$style.root, { [$style.noGap]: noGap, '_gaps': !noGap, [$style.reverse]: paginationQuery.reversed }]"
+					:enterActiveClass="$style.transition_x_enterActive"
+					:leaveActiveClass="$style.transition_x_leaveActive"
+					:enterFromClass="$style.transition_x_enterFrom"
+					:leaveToClass="$style.transition_x_leaveTo"
+					:moveClass="$style.transition_x_move"
+					tag="div"
+				>
 					<template v-for="(note, i) in notes" :key="note.id">
 						<div v-if="note._shouldInsertAd_" :class="[$style.noteWithAd, { '_gaps': !noGap }]" :data-scroll-anchor="note.id">
 							<MkNote :class="$style.note" :note="note" :withHardMute="true"/>
@@ -34,8 +34,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</div>
 						<MkNote v-else :class="$style.note" :note="note" :withHardMute="true" :data-scroll-anchor="note.id"/>
 					</template>
-				</div>
-			</component>
+				</component>
+			</div>
 		</template>
 	</MkPagination>
 </component>

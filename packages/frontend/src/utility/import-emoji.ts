@@ -40,7 +40,7 @@ export async function copyEmoji(emoji: any, showDialog = true): Promise<any | nu
 	});
 
 	if (!emojiInfo.id) return null;
-	return showDialog ? importEmojiMeta(emoji, emoji.host) : emoji;
+	return showDialog ? importEmojiMeta(emojiInfo, emoji.host) : emojiInfo;
 }
 
 export async function stealEmoji(emojiName: string, host: string): Promise<any | null> {
