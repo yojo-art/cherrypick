@@ -93,6 +93,27 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #caption><SearchKeyword>{{ i18n.ts.makeSearchableByDescription }}</SearchKeyword></template>
 			</MkSelect>
 		</SearchMarker>
+
+		<SearchMarker :keywords="['chat']">
+			<FormSection>
+				<template #label><SearchLabel>{{ i18n.ts.chat }}</SearchLabel></template>
+
+				<div class="_gaps_m">
+					<MkInfo v-if="$i.policies.chatAvailability === 'unavailable'">{{ i18n.ts._chat.chatNotAvailableForThisAccountOrServer }}</MkInfo>
+					<SearchMarker :keywords="['chat']">
+						<MkSelect v-model="chatScope" @update:modelValue="save()">
+							<template #label><SearchLabel>{{ i18n.ts._chat.chatAllowedUsers }}</SearchLabel></template>
+							<option value="everyone">{{ i18n.ts._chat._chatAllowedUsers.everyone }}</option>
+							<option value="followers">{{ i18n.ts._chat._chatAllowedUsers.followers }}</option>
+							<option value="following">{{ i18n.ts._chat._chatAllowedUsers.following }}</option>
+							<option value="mutual">{{ i18n.ts._chat._chatAllowedUsers.mutual }}</option>
+							<option value="none">{{ i18n.ts._chat._chatAllowedUsers.none }}</option>
+							<template #caption>{{ i18n.ts._chat.chatAllowedUsers_note }}</template>
+						</MkSelect>
+					</SearchMarker>
+				</div>
+			</FormSection>
+		</SearchMarker>
 	</div>
 </SearchMarker>
 </template>
@@ -102,7 +123,6 @@ import { ref, computed, watch } from 'vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import FormSection from '@/components/form/section.vue';
-import MkInfo from '@/components/MkInfo.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
@@ -113,6 +133,7 @@ import { formatDateTimeString } from '@/utility/format-time-string.js';
 import MkInput from '@/components/MkInput.vue';
 import * as os from '@/os.js';
 import MkDisableSection from '@/components/MkDisableSection.vue';
+import MkInfo from '@/components/MkInfo.vue';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 
 const $i = ensureSignin();
@@ -130,6 +151,7 @@ const hideOnlineStatus = ref($i.hideOnlineStatus);
 const publicReactions = ref($i.publicReactions);
 const followingVisibility = ref($i.followingVisibility);
 const followersVisibility = ref($i.followersVisibility);
+const chatScope = ref($i.chatScope);
 const searchableBy = ref($i.searchableBy);
 
 const makeNotesFollowersOnlyBefore_type = computed(() => {
@@ -170,9 +192,6 @@ async function update_requireSigninToViewContents(value: boolean) {
 }
 
 function save() {
-	console.log(typeof(searchableBy.value));
-	console.log(searchableBy.value);
-
 	misskeyApi('i/update', {
 		isLocked: !!isLocked.value,
 		autoAcceptFollowed: !!autoAcceptFollowed.value,
@@ -188,6 +207,7 @@ function save() {
 		publicReactions: !!publicReactions.value,
 		followingVisibility: followingVisibility.value,
 		followersVisibility: followersVisibility.value,
+		chatScope: chatScope.value,
 	});
 }
 

@@ -50,5 +50,6 @@ export async function fetchInstance(force = false): Promise<Misskey.entities.Met
 
 	miLocalStorage.setItem('instance', JSON.stringify(instance));
 	miLocalStorage.setItem('instanceCachedAt', Date.now().toString());
+
 	return instance;
 }

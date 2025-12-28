@@ -27,7 +27,6 @@ import type {
 	BlockingsRepository,
 	FollowingsRepository,
 	FollowRequestsRepository,
-	MessagingMessagesRepository,
 	MiFollowing,
 	MiMeta,
 	MiUserNotePining,
@@ -50,6 +49,8 @@ import { IdService } from '@/core/IdService.js';
 import type { AnnouncementService } from '@/core/AnnouncementService.js';
 import type { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { ChatService } from '@/core/ChatService.js';
+import { SystemAccountService } from '../SystemAccountService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NoteEntityService } from './NoteEntityService.js';
 import type { PageEntityService } from './PageEntityService.js';
@@ -95,6 +96,8 @@ export class UserEntityService implements OnModuleInit {
 	private federatedInstanceService: FederatedInstanceService;
 	private idService: IdService;
 	private avatarDecorationService: AvatarDecorationService;
+	private chatService: ChatService;
+	private systemAccountService: SystemAccountService;
 
 	constructor(
 		private moduleRef: ModuleRef,
@@ -138,14 +141,12 @@ export class UserEntityService implements OnModuleInit {
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
-		@Inject(DI.messagingMessagesRepository)
-		private messagingMessagesRepository: MessagingMessagesRepository,
-
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
 		@Inject(DI.userMemosRepository)
 		private userMemosRepository: UserMemoRepository,
+
 	) {
 	}
 
@@ -159,6 +160,8 @@ export class UserEntityService implements OnModuleInit {
 		this.federatedInstanceService = this.moduleRef.get('FederatedInstanceService');
 		this.idService = this.moduleRef.get('IdService');
 		this.avatarDecorationService = this.moduleRef.get('AvatarDecorationService');
+		this.chatService = this.moduleRef.get('ChatService');
+		this.systemAccountService = this.moduleRef.get('SystemAccountService');
 	}
 
 	//#region Validators
@@ -319,36 +322,6 @@ export class UserEntityService implements OnModuleInit {
 				];
 			}),
 		);
-	}
-
-	@bindThis
-	public async getHasUnreadMessagingMessage(userId: MiUser['id']): Promise<boolean> {
-		const mute = await this.mutingsRepository.findBy({
-			muterId: userId,
-		});
-
-		const joinings = await this.userGroupJoiningsRepository.findBy({ userId: userId });
-
-		const groupQs = Promise.all(joinings.map(j => this.messagingMessagesRepository.createQueryBuilder('message')
-			.where('message.groupId = :groupId', { groupId: j.userGroupId })
-			.andWhere('message.userId != :userId', { userId: userId })
-			.andWhere('NOT (:userId = ANY(message.reads))', { userId: userId })
-			.andWhere('message.id > :joinedAt', { joinedAt: this.idService.parse(j.id) }) // 自分が加入する前の会話については、未読扱いしない
-			.getOne().then(x => x != null)));
-
-		const [withUser, withGroups] = await Promise.all([
-			this.messagingMessagesRepository.count({
-				where: {
-					recipientId: userId,
-					isRead: false,
-					...(mute.length > 0 ? { userId: Not(In(mute.map(x => x.muteeId))) } : {}),
-				},
-				take: 1,
-			}).then((count: number) => count > 0),
-			groupQs,
-		]);
-
-		return withUser || withGroups.some(x => x);
 	}
 
 	@bindThis
@@ -519,6 +492,7 @@ export class UserEntityService implements OnModuleInit {
 			})) : null;
 
 		const notificationsInfo = isMe && isDetailed ? await this.getNotificationsInfo(user.id) : null;
+		const proxy = await this.systemAccountService.fetch('proxy');
 
 		const packed = {
 			id: user.id,
@@ -540,6 +514,7 @@ export class UserEntityService implements OnModuleInit {
 			isLocked: user.isLocked,
 			isBot: user.isBot,
 			isCat: user.isCat,
+			isProxy: proxy.id === user.id,
 			requireSigninToViewContents: user.requireSigninToViewContents === false ? undefined : true,
 			makeNotesFollowersOnlyBefore: user.makeNotesFollowersOnlyBefore ?? undefined,
 			makeNotesHiddenBefore: user.makeNotesHiddenBefore ?? undefined,
@@ -602,6 +577,8 @@ export class UserEntityService implements OnModuleInit {
 				publicReactions: this.isLocalUser(user) ? profile!.publicReactions : false, // https://github.com/misskey-dev/misskey/issues/12964
 				followersVisibility: profile!.followersVisibility,
 				followingVisibility: profile!.followingVisibility,
+				chatScope: user.chatScope,
+				canChat: this.roleService.getUserPolicies(user.id).then(r => r.chatAvailability === 'available'),
 				roles: this.roleService.getUserRoles(user.id).then(roles => roles.filter(role => role.isPublic).sort((a, b) => b.displayOrder - a.displayOrder).map(role => ({
 					id: role.id,
 					name: role.name,
@@ -644,11 +621,11 @@ export class UserEntityService implements OnModuleInit {
 				hideOnlineStatus: user.hideOnlineStatus,
 				hasUnreadSpecifiedNotes: false, // 後方互換性のため
 				hasUnreadMentions: false, // 後方互換性のため
+				hasUnreadChatMessages: this.chatService.hasUnreadMessages(user.id),
 				hasUnreadAnnouncement: unreadAnnouncements!.length > 0,
 				unreadAnnouncements,
 				hasUnreadAntenna: this.getHasUnreadAntenna(user.id),
 				hasUnreadChannel: false, // 後方互換性のため
-				hasUnreadMessagingMessage: this.getHasUnreadMessagingMessage(user.id),
 				hasUnreadNotification: notificationsInfo?.hasUnread, // 後方互換性のため
 				hasPendingReceivedFollowRequest: this.getHasPendingReceivedFollowRequest(user.id),
 				unreadNotificationsCount: notificationsInfo?.unreadCount,

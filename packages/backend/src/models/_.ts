@@ -33,6 +33,11 @@ import { MiBubbleGameRecord } from '@/models/BubbleGameRecord.js';
 import { MiChannel } from '@/models/Channel.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
+import { MiChatApproval } from '@/models/ChatApproval.js';
+import { MiChatMessage } from '@/models/ChatMessage.js';
+import { MiChatRoom } from '@/models/ChatRoom.js';
+import { MiChatRoomInvitation } from '@/models/ChatRoomInvitation.js';
+import { MiChatRoomMembership } from '@/models/ChatRoomMembership.js';
 import { MiClip } from '@/models/Clip.js';
 import { MiClipFavorite } from '@/models/ClipFavorite.js';
 import { MiClipNote } from '@/models/ClipNote.js';
@@ -50,7 +55,6 @@ import { MiGalleryLike } from '@/models/GalleryLike.js';
 import { MiGalleryPost } from '@/models/GalleryPost.js';
 import { MiHashtag } from '@/models/Hashtag.js';
 import { MiInstance } from '@/models/Instance.js';
-import { MiMessagingMessage } from '@/models/MessagingMessage.js';
 import { MiMeta } from '@/models/Meta.js';
 import { MiModerationLog } from '@/models/ModerationLog.js';
 import { MiMuting } from '@/models/Muting.js';
@@ -193,7 +197,6 @@ export {
 	MiGalleryPost,
 	MiHashtag,
 	MiInstance,
-	MiMessagingMessage,
 	MiMeta,
 	MiModerationLog,
 	MiMuting,
@@ -202,10 +205,10 @@ export {
 	MiNoteDraft,
 	MiNoteFavorite,
 	MiNoteReaction,
+	MiNoteSchedule,
 	MiNoteThreadMuting,
 	MiNoteUnread,
 	MiOfficialTag,
-	MiNoteSchedule,
 	MiPage,
 	MiPageLike,
 	MiPasswordResetRequest,
@@ -244,6 +247,11 @@ export {
 	MiFlashLike,
 	MiFlashLikeRemote,
 	MiUserMemo,
+	MiChatMessage,
+	MiChatRoom,
+	MiChatRoomMembership,
+	MiChatRoomInvitation,
+	MiChatApproval,
 	MiBubbleGameRecord,
 	MiReversiGame,
 };
@@ -278,7 +286,6 @@ export type GalleryLikesRepository = Repository<MiGalleryLike> & MiRepository<Mi
 export type GalleryPostsRepository = Repository<MiGalleryPost> & MiRepository<MiGalleryPost>;
 export type HashtagsRepository = Repository<MiHashtag> & MiRepository<MiHashtag>;
 export type InstancesRepository = Repository<MiInstance> & MiRepository<MiInstance>;
-export type MessagingMessagesRepository = Repository<MiMessagingMessage> & MiRepository<MiMessagingMessage>;
 export type MetasRepository = Repository<MiMeta> & MiRepository<MiMeta>;
 export type ModerationLogsRepository = Repository<MiModerationLog> & MiRepository<MiModerationLog>;
 export type MutingsRepository = Repository<MiMuting> & MiRepository<MiMuting>;
@@ -290,7 +297,6 @@ export type NoteReactionsRepository = Repository<MiNoteReaction> & MiRepository<
 export type NoteThreadMutingsRepository = Repository<MiNoteThreadMuting> & MiRepository<MiNoteThreadMuting>;
 export type NoteUnreadsRepository = Repository<MiNoteUnread> & MiRepository<MiNoteUnread>;
 export type OfficialTagRepository = Repository<MiOfficialTag> & MiRepository<MiOfficialTag>;
-export type NoteScheduleRepository = Repository<MiNoteSchedule>;
 export type PagesRepository = Repository<MiPage> & MiRepository<MiPage>;
 export type PageLikesRepository = Repository<MiPageLike> & MiRepository<MiPageLike>;
 export type PasswordResetRequestsRepository = Repository<MiPasswordResetRequest> & MiRepository<MiPasswordResetRequest>;
@@ -329,5 +335,11 @@ export type FlashsRepository = Repository<MiFlash> & MiRepository<MiFlash>;
 export type FlashLikesRepository = Repository<MiFlashLike> & MiRepository<MiFlashLike>;
 export type FlashLikesRemoteRepository = Repository<MiFlashLikeRemote> & MiRepository<MiFlashLikeRemote>;
 export type UserMemoRepository = Repository<MiUserMemo> & MiRepository<MiUserMemo>;
+export type ChatMessagesRepository = Repository<MiChatMessage> & MiRepository<MiChatMessage>;
+export type ChatRoomsRepository = Repository<MiChatRoom> & MiRepository<MiChatRoom>;
+export type ChatRoomMembershipsRepository = Repository<MiChatRoomMembership> & MiRepository<MiChatRoomMembership>;
+export type ChatRoomInvitationsRepository = Repository<MiChatRoomInvitation> & MiRepository<MiChatRoomInvitation>;
+export type ChatApprovalsRepository = Repository<MiChatApproval> & MiRepository<MiChatApproval>;
 export type BubbleGameRecordsRepository = Repository<MiBubbleGameRecord> & MiRepository<MiBubbleGameRecord>;
 export type ReversiGamesRepository = Repository<MiReversiGame> & MiRepository<MiReversiGame>;
+export type NoteScheduleRepository = Repository<MiNoteSchedule>;

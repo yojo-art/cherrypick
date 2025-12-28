@@ -590,6 +590,15 @@ export function getUserMenu(user: Misskey.entities.UserDetailed, router: Router 
 			},
 		});
 
+		if ($i.policies.chatAvailability === 'available' && user.canChat && user.host == null) {
+			menuItems.push({
+				type: 'link',
+				icon: 'ti ti-messages',
+				text: i18n.ts._chat.chatWithThisUser,
+				to: `/chat/user/${user.id}`,
+			});
+		}
+
 		if (meId !== user.id) {
 			if (user.host === null) {
 				menuItems.push({

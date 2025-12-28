@@ -127,6 +127,10 @@ export const packedUserLiteSchema = {
 			type: 'boolean',
 			nullable: false, optional: true,
 		},
+		isProxy: {
+			type: 'boolean',
+			nullable: false, optional: true,
+		},
 		requireSigninToViewContents: {
 			type: 'boolean',
 			nullable: false, optional: true,
@@ -387,6 +391,15 @@ export const packedUserDetailedNotMeOnlySchema = {
 			nullable: false, optional: false,
 			enum: ['public', 'followers', 'private'],
 		},
+		chatScope: {
+			type: 'string',
+			nullable: false, optional: false,
+			enum: ['everyone', 'following', 'followers', 'mutual', 'none'],
+		},
+		canChat: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
 		roles: {
 			type: 'array',
 			nullable: false, optional: false,
@@ -589,11 +602,11 @@ export const packedMeDetailedOnlySchema = {
 			type: 'boolean',
 			nullable: false, optional: false,
 		},
-		hasUnreadMessagingMessage: {
+		hasUnreadChannel: {
 			type: 'boolean',
 			nullable: false, optional: false,
 		},
-		hasUnreadChannel: {
+		hasUnreadChatMessages: {
 			type: 'boolean',
 			nullable: false, optional: false,
 		},
@@ -657,6 +670,7 @@ export const packedMeDetailedOnlySchema = {
 				followRequestAccepted: { optional: true, ...notificationRecieveConfig },
 				groupInvited: { optional: true, ...notificationRecieveConfig },
 				roleAssigned: { optional: true, ...notificationRecieveConfig },
+				chatRoomInvitationReceived: { optional: true, ...notificationRecieveConfig },
 				achievementEarned: { optional: true, ...notificationRecieveConfig },
 				app: { optional: true, ...notificationRecieveConfig },
 				test: { optional: true, ...notificationRecieveConfig },

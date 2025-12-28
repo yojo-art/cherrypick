@@ -332,6 +332,11 @@ export const packedRolePoliciesSchema = {
 			type: 'integer',
 			optional: false, nullable: false,
 		},
+		chatAvailability: {
+			type: 'string',
+			optional: false, nullable: false,
+			enum: ['available', 'readonly', 'unavailable'],
+		},
 	},
 } as const;
 

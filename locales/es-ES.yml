@@ -2268,6 +2268,8 @@ _permissions:
   "write:page-likes": "Administrar páginas que te gustan"
   "read:user-groups": "Ver grupos de usuarios"
   "write:user-groups": "Administrar grupos de usuarios"
+  "read:channels": "Ver canal"
+  "write:channels": "Modificar canal"
   "read:gallery": "Ver galería"
   "write:gallery": "Editar galería"
   "read:gallery-likes": "Ver favoritos de la galería"
@@ -2706,6 +2708,7 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Subido el"
   attachedNotes: "Notas adjuntas"
+  thisPageCanBeSeenFromTheAuthor: "Esta página solo puede ser vista por el autor."
 _externalResourceInstaller:
   title: "Instalar desde sitio externo"
   checkVendorBeforeInstall: "Asegúrate de que el distribuidor de este recurso es de confianza antes de proceder a la instalación."

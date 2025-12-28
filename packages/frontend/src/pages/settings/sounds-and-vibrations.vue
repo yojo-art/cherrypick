@@ -126,8 +126,7 @@ const sounds = ref<Record<OperationType, Ref<SoundStore>>>({
 	noteEdited: prefer.r['sound.on.noteEdited'],
 	notification: prefer.r['sound.on.notification'],
 	reaction: prefer.r['sound.on.reaction'],
-	chat: prefer.r['sound.on.chat'],
-	chatBg: prefer.r['sound.on.chatBg'],
+	chatMessage: prefer.r['sound.on.chatMessage'],
 });
 
 const vibrate = prefer.model('vibrate');

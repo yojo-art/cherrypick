@@ -56,6 +56,7 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		requireSigninToViewContents: false,
 		makeNotesFollowersOnlyBefore: null,
 		makeNotesHiddenBefore: null,
+		chatScope: 'mutual',
 		emojis: [],
 		score: 0,
 		host: null,
@@ -75,12 +76,6 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 function generateDummyNote(override?: Partial<MiNote>): MiNote {
 	return {
 		id: 'dummy-note-1',
-		deleteAt: null,
-		updatedAt: null,
-		updatedAtHistory: null,
-		noteEditHistory: [],
-		hasEvent: false,
-		disableRightClick: false,
 		searchableBy: 'public',
 		replyId: null,
 		reply: null,
@@ -117,6 +112,12 @@ function generateDummyNote(override?: Partial<MiNote>): MiNote {
 		replyUserHost: null,
 		renoteUserId: null,
 		renoteUserHost: null,
+		updatedAt: null,
+		updatedAtHistory: null,
+		noteEditHistory: [],
+		hasEvent: false,
+		disableRightClick: false,
+		deleteAt: null,
 		...override,
 	};
 }
@@ -481,6 +482,8 @@ export class WebhookTestService {
 			publicReactions: true,
 			followersVisibility: 'public',
 			followingVisibility: 'public',
+			chatScope: 'mutual',
+			canChat: true,
 			twoFactorEnabled: false,
 			usePasswordLessLogin: false,
 			securityKeys: false,

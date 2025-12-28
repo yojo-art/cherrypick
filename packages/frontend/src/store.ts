@@ -196,7 +196,7 @@ export const store = markRaw(new Pizzax('base', {
 		default: [
 			'notifications',
 			'official_tags',
-			'messaging',
+			'chat',
 			'favorites',
 			'explore',
 			'followRequests',
@@ -471,14 +471,6 @@ export const store = markRaw(new Pizzax('base', {
 	sound_noteSchedulePost: {
 		where: 'device',
 		default: { type: 'syuilo/n-cea', volume: 1 },
-	},
-	sound_chat: {
-		where: 'device',
-		default: { type: 'syuilo/pope1', volume: 1 },
-	},
-	sound_chatBg: {
-		where: 'device',
-		default: { type: 'syuilo/waon', volume: 1 },
 	},
 	sound_noteEdited: {
 		where: 'device',

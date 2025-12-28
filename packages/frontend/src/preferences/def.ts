@@ -110,14 +110,8 @@ export const PREF_DEF = {
 	syncDeviceDarkMode: {
 		default: true,
 	},
-	visibility: {
-		default: 'public' as (typeof Misskey.noteVisibilities)[number],
-	},
 	defaultNoteVisibility: {
 		default: 'public' as (typeof Misskey.noteVisibilities)[number],
-	},
-	searchbility: {
-		default: 'public' as (typeof Misskey.noteSearchbility)[number],
 	},
 	defaultNoteSearchbility: {
 		default: 'public' as (typeof Misskey.noteSearchbility)[number],
@@ -384,10 +378,7 @@ export const PREF_DEF = {
 	'sound.on.reaction': {
 		default: { type: 'syuilo/bubble2', volume: 1 } as SoundStore,
 	},
-	'sound.on.chat': {
-		default: { type: 'syuilo/pope1', volume: 1 } as SoundStore,
-	},
-	'sound.on.chatBg': {
+	'sound.on.chatMessage': {
 		default: { type: 'syuilo/waon', volume: 1 } as SoundStore,
 	},
 
@@ -621,12 +612,6 @@ export const PREF_DEF = {
 		default: true,
 	},
 	'vibrate.on.system': {
-		default: true,
-	},
-	vibrateChat: {
-		default: true,
-	},
-	vibrateChatBg: {
 		default: true,
 	},
 

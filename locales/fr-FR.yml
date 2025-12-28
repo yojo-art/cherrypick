@@ -2000,6 +2000,8 @@ _permissions:
   "write:page-likes": "Gérer les mentions « J'aime » sur les pages"
   "read:user-groups": "Voir les groupes d'utilisateur·rice·s"
   "write:user-groups": "Éditer les groupes d'utilisateur·rice·s"
+  "read:channels": "Lire les canaux"
+  "write:channels": "Gérer les canaux"
   "read:gallery": "Voir la galerie"
   "write:gallery": "Éditer la galerie"
   "read:gallery-likes": "Voir les mentions « J'aime » dans la galerie"
@@ -2371,6 +2373,7 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Date de téléversement"
   attachedNotes: "Notes avec ce fichier"
+  thisPageCanBeSeenFromTheAuthor: "Cette page ne peut être vue que par l'utilisateur qui a téléversé ce fichier."
 _externalResourceInstaller:
   title: "Installer depuis un site externe"
   checkVendorBeforeInstall: "Veuillez confirmer que le distributeur est fiable avant l'installation."

@@ -1950,6 +1950,7 @@ _role:
     canImportFollowing: "Può importare Following"
     canImportMuting: "Può importare Silenziati"
     canImportUserLists: "Può importare liste di Profili"
+    chatAvailability: "Chat consentita"
   _condition:
     roleAssignedTo: "Assegnato a ruoli manualmente"
     isLocal: "Profilo locale"
@@ -2643,6 +2644,7 @@ _notification:
   newNote: "Nuove Note"
   unreadAntennaNote: "Antenna {name}"
   roleAssigned: "Ruolo assegnato"
+  chatRoomInvitationReceived: "Invito in una stanza di chat"
   emptyPushNotificationMessage: "Le notifiche push sono state aggiornate."
   achievementEarned: "Obiettivo raggiunto"
   testNotification: "Provare la notifica"
@@ -2672,6 +2674,7 @@ _notification:
     followRequestAccepted: "Richieste di follow accettate"
     groupInvited: "Invito a un gruppo"
     roleAssigned: "Ruolo concesso"
+    chatRoomInvitationReceived: "Invito in una stanza di chat"
     achievementEarned: "Risultato raggiunto"
     exportCompleted: "Esportazione completata"
     login: "Accessi"
@@ -2824,6 +2827,7 @@ _fileViewer:
   url: "URL"
   uploadedAt: "Caricato il"
   attachedNotes: "Note a cui è allegato"
+  thisPageCanBeSeenFromTheAuthor: "Questa pagina può essere vista solo da chi ha caricato il file."
 _externalResourceInstaller:
   title: "Installa da sito esterno"
   checkVendorBeforeInstall: "Prima di installare, assicurati che la fonte sia affidabile."

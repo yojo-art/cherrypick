@@ -39,6 +39,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</button>
 
+	<button v-if="store.s.showChatButtonInNavbar && $i != null && $i.policies.chatAvailability !== 'unavailable'" v-vibrate="prefer.s['vibrate.on.system'] ? 5 : []" :class="$style.item" class="_button" @click="mainRouter.push('/chat')">
+		<div :class="$style.itemInner">
+			<i :class="$style.itemIcon" class="ti ti-messages"></i>
+			<span v-if="$i?.hasUnreadChatMessages" :class="$style.itemIndicator" class="_blink">
+				<i class="_indicatorCircle"></i>
+			</span>
+		</div>
+	</button>
+
 	<button v-vibrate="prefer.s['vibrate.on.system'] ? 5 : []" :class="$style.item" class="_button" @click="widgetsShowing = true">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-apps"></i>

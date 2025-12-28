@@ -1436,6 +1436,8 @@ _permissions:
   "write:page-likes": "Змінювати вподобання сторінок"
   "read:user-groups": "Переглядати групи користувача"
   "write:user-groups": "Змінювати групи користувача"
+  "read:channels": "Переглядати канали"
+  "write:channels": "Змінювати канали"
   "read:gallery": "Перегляд галереї"
   "write:chat": "Створювати та видаляти повідомлення"
 _auth:

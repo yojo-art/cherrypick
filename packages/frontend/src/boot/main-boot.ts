@@ -33,7 +33,6 @@ import { migrateOldSettings } from '@/pref-migrate.js';
 import { userName } from '@/filters/user.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import * as os from '@/os.js';
-import { vibrate } from '@/utility/vibrate.js';
 
 export async function mainBoot() {
 	const { isClientUpdated, isClientMigrated, lastVersion } = await common(async () => {
@@ -79,7 +78,7 @@ export async function mainBoot() {
 
 		// prefereces migration
 		// TODO: そのうち消す
-		if (lastVersion && (compareVersions('1.5.2', lastVersion) === 1)) {
+		if (lastVersion && (compareVersions('2025.3.2-alpha.0', lastVersion) === 1)) {
 			console.log('Preferences migration');
 
 			migrateOldSettings();
@@ -400,16 +399,6 @@ export async function mainBoot() {
 			updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: false });
 		});
 
-		main.on('readAllMessagingMessages', () => {
-			updateCurrentAccountPartial({ hasUnreadMessagingMessage: false });
-		});
-
-		main.on('unreadMessagingMessage', () => {
-			updateCurrentAccountPartial({ hasUnreadMessagingMessage: true });
-			sound.playMisskeySfx('chatBg');
-			vibrate(prefer.s.vibrateChatBg ? [50, 40] : []);
-		});
-
 		main.on('readAllAntennas', () => {
 			updateCurrentAccountPartial({ hasUnreadAntenna: false });
 		});
@@ -417,6 +406,11 @@ export async function mainBoot() {
 		main.on('unreadAntenna', () => {
 			updateCurrentAccountPartial({ hasUnreadAntenna: true });
 			sound.playMisskeySfx('antenna');
+		});
+
+		main.on('newChatMessage', () => {
+			updateCurrentAccountPartial({ hasUnreadChatMessages: true });
+			sound.playMisskeySfx('chatMessage');
 		});
 
 		main.on('readAllAnnouncements', () => {

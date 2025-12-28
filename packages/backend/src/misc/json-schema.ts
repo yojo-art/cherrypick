@@ -15,7 +15,6 @@ import {
 import { packedNoteSchema } from '@/models/json-schema/note.js';
 import { packedUserListSchema } from '@/models/json-schema/user-list.js';
 import { packedAppSchema } from '@/models/json-schema/app.js';
-import { packedMessagingMessageSchema } from '@/models/json-schema/messaging-message.js';
 import { packedNotificationSchema } from '@/models/json-schema/notification.js';
 import { packedDriveFileSchema } from '@/models/json-schema/drive-file.js';
 import { packedDriveFolderSchema } from '@/models/json-schema/drive-folder.js';
@@ -65,6 +64,10 @@ import {
 } from '@/models/json-schema/meta.js';
 import { packedSystemWebhookSchema } from '@/models/json-schema/system-webhook.js';
 import { packedAbuseReportNotificationRecipientSchema } from '@/models/json-schema/abuse-report-notification-recipient.js';
+import { packedChatMessageSchema, packedChatMessageLiteSchema, packedChatMessageLiteForRoomSchema, packedChatMessageLiteFor1on1Schema } from '@/models/json-schema/chat-message.js';
+import { packedChatRoomSchema } from '@/models/json-schema/chat-room.js';
+import { packedChatRoomInvitationSchema } from '@/models/json-schema/chat-room-invitation.js';
+import { packedChatRoomMembershipSchema } from '@/models/json-schema/chat-room-membership.js';
 import { packedAchievementNameSchema, packedAchievementSchema } from '@/models/json-schema/achievement.js';
 import { packedNoteDraftSchema } from '@/models/json-schema/note-draft.js';
 
@@ -84,7 +87,6 @@ export const refs = {
 	Ad: packedAdSchema,
 	Announcement: packedAnnouncementSchema,
 	App: packedAppSchema,
-	MessagingMessage: packedMessagingMessageSchema,
 	Note: packedNoteSchema,
 	NoteDraft: packedNoteDraftSchema,
 	NoteReaction: packedNoteReactionSchema,
@@ -129,6 +131,13 @@ export const refs = {
 	MetaDetailed: packedMetaDetailedSchema,
 	SystemWebhook: packedSystemWebhookSchema,
 	AbuseReportNotificationRecipient: packedAbuseReportNotificationRecipientSchema,
+	ChatMessage: packedChatMessageSchema,
+	ChatMessageLite: packedChatMessageLiteSchema,
+	ChatMessageLiteFor1on1: packedChatMessageLiteFor1on1Schema,
+	ChatMessageLiteForRoom: packedChatMessageLiteForRoomSchema,
+	ChatRoom: packedChatRoomSchema,
+	ChatRoomInvitation: packedChatRoomInvitationSchema,
+	ChatRoomMembership: packedChatRoomMembershipSchema,
 };
 
 export type Packed<x extends keyof typeof refs> = SchemaType<typeof refs[x]>;

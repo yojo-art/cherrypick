@@ -18,7 +18,6 @@ import type { MiNoteReaction } from '@/models/NoteReaction.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import type { MiPoll } from '@/models/Poll.js';
 import type { MiPollVote } from '@/models/PollVote.js';
-import type { MiMessagingMessage } from '@/models/MessagingMessage.js';
 import { UserKeypairService } from '@/core/UserKeypairService.js';
 import { MfmService, type Appender } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
@@ -398,7 +397,7 @@ export class ApRendererService {
 		return rendered;
 	}
 	@bindThis
-	public async renderNote(note: MiNote, dive = true, isTalk = false): Promise<IPost> {
+	public async renderNote(note: MiNote, dive = true): Promise<IPost> {
 		const getPromisedFiles = async (ids: string[]): Promise<MiDriveFile[]> => {
 			if (ids.length === 0) return [];
 			const items = await this.driveFilesRepository.findBy({ id: In(ids) });
@@ -533,10 +532,6 @@ export class ApRendererService {
 			})),
 		} as const : {};
 
-		const asTalk = isTalk ? {
-			_misskey_talk: true,
-		} as const : {};
-
 		let asEvent = {};
 		if (note.hasEvent) {
 			const event = await this.eventsRepository.findOneBy({ noteId: note.id });
@@ -585,7 +580,6 @@ export class ApRendererService {
 			...asDeleteAt,
 			...asEvent,
 			...asPoll,
-			...asTalk,
 		};
 	}
 
@@ -741,15 +735,6 @@ export class ApRendererService {
 					totalItems: poll.votes[i],
 				},
 			})),
-		};
-	}
-
-	@bindThis
-	public renderRead(user: { id: MiUser['id'] }, message: MiMessagingMessage): IRead {
-		return {
-			type: 'Read',
-			actor: `${this.config.url}/users/${user.id}`,
-			object: message.uri!,
 		};
 	}
 

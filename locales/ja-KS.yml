@@ -2207,6 +2207,8 @@ _permissions:
   "write:page-likes": "ページのええやんを操作する"
   "read:user-groups": "ユーザーグループを見る"
   "write:user-groups": "ユーザーグループで操作するで"
+  "read:channels": "チャンネルを見る"
+  "write:channels": "チャンネルを操作するで"
   "read:gallery": "ギャラリーを見るで"
   "write:gallery": "ギャラリーを操作するで"
   "read:gallery-likes": "ギャラリーのいいねを見るで"
@@ -2688,6 +2690,7 @@ _fileViewer:
   url: "URL"
   uploadedAt: "追加した日"
   attachedNotes: "ファイルがついてきてるノート"
+  thisPageCanBeSeenFromTheAuthor: "このページはこのファイルをアップした人しか見れへんねん。"
 _externalResourceInstaller:
   title: "ほかのサイトからインストール"
   checkVendorBeforeInstall: "配ってるとこが信頼できるか確認した上でインストールしてな。"

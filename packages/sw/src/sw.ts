@@ -8,7 +8,7 @@ import * as Misskey from 'cherrypick-js';
 import type { PushNotificationDataMap } from '@/types.js';
 import type { I18n } from '@@/js/i18n.js';
 import type { Locale } from '../../../locales/index.js';
-import { createEmptyNotification } from '@/scripts/create-notification.js';
+import { createEmptyNotification, createNotification } from '@/scripts/create-notification.js';
 import { swLang } from '@/scripts/lang.js';
 import * as swos from '@/scripts/operations.js';
 
@@ -75,27 +75,15 @@ globalThis.addEventListener('push', ev => {
 		switch (data.type) {
 			// case 'driveFileCreated':
 			case 'notification':
-			case 'unreadMessagingMessage':
 			case 'unreadAntennaNote':
+			case 'newChatMessage':
+				// 1日以上経過している場合は無視
+				if (Date.now() - data.dateTime > 1000 * 60 * 60 * 24) break;
+
+				return createNotification(data);
 			case 'readAllNotifications':
 				await globalThis.registration.getNotifications()
 					.then(notifications => notifications.forEach(n => n.tag !== 'read_notification' && n.close()));
-				break;
-			case 'readAllMessagingMessages':
-				for (const n of await globalThis.registration.getNotifications()) {
-					if (n.data?.type === 'unreadMessagingMessage') n.close();
-				}
-				break;
-			case 'readAllMessagingMessagesOfARoom':
-				for (const n of await globalThis.registration.getNotifications()) {
-					if (n.data?.type === 'unreadMessagingMessage'
-						&& ('userId' in data.body
-							? data.body.userId === n.data.body.userId
-							: data.body.groupId === n.data.body.groupId)
-					) {
-						n.close();
-					}
-				}
 				break;
 		}
 
@@ -174,11 +162,11 @@ globalThis.addEventListener('notificationclick', (ev: ServiceWorkerGlobalScopeEv
 						}
 				}
 				break;
-			case 'unreadMessagingMessage':
-				client = await swos.openChat(data.body, loginId);
-				break;
 			case 'unreadAntennaNote':
 				client = await swos.openAntenna(data.body.antenna.id, loginId);
+				break;
+			case 'newChatMessage':
+				client = await swos.openChat(data.body, loginId);
 				break;
 			default:
 				switch (action) {

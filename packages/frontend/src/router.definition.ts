@@ -17,6 +17,10 @@ export const page = (loader: AsyncComponentLoader) => defineAsyncComponent({
 	errorComponent: MkError,
 });
 
+function chatPage(...args: Parameters<typeof page>) {
+	return $i?.policies.chatAvailability !== 'unavailable' ? page(...args) : page(() => import('@/pages/not-found.vue'));
+}
+
 export const ROUTE_DEF = [{
 	name: 'index',
 	path: '/',
@@ -48,6 +52,25 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/clips/:clipId',
 	component: page(() => import('@/pages/clip.vue')),
+}, {
+	path: '/chat',
+	name: 'chat',
+	component: chatPage(() => import('@/pages/chat/home.vue')),
+	loginRequired: true,
+}, {
+	path: '/chat/user/:userId',
+	name: 'chat-room',
+	component: chatPage(() => import('@/pages/chat/room.vue')),
+	loginRequired: true,
+}, {
+	path: '/chat/room/:roomId',
+	name: 'chat-room',
+	component: chatPage(() => import('@/pages/chat/room.vue')),
+	loginRequired: true,
+}, {
+	path: '/chat/messages/:messageId',
+	component: chatPage(() => import('@/pages/chat/message.vue')),
+	loginRequired: true,
 }, {
 	path: '/instance-info/:host',
 	component: page(() => import('@/pages/instance-info.vue')),
@@ -573,21 +596,6 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/my/antennas',
 	component: page(() => import('@/pages/my-antennas/index.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/messaging',
-	name: 'messaging',
-	component: page(() => import('@/pages/messaging/index.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/messaging/@:userAcct',
-	name: 'messaging-room',
-	component: page(() => import('@/pages/messaging/messaging-room.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/messaging/group/:groupId',
-	name: 'messaging-room-group',
-	component: page(() => import('@/pages/messaging/messaging-room.vue')),
 	loginRequired: true,
 }, {
 	path: '/my/groups',
