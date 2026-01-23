@@ -482,6 +482,7 @@ export class ApPersonService implements OnModuleInit {
 					emojis,
 					setFederationAvatarShape: person.setFederationAvatarShape,
 					isSquareAvatars: person.isSquareAvatars,
+					canChat: (person as any)._misskey_canChat ?? true,
 					clipsUri: person._yojoart_clips ? getApId(person._yojoart_clips) : person.playlists ? getApId(person.playlists) : undefined,
 				})) as MiRemoteUser;
 
@@ -745,6 +746,7 @@ export class ApPersonService implements OnModuleInit {
 			isExplorable: person.discoverable,
 			setFederationAvatarShape: person.setFederationAvatarShape,
 			isSquareAvatars: person.isSquareAvatars,
+			canChat: (person as any)._misskey_canChat ?? true,
 			clipsUri: person._yojoart_clips ?? person.playlists,
 			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;

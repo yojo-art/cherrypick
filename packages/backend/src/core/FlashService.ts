@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import got, * as Got from 'got';
 import * as Redis from 'ioredis';
 import type { Config } from '@/config.js';
@@ -12,13 +13,20 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
 import { DI } from '@/di-symbols.js';
-import type { ClipsRepository, ClipNotesRepository, NotesRepository, MiUser, FlashsRepository } from '@/models/_.js';
+import type { ClipsRepository, ClipNotesRepository, NotesRepository, MiUser, FlashsRepository, FlashLikesRepository, FlashLikesRemoteRepository, MiFlashLikeRemote, MiFlashLike } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { IdService } from '@/core/IdService.js';
 import { Packed } from '@/misc/json-schema.js';
 import { emojis } from '@/misc/remote-api-utils.js';
 
+import { QueryService } from '@/core/QueryService.js';
+import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
+import { FlashLikeEntityService } from './entities/FlashLikeEntityService.js';
+
+/**
+ * MisskeyPlay関係のService
+ */
 @Injectable()
 export class FlashService {
 	public static FailedToResolveRemoteUserError = class extends Error {};
@@ -40,9 +48,17 @@ export class FlashService {
 		@Inject(DI.flashsRepository)
 		private flashRepository: FlashsRepository,
 
+		@Inject(DI.flashLikesRepository)
+		private flashLikesRepository: FlashLikesRepository,
+		@Inject(DI.flashLikesRemoteRepository)
+		private flashLikesRemoteRepository: FlashLikesRemoteRepository,
+
+		private queryService: QueryService,
+
 		private httpRequestService: HttpRequestService,
 		private userEntityService: UserEntityService,
 		private remoteUserResolveService: RemoteUserResolveService,
+		private flashLikeEntityService: FlashLikeEntityService,
 		private roleService: RoleService,
 		private idService: IdService,
 	) {
@@ -65,6 +81,61 @@ export class FlashService {
 		builder.take(opts?.limit ?? 10);
 
 		return await builder.getMany();
+	}
+
+	public async myLikesLocal(meId: MiUser['id'], opts: { sinceId?: string, untilId?: string, sinceDate?: number, untilDate?: number, limit?: number, search?: string | null }):Promise<MiFlashLike[]> {
+		const query = this.queryService.makePaginationQuery(this.flashLikesRepository.createQueryBuilder('like'), opts.sinceId, opts.untilId)
+			.andWhere('like.userId = :meId', { meId: meId })
+			.leftJoinAndSelect('like.flash', 'flash');
+
+		if (opts.search != null) {
+			for (const word of opts.search.trim().split(' ')) {
+				query.andWhere(new Brackets(qb => {
+					qb.orWhere('flash.title ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+					qb.orWhere('flash.summary ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+				}));
+			}
+		}
+		const likes = await query
+			.limit(opts.limit)
+			.getMany();
+		return likes;
+	}
+
+	public async myLikesRemote(meId: MiUser['id'], opts: { sinceId?: string, untilId?: string, sinceDate?: number, untilDate?: number, limit?: number, search?: string | null }) :Promise<MiFlashLikeRemote[]> {
+		const query = this.queryService.makePaginationQuery(this.flashLikesRemoteRepository.createQueryBuilder('like'), opts.sinceId, opts.untilId)
+			.andWhere('like.userId = :meId', { meId: meId })
+			.leftJoinAndSelect('like.author', 'author');
+
+		if (opts.search != null) {
+			for (const word of opts.search.trim().split(' ')) {
+				query.andWhere(new Brackets(qb => {
+					qb.orWhere('flash.title ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+					qb.orWhere('flash.summary ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+				}));
+			}
+		}
+		const likes = await query
+			.limit(opts.limit)
+			.getMany();
+		return likes;
+	}
+	public async search(searchQuery: string, opts: { sinceId?: string, untilId?: string, sinceDate?: number, untilDate?: number, limit?: number }) {
+		const query = this.queryService.makePaginationQuery(this.flashRepository.createQueryBuilder('flash'), opts.sinceId, opts.untilId, opts.sinceDate, opts.untilDate)
+			.andWhere('flash.visibility = \'public\'');
+
+		for (const word of searchQuery.trim().split(' ')) {
+			query.andWhere(new Brackets(qb => {
+				qb.orWhere('flash.title ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+				qb.orWhere('flash.summary ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+			}));
+		}
+
+		const result = await query
+			.limit(opts.limit)
+			.getMany();
+
+		return result;
 	}
 	@bindThis
 	async showRemoteOrDummy(

@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader :key="headerActions" :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 800px;">
-		<MkNotes ref="notes" class="" :pagination="pagination"/>
+		<MkNotesTimeline :paginator="paginator"/>
 	</div>
 	<template v-if="$i" #footer>
 		<div :class="$style.footer">
@@ -19,9 +19,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onUnmounted, ref } from 'vue';
+import { computed, markRaw, onUnmounted, ref } from 'vue';
 import * as Misskey from 'cherrypick-js';
-import MkNotes from '@/components/MkNotes.vue';
+import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 import MkButton from '@/components/MkButton.vue';
 import { definePage } from '@/page.js';
 import { i18n } from '@/i18n.js';
@@ -30,6 +30,7 @@ import { store } from '@/store.js';
 import { useStream } from '@/stream.js';
 import * as os from '@/os.js';
 import { genEmbedCode } from '@/utility/get-embed-code.js';
+import { Paginator } from '@/utility/paginator.js';
 import { misskeyApi } from '@/utility/misskey-api';
 import { MenuItem } from '@/types/menu';
 
@@ -37,14 +38,12 @@ const props = defineProps<{
 	tag: string;
 }>();
 
-const pagination = {
-	endpoint: 'notes/search-by-tag' as const,
+const paginator = markRaw(new Paginator('notes/search-by-tag', {
 	limit: 10,
-	params: computed(() => ({
+	computedParams: computed(() => ({
 		tag: props.tag,
 	})),
-};
-const notes = ref<InstanceType<typeof MkNotes>>();
+}));
 
 const stream = useStream();
 
@@ -54,14 +53,14 @@ async function post() {
 	await os.post();
 	store.set('postFormHashtags', '');
 	store.set('postFormWithHashtags', false);
-//	notes.value?.pagingComponent?.reload();
+	paginator.reload();
 }
 
 const invalidChars = [' ', '　', '#', ':', '\'', '"', '!'];
 
 const headerActions = computed(() => [{
 	icon: 'ti ti-dots',
-	label: i18n.ts.more,
+	text: i18n.ts.more,
 	handler: async (ev: MouseEvent) => {
 		const registryTags = await (misskeyApi('i/registry/get', {
 			scope: ['client', 'base'],
@@ -129,7 +128,7 @@ function openStream() {
 		q: [[props.tag]],
 	});
 	connection.on('note', note => {
-		notes.value?.pagingComponent?.prepend(note);
+		note.value?.pagingComponent?.prepend(note);
 	});
 }
 

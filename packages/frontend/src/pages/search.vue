@@ -24,7 +24,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 
 	<div v-else-if="tab === 'user'" class="_spacer" style="--MI_SPACER-w: 800px;">
-		<XUser v-bind="props"/>
+		<div v-if="usersSearchAvailable">
+			<XUser v-bind="props"/>
+		</div>
+		<div v-else>
+			<MkInfo warn>{{ i18n.ts.usersSearchNotAvailable }}</MkInfo>
+		</div>
 	</div>
 
 	<div v-else-if="tab === 'event'" class="_spacer" style="--MI_SPACER-w: 800px;">
@@ -35,9 +40,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, ref, toRef } from 'vue';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
-import { notesSearchAvailable, advanccedNotesSearchAvailable } from '@/utility/check-permissions.js';
+import { notesSearchAvailable, usersSearchAvailable, advanccedNotesSearchAvailable } from '@/utility/check-permissions.js';
 import MkInfo from '@/components/MkInfo.vue';
 
 const props = withDefaults(defineProps<{

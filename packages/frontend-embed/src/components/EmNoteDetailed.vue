@@ -56,7 +56,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</EmA>
 								<span v-if="appearNote.user.isLocked" :class="$style.userBadge"><i class="ti ti-lock"></i></span>
 								<span v-if="appearNote.user.isBot" :class="$style.userBadge"><i class="ti ti-robot"></i></span>
-								<span v-if="appearNote.user.isProxy" :class="$style.userBadge"><i class="ti ti-ghost"></i></span>
 							</div>
 							<div :class="$style.noteHeaderUsername"><EmAcct :user="appearNote.user"/></div>
 						</div>

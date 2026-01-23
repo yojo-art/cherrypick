@@ -81,6 +81,7 @@ import { ChannelFollowingService } from './ChannelFollowingService.js';
 import { ChatService } from './ChatService.js';
 import { RegistryApiService } from './RegistryApiService.js';
 import { ReversiService } from './ReversiService.js';
+import { PageService } from './PageService.js';
 
 import { ChartLoggerService } from './chart/ChartLoggerService.js';
 import FederationChart from './chart/charts/federation.js';
@@ -162,6 +163,8 @@ import { ApClipService } from './activitypub/models/ApClipService.js';
 import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
+import { NoteHistorySerivce } from './NoteHistoryService.js';
+import { NoteHistoryEntityService } from './entities/NoteHistoryEntityService.js';
 import type { Provider } from '@nestjs/common';
 
 //#region 文字列ベースでのinjection用(循環参照対応のため)
@@ -239,6 +242,7 @@ const $ChannelFollowingService: Provider = { provide: 'ChannelFollowingService',
 const $ChatService: Provider = { provide: 'ChatService', useExisting: ChatService };
 const $RegistryApiService: Provider = { provide: 'RegistryApiService', useExisting: RegistryApiService };
 const $ReversiService: Provider = { provide: 'ReversiService', useExisting: ReversiService };
+const $PageService: Provider = { provide: 'PageService', useExisting: PageService };
 
 const $ChartLoggerService: Provider = { provide: 'ChartLoggerService', useExisting: ChartLoggerService };
 const $FederationChart: Provider = { provide: 'FederationChart', useExisting: FederationChart };
@@ -280,6 +284,7 @@ const $MutingEntityService: Provider = { provide: 'MutingEntityService', useExis
 const $RenoteMutingEntityService: Provider = { provide: 'RenoteMutingEntityService', useExisting: RenoteMutingEntityService };
 const $NoteEntityService: Provider = { provide: 'NoteEntityService', useExisting: NoteEntityService };
 const $NoteFavoriteEntityService: Provider = { provide: 'NoteFavoriteEntityService', useExisting: NoteFavoriteEntityService };
+const $NoteHistoryEntityService: Provider = { provide: 'NoteHistoryEntityService', useExisting: NoteHistoryEntityService };
 const $NoteReactionEntityService: Provider = { provide: 'NoteReactionEntityService', useExisting: NoteReactionEntityService };
 const $NoteDraftEntityService: Provider = { provide: 'NoteDraftEntityService', useExisting: NoteDraftEntityService };
 const $NotificationEntityService: Provider = { provide: 'NotificationEntityService', useExisting: NotificationEntityService };
@@ -400,6 +405,8 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		ChatService,
 		RegistryApiService,
 		ReversiService,
+		PageService,
+		NoteHistorySerivce,
 
 		ChartLoggerService,
 		FederationChart,
@@ -441,6 +448,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		RenoteMutingEntityService,
 		NoteEntityService,
 		NoteFavoriteEntityService,
+		NoteHistoryEntityService,
 		NoteReactionEntityService,
 		NoteDraftEntityService,
 		NotificationEntityService,
@@ -557,6 +565,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$ChatService,
 		$RegistryApiService,
 		$ReversiService,
+		$PageService,
 
 		$ChartLoggerService,
 		$FederationChart,
@@ -598,6 +607,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$RenoteMutingEntityService,
 		$NoteEntityService,
 		$NoteFavoriteEntityService,
+		$NoteHistoryEntityService,
 		$NoteReactionEntityService,
 		$NoteDraftEntityService,
 		$NotificationEntityService,
@@ -715,6 +725,8 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		ChatService,
 		RegistryApiService,
 		ReversiService,
+		PageService,
+		NoteHistorySerivce,
 
 		FederationChart,
 		NotesChart,
@@ -755,6 +767,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		RenoteMutingEntityService,
 		NoteEntityService,
 		NoteFavoriteEntityService,
+		NoteHistoryEntityService,
 		NoteReactionEntityService,
 		NoteDraftEntityService,
 		NotificationEntityService,
@@ -871,6 +884,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$ChatService,
 		$RegistryApiService,
 		$ReversiService,
+		$PageService,
 
 		$FederationChart,
 		$NotesChart,
@@ -911,6 +925,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$RenoteMutingEntityService,
 		$NoteEntityService,
 		$NoteFavoriteEntityService,
+		$NoteHistoryEntityService,
 		$NoteReactionEntityService,
 		$NoteDraftEntityService,
 		$NotificationEntityService,

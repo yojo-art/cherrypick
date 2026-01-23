@@ -8,8 +8,8 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import type { DriveFilesRepository, MiEmoji } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
+import { emojiCopyPermissions } from '@/types.js';
 import { ApiError } from '../../../error.js';
-import { emojiCopyPermissions } from "@/types.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -38,35 +38,50 @@ export const meta = {
 } as const;
 
 export const paramDef = {
-	type: 'object',
-	properties: {
-		id: { type: 'string', format: 'misskey:id' },
-		name: { type: 'string', pattern: '^[a-zA-Z0-9_]+$' },
-		fileId: { type: 'string', format: 'misskey:id' },
-		category: {
-			type: 'string',
-			nullable: true,
-			description: 'Use `null` to reset the category.',
+	allOf: [
+		{
+			anyOf: [
+				{
+					type: 'object',
+					properties: {
+						id: { type: 'string', format: 'misskey:id' },
+					},
+					required: ['id'],
+				},
+				{
+					type: 'object',
+					properties: {
+						name: { type: 'string', pattern: '^[a-zA-Z0-9_]+$' },
+					},
+					required: ['name'],
+				},
+			],
 		},
-		aliases: { type: 'array', items: {
-			type: 'string',
-		} },
-		license: { type: 'string', nullable: true },
-		isSensitive: { type: 'boolean' },
-		localOnly: { type: 'boolean' },
-		roleIdsThatCanBeUsedThisEmojiAsReaction: { type: 'array', items: {
-			type: 'string',
-		} },
-
-		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, description: 'この絵文字を外部サーバーへコピーすることの許可' },
-		usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
-		author: { type: 'string', nullable: true, description: '作者情報' },
-		description: { type: 'string', nullable: true, description: '絵文字の説明' },
-		isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
-	},
-	anyOf: [
-		{ required: ['id'] },
-		{ required: ['name'] },
+		{
+			type: 'object',
+			properties: {
+				fileId: { type: 'string', format: 'misskey:id' },
+				category: {
+					type: 'string',
+					nullable: true,
+					description: 'Use `null` to reset the category.',
+				},
+				aliases: { type: 'array', items: {
+					type: 'string',
+				} },
+				license: { type: 'string', nullable: true },
+				isSensitive: { type: 'boolean' },
+				localOnly: { type: 'boolean' },
+				roleIdsThatCanBeUsedThisEmojiAsReaction: { type: 'array', items: {
+					type: 'string',
+				} },
+				copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, description: 'この絵文字を外部サーバーへコピーすることの許可' },
+				usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
+				author: { type: 'string', nullable: true, description: '作者情報' },
+				description: { type: 'string', nullable: true, description: '絵文字の説明' },
+				isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
+			},
+		},
 	],
 } as const;
 
@@ -85,10 +100,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (driveFile == null) throw new ApiError(meta.errors.noSuchFile);
 			}
 
-			// JSON schemeのanyOfの型変換がうまくいっていないらしい
-			const required = { id: ps.id, name: ps.name } as
-				| { id: MiEmoji['id']; name?: string }
-				| { id?: MiEmoji['id']; name: string };
+			const required = 'id' in ps
+				? { id: ps.id, name: 'name' in ps ? ps.name as string : undefined }
+				: { name: ps.name };
 
 			const error = await this.customEmojiService.update({
 				...required,
@@ -113,8 +127,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				case 'NO_SUCH_EMOJI': throw new ApiError(meta.errors.noSuchEmoji);
 				case 'SAME_NAME_EMOJI_EXISTS': throw new ApiError(meta.errors.sameNameEmojiExists);
 			}
-			// 網羅性チェック
-			const mustBeNever: never = error;
 		});
 	}
 }

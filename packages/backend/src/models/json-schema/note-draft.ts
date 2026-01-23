@@ -23,7 +23,7 @@ export const packedNoteDraftSchema = {
 		},
 		cw: {
 			type: 'string',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 		},
 		userId: {
 			type: 'string',
@@ -37,15 +37,13 @@ export const packedNoteDraftSchema = {
 		},
 		replyId: {
 			type: 'string',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 			format: 'id',
-			example: 'xxxxxxxxxx',
 		},
 		renoteId: {
 			type: 'string',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 			format: 'id',
-			example: 'xxxxxxxxxx',
 		},
 		reply: {
 			type: 'object',
@@ -66,9 +64,14 @@ export const packedNoteDraftSchema = {
 			optional: false, nullable: false,
 			enum: ['public', 'home', 'followers', 'specified'],
 		},
+		searchableBy: {
+			type: 'string',
+			optional: false, nullable: true,
+			enum: ['public', 'private', 'followersAndReacted', 'reactedOnly'],
+		},
 		visibleUserIds: {
 			type: 'array',
-			optional: true, nullable: false,
+			optional: false, nullable: false,
 			items: {
 				type: 'string',
 				optional: false, nullable: false,
@@ -77,7 +80,7 @@ export const packedNoteDraftSchema = {
 		},
 		fileIds: {
 			type: 'array',
-			optional: true, nullable: false,
+			optional: false, nullable: false,
 			items: {
 				type: 'string',
 				optional: false, nullable: false,
@@ -95,11 +98,11 @@ export const packedNoteDraftSchema = {
 		},
 		hashtag: {
 			type: 'string',
-			optional: true, nullable: false,
+			optional: false, nullable: true,
 		},
 		poll: {
 			type: 'object',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 			properties: {
 				expiresAt: {
 					type: 'string',
@@ -130,9 +133,8 @@ export const packedNoteDraftSchema = {
 		},
 		channelId: {
 			type: 'string',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 			format: 'id',
-			example: 'xxxxxxxxxx',
 		},
 		channel: {
 			type: 'object',
@@ -166,12 +168,20 @@ export const packedNoteDraftSchema = {
 		},
 		localOnly: {
 			type: 'boolean',
-			optional: true, nullable: false,
+			optional: false, nullable: false,
 		},
 		reactionAcceptance: {
 			type: 'string',
 			optional: false, nullable: true,
 			enum: ['likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote', null],
+		},
+		scheduledAt: {
+			type: 'number',
+			optional: false, nullable: true,
+		},
+		isActuallyScheduled: {
+			type: 'boolean',
+			optional: false, nullable: false,
 		},
 		deleteAt: {
 			type: 'string',

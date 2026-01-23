@@ -95,17 +95,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<MkButton large primary gradate rounded style="margin: 0 auto;" @click="search">{{ i18n.ts.search }}</MkButton>
 		</div>
 	</div>
-	<MkFoldableSection v-if="notePagination">
+	<MkFoldableSection v-if="paginator">
 		<template #label>{{ i18n.ts.searchResult }}</template>
-		<MkNotes :key="key" :pagination="notePagination"/>
+		<MkNotesTimeline :key="`advancedSearchNotes:${key}`" :paginator="paginator"/>
 	</MkFoldableSection>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { ref, toRef } from 'vue';
+import { markRaw, ref, shallowRef, toRef } from 'vue';
 import type { UserDetailed } from 'cherrypick-js/entities.js';
-import MkNotes from '@/components/MkNotes.vue';
 import MkRadios from '@/components/MkRadios.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -121,18 +120,18 @@ import FormSection from '@/components/form/section.vue';
 import { $i } from '@/i.js';
 import { instance } from '@/instance.js';
 import { emojiPicker } from '@/utility/emoji-picker';
-import { Paging } from '@/components/MkPagination.vue';
+import { Paginator } from '@/utility/paginator.js';
 
 const props = withDefaults(defineProps<{
 	query?: string;
 	userId?: string;
 	username?: string;
 	host?: string | null;
-	fileAttach?: string;
-	fileSensitive?: string;
+	fileAttach?: 'combined' | 'file-only' | 'no-file';
+	fileSensitive?: 'combined' | 'includeSensitive' | 'withOutSensitive' | 'sensitiveOnly';
 	reactions?: string;
 	reactionsExclude?: string;
-	following?: string;
+	following?: 'combined' | 'following' | 'notFollowing';
 	excludeReply?: boolean;
 	excludeCw?: boolean;
 	excludeQuote?: boolean;
@@ -156,10 +155,10 @@ const router = useRouter();
 
 const key = ref(0);
 const searchQuery = ref(toRef(props, 'query').value);
-const notePagination = ref<Paging>();
+const paginator = shallowRef<Paginator<'notes/advanced-search'> | null>(null);
 const user = ref<UserDetailed | null>(null);
 const hostInput = ref(toRef(props, 'host').value);
-const searchOrigin = ref('combined');
+const searchOrigin = ref<'combined' | 'local' | 'remote' | 'specified'>('combined');
 const isLocalOnly = ref(false);
 const isfileOnly = ref(toRef(props, 'fileAttach').value);
 const sensitiveFilter = ref(toRef(props, 'fileSensitive').value);
@@ -213,9 +212,9 @@ async function search() {
 			const res = await promise;
 
 			if (res.type === 'User') {
-				router.push(`/@${res.object.username}@${res.object.host}`);
+				router.pushByPath(`/@${res.object.username}@${res.object.host}`);
 			} else if (res.type === 'Note') {
-				router.push(`/notes/${res.object.id}`);
+				router.pushByPath(`/notes/${res.object.id}`);
 			}
 			return;
 		}
@@ -235,7 +234,7 @@ async function search() {
 			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 			const res = await promise;
 			if (typeof res.error === 'undefined') {
-				router.push(`/@${res.username}@${res.host}`);
+				router.pushByPath(`/@${res.username}@${res.host}`);
 			}
 		}
 	}
@@ -249,21 +248,20 @@ async function search() {
 			cancelText: i18n.ts.no,
 		});
 		if (!confirm.canceled) {
-			router.push(`/tags/${encodeURIComponent(query.substring(1))}`);
+			router.pushByPath(`/tags/${encodeURIComponent(query.substring(1))}`);
 			return;
 		}
 	}
 	const reactionsQuery = emojiSearchQuery.value.split(' ').filter( item => item !== '');
 	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(' ').filter( item => item !== '');
-	notePagination.value = {
-		endpoint: 'notes/advanced-search',
+	paginator.value = markRaw(new Paginator('notes/advanced-search', {
 		limit: 10,
 		params: {
 			query: searchQuery.value,
 			...(0 < reactionsQuery.length && { reactions: reactionsQuery }),
 			...(0 < excludeReactionsQuery.length && { reactionsExclude: excludeReactionsQuery }),
 			userId: user.value ? user.value.id : null,
-			...(searchOrigin.value === 'specified' ? { host: hostInput.value } : { origin: searchOrigin.value }),
+			...(searchOrigin.value === 'specified' ? { host: hostInput.value ?? undefined } : { origin: searchOrigin.value }),
 			fileOption: isfileOnly.value,
 			excludeCW: excludeCW.value,
 			excludeReply: excludeReply.value,
@@ -272,7 +270,7 @@ async function search() {
 			followingFilter: followingFilter.value,
 			useStrictSearch: strictSearch.value,
 		},
-	};
+	}));
 	key.value++;
 }
 

@@ -29,11 +29,9 @@ export default [
 				_LANGS_: false,
 				_VERSION_: false,
 				_BASEDMISSKEYVERSION_: false,
+				_GIT_HASH_: false,
 				_ENV_: false,
 				_PERF_PREFIX_: false,
-				_DATA_TRANSFER_DRIVE_FILE_: false,
-				_DATA_TRANSFER_DRIVE_FOLDER_: false,
-				_DATA_TRANSFER_DECK_COLUMN_: false,
 
 				// yojo-art
 				_BASEDCHERRYPICKVERSION_: false,
@@ -48,6 +46,7 @@ export default [
 			},
 		},
 		rules: {
+			'@typescript-eslint/no-unused-vars': 'off',
 			'@typescript-eslint/no-empty-interface': ['error', {
 				allowSingleExtends: true,
 			}],
@@ -159,6 +158,9 @@ export default [
 				autofix: true,
 			}],
 			'vue/attribute-hyphenation': ['error', 'never'],
+			'vue/no-mutating-props': ['error', {
+				shallowOnly: true,
+			}],
 		},
 	},
 ];

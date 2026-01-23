@@ -8,10 +8,10 @@ import Chart from '../../core.js';
 export const name = 'instance';
 
 export const schema = {
-	'requests.failed': { range: 'small' },
-	'requests.succeeded': { range: 'small' },
-	'requests.received': { range: 'small' },
-	'notes.total': { accumulate: true },
+	'requests.failed': { range: 'medium' },
+	'requests.succeeded': { range: 'medium' },
+	'requests.received': { range: 'medium' },
+	'notes.total': { range: 'big', accumulate: true },
 	'notes.inc': {},
 	'notes.dec': {},
 	'notes.diffs.normal': {},

@@ -22,7 +22,19 @@ import type { UserEntityService } from './UserEntityService.js';
 import type { NoteEntityService } from './NoteEntityService.js';
 import type { UserGroupInvitationEntityService } from './UserGroupInvitationEntityService.js';
 
-const NOTE_REQUIRED_NOTIFICATION_TYPES = new Set(['note', 'mention', 'reply', 'renote', 'renote:grouped', 'quote', 'reaction', 'reaction:grouped', 'pollEnded'] as (typeof groupedNotificationTypes[number])[]);
+const NOTE_REQUIRED_NOTIFICATION_TYPES = new Set([
+	'note',
+	'note:grouped',
+	'mention',
+	'reply',
+	'renote',
+	'renote:grouped',
+	'quote',
+	'reaction',
+	'reaction:grouped',
+	'pollEnded',
+	'scheduledNotePosted',
+] as (typeof groupedNotificationTypes[number])[]);
 
 @Injectable()
 export class NotificationEntityService implements OnModuleInit {
@@ -210,9 +222,6 @@ export class NotificationEntityService implements OnModuleInit {
 			} : {}),
 			...(notification.type === 'login' ? {
 				ip: notification.userIp,
-			} : {}),
-			...(notification.type === 'scheduleNote' ? {
-				errorType: notification.errorType,
 			} : {}),
 			...(notification.type === 'app' ? {
 				body: notification.customBody,

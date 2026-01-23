@@ -135,6 +135,8 @@ export class SystemAccountService implements OnApplicationShutdown {
 				account = exist;
 				return;
 			}
+			console.log('=====NEW SYSTEM ACCOUNT====' + extra.username);
+			console.trace();
 
 			account = await transactionalEntityManager.insert(MiUser, {
 				id: this.idService.gen(),

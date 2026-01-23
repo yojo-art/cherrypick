@@ -1,5 +1,5 @@
 /*
- * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
+ * SPDX-FileCopyrightText: noridev and cherrypick-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
@@ -141,25 +141,22 @@ function getColor(name: string | null): string | null {
 			return '#86b300';
 		case 'sharkey':
 			return '#43BBE5';
-
 		case 'cherrypick':
 			return '#ffa9c3';
 		case 'yojo-art':
 			return '#ffbcdc';
-
 		case 'mastodon':
 			return '#6364FF';
 		case 'kmyblue':
 			return '#86AFE5';
 		case 'fedibird':
 			return '#282c37';
-
 		case 'pleroma':
 			return '#FAA459';
 		case 'akkoma':
 			return '#462E7A';
 
-		//hollo,mitra,null
+		// hollo, mitra, null
 		default:
 			return null;
 	}

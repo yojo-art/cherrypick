@@ -65,7 +65,7 @@ export const packedUserLiteSchema = {
 		avatarUrl: {
 			type: 'string',
 			format: 'url',
-			nullable: true, optional: false,
+			nullable: false, optional: false,
 		},
 		avatarBlurhash: {
 			type: 'string',
@@ -124,10 +124,6 @@ export const packedUserLiteSchema = {
 			nullable: false, optional: true,
 		},
 		isCat: {
-			type: 'boolean',
-			nullable: false, optional: true,
-		},
-		isProxy: {
 			type: 'boolean',
 			nullable: false, optional: true,
 		},
@@ -522,11 +518,11 @@ export const packedMeDetailedOnlySchema = {
 		},
 		isModerator: {
 			type: 'boolean',
-			nullable: true, optional: false,
+			nullable: false, optional: false,
 		},
 		isAdmin: {
 			type: 'boolean',
-			nullable: true, optional: false,
+			nullable: false, optional: false,
 		},
 		injectFeaturedNote: {
 			type: 'boolean',
@@ -648,7 +644,7 @@ export const packedMeDetailedOnlySchema = {
 		},
 		mutedInstances: {
 			type: 'array',
-			nullable: true, optional: false,
+			nullable: false, optional: false,
 			items: {
 				type: 'string',
 				nullable: false, optional: false,
@@ -666,6 +662,8 @@ export const packedMeDetailedOnlySchema = {
 				quote: { optional: true, ...notificationRecieveConfig },
 				reaction: { optional: true, ...notificationRecieveConfig },
 				pollEnded: { optional: true, ...notificationRecieveConfig },
+				scheduledNotePosted: { optional: true, ...notificationRecieveConfig },
+				scheduledNotePostFailed: { optional: true, ...notificationRecieveConfig },
 				receiveFollowRequest: { optional: true, ...notificationRecieveConfig },
 				followRequestAccepted: { optional: true, ...notificationRecieveConfig },
 				groupInvited: { optional: true, ...notificationRecieveConfig },
@@ -750,6 +748,14 @@ export const packedMeDetailedOnlySchema = {
 			},
 		},
 		//#endregion
+		autoDeleteNotesAfterDays: {
+			type: 'number',
+			nullable: true, optional: false,
+		},
+		autoDeleteKeepFavorites: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
 	},
 } as const;
 
