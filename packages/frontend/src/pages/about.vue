@@ -52,39 +52,26 @@ watch(tab, () => {
 
 const headerActions = computed(() => []);
 
-const headerTabs = computed(() => {
-	const items = [];
-
-	items.push({
-		key: 'overview',
-		title: i18n.ts.overview,
-	}, {
-		key: 'emojis',
-		title: i18n.ts.customEmojis,
-		icon: 'ti ti-icons',
-	});
-
-	if (instance.federation !== 'none') {
-		items.push({
-			key: 'federation',
-			title: i18n.ts.federation,
-			icon: 'ti ti-world',
-		});
-	}
-
-	items.push({
-		key: 'charts',
-		title: i18n.ts.charts,
-		icon: 'ti ti-chart-line',
-	});
-
-	items.push({
-		key: 'officialTags',
-		title: i18n.ts._official_tag.title,
-		icon: 'ti ti-bookmarks',
-	});
-	return items;
-});
+const headerTabs = computed(() => [{
+	key: 'overview',
+	title: i18n.ts.overview,
+}, {
+	key: 'emojis',
+	title: i18n.ts.customEmojis,
+	icon: 'ti ti-icons',
+}, ...(instance.federation !== 'none' ? [{
+	key: 'federation',
+	title: i18n.ts.federation,
+	icon: 'ti ti-world',
+}] : []), {
+	key: 'charts',
+	title: i18n.ts.charts,
+	icon: 'ti ti-chart-line',
+}, {
+	key: 'officialTags',
+	title: i18n.ts._official_tag.title,
+	icon: 'ti ti-bookmarks',
+}]);
 
 definePage(() => ({
 	title: i18n.ts.instanceInfo,

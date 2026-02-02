@@ -72,6 +72,11 @@ export function createAiScriptEnv(opts: { storageKey: string, token?: string }) 
 			});
 			return confirm.canceled ? values.FALSE : values.TRUE;
 		}),
+		'Mk:toast': values.FN_NATIVE(([text]) => {
+			utils.assertString(text);
+			os.toast(text.value);
+			return values.NULL;
+		}),
 		'Mk:api': values.FN_NATIVE(async ([ep, param, token]) => {
 			utils.assertString(ep);
 			if (ep.value.includes('://') || ep.value.includes('..')) {
@@ -87,7 +92,7 @@ export function createAiScriptEnv(opts: { storageKey: string, token?: string }) 
 				throw new errors.AiScriptRuntimeError('expected param');
 			}
 			utils.assertObject(param);
-			return misskeyApi(ep.value, utils.valToJs(param) as object, actualToken).then(res => {
+			return misskeyApi(ep.value as keyof Misskey.Endpoints, utils.valToJs(param) as object, actualToken).then(res => {
 				return utils.jsToVal(res);
 			}, err => {
 				return values.ERROR('request_failed', utils.jsToVal(err));
@@ -130,8 +135,9 @@ export function createAiScriptEnv(opts: { storageKey: string, token?: string }) 
 					throw new Error(`Invalid type. expected string but got ${typeof val}`);
 				}
 				return val;
-			}).filter(val => MkPermissions.includes(val));
-			return await new Promise(async (resolve: any) => {
+			}).filter(val => MkPermissions.includes(val as any));
+
+			return await new Promise<values.Value>(async (resolve: (v: values.Value) => void) => {
 				await os.popup(defineAsyncComponent(() => import('@/components/MkFlashRequestTokenDialog.vue')), {
 					permissions,
 				}, {
@@ -147,7 +153,7 @@ export function createAiScriptEnv(opts: { storageKey: string, token?: string }) 
 					closed: () => {
 						resolve(values.FALSE);
 					},
-				}, 'closed');
+				});
 			});
 		}),
 		'Mk:nyaize': values.FN_NATIVE(([text]) => {

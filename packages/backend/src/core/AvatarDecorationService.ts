@@ -137,7 +137,8 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		const userHostUrl = `https://${user.host}`;
 		const showUserApiUrl = `${userHostUrl}/api/users/show`;
 
-		if (!instance || !['misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) return 'ok';
+		//TODO kmyblue互換方式の機能対応表現を使うようにする
+		if (!instance || !['yojo-art', 'misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) return 'ok';
 
 		const res = await this.httpRequestService.send(showUserApiUrl, {
 			method: 'POST',

@@ -211,6 +211,7 @@ export const paramDef = {
 		autoSensitive: { type: 'boolean' },
 		followingVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
 		followersVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
+		chatScope: { type: 'string', enum: ['everyone', 'followers', 'following', 'mutual', 'none'] },
 		pinnedPageId: { type: 'string', format: 'misskey:id', nullable: true },
 		mutedWords: muteWords,
 		hardMutedWords: muteWords,
@@ -229,10 +230,13 @@ export const paramDef = {
 				quote: notificationRecieveConfig,
 				reaction: notificationRecieveConfig,
 				pollEnded: notificationRecieveConfig,
+				scheduledNotePosted: notificationRecieveConfig,
+				scheduledNotePostFailed: notificationRecieveConfig,
 				receiveFollowRequest: notificationRecieveConfig,
 				followRequestAccepted: notificationRecieveConfig,
 				groupInvited: notificationRecieveConfig,
 				roleAssigned: notificationRecieveConfig,
+				chatRoomInvitationReceived: notificationRecieveConfig,
 				achievementEarned: notificationRecieveConfig,
 				app: notificationRecieveConfig,
 				test: notificationRecieveConfig,
@@ -336,6 +340,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.followingVisibility !== undefined) profileUpdates.followingVisibility = ps.followingVisibility;
 			if (ps.followersVisibility !== undefined) profileUpdates.followersVisibility = ps.followersVisibility;
 			if (ps.searchableBy !== undefined) updates.searchableBy = ps.searchableBy;
+			if (ps.chatScope !== undefined) updates.chatScope = ps.chatScope;
 
 			function checkMuteWordCount(mutedWords: (string[] | string)[], limit: number) {
 				// TODO: ちゃんと数える

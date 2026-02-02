@@ -15,7 +15,6 @@ import {
 import { packedNoteSchema } from '@/models/json-schema/note.js';
 import { packedUserListSchema } from '@/models/json-schema/user-list.js';
 import { packedAppSchema } from '@/models/json-schema/app.js';
-import { packedMessagingMessageSchema } from '@/models/json-schema/messaging-message.js';
 import { packedNotificationSchema } from '@/models/json-schema/notification.js';
 import { packedDriveFileSchema } from '@/models/json-schema/drive-file.js';
 import { packedDriveFolderSchema } from '@/models/json-schema/drive-folder.js';
@@ -23,7 +22,7 @@ import { packedFollowingSchema } from '@/models/json-schema/following.js';
 import { packedMutingSchema } from '@/models/json-schema/muting.js';
 import { packedRenoteMutingSchema } from '@/models/json-schema/renote-muting.js';
 import { packedBlockingSchema } from '@/models/json-schema/blocking.js';
-import { packedNoteReactionSchema } from '@/models/json-schema/note-reaction.js';
+import { packedNoteReactionSchema, packedNoteReactionWithNoteSchema } from '@/models/json-schema/note-reaction.js';
 import { packedHashtagSchema } from '@/models/json-schema/hashtag.js';
 import { packedInviteCodeSchema } from '@/models/json-schema/invite-code.js';
 import { packedPageBlockSchema, packedPageSchema } from '@/models/json-schema/page.js';
@@ -33,7 +32,11 @@ import { packedChannelSchema } from '@/models/json-schema/channel.js';
 import { packedAntennaSchema } from '@/models/json-schema/antenna.js';
 import { packedClipSchema } from '@/models/json-schema/clip.js';
 import { packedFederationInstanceSchema } from '@/models/json-schema/federation-instance.js';
-import { packedQueueCountSchema } from '@/models/json-schema/queue.js';
+import {
+	packedQueueCountSchema,
+	packedQueueMetricsSchema,
+	packedQueueJobSchema,
+} from '@/models/json-schema/queue.js';
 import { packedGalleryPostSchema } from '@/models/json-schema/gallery-post.js';
 import {
 	packedEmojiDetailedAdminSchema,
@@ -63,10 +66,16 @@ import {
 	packedMetaDetailedSchema,
 	packedMetaLiteSchema,
 } from '@/models/json-schema/meta.js';
+import { packedUserWebhookSchema } from '@/models/json-schema/user-webhook.js';
 import { packedSystemWebhookSchema } from '@/models/json-schema/system-webhook.js';
 import { packedAbuseReportNotificationRecipientSchema } from '@/models/json-schema/abuse-report-notification-recipient.js';
+import { packedChatMessageSchema, packedChatMessageLiteSchema, packedChatMessageLiteForRoomSchema, packedChatMessageLiteFor1on1Schema } from '@/models/json-schema/chat-message.js';
+import { packedChatRoomSchema } from '@/models/json-schema/chat-room.js';
+import { packedChatRoomInvitationSchema } from '@/models/json-schema/chat-room-invitation.js';
+import { packedChatRoomMembershipSchema } from '@/models/json-schema/chat-room-membership.js';
 import { packedAchievementNameSchema, packedAchievementSchema } from '@/models/json-schema/achievement.js';
 import { packedNoteDraftSchema } from '@/models/json-schema/note-draft.js';
+import { packedNoteHistorySchema } from '@/models/json-schema/note-history.js';
 
 export const refs = {
 	UserLite: packedUserLiteSchema,
@@ -84,10 +93,10 @@ export const refs = {
 	Ad: packedAdSchema,
 	Announcement: packedAnnouncementSchema,
 	App: packedAppSchema,
-	MessagingMessage: packedMessagingMessageSchema,
 	Note: packedNoteSchema,
 	NoteDraft: packedNoteDraftSchema,
 	NoteReaction: packedNoteReactionSchema,
+	NoteReactionWithNote: packedNoteReactionWithNoteSchema,
 	NoteFavorite: packedNoteFavoriteSchema,
 	Notification: packedNotificationSchema,
 	DriveFile: packedDriveFileSchema,
@@ -102,6 +111,8 @@ export const refs = {
 	PageBlock: packedPageBlockSchema,
 	Channel: packedChannelSchema,
 	QueueCount: packedQueueCountSchema,
+	QueueMetrics: packedQueueMetricsSchema,
+	QueueJob: packedQueueJobSchema,
 	Antenna: packedAntennaSchema,
 	Clip: packedClipSchema,
 	FederationInstance: packedFederationInstanceSchema,
@@ -127,8 +138,17 @@ export const refs = {
 	MetaLite: packedMetaLiteSchema,
 	MetaDetailedOnly: packedMetaDetailedOnlySchema,
 	MetaDetailed: packedMetaDetailedSchema,
+	UserWebhook: packedUserWebhookSchema,
 	SystemWebhook: packedSystemWebhookSchema,
 	AbuseReportNotificationRecipient: packedAbuseReportNotificationRecipientSchema,
+	ChatMessage: packedChatMessageSchema,
+	ChatMessageLite: packedChatMessageLiteSchema,
+	ChatMessageLiteFor1on1: packedChatMessageLiteFor1on1Schema,
+	ChatMessageLiteForRoom: packedChatMessageLiteForRoomSchema,
+	ChatRoom: packedChatRoomSchema,
+	ChatRoomInvitation: packedChatRoomInvitationSchema,
+	ChatRoomMembership: packedChatRoomMembershipSchema,
+	NoteHistory: packedNoteHistorySchema,
 };
 
 export type Packed<x extends keyof typeof refs> = SchemaType<typeof refs[x]>;
@@ -207,7 +227,17 @@ type NullOrUndefined<p extends Schema, T> =
 // https://stackoverflow.com/questions/54938141/typescript-convert-union-to-intersection
 // Get intersection from union
 type UnionToIntersection<U> = (U extends any ? (k: U) => void : never) extends ((k: infer I) => void) ? I : never;
-type PartialIntersection<T> = Partial<UnionToIntersection<T>>;
+
+type ArrayToIntersection<T extends ReadonlyArray<Schema>> =
+	T extends readonly [infer Head, ...infer Tail]
+		? Head extends Schema
+			? Tail extends ReadonlyArray<Schema>
+				? Tail extends []
+					? SchemaType<Head>
+					: SchemaType<Head> & ArrayToIntersection<Tail>
+				: never
+			: never
+		: never;
 
 // https://github.com/misskey-dev/misskey/pull/8144#discussion_r785287552
 // To get union, we use `Foo extends any ? Hoge<Foo> : never`
@@ -225,8 +255,8 @@ type ObjectSchemaTypeDef<p extends Schema> =
 			: never
 		: ObjType<p['properties'], NonNullable<p['required']>>
 		:
-		p['anyOf'] extends ReadonlyArray<Schema> ? never : // see CONTRIBUTING.md
-		p['allOf'] extends ReadonlyArray<Schema> ? UnionToIntersection<UnionSchemaType<p['allOf']>> :
+		p['anyOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['anyOf']> :
+		p['allOf'] extends ReadonlyArray<Schema> ? ArrayToIntersection<p['allOf']> :
 		p['additionalProperties'] extends true ? Record<string, any> :
 		p['additionalProperties'] extends Schema ?
 			p['additionalProperties'] extends infer AdditionalProperties ?
@@ -266,7 +296,8 @@ export type SchemaTypeDef<p extends Schema> =
 					p['items'] extends NonNullable<Schema> ? SchemaType<p['items']>[] :
 					any[]
 		) :
-			p['anyOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['anyOf']> & PartialIntersection<UnionSchemaType<p['anyOf']>> :
+			p['anyOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['anyOf']> :
+			p['allOf'] extends ReadonlyArray<Schema> ? ArrayToIntersection<p['allOf']> :
 			p['oneOf'] extends ReadonlyArray<Schema> ? UnionSchemaType<p['oneOf']> :
 			any;
 

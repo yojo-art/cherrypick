@@ -231,10 +231,12 @@ export const meta = {
 			sensitiveMediaDetection: {
 				type: 'string',
 				optional: false, nullable: false,
+				enum: ['none', 'all', 'local', 'remote'],
 			},
 			sensitiveMediaDetectionSensitivity: {
 				type: 'string',
 				optional: false, nullable: false,
+				enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'],
 			},
 			setSensitiveFlagAutomatically: {
 				type: 'boolean',
@@ -473,6 +475,26 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			ctav3SaKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			ctav3ProjectId: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			ctav3Location: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			ctav3Model: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			ctav3Glossary: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			libreTranslateEndPoint: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -488,6 +510,10 @@ export const meta = {
 			defaultLightTheme: {
 				type: 'string',
 				optional: false, nullable: true,
+			},
+			clientOptions: {
+				type: 'object',
+				optional: false, nullable: false,
 			},
 			description: {
 				type: 'string',
@@ -541,6 +567,10 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
+			feedbackUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
 			summalyProxy: {
 				type: 'string',
 				optional: false, nullable: true,
@@ -564,6 +594,10 @@ export const meta = {
 				optional: false, nullable: false,
 			},
 			urlPreviewEnabled: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			urlPreviewAllowRedirect: {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
@@ -603,6 +637,57 @@ export const meta = {
 					type: 'string',
 					optional: false, nullable: false,
 				},
+			},
+			deliverSuspendedSoftware: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'object',
+					optional: false, nullable: false,
+					properties: {
+						software: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+						versionRange: {
+							type: 'string',
+							optional: false, nullable: false,
+						},
+					},
+				},
+			},
+			singleUserMode: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			ugcVisibilityForVisitor: {
+				type: 'string',
+				enum: ['all', 'local', 'none'],
+				optional: false, nullable: false,
+			},
+			proxyRemoteFiles: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			signToActivityPubGet: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			allowExternalApRedirect: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			enableRemoteNotesCleaning: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			remoteNotesCleaningExpiryDaysForEachNotes: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			remoteNotesCleaningMaxProcessingDurationInMinutes: {
+				type: 'number',
+				optional: false, nullable: false,
 			},
 			doNotSendNotificationEmailsForAbuseReport: {
 				type: 'boolean',
@@ -662,23 +747,9 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			deliverSuspendedSoftware: {
-				type: 'array',
+			showRoleBadgesOfRemoteUsers: {
+				type: 'boolean',
 				optional: false, nullable: false,
-				items: {
-					type: 'object',
-					optional: false, nullable: false,
-					properties: {
-						software: {
-							type: 'string',
-							optional: false, nullable: false,
-						},
-						versionRange: {
-							type: 'string',
-							optional: false, nullable: false,
-						},
-					},
-				},
 			},
 		},
 	},
@@ -751,6 +822,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				logoImageUrl: instance.logoImageUrl,
 				defaultLightTheme: instance.defaultLightTheme,
 				defaultDarkTheme: instance.defaultDarkTheme,
+				clientOptions: instance.clientOptions,
 				enableEmail: instance.enableEmail,
 				enableServiceWorker: instance.enableServiceWorker,
 				// translatorAvailable: instance.deeplAuthKey != null,
@@ -845,15 +917,25 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				notesPerOneAd: instance.notesPerOneAd,
 				summalyProxy: instance.urlPreviewSummaryProxyUrl,
 				urlPreviewEnabled: instance.urlPreviewEnabled,
+				urlPreviewAllowRedirect: instance.urlPreviewAllowRedirect,
 				urlPreviewTimeout: instance.urlPreviewTimeout,
 				urlPreviewMaximumContentLength: instance.urlPreviewMaximumContentLength,
 				urlPreviewRequireContentLength: instance.urlPreviewRequireContentLength,
 				urlPreviewUserAgent: instance.urlPreviewUserAgent,
 				urlPreviewSummaryProxyUrl: instance.urlPreviewSummaryProxyUrl,
+				urlPreviewDirectSummalyProxy: instance.directSummalyProxy,
 				federation: instance.federation,
 				federationHosts: instance.federationHosts,
 				deliverSuspendedSoftware: instance.deliverSuspendedSoftware,
-				urlPreviewDirectSummalyProxy: instance.directSummalyProxy,
+				singleUserMode: instance.singleUserMode,
+				ugcVisibilityForVisitor: instance.ugcVisibilityForVisitor,
+				proxyRemoteFiles: instance.proxyRemoteFiles,
+				signToActivityPubGet: instance.signToActivityPubGet,
+				allowExternalApRedirect: instance.allowExternalApRedirect,
+				enableRemoteNotesCleaning: instance.enableRemoteNotesCleaning,
+				remoteNotesCleaningExpiryDaysForEachNotes: instance.remoteNotesCleaningExpiryDaysForEachNotes,
+				remoteNotesCleaningMaxProcessingDurationInMinutes: instance.remoteNotesCleaningMaxProcessingDurationInMinutes,
+				showRoleBadgesOfRemoteUsers: instance.showRoleBadgesOfRemoteUsers,
 				doNotSendNotificationEmailsForAbuseReport: instance.doNotSendNotificationEmailsForAbuseReport,
 				emailToReceiveAbuseReport: instance.emailToReceiveAbuseReport,
 				enableReceivePrerelease: instance.enableReceivePrerelease,

@@ -6,21 +6,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
-		<FormSuspense :p="init">
-			<div class="_gaps">
-				<div class="_panel" style="padding: 16px;">
-					<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
-					<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
-				</div>
+		<div class="_gaps">
+			<div class="_panel" style="padding: 16px;">
+				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
+				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 			</div>
-		</FormSuspense>
+		</div>
 	</div>
 </PageWithHeader>
 </template>
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import FormSuspense from '@/components/form/suspense.vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
@@ -38,15 +35,15 @@ async function fullIndex() {
 	const { canceled, result: select } = await os.select({
 		title: i18n.ts._reIndexOpenSearch.title,
 		items: [{
-			value: 'notes', text: i18n.ts.note,
+			value: 'notes', label: i18n.ts.note,
 		}, {
-			value: 'reaction', text: i18n.ts.reaction,
+			value: 'reaction', label: i18n.ts.reaction,
 		}, {
-			value: 'pollVote', text: i18n.ts.poll,
+			value: 'pollVote', label: i18n.ts.poll,
 		}, {
-			value: 'clipNotes', text: i18n.ts.clip,
+			value: 'clipNotes', label: i18n.ts.clip,
 		}, {
-			value: 'Favorites', text: i18n.ts.favorite,
+			value: 'Favorites', label: i18n.ts.favorite,
 		}],
 		default: 'reaction',
 	});

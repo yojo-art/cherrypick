@@ -5,13 +5,17 @@
 
 import * as Misskey from 'cherrypick-js';
 import { hemisphere } from '@@/js/intl-const.js';
+import { prefersReducedMotion } from '@@/js/config.js';
+import { definePreferences } from './manager.js';
 import type { Theme } from '@/theme.js';
 import type { SoundType } from '@/utility/sound.js';
 import type { Plugin } from '@/plugin.js';
 import type { DeviceKind } from '@/utility/device-kind.js';
 import type { DeckProfile } from '@/deck.js';
-import type { PreferencesDefinition } from './manager.js';
+import type { WatermarkPreset } from '@/utility/watermark.js';
+import { genId } from '@/utility/id.js';
 import { DEFAULT_DEVICE_KIND } from '@/utility/device-kind.js';
+import { deepEqual } from '@/utility/deep-equal.js';
 
 /** サウンド設定 */
 export type SoundStore = {
@@ -29,9 +33,28 @@ export type SoundStore = {
 	volume: number;
 };
 
+export type StatusbarStore = {
+	name: string | null;
+	id: string;
+	type: string | null;
+	size: 'verySmall' | 'small' | 'medium' | 'large' | 'veryLarge';
+	black: boolean;
+	props: Record<string, any>;
+};
+
+export type DataSaverStore = {
+	media: boolean;
+	avatar: boolean;
+	urlPreviewThumbnail: boolean;
+	disableUrlPreview: boolean;
+	code: boolean;
+};
+
+type OmitStrict<T, K extends keyof T> = T extends any ? Pick<T, Exclude<keyof T, K>> : never;
+
 // NOTE: デフォルト値は他の設定の状態に依存してはならない(依存していた場合、ユーザーがその設定項目単体で「初期値にリセット」した場合不具合の原因になる)
 
-export const PREF_DEF = {
+export const PREF_DEF = definePreferences({
 	accounts: {
 		default: [] as [host: string, user: {
 			id: string;
@@ -49,15 +72,15 @@ export const PREF_DEF = {
 	},
 	widgets: {
 		accountDependent: true,
-		default: [{
+		default: () => [{
 			name: 'calendar',
-			id: 'a', place: 'right', data: {},
+			id: genId(), place: 'right', data: {},
 		}, {
 			name: 'notifications',
-			id: 'b', place: 'right', data: {},
+			id: genId(), place: 'right', data: {},
 		}, {
 			name: 'trends',
-			id: 'c', place: 'right', data: {},
+			id: genId(), place: 'right', data: {},
 		}] as {
 			name: string;
 			id: string;
@@ -76,8 +99,8 @@ export const PREF_DEF = {
 
 	emojiPalettes: {
 		serverDependent: true,
-		default: [{
-			id: 'a',
+		default: () => [{
+			id: genId(),
 			name: '',
 			emojis: ['👍', '❤️', '😆', '🤔', '😮', '🎉', '💢', '😥', '😇', '🍮'],
 		}] as {
@@ -85,6 +108,22 @@ export const PREF_DEF = {
 			name: string;
 			emojis: string[];
 		}[],
+		mergeStrategy: (a, b) => {
+			const mergedItems = [] as typeof a;
+			for (const x of a.concat(b)) {
+				const sameIdItem = mergedItems.find(y => y.id === x.id);
+				if (sameIdItem != null) {
+					if (deepEqual(x, sameIdItem)) { // 完全な重複は無視
+						continue;
+					} else { // IDは同じなのに内容が違う場合はマージ不可とする
+						throw new Error();
+					}
+				} else {
+					mergedItems.push(x);
+				}
+			}
+			return mergedItems;
+		},
 	},
 	emojiPaletteForReaction: {
 		serverDependent: true,
@@ -100,6 +139,22 @@ export const PREF_DEF = {
 	},
 	themes: {
 		default: [] as Theme[],
+		mergeStrategy: (a, b) => {
+			const mergedItems = [] as typeof a;
+			for (const x of a.concat(b)) {
+				const sameIdItem = mergedItems.find(y => y.id === x.id);
+				if (sameIdItem != null) {
+					if (deepEqual(x, sameIdItem)) { // 完全な重複は無視
+						continue;
+					} else { // IDは同じなのに内容が違う場合はマージ不可とする
+						throw new Error();
+					}
+				} else {
+					mergedItems.push(x);
+				}
+			}
+			return mergedItems;
+		},
 	},
 	lightTheme: {
 		default: null as Theme | null,
@@ -110,14 +165,8 @@ export const PREF_DEF = {
 	syncDeviceDarkMode: {
 		default: true,
 	},
-	visibility: {
-		default: 'public' as (typeof Misskey.noteVisibilities)[number],
-	},
 	defaultNoteVisibility: {
 		default: 'public' as (typeof Misskey.noteVisibilities)[number],
-	},
-	searchbility: {
-		default: 'public' as (typeof Misskey.noteSearchbility)[number],
 	},
 	defaultNoteSearchbility: {
 		default: 'public' as (typeof Misskey.noteSearchbility)[number],
@@ -159,14 +208,7 @@ export const PREF_DEF = {
 		],
 	},
 	statusbars: {
-		default: [] as {
-			name: string;
-			id: string;
-			type: string;
-			size: 'verySmall' | 'small' | 'medium' | 'large' | 'veryLarge';
-			black: boolean;
-			props: Record<string, any>;
-		}[],
+		default: [] as StatusbarStore[],
 	},
 	serverDisconnectedBehavior: {
 		default: 'quiet' as 'quiet' | 'reload' | 'dialog' | 'none',
@@ -178,10 +220,10 @@ export const PREF_DEF = {
 		default: false,
 	},
 	animation: {
-		default: !window.matchMedia('(prefers-reduced-motion)').matches,
+		default: !prefersReducedMotion,
 	},
 	animatedMfm: {
-		default: !window.matchMedia('(prefers-reduced-motion)').matches,
+		default: !prefersReducedMotion,
 	},
 	advancedMfm: {
 		default: true,
@@ -199,7 +241,7 @@ export const PREF_DEF = {
 		default: false,
 	},
 	disableShowingAnimatedImages: {
-		default: window.matchMedia('(prefers-reduced-motion)').matches,
+		default: prefersReducedMotion,
 	},
 	emojiStyle: {
 		default: 'twemoji', // twemoji / fluentEmoji / native
@@ -208,12 +250,15 @@ export const PREF_DEF = {
 		default: 'auto' as 'auto' | 'popup' | 'drawer',
 	},
 	useBlurEffectForModal: {
-		default: DEFAULT_DEVICE_KIND === 'desktop',
+		default: true,
 	},
 	useBlurEffect: {
-		default: DEFAULT_DEVICE_KIND === 'desktop',
+		default: true,
 	},
 	useStickyIcons: {
+		default: true,
+	},
+	enableHighQualityImagePlaceholders: {
 		default: true,
 	},
 	showFixedPostForm: {
@@ -255,6 +300,12 @@ export const PREF_DEF = {
 	numberOfPageCache: {
 		default: 3,
 	},
+	pollingInterval: {
+		// 1 ... 低
+		// 2 ... 中
+		// 3 ... 高
+		default: 2,
+	},
 	showNoteActionsOnlyHover: {
 		default: false,
 	},
@@ -291,9 +342,6 @@ export const PREF_DEF = {
 	keepScreenOn: {
 		default: false,
 	},
-	disableStreamingTimeline: {
-		default: false,
-	},
 	useGroupedNotifications: {
 		default: true,
 	},
@@ -301,9 +349,10 @@ export const PREF_DEF = {
 		default: {
 			media: false,
 			avatar: false,
-			urlPreview: false,
+			urlPreviewThumbnail: false,
+			disableUrlPreview: false,
 			code: false,
-		} as Record<string, boolean>,
+		} as DataSaverStore,
 	},
 	hemisphere: {
 		default: hemisphere as 'N' | 'S',
@@ -353,12 +402,61 @@ export const PREF_DEF = {
 	showTitlebar: {
 		default: false,
 	},
+	showAvailableReactionsFirstInNote: {
+		default: false,
+	},
+	showPageTabBarBottom: {
+		default: false,
+	},
 	plugins: {
-		default: [] as Plugin[],
+		default: [] as (OmitStrict<Plugin, 'config'> & { config: Record<string, any> })[],
+		mergeStrategy: (a, b) => {
+			const sameIdExists = a.some(x => b.some(y => x.installId === y.installId));
+			if (sameIdExists) throw new Error();
+			const sameNameExists = a.some(x => b.some(y => x.name === y.name));
+			if (sameNameExists) throw new Error();
+			return a.concat(b);
+		},
+	},
+	mutingEmojis: {
+		default: [] as string[],
+		mergeStrategy: (a, b) => {
+			return [...new Set(a.concat(b))];
+		},
+	},
+	watermarkPresets: {
+		accountDependent: true,
+		default: [] as WatermarkPreset[],
+		mergeStrategy: (a, b) => {
+			const mergedItems = [] as typeof a;
+			for (const x of a.concat(b)) {
+				const sameIdItem = mergedItems.find(y => y.id === x.id);
+				if (sameIdItem != null) {
+					if (deepEqual(x, sameIdItem)) { // 完全な重複は無視
+						continue;
+					} else { // IDは同じなのに内容が違う場合はマージ不可とする
+						throw new Error();
+					}
+				} else {
+					mergedItems.push(x);
+				}
+			}
+			return mergedItems;
+		},
+	},
+	defaultWatermarkPresetId: {
+		accountDependent: true,
+		default: null as WatermarkPreset['id'] | null,
+	},
+	defaultImageCompressionLevel: {
+		default: 2 as 0 | 1 | 2 | 3,
+	},
+	defaultVideoCompressionLevel: {
+		default: 2 as 0 | 1 | 2 | 3,
 	},
 
 	'sound.masterVolume': {
-		default: 0.3,
+		default: 0.5,
 	},
 	'sound.notUseSound': {
 		default: false,
@@ -384,10 +482,7 @@ export const PREF_DEF = {
 	'sound.on.reaction': {
 		default: { type: 'syuilo/bubble2', volume: 1 } as SoundStore,
 	},
-	'sound.on.chat': {
-		default: { type: 'syuilo/pope1', volume: 1 } as SoundStore,
-	},
-	'sound.on.chatBg': {
+	'sound.on.chatMessage': {
 		default: { type: 'syuilo/waon', volume: 1 } as SoundStore,
 	},
 
@@ -431,7 +526,24 @@ export const PREF_DEF = {
 	},
 
 	// #region CherryPick
-	// - Settings/Preferences
+	// - Settings/Appearance
+	fontSize: {
+		default: 8,
+	},
+	showUnreadNotificationsCount: {
+		default: false,
+	},
+	setFederationAvatarShape: {
+		default: true,
+	},
+	filesGridLayoutInUserPage: {
+		default: true,
+	},
+	accountSetupWizard: {
+		default: 0,
+	},
+
+	// - Settings/Timeline and Note
 	forceCollapseAllRenotes: {
 		default: false,
 	},
@@ -504,6 +616,55 @@ export const PREF_DEF = {
 	alwaysShowCw: {
 		default: false,
 	},
+	hideAvatarsInNote: {
+		default: false,
+	},
+	enableAbsoluteTime: {
+		default: false,
+	},
+	enableMarkByDate: {
+		default: false,
+	},
+	showReplyTargetNote: {
+		default: true,
+	},
+	showReplyTargetNoteInSemiTransparent: {
+		default: true,
+	},
+	nsfwOpenBehavior: {
+		default: 'click' as 'click' | 'doubleClick',
+	},
+
+	// - Settings/Posting form
+	showPreview: {
+		default: false,
+	},
+	showProfilePreview: {
+		default: true,
+	},
+
+	// - Settings/Navigate to an external site warning
+	externalNavigationWarning: {
+		default: true,
+	},
+	trustedDomains: {
+		default: [] as string[],
+	},
+
+	// - Settings/Accessibility
+	showingAnimatedImages: {
+		default: /mobile|ipad|iphone|android/.test(navigator.userAgent.toLowerCase()) ? 'inactive' : 'always' as 'always' | 'interaction' | 'inactive',
+	},
+
+	// - Settings/Performance
+	removeModalBgColorForBlur: {
+		default: DEFAULT_DEVICE_KIND === 'desktop',
+	},
+	smoothTransitionAnimations: {
+		default: false,
+	},
+
+	// - Settings/Other
 	autoLoadMoreReplies: {
 		default: false,
 	},
@@ -525,53 +686,6 @@ export const PREF_DEF = {
 	newNoteReceivedNotificationBehavior: {
 		default: 'count' as 'default' | 'count' | 'none',
 	},
-	showUnreadNotificationsCount: {
-		default: false,
-	},
-	externalNavigationWarning: {
-		default: true,
-	},
-	trustedDomains: {
-		default: [] as string[],
-	},
-	showPreview: {
-		default: false,
-	},
-	showProfilePreview: {
-		default: true,
-	},
-
-	// - Settings/Appearance
-	fontSize: {
-		default: 8,
-	},
-	removeModalBgColorForBlur: {
-		default: DEFAULT_DEVICE_KIND === 'desktop',
-	},
-	setFederationAvatarShape: {
-		default: true,
-	},
-	filesGridLayoutInUserPage: {
-		default: true,
-	},
-	hideAvatarsInNote: {
-		default: false,
-	},
-	enableAbsoluteTime: {
-		default: false,
-	},
-	enableMarkByDate: {
-		default: false,
-	},
-	showReplyTargetNote: {
-		default: true,
-	},
-	showReplyTargetNoteInSemiTransparent: {
-		default: true,
-	},
-	nsfwOpenBehavior: {
-		default: 'click' as 'click' | 'doubleClick',
-	},
 
 	// - Settings/Navigation bar
 	bannerDisplay: {
@@ -591,6 +705,9 @@ export const PREF_DEF = {
 	enableGlobalTimeline: {
 		default: true,
 	},
+	enableMediaTimeline: {
+		default: true,
+	},
 	enableBubbleTimeline: {
 		default: true,
 	},
@@ -603,30 +720,7 @@ export const PREF_DEF = {
 	enableChannelTimeline: {
 		default: true,
 	},
-	enableMediaTimeline: {
-		default: true,
-	},
 	enableTagTimeline: {
-		default: true,
-	},
-
-	// - Settings/Sounds & Vibrations
-	vibrate: {
-		default: !/ipad|iphone/.test(navigator.userAgent.toLowerCase()) && window.navigator.vibrate,
-	},
-	'vibrate.on.note': {
-		default: true,
-	},
-	'vibrate.on.notification': {
-		default: true,
-	},
-	'vibrate.on.system': {
-		default: true,
-	},
-	vibrateChat: {
-		default: true,
-	},
-	vibrateChatBg: {
 		default: true,
 	},
 
@@ -688,19 +782,18 @@ export const PREF_DEF = {
 	checkMultipleRenote: {
 		default: false,
 	},
-
-	// - Settings/Accessibility
-	showingAnimatedImages: {
-		default: /mobile|ipad|iphone|android/.test(navigator.userAgent.toLowerCase()) ? 'inactive' : 'always' as 'always' | 'interaction' | 'inactive',
-	},
-
-	// - Settings/Drive
-	imageCompressionMode: {
-		default: 'resizeCompressLossy' as 'resizeCompress' | 'noResizeCompress' | 'resizeCompressLossy' | 'noResizeCompressLossy' | null,
-	},
 	//#endregion
 
 	'experimental.stackingRouterView': {
 		default: false,
 	},
-} satisfies PreferencesDefinition;
+	'experimental.enableFolderPageView': {
+		default: false,
+	},
+	'experimental.enableHapticFeedback': {
+		default: false,
+	},
+	'experimental.enableWebTranslatorApi': {
+		default: false,
+	},
+});

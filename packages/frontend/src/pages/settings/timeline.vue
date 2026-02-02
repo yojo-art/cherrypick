@@ -41,6 +41,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkPreferenceContainer>
 				</SearchMarker>
 
+				<SearchMarker :keywords="['enable', 'media']">
+					<MkPreferenceContainer k="enableMediaTimeline">
+						<MkSwitch v-model="enableMediaTimeline">
+							<template #label><i class="ti ti-photo"></i> <SearchLabel>{{ i18n.ts._timelines.media }}</SearchLabel></template>
+						</MkSwitch>
+					</MkPreferenceContainer>
+				</SearchMarker>
+
 				<SearchMarker :keywords="['enable', 'bubble']">
 					<MkPreferenceContainer k="enableBubbleTimeline">
 						<MkSwitch v-model="enableBubbleTimeline">
@@ -100,20 +108,20 @@ import FormSection from '@/components/form/section.vue';
 import { prefer } from '@/preferences.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
-import { reloadAsk } from '@/utility/reload-ask.js';
+import { suggestReload } from '@/utility/reload-suggest.js';
 
 function save() {
-	reloadAsk({ reason: i18n.ts.reloadToApplySetting, unison: true });
+	suggestReload();
 }
 
 const enableHomeTimeline = prefer.model('enableHomeTimeline');
 const enableLocalTimeline = prefer.model('enableLocalTimeline');
 const enableSocialTimeline = prefer.model('enableSocialTimeline');
 const enableGlobalTimeline = prefer.model('enableGlobalTimeline');
+const enableMediaTimeline = prefer.model('enableMediaTimeline');
 const enableBubbleTimeline = prefer.model('enableBubbleTimeline');
 const enableListTimeline = prefer.model('enableListTimeline');
 const enableAntennaTimeline = prefer.model('enableAntennaTimeline');
-const enableMediaTimeline = computed(prefer.model('enableMediaTimeline'));
 const enableTagTimeline = prefer.model('enableTagTimeline');
 
 const headerActions = computed(() => []);

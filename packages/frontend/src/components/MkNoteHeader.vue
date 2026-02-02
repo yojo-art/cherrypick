@@ -67,10 +67,7 @@ import MkInstanceTicker from '@/components/MkInstanceTicker.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 
 const props = defineProps<{
-	note: Misskey.entities.Note & {
-		isSchedule?: boolean
-	};
-	scheduled?: boolean;
+	note: Misskey.entities.Note;
 	notificationId?: string;
 }>();
 
@@ -80,7 +77,7 @@ const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceT
 const router = useRouter();
 
 function showOnRemote() {
-	if (props.note.user.instance === undefined) router.push(notePage(props.note));
+	if (props.note.user.instance === undefined) router.pushByPath(notePage(props.note));
 	else window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
 

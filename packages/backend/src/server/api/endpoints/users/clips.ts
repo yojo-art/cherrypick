@@ -40,6 +40,8 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		sinceId: { type: 'string' },
 		untilId: { type: 'string' },
+		sinceDate: { type: 'integer' },
+		untilDate: { type: 'integer' },
 		remoteApi: { type: 'boolean', default: true },
 	},
 	required: ['userId'],
@@ -63,11 +65,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const q: FindOptionsWhere<MiUser> = { id: ps.userId };
-
-			const user = await this.usersRepository.findOneBy(q);
-			if (user === null) return [];
-			const query = this.queryService.makePaginationQuery(this.clipsRepository.createQueryBuilder('clip'), ps.sinceId, ps.untilId)
+			const query = this.queryService.makePaginationQuery(this.clipsRepository.createQueryBuilder('clip'), ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate)
 				.andWhere('clip.userId = :userId', { userId: ps.userId })
 				.andWhere('clip.isPublic = true');
 
@@ -76,7 +74,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				.getMany();
 
 			//DB叩いて無かったらリモートAPI
-			if (userEntityService.isRemoteUser(user) && clips.length < 1 && ps.remoteApi) {
+			if (clips.length < 1 && ps.remoteApi) {
+				const q: FindOptionsWhere<MiUser> = { id: ps.userId };
+				const user = await this.usersRepository.findOneBy(q);
+				if (user === null || !userEntityService.isRemoteUser(user)) return [];
 				return remote(config, httpRequestService, redisForRemoteApis, userEntityService, user, ps.limit, ps.sinceId, ps.untilId);
 			}
 			return await this.clipEntityService.packMany(clips, me);

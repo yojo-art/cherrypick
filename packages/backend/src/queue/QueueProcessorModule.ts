@@ -6,11 +6,11 @@
 import { Module } from '@nestjs/common';
 import { CoreModule } from '@/core/CoreModule.js';
 import { GlobalModule } from '@/GlobalModule.js';
-import { CheckModeratorsActivityProcessorService } from '@/queue/processors/CheckModeratorsActivityProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { QueueProcessorService } from './QueueProcessorService.js';
 import { DeliverProcessorService } from './processors/DeliverProcessorService.js';
 import { EndedPollNotificationProcessorService } from './processors/EndedPollNotificationProcessorService.js';
+import { PostScheduledNoteProcessorService } from './processors/PostScheduledNoteProcessorService.js';
 import { InboxProcessorService } from './processors/InboxProcessorService.js';
 import { UserWebhookDeliverProcessorService } from './processors/UserWebhookDeliverProcessorService.js';
 import { SystemWebhookDeliverProcessorService } from './processors/SystemWebhookDeliverProcessorService.js';
@@ -18,7 +18,10 @@ import { CheckExpiredMutingsProcessorService } from './processors/CheckExpiredMu
 import { BakeBufferedReactionsProcessorService } from './processors/BakeBufferedReactionsProcessorService.js';
 import { CleanChartsProcessorService } from './processors/CleanChartsProcessorService.js';
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
+import { CheckModeratorsActivityProcessorService } from './processors/CheckModeratorsActivityProcessorService.js';
+import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
 import { CleanRemoteFilesProcessorService } from './processors/CleanRemoteFilesProcessorService.js';
+import { AutoDeleteNotesProcessorService } from './processors/AutoDeleteNotesProcessorService.js';
 import { DeleteAccountProcessorService } from './processors/DeleteAccountProcessorService.js';
 import { TruncateAccountProcessorService } from './processors/TruncateAccountProcessorService.js';
 import { DeleteDriveFilesProcessorService } from './processors/DeleteDriveFilesProcessorService.js';
@@ -43,7 +46,6 @@ import { TickChartsProcessorService } from './processors/TickChartsProcessorServ
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { ExportFavoritesProcessorService } from './processors/ExportFavoritesProcessorService.js';
 import { RelationshipProcessorService } from './processors/RelationshipProcessorService.js';
-import { ScheduleNotePostProcessorService } from './processors/ScheduleNotePostProcessorService.js';
 import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteDeleteProcessorService.js';
 
 @Module({
@@ -84,12 +86,14 @@ import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteD
 		UserWebhookDeliverProcessorService,
 		SystemWebhookDeliverProcessorService,
 		EndedPollNotificationProcessorService,
-		ScheduleNotePostProcessorService,
+		PostScheduledNoteProcessorService,
 		DeliverProcessorService,
 		InboxProcessorService,
 		AggregateRetentionProcessorService,
 		CheckExpiredMutingsProcessorService,
 		CheckModeratorsActivityProcessorService,
+		CleanRemoteNotesProcessorService,
+		AutoDeleteNotesProcessorService,
 		QueueProcessorService,
 		ScheduledNoteDeleteProcessorService,
 	],

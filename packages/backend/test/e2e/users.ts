@@ -86,6 +86,8 @@ describe('ユーザー', () => {
 			publicReactions: user.publicReactions,
 			followingVisibility: user.followingVisibility,
 			followersVisibility: user.followersVisibility,
+			chatScope: user.chatScope,
+			canChat: user.canChat,
 			roles: user.roles,
 			memo: user.memo,
 		});
@@ -133,9 +135,9 @@ describe('ユーザー', () => {
 			hasUnreadSpecifiedNotes: user.hasUnreadSpecifiedNotes,
 			hasUnreadMentions: user.hasUnreadMentions,
 			hasUnreadAnnouncement: user.hasUnreadAnnouncement,
-			hasUnreadMessagingMessage: user.hasUnreadMessagingMessage,
 			hasUnreadAntenna: user.hasUnreadAntenna,
 			hasUnreadChannel: user.hasUnreadChannel,
+			hasUnreadChatMessages: user.hasUnreadChatMessages,
 			hasUnreadNotification: user.hasUnreadNotification,
 			unreadNotificationsCount: user.unreadNotificationsCount,
 			hasPendingReceivedFollowRequest: user.hasPendingReceivedFollowRequest,
@@ -347,6 +349,8 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.publicReactions, true);
 		assert.strictEqual(response.followingVisibility, 'public');
 		assert.strictEqual(response.followersVisibility, 'public');
+		assert.strictEqual(response.chatScope, 'mutual');
+		assert.strictEqual(response.canChat, true);
 		assert.deepStrictEqual(response.roles, []);
 		assert.strictEqual(response.memo, null);
 
@@ -368,12 +372,12 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.isDeleted, false);
 		assert.strictEqual(response.twoFactorBackupCodesStock, 'none');
 		assert.strictEqual(response.hideOnlineStatus, false);
-		assert.strictEqual(response.hasUnreadMessagingMessage, false);
 		assert.strictEqual(response.hasUnreadSpecifiedNotes, false);
 		assert.strictEqual(response.hasUnreadMentions, false);
 		assert.strictEqual(response.hasUnreadAnnouncement, false);
 		assert.strictEqual(response.hasUnreadAntenna, false);
 		assert.strictEqual(response.hasUnreadChannel, false);
+		assert.strictEqual(response.hasUnreadChatMessages, false);
 		assert.strictEqual(response.hasUnreadNotification, false);
 		assert.strictEqual(response.unreadNotificationsCount, 0);
 		assert.strictEqual(response.hasPendingReceivedFollowRequest, false);

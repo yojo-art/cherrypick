@@ -55,19 +55,29 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 				case 'follow': {
 					// users/showの型定義をswos.apiへ当てはめるのが困難なのでapiFetch.requestを直接使用
 					const account = await getAccountFromId(data.userId);
-					if (!account) return null;
-					const userDetail = await cli.request('users/show', { userId: data.body.userId }, account.token);
+
+					let actions = [
+						{
+							action: 'follow',
+							title: i18n.ts._notification._actions.followBack,
+						},
+					];
+
+					if (account) {
+						try {
+							const userDetail = await cli.request('users/show', { userId: data.body.userId }, account.token);
+							if (userDetail.isFollowing) {
+								actions = [];
+							}
+						} catch { }
+					}
+
 					return [i18n.ts._notification.youWereFollowed, {
 						body: `${getUserName(data.body.user)} (@${data.body.user.username}${data.body.user.host != null ? '@' + data.body.user.host : ''})`,
 						icon: data.body.user.avatarUrl ?? undefined,
 						badge: iconUrl('user-plus'),
 						data,
-						actions: userDetail.isFollowing ? [] : [
-							{
-								action: 'follow',
-								title: i18n.ts._notification._actions.followBack,
-							},
-						],
+						actions,
 					}];
 				}
 
@@ -220,6 +230,28 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 						],
 					}];
 
+				case 'chatRoomInvitationReceived':
+					return [i18n.ts._notification.chatRoomInvitationReceived, {
+						body: `${data.body.invitation.room.name}\n${getUserName(data.body.invitation.user)} (@${data.body.invitation.user.username}${data.body.invitation.user.host != null ? '@' + data.body.invitation.user.host : ''})`,
+						icon: data.body.invitation.user.avatarUrl ?? undefined,
+						badge: iconUrl('messages'),
+						data,
+						actions: [
+							{
+								action: 'accept',
+								title: i18n.ts.accept,
+							},
+							{
+								action: 'reject',
+								title: i18n.ts.reject,
+							},
+							{
+								action: 'ignore',
+								title: i18n.ts._chat.ignore,
+							},
+						],
+					}];
+
 				case 'achievementEarned':
 					return [i18n.ts._notification.achievementEarned, {
 						body: i18n.ts._achievements._types[`_${data.body.achievement}`].title,
@@ -261,12 +293,6 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 						data,
 					}];
 
-				case 'scheduleNote':
-					return [i18n.ts._notification._types.scheduleNote, {
-						body: data.body.errorType,
-						data,
-					}];
-
 				case 'app':
 					return [data.body.header ?? data.body.body, {
 						body: data.body.header ? data.body.body : '',
@@ -284,25 +310,6 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 				default:
 					return null;
 			}
-		case 'unreadMessagingMessage':
-			if (data.body.groupId === null) {
-				return [getUserName(data.body.user ?? { name: null, username: '' }), {
-					body: data.body.text ?? '',
-					icon: data.body.user?.avatarUrl ?? undefined,
-					badge: iconUrl('messages'),
-					tag: `messaging:user:${data.body.userId}`,
-					data,
-					renotify: true,
-				}];
-			}
-			return [data.body.group?.name ?? '', {
-				body: `${getUserName(data.body.user ?? { name: null, username: '' })}: ${data.body.text ?? ''}`,
-				icon: data.body.user?.avatarUrl ?? undefined,
-				badge: iconUrl('messages'),
-				tag: `messaging:group:${data.body.groupId}`,
-				data,
-				renotify: true,
-			}];
 		case 'unreadAntennaNote':
 			return [i18n.tsx._notification.unreadAntennaNote({ name: data.body.antenna.name }), {
 				body: `${getUserName(data.body.note.user)}: ${data.body.note.text ?? ''}`,
@@ -312,6 +319,26 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 				data,
 				renotify: true,
 			}];
+		case 'newChatMessage':
+			if (data.body.toRoom != null) {
+				return [`${data.body.toRoom.name}`, {
+					body: `${getUserName(data.body.fromUser)}: ${data.body.text}`,
+					icon: data.body.fromUser.avatarUrl ?? undefined,
+					badge: iconUrl('messages'),
+					tag: `chat:room:${data.body.toRoomId}`,
+					data,
+					renotify: true,
+				}];
+			} else {
+				return [`${getUserName(data.body.fromUser)}`, {
+					body: `${data.body.text}`,
+					icon: data.body.fromUser.avatarUrl ?? undefined,
+					badge: iconUrl('messages'),
+					tag: `chat:user:${data.body.fromUserId}`,
+					data,
+					renotify: true,
+				}];
+			}
 		default:
 			return null;
 	}

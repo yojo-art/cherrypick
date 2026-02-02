@@ -200,7 +200,6 @@ export class SearchService {
 				}, pagination, q);
 			}
 			default: {
-				// eslint-disable-next-line @typescript-eslint/no-unused-vars
 				const typeCheck: never = this.provider;
 				return [];
 			}
@@ -237,17 +236,14 @@ export class SearchService {
 
 		if (opts.host) {
 			if (opts.host === '.') {
-				query.andWhere('user.host IS NULL');
+				query.andWhere('note.userHost IS NULL');
 			} else {
-				query.andWhere('user.host = :host', { host: opts.host });
+				query.andWhere('note.userHost = :host', { host: opts.host });
 			}
 		}
 
 		this.queryService.generateVisibilityQuery(query, me, { search: true });
-		this.queryService.generateBlockedHostQueryForNote(query);
-		this.queryService.generateSuspendedUserQueryForNote(query);
-		if (me) this.queryService.generateMutedUserQueryForNotes(query, me);
-		if (me) this.queryService.generateBlockedUserQueryForNotes(query, me);
+		this.queryService.generateBaseNoteFilteringQuery(query, me);
 
 		return query.limit(pagination.limit).getMany();
 	}

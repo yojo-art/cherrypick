@@ -45,9 +45,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
-		private notificationService: NotificationService,
-
 		private idService: IdService,
+		private notificationService: NotificationService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			// Fetch the invitation

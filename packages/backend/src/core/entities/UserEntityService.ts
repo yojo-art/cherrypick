@@ -27,7 +27,6 @@ import type {
 	BlockingsRepository,
 	FollowingsRepository,
 	FollowRequestsRepository,
-	MessagingMessagesRepository,
 	MiFollowing,
 	MiMeta,
 	MiUserNotePining,
@@ -50,6 +49,8 @@ import { IdService } from '@/core/IdService.js';
 import type { AnnouncementService } from '@/core/AnnouncementService.js';
 import type { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { ChatService } from '@/core/ChatService.js';
+import { SystemAccountService } from '@/core/SystemAccountService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NoteEntityService } from './NoteEntityService.js';
 import type { PageEntityService } from './PageEntityService.js';
@@ -95,6 +96,8 @@ export class UserEntityService implements OnModuleInit {
 	private federatedInstanceService: FederatedInstanceService;
 	private idService: IdService;
 	private avatarDecorationService: AvatarDecorationService;
+	private chatService: ChatService;
+	private systemAccountService: SystemAccountService;
 
 	constructor(
 		private moduleRef: ModuleRef,
@@ -138,14 +141,12 @@ export class UserEntityService implements OnModuleInit {
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
-		@Inject(DI.messagingMessagesRepository)
-		private messagingMessagesRepository: MessagingMessagesRepository,
-
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
 		@Inject(DI.userMemosRepository)
 		private userMemosRepository: UserMemoRepository,
+
 	) {
 	}
 
@@ -159,6 +160,8 @@ export class UserEntityService implements OnModuleInit {
 		this.federatedInstanceService = this.moduleRef.get('FederatedInstanceService');
 		this.idService = this.moduleRef.get('IdService');
 		this.avatarDecorationService = this.moduleRef.get('AvatarDecorationService');
+		this.chatService = this.moduleRef.get('ChatService');
+		this.systemAccountService = this.moduleRef.get('SystemAccountService');
 	}
 
 	//#region Validators
@@ -322,36 +325,6 @@ export class UserEntityService implements OnModuleInit {
 	}
 
 	@bindThis
-	public async getHasUnreadMessagingMessage(userId: MiUser['id']): Promise<boolean> {
-		const mute = await this.mutingsRepository.findBy({
-			muterId: userId,
-		});
-
-		const joinings = await this.userGroupJoiningsRepository.findBy({ userId: userId });
-
-		const groupQs = Promise.all(joinings.map(j => this.messagingMessagesRepository.createQueryBuilder('message')
-			.where('message.groupId = :groupId', { groupId: j.userGroupId })
-			.andWhere('message.userId != :userId', { userId: userId })
-			.andWhere('NOT (:userId = ANY(message.reads))', { userId: userId })
-			.andWhere('message.id > :joinedAt', { joinedAt: this.idService.parse(j.id) }) // 自分が加入する前の会話については、未読扱いしない
-			.getOne().then(x => x != null)));
-
-		const [withUser, withGroups] = await Promise.all([
-			this.messagingMessagesRepository.count({
-				where: {
-					recipientId: userId,
-					isRead: false,
-					...(mute.length > 0 ? { userId: Not(In(mute.map(x => x.muteeId))) } : {}),
-				},
-				take: 1,
-			}).then((count: number) => count > 0),
-			groupQs,
-		]);
-
-		return withUser || withGroups.some(x => x);
-	}
-
-	@bindThis
 	public async getHasUnreadAntenna(userId: MiUser['id']): Promise<boolean> {
 		/*
 		const myAntennas = (await this.antennaService.getAntennas()).filter(a => a.userId === userId);
@@ -510,8 +483,8 @@ export class UserEntityService implements OnModuleInit {
 			(profile.followersVisibility === 'followers') && (relation && relation.isFollowing) ? user.followersCount :
 			null;
 
-		const isModerator = isMe && isDetailed ? this.roleService.isModerator(user) : null;
-		const isAdmin = isMe && isDetailed ? this.roleService.isAdministrator(user) : null;
+		const isModerator = isMe && isDetailed ? this.roleService.isModerator(user) : undefined;
+		const isAdmin = isMe && isDetailed ? this.roleService.isAdministrator(user) : undefined;
 		const unreadAnnouncements = isMe && isDetailed ?
 			(await this.announcementService.getUnreadAnnouncements(user)).map((announcement) => ({
 				createdAt: this.idService.parse(announcement.id).date.toISOString(),
@@ -520,6 +493,7 @@ export class UserEntityService implements OnModuleInit {
 
 		const notificationsInfo = isMe && isDetailed ? await this.getNotificationsInfo(user.id) : null;
 
+		// TODO: 例えば avatarUrl: true など間違った型を設定しても型エラーにならないのをどうにかする(ジェネリクス使わない方法で実装するしかなさそう？)
 		const packed = {
 			id: user.id,
 			name: user.name,
@@ -553,8 +527,8 @@ export class UserEntityService implements OnModuleInit {
 			} : undefined) : undefined,
 			emojis: this.customEmojiService.populateEmojis(user.emojis, user.host),
 			onlineStatus: this.getOnlineStatus(user),
-			// パフォーマンス上の理由でローカルユーザーのみ
-			badgeRoles: user.host == null ? this.roleService.getUserBadgeRoles(user.id).then((rs) => rs
+			// パフォーマンス上の理由で、明示的に設定しない場合はローカルユーザーのみ取得
+			badgeRoles: (this.meta.showRoleBadgesOfRemoteUsers || user.host == null) ? this.roleService.getUserBadgeRoles(user.id).then((rs) => rs
 				.filter((r) => r.isPublic || iAmModerator)
 				.sort((a, b) => b.displayOrder - a.displayOrder)
 				.map((r) => ({
@@ -602,6 +576,8 @@ export class UserEntityService implements OnModuleInit {
 				publicReactions: this.isLocalUser(user) ? profile!.publicReactions : false, // https://github.com/misskey-dev/misskey/issues/12964
 				followersVisibility: profile!.followersVisibility,
 				followingVisibility: profile!.followingVisibility,
+				chatScope: user.chatScope,
+				canChat: this.isLocalUser(user) ? this.roleService.getUserPolicies(user.id).then(r => r.chatAvailability !== 'unavailable') : (user.canChat ?? true),
 				roles: this.roleService.getUserRoles(user.id).then(roles => roles.filter(role => role.isPublic).sort((a, b) => b.displayOrder - a.displayOrder).map(role => ({
 					id: role.id,
 					name: role.name,
@@ -644,11 +620,11 @@ export class UserEntityService implements OnModuleInit {
 				hideOnlineStatus: user.hideOnlineStatus,
 				hasUnreadSpecifiedNotes: false, // 後方互換性のため
 				hasUnreadMentions: false, // 後方互換性のため
+				hasUnreadChatMessages: this.chatService.hasUnreadMessages(user.id),
 				hasUnreadAnnouncement: unreadAnnouncements!.length > 0,
 				unreadAnnouncements,
 				hasUnreadAntenna: this.getHasUnreadAntenna(user.id),
 				hasUnreadChannel: false, // 後方互換性のため
-				hasUnreadMessagingMessage: this.getHasUnreadMessagingMessage(user.id),
 				hasUnreadNotification: notificationsInfo?.hasUnread, // 後方互換性のため
 				hasPendingReceivedFollowRequest: this.getHasPendingReceivedFollowRequest(user.id),
 				unreadNotificationsCount: notificationsInfo?.unreadCount,

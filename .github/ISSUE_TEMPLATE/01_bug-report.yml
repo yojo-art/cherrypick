@@ -56,7 +56,7 @@ body:
           * Model and OS of the device(s): MacBook Pro (14inch, 2021), macOS Ventura 13.4
           * Browser: Chrome 113.0.5672.126
           * Server URL: yojo-art.example.com
-          * yojo-art: 1.x.x (Misskey: 2025.x.x)
+          * yojo-art: 1.x.x (Misskey: 2026.x.x)
       value: |
         * Model and OS of the device(s):
         * Browser:
@@ -76,7 +76,7 @@ body:
 
         Examples:
           * Installation Method or Hosting Service: docker compose, k8s/docker, systemd, "CherryPick install shell script", development environment
-          * yojo-art: 1.x.x (Misskey: 2025.x.x)
+          * yojo-art: 1.x.x (Misskey: 2026.x.x)
           * Node: 20.x.x
           * PostgreSQL: 15.x.x
           * Redis: 7.x.x

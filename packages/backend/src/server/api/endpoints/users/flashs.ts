@@ -41,6 +41,8 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		sinceId: { type: 'string' },
 		untilId: { type: 'string' },
+		sinceDate: { type: 'integer' },
+		untilDate: { type: 'integer' },
 	},
 	required: ['userId'],
 } as const;
@@ -72,7 +74,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			if (userEntityService.isRemoteUser(user)) {
 				return this.remote(me, user, ps.limit, ps.sinceId, ps.untilId);
 			}
-			const query = this.queryService.makePaginationQuery(this.flashsRepository.createQueryBuilder('flash'), ps.sinceId, ps.untilId)
+			const query = this.queryService.makePaginationQuery(this.flashsRepository.createQueryBuilder('flash'), ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate)
 				.andWhere('flash.userId = :userId', { userId: ps.userId })
 				.andWhere('flash.visibility = \'public\'');
 

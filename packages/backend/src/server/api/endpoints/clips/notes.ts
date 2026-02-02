@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import got, * as Got from 'got';
 import * as Redis from 'ioredis';
 import type { Config } from '@/config.js';
@@ -12,6 +13,7 @@ import type { NotesRepository, ClipsRepository, ClipNotesRepository, MiNote } fr
 import { QueryService } from '@/core/QueryService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { DI } from '@/di-symbols.js';
+import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { ApNoteService } from '@/core/activitypub/models/ApNoteService.js';
 import { MetaService } from '@/core/MetaService.js';
@@ -63,6 +65,9 @@ export const paramDef = {
 		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
 		sinceId: { type: 'string', format: 'misskey:id' },
 		untilId: { type: 'string', format: 'misskey:id' },
+		sinceDate: { type: 'integer' },
+		untilDate: { type: 'integer' },
+		search: { type: 'string', minLength: 1, maxLength: 100, nullable: true },
 	},
 	required: ['clipId'],
 } as const;
@@ -125,7 +130,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 				}
 
-				const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
+				const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate)
 					.innerJoin(this.clipNotesRepository.metadata.targetName, 'clipNote', 'clipNote.noteId = note.id')
 					.innerJoinAndSelect('note.user', 'user')
 					.leftJoinAndSelect('note.reply', 'reply')
@@ -138,8 +143,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				this.queryService.generateBlockedHostQueryForNote(query);
 				// this.queryService.generateSuspendedUserQueryForNote(query); // To avoid problems with removing notes, ignoring suspended user for now
 				if (me) {
-						this.queryService.generateMutedUserQueryForNotes(query, me);
+					this.queryService.generateMutedUserQueryForNotes(query, me);
 					this.queryService.generateBlockedUserQueryForNotes(query, me);
+					this.queryService.generateMutedUserQueryForNotes(query, me, { noteColumn: 'renote' });
+					this.queryService.generateBlockedUserQueryForNotes(query, me, { noteColumn: 'renote' });
+				}
+
+				if (ps.search != null) {
+					for (const word of ps.search.trim().split(' ')) {
+						query.andWhere(new Brackets(qb => {
+							qb.orWhere('note.text ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+							qb.orWhere('note.cw ILIKE :search', { search: `%${sqlLikeEscape(word)}%` });
+						}));
+					}
 				}
 
 				notes = await query
