@@ -50,7 +50,7 @@ export class AntennaEntityService {
 			excludeNotesInSensitiveChannel: antenna.excludeNotesInSensitiveChannel,
 			isActive: antenna.isActive,
 			hasUnreadNote: false, // TODO
-			notify: false, // 後方互換性のため
+			notify: antenna.notify,
 		};
 	}
 }
