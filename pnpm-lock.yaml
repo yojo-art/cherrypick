@@ -153,8 +153,8 @@ importers:
         specifier: 11.0.9
         version: 11.0.9(@nestjs/common@11.0.9(reflect-metadata@0.2.2)(rxjs@7.8.1))(@nestjs/core@11.0.9)(@nestjs/platform-express@10.4.15)
       '@opensearch-project/opensearch':
-        specifier: ^2.7.0
-        version: 2.13.0
+        specifier: 3.5.1 
+        version: 3.5.1
       '@peertube/http-signature':
         specifier: 1.7.0
         version: 1.7.0
