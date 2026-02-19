@@ -3170,7 +3170,7 @@ packages:
     resolution: {integrity: sha512-R9iYVRBs/0vq+iLRA0/quvcnuCsLp8DLsaMF2i6dhkc/C6jJ5RbV3al0bt4gfhwi1R76crDd9nnw6b9x2V1yeg==}
     engines: {node: '>=12.0'}
 
-  '@opensearch-project/opensearch@2.13.0':
+  '@opensearch-project/opensearch@3.5.1':
     resolution: {integrity: sha512-Bu3jJ7pKzumbMMeefu7/npAWAvFu5W9SlbBow1ulhluqUpqc7QoXe0KidDrMy7Dy3BQrkI6llR3cWL4lQTZOFw==}
     engines: {node: '>=10', yarn: ^1.22.10}
 
@@ -13335,7 +13335,7 @@ snapshots:
     dependencies:
       flatbuffers: 25.2.10
 
-  '@opensearch-project/opensearch@2.13.0':
+  '@opensearch-project/opensearch@3.5.1':
     dependencies:
       aws4: 1.13.2
       debug: 4.4.0(supports-color@8.1.1)
