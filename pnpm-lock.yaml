@@ -3171,7 +3171,7 @@ packages:
     engines: {node: '>=12.0'}
 
   '@opensearch-project/opensearch@3.5.1':
-    resolution: {integrity: sha512-Bu3jJ7pKzumbMMeefu7/npAWAvFu5W9SlbBow1ulhluqUpqc7QoXe0KidDrMy7Dy3BQrkI6llR3cWL4lQTZOFw==}
+    resolution: {integrity: sha512-6bf+HcuERzAtHZxrm6phjref54ABse39BpkDie/YO3AUFMCBrb3SK5okKSdT5n3+nDRuEEQLhQCl0RQV3s1qpA==}
     engines: {node: '>=10', yarn: ^1.22.10}
 
   '@opentelemetry/api-logs@0.53.0':
