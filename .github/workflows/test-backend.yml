@@ -159,12 +159,11 @@ jobs:
         with:
           submodules: true
       - name: Runs OpenSearch
-        uses: esmarkowski/opensearch-github-action@v1.0.0
+        uses: ankane/setup-opensearch@v1
         with:
-          version: 3.5.0
-          security-disabled: true
-          opensearch_password: eF53xwF4NYjrcXXwZ2CHgpwFL
-          port: 59200
+          opensearch-version: 3.5.0
+          config: |
+            http.port: 59200
       - name: Install pnpm
         uses: pnpm/action-setup@v4
       - name: Use Node.js ${{ matrix.node-version }}
