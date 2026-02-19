@@ -742,6 +742,19 @@ describe('Streaming', () => {
 			});
 
 			// #10443
+			test('チャンネル投稿は流れない', async () => {
+				// リスインしている kyoko が 任意のチャンネルに投降した時の動きを見たい
+				const fired = await waitFire(
+					chitose, 'userList',
+					() => api('notes/create', { text: 'foo', channelId: 'dummy' }, kyoko),
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
+					{ listId: list.id },
+				);
+
+				assert.strictEqual(fired, false);
+			});
+
+			// #10443
 			test('ミュートしているユーザへのリプライがリストTLに流れない', async () => {
 				// chitose が kanako をミュートしている状態で、リスインしている kyoko が kanako にリプライした時の動きを見たい
 				const fired = await waitFire(

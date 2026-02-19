@@ -3126,6 +3126,7 @@ _notification:
     exportCompleted: "내보내기를 완료함"
     login: "로그인"
     createToken: "액세스 토큰이 생성됨"
+    scheduleNote: "게시 예약된 노트의 게시를 실패함"
     test: "알림 테스트"
     app: "연동된 앱을 통한 알림"
   _actions:

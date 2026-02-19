@@ -641,6 +641,41 @@ describe('アンテナ', () => {
 			assert.deepStrictEqual(response, expected);
 		});
 
+		test('が取得できること（センシティブチャンネルのノートを除く）', async () => {
+			const keyword = 'キーワード';
+			const antenna = await successfulApiCall({
+				endpoint: 'antennas/create',
+				parameters: { ...defaultParam, keywords: [[keyword]], excludeNotesInSensitiveChannel: true },
+				user: alice,
+			});
+			const nonSensitiveChannel = await successfulApiCall({
+				endpoint: 'channels/create',
+				parameters: { name: 'test', isSensitive: false },
+				user: alice,
+			});
+			const sensitiveChannel = await successfulApiCall({
+				endpoint: 'channels/create',
+				parameters: { name: 'test', isSensitive: true },
+				user: alice,
+			});
+
+			const noteInLocal = await post(bob, { text: `test ${keyword}` });
+			const noteInNonSensitiveChannel = await post(bob, { text: `test ${keyword}`, channelId: nonSensitiveChannel.id });
+			await post(bob, { text: `test ${keyword}`, channelId: sensitiveChannel.id });
+
+			const response = await successfulApiCall({
+				endpoint: 'antennas/notes',
+				parameters: { antennaId: antenna.id },
+				user: alice,
+			});
+			// 最後に投稿したものが先頭に来る。
+			const expected = [
+				noteInNonSensitiveChannel,
+				noteInLocal,
+			];
+			assert.deepStrictEqual(response, expected);
+		});
+
 		test.skip('が取得でき、日付指定のPaginationに一貫性があること', async () => { });
 		test.each([
 			{ label: 'ID指定', offsetBy: 'id' },

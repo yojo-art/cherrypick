@@ -79,6 +79,8 @@ export const permissions = [
 	'read:page-likes',
 	'read:user-groups',
 	'write:user-groups',
+	'read:channels',
+	'write:channels',
 	'read:gallery',
 	'write:gallery',
 	'read:gallery-likes',

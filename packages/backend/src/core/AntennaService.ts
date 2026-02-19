@@ -113,6 +113,8 @@ export class AntennaService implements OnApplicationShutdown {
 			if (!isFollowing && antenna.userId !== note.userId) return false;
 		}
 
+		if (antenna.excludeNotesInSensitiveChannel && note.channel?.isSensitive) return false;
+
 		if (antenna.excludeBots && noteUser.isBot) return false;
 
 		if (antenna.localOnly && noteUser.host != null) return false;
