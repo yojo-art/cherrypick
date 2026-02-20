@@ -290,7 +290,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			try {
-				await this.userIpsRepository.createQueryBuilder().insert().values({
+				this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),
 					userId: user.id,
 					ip: ip,
