@@ -38,6 +38,7 @@ describe('アンテナ', () => {
 		excludeKeywords: [['']],
 		keywords: [['keyword']],
 		name: 'test',
+		notify: false,
 		src: 'all' as const,
 		userGroupId: null,
 		userListId: null,
@@ -221,6 +222,8 @@ describe('アンテナ', () => {
 		{ parameters: () => ({ withReplies: true }) },
 		{ parameters: () => ({ withFile: false }) },
 		{ parameters: () => ({ withFile: true }) },
+		{ parameters: () => ({ notify: false }) },
+		{ parameters: () => ({ notify: true }) },
 		{ parameters: () => ({ excludeNotesInSensitiveChannel: false }) },
 		{ parameters: () => ({ excludeNotesInSensitiveChannel: true }) },
 	];

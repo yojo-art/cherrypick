@@ -295,6 +295,7 @@ describe('Timeline', () => {
 				localOnly: false,
 				withReplies: true,
 				withFile: true,
+				notify: false,
 			});
 			await sleep();
 		});

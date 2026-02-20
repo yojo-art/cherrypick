@@ -14604,6 +14604,7 @@ export interface operations {
                     withReplies: boolean;
                     withFile: boolean;
                     excludeNotesInSensitiveChannel?: boolean;
+                    notify: boolean;
                 };
             };
         };
@@ -14947,6 +14948,7 @@ export interface operations {
                     withReplies?: boolean;
                     withFile?: boolean;
                     excludeNotesInSensitiveChannel?: boolean;
+                    notify?: boolean;
                 };
             };
         };

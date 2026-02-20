@@ -192,6 +192,7 @@ describe('Account Move', () => {
 				localOnly: false,
 				withReplies: false,
 				withFile: false,
+				notify: false,
 			}, alice);
 			antennaId = antenna.body.id;
 
@@ -444,6 +445,7 @@ describe('Account Move', () => {
 				localOnly: false,
 				withReplies: false,
 				withFile: false,
+				notify: false,
 			}, alice);
 
 			assert.strictEqual(res.status, 403);
