@@ -280,7 +280,6 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			let hostNames: string[] | undefined = undefined;
-
 			try {
 				const names = await dns.promises.reverse(ip);
 				hostNames = names.map(x =>
