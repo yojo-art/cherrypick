@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 
 				<div v-if="showPrev" class="_margin">
-					<MkNotesTimeline :withControl="false" :pullToRefresh="false" class="" :paginator="showPrev === 'channel' ? prevChannelPaginator : showNext === 'user'? prevUserPaginator : showNext === 'home' ? prevHomePaginator : prevLocalPaginator" :noGap="!prefer.s.showGapBetweenNotesInTimeline"/>
+					<MkNotesTimeline :withControl="false" :pullToRefresh="false" class="" :paginator="showPrev === 'channel' ? prevChannelPaginator : showPrev === 'user'? prevUserPaginator : showPrev === 'home' ? prevHomePaginator : prevLocalPaginator" :noGap="!prefer.s.showGapBetweenNotesInTimeline"/>
 				</div>
 			</div>
 			<MkError v-else-if="error" @retry="fetchNote()"/>

@@ -3126,6 +3126,7 @@ _notification:
     exportCompleted: "The export has been completed"
     login: "Sign In"
     createToken: "Create access token"
+    scheduleNote: "Scheduled note posting failed"
     test: "Notification test"
     app: "Notifications from linked apps"
   _actions:

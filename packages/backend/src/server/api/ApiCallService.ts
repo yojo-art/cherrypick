@@ -280,6 +280,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			let hostNames: string[] | undefined = undefined;
+
 			try {
 				const names = await dns.promises.reverse(ip);
 				hostNames = names.map(x =>
@@ -289,7 +290,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			try {
-				this.userIpsRepository.createQueryBuilder().insert().values({
+				await this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),
 					userId: user.id,
 					ip: ip,
