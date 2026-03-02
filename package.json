@@ -8,7 +8,7 @@
 		"type": "git",
 		"url": "https://github.com/yojo-art/cherrypick.git"
 	},
-	"packageManager": "pnpm@10.30.3",
+	"packageManager": "pnpm@10.30.1",
 	"workspaces": [
 		"packages/frontend-shared",
 		"packages/frontend",
