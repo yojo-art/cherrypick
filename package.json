@@ -78,7 +78,7 @@
 		"@typescript-eslint/parser": "8.56.1",
 		"cross-env": "10.1.0",
 		"cypress": "15.10.0",
-		"eslint": "10.0.2",
+		"eslint": "9.39.3",
 		"globals": "17.3.0",
 		"ncp": "2.0.0",
 		"pnpm": "10.30.1",
