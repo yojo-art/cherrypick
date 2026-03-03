@@ -3,7 +3,7 @@ Cherrypick 4.17.0
 Misskey 2025.10.2
 
 ### Release Date
-2025-03-04
+2026-03-04
 
 ### General
 - Enhance: アンテナ受信時に新しい投稿として通知できるように [#827](https://github.com/yojo-art/cherrypick/pull/827)
