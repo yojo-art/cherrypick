@@ -27,17 +27,18 @@ export type Keys = (
 	'useBoldFont' |
 	'ui' |
 	'ui_temp' |
-	'locale' |
-	'localeVersion' |
+	'bootloaderLocales' |
 	'theme' |
 	'themeId' |
+	'themeCachedVersion' |
 	'customCss' |
-	'message_drafts' |
+	'chatMessageDrafts' |
 	'scratchpad' |
 	'debug' |
 	'preferences' |
 	'latestPreferencesUpdate' |
 	'hidePreferencesRestoreSuggestion' |
+	'isSafeMode' |
 	`miux:${string}` |
 	`ui:folder:${string}` |
 	`themes:${string}` | // DEPRECATED

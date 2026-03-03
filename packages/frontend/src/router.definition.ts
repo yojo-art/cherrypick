@@ -17,6 +17,10 @@ export const page = (loader: AsyncComponentLoader) => defineAsyncComponent({
 	errorComponent: MkError,
 });
 
+function chatPage(...args: Parameters<typeof page>) {
+	return $i?.policies.chatAvailability !== 'unavailable' ? page(...args) : page(() => import('@/pages/not-found.vue'));
+}
+
 export const ROUTE_DEF = [{
 	name: 'index',
 	path: '/',
@@ -48,6 +52,25 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/clips/:clipId',
 	component: page(() => import('@/pages/clip.vue')),
+}, {
+	path: '/chat',
+	name: 'chat',
+	component: chatPage(() => import('@/pages/chat/home.vue')),
+	loginRequired: true,
+}, {
+	path: '/chat/user/:userId',
+	name: 'chat-room',
+	component: chatPage(() => import('@/pages/chat/room.vue')),
+	loginRequired: true,
+}, {
+	path: '/chat/room/:roomId',
+	name: 'chat-room',
+	component: chatPage(() => import('@/pages/chat/room.vue')),
+	loginRequired: true,
+}, {
+	path: '/chat/messages/:messageId',
+	component: chatPage(() => import('@/pages/chat/message.vue')),
+	loginRequired: true,
 }, {
 	path: '/instance-info/:host',
 	component: page(() => import('@/pages/instance-info.vue')),
@@ -121,9 +144,9 @@ export const ROUTE_DEF = [{
 		name: 'statusbar',
 		component: page(() => import('@/pages/settings/statusbar.vue')),
 	}, {
-		path: '/sounds-and-vibrations',
-		name: 'sounds-and-vibrations',
-		component: page(() => import('@/pages/settings/sounds-and-vibrations.vue')),
+		path: '/sounds',
+		name: 'sounds',
+		component: page(() => import('@/pages/settings/sounds.vue')),
 	}, {
 		path: '/plugin/install',
 		name: 'plugin',
@@ -194,6 +217,9 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/signup-complete/:code',
 	component: page(() => import('@/pages/signup-complete.vue')),
+}, {
+	path: '/verify-email/:code',
+	component: page(() => import('@/pages/verify-email.vue')),
 }, {
 	path: '/announcements',
 	component: page(() => import('@/pages/announcements.vue')),
@@ -493,10 +519,6 @@ export const ROUTE_DEF = [{
 		name: 'officialTags',
 		component: page(() => import('@/pages/admin/official-tags.vue')),
 	}, {
-		path: '/server-rules',
-		name: 'server-rules',
-		component: page(() => import('@/pages/admin/server-rules.vue')),
-	}, {
 		path: '/invites',
 		name: 'invites',
 		component: page(() => import('@/pages/admin/invites.vue')),
@@ -575,21 +597,6 @@ export const ROUTE_DEF = [{
 	component: page(() => import('@/pages/my-antennas/index.vue')),
 	loginRequired: true,
 }, {
-	path: '/my/messaging',
-	name: 'messaging',
-	component: page(() => import('@/pages/messaging/index.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/messaging/@:userAcct',
-	name: 'messaging-room',
-	component: page(() => import('@/pages/messaging/messaging-room.vue')),
-	loginRequired: true,
-}, {
-	path: '/my/messaging/group/:groupId',
-	name: 'messaging-room-group',
-	component: page(() => import('@/pages/messaging/messaging-room.vue')),
-	loginRequired: true,
-}, {
 	path: '/my/groups',
 	component: page(() => import('@/pages/my-groups/index.vue')),
 	loginRequired: true,
@@ -626,6 +633,10 @@ export const ROUTE_DEF = [{
 	component: page(() => import('@/pages/reversi/game.vue')),
 	loginRequired: false,
 }, {
+	path: '/qr',
+	component: page(() => import('@/pages/qr.vue')),
+	loginRequired: true,
+}, {
 	path: '/debug',
 	component: page(() => import('@/pages/debug.vue')),
 	loginRequired: false,
@@ -643,4 +654,4 @@ export const ROUTE_DEF = [{
 }, {
 	path: '/:(*)',
 	component: page(() => import('@/pages/not-found.vue')),
-}] satisfies RouteDef[];
+}] as const satisfies RouteDef[];

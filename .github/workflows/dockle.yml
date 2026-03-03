@@ -17,7 +17,6 @@ jobs:
 
     steps:
       - uses: actions/checkout@v4.3.0
-
       - name: Download and install dockle v${{ env.DOCKLE_VERSION }}
         run: |
           curl -L -o dockle.deb "https://github.com/goodwithtech/dockle/releases/download/v${DOCKLE_VERSION}/dockle_${DOCKLE_VERSION}_Linux-64bit.deb"

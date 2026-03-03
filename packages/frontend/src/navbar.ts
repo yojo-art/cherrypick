@@ -32,13 +32,6 @@ export const navbarItemDef = reactive({
 		}),
 		to: '/my/notifications',
 	},
-	messaging: {
-		title: i18n.ts.messaging,
-		icon: 'ti ti-messages',
-		show: computed(() => $i != null),
-		indicated: computed(() => $i != null && $i.hasUnreadMessagingMessage),
-		to: '/my/messaging',
-	},
 	drive: {
 		title: i18n.ts.drive,
 		icon: 'ti ti-cloud',
@@ -73,6 +66,12 @@ export const navbarItemDef = reactive({
 		action: (ev) => {
 			lookup();
 		},
+	},
+	qr: {
+		title: i18n.ts.qr,
+		icon: 'ti ti-qrcode',
+		show: computed(() => $i != null),
+		to: '/qr',
 	},
 	lists: {
 		title: i18n.ts.lists,
@@ -124,6 +123,13 @@ export const navbarItemDef = reactive({
 		icon: 'ti ti-paperclip',
 		show: computed(() => $i != null),
 		to: '/my/clips',
+	},
+	chat: {
+		title: i18n.ts.directMessage_short,
+		icon: 'ti ti-messages',
+		to: '/chat',
+		show: computed(() => $i != null && $i.policies.chatAvailability !== 'unavailable'),
+		indicated: computed(() => $i?.hasUnreadChatMessages),
 	},
 	achievements: {
 		title: i18n.ts.achievements,

@@ -12,15 +12,17 @@
  * quote - 投稿が引用Renoteされた
  * reaction - 投稿にリアクションされた
  * pollEnded - 自分のアンケートもしくは自分が投票したアンケートが終了した
+ * scheduledNotePosted - 予約したノートが投稿された
+ * scheduledNotePostFailed - 予約したノートの投稿に失敗した
  * receiveFollowRequest - フォローリクエストされた
  * followRequestAccepted - 自分の送ったフォローリクエストが承認された
  * groupInvited - グループに招待された
  * roleAssigned - ロールが付与された
+ * chatRoomInvitationReceived - チャットルームに招待された
  * achievementEarned - 実績を獲得
  * exportCompleted - エクスポートが完了
  * login - ログイン
  * createToken - トークン作成
- * scheduleNote - 予約掲示ができなかった
  * app - アプリ通知
  * test - テスト通知（サーバー側）
  */
@@ -33,15 +35,17 @@ export const notificationTypes = [
 	'quote',
 	'reaction',
 	'pollEnded',
+	'scheduledNotePosted',
+	'scheduledNotePostFailed',
 	'receiveFollowRequest',
 	'followRequestAccepted',
 	'groupInvited',
 	'roleAssigned',
+	'chatRoomInvitationReceived',
 	'achievementEarned',
 	'exportCompleted',
 	'login',
 	'createToken',
-	'scheduleNote',
 	'app',
 	'test',
 ] as const;
@@ -130,6 +134,7 @@ export const moderationLogTypes = [
 	'deletePage',
 	'deleteFlash',
 	'deleteGalleryPost',
+	'deleteChatRoom',
 	'updateProxyAccountDescription',
 	'updateOfficialTags',
 	'unsetUserMutualLink',
@@ -386,6 +391,10 @@ export type ModerationLogPayloads = {
 		postUserId: string;
 		postUserUsername: string;
 		post: any;
+	};
+	deleteChatRoom: {
+		roomId: string;
+		room: any;
 	};
 	updateProxyAccountDescription: {
 		before: string | null;

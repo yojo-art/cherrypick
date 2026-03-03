@@ -11,7 +11,6 @@ import type { NotificationService } from '@/core/NotificationService.js';
 import { bindThis } from '@/decorators.js';
 import { CacheService } from '@/core/CacheService.js';
 import { MiFollowing, MiUserProfile } from '@/models/_.js';
-import type { MiUserGroup } from '@/models/UserGroup.js';
 import type { StreamEventEmitter, GlobalEvents } from '@/core/GlobalEventService.js';
 import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
 import { isJsonObject } from '@/misc/json-value.js';
@@ -33,7 +32,6 @@ export default class Connection {
 	public subscriber: StreamEventEmitter;
 	private channels: Channel[] = [];
 	private subscribingNotes: Partial<Record<string, number>> = {};
-	private cachedNotes: Packed<'Note'>[] = [];
 	public userProfile: MiUserProfile | null = null;
 	public following: Record<string, Pick<MiFollowing, 'withReplies'> | undefined> = {};
 	public followingChannels: Set<string> = new Set();
@@ -125,42 +123,12 @@ export default class Connection {
 			case 'disconnect': this.onChannelDisconnectRequested(body); break;
 			case 'channel': this.onChannelMessageRequested(body); break;
 			case 'ch': this.onChannelMessageRequested(body); break; // alias
-
-			// 個々のチャンネルではなくルートレベルでこれらのメッセージを受け取る理由は、
-			// クライアントの事情を考慮したとき、入力フォームはノートチャンネルやメッセージのメインコンポーネントとは別
-			// なこともあるため、それらのコンポーネントがそれぞれ各チャンネルに接続するようにするのは面倒なため。
-			case 'typingOnMessaging':{
-				if (body && typeof(body) === 'object' && !Array.isArray(body)) {
-					this.typingOnMessaging(body);
-				}
-				break;
-			}
 		}
 	}
 
 	@bindThis
 	private onBroadcastMessage(data: GlobalEvents['broadcast']['payload']) {
 		this.sendMessageToWs(data.type, data.body);
-	}
-
-	@bindThis
-	public cacheNote(note: Packed<'Note'>) {
-		const add = (note: Packed<'Note'>) => {
-			const existIndex = this.cachedNotes.findIndex(n => n.id === note.id);
-			if (existIndex > -1) {
-				this.cachedNotes[existIndex] = note;
-				return;
-			}
-
-			this.cachedNotes.unshift(note);
-			if (this.cachedNotes.length > 32) {
-				this.cachedNotes.splice(32);
-			}
-		};
-
-		add(note);
-		if (note.reply) add(note.reply);
-		if (note.renote) add(note.renote);
 	}
 
 	@bindThis
@@ -312,19 +280,6 @@ export default class Connection {
 		const channel = this.channels.find(c => c.id === data.id);
 		if (channel != null && channel.onMessage != null) {
 			channel.onMessage(data.type, data.body);
-		}
-	}
-
-	@bindThis
-	private typingOnMessaging(data: JsonValue | undefined) {
-		if (!data) return;
-		const param = data as { partner?: MiUser['id']; group?: MiUserGroup['id']; };
-		if (this.user) {
-			if (param.partner) {
-				// this.globalEventService.publishMessagingStream(param.partner, this.user.id, 'typing', this.user.id);
-			} else if (param.group) {
-				// this.globalEventService.publishGroupMessagingStream(param.group, 'typing', this.user.id);
-			}
 		}
 	}
 

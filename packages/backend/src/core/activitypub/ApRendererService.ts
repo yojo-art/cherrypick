@@ -18,7 +18,6 @@ import type { MiNoteReaction } from '@/models/NoteReaction.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import type { MiPoll } from '@/models/Poll.js';
 import type { MiPollVote } from '@/models/PollVote.js';
-import type { MiMessagingMessage } from '@/models/MessagingMessage.js';
 import { UserKeypairService } from '@/core/UserKeypairService.js';
 import { MfmService, type Appender } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
@@ -29,6 +28,7 @@ import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { RoleService } from '@/core/RoleService.js';
 import { searchableTypes } from '@/types.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
@@ -72,6 +72,7 @@ export class ApRendererService {
 		private mfmService: MfmService,
 		private idService: IdService,
 		private utilityService: UtilityService,
+		private roleService: RoleService,
 	) {
 	}
 
@@ -81,6 +82,16 @@ export class ApRendererService {
 			type: 'Accept',
 			actor: this.userEntityService.genLocalUserUri(user.id),
 			object,
+		};
+	}
+
+	@bindThis
+	public renderInvite(object: string | IObject, target: string, user: { id: MiUser['id']; host: null }): IInvite {
+		return {
+			type: 'Invite',
+			actor: this.userEntityService.genLocalUserUri(user.id),
+			object,
+			target,
 		};
 	}
 
@@ -398,7 +409,7 @@ export class ApRendererService {
 		return rendered;
 	}
 	@bindThis
-	public async renderNote(note: MiNote, dive = true, isTalk = false): Promise<IPost> {
+	public async renderNote(note: MiNote, dive = true): Promise<IPost> {
 		const getPromisedFiles = async (ids: string[]): Promise<MiDriveFile[]> => {
 			if (ids.length === 0) return [];
 			const items = await this.driveFilesRepository.findBy({ id: In(ids) });
@@ -533,15 +544,10 @@ export class ApRendererService {
 			})),
 		} as const : {};
 
-		const asTalk = isTalk ? {
-			_misskey_talk: true,
-		} as const : {};
-
 		let asEvent = {};
 		if (note.hasEvent) {
 			const event = await this.eventsRepository.findOneBy({ noteId: note.id });
 			asEvent = event ? {
-				type: 'Event',
 				name: event.title,
 				startTime: event.start,
 				endTime: event.end,
@@ -585,7 +591,6 @@ export class ApRendererService {
 			...asDeleteAt,
 			...asEvent,
 			...asPoll,
-			...asTalk,
 		};
 	}
 
@@ -594,10 +599,11 @@ export class ApRendererService {
 		const id = this.userEntityService.genLocalUserUri(user.id);
 		const isSystem = user.username.includes('.');
 
-		const [avatar, banner, profile] = await Promise.all([
+		const [avatar, banner, profile, policies] = await Promise.all([
 			user.avatarId ? this.driveFilesRepository.findOneBy({ id: user.avatarId }) : undefined,
 			user.bannerId ? this.driveFilesRepository.findOneBy({ id: user.bannerId }) : undefined,
 			this.userProfilesRepository.findOneByOrFail({ userId: user.id }),
+			this.roleService.getUserPolicies(user.id),
 		]);
 
 		const tryRewriteUrl = (maybeUrl: string) => {
@@ -673,6 +679,7 @@ export class ApRendererService {
 			_misskey_requireSigninToViewContents: user.requireSigninToViewContents,
 			_misskey_makeNotesFollowersOnlyBefore: user.makeNotesFollowersOnlyBefore,
 			_misskey_makeNotesHiddenBefore: user.makeNotesHiddenBefore,
+			_misskey_canChat: policies.chatAvailability !== 'unavailable',
 			icon: avatar ? this.renderImage(avatar) : isSystem ? this.renderSystemAvatar(user) : this.renderIdenticon(user),
 			image: banner ? this.renderImage(banner) : isSystem ? this.renderSystemBanner() : null,
 			tag,
@@ -741,15 +748,6 @@ export class ApRendererService {
 					totalItems: poll.votes[i],
 				},
 			})),
-		};
-	}
-
-	@bindThis
-	public renderRead(user: { id: MiUser['id'] }, message: MiMessagingMessage): IRead {
-		return {
-			type: 'Read',
-			actor: `${this.config.url}/users/${user.id}`,
-			object: message.uri!,
 		};
 	}
 
@@ -900,6 +898,75 @@ export class ApRendererService {
 		const emojis = names.map(name => allEmojis.get(name)).filter(x => x != null);
 
 		return emojis;
+	}
+
+	/**
+	 * Renders a chat message as an ActivityPub Note with `_misskey_talk` flag
+	 * Compatible with legacy Misskey chat federation
+	 */
+	@bindThis
+	public async renderChatMessage(message: any, fromUser: MiUser, toUsers: MiUser[], roomId?: string): Promise<IPost> {
+		const attributedTo = this.userEntityService.genLocalUserUri(fromUser.id);
+
+		// Render recipients
+		const to: string[] = toUsers.map(user =>
+			this.userEntityService.isRemoteUser(user)
+				? user.uri!
+				: this.userEntityService.genLocalUserUri(user.id),
+		);
+
+		// Get file if attached
+		let attachment: IApDocument | undefined;
+		if (message.fileId) {
+			const file = await this.driveFilesRepository.findOneBy({ id: message.fileId });
+			if (file) {
+				attachment = this.renderDocument(file);
+			}
+		}
+
+		// Get emojis
+		const emojis = message.emojis && message.emojis.length > 0 ? await this.getEmojis(message.emojis) : [];
+		const apemojis = emojis.filter(emoji => !emoji.localOnly).map(emoji => this.renderEmoji(emoji));
+
+		const note: IPost = {
+			id: message.uri ?? `${this.config.url}/chat/messages/${message.id}`,
+			type: 'Note',
+			attributedTo,
+			content: message.text ?? '',
+			to,
+			published: this.idService.parse(message.id).date.toISOString(),
+			_misskey_talk: true, // Legacy Misskey chat
+		};
+
+		// Add context for group chat
+		if (roomId) {
+			note['@context'] = `${this.config.url}/chat/rooms/${roomId}`;
+		}
+
+		if (attachment) {
+			note.attachment = [attachment];
+		}
+
+		if (apemojis.length > 0) {
+			note.tag = apemojis;
+		}
+
+		return note;
+	}
+
+	@bindThis
+	public renderChatRoom(room: any, owner: MiUser): IObject {
+		const ownerUri = this.userEntityService.isLocalUser(owner)
+			? this.userEntityService.genLocalUserUri(owner.id)
+			: owner.uri;
+
+		return {
+			type: 'Group',
+			id: `${this.config.url}/chat/rooms/${room.id}`,
+			name: room.name,
+			summary: room.description || undefined,
+			attributedTo: ownerUri || undefined,
+		};
 	}
 
 	@bindThis

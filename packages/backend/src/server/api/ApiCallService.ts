@@ -280,6 +280,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			let hostNames: string[] | undefined = undefined;
+
 			try {
 				const names = await dns.promises.reverse(ip);
 				hostNames = names.map(x =>
@@ -289,7 +290,7 @@ export class ApiCallService implements OnApplicationShutdown {
 			}
 
 			try {
-				this.userIpsRepository.createQueryBuilder().insert().values({
+				await this.userIpsRepository.createQueryBuilder().insert().values({
 					createdAt: new Date(),
 					userId: user.id,
 					ip: ip,
@@ -339,19 +340,15 @@ export class ApiCallService implements OnApplicationShutdown {
 
 			if (factor > 0) {
 				// Rate limit
-				await this.rateLimiterService.limit(limit as IEndpointMeta['limit'] & { key: NonNullable<string> }, limitActor, factor).catch(err => {
-					if ('info' in err) {
-						// errはLimiter.LimiterInfoであることが期待される
-						throw new ApiError({
-							message: 'Rate limit exceeded. Please try again later.',
-							code: 'RATE_LIMIT_EXCEEDED',
-							id: 'd5826d14-3982-4d2e-8011-b9e9f02499ef',
-							httpStatusCode: 429,
-						}, err.info);
-					} else {
-						throw new TypeError('information must be a rate-limiter information.');
-					}
-				});
+				const rateLimit = await this.rateLimiterService.limit(limit as IEndpointMeta['limit'] & { key: NonNullable<string> }, limitActor, factor);
+				if (rateLimit != null) {
+					throw new ApiError({
+						message: 'Rate limit exceeded. Please try again later.',
+						code: 'RATE_LIMIT_EXCEEDED',
+						id: 'd5826d14-3982-4d2e-8011-b9e9f02499ef',
+						httpStatusCode: 429,
+					}, rateLimit.info);
+				}
 			}
 		}
 

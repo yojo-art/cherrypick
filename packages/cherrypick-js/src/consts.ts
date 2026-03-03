@@ -14,9 +14,33 @@ import type {
 	ReversiGameDetailed,
 	SystemWebhook,
 	UserLite,
+	ChatRoom,
 } from './autogen/models.js';
 
-export const notificationTypes = ['note', 'follow', 'mention', 'reply', 'renote', 'quote', 'reaction', 'pollVote', 'pollEnded', 'receiveFollowRequest', 'followRequestAccepted', 'groupInvited', 'app', 'roleAssigned', 'achievementEarned', 'scheduleNote'] as const;
+export const notificationTypes = [
+	'note',
+	'follow',
+	'mention',
+	'reply',
+	'renote',
+	'quote',
+	'reaction',
+	'pollEnded',
+	'scheduledNotePosted',
+	'scheduledNotePostFailed',
+	'receiveFollowRequest',
+	'followRequestAccepted',
+	'groupInvited',
+	'app',
+	'roleAssigned',
+	'chatRoomInvitationReceived',
+	'achievementEarned',
+	'exportCompleted',
+	'test',
+	'login',
+	'createToken',
+	'pollVote',
+] as const;
 
 export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as const;
 
@@ -44,8 +68,6 @@ export const permissions = [
 	'read:mutes',
 	'write:mutes',
 	'write:notes',
-	'read:notes-schedule',
-	'write:notes-schedule',
 	'read:notifications',
 	'write:notifications',
 	'read:reactions',
@@ -112,6 +134,8 @@ export const permissions = [
 	'read:clip-favorite',
 	'read:federation',
 	'write:report-abuse',
+	'write:chat',
+	'read:chat',
 	'write:admin:official-tags',
 	'write:admin:reindex',
 ] as const;
@@ -167,8 +191,71 @@ export const moderationLogTypes = [
 	'deletePage',
 	'deleteFlash',
 	'deleteGalleryPost',
-	'quarantineRemoteInstance',
+	'deleteChatRoom',
 	'unquarantineRemoteInstance',
+	'updateProxyAccountDescription',
+	'quarantineRemoteInstance',
+] as const;
+
+export const rolePolicies = [
+	'gtlAvailable',
+	'ltlAvailable',
+	'btlAvailable',
+	'canPublicNote',
+	'canEditNote',
+	'mentionLimit',
+	'canInvite',
+	'inviteLimit',
+	'inviteLimitCycle',
+	'inviteExpirationTime',
+	'canManageCustomEmojis',
+	'canManageAvatarDecorations',
+	'canSearchNotes',
+	'canSearchUsers',
+	'canUseTranslator',
+	'canUseAutoTranslate',
+	'canHideAds',
+	'driveCapacityMb',
+	'maxFileSizeMb',
+	'alwaysMarkNsfw',
+	'canUpdateBioMedia',
+	'pinLimit',
+	'antennaLimit',
+	'wordMuteLimit',
+	'webhookLimit',
+	'clipLimit',
+	'noteEachClipsLimit',
+	'userListLimit',
+	'userEachUserListsLimit',
+	'rateLimitFactor',
+	'avatarDecorationLimit',
+	'canImportAntennas',
+	'canImportBlocking',
+	'canImportFollowing',
+	'canImportMuting',
+	'canImportUserLists',
+	'chatAvailability',
+	'uploadableFileTypes',
+	'noteDraftLimit',
+	'scheduledNoteLimit',
+	'watermarkAvailable',
+	'canSetFederationAvatarShape',
+	'canAdvancedSearchNotes',
+	'mutualLinkSectionLimit',
+	'mutualLinkLimit',
+] as const;
+
+export const queueTypes = [
+	'system',
+	'endedPollNotification',
+	'postScheduledNote',
+	'deliver',
+	'inbox',
+	'db',
+	'relationship',
+	'objectStorage',
+	'userWebhookDeliver',
+	'systemWebhookDeliver',
 ] as const;
 
 // See: packages/backend/src/core/ReversiService.ts@L410
@@ -183,7 +270,17 @@ export const reversiUpdateKeys = [
 
 export type ReversiUpdateKey = typeof reversiUpdateKeys[number];
 
-type AvatarDecoration = UserLite['avatarDecorations'][number];
+type AvatarDecoration = {
+	id: string;
+	name: string;
+	url: string;
+	angle?: number;
+	flipH?: boolean;
+	offsetX?: number;
+	offsetY?: number;
+	scale?: number;
+	opacity?: number;
+};
 
 type ReceivedAbuseReport = {
 	reportId: AbuseReportNotificationRecipient['id'];
@@ -441,6 +538,14 @@ export type ModerationLogPayloads = {
 		postUserUsername: string;
 		post: GalleryPost;
 	};
+	deleteChatRoom: {
+		roomId: string;
+		room: ChatRoom;
+	};
+	updateProxyAccountDescription: {
+		before: string | null;
+		after: string | null;
+	}
 	quarantineRemoteInstance: {
 		id: string;
 		host: string;

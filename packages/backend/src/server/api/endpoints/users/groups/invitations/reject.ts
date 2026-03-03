@@ -6,8 +6,8 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserGroupInvitationsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import { NotificationService } from '@/core/NotificationService.js';
 import { DI } from '@/di-symbols.js';
+import { NotificationService } from '@/core/NotificationService.js';
 import { ApiError } from '../../../../error.js';
 
 export const meta = {

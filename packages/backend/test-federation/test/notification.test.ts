@@ -104,4 +104,35 @@ describe('Notification', () => {
 			);
 		});
 	});
+
+	describe('Note Antenna Notification', () => {
+		let aliceAntenna: Misskey.entities.Antenna;
+
+		test('Get notification when antenna matches', async () => {
+			const text = 'My name is Alice';
+			aliceAntenna = await alice.client.request('antennas/create', {
+				name: 'Alice\'s Egosurfing Antenna',
+				src: 'all',
+				keywords: [['Alice']],
+				excludeKeywords: [],
+				users: [],
+				caseSensitive: false,
+				localOnly: false,
+				withReplies: true,
+				withFile: false,
+				notify: true,
+			});
+			await sleep();
+			await assertNotificationReceived(
+				'a.test', alice,
+				async () =>	await alice.client.request('notes/create', { text }),
+				notification => notification.type === 'note' && notification.note.userId === alice.id && notification.note.text === text,
+				true,
+			);
+		});
+
+		afterAll(async () => {
+			await alice.client.request('antennas/delete', { antennaId: aliceAntenna.id });
+		});
+	});
 });

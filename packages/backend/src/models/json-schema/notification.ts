@@ -214,6 +214,36 @@ export const packedNotificationSchema = {
 			type: {
 				type: 'string',
 				optional: false, nullable: false,
+				enum: ['scheduledNotePosted'],
+			},
+			note: {
+				type: 'object',
+				ref: 'Note',
+				optional: false, nullable: false,
+			},
+		},
+	}, {
+		type: 'object',
+		properties: {
+			...baseSchema.properties,
+			type: {
+				type: 'string',
+				optional: false, nullable: false,
+				enum: ['scheduledNotePostFailed'],
+			},
+			noteDraft: {
+				type: 'object',
+				ref: 'NoteDraft',
+				optional: false, nullable: false,
+			},
+		},
+	}, {
+		type: 'object',
+		properties: {
+			...baseSchema.properties,
+			type: {
+				type: 'string',
+				optional: false, nullable: false,
 				enum: ['follow'],
 			},
 			user: {
@@ -293,6 +323,21 @@ export const packedNotificationSchema = {
 			type: {
 				type: 'string',
 				optional: false, nullable: false,
+				enum: ['chatRoomInvitationReceived'],
+			},
+			invitation: {
+				type: 'object',
+				ref: 'ChatRoomInvitation',
+				optional: false, nullable: false,
+			},
+		},
+	}, {
+		type: 'object',
+		properties: {
+			...baseSchema.properties,
+			type: {
+				type: 'string',
+				optional: false, nullable: false,
 				enum: ['achievementEarned'],
 			},
 			achievement: {
@@ -341,20 +386,6 @@ export const packedNotificationSchema = {
 				type: 'string',
 				optional: false, nullable: false,
 				enum: ['createToken'],
-			},
-		},
-	}, {
-		type: 'object',
-		properties: {
-			...baseSchema.properties,
-			type: {
-				type: 'string',
-				optional: false, nullable: false,
-				enum: ['scheduleNote'],
-			},
-			errorType: {
-				type: 'string',
-				optional: false, nullable: false,
 			},
 		},
 	}, {
@@ -448,9 +479,10 @@ export const packedNotificationSchema = {
 			},
 			noteIds: {
 				type: 'array',
+				optional: false, nullable: false,
 				items: {
 					type: 'string',
-					optional: false, nullable: false,
+					optional: true, nullable: true,
 				},
 			},
 			users: {

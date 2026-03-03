@@ -8,7 +8,7 @@ import * as Misskey from 'cherrypick-js';
 import type { PushNotificationDataMap } from '@/types.js';
 import type { I18n } from '@@/js/i18n.js';
 import type { Locale } from '../../../locales/index.js';
-import { createEmptyNotification } from '@/scripts/create-notification.js';
+import { createEmptyNotification, createNotification } from '@/scripts/create-notification.js';
 import { swLang } from '@/scripts/lang.js';
 import * as swos from '@/scripts/operations.js';
 
@@ -36,7 +36,7 @@ async function offlineContentHTML() {
 		reload: i18n.ts?.reload ?? 'Reload',
 	};
 
-	return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta content="width=device-width,initial-scale=1" name="viewport"><title>${messages.title}</title><style>body{background-color:rgb(238, 241, 252);color:rgb(87, 112, 150);font-family:Hiragino Maru Gothic Pro,BIZ UDGothic,Roboto,HelveticaNeue,Arial,sans-serif;line-height:1.35;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px;box-sizing:border-box}.icon{max-width:120px;width:100%;height:auto;margin-bottom:20px;}.message{text-align:center;font-size:20px;font-weight:700;margin-bottom:20px}.version{text-align:center;font-size:90%;margin-bottom:20px}button{padding:7px 14px;min-width:100px;font-weight:700;font-family:Hiragino Maru Gothic Pro,BIZ UDGothic,Roboto,HelveticaNeue,Arial,sans-serif;line-height:1.35;border-radius:99rem;background-color:rgb(107, 165, 227);color:rgb(255, 255, 255);border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}button:hover{background-color:rgb(150, 191, 235)}</style></head><body><svg class="icon"fill="none"height="24"stroke="currentColor"stroke-linecap="round"stroke-linejoin="round"stroke-width="2"viewBox="0 0 24 24"width="24"xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z"fill="none"stroke="none"/><path d="M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62"/><path d="M3 3l18 18"/></svg><div class="message">${messages.header}</div><div class="version">v${_VERSION_}_${_BASEDCHERRYPICKVERSION_}_${_BASEDMISSKEYVERSION_}</div><button onclick="reloadPage()">${messages.reload}</button><script>function reloadPage(){location.reload(!0)}</script></body></html>`;
+	return `<!DOCTYPE html><html lang="ja"><head><meta charset="UTF-8"><meta content="width=device-width,initial-scale=1" name="viewport"><title>${messages.title}</title><style>body{background-color:rgb(238, 241, 252);color:rgb(87, 112, 150);font-family:Hiragino Maru Gothic Pro,BIZ UDGothic,Roboto,HelveticaNeue,Arial,sans-serif;line-height:1.35;display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;margin:0;padding:24px;box-sizing:border-box}.icon{max-width:120px;width:100%;height:auto;margin-bottom:20px;}.message{text-align:center;font-size:20px;font-weight:700;margin-bottom:20px}.version{text-align:center;font-size:90%;margin-bottom:20px}button{padding:7px 14px;min-width:100px;font-weight:700;font-family:Hiragino Maru Gothic Pro,BIZ UDGothic,Roboto,HelveticaNeue,Arial,sans-serif;line-height:1.35;border-radius:99rem;background-color:rgb(107, 165, 227);color:rgb(255, 255, 255);border:none;cursor:pointer;-webkit-tap-highlight-color:transparent}button:hover{background-color:rgb(150, 191, 235)}</style></head><body><svg class="icon"fill="none"height="24"stroke="currentColor"stroke-linecap="round"stroke-linejoin="round"stroke-width="2"viewBox="0 0 24 24"width="24"xmlns="http://www.w3.org/2000/svg"><path d="M0 0h24v24H0z"fill="none"stroke="none"/><path d="M9.58 5.548c.24 -.11 .492 -.207 .752 -.286c1.88 -.572 3.956 -.193 5.444 1c1.488 1.19 2.162 3.007 1.77 4.769h.99c1.913 0 3.464 1.56 3.464 3.486c0 .957 -.383 1.824 -1.003 2.454m-2.997 1.033h-11.343c-2.572 -.004 -4.657 -2.011 -4.657 -4.487c0 -2.475 2.085 -4.482 4.657 -4.482c.13 -.582 .37 -1.128 .7 -1.62"/><path d="M3 3l18 18"/></svg><div class="message">${messages.header}</div><div class="version">v${_VERSION_}<br><span style="font-size: 80%;">${_BASEDCHERRYPICKVERSION_}</span><br><span style="font-size: 80%;">${_BASEDMISSKEYVERSION_}</span></div><button onclick="reloadPage()">${messages.reload}</button><script>function reloadPage(){location.reload(!0)}</script></body></html>`;
 }
 
 globalThis.addEventListener('fetch', ev => {
@@ -75,27 +75,15 @@ globalThis.addEventListener('push', ev => {
 		switch (data.type) {
 			// case 'driveFileCreated':
 			case 'notification':
-			case 'unreadMessagingMessage':
 			case 'unreadAntennaNote':
+			case 'newChatMessage':
+				// 1日以上経過している場合は無視
+				if (Date.now() - data.dateTime > 1000 * 60 * 60 * 24) break;
+
+				return createNotification(data);
 			case 'readAllNotifications':
 				await globalThis.registration.getNotifications()
 					.then(notifications => notifications.forEach(n => n.tag !== 'read_notification' && n.close()));
-				break;
-			case 'readAllMessagingMessages':
-				for (const n of await globalThis.registration.getNotifications()) {
-					if (n.data?.type === 'unreadMessagingMessage') n.close();
-				}
-				break;
-			case 'readAllMessagingMessagesOfARoom':
-				for (const n of await globalThis.registration.getNotifications()) {
-					if (n.data?.type === 'unreadMessagingMessage'
-						&& ('userId' in data.body
-							? data.body.userId === n.data.body.userId
-							: data.body.groupId === n.data.body.groupId)
-					) {
-						n.close();
-					}
-				}
 				break;
 		}
 
@@ -138,6 +126,9 @@ globalThis.addEventListener('notificationclick', (ev: ServiceWorkerGlobalScopeEv
 							case 'groupInvited':
 								await swos.api('users/groups/invitations/accept', loginId, { invitationId: data.body.invitation.id });
 								break;
+							case 'chatRoomInvitationReceived':
+								await swos.api('chat/rooms/join', loginId, { roomId: data.body.invitation.roomId });
+								break;
 						}
 						break;
 					case 'reject':
@@ -147,6 +138,16 @@ globalThis.addEventListener('notificationclick', (ev: ServiceWorkerGlobalScopeEv
 								break;
 							case 'groupInvited':
 								await swos.api('users/groups/invitations/reject', loginId, { invitationId: data.body.invitation.id });
+								break;
+							case 'chatRoomInvitationReceived':
+								await swos.api('chat/rooms/invitations/reject', loginId, { roomId: data.body.invitation.roomId });
+								break;
+						}
+						break;
+					case 'ignore':
+						switch (data.body.type) {
+							case 'chatRoomInvitationReceived':
+								await swos.api('chat/rooms/invitations/ignore', loginId, { roomId: data.body.invitation.roomId });
 								break;
 						}
 						break;
@@ -164,6 +165,9 @@ globalThis.addEventListener('notificationclick', (ev: ServiceWorkerGlobalScopeEv
 							case 'reaction':
 								client = await swos.openNote(data.body.note.id, loginId);
 								break;
+							case 'chatRoomInvitationReceived':
+								client = await swos.openClient('push', '/chat', loginId);
+								break;
 							default:
 								if ('note' in data.body) {
 									client = await swos.openNote(data.body.note.id, loginId);
@@ -174,11 +178,11 @@ globalThis.addEventListener('notificationclick', (ev: ServiceWorkerGlobalScopeEv
 						}
 				}
 				break;
-			case 'unreadMessagingMessage':
-				client = await swos.openChat(data.body, loginId);
-				break;
 			case 'unreadAntennaNote':
 				client = await swos.openAntenna(data.body.antenna.id, loginId);
+				break;
+			case 'newChatMessage':
+				client = await swos.openChat(data.body, loginId);
 				break;
 			default:
 				switch (action) {

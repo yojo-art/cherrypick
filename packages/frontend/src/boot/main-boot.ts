@@ -11,7 +11,7 @@ import { common } from './common.js';
 import type { Component } from 'vue';
 import type { Keymap } from '@/utility/hotkey.js';
 import { i18n } from '@/i18n.js';
-import { alert, confirm, popup, post, welcomeToast } from '@/os.js';
+import { alert, confirm, popup, post, toast } from '@/os.js';
 import { useStream } from '@/stream.js';
 import * as sound from '@/utility/sound.js';
 import { $i } from '@/i.js';
@@ -26,14 +26,12 @@ import { mainRouter } from '@/router.js';
 import { makeHotkey } from '@/utility/hotkey.js';
 import { addCustomEmoji, removeCustomEmojis, updateCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
-import { launchPlugins } from '@/plugin.js';
 import { updateCurrentAccountPartial } from '@/accounts.js';
-import { signout } from '@/signout.js';
 import { migrateOldSettings } from '@/pref-migrate.js';
+import { unisonReload } from '@/utility/unison-reload.js';
 import { userName } from '@/filters/user.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import * as os from '@/os.js';
-import { vibrate } from '@/utility/vibrate.js';
 
 export async function mainBoot() {
 	const { isClientUpdated, isClientMigrated, lastVersion } = await common(async () => {
@@ -79,7 +77,7 @@ export async function mainBoot() {
 
 		// prefereces migration
 		// TODO: そのうち消す
-		if (lastVersion && (compareVersions('1.5.2', lastVersion) === 1)) {
+		if (lastVersion && (compareVersions('4.16.0-alpha.0', lastVersion) === 1)) {
 			console.log('Preferences migration');
 
 			migrateOldSettings();
@@ -93,41 +91,6 @@ export async function mainBoot() {
 			closed: () => dispose(),
 		});
 	}
-
-	const stream = useStream();
-
-	let reloadDialogShowing = false;
-	stream.on('_disconnected_', async () => {
-		if (prefer.s.serverDisconnectedBehavior === 'reload') {
-			window.location.reload();
-		} else if (prefer.s.serverDisconnectedBehavior === 'dialog') {
-			if (reloadDialogShowing) return;
-			reloadDialogShowing = true;
-			const { canceled } = await confirm({
-				type: 'warning',
-				title: i18n.ts.disconnectedFromServer,
-				text: i18n.ts.reloadConfirm,
-			});
-			reloadDialogShowing = false;
-			if (!canceled) {
-				window.location.reload();
-			}
-		}
-	});
-
-	stream.on('emojiAdded', emojiData => {
-		addCustomEmoji(emojiData.emoji);
-	});
-
-	stream.on('emojiUpdated', emojiData => {
-		updateCustomEmojis(emojiData.emojis);
-	});
-
-	stream.on('emojiDeleted', emojiData => {
-		removeCustomEmojis(emojiData.emojis);
-	});
-
-	launchPlugins();
 
 	try {
 		if (prefer.s.enableSeasonalScreenEffect) {
@@ -183,8 +146,6 @@ export async function mainBoot() {
 				});
 			}
 		}
-
-		stream.on('announcementCreated', onAnnouncementCreated);
 
 		if ($i.isDeleted) {
 			alert({
@@ -331,9 +292,9 @@ export async function mainBoot() {
 			const lastUsedDate = parseInt(lastUsed, 10);
 			// 二時間以上前なら
 			if (prefer.s.welcomeBackToast && Date.now() - lastUsedDate > 1000 * 60 * 60 * 2) {
-				welcomeToast(i18n.tsx.welcomeBackWithName({
+				toast(i18n.tsx.welcomeBackWithName({
 					name: userName($i),
-				}));
+				}), undefined, true);
 			}
 		}
 		miLocalStorage.setItem('lastUsed', Date.now().toString());
@@ -362,19 +323,55 @@ export async function mainBoot() {
 			}
 		}
 
-		const main = markRaw(stream.useChannel('main', null, 'System'));
+		if (store.s.realtimeMode) {
+			const stream = useStream();
 
-		// 自分の情報が更新されたとき
-		main.on('meUpdated', i => {
-			updateCurrentAccountPartial(i);
-		});
-
-		main.on('readAllNotifications', () => {
-			updateCurrentAccountPartial({
-				hasUnreadNotification: false,
-				unreadNotificationsCount: 0,
+			let reloadDialogShowing = false;
+			stream.on('_disconnected_', async () => {
+				if (prefer.s.serverDisconnectedBehavior === 'reload') {
+					window.location.reload();
+				} else if (prefer.s.serverDisconnectedBehavior === 'dialog') {
+					if (reloadDialogShowing) return;
+					reloadDialogShowing = true;
+					const { canceled } = await confirm({
+						type: 'warning',
+						title: i18n.ts.disconnectedFromServer,
+						text: i18n.ts.reloadConfirm,
+					});
+					reloadDialogShowing = false;
+					if (!canceled) {
+						window.location.reload();
+					}
+				}
 			});
-		});
+
+			stream.on('emojiAdded', emojiData => {
+				addCustomEmoji(emojiData.emoji);
+			});
+
+			stream.on('emojiUpdated', emojiData => {
+				updateCustomEmojis(emojiData.emojis);
+			});
+
+			stream.on('emojiDeleted', emojiData => {
+				removeCustomEmojis(emojiData.emojis);
+			});
+
+			stream.on('announcementCreated', onAnnouncementCreated);
+
+			const main = markRaw(stream.useChannel('main', null, 'System'));
+
+			// 自分の情報が更新されたとき
+			main.on('meUpdated', i => {
+				updateCurrentAccountPartial(i);
+			});
+
+			main.on('readAllNotifications', () => {
+				updateCurrentAccountPartial({
+					hasUnreadNotification: false,
+					unreadNotificationsCount: 0,
+				});
+			});
 
 		main.on('unreadNotification', () => {
 			const unreadNotificationsCount = ($i?.unreadNotificationsCount ?? 0) + 1;
@@ -400,16 +397,6 @@ export async function mainBoot() {
 			updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: false });
 		});
 
-		main.on('readAllMessagingMessages', () => {
-			updateCurrentAccountPartial({ hasUnreadMessagingMessage: false });
-		});
-
-		main.on('unreadMessagingMessage', () => {
-			updateCurrentAccountPartial({ hasUnreadMessagingMessage: true });
-			sound.playMisskeySfx('chatBg');
-			vibrate(prefer.s.vibrateChatBg ? [50, 40] : []);
-		});
-
 		main.on('readAllAntennas', () => {
 			updateCurrentAccountPartial({ hasUnreadAntenna: false });
 		});
@@ -419,18 +406,18 @@ export async function mainBoot() {
 			sound.playMisskeySfx('antenna');
 		});
 
-		main.on('readAllAnnouncements', () => {
-			updateCurrentAccountPartial({ hasUnreadAnnouncement: false });
-		});
+			main.on('newChatMessage', () => {
+				updateCurrentAccountPartial({ hasUnreadChatMessages: true });
+				sound.playMisskeySfx('chatMessage');
+			});
 
-		// 個人宛てお知らせが発行されたとき
-		main.on('announcementCreated', onAnnouncementCreated);
+			main.on('readAllAnnouncements', () => {
+				updateCurrentAccountPartial({ hasUnreadAnnouncement: false });
+			});
 
-		// トークンが再生成されたとき
-		// このままではCherryPickが利用できないので強制的にサインアウトさせる
-		main.on('myTokenRegenerated', () => {
-			signout();
-		});
+			// 個人宛てお知らせが発行されたとき
+			main.on('announcementCreated', onAnnouncementCreated);
+		}
 
 		// 프로필 아이콘 모양 설정 연합 초기화
 		if ($i.policies.canSetFederationAvatarShape && prefer.s.setFederationAvatarShape) {
@@ -447,6 +434,8 @@ export async function mainBoot() {
 	}
 
 	// shortcut
+	let safemodeRequestCount = 0;
+	let safemodeRequestTimer: number | null = null;
 	const keymap = {
 		'p|n': () => {
 			if ($i == null) return;
@@ -457,6 +446,24 @@ export async function mainBoot() {
 		},
 		's': () => {
 			mainRouter.push('/search');
+		},
+		'g': {
+			callback: () => {
+				// mを5回押すとセーフモードに入る
+				safemodeRequestCount++;
+				if (safemodeRequestCount >= 5) {
+					miLocalStorage.setItem('isSafeMode', 'true');
+					unisonReload();
+				} else {
+					if (safemodeRequestTimer != null) {
+						window.clearTimeout(safemodeRequestTimer);
+					}
+					safemodeRequestTimer = window.setTimeout(() => {
+						safemodeRequestCount = 0;
+					}, 300);
+				}
+			},
+			allowRepeat: true,
 		},
 		// 環境によるかもしれないが?では反応しないため、shift+/にする必要がある
 		'shift+/': () => {
