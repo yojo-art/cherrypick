@@ -92,7 +92,7 @@
 		"@nestjs/common": "11.1.6",
 		"@nestjs/core": "11.1.6",
 		"@nestjs/testing": "11.1.6",
-		"@opensearch-project/opensearch": "^2.7.0",
+		"@opensearch-project/opensearch": "^3.5.1",
 		"@peertube/http-signature": "1.7.0",
 		"@sentry/node": "10.20.0",
 		"@sentry/profiling-node": "10.20.0",

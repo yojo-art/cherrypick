@@ -160,7 +160,7 @@ const noteIndexBody = {
 			},
 		},
 	},
-};
+} as any;//sudachiプラグインが型定義に含まれず型チェックに失敗するため握り潰す
 @Injectable()
 export class AdvancedSearchService {
 	private opensearchNoteIndex: string | null = null;
@@ -1260,21 +1260,34 @@ export class AdvancedSearchService {
 
 				//リアクションしているか、
 				let res = await this.opensearch.search(Option);
-				if (res.body.hits.total.value > 0) {
+				const totalValue = (total:number | {
+					relation: 'eq' | 'gte';
+					value: number;
+				} | undefined) => {
+					if (typeof total === 'number') {
+						return total;
+					} else if (total) {
+						//total.relationに等しいかより多いかの情報が含まれているが、ここの判定では0より多いかしか見ていないのでどっちでもいい
+						return total.value;
+					} else {
+						return 0;
+					}
+				};
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
 				//投票しているか、
 				Option.index = this.pollVoteIndex;
 				res = await this.opensearch.search(Option);
-				if (res.body.hits.total.value > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
 				//クリップもしくはお気に入りしてるか、
 				Option.index = this.favoriteIndex;
 				res = await this.opensearch.search(Option);
-				if (res.body.hits.total.value > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
@@ -1285,7 +1298,7 @@ export class AdvancedSearchService {
 					{ term: { userId: meUserId } },
 				];
 				res = await this.opensearch.search(Option);
-				if (res.body.hits.total.value > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 				//返信している
@@ -1296,7 +1309,7 @@ export class AdvancedSearchService {
 				];
 
 				res = await this.opensearch.search(Option);
-				if (res.body.hits.total.value > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
