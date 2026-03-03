@@ -1260,7 +1260,7 @@ export class AdvancedSearchService {
 
 				//リアクションしているか、
 				let res = await this.opensearch.search(Option);
-				const TotalValue = (total:number | {
+				const totalValue = (total:number | {
 					relation: 'eq' | 'gte';
 					value: number;
 				} | undefined) => {
@@ -1273,21 +1273,21 @@ export class AdvancedSearchService {
 						return 0;
 					}
 				};
-				if (TotalValue(res.body.hits.total) > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
 				//投票しているか、
 				Option.index = this.pollVoteIndex;
 				res = await this.opensearch.search(Option);
-				if (TotalValue(res.body.hits.total) > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
 				//クリップもしくはお気に入りしてるか、
 				Option.index = this.favoriteIndex;
 				res = await this.opensearch.search(Option);
-				if (TotalValue(res.body.hits.total) > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
@@ -1298,7 +1298,7 @@ export class AdvancedSearchService {
 					{ term: { userId: meUserId } },
 				];
 				res = await this.opensearch.search(Option);
-				if (TotalValue(res.body.hits.total) > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 				//返信している
@@ -1309,7 +1309,7 @@ export class AdvancedSearchService {
 				];
 
 				res = await this.opensearch.search(Option);
-				if (TotalValue(res.body.hits.total) > 0) {
+				if (totalValue(res.body.hits.total) > 0) {
 					return Note;
 				}
 
