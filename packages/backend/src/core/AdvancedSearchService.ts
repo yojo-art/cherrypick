@@ -321,39 +321,73 @@ export class AdvancedSearchService {
 		}
 	}
 
+	/**
+	 * 渡されたNoteのデータからindexするべきか、するべきならindex先とAPIに渡すためのデータを生成します。
+	 * 戻り値がnullであるならばindexはできません
+	 */
 	@bindThis
-	public async indexNote(note: MiNote, choices?: string[], dataGenarateOnly = false): Promise<any | null> {
-		if (!this.opensearch) return;
-		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
+	public async generateNoteIndexData(noteId: string | null): Promise<{ index: 'note' | 'renote', data: any } | null> {
+		if (!this.opensearch) return null;
+		if (!noteId) return null; //Idは必須
 
-		if (isRenote(note) && !isQuote(note)) { //リノートであり
-			if (note.userHost === null) {//ローカルユーザー
-				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
-				await this.index(this.renoteIndex, note.id, {
-					renoteId: note.renoteId,
-					userId: note.userId,
-					createdAt: this.idService.parse(note.id).date.getTime(),
-				});
-				return null;
+		const note = await this.notesRepository
+			.createQueryBuilder('note')
+			.leftJoin('note.renote', 'renote')
+			.select(['note'])
+			.where('note.id > :targetId', { targetId: noteId })
+			.andWhere(new Brackets( qb => {
+				qb.where('note."userHost" IS NULL')
+					.orWhere(new Brackets(qb2 => {
+						qb2
+							.where('note."userHost" IS NOT NULL')
+							.andWhere('note."searchableBy" != \'private\'')
+							.orWhere('note."searchableBy" IS NULL');
+					}));
+			}))
+			.orderBy('note.id', 'ASC')
+			.getOne();
+		//DBからノートを見つけられなかった
+		if (!note) return null;
+
+		//リモートユーザーのprivateはインデックスしない
+		if (note.searchableBy === 'private' && note.userHost !== null) return null;
+		let isQuoteFlag = false;
+		
+		//ローカルユーザーのリノート
+		if (isRenote(note) && note.userHost === null) {
+			
+			//リノート元がprivateならインデックスしない
+			if (note.renote?.searchableBy === 'private') return null;
+			isQuoteFlag = isQuote(note);
+			//純粋なリノート
+			if (!isQuoteFlag) {
+				return { index: 'renote', data: {
+						renoteId: note.renoteId,
+						userId: note.userId,
+					} 
+				};
 			}
 		}
-		if (await this.redisClient.get('indexDeleted') !== null) {
-			return null;
-		}
-		const IsQuote = isRenote(note) && isQuote(note);
+
+		//投票データを取得
+		const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
+		//センシティブファイル数
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
+		//非センシティブファイル数
 		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
 		let reactions: {
 			emoji: string;
 			count: number;
 		}[];
 
+		//リモートリアクションもインデックスに含めるかの設定を参照
 		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
 		} else {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
 		}
 
+		//API用データ生成
 		const body = {
 			text: note.text,
 			cw: note.cw,
@@ -367,16 +401,13 @@ export class AdvancedSearchService {
 			visibleUserIds: note.visibleUserIds,
 			replyId: note.replyId,
 			renoteId: note.renoteId,
-			pollChoices: choices,
-			referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
+			pollChoices: poll ? poll.choices : [],
+			referenceUserId: note.replyId ? note.replyUserId : isQuoteFlag ? note.renoteUserId : null,
 			sensitiveFileCount: sensitiveCount,
 			nonSensitiveFileCount: nonSensitiveCount,
 			reactions: reactions,
 		};
-		if (dataGenarateOnly) {
-			return body;
-		}
-		this.index(this.opensearchNoteIndex as string, note.id, body);
+		return { index: 'note', data: body };
 	}
 
 	@bindThis
@@ -415,10 +446,31 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	private async index(index: string, id: string, body: any ) {
+	public async index(indexType: 'note' | 'renote' | 'reaction' | 'pollVote' | 'favorite', id: string | null, body: any ) {
 		if (!this.opensearch) return;
+		if (!id) return;
+
+		let indexStr = '' as string;
+		switch (indexType) {
+			case 'note':
+				indexStr = this.opensearchNoteIndex as string;
+				break;
+			case 'renote':
+				indexStr = this.renoteIndex as string;
+				break;
+			case 'reaction':
+				indexStr = this.reactionIndex as string;
+				break;
+			case 'pollVote':
+				indexStr = this.pollVoteIndex as string;
+				break;
+			case 'favorite':
+				indexStr = this.favoriteIndex as string;
+				break;
+		}
+
 		await this.opensearch.index({
-			index: index,
+			index: indexStr,
 			id: id,
 			body: body,
 		}).catch((error) => {

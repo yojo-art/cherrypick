@@ -37,28 +37,12 @@ export class OpenSearchIndexProcessorService {
 		switch (job.data.type) {
 			case 'note':
 			{
-				const note = await this.notesRepository
-					.createQueryBuilder('note')
-					.leftJoin('note.renote', 'renote')
-					.select(['note'])
-					.where('note.id > :targetId', { targetId: job.data.untilId })
-					.andWhere(new Brackets( qb => {
-						qb.where('note."userHost" IS NULL')
-							.orWhere(new Brackets(qb2 => {
-								qb2
-									.where('note."userHost" IS NOT NULL')
-									.andWhere('note."searchableBy" != \'private\'')
-									.orWhere('note."searchableBy" IS NULL');
-							}));
-					}))
-					.orderBy('note.id', 'ASC')
-					.getOne();
-				if (!note) return;
-				if (note.hasPoll) {
-					const poll = await this.notesRepository.manager.getRepository('poll').findOneBy({ noteId: note.id });
-					await this.advancedSearchService.indexNote(note, poll ? poll.choices : undefined);
-				} else await this.pollsRepository.findOneBy({ noteId: note.id });
-				break; }
+				const data = await this.advancedSearchService.generateNoteIndexData(job.data.targetId);
+
+				if (!data) return;
+				await this.advancedSearchService.index(data.index, job.data.targetId, data.data);
+				break;
+			}
 
 			case 'noteAll':
 				await this.advancedSearchService.bulkIndexNote(job.data.untilId, job.data.limitId);

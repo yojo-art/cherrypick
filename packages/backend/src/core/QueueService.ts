@@ -785,7 +785,7 @@ export class QueueService implements OnModuleInit {
 	}
 	@bindThis
 	public openSearchIndex(
-		jobData: OpenSearchIndexJobData,
+		jobData: OpenSerchIndexJobData,
 	) {
 		return this.openSearchIndexQueue.add(jobData.type, jobData, {
 			attempts: 5,

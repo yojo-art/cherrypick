@@ -946,7 +946,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		// Register to search database
 		if (note.text !== null && note.cw !== null) this.searchService.indexNote(note);//MeiliSearch
-		this.advancedSearchService.indexNote(note, data.poll?.choices ?? undefined); //OpenSearch
+		this.queueService.openSearchIndexQueue.add({ type: 'note', id: note.id }); //OpenSearch
 	}
 
 	@bindThis
