@@ -156,4 +156,5 @@ export type OpenSerchIndexJobData = {
 	type: 'note' | 'reaction' | 'vote' | 'favorite' | 'noteAll' | 'reactionAll' | 'voteAll' | 'favoriteAll';
 	targetId: string | null;
 	untilId: string | null;
+	limitId: string | null;
 };

@@ -536,15 +536,23 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async bulkIndexNote(untilId: string): Promise<void> {
+	public async bulkIndexNote(untilId: string | null, limitId: string | null): Promise<void> {
 		if (!this.opensearch) return;
 		if (!untilId) throw new Error('untilId is required for bulk indexing');
+		if (!limitId) throw new Error('limitId is required for bulk indexing');
 
+		/*
+			untilId はそれよりも新しいものを取得するために
+			limitId はそれよりも古いものを取得するために
+			limitId がないと無限にジョブをしてしまう
+		*/
+		//一括取得
 		const notes = await this.notesRepository
 			.createQueryBuilder('note')
 			.leftJoin('note.renote', 'renote')
 			.select(['note'])
 			.where('note.id > :untilId', { untilId })
+			.andWhere('note.id <= :limitId', { limitId })
 			.andWhere(new Brackets( qb => {
 				qb.where('note."userHost" IS NULL')
 					.orWhere(new Brackets(qb2 => {
@@ -558,9 +566,17 @@ export class AdvancedSearchService {
 			.limit(1000)
 			.getMany();
 
+		//ノートがもうない
+		if (notes.length === 0) {
+			this.logger.info('指定された期間のすべてのノートをインデックスしました');
+			return;
+		}
+
 		const dataList = [] as any;
 		notes.forEach(note => {
+			//ここではindexNoteでindex用データの生成のみ行う
 			if (note.hasPoll) {
+				//投票がある場合は投票も取得
 				this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
 					const data = await this.indexNote(note, poll ? poll.choices : undefined, true);
 				});
@@ -570,7 +586,11 @@ export class AdvancedSearchService {
 				if (data) dataList.push(data);
 			}
 		});
+
+		//BulkAPIでインデックス
 		await this.indexBulk(this.opensearchNoteIndex as string, dataList);
+		//次回のジョブのためのIdを保存
+		this.queueService.openSearchIndexQueue.add('noteAll', { untilId: notes[notes.length - 1].id });
 	}
 
 	@bindThis
