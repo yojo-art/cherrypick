@@ -17,6 +17,7 @@ import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { DriveService } from '@/core/DriveService.js';
 import { QueryService } from '@/core/QueryService.js';
+import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
@@ -207,6 +208,7 @@ export class AdvancedSearchService {
 		private idService: IdService,
 		private loggerService: LoggerService,
 		private driveService: DriveService,
+		private queueService: QueueService,
 	) {
 		this.logger = this.loggerService.getLogger('search');
 		if (opensearch && config.opensearch && config.opensearch.index) {
@@ -320,7 +322,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
+	public async indexNote(note: MiNote, choices?: string[], dataGenarateOnly = false): Promise<any | null> {
 		if (!this.opensearch) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
 
@@ -332,11 +334,11 @@ export class AdvancedSearchService {
 					userId: note.userId,
 					createdAt: this.idService.parse(note.id).date.getTime(),
 				});
-				return;
+				return null;
 			}
 		}
 		if (await this.redisClient.get('indexDeleted') !== null) {
-			return;
+			return null;
 		}
 		const IsQuote = isRenote(note) && isQuote(note);
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
@@ -371,6 +373,9 @@ export class AdvancedSearchService {
 			nonSensitiveFileCount: nonSensitiveCount,
 			reactions: reactions,
 		};
+		if (dataGenarateOnly) {
+			return body;
+		}
 		this.index(this.opensearchNoteIndex as string, note.id, body);
 	}
 
@@ -420,6 +425,20 @@ export class AdvancedSearchService {
 			this.logger.error(error);
 		});
 	}
+
+	@bindThis
+	private async indexBulk(index: string, records: { id: string; body: any }[]) {
+		{
+			if (!this.opensearch) return;
+			await this.opensearch.bulk({
+				body: records.flatMap(record => [{ index: { index }, doc: record.body }]),
+			}).catch((error) => {
+				this.logger.error(error);
+				throw error;
+			});
+		}
+	}
+
 	/**
 	 * リアクション
 	 */
@@ -517,43 +536,41 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(): Promise<void> {
+	public async bulkIndexNote(untilId: string): Promise<void> {
 		if (!this.opensearch) return;
+		if (!untilId) throw new Error('untilId is required for bulk indexing');
 
-		const notesCount = await this.notesRepository.createQueryBuilder('note').getCount();
-		const limit = 100;
-		let latestid = '';
-		for (let index = 0; index < notesCount; index += limit) {
-			this.logger.info('indexing' + index + '/' + notesCount);
-			const notes = await this.notesRepository
-				.createQueryBuilder('note')
-				.leftJoin('note.renote', 'renote')
-				.select(['note'])
-				.where('note.id > :latestid', { latestid })
-				.andWhere(new Brackets( qb => {
-					qb.where('note."userHost" IS NULL')
-						.orWhere(new Brackets(qb2 => {
-							qb2
-								.where('note."userHost" IS NOT NULL')
-								.andWhere('note."searchableBy" != \'private\'')
-								.orWhere('note."searchableBy" IS NULL');
-						}));
-				}))
-				.orderBy('note.id', 'ASC')
-				.limit(limit)
-				.getMany();
-			notes.forEach(note => {
-				if (note.hasPoll) {
-					this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
-						this.indexNote(note, poll ? poll.choices : undefined);
-					});
-				} else {
-					this.indexNote(note, undefined);
-				}
-				latestid = note.id;
-			});
-		}
-		this.logger.info('All notes has been indexed.');
+		const notes = await this.notesRepository
+			.createQueryBuilder('note')
+			.leftJoin('note.renote', 'renote')
+			.select(['note'])
+			.where('note.id > :untilId', { untilId })
+			.andWhere(new Brackets( qb => {
+				qb.where('note."userHost" IS NULL')
+					.orWhere(new Brackets(qb2 => {
+						qb2
+							.where('note."userHost" IS NOT NULL')
+							.andWhere('note."searchableBy" != \'private\'')
+							.orWhere('note."searchableBy" IS NULL');
+					}));
+			}))
+			.orderBy('note.id', 'ASC')
+			.limit(1000)
+			.getMany();
+
+		const dataList = [] as any;
+		notes.forEach(note => {
+			if (note.hasPoll) {
+				this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
+					const data = await this.indexNote(note, poll ? poll.choices : undefined, true);
+				});
+				if (data) dataList.push(data);
+			} else {
+				const data = await this.indexNote(note, undefined, true);
+				if (data) dataList.push(data);
+			}
+		});
+		await this.indexBulk(this.opensearchNoteIndex as string, dataList);
 	}
 
 	@bindThis

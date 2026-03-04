@@ -1,0 +1,48 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+import * as fs from 'node:fs';
+import { Inject, Injectable } from '@nestjs/common';
+import { ZipReader } from 'slacc';
+import { IsNull } from 'typeorm';
+import type { EmojisRepository, DriveFilesRepository } from '@/models/_.js';
+import type Logger from '@/logger.js';
+import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { createTempDir } from '@/misc/create-temp.js';
+import { DriveService } from '@/core/DriveService.js';
+import { DownloadService } from '@/core/DownloadService.js';
+import { bindThis } from '@/decorators.js';
+import { QueueLoggerService } from '../QueueLoggerService.js';
+import * as Bull from 'bullmq';
+import type { OpenSerchIndexJobData } from '../types.js';
+
+// TODO: 名前衝突時の動作を選べるようにする
+@Injectable()
+export class OpenSearchIndexProcessorService {
+	private logger: Logger;
+
+	constructor(
+		private advancedSearchService: AdvancedSearchService,
+		private queueLoggerService: QueueLoggerService,
+	) {
+		this.logger = this.queueLoggerService.logger.createSubLogger('import-custom-emojis');
+	}
+
+	@bindThis
+	public async process(job: Bull.Job<OpenSerchIndexJobData>): Promise<void> {
+		switch (job.data.type) {
+			case 'note':
+				this.advancedSearchService.indexNote(job.data.targetId as string);
+				break;
+
+			case 'noteAll':
+				this.advancedSearchService.bulkIndexNote(job.data.untilId);
+				break;
+			default:
+				throw new Bull.UnrecoverableError(`Unknown import type: ${job.data.type}`);
+		}
+
+	}
+}
