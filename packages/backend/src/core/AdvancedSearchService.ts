@@ -573,14 +573,14 @@ export class AdvancedSearchService {
 		}
 
 		const dataList = [] as any;
-		notes.forEach(note => {
+		notes.forEach(async note => {
 			//ここではindexNoteでindex用データの生成のみ行う
 			if (note.hasPoll) {
 				//投票がある場合は投票も取得
-				this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
+				this.pollsRepository.findOneBy({ noteId: note.id }).then( async (poll) => {
 					const data = await this.indexNote(note, poll ? poll.choices : undefined, true);
+					if (data) dataList.push(data);
 				});
-				if (data) dataList.push(data);
 			} else {
 				const data = await this.indexNote(note, undefined, true);
 				if (data) dataList.push(data);
@@ -590,7 +590,7 @@ export class AdvancedSearchService {
 		//BulkAPIでインデックス
 		await this.indexBulk(this.opensearchNoteIndex as string, dataList);
 		//次回のジョブのためのIdを保存
-		this.queueService.openSearchIndexQueue.add('noteAll', { untilId: notes[notes.length - 1].id });
+		this.queueService.openSearchIndexQueue.add('noteAll', { untilId: notes[notes.length - 1].id, limitId: limitId });
 	}
 
 	@bindThis
