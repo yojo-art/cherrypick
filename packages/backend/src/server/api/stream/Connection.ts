@@ -52,7 +52,7 @@ export default class Connection {
 	public token?: MiAccessToken;
 	private wsConnection: WebSocket.WebSocket;
 	public subscriber: StreamEventEmitter;
-	private channels: Channel[] = [];
+	private channels: Map<string, Channel> = new Map();
 	private subscribingNotes: Partial<Record<string, number>> = {};
 	public userProfile: MiUserProfile | null = null;
 	public following: Record<string, Pick<MiFollowing, 'withReplies'> | undefined> = {};
@@ -251,7 +251,11 @@ export default class Connection {
 	 */
 	@bindThis
 	public async connectChannel(id: string, params: JsonObject | undefined, channel: string, pong = false) {
-		if (this.channels.length >= MAX_CHANNELS_PER_CONNECTION) {
+		if (this.channels.has(id)) {
+			this.disconnectChannel(id);
+		}
+
+		if (this.channels.size >= MAX_CHANNELS_PER_CONNECTION) {
 			return;
 		}
 
@@ -267,8 +271,12 @@ export default class Connection {
 		}
 
 		// 共有可能チャンネルに接続しようとしていて、かつそのチャンネルに既に接続していたら無意味なので無視
-		if (channelConstructor.shouldShare && this.channels.some(c => c.chName === channel)) {
-			return;
+		if (channelConstructor.shouldShare) {
+			for (const c of this.channels.values()) {
+				if (c.chName === channel) {
+					return;
+				}
+			}
 		}
 
 		const contextId = ContextIdFactory.create();
@@ -278,8 +286,13 @@ export default class Connection {
 		}, contextId);
 		const ch: Channel = await this.moduleRef.create<Channel>(channelConstructor, contextId);
 
-		this.channels.push(ch);
-		ch.init(params ?? {});
+		this.channels.set(ch.id, ch);
+		const valid = await ch.init(params ?? {});
+		if (typeof valid === 'boolean' && !valid) {
+			// 初期化処理の結果、接続拒否されたので切断
+			this.disconnectChannel(id);
+			return;
+		}
 
 		if (pong) {
 			this.sendMessageToWs('connected', {
@@ -321,11 +334,11 @@ export default class Connection {
 	 */
 	@bindThis
 	public disconnectChannel(id: string) {
-		const channel = this.channels.find(c => c.id === id);
+		const channel = this.channels.get(id);
 
 		if (channel) {
 			if (channel.dispose) channel.dispose();
-			this.channels = this.channels.filter(c => c.id !== id);
+			this.channels.delete(id);
 		}
 	}
 
@@ -340,7 +353,7 @@ export default class Connection {
 		if (typeof data.type !== 'string') return;
 		if (typeof data.body === 'undefined') return;
 
-		const channel = this.channels.find(c => c.id === data.id);
+		const channel = this.channels.get(data.id);
 		if (channel != null && channel.onMessage != null) {
 			channel.onMessage(data.type, data.body);
 		}
@@ -352,7 +365,7 @@ export default class Connection {
 	@bindThis
 	public dispose() {
 		if (this.fetchIntervalId) clearInterval(this.fetchIntervalId);
-		for (const c of this.channels.filter(c => c.dispose)) {
+		for (const c of this.channels.values()) {
 			if (c.dispose) c.dispose();
 		}
 	}

@@ -43,8 +43,8 @@ export class UserListChannel extends Channel {
 	}
 
 	@bindThis
-	public async init(params: JsonObject) {
-		if (typeof params.listId !== 'string') return;
+	public async init(params: JsonObject): Promise<boolean> {
+		if (typeof params.listId !== 'string') return false;
 		this.listId = params.listId;
 		this.withFiles = !!(params.withFiles ?? false);
 		this.withRenotes = !!(params.withRenotes ?? true);
@@ -56,7 +56,7 @@ export class UserListChannel extends Channel {
 				userId: this.user!.id,
 			},
 		});
-		if (!listExist) return;
+		if (!listExist) return false;
 
 		// Subscribe stream
 		this.subscriber.on(`userListStream:${this.listId}`, this.send);
@@ -65,6 +65,8 @@ export class UserListChannel extends Channel {
 
 		this.updateListUsers();
 		this.listUsersClock = setInterval(this.updateListUsers, 5000);
+
+		return true;
 	}
 
 	@bindThis
