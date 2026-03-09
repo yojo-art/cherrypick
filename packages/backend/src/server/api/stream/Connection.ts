@@ -12,7 +12,6 @@ import { CacheService } from '@/core/CacheService.js';
 import { MiFollowing, MiUserProfile } from '@/models/_.js';
 import type { StreamEventEmitter, GlobalEvents } from '@/core/GlobalEventService.js';
 import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
-import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import type { JsonObject, JsonValue } from '@/misc/json-value.js';
 import { isJsonObject } from '@/misc/json-value.js';
 import type { EventEmitter } from 'events';
@@ -68,7 +67,6 @@ export default class Connection {
 		private notificationService: NotificationService,
 		private cacheService: CacheService,
 		private channelFollowingService: ChannelFollowingService,
-		private channelMutingService: ChannelMutingService,
 		@Inject(REQUEST)
 		request: ConnectionRequest,
 	) {

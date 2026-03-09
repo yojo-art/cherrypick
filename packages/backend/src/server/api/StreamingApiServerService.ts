@@ -85,13 +85,6 @@ export class StreamingApiServerService {
 				return;
 			}
 
-			const stream = new MainStreamConnection(
-				this.channelsService,
-				this.notificationService,
-				this.cacheService,
-				this.channelFollowingService,
-				user, app,
-			);
 			const contextId = ContextIdFactory.create();
 			this.moduleRef.registerRequestByContextId<ConnectionRequest>({
 				user,
