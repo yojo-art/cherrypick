@@ -24,11 +24,11 @@ import type Logger from '@/logger.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { getApType, isCollectionOrOrderedCollection, isIOrderedCollectionPage, isOrderedCollection } from './type.js';
-import type { ICollection, IObject, IOrderedCollection } from './type.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
 import { ApRendererService } from './ApRendererService.js';
 import { ApRequestService } from './ApRequestService.js';
 import { FetchAllowSoftFailMask } from './misc/check-against-url.js';
+import type { IClip, IObject, ICollection, IOrderedCollection, IOrderedCollectionPage } from './type.js';
 import { ModuleRef } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })

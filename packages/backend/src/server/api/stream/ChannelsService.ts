@@ -4,10 +4,12 @@
  */
 
 import { Injectable } from '@nestjs/common';
+import { bindThis } from '@/decorators.js';
 import { HybridTimelineChannel } from './channels/hybrid-timeline.js';
 import { LocalTimelineChannel } from './channels/local-timeline.js';
 import { HomeTimelineChannel } from './channels/home-timeline.js';
 import { GlobalTimelineChannel } from './channels/global-timeline.js';
+import { BubbleTimelineChannel } from './channels/bubble-timeline.js';
 import { MainChannel } from './channels/main.js';
 import { ChannelChannel } from './channels/channel.js';
 import { AdminChannel } from './channels/admin.js';
@@ -23,7 +25,6 @@ import { ChatRoomChannel } from './channels/chat-room.js';
 import { ReversiChannel } from './channels/reversi.js';
 import { ReversiGameChannel } from './channels/reversi-game.js';
 import type { ChannelConstructor } from './channel.js';
-import { bindThis } from '@/decorators.js';
 
 @Injectable()
 export class ChannelsService {
@@ -39,6 +40,7 @@ export class ChannelsService {
 			case 'localTimeline': return LocalTimelineChannel;
 			case 'hybridTimeline': return HybridTimelineChannel;
 			case 'globalTimeline': return GlobalTimelineChannel;
+			case 'bubbleTimeline': return BubbleTimelineChannel;
 			case 'userList': return UserListChannel;
 			case 'hashtag': return HashtagChannel;
 			case 'roleTimeline': return RoleTimelineChannel;

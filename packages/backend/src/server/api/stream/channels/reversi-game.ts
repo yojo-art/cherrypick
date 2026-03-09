@@ -11,7 +11,7 @@ import { ReversiGameEntityService } from '@/core/entities/ReversiGameEntityServi
 import { isJsonObject } from '@/misc/json-value.js';
 import type { JsonObject, JsonValue } from '@/misc/json-value.js';
 import Channel, { type ChannelRequest } from '../channel.js';
-import { reversiUpdateKeys } from 'misskey-js';
+import { reversiUpdateKeys } from 'cherrypick-js';
 import { REQUEST } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })

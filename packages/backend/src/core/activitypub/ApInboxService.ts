@@ -1053,7 +1053,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async undoDelete(actor: MiRemoteUser, activity: IDelete): Promise<string> {
-		const resolver = this.apResolverService.createResolver();
+		const resolver = await this.apResolverService.createResolver();
 		const object = await resolver.resolve(activity.object).catch(e => {
 			this.logger.error(`Resolution failed: ${e}`);
 			throw e;
@@ -1393,7 +1393,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async join(actor: MiRemoteUser, activity: IJoin): Promise<string> {
-		const resolver = this.apResolverService.createResolver();
+		const resolver = await this.apResolverService.createResolver();
 		const object = await resolver.resolve(activity.object).catch(e => {
 			this.logger.error(`Resolution failed: ${e}`);
 			throw e;
@@ -1420,7 +1420,7 @@ export class ApInboxService {
 	}
 	@bindThis
 	private async leave(actor: MiRemoteUser, activity: ILeave): Promise<string> {
-		const resolver = this.apResolverService.createResolver();
+		const resolver = await this.apResolverService.createResolver();
 		const object = await resolver.resolve(activity.object).catch(e => {
 			this.logger.error(`Resolution failed: ${e}`);
 			throw e;
@@ -1447,7 +1447,7 @@ export class ApInboxService {
 	}
 	@bindThis
 	private async inviteGame(actor: MiRemoteUser, activity: IInvite, resolver?: Resolver): Promise<string> {
-		const _resolver = resolver ?? this.apResolverService.createResolver();
+		const _resolver = resolver ?? await this.apResolverService.createResolver();
 		const object = await _resolver.resolve(activity.object).catch(e => {
 			this.logger.error(`Resolution failed: ${e}`);
 			throw e;
@@ -1475,7 +1475,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async undoInviteGame(actor: MiRemoteUser, activity: IInvite): Promise<string> {
-		const resolver = this.apResolverService.createResolver();
+		const resolver = await this.apResolverService.createResolver();
 		const object = await resolver.resolve(activity.object).catch(e => {
 			this.logger.error(`Resolution failed: ${e}`);
 			throw e;

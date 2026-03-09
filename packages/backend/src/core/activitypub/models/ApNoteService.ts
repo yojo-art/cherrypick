@@ -358,7 +358,7 @@ export class ApNoteService {
 
 	@bindThis
 	public async updateNote(value: string | IObject, target: MiNote, resolver?: Resolver, silent = false): Promise<MiNote | null> {
-		if (resolver == null) resolver = this.apResolverService.createResolver();
+		if (resolver == null) resolver = await this.apResolverService.createResolver();
 
 		const object = await resolver.resolve(value);
 		const entryUri = getApId(value);

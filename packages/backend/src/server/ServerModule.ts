@@ -6,6 +6,7 @@
 import { Module } from '@nestjs/common';
 import { EndpointsModule } from '@/server/api/EndpointsModule.js';
 import { CoreModule } from '@/core/CoreModule.js';
+import MainStreamConnection from '@/server/api/stream/Connection.js';
 import { ApiCallService } from './api/ApiCallService.js';
 import { FileServerService } from './FileServerService.js';
 import { HealthServerService } from './HealthServerService.js';
@@ -29,7 +30,6 @@ import { UrlPreviewService } from './web/UrlPreviewService.js';
 import { ClientLoggerService } from './web/ClientLoggerService.js';
 import { OAuth2ProviderService } from './oauth/OAuth2ProviderService.js';
 
-import MainStreamConnection from '@/server/api/stream/Connection.js';
 import { MainChannel } from './api/stream/channels/main.js';
 import { AdminChannel } from './api/stream/channels/admin.js';
 import { AntennaChannel } from './api/stream/channels/antenna.js';
@@ -50,7 +50,7 @@ import { ReversiChannel } from './api/stream/channels/reversi.js';
 import { ReversiGameChannel } from './api/stream/channels/reversi-game.js';
 import { NoteStreamingHidingService } from './api/stream/NoteStreamingHidingService.js';
 import { SigninWithPasskeyApiService } from './api/SigninWithPasskeyApiService.js';
-import { BubbleTimelineChannelService } from './api/stream/channels/bubble-timeline.js';
+import { BubbleTimelineChannel } from './api/stream/channels/bubble-timeline.js';
 
 @Module({
 	imports: [
@@ -101,7 +101,7 @@ import { BubbleTimelineChannelService } from './api/stream/channels/bubble-timel
 		NoteStreamingHidingService,
 		OpenApiServerService,
 		OAuth2ProviderService,
-		BubbleTimelineChannelService,
+		BubbleTimelineChannel,
 	],
 	exports: [
 		ServerService,
