@@ -353,8 +353,7 @@ export class NoteUpdateService implements OnApplicationShutdown {
 
 		this.searchService.unindexNote(note);
 		this.searchService.indexNote(note);
-		this.advancedSearchService.unindexNote(note);
-		this.advancedSearchService.indexNote(note);
+		this.queueService.openSearchIndexQueue.add({ type: 'note', id: note.id });//OpenSearch
 	}
 
 	@bindThis

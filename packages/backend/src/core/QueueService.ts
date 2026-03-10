@@ -27,6 +27,7 @@ import type {
 	SystemWebhookDeliverJobData,
 	ThinUser,
 	UserWebhookDeliverJobData,
+	OpenSerchIndexJobData,
 } from '../queue/types.js';
 import type {
 	DbQueue,
@@ -55,6 +56,7 @@ export const QUEUE_TYPES = [
 	'objectStorage',
 	'userWebhookDeliver',
 	'systemWebhookDeliver',
+	'openSearchIndex',
 ] as const;
 
 const REPEATABLE_SYSTEM_JOB_DEF = [{
@@ -109,6 +111,7 @@ export class QueueService implements OnModuleInit {
 		@Inject('queue:userWebhookDeliver') public userWebhookDeliverQueue: UserWebhookDeliverQueue,
 		@Inject('queue:systemWebhookDeliver') public systemWebhookDeliverQueue: SystemWebhookDeliverQueue,
 		@Inject('queue:scheduledNoteDelete') public scheduledNoteDeleteQueue: ScheduledNoteDeleteQueue,
+		@Inject('queue:openSearchIndex') public openSearchIndexQueue: OpenSearchIndexQueue,
 	) { }
 
 	async onModuleInit() {
@@ -780,6 +783,25 @@ export class QueueService implements OnModuleInit {
 			},
 		});
 	}
+	@bindThis
+	public openSearchIndex(
+		jobData: OpenSerchIndexJobData,
+	) {
+		return this.openSearchIndexQueue.add(jobData.type, jobData, {
+			attempts: 5,
+			backoff: {
+				type: 'custom',
+			},
+			removeOnComplete: {
+				age: 3600 * 24 * 7, // keep up to 7 days
+				count: 30,
+			},
+			removeOnFail: {
+				age: 3600 * 24 * 7, // keep up to 7 days
+				count: 100,
+			},
+		});
+	}
 
 	@bindThis
 	private getQueue(type: typeof QUEUE_TYPES[number]): Bull.Queue {
@@ -794,6 +816,7 @@ export class QueueService implements OnModuleInit {
 			case 'objectStorage': return this.objectStorageQueue;
 			case 'userWebhookDeliver': return this.userWebhookDeliverQueue;
 			case 'systemWebhookDeliver': return this.systemWebhookDeliverQueue;
+			case 'openSearchIndex': return this.openSearchIndexQueue;
 			default: throw new Error(`Unrecognized queue type: ${type}`);
 		}
 	}

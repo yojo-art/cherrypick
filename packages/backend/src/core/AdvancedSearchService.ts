@@ -17,6 +17,7 @@ import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { DriveService } from '@/core/DriveService.js';
 import { QueryService } from '@/core/QueryService.js';
+import { QueueService } from '@/core/QueueService.js';
 import { IdService } from '@/core/IdService.js';
 import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
@@ -207,6 +208,7 @@ export class AdvancedSearchService {
 		private idService: IdService,
 		private loggerService: LoggerService,
 		private driveService: DriveService,
+		private queueService: QueueService,
 	) {
 		this.logger = this.loggerService.getLogger('search');
 		if (opensearch && config.opensearch && config.opensearch.index) {
@@ -319,39 +321,73 @@ export class AdvancedSearchService {
 		}
 	}
 
+	/**
+	 * 渡されたNoteのデータからindexするべきか、するべきならindex先とAPIに渡すためのデータを生成します。
+	 * 戻り値がnullであるならばindexはできません
+	 */
 	@bindThis
-	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
-		if (!this.opensearch) return;
-		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
+	public async generateNoteIndexData(noteId: string | null): Promise<{ index: 'note' | 'renote', data: any } | null> {
+		if (!this.opensearch) return null;
+		if (!noteId) return null; //Idは必須
 
-		if (isRenote(note) && !isQuote(note)) { //リノートであり
-			if (note.userHost === null) {//ローカルユーザー
-				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
-				await this.index(this.renoteIndex, note.id, {
-					renoteId: note.renoteId,
-					userId: note.userId,
-					createdAt: this.idService.parse(note.id).date.getTime(),
-				});
-				return;
+		const note = await this.notesRepository
+			.createQueryBuilder('note')
+			.leftJoin('note.renote', 'renote')
+			.select(['note'])
+			.where('note.id > :targetId', { targetId: noteId })
+			.andWhere(new Brackets( qb => {
+				qb.where('note."userHost" IS NULL')
+					.orWhere(new Brackets(qb2 => {
+						qb2
+							.where('note."userHost" IS NOT NULL')
+							.andWhere('note."searchableBy" != \'private\'')
+							.orWhere('note."searchableBy" IS NULL');
+					}));
+			}))
+			.orderBy('note.id', 'ASC')
+			.getOne();
+		//DBからノートを見つけられなかった
+		if (!note) return null;
+
+		//リモートユーザーのprivateはインデックスしない
+		if (note.searchableBy === 'private' && note.userHost !== null) return null;
+		let isQuoteFlag = false;
+		
+		//ローカルユーザーのリノート
+		if (isRenote(note) && note.userHost === null) {
+			
+			//リノート元がprivateならインデックスしない
+			if (note.renote?.searchableBy === 'private') return null;
+			isQuoteFlag = isQuote(note);
+			//純粋なリノート
+			if (!isQuoteFlag) {
+				return { index: 'renote', data: {
+						renoteId: note.renoteId,
+						userId: note.userId,
+					} 
+				};
 			}
 		}
-		if (await this.redisClient.get('indexDeleted') !== null) {
-			return;
-		}
-		const IsQuote = isRenote(note) && isQuote(note);
+
+		//投票データを取得
+		const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
+		//センシティブファイル数
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
+		//非センシティブファイル数
 		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
 		let reactions: {
 			emoji: string;
 			count: number;
 		}[];
 
+		//リモートリアクションもインデックスに含めるかの設定を参照
 		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
 		} else {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
 		}
 
+		//API用データ生成
 		const body = {
 			text: note.text,
 			cw: note.cw,
@@ -365,13 +401,13 @@ export class AdvancedSearchService {
 			visibleUserIds: note.visibleUserIds,
 			replyId: note.replyId,
 			renoteId: note.renoteId,
-			pollChoices: choices,
-			referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
+			pollChoices: poll ? poll.choices : [],
+			referenceUserId: note.replyId ? note.replyUserId : isQuoteFlag ? note.renoteUserId : null,
 			sensitiveFileCount: sensitiveCount,
 			nonSensitiveFileCount: nonSensitiveCount,
 			reactions: reactions,
 		};
-		this.index(this.opensearchNoteIndex as string, note.id, body);
+		return { index: 'note', data: body };
 	}
 
 	@bindThis
@@ -410,16 +446,51 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	private async index(index: string, id: string, body: any ) {
+	public async index(indexType: 'note' | 'renote' | 'reaction' | 'pollVote' | 'favorite', id: string | null, body: any ) {
 		if (!this.opensearch) return;
+		if (!id) return;
+
+		let indexStr = '' as string;
+		switch (indexType) {
+			case 'note':
+				indexStr = this.opensearchNoteIndex as string;
+				break;
+			case 'renote':
+				indexStr = this.renoteIndex as string;
+				break;
+			case 'reaction':
+				indexStr = this.reactionIndex as string;
+				break;
+			case 'pollVote':
+				indexStr = this.pollVoteIndex as string;
+				break;
+			case 'favorite':
+				indexStr = this.favoriteIndex as string;
+				break;
+		}
+
 		await this.opensearch.index({
-			index: index,
+			index: indexStr,
 			id: id,
 			body: body,
 		}).catch((error) => {
 			this.logger.error(error);
 		});
 	}
+
+	@bindThis
+	private async indexBulk(index: string, records: { id: string; body: any }[]) {
+		{
+			if (!this.opensearch) return;
+			await this.opensearch.bulk({
+				body: records.flatMap(record => [{ index: { index }, doc: record.body }]),
+			}).catch((error) => {
+				this.logger.error(error);
+				throw error;
+			});
+		}
+	}
+
 	/**
 	 * リアクション
 	 */
@@ -517,43 +588,61 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(): Promise<void> {
+	public async bulkIndexNote(untilId: string | null, limitId: string | null): Promise<void> {
 		if (!this.opensearch) return;
+		if (!untilId) throw new Error('untilId is required for bulk indexing');
+		if (!limitId) throw new Error('limitId is required for bulk indexing');
 
-		const notesCount = await this.notesRepository.createQueryBuilder('note').getCount();
-		const limit = 100;
-		let latestid = '';
-		for (let index = 0; index < notesCount; index += limit) {
-			this.logger.info('indexing' + index + '/' + notesCount);
-			const notes = await this.notesRepository
-				.createQueryBuilder('note')
-				.leftJoin('note.renote', 'renote')
-				.select(['note'])
-				.where('note.id > :latestid', { latestid })
-				.andWhere(new Brackets( qb => {
-					qb.where('note."userHost" IS NULL')
-						.orWhere(new Brackets(qb2 => {
-							qb2
-								.where('note."userHost" IS NOT NULL')
-								.andWhere('note."searchableBy" != \'private\'')
-								.orWhere('note."searchableBy" IS NULL');
-						}));
-				}))
-				.orderBy('note.id', 'ASC')
-				.limit(limit)
-				.getMany();
-			notes.forEach(note => {
-				if (note.hasPoll) {
-					this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
-						this.indexNote(note, poll ? poll.choices : undefined);
-					});
-				} else {
-					this.indexNote(note, undefined);
-				}
-				latestid = note.id;
-			});
+		/*
+			untilId はそれよりも新しいものを取得するために
+			limitId はそれよりも古いものを取得するために
+			limitId がないと無限にジョブをしてしまう
+		*/
+		//一括取得
+		const notes = await this.notesRepository
+			.createQueryBuilder('note')
+			.leftJoin('note.renote', 'renote')
+			.select(['note'])
+			.where('note.id > :untilId', { untilId })
+			.andWhere('note.id <= :limitId', { limitId })
+			.andWhere(new Brackets( qb => {
+				qb.where('note."userHost" IS NULL')
+					.orWhere(new Brackets(qb2 => {
+						qb2
+							.where('note."userHost" IS NOT NULL')
+							.andWhere('note."searchableBy" != \'private\'')
+							.orWhere('note."searchableBy" IS NULL');
+					}));
+			}))
+			.orderBy('note.id', 'ASC')
+			.limit(1000)
+			.getMany();
+
+		//ノートがもうない
+		if (notes.length === 0) {
+			this.logger.info('指定された期間のすべてのノートをインデックスしました');
+			return;
 		}
-		this.logger.info('All notes has been indexed.');
+
+		const dataList = [] as any;
+		notes.forEach(async note => {
+			//ここではindexNoteでindex用データの生成のみ行う
+			if (note.hasPoll) {
+				//投票がある場合は投票も取得
+				this.pollsRepository.findOneBy({ noteId: note.id }).then( async (poll) => {
+					const data = await this.indexNote(note, poll ? poll.choices : undefined, true);
+					if (data) dataList.push(data);
+				});
+			} else {
+				const data = await this.indexNote(note, undefined, true);
+				if (data) dataList.push(data);
+			}
+		});
+
+		//BulkAPIでインデックス
+		await this.indexBulk(this.opensearchNoteIndex as string, dataList);
+		//次回のジョブのためのIdを保存
+		this.queueService.openSearchIndexQueue.add('noteAll', { untilId: notes[notes.length - 1].id, limitId: limitId });
 	}
 
 	@bindThis
