@@ -36,7 +36,7 @@ export class HashtagService {
 	}
 
 	@bindThis
-	public async updateHashtags(user: { id: MiUser['id']; host: MiUser['host']; }, tags: string[]) {
+	public async updateHashtags(user: { id: MiUser['id']; host: MiUser['host']; isBot: MiUser['isBot']; }, tags: string[]) {
 		for (const tag of tags) {
 			await this.updateHashtag(user, tag);
 		}
@@ -54,11 +54,13 @@ export class HashtagService {
 	}
 
 	@bindThis
-	public async updateHashtag(user: { id: MiUser['id']; host: MiUser['host']; }, tag: string, isUserAttached = false, inc = true) {
+	public async updateHashtag(user: { id: MiUser['id']; host: MiUser['host']; isBot: MiUser['isBot']; }, tag: string, isUserAttached = false, inc = true) {
 		tag = normalizeForSearch(tag);
 
-		// TODO: サンプリング
-		this.updateHashtagsRanking(tag, user.id);
+		if (!(user.isBot && process.env.HASHTAG_TREND_EXCLUDE_BOT_USERS === 'true')) {
+			// TODO: サンプリング
+			this.updateHashtagsRanking(tag, user.id);
+		}
 
 		const index = await this.hashtagsRepository.findOneBy({ name: tag });
 
