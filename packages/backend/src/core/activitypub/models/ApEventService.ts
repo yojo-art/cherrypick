@@ -31,7 +31,7 @@ export class ApEventService {
 		if (typeof source === 'object') {
 			note = source;
 		} else {
-			const resolver = resolverParam ?? this.apResolverService.createResolver();
+			const resolver = resolverParam ?? await this.apResolverService.createResolver();
 
 			note = await resolver.resolve(source);
 		}

@@ -3,7 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { MetaService } from '@/core/MetaService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
@@ -12,9 +13,10 @@ import { RoleService } from '@/core/RoleService.js';
 import type { MiMeta } from '@/models/Meta.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
-import Channel, { MiChannelService } from '../channel.js';
+import Channel, { type ChannelRequest } from '../channel.js';
 
-class BubbleTimelineChannel extends Channel {
+@Injectable({ scope: Scope.TRANSIENT })
+export class BubbleTimelineChannel extends Channel {
 	public readonly chName = 'bubbleTimeline';
 	public static shouldShare = false;
 	public static requireCredential = false as const;
@@ -25,14 +27,15 @@ class BubbleTimelineChannel extends Channel {
 	private instance: MiMeta;
 
 	constructor(
+		@Inject(REQUEST)
+		request: ChannelRequest,
+
 		private metaService: MetaService,
 		private roleService: RoleService,
 		private noteEntityService: NoteEntityService,
 
-		id: string,
-		connection: Channel['connection'],
 	) {
-		super(id, connection);
+		super(request);
 		//this.onNote = this.onNote.bind(this);
 	}
 
@@ -74,7 +77,7 @@ class BubbleTimelineChannel extends Channel {
 				note.renote.myReaction = myRenoteReaction;
 			}
 		}
-		
+
 		this.send('note', note);
 	}
 
@@ -82,30 +85,5 @@ class BubbleTimelineChannel extends Channel {
 	public dispose() {
 		// Unsubscribe events
 		this.subscriber.off('notesStream', this.onNote);
-	}
-}
-
-@Injectable()
-export class BubbleTimelineChannelService implements MiChannelService<false> {
-	public readonly shouldShare = BubbleTimelineChannel.shouldShare;
-	public readonly requireCredential = BubbleTimelineChannel.requireCredential;
-	public readonly kind = BubbleTimelineChannel.kind;
-
-	constructor(
-		private metaService: MetaService,
-		private roleService: RoleService,
-		private noteEntityService: NoteEntityService,
-	) {
-	}
-
-	@bindThis
-	public create(id: string, connection: Channel['connection']): BubbleTimelineChannel {
-		return new BubbleTimelineChannel(
-			this.metaService,
-			this.roleService,
-			this.noteEntityService,
-			id,
-			connection,
-		);
 	}
 }

@@ -80,7 +80,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 		const outboxUrl = user.outbox;
 
 		this.logger.info(`Fetcing the Outbox: ${outboxUrl}`);
-		const Resolver = resolver ?? this.apResolverService.createResolver();
+		const Resolver = resolver ?? await this.apResolverService.createResolver();
 		const cache = await this.redisClient.get(`${outboxUrl}--next`);
 		let next: string | IOrderedCollectionPage;
 
