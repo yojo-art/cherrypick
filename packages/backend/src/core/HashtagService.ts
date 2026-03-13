@@ -15,10 +15,14 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { FeaturedService } from '@/core/FeaturedService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import type { Config } from '@/config.js';
 
 @Injectable()
 export class HashtagService {
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
+
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
@@ -57,7 +61,7 @@ export class HashtagService {
 	public async updateHashtag(user: { id: MiUser['id']; host: MiUser['host']; isBot: MiUser['isBot']; }, tag: string, isUserAttached = false, inc = true) {
 		tag = normalizeForSearch(tag);
 
-		if (!(user.isBot && process.env.HASHTAG_TREND_EXCLUDE_BOT_USERS === 'true')) {
+		if (!(user.isBot && this.config.hashtagTrendExcludeBotUsers)) {
 			// TODO: サンプリング
 			this.updateHashtagsRanking(tag, user.id);
 		}
