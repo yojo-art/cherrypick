@@ -1,3 +1,18 @@
+## 1.7.1
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-03-14
+
+### General
+
+### Client
+
+### Server
+- Fix: セキュリティに関する修正 (Cherry-picked from misskey 2026.3.1)
+- Fix: requireSigninToViewContentsをfalseに上書きする [#860](https://github.com/yojo-art/cherrypick/pull/860)
+
 ## 1.7.0
 Cherrypick 4.17.0  
 Misskey 2025.10.2

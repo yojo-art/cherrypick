@@ -60,7 +60,7 @@ export class ApClipService {
 		this.logger.info(`Updating the clip: ${clip.uri}`);
 		const user = await this.usersRepository.findOneByOrFail({ id: clip.userId });
 		if (!this.userEntityService.isRemoteUser(user)) throw new Error('is not remote user');
-		const resolver = this.apResolverService.createResolver();
+		const resolver = await this.apResolverService.createResolver();
 		const ap_clip = await resolver.resolveClip(clip.uri);
 		let next = ap_clip.first ?? null;
 		const limit = 10;
@@ -102,7 +102,7 @@ export class ApClipService {
 
 		this.logger.info(`Updating the Clips: ${user.uri}`);
 
-		const _resolver = resolver ?? this.apResolverService.createResolver();
+		const _resolver = resolver ?? await this.apResolverService.createResolver();
 
 		// Resolve to (Ordered)Collection Object
 		const yojoart_clips = await _resolver.resolveOrderedCollection(user.clipsUri);
