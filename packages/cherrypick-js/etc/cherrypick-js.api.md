@@ -991,6 +991,66 @@ export type Channels = {
 };
 
 // @public (undocumented)
+type ChannelsCreateRequest = operations['channels___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsCreateResponse = operations['channels___create']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsFavoriteRequest = operations['channels___favorite']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsFeaturedResponse = operations['channels___featured']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsFollowedRequest = operations['channels___followed']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsFollowedResponse = operations['channels___followed']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsFollowRequest = operations['channels___follow']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsMyFavoritesResponse = operations['channels___my-favorites']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsOwnedRequest = operations['channels___owned']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsOwnedResponse = operations['channels___owned']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsSearchRequest = operations['channels___search']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsSearchResponse = operations['channels___search']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsShowRequest = operations['channels___show']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsShowResponse = operations['channels___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsTimelineRequest = operations['channels___timeline']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsTimelineResponse = operations['channels___timeline']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsUnfavoriteRequest = operations['channels___unfavorite']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsUnfollowRequest = operations['channels___unfollow']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsUpdateRequest = operations['channels___update']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsUpdateResponse = operations['channels___update']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChartsActiveUsersRequest = operations['charts___active-users']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1708,6 +1768,26 @@ declare namespace entities {
         BubbleGameRankingRequest,
         BubbleGameRankingResponse,
         BubbleGameRegisterRequest,
+        ChannelsCreateRequest,
+        ChannelsCreateResponse,
+        ChannelsFavoriteRequest,
+        ChannelsFeaturedResponse,
+        ChannelsFollowRequest,
+        ChannelsFollowedRequest,
+        ChannelsFollowedResponse,
+        ChannelsMyFavoritesResponse,
+        ChannelsOwnedRequest,
+        ChannelsOwnedResponse,
+        ChannelsSearchRequest,
+        ChannelsSearchResponse,
+        ChannelsShowRequest,
+        ChannelsShowResponse,
+        ChannelsTimelineRequest,
+        ChannelsTimelineResponse,
+        ChannelsUnfavoriteRequest,
+        ChannelsUnfollowRequest,
+        ChannelsUpdateRequest,
+        ChannelsUpdateResponse,
         ChartsActiveUsersRequest,
         ChartsActiveUsersResponse,
         ChartsApRequestRequest,
@@ -3435,7 +3515,7 @@ type PartialRolePolicyOverride = Partial<{
 }>;
 
 // @public (undocumented)
-export const permissions: readonly ["read:account", "write:account", "read:blocks", "write:blocks", "read:drive", "write:drive", "read:favorites", "write:favorites", "read:following", "write:following", "read:messaging", "write:messaging", "read:mutes", "write:mutes", "write:notes", "read:notifications", "write:notifications", "read:reactions", "write:reactions", "write:votes", "read:pages", "write:pages", "write:page-likes", "read:page-likes", "read:user-groups", "write:user-groups", "read:gallery", "write:gallery", "read:gallery-likes", "write:gallery-likes", "read:flash", "write:flash", "read:flash-likes", "write:flash-likes", "read:admin:abuse-user-reports", "write:admin:delete-account", "write:admin:delete-all-files-of-a-user", "read:admin:index-stats", "read:admin:table-stats", "read:admin:user-ips", "read:admin:meta", "write:admin:reset-password", "write:admin:resolve-abuse-user-report", "write:admin:send-email", "read:admin:server-info", "read:admin:show-moderation-log", "read:admin:show-user", "write:admin:suspend-user", "write:admin:unset-user-avatar", "write:admin:unset-user-banner", "write:admin:unsuspend-user", "write:admin:meta", "write:admin:user-note", "write:admin:roles", "read:admin:roles", "write:admin:relays", "read:admin:relays", "write:admin:invite-codes", "read:admin:invite-codes", "write:admin:announcements", "read:admin:announcements", "write:admin:avatar-decorations", "read:admin:avatar-decorations", "write:admin:federation", "write:admin:account", "read:admin:account", "write:admin:emoji", "read:admin:emoji", "write:admin:queue", "read:admin:queue", "write:admin:promo", "write:admin:drive", "read:admin:drive", "write:admin:ad", "read:admin:ad", "write:invite-codes", "read:invite-codes", "write:clip-favorite", "read:clip-favorite", "read:federation", "write:report-abuse", "write:chat", "read:chat", "write:admin:official-tags", "write:admin:reindex"];
+export const permissions: readonly ["read:account", "write:account", "read:blocks", "write:blocks", "read:drive", "write:drive", "read:favorites", "write:favorites", "read:following", "write:following", "read:messaging", "write:messaging", "read:mutes", "write:mutes", "write:notes", "read:notifications", "write:notifications", "read:reactions", "write:reactions", "write:votes", "read:pages", "write:pages", "write:page-likes", "read:page-likes", "read:user-groups", "write:user-groups", "read:channels", "write:channels", "read:gallery", "write:gallery", "read:gallery-likes", "write:gallery-likes", "read:flash", "write:flash", "read:flash-likes", "write:flash-likes", "read:admin:abuse-user-reports", "write:admin:delete-account", "write:admin:delete-all-files-of-a-user", "read:admin:index-stats", "read:admin:table-stats", "read:admin:user-ips", "read:admin:meta", "write:admin:reset-password", "write:admin:resolve-abuse-user-report", "write:admin:send-email", "read:admin:server-info", "read:admin:show-moderation-log", "read:admin:show-user", "write:admin:suspend-user", "write:admin:unset-user-avatar", "write:admin:unset-user-banner", "write:admin:unsuspend-user", "write:admin:meta", "write:admin:user-note", "write:admin:roles", "read:admin:roles", "write:admin:relays", "read:admin:relays", "write:admin:invite-codes", "read:admin:invite-codes", "write:admin:announcements", "read:admin:announcements", "write:admin:avatar-decorations", "read:admin:avatar-decorations", "write:admin:federation", "write:admin:account", "read:admin:account", "write:admin:emoji", "read:admin:emoji", "write:admin:queue", "read:admin:queue", "write:admin:promo", "write:admin:drive", "read:admin:drive", "write:admin:ad", "read:admin:ad", "write:invite-codes", "read:invite-codes", "write:clip-favorite", "read:clip-favorite", "read:federation", "write:report-abuse", "write:chat", "read:chat", "write:admin:official-tags", "write:admin:reindex"];
 
 // @public (undocumented)
 type PingResponse = operations['ping']['responses']['200']['content']['application/json'];

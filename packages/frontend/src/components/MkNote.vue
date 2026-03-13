@@ -281,6 +281,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 				</button>
 			</div>
+			<MkA v-if="appearNote.channel && !inChannel" :class="$style.channel" :to="`/channels/${appearNote.channel.id}`"><i class="ti ti-device-tv"></i> {{ appearNote.channel.name }}</MkA>
 		</div>
 		<div v-if="appearNote.renoteId" :class="$style.quote"><MkNoteSimple :note="appearNote?.renote ?? null" :class="$style.quoteNote"/></div>
 		<div v-if="!$i && isAnimatedMfm" :class="$style.play_mfm_action">

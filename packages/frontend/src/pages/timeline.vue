@@ -156,6 +156,7 @@ const enableMediaTimeline = ref(prefer.s.enableMediaTimeline);
 const enableBubbleTimeline = ref(prefer.s.enableBubbleTimeline);
 const enableListTimeline = ref(prefer.s.enableListTimeline);
 const enableAntennaTimeline = ref(prefer.s.enableAntennaTimeline);
+const enableChannelTimeline = ref(prefer.s.enableChannelTimeline);
 const enableTagTimeline = ref(prefer.s.enableTagTimeline);
 
 const forceCollapseAllRenotes = ref(prefer.s.forceCollapseAllRenotes);
@@ -219,6 +220,11 @@ watch(enableListTimeline, (x) => {
 
 watch(enableAntennaTimeline, (x) => {
 	prefer.commit('enableAntennaTimeline', x);
+	suggestReload();
+});
+
+watch(enableChannelTimeline, (x) => {
+	prefer.commit('enableChannelTimeline', x);
 	suggestReload();
 });
 
@@ -498,6 +504,11 @@ const headerActions = computed(() => {
 						ref: enableGlobalTimeline,
 					}, {
 						type: 'switch',
+						text: i18n.ts._timelines.media,
+						icon: 'ti ti-photo',
+						ref: enableMediaTimeline,
+					}, {
+						type: 'switch',
 						text: i18n.ts._timelines.bubble,
 						icon: 'ti ti-droplet',
 						ref: enableBubbleTimeline,
@@ -516,6 +527,11 @@ const headerActions = computed(() => {
 						text: i18n.ts.antennas,
 						icon: 'ti ti-antenna',
 						ref: enableAntennaTimeline,
+					}, {
+						type: 'switch',
+						text: i18n.ts.channel,
+						icon: 'ti ti-device-tv',
+						ref: enableChannelTimeline,
 					}, {
 						type: 'switch',
 						text: i18n.ts.tags,
@@ -649,6 +665,11 @@ const headerTabs = computed(() => [...(prefer.r.pinnedUserLists.value.map(l => (
 	title: i18n.ts.antennas,
 	iconOnly: true,
 	onClick: chooseAntenna,
+}] : []), ...(prefer.s.enableChannelTimeline ? [{
+	icon: 'ti ti-device-tv',
+	title: i18n.ts.channel,
+	iconOnly: true,
+	onClick: chooseChannel,
 }] : []), ...(prefer.s.enableTagTimeline ? [{
 	icon: 'ti ti-hash',
 	title: i18n.ts.tags,

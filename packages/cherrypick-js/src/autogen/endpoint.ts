@@ -190,6 +190,26 @@ import type {
 	BubbleGameRankingRequest,
 	BubbleGameRankingResponse,
 	BubbleGameRegisterRequest,
+	ChannelsCreateRequest,
+	ChannelsCreateResponse,
+	ChannelsFavoriteRequest,
+	ChannelsFeaturedResponse,
+	ChannelsFollowRequest,
+	ChannelsFollowedRequest,
+	ChannelsFollowedResponse,
+	ChannelsMyFavoritesResponse,
+	ChannelsOwnedRequest,
+	ChannelsOwnedResponse,
+	ChannelsSearchRequest,
+	ChannelsSearchResponse,
+	ChannelsShowRequest,
+	ChannelsShowResponse,
+	ChannelsTimelineRequest,
+	ChannelsTimelineResponse,
+	ChannelsUnfavoriteRequest,
+	ChannelsUnfollowRequest,
+	ChannelsUpdateRequest,
+	ChannelsUpdateResponse,
 	ChartsActiveUsersRequest,
 	ChartsActiveUsersResponse,
 	ChartsApRequestRequest,
@@ -830,6 +850,19 @@ export type Endpoints = {
 	'blocking/list': { req: BlockingListRequest; res: BlockingListResponse };
 	'bubble-game/ranking': { req: BubbleGameRankingRequest; res: BubbleGameRankingResponse };
 	'bubble-game/register': { req: BubbleGameRegisterRequest; res: EmptyResponse };
+	'channels/create': { req: ChannelsCreateRequest; res: ChannelsCreateResponse };
+	'channels/favorite': { req: ChannelsFavoriteRequest; res: EmptyResponse };
+	'channels/featured': { req: EmptyRequest; res: ChannelsFeaturedResponse };
+	'channels/follow': { req: ChannelsFollowRequest; res: EmptyResponse };
+	'channels/followed': { req: ChannelsFollowedRequest; res: ChannelsFollowedResponse };
+	'channels/my-favorites': { req: EmptyRequest; res: ChannelsMyFavoritesResponse };
+	'channels/owned': { req: ChannelsOwnedRequest; res: ChannelsOwnedResponse };
+	'channels/search': { req: ChannelsSearchRequest; res: ChannelsSearchResponse };
+	'channels/show': { req: ChannelsShowRequest; res: ChannelsShowResponse };
+	'channels/timeline': { req: ChannelsTimelineRequest; res: ChannelsTimelineResponse };
+	'channels/unfavorite': { req: ChannelsUnfavoriteRequest; res: EmptyResponse };
+	'channels/unfollow': { req: ChannelsUnfollowRequest; res: EmptyResponse };
+	'channels/update': { req: ChannelsUpdateRequest; res: ChannelsUpdateResponse };
 	'charts/active-users': { req: ChartsActiveUsersRequest; res: ChartsActiveUsersResponse };
 	'charts/ap-request': { req: ChartsApRequestRequest; res: ChartsApRequestResponse };
 	'charts/drive': { req: ChartsDriveRequest; res: ChartsDriveResponse };

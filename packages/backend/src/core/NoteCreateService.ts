@@ -455,8 +455,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
 	}, data: Option, silent = false): Promise<MiNote> {
-		//このフォークではチャンネルの存在を認めない
-		data.channel = undefined;
 		//このフォークではローカルのみを認めない
 		data.localOnly = undefined;
 

@@ -84,6 +84,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</MkPreferenceContainer>
 				</SearchMarker>
 
+				<SearchMarker :keywords="['enable', 'channel']">
+					<MkPreferenceContainer k="enableChannelTimeline">
+						<MkSwitch v-model="enableChannelTimeline">
+							<template #label><i class="ti ti-device-tv"></i> <SearchLabel>{{ i18n.ts.channel }}</SearchLabel></template>
+						</MkSwitch>
+					</MkPreferenceContainer>
+				</SearchMarker>
+
 				<SearchMarker :keywords="['enable', 'tag','hash-tag','hash']">
 					<MkPreferenceContainer k="enableTagTimeline">
 						<MkSwitch v-model="enableTagTimeline">
@@ -122,6 +130,7 @@ const enableMediaTimeline = prefer.model('enableMediaTimeline');
 const enableBubbleTimeline = prefer.model('enableBubbleTimeline');
 const enableListTimeline = prefer.model('enableListTimeline');
 const enableAntennaTimeline = prefer.model('enableAntennaTimeline');
+const enableChannelTimeline = prefer.model('enableChannelTimeline');
 const enableTagTimeline = prefer.model('enableTagTimeline');
 
 const headerActions = computed(() => []);
