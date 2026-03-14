@@ -112,8 +112,8 @@ importers:
         specifier: 10.1.0
         version: 10.1.0
       '@fastify/express':
-        specifier: 4.0.2
-        version: 4.0.2
+        specifier: 4.0.3
+        version: 4.0.3
       '@fastify/http-proxy':
         specifier: 10.0.2
         version: 10.0.2(bufferutil@4.0.9)(utf-8-validate@6.0.5)
@@ -2535,8 +2535,8 @@ packages:
   '@fastify/error@4.2.0':
     resolution: {integrity: sha512-RSo3sVDXfHskiBZKBPRgnQTtIqpi/7zhJOEmAxCiBcM7d0uwdGdxLlsCaLzGs8v8NnxIRlfG0N51p5yFaOentQ==}
 
-  '@fastify/express@4.0.2':
-    resolution: {integrity: sha512-lzu9MLdjlsK4Q2RiqEAwTgwQPrWQVP0kmbgAi/w9rIUqtnacjKvj3EHVTR6PIvXDs6Ut1jnTHiGbuNxHTsZwHQ==}
+  '@fastify/express@4.0.3':
+    resolution: {integrity: sha512-1JnUC5YbfZWSpP9GdTnjhdTPrvpqxn5BieLImKLyICINbSBdJeMVBN3hm8Vb/NBqMAvfP/1MXOr+RJ1iUr3Xjg==}
 
   '@fastify/fast-json-stringify-compiler@5.0.3':
     resolution: {integrity: sha512-uik7yYHkLr6fxd8hJSZ8c+xF4WafPK+XzneQDPU+D10r5X19GW8lJcom2YijX2+qtFF1ENJlHXKFM9ouXNJYgQ==}
@@ -4052,6 +4052,9 @@ packages:
 
   '@sinonjs/text-encoding@0.7.3':
     resolution: {integrity: sha512-DE427ROAphMQzU4ENbliGYrBSYPXF+TtLg9S8vzeA+OF4ZKzoDdzfL8sxuMUGS/lgRhM6j1URSk9ghf7Xo1tyA==}
+    deprecated: |-
+      Deprecated: no longer maintained and no longer used by Sinon packages. See
+        https://github.com/sinonjs/nise/issues/243 for replacement details.
 
   '@smithy/abort-controller@2.2.0':
     resolution: {integrity: sha512-wRlta7GuLWpTqtFfGo+nZyOO1vEvewdNR1R4rTxpC8XU6vG/NDyrFBhwLZsqg1NUoR1noVaXJPC/7ZK47QCySw==}
@@ -13409,10 +13412,11 @@ snapshots:
 
   '@fastify/error@4.2.0': {}
 
-  '@fastify/express@4.0.2':
+  '@fastify/express@4.0.3':
     dependencies:
       express: 4.21.2
-      fastify-plugin: 5.0.1
+      fastify-plugin: 5.1.0
+      find-my-way: 9.4.0
     transitivePeerDependencies:
       - supports-color
 
