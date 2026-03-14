@@ -6,7 +6,7 @@ settings:
 
 overrides:
   chokidar: 4.0.3
-  lodash: 4.17.21
+  lodash: 4.17.23
   '@aiscript-dev/aiscript-languageserver': '-'
 
 importers:
@@ -4052,6 +4052,9 @@ packages:
 
   '@sinonjs/text-encoding@0.7.3':
     resolution: {integrity: sha512-DE427ROAphMQzU4ENbliGYrBSYPXF+TtLg9S8vzeA+OF4ZKzoDdzfL8sxuMUGS/lgRhM6j1URSk9ghf7Xo1tyA==}
+    deprecated: |-
+      Deprecated: no longer maintained and no longer used by Sinon packages. See
+        https://github.com/sinonjs/nise/issues/243 for replacement details.
 
   '@smithy/abort-controller@2.2.0':
     resolution: {integrity: sha512-wRlta7GuLWpTqtFfGo+nZyOO1vEvewdNR1R4rTxpC8XU6vG/NDyrFBhwLZsqg1NUoR1noVaXJPC/7ZK47QCySw==}
@@ -8536,8 +8539,8 @@ packages:
   lodash.uniq@4.5.0:
     resolution: {integrity: sha512-xfBaXQd9ryd9dlSDvnvI0lvxfLJlYAZzXomUYzLKtUeOQvOP5piqAWuGtrhWeqaXK9hhoM/iyJc5AV+XfsX3HQ==}
 
-  lodash@4.17.21:
-    resolution: {integrity: sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==}
+  lodash@4.17.23:
+    resolution: {integrity: sha512-LgVTMpQtIopCi79SJeDiP0TfWi5CNEc/L/aRdTh3yIvmZXTnheWpKjSZhnvMl8iXbC1tFg9gdHHDMLoV7CnG+w==}
 
   log-symbols@4.1.0:
     resolution: {integrity: sha512-8XPvpAA8uyhfteu8pIvQxpJZ7SYYdpUivZpGy6sFsBuKRY/7rQGavedeB8aK+Zkyq6upMFVL/9AW6vOYzfRyLg==}
@@ -13955,7 +13958,7 @@ snapshots:
 
   '@jsdoc/salty@0.2.9':
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.23
 
   '@keyv/serialize@1.1.1': {}
 
@@ -14013,7 +14016,7 @@ snapshots:
       '@rushstack/terminal': 0.19.4(@types/node@24.9.1)
       '@rushstack/ts-command-line': 5.1.4(@types/node@24.9.1)
       diff: 8.0.2
-      lodash: 4.17.21
+      lodash: 4.17.23
       minimatch: 10.0.3
       resolve: 1.22.10
       semver: 7.5.4
@@ -15605,7 +15608,7 @@ snapshots:
 
   '@storybook/csf@0.0.1':
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.23
 
   '@storybook/global@5.0.0': {}
 
@@ -15946,7 +15949,7 @@ snapshots:
       chalk: 3.0.0
       css.escape: 1.5.1
       dom-accessibility-api: 0.6.3
-      lodash: 4.17.21
+      lodash: 4.17.23
       redent: 3.0.0
 
   '@testing-library/jest-dom@6.9.1':
@@ -17113,7 +17116,7 @@ snapshots:
       graceful-fs: 4.2.11
       is-stream: 2.0.1
       lazystream: 1.0.1
-      lodash: 4.17.21
+      lodash: 4.17.23
       normalize-path: 3.0.0
       readable-stream: 4.7.0
 
@@ -17611,7 +17614,7 @@ snapshots:
 
   catharsis@0.9.0:
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.23
 
   cbor@9.0.2:
     dependencies:
@@ -18076,7 +18079,7 @@ snapshots:
       hasha: 5.2.2
       is-installed-globally: 0.4.0
       listr2: 3.14.0(enquirer@2.4.1)
-      lodash: 4.17.21
+      lodash: 4.17.23
       log-symbols: 4.1.0
       minimist: 1.2.8
       ospath: 1.2.2
@@ -20717,7 +20720,7 @@ snapshots:
 
   lodash.uniq@4.5.0: {}
 
-  lodash@4.17.21: {}
+  lodash@4.17.23: {}
 
   log-symbols@4.1.0:
     dependencies:
@@ -22529,7 +22532,7 @@ snapshots:
 
   redis-info@3.1.0:
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.23
 
   redis-lock@0.1.4: {}
 
@@ -22627,7 +22630,7 @@ snapshots:
 
   requizzle@0.2.4:
     dependencies:
-      lodash: 4.17.21
+      lodash: 4.17.23
 
   resolve-alpn@1.2.1: {}
 
@@ -24157,7 +24160,7 @@ snapshots:
     dependencies:
       axios: 1.13.2(debug@4.4.3)
       joi: 18.0.2
-      lodash: 4.17.21
+      lodash: 4.17.23
       minimist: 1.2.8
       rxjs: 7.8.2
     transitivePeerDependencies:

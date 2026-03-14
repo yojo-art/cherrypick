@@ -54,7 +54,7 @@
 	},
 	"resolutions": {
 		"chokidar": "4.0.3",
-		"lodash": "4.17.21"
+		"lodash": "4.17.23"
 	},
 	"dependencies": {
 		"cssnano": "7.1.1",
