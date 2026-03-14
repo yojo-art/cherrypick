@@ -8,7 +8,7 @@
 		"type": "git",
 		"url": "https://github.com/yojo-art/cherrypick.git"
 	},
-	"packageManager": "pnpm@10.18.2",
+	"packageManager": "pnpm@10.28.2",
 	"workspaces": [
 		"packages/frontend-shared",
 		"packages/frontend",
@@ -81,7 +81,7 @@
 		"eslint": "9.37.0",
 		"globals": "16.4.0",
 		"ncp": "2.0.0",
-		"pnpm": "10.18.2",
+		"pnpm": "10.28.2",
 		"start-server-and-test": "2.1.2"
 	},
 	"optionalDependencies": {
