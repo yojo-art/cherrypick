@@ -124,7 +124,7 @@
 		"content-disposition": "0.5.4",
 		"date-fns": "2.30.0",
 		"deep-email-validator": "0.1.21",
-		"fastify": "5.7.3",
+		"fastify": "5.8.1",
 		"fastify-raw-body": "5.0.0",
 		"feed": "4.2.2",
 		"file-type": "21.0.0",
