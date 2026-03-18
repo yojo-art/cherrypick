@@ -81,8 +81,8 @@ importers:
         specifier: 2.0.0
         version: 2.0.0
       pnpm:
-        specifier: 10.18.2
-        version: 10.18.2
+        specifier: 10.28.2
+        version: 10.28.2
       start-server-and-test:
         specifier: 2.1.2
         version: 2.1.2
@@ -9610,8 +9610,8 @@ packages:
     resolution: {integrity: sha512-40QW5YalBNfQo5yRYmiw7Yz6TKKVr3h6970B2YE+3fQpsWcrbj1PzJgxeJ19DRQjhMbKPIuMY8rFaXc8moolVw==}
     engines: {node: '>=10.13.0'}
 
-  pnpm@10.18.2:
-    resolution: {integrity: sha512-n7lp+nSbOt5gNeDxCfC4pgtdCKGof99y4zfakNzJMzbiKAyk5E8jWKZJuDwXlZ6Zk+d3wggIefOAHm8NmZrT3Q==}
+  pnpm@10.28.2:
+    resolution: {integrity: sha512-QYcvA3rSL3NI47Heu69+hnz9RI8nJtnPdMCPGVB8MdLI56EVJbmD/rwt9kC1Q43uYCPrsfhO1DzC1lTSvDJiZA==}
     engines: {node: '>=18.12'}
     hasBin: true
 
@@ -21969,7 +21969,7 @@ snapshots:
 
   pngjs@5.0.0: {}
 
-  pnpm@10.18.2: {}
+  pnpm@10.28.2: {}
 
   polished@4.3.1:
     dependencies:
