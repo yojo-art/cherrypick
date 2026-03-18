@@ -7,7 +7,6 @@ export class MigrationCleanup1767792212399 {
     name = 'MigrationCleanup1767792212399'
 
     async up(queryRunner) {
-        await queryRunner.query(`ALTER TABLE "poll_vote" DROP CONSTRAINT "FK_poll_vote_poll"`);
         await queryRunner.query(`COMMENT ON COLUMN "abuse_report_resolver"."updatedAt" IS 'The updated date of the AbuseReportResolver.'`);
         await queryRunner.query(`COMMENT ON COLUMN "abuse_report_resolver"."expirationDate" IS 'The expiration date of the AbuseReportResolver'`);
         await queryRunner.query(`ALTER TABLE "user" ALTER COLUMN "canChat" DROP DEFAULT`);
@@ -49,6 +48,5 @@ export class MigrationCleanup1767792212399 {
         await queryRunner.query(`ALTER TABLE "user" ALTER COLUMN "canChat" SET DEFAULT true`);
         await queryRunner.query(`COMMENT ON COLUMN "abuse_report_resolver"."expirationDate" IS 'The expiration date of AbuseReportResolver'`);
         await queryRunner.query(`COMMENT ON COLUMN "abuse_report_resolver"."updatedAt" IS 'The updated date of AbuseReportResolver'`);
-        await queryRunner.query(`ALTER TABLE "poll_vote" ADD CONSTRAINT "FK_poll_vote_poll" FOREIGN KEY ("noteId") REFERENCES "poll"("noteId") ON DELETE CASCADE ON UPDATE NO ACTION`);
     }
 }
