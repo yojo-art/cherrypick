@@ -414,7 +414,12 @@ function chooseAlternative(ev) {
 	notesReactionsCreate({
 		noteId: props.noteId,
 		reaction: `:${alternative.value}:`,
-	}, { mute: true });
+	}).then(() => {
+		noteEvents.emit(`reacted:${props.noteId}`, {
+			userId: $i!.id,
+			reaction: `:${alternative.value}:`,
+		});
+	});
 }
 
 async function openEmojiMenu(ev) {
