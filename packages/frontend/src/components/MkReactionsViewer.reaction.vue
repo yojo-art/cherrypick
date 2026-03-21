@@ -168,7 +168,8 @@ async function toggleReaction(ev: MouseEvent) {
 		notesReactionsCreate({
 			noteId: props.noteId,
 			reaction: props.reaction,
-		}).then(() => {
+		}).then(({ canceled }) => {
+			if (canceled) return;
 			const emoji = customEmojisMap.get(emojiName.value);
 			if (emoji == null && getUnicodeEmojiOrNull(props.reaction) == null) {
 				return;
@@ -414,7 +415,8 @@ function chooseAlternative(ev) {
 	notesReactionsCreate({
 		noteId: props.noteId,
 		reaction: `:${alternative.value}:`,
-	}).then(() => {
+	}).then(({ canceled }) => {
+		if (canceled) return;
 		noteEvents.emit(`reacted:${props.noteId}`, {
 			userId: $i!.id,
 			reaction: `:${alternative.value}:`,
