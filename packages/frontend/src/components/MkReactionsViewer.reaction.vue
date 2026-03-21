@@ -100,7 +100,7 @@ async function toggleReaction(ev: MouseEvent) {
 	haptic();
 
 	if (!canToggle.value) {
-		chooseAlternative(ev);
+		await chooseAlternative(ev);
 		return;
 	}
 	if ($i == null) return;
@@ -408,20 +408,53 @@ function anime() {
 	});
 }
 
-function chooseAlternative(ev) {
+async function chooseAlternative(ev) {
 	// メニュー表示にして、モデレーター以上の場合は登録もできるように
 	if (!alternative.value) return;
+
 	console.log(alternative.value);
-	notesReactionsCreate({
-		noteId: props.noteId,
-		reaction: `:${alternative.value}:`,
-	}).then(({ canceled }) => {
-		if (canceled) return;
-		noteEvents.emit(`reacted:${props.noteId}`, {
-			userId: $i!.id,
-			reaction: `:${alternative.value}:`,
+	const oldReaction = props.myReaction;
+	const reaction = `:${alternative.value}:`;
+
+	if (oldReaction) {
+		const confirm = await os.confirm({
+			type: 'warning',
+			text: oldReaction !== reaction ? i18n.ts.changeReactionConfirm : i18n.ts.cancelReactionConfirm,
 		});
-	});
+		if (confirm.canceled) return;
+
+		misskeyApi('notes/reactions/delete', {
+			noteId: props.noteId,
+		}).then(() => {
+			noteEvents.emit(`unreacted:${props.noteId}`, {
+				userId: $i!.id,
+				reaction: oldReaction,
+			});
+
+			if (oldReaction !== reaction) {
+				misskeyApi('notes/reactions/create', {
+					noteId: props.noteId,
+					reaction: reaction,
+				}).then(() => {
+					noteEvents.emit(`reacted:${props.noteId}`, {
+						userId: $i!.id,
+						reaction: reaction,
+					});
+				});
+			}
+		});
+	}	else {
+		notesReactionsCreate({
+			noteId: props.noteId,
+			reaction: `:${alternative.value}:`,
+		}).then(({ canceled }) => {
+			if (canceled) return;
+			noteEvents.emit(`reacted:${props.noteId}`, {
+				userId: $i!.id,
+				reaction: `:${alternative.value}:`,
+			});
+		});
+	}
 }
 
 async function openEmojiMenu(ev) {
