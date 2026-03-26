@@ -268,8 +268,8 @@ importers:
         specifier: 14.5.0
         version: 14.5.0
       happy-dom:
-        specifier: 20.0.2
-        version: 20.0.2
+        specifier: 20.8.8
+        version: 20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       hpagent:
         specifier: 1.2.0
         version: 1.2.0
@@ -752,7 +752,7 @@ importers:
         version: 8.48.1(eslint@9.37.0)(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
+        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
       esbuild:
         specifier: 0.25.10
         version: 0.25.10
@@ -776,10 +776,10 @@ importers:
         version: 5.9.3
       vitest:
         specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
       vitest-websocket-mock:
         specifier: 0.5.0
-        version: 0.5.0(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
+        version: 0.5.0(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
 
   packages/cherrypick-js/generator:
     devDependencies:
@@ -1152,7 +1152,7 @@ importers:
         version: 8.48.1(eslint@9.37.0)(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
+        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
       '@vue/compiler-core':
         specifier: 3.5.22
         version: 3.5.22
@@ -1181,8 +1181,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       happy-dom:
-        specifier: 20.0.7
-        version: 20.0.7
+        specifier: 20.8.8
+        version: 20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       intersection-observer:
         specifier: 0.12.2
         version: 0.12.2
@@ -1233,10 +1233,10 @@ importers:
         version: 1.0.3
       vitest:
         specifier: 3.2.4
-        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
+        version: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
       vitest-fetch-mock:
         specifier: 0.4.5
-        version: 0.4.5(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
+        version: 0.4.5(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
       vue-component-type-helpers:
         specifier: 3.1.1
         version: 3.1.1
@@ -1400,7 +1400,7 @@ importers:
         version: 8.48.1(eslint@9.37.0)(typescript@5.9.3)
       '@vitest/coverage-v8':
         specifier: 3.2.4
-        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
+        version: 3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
       '@vue/runtime-core':
         specifier: 3.5.22
         version: 3.5.22
@@ -1420,8 +1420,8 @@ importers:
         specifier: 3.3.3
         version: 3.3.3
       happy-dom:
-        specifier: 20.0.7
-        version: 20.0.7
+        specifier: 20.8.8
+        version: 20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       intersection-observer:
         specifier: 0.12.2
         version: 0.12.2
@@ -4956,9 +4956,6 @@ packages:
   '@types/node-fetch@2.6.13':
     resolution: {integrity: sha512-QGpRVpzSaUs30JBSGPjOg4Uveu384erbHBoT1zeONvyCfwQxIkUshLAOqN/k9EjGviPRmWTTe6aH2qySWKTVSw==}
 
-  '@types/node@20.19.25':
-    resolution: {integrity: sha512-ZsJzA5thDQMSQO788d7IocwwQbI8B5OPzmqNvpf3NY/+MHDAS759Wo0gd2WQeXYt5AAAQjzcrTVC6SKCuYgoCQ==}
-
   '@types/node@24.9.1':
     resolution: {integrity: sha512-QoiaXANRkSXK6p0Duvt56W208du4P9Uye9hWLWgGMDTEoKPhuenzNcC4vGUmrNkiOKTlIrBoyNQYNpSwfEZXSg==}
 
@@ -6811,6 +6808,10 @@ packages:
     resolution: {integrity: sha512-FDWG5cmEYf2Z00IkYRhbFrwIwvdFKH07uV8dvNy0omp/Qb1xcyCWp2UDtcwJF4QZZvk0sLudP6/hAu42TaqVhQ==}
     engines: {node: '>=0.12'}
 
+  entities@7.0.1:
+    resolution: {integrity: sha512-TWrgLOFUQTH994YUyl1yT4uyavY5nNB5muff+RtWaqNVCAK408b5ZnnbNAUEWLTCpum9w6arT70i1XdQ4UeOPA==}
+    engines: {node: '>=0.12'}
+
   env-paths@2.2.1:
     resolution: {integrity: sha512-+h1lkLKhZMTYjog1VEpJNG7NZJWcuc2DDk/qsqSTRRCOXiLjeQ1d1/udrUGhqMxUgAlwKNZ0cf2uqan5GLuS2A==}
     engines: {node: '>=6'}
@@ -7567,12 +7568,8 @@ packages:
     resolution: {integrity: sha512-tSQXBXS/MWQOn/RKckawJ61vvsDpCom87JgxiYdGwHdOa0ht0vzUWDlfioofFCRU0L+6NGDt6XzbgoJvZkMeRQ==}
     engines: {node: '>=0.8.0'}
 
-  happy-dom@20.0.2:
-    resolution: {integrity: sha512-pYOyu624+6HDbY+qkjILpQGnpvZOusItCk+rvF5/V+6NkcgTKnbOldpIy22tBnxoaLtlM9nXgoqAcW29/B7CIw==}
-    engines: {node: '>=20.0.0'}
-
-  happy-dom@20.0.7:
-    resolution: {integrity: sha512-CywLfzmYxP5OYpuAG0usFY0CpxJtwYR+w8Mms5J8W29Y2Pzf6rbfQS2M523tRZTb0oLA+URopPtnAQX2fupHZQ==}
+  happy-dom@20.8.8:
+    resolution: {integrity: sha512-5/F8wxkNxYtsN0bXfMwIyNLZ9WYsoOYPbmoluqVJqv8KBUbcyKZawJ7uYK4WTX8IHBLYv+VXIwfeNDPy1oKMwQ==}
     engines: {node: '>=20.0.0'}
 
   hard-rejection@2.1.0:
@@ -11335,9 +11332,6 @@ packages:
   underscore@1.13.7:
     resolution: {integrity: sha512-GMXzWtsc57XAtguZgaQViUOzs0KTkk8ojr3/xAxXLITqf/3EMwxC0inyETfDFjH/Krbhuep0HNbbjI9i/q3F3g==}
 
-  undici-types@6.21.0:
-    resolution: {integrity: sha512-iwDZqg0QAGrg9Rav5H4n0M64c3mkR59cJ6wQp+7C4nI0gsmExaedaYLNO44eT4AtBBwjbTiGPMlt2Md0T9H9JQ==}
-
   undici-types@7.16.0:
     resolution: {integrity: sha512-Zz+aZWSj8LE6zoxD+xrjh4VfkIG8Ya6LvYkZqtUQGJPZjYl53ypCaUwWqo7eI0x66KBGeRo+mlBEkMSeSZ38Nw==}
 
@@ -11664,8 +11658,8 @@ packages:
   vue-component-type-helpers@3.1.1:
     resolution: {integrity: sha512-B0kHv7qX6E7+kdc5nsaqjdGZ1KwNKSUQDWGy7XkTYT7wFsOpkEyaJ1Vq79TjwrrtuLRgizrTV7PPuC4rRQo+vw==}
 
-  vue-component-type-helpers@3.2.5:
-    resolution: {integrity: sha512-tkvNr+bU8+xD/onAThIe7CHFvOJ/BO6XCOrxMzeytJq40nTfpGDJuVjyCM8ccGZKfAbGk2YfuZyDMXM56qheZQ==}
+  vue-component-type-helpers@3.2.6:
+    resolution: {integrity: sha512-O02tnvIfOQVmnvoWwuSydwRoHjZVt8UEBR+2p4rT35p8GAy5VTlWP8o5qXfJR/GWCN0nVZoYWsVUvx2jwgdBmQ==}
 
   vue-demi@0.14.10:
     resolution: {integrity: sha512-nMZBOwuzabUO0nLgIcc6rycZEebF6eeUfaiQx9+WSk8e29IbLvPU9feI6tqW4kTo3hvoYAJkMh8n8D0fuISphg==}
@@ -15733,7 +15727,7 @@ snapshots:
       storybook: 9.1.19(@testing-library/dom@10.4.0)(bufferutil@4.0.9)(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(prettier@3.6.2)(utf-8-validate@6.0.5)(vite@7.1.11(@types/node@24.9.1)(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))
       type-fest: 2.19.0
       vue: 3.5.22(typescript@5.9.3)
-      vue-component-type-helpers: 3.2.5
+      vue-component-type-helpers: 3.2.6
 
   '@stylistic/eslint-plugin@5.2.3(eslint@9.37.0)':
     dependencies:
@@ -16216,10 +16210,6 @@ snapshots:
       '@types/node': 24.9.1
       form-data: 4.0.4
 
-  '@types/node@20.19.25':
-    dependencies:
-      undici-types: 6.21.0
-
   '@types/node@24.9.1':
     dependencies:
       undici-types: 7.16.0
@@ -16639,7 +16629,7 @@ snapshots:
       vite: 7.1.11(@types/node@24.9.1)(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
       vue: 3.5.22(typescript@5.9.3)
 
-  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))':
+  '@vitest/coverage-v8@3.2.4(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6))':
     dependencies:
       '@ampproject/remapping': 2.3.0
       '@bcoe/v8-coverage': 1.0.2
@@ -16654,7 +16644,7 @@ snapshots:
       std-env: 3.9.0
       test-exclude: 7.0.1
       tinyrainbow: 2.0.0
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
     transitivePeerDependencies:
       - supports-color
 
@@ -18448,6 +18438,8 @@ snapshots:
 
   entities@7.0.0: {}
 
+  entities@7.0.1: {}
+
   env-paths@2.2.1: {}
 
   err-code@2.0.3: {}
@@ -19531,17 +19523,17 @@ snapshots:
 
   hammerjs@2.0.8: {}
 
-  happy-dom@20.0.2:
+  happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5):
     dependencies:
-      '@types/node': 20.19.25
+      '@types/node': 24.9.1
       '@types/whatwg-mimetype': 3.0.2
+      '@types/ws': 8.18.1
+      entities: 7.0.1
       whatwg-mimetype: 3.0.0
-
-  happy-dom@20.0.7:
-    dependencies:
-      '@types/node': 20.19.25
-      '@types/whatwg-mimetype': 3.0.2
-      whatwg-mimetype: 3.0.0
+      ws: 8.18.3(bufferutil@4.0.9)(utf-8-validate@6.0.5)
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   hard-rejection@2.1.0: {}
 
@@ -23803,8 +23795,6 @@ snapshots:
 
   underscore@1.13.7: {}
 
-  undici-types@6.21.0: {}
-
   undici-types@7.16.0: {}
 
   undici@5.29.0:
@@ -24009,17 +23999,17 @@ snapshots:
       terser: 5.44.0
       tsx: 4.20.6
 
-  vitest-fetch-mock@0.4.5(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)):
+  vitest-fetch-mock@0.4.5(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)):
     dependencies:
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
 
-  vitest-websocket-mock@0.5.0(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)):
+  vitest-websocket-mock@0.5.0(vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)):
     dependencies:
       '@vitest/utils': 3.1.2
       mock-socket: 9.3.1
-      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
+      vitest: 3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6)
 
-  vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.0.7)(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6):
+  vitest@3.2.4(@types/debug@4.1.12)(@types/node@24.9.1)(happy-dom@20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5))(jsdom@26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5))(msw@2.11.5(@types/node@24.9.1)(typescript@5.9.3))(sass@1.93.2)(terser@5.44.0)(tsx@4.20.6):
     dependencies:
       '@types/chai': 5.2.3
       '@vitest/expect': 3.2.4
@@ -24047,7 +24037,7 @@ snapshots:
     optionalDependencies:
       '@types/debug': 4.1.12
       '@types/node': 24.9.1
-      happy-dom: 20.0.7
+      happy-dom: 20.8.8(bufferutil@4.0.9)(utf-8-validate@6.0.5)
       jsdom: 26.1.0(bufferutil@4.0.9)(utf-8-validate@6.0.5)
     transitivePeerDependencies:
       - jiti
@@ -24095,7 +24085,7 @@ snapshots:
 
   vue-component-type-helpers@3.1.1: {}
 
-  vue-component-type-helpers@3.2.5: {}
+  vue-component-type-helpers@3.2.6: {}
 
   vue-demi@0.14.10(vue@3.5.22(typescript@5.9.3)):
     dependencies:
