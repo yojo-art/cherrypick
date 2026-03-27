@@ -415,7 +415,8 @@ function react(): void {
 		notesReactionsCreate({
 			noteId: props.note.id,
 			reaction: '❤️',
-		}).then(() => {
+		}).then(({ canceled }) => {
+			if (canceled) return;
 			noteEvents.emit(`reacted:${props.note.id}`, {
 				userId: $i!.id,
 				reaction: '❤️',
@@ -482,7 +483,8 @@ async function toggleReaction(reaction) {
 		notesReactionsCreate({
 			noteId: note.id,
 			reaction: reaction,
-		}).then(() => {
+		}).then(({ canceled }) => {
+			if (canceled) return;
 			noteEvents.emit(`reacted:${note.id}`, {
 				userId: $i!.id,
 				reaction: reaction,
@@ -507,19 +509,26 @@ function heartReact(): void {
 	notesReactionsCreate({
 		noteId: props.note.id,
 		reaction: prefer.s.selectReaction,
-	});
-	if (props.note.text && props.note.text.length > 100 && (Date.now() - new Date(props.note.createdAt).getTime() < 1000 * 3)) {
-		claimAchievement('reactWithoutRead');
-	}
-	const el = heartReactButton.value;
-	if (el && prefer.s.animation) {
-		const rect = el.getBoundingClientRect();
-		const x = rect.left + (el.offsetWidth / 2);
-		const y = rect.top + (el.offsetHeight / 2);
-		const { dispose } = os.popup(MkRippleEffect, { x, y }, {
-			end: () => dispose(),
+	}).then(({ canceled }) => {
+		if (canceled) return;
+
+		noteEvents.emit(`reacted:${props.note.id}`, {
+			userId: $i!.id,
+			reaction: prefer.s.selectReaction,
 		});
-	}
+		if (props.note.text && props.note.text.length > 100 && (Date.now() - new Date(props.note.createdAt).getTime() < 1000 * 3)) {
+			claimAchievement('reactWithoutRead');
+		}
+		const el = heartReactButton.value;
+		if (el && prefer.s.animation) {
+			const rect = el.getBoundingClientRect();
+			const x = rect.left + (el.offsetWidth / 2);
+			const y = rect.top + (el.offsetHeight / 2);
+			const { dispose } = os.popup(MkRippleEffect, { x, y }, {
+				end: () => dispose(),
+			});
+		}
+	});
 }
 
 function undoReact(): void {
