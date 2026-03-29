@@ -304,8 +304,8 @@ importers:
         specifier: 8.3.3
         version: 8.3.3(web-streams-polyfill@3.3.3)
       jsrsasign:
-        specifier: 11.1.0
-        version: 11.1.0
+        specifier: 11.1.1
+        version: 11.1.1
       juice:
         specifier: 11.0.3
         version: 11.0.3
@@ -8428,8 +8428,8 @@ packages:
     resolution: {integrity: sha512-gqXddjPqQ6G40VdnI6T6yObEC+pDNvyP95wdQhkWkg7crHH3km5qP1FsOXEkzEQwnz6gz5qGTn1c2Y52wP3OyQ==}
     engines: {'0': node >=0.6.0}
 
-  jsrsasign@11.1.0:
-    resolution: {integrity: sha512-Ov74K9GihaK9/9WncTe1mPmvrO7Py665TUfUKvraXBpu+xcTWitrtuOwcjf4KMU9maPaYn0OuaWy0HOzy/GBXg==}
+  jsrsasign@11.1.1:
+    resolution: {integrity: sha512-6w95OOXH8DNeGxakqLndBEqqwQ6A70zGaky1oxfg8WVLWOnghTfJsc5Tknx+Z88MHSb1bGLcqQHImOF8Lk22XA==}
 
   jstransformer@1.0.0:
     resolution: {integrity: sha512-C9YK3Rf8q6VAPDCCU9fnqo3mAfOH6vUGnMcP4AQAYIEpWtfGLpwOTmZ+igtdK5y+VvI2n3CyYSzy4Qh34eq24A==}
@@ -20621,7 +20621,7 @@ snapshots:
       json-schema: 0.4.0
       verror: 1.10.0
 
-  jsrsasign@11.1.0: {}
+  jsrsasign@11.1.1: {}
 
   jstransformer@1.0.0:
     dependencies:
