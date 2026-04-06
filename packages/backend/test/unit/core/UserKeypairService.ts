@@ -22,4 +22,12 @@ describe('UserKeypairService', () => {
 	test('should be defined', () => {
 		expect(service).toBeDefined();
 	});
+
+	test('dispose does not throw', () => {
+		expect(() => service.dispose()).not.toThrow();
+	});
+
+	test('onApplicationShutdown does not throw', () => {
+		expect(() => service.onApplicationShutdown()).not.toThrow();
+	});
 });
