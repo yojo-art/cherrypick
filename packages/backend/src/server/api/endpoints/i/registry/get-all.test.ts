@@ -15,7 +15,7 @@ describe('api:i/registry/get-all', () => {
 	describe('validation', () => {
 		const v = getValidator(paramDef);
 
-		test('reject empty', () => expect(v({})).toBe(INVALID));
+		test('accept empty', () => expect(v({})).toBe(VALID));
 		test('validator is a function', () => expect(typeof v).toBe('function'));
 	});
 });

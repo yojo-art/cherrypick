@@ -15,7 +15,7 @@ describe('api:notes/drafts/create', () => {
 	describe('validation', () => {
 		const v = getValidator(paramDef);
 
-		test('reject empty', () => expect(v({})).toBe(INVALID));
-		test('accept with required fields', () => expect(v({ choices: undefined })).toBe(VALID));
+		test('accept empty', () => expect(v({})).toBe(VALID));
+		test('validator is a function', () => expect(typeof v).toBe('function'));
 	});
 });

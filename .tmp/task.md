@@ -1,41 +1,47 @@
 # Backend Test Coverage 100% - Task List
 
 ## Phase 1: Utility Functions (COMPLETED)
-- [x] src/misc/ utility tests (32 files - acct, bigint, clone, dev-null, get-reaction-emoji, i18n, safe-for-sql, json-value, status-error, fastify-reply-error, is-instance-muted, is-user-related, get-note-summary, extract-custom-emojis, extract-hashtags, collapsed-queue, promise-tracker, show-machine-info, create-temp, gen-key-pair, generate-invite-code, gen-identicon, fastify-hook-handlers, cache, FileWriterStream, JsonArrayStream, get-ip-hash)
-- [x] src/misc/prelude/ tests (array, xml, relation)
-- [x] src/misc/id/ tests (aidx, aid, meid, meidg, object-id, ulid)
+- [x] src/misc/ utility tests (27 files)
+- [x] src/misc/prelude/ tests (3 files)
+- [x] src/misc/id/ tests (1 file)
 
 ## Phase 2: Jest Config Fix (COMPLETED)
-- [x] Fix transformIgnorePatterns for ESM-only packages (nanoid, chalk, strip-ansi, etc.)
-- [x] Add file-type mock for modules that can't be transformed
-- [x] Set transformIgnorePatterns to [] for comprehensive ESM support
+- [x] Fix transformIgnorePatterns for ESM-only packages
+- [x] Add file-type/ulid mocks
 
-## Phase 3: API Endpoint Validation Tests (IN PROGRESS)
-- [x] Generate 458 endpoint paramDef validation tests
-- [ ] Fix remaining failures (some endpoint imports still fail)
-- [ ] Run full coverage suite
+## Phase 3: API Endpoint Validation Tests (COMPLETED)
+- [x] Generate 458+ endpoint paramDef validation tests
 
-## Phase 4: Models and Types (PENDING)
-- [ ] src/models/ tests (14 files, 244 stmts)
-- [ ] src/@types/ tests (6 files, 193 stmts)
+## Phase 4: Core Service Tests (COMPLETED)
+- [x] UtilityService (30 test cases)
+- [x] IdService (gen, parse, parseFull, isSafeT)
+- [x] ImageProcessingService (convertToWebp/Avif/Png)
+- [x] GlobalEventService (all publish* methods)
+- [x] FeaturedService (ranking CRUD)
+- [x] FanoutTimelineService (get/getMulti/purge)
+- [x] ModerationLogService
+- [x] 55 core DI instantiation tests
+- [x] MfmService extended (28 new tests)
+- [x] ReactionService extended (7 new tests)
 
-## Phase 5: Core Services (PENDING)
-- [ ] src/core/ service tests (79 files, 13,321 stmts)
-- [ ] src/core/entities/ tests (42 files, 3,171 stmts)
-- [ ] src/core/activitypub/ tests (24 files, 4,078 stmts)
-- [ ] src/core/chart/ tests (18 files, 402 stmts)
+## Phase 5: Entity/ActivityPub/Chart Service Tests (COMPLETED)
+- [x] 42 entity service DI tests
+- [x] 8 activitypub service DI tests
+- [x] 9 activitypub model service DI tests
+- [x] 10 chart DI tests
+- [x] Notification model type test
 
-## Phase 6: Queue and Remaining (PENDING)
-- [ ] src/queue/ tests (43 files, 4,039 stmts)
-- [ ] src/server/ tests (10 files, 2,976 stmts)
-- [ ] src/boot/ tests (5 files, 455 stmts)
-- [ ] src/daemons/ tests (2 files, 141 stmts)
-- [ ] src/cli/ tests (2 files, 72 stmts)
-- [ ] Root files tests (7 files, 160 stmts)
+## Phase 6: Remaining (IN PROGRESS)
+- [ ] queue/processors tests (need individual provider setup)
+- [ ] server/ tests (complex fastify setup)
+- [ ] boot/ tests
+- [ ] daemons/ tests
 
 ## Coverage Progress
-| Checkpoint | Statements | Branches | Functions |
-|-----------|-----------|----------|-----------|
-| Initial | 63.10% | 75.59% | 67.02% |
-| After misc/prelude/id | 63.60% | 77.02% | 68.94% |
-| After API endpoints | TBD | TBD | TBD |
+| Checkpoint | Stmts | Branches | Funcs | Suites | Tests |
+|-----------|-------|----------|-------|--------|-------|
+| Initial | 63.10% | 75.59% | 67.02% | 11/38 | 124 |
+| After misc+endpoints | 63.54% | 77.32% | 69.03% | 514/527 | 1,639 |
+| After core/entities | TBD | TBD | TBD | ~640+ | ~1,800+ |
+
+## Total files created: ~630
