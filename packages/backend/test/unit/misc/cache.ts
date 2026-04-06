@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { describe, expect, test, jest, beforeEach } from '@jest/globals';
-import { MemoryKVCache, MemorySingleCache } from '@/misc/cache.js';
+import { describe, expect, test, jest, beforeEach, afterAll } from '@jest/globals';
+import Redis from 'ioredis';
+import { MemoryKVCache, MemorySingleCache, RedisKVCache, RedisSingleCache } from '@/misc/cache.js';
 
 describe('misc:cache', () => {
 	describe('MemoryKVCache', () => {
@@ -188,6 +189,142 @@ describe('misc:cache', () => {
 			cache.set('valid');
 			const result = await cache.fetchMaybe(async () => 'new', () => true);
 			expect(result).toBe('valid');
+		});
+	});
+
+	describe('RedisKVCache', () => {
+		const redis = new Redis({ host: '127.0.0.1', port: 56312 });
+		let cache: RedisKVCache<string>;
+
+		beforeEach(() => {
+			cache = new RedisKVCache<string>(redis, `test-kv-${Date.now()}`, {
+				lifetime: 5000,
+				memoryCacheLifetime: 1000,
+				fetcher: async (key) => `fetched-${key}`,
+				toRedisConverter: (v) => v,
+				fromRedisConverter: (v) => v,
+			});
+		});
+
+		afterAll(async () => {
+			cache.dispose();
+			await redis.quit();
+		});
+
+		test('set and get', async () => {
+			await cache.set('k1', 'v1');
+			const result = await cache.get('k1');
+			expect(result).toBe('v1');
+		});
+
+		test('get returns undefined for missing key', async () => {
+			const result = await cache.get('nonexistent');
+			expect(result).toBeUndefined();
+		});
+
+		test('delete removes entry', async () => {
+			await cache.set('k1', 'v1');
+			await cache.delete('k1');
+			const result = await cache.get('k1');
+			expect(result).toBeUndefined();
+		});
+
+		test('fetch uses cache on hit', async () => {
+			await cache.set('k1', 'cached');
+			const result = await cache.fetch('k1');
+			expect(result).toBe('cached');
+		});
+
+		test('fetch calls fetcher on miss', async () => {
+			const result = await cache.fetch('missing-key');
+			expect(result).toBe('fetched-missing-key');
+		});
+
+		test('refresh updates cache', async () => {
+			await cache.set('k1', 'old');
+			await cache.refresh('k1');
+			const result = await cache.get('k1');
+			expect(result).toBe('fetched-k1');
+		});
+
+		test('gc does not throw', () => {
+			expect(() => cache.gc()).not.toThrow();
+		});
+
+		test('set with Infinity lifetime', async () => {
+			const infCache = new RedisKVCache<string>(redis, `test-inf-${Date.now()}`, {
+				lifetime: Infinity,
+				memoryCacheLifetime: 1000,
+				fetcher: async () => 'val',
+				toRedisConverter: (v) => v,
+				fromRedisConverter: (v) => v,
+			});
+			await infCache.set('k', 'v');
+			const result = await infCache.get('k');
+			expect(result).toBe('v');
+			infCache.dispose();
+		});
+	});
+
+	describe('RedisSingleCache', () => {
+		const redis = new Redis({ host: '127.0.0.1', port: 56312 });
+		let cache: RedisSingleCache<string>;
+
+		beforeEach(() => {
+			cache = new RedisSingleCache<string>(redis, `test-single-${Date.now()}`, {
+				lifetime: 5000,
+				memoryCacheLifetime: 1000,
+				fetcher: async () => 'fetched-value',
+				toRedisConverter: (v) => v,
+				fromRedisConverter: (v) => v,
+			});
+		});
+
+		afterAll(async () => {
+			await redis.quit();
+		});
+
+		test('set and get', async () => {
+			await cache.set('v1');
+			const result = await cache.get();
+			expect(result).toBe('v1');
+		});
+
+		test('get returns undefined when empty', async () => {
+			const result = await cache.get();
+			expect(result).toBeUndefined();
+		});
+
+		test('delete clears value', async () => {
+			await cache.set('v1');
+			await cache.delete();
+			const result = await cache.get();
+			expect(result).toBeUndefined();
+		});
+
+		test('fetch calls fetcher on miss', async () => {
+			const result = await cache.fetch();
+			expect(result).toBe('fetched-value');
+		});
+
+		test('refresh updates value', async () => {
+			await cache.set('old');
+			await cache.refresh();
+			const result = await cache.get();
+			expect(result).toBe('fetched-value');
+		});
+
+		test('set with Infinity lifetime', async () => {
+			const infCache = new RedisSingleCache<string>(redis, `test-single-inf-${Date.now()}`, {
+				lifetime: Infinity,
+				memoryCacheLifetime: 1000,
+				fetcher: async () => 'val',
+				toRedisConverter: (v) => v,
+				fromRedisConverter: (v) => v,
+			});
+			await infCache.set('v');
+			const result = await infCache.get();
+			expect(result).toBe('v');
 		});
 	});
 });
