@@ -291,9 +291,10 @@ describe('FileInfoService', () => {
 			assert.strictEqual(info.size, 9817);
 			assert.strictEqual(info.md5, '74c9279a4abe98789565f1dc1a541a42');
 			// ffmpegのバージョンによってaudio/mp4またはvideo/mp4と検出される場合がある
+			assert.ok(info.type, 'type should be defined');
 			assert.ok(
-				(info.type.mime === 'audio/mp4' && info.type.ext === 'm4a') ||
-				(info.type.mime === 'video/mp4' && info.type.ext === 'mp4'),
+				(info.type!.mime === 'audio/mp4' && info.type!.ext === 'm4a') ||
+				(info.type!.mime === 'video/mp4' && info.type!.ext === 'mp4'),
 				`Unexpected type: ${JSON.stringify(info.type)}`,
 			);
 		});
@@ -307,9 +308,10 @@ describe('FileInfoService', () => {
 			assert.strictEqual(info.size, 8879);
 			assert.strictEqual(info.md5, '53bc1adcb6acbbda67ff9bd484896438');
 			// ffmpegのバージョンによってaudio/webmまたはvideo/webmと検出される場合がある
+			assert.ok(info.type, 'type should be defined');
 			assert.ok(
-				(info.type.mime === 'audio/webm' && info.type.ext === 'webm') ||
-				(info.type.mime === 'video/webm' && info.type.ext === 'webm'),
+				(info.type!.mime === 'audio/webm' && info.type!.ext === 'webm') ||
+				(info.type!.mime === 'video/webm' && info.type!.ext === 'webm'),
 				`Unexpected type: ${JSON.stringify(info.type)}`,
 			);
 		});

@@ -14,7 +14,7 @@ describe('misc:fastify-hook-handlers', () => {
 			const reply = { redirect } as any;
 			const done = jest.fn();
 
-			handleRequestRedirectToOmitSearch(request, reply, done);
+			handleRequestRedirectToOmitSearch.call({} as any, request, reply, done);
 
 			expect(redirect).toHaveBeenCalledWith('/path', 301);
 			expect(done).toHaveBeenCalled();
@@ -26,7 +26,7 @@ describe('misc:fastify-hook-handlers', () => {
 			const reply = { redirect } as any;
 			const done = jest.fn();
 
-			handleRequestRedirectToOmitSearch(request, reply, done);
+			handleRequestRedirectToOmitSearch.call({} as any, request, reply, done);
 
 			expect(redirect).not.toHaveBeenCalled();
 			expect(done).toHaveBeenCalled();
