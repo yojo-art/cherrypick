@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { isQuote, isRenote, isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import { MiNote } from '@/models/Note.js';
+import type { Packed } from '@/misc/json-schema.js';
 
 const base: MiNote = {
 	id: 'some-note-id',
@@ -91,5 +92,58 @@ describe('misc:is-renote', () => {
 		const note: MiNote = { ...base, renoteId: 'some-renote-id', fileIds: ['some-file-id'] };
 		expect(isRenote(note)).toBe(true);
 		expect(isQuote(note as any)).toBe(true);
+	});
+});
+
+describe('misc:is-renote-packed', () => {
+	const packedBase = {
+		id: 'some-note-id',
+		text: null,
+		cw: null,
+		renoteId: null,
+		replyId: null,
+		poll: null,
+		fileIds: [],
+	} as unknown as Packed<'Note'>;
+
+	test('note without renoteId should not be RenotePacked', () => {
+		expect(isRenotePacked(packedBase)).toBe(false);
+	});
+
+	test('note with renoteId should be RenotePacked', () => {
+		const note = { ...packedBase, renoteId: 'some-renote-id' } as Packed<'Note'>;
+		expect(isRenotePacked(note)).toBe(true);
+	});
+
+	test('renote with text is QuotePacked', () => {
+		const note = { ...packedBase, renoteId: 'r', text: 'text' } as Packed<'Note'>;
+		expect(isRenotePacked(note)).toBe(true);
+		expect(isQuotePacked(note as any)).toBe(true);
+	});
+
+	test('renote with cw is QuotePacked', () => {
+		const note = { ...packedBase, renoteId: 'r', cw: 'cw' } as Packed<'Note'>;
+		expect(isQuotePacked(note as any)).toBe(true);
+	});
+
+	test('renote with replyId is QuotePacked', () => {
+		const note = { ...packedBase, renoteId: 'r', replyId: 'reply' } as Packed<'Note'>;
+		expect(isQuotePacked(note as any)).toBe(true);
+	});
+
+	test('renote with poll is QuotePacked', () => {
+		const note = { ...packedBase, renoteId: 'r', poll: {} } as Packed<'Note'>;
+		expect(isQuotePacked(note as any)).toBe(true);
+	});
+
+	test('renote with fileIds is QuotePacked', () => {
+		const note = { ...packedBase, renoteId: 'r', fileIds: ['f1'] } as Packed<'Note'>;
+		expect(isQuotePacked(note as any)).toBe(true);
+	});
+
+	test('pure renote is not QuotePacked', () => {
+		const note = { ...packedBase, renoteId: 'r' } as Packed<'Note'>;
+		expect(isRenotePacked(note)).toBe(true);
+		expect(isQuotePacked(note as any)).toBe(false);
 	});
 });
