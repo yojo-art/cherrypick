@@ -131,4 +131,51 @@ describe('ReactionService', () => {
 			assert.deepStrictEqual(reactionService.convertLegacyReactions(input), output);
 		});
 	});
+
+	describe('decodeReaction', () => {
+		test('Unicode emoji is decoded as-is', () => {
+			const result = reactionService.decodeReaction('👍');
+			assert.strictEqual(result.reaction, '👍');
+			assert.strictEqual(result.name, undefined);
+			assert.strictEqual(result.host, undefined);
+		});
+
+		test('custom emoji with local host', () => {
+			const result = reactionService.decodeReaction(':emoji@.:');
+			assert.strictEqual(result.name, 'emoji');
+			assert.strictEqual(result.host, '.');
+		});
+
+		test('custom emoji without host', () => {
+			const result = reactionService.decodeReaction(':emoji:');
+			assert.strictEqual(result.name, 'emoji');
+			assert.strictEqual(result.host, null);
+		});
+
+		test('custom emoji with remote host', () => {
+			const result = reactionService.decodeReaction(':emoji@example.com:');
+			assert.strictEqual(result.name, 'emoji');
+			assert.strictEqual(result.host, 'example.com');
+		});
+
+		test('legacy reaction is decoded', () => {
+			const result = reactionService.decodeReaction('like');
+			// decodeReaction does not convert legacy reactions, it just returns as-is
+			assert.strictEqual(result.reaction, 'like');
+		});
+	});
+
+	describe('convertLegacyReaction', () => {
+		test('converts legacy like', () => {
+			assert.strictEqual(reactionService.convertLegacyReaction('like'), '👍');
+		});
+
+		test('preserves unicode emoji', () => {
+			assert.strictEqual(reactionService.convertLegacyReaction('🍮'), '🍮');
+		});
+
+		test('preserves custom emoji', () => {
+			assert.strictEqual(reactionService.convertLegacyReaction(':custom@.:'), ':custom@.:');
+		});
+	});
 });

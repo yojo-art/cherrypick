@@ -99,4 +99,14 @@ describe('RelayService', () => {
 		await expect(relayService.removeRelay('https://x.example.com'))
 			.rejects.toThrow('relay not found');
 	});
+
+	test('deliverToRelays: does nothing with null activity', async () => {
+		await relayService.deliverToRelays({} as any, null as any);
+		// should not throw
+	});
+
+	test('getAcceptedRelays: returns array', async () => {
+		const result = await relayService.getAcceptedRelays();
+		expect(Array.isArray(result)).toBe(true);
+	});
 });

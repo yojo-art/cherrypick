@@ -816,4 +816,123 @@ describe('CustomEmojiService', () => {
 			});
 		});
 	});
+
+	describe('parseEmojiStr', () => {
+		test('local emoji (no host)', () => {
+			const result = service.parseEmojiStr('emoji_name', null);
+			expect(result.name).toBe('emoji_name');
+			expect(result.host).toBeNull();
+		});
+
+		test('remote emoji with host in name', () => {
+			const result = service.parseEmojiStr('emoji_name@remote.host', null);
+			expect(result.name).toBe('emoji_name');
+			expect(result.host).toBe('remote.host');
+		});
+
+		test('local emoji with local host marker', () => {
+			const result = service.parseEmojiStr('emoji_name@.', null);
+			expect(result.name).toBe('emoji_name');
+			expect(result.host).toBeNull();
+		});
+
+		test('remote emoji with noteUserHost', () => {
+			const result = service.parseEmojiStr('emoji_name', 'remote.host');
+			expect(result.name).toBe('emoji_name');
+			expect(result.host).toBe('remote.host');
+		});
+
+		test('empty name returns null name', () => {
+			const result = service.parseEmojiStr('', null);
+			expect(result.name).toBeNull();
+		});
+	});
+
+	describe('checkDuplicate', () => {
+		afterEach(async () => {
+			await emojisRepository.createQueryBuilder().delete().execute();
+		});
+
+		test('returns false when no duplicate', async () => {
+			const result = await service.checkDuplicate('nonexistent_emoji');
+			expect(result).toBe(false);
+		});
+
+		test('returns true when duplicate exists', async () => {
+			await emojisRepository.insert({
+				id: idService.gen(),
+				name: 'test_dup_emoji',
+				host: null,
+				originalUrl: 'https://example.com/emoji.png',
+				publicUrl: 'https://example.com/emoji.png',
+				type: 'image/png',
+				aliases: [],
+				updatedAt: new Date(),
+			});
+			const result = await service.checkDuplicate('test_dup_emoji');
+			expect(result).toBe(true);
+		});
+	});
+
+	describe('getEmojiById', () => {
+		afterEach(async () => {
+			await emojisRepository.createQueryBuilder().delete().execute();
+		});
+
+		test('returns null for nonexistent id', async () => {
+			const result = await service.getEmojiById('nonexistent');
+			expect(result).toBeNull();
+		});
+
+		test('returns emoji for valid id', async () => {
+			const id = idService.gen();
+			await emojisRepository.insert({
+				id,
+				name: 'by_id_emoji',
+				host: null,
+				originalUrl: 'https://example.com/emoji.png',
+				publicUrl: 'https://example.com/emoji.png',
+				type: 'image/png',
+				aliases: [],
+				updatedAt: new Date(),
+			});
+			const result = await service.getEmojiById(id);
+			expect(result).not.toBeNull();
+			expect(result!.name).toBe('by_id_emoji');
+		});
+	});
+
+	describe('getEmojiByName', () => {
+		afterEach(async () => {
+			await emojisRepository.createQueryBuilder().delete().execute();
+		});
+
+		test('returns null for nonexistent name', async () => {
+			const result = await service.getEmojiByName('nonexistent_name');
+			expect(result).toBeNull();
+		});
+
+		test('returns emoji for valid name', async () => {
+			await emojisRepository.insert({
+				id: idService.gen(),
+				name: 'by_name_emoji',
+				host: null,
+				originalUrl: 'https://example.com/emoji.png',
+				publicUrl: 'https://example.com/emoji.png',
+				type: 'image/png',
+				aliases: [],
+				updatedAt: new Date(),
+			});
+			const result = await service.getEmojiByName('by_name_emoji');
+			expect(result).not.toBeNull();
+			expect(result!.name).toBe('by_name_emoji');
+		});
+	});
+
+	describe('populateEmojis', () => {
+		test('returns empty object for empty input', async () => {
+			const result = await service.populateEmojis([], null);
+			expect(result).toEqual({});
+		});
+	});
 });

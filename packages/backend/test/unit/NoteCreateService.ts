@@ -147,5 +147,17 @@ describe('NoteCreateService', () => {
 			expect(noteCreateService['isRenote'](note)).toBe(true);
 			expect(noteCreateService['isQuote'](note)).toBe(true);
 		});
+
+		test('note with renote and cw should be Quote', () => {
+			const note = { renote: base, cw: 'cw', searchableBy: 'public' };
+			expect(noteCreateService['isRenote'](note)).toBe(true);
+			expect(noteCreateService['isQuote'](note)).toBe(true);
+		});
+
+		test('note with renote and reply should be Quote', () => {
+			const note = { renote: base, reply: base, searchableBy: 'public' };
+			expect(noteCreateService['isRenote'](note)).toBe(true);
+			expect(noteCreateService['isQuote'](note)).toBe(true);
+		});
 	});
 });

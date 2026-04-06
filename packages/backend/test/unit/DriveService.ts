@@ -41,6 +41,18 @@ describe('DriveService', () => {
 		await app.close();
 	});
 
+	describe('getSensitiveFileCount', () => {
+		test('returns 0 for empty array', async () => {
+			const count = await driveService.getSensitiveFileCount([]);
+			expect(count).toBe(0);
+		});
+
+		test('returns 0 for nonexistent file ids', async () => {
+			const count = await driveService.getSensitiveFileCount(['nonexistent1', 'nonexistent2']);
+			expect(count).toBe(0);
+		});
+	});
+
 	describe('Object storage', () => {
 		test('delete a file', async () => {
 			s3Mock.on(DeleteObjectCommand)
