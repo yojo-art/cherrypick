@@ -45,6 +45,132 @@ describe('MfmService', () => {
 			const output = '<p><pre><code>&lt;p&gt;Hello, world!&lt;/p&gt;</code></pre></p>';
 			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
 		});
+
+		test('bold', () => {
+			const input = '**bold**';
+			const output = '<p><b>bold</b></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('small', () => {
+			const input = '<small>small</small>';
+			const output = '<p><small>small</small></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('strike', () => {
+			const input = '~~strike~~';
+			const output = '<p><del>strike</del></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('italic', () => {
+			const input = '<i>italic</i>';
+			const output = '<p><i>italic</i></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('blockCode', () => {
+			const input = '```\nconsole.log("hello");\n```';
+			const result = mfmService.toHtml(mfm.parse(input));
+			assert.ok(result?.includes('<pre><code>'));
+			assert.ok(result?.includes('</code></pre>'));
+		});
+
+		test('center', () => {
+			const input = '<center>center</center>';
+			const output = '<p><div>center</div></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('inlineCode', () => {
+			const input = '`code`';
+			const output = '<p><code>code</code></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('mathInline', () => {
+			const input = '\\(x^2\\)';
+			const output = '<p><code>x^2</code></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('mathBlock', () => {
+			const input = '\\[x^2\\]';
+			const output = '<p><code>x^2</code></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('link', () => {
+			const input = '[example](https://example.com)';
+			const output = '<p><a href="https://example.com">example</a></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('quote', () => {
+			const input = '> quote';
+			const output = '<p><blockquote>quote</blockquote></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('url', () => {
+			const input = 'https://example.com';
+			const output = '<p><a href="https://example.com">https://example.com</a></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('search', () => {
+			const input = 'test [search]';
+			const output = '<p><a href="https://www.google.com/search?q=test">test [search]</a></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('hashtag', () => {
+			const input = '#test';
+			const output = '<p><a href="http://cherrypick.local/tags/test" rel="tag">#test</a></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('emojiCode', () => {
+			const input = ':emoji:';
+			const output = '<p>\u200B:emoji:\u200B</p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('unicodeEmoji', () => {
+			const input = '\u{1F600}';
+			const output = '<p>\u{1F600}</p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('mention', () => {
+			const input = '@user';
+			const result = mfmService.toHtml(mfm.parse(input));
+			assert.ok(result?.includes('@user'));
+		});
+
+		test('plain', () => {
+			const input = '<plain>plain</plain>';
+			const output = '<p><span>plain</span></p>';
+			assert.equal(mfmService.toHtml(mfm.parse(input)), output);
+		});
+
+		test('null input returns null', () => {
+			assert.equal(mfmService.toHtml(null), null);
+		});
+
+		test('fn ruby', () => {
+			const input = '$[ruby CherryPick チェリーピック]';
+			const result = mfmService.toHtml(mfm.parse(input));
+			assert.ok(result?.includes('<ruby>'));
+			assert.ok(result?.includes('<rt>'));
+		});
+
+		test('fn unixtime', () => {
+			const input = '$[unixtime 1700000000]';
+			const result = mfmService.toHtml(mfm.parse(input));
+			assert.ok(result?.includes('<time'));
+		});
 	});
 
 	describe('fromHtml', () => {
@@ -132,6 +258,38 @@ describe('MfmService', () => {
 
 		test('hashtag', () => {
 			assert.deepStrictEqual(mfmService.fromHtml('<p>a <a href="https://example.com/tags/a">#a</a> d</p>', ['#a']), 'a #a d');
+		});
+
+		test('h1', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<h1>heading</h1>'), '【heading】');
+		});
+
+		test('bold (b tag)', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><b>bold</b></p>'), '**bold**');
+		});
+
+		test('bold (strong tag)', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><strong>bold</strong></p>'), '**bold**');
+		});
+
+		test('small', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><small>small</small></p>'), '<small>small</small>');
+		});
+
+		test('strikethrough (s tag)', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><s>strike</s></p>'), '~~strike~~');
+		});
+
+		test('strikethrough (del tag)', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><del>strike</del></p>'), '~~strike~~');
+		});
+
+		test('italic (i tag)', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><i>italic</i></p>'), '<i>italic</i>');
+		});
+
+		test('italic (em tag)', () => {
+			assert.deepStrictEqual(mfmService.fromHtml('<p><em>italic</em></p>'), '<i>italic</i>');
 		});
 	});
 });

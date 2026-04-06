@@ -92,6 +92,9 @@ module.exports = {
 		// TODO: Use `--allowImportingTsExtensions` on TypeScript 5.0 so that we can
 		// directly import `.ts` files without this hack.
 		'^((?:\\.{1,2}|[A-Z:])*/.*)\\.js$': '$1',
+		// Packages that need mocking for Jest compatibility
+		'^file-type$': '<rootDir>/test/__mocks__/file-type.ts',
+		'^ulid$': '<rootDir>/test/__mocks__/ulid.ts',
 	},
 
 	// An array of regexp pattern strings, matched against all module paths before considered 'visible' to the module loader
@@ -188,10 +191,9 @@ module.exports = {
 	},
 
 	// An array of regexp pattern strings that are matched against all source file paths, matched files will skip transformation
-	// transformIgnorePatterns: [
-	//   "\\\\node_modules\\\\",
-	//   "\\.pnp\\.[^\\\\]+$"
-	// ],
+	// ESM-only packages (nanoid, ip-cidr, etc.) need to be transformed by SWC
+	// Transform all files including node_modules (ESM-only packages need SWC transformation)
+	transformIgnorePatterns: [],
 
 	// An array of regexp pattern strings that are matched against all modules before the module loader will automatically return a mock for them
 	// unmockedModulePathPatterns: undefined,
