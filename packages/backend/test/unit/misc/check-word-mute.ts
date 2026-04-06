@@ -51,4 +51,27 @@ describe(checkWordMute, () => {
 			expect(await checkWordMute({ userId: '1', text: 'foo bar' }, { id: '1' }, ['/bar/'])).toBe(false);
 		});
 	});
+
+	describe('Edge cases', () => {
+		it('should return false for empty text', async () => {
+			expect(await checkWordMute({ userId: '1', text: '' }, null, [['foo']])).toBe(false);
+		});
+
+		it('should return false for null text', async () => {
+			expect(await checkWordMute({ userId: '1', text: null }, null, [['foo']])).toBe(false);
+		});
+
+		it('should return false for null text and null cw', async () => {
+			expect(await checkWordMute({ userId: '1', text: null, cw: null }, null, [['foo']])).toBe(false);
+		});
+
+		it('should handle multi-keyword filter (all must match)', async () => {
+			expect(await checkWordMute({ userId: '1', text: 'hello world' }, null, [['hello', 'world']])).toBe(true);
+			expect(await checkWordMute({ userId: '1', text: 'hello' }, null, [['hello', 'world']])).toBe(false);
+		});
+
+		it('should handle invalid regex gracefully', async () => {
+			expect(await checkWordMute({ userId: '1', text: 'test' }, null, ['/[invalid/'])).toBe(false);
+		});
+	});
 });
