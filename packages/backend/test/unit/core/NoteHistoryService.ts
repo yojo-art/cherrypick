@@ -21,9 +21,6 @@ describe('NoteHistorySerivce', () => {
 
 	test('should be defined', () => {
 
-	test('methods are accessible', () => {
-		expect(typeof service).toBe('object');
-	});
 		expect(service).toBeDefined();
 	});
 });
