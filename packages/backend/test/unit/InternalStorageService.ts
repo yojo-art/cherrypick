@@ -74,20 +74,16 @@ describe('InternalStorageService', () => {
 	});
 
 	describe('read', () => {
-		const testKey = `test-internal-read-${Date.now()}`;
-
-		beforeAll(() => {
-			service.saveFromBuffer(testKey, Buffer.from('readable content'));
-		});
-
-		afterAll(() => {
-			try { service.del(testKey); } catch {}
-		});
-
-		test('returns a ReadStream', () => {
-			const stream = service.read(testKey);
-			expect(stream).toBeDefined();
-			stream.destroy();
+		test('returns a ReadStream for saved file', () => {
+			const key = `test-internal-read-${Date.now()}`;
+			service.saveFromBuffer(key, Buffer.from('readable content'));
+			try {
+				const stream = service.read(key);
+				expect(stream).toBeDefined();
+				stream.destroy();
+			} finally {
+				try { service.del(key); } catch {}
+			}
 		});
 	});
 });
