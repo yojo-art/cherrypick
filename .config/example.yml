@@ -390,6 +390,9 @@ proxyBypassHosts:
 # PID File of master process
 #pidFile: /tmp/cherrypick.pid
 
+# Exclude bot users from hashtag trends
+#hashtagTrendExcludeBotUsers: true
+
 # Log settings
 # logging:
 #   sql:

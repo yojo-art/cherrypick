@@ -673,7 +673,8 @@ function react(): void {
 		notesReactionsCreate({
 			noteId: appearNote.id,
 			reaction: '❤️',
-		}).then(() => {
+		}).then(({ canceled }) => {
+			if (canceled) return;
 			noteEvents.emit(`reacted:${appearNote.id}`, {
 				userId: $i!.id,
 				reaction: '❤️',
@@ -708,7 +709,7 @@ function react(): void {
 }
 
 async function toggleReaction(reaction) {
-	const oldReaction = note.myReaction;
+	const oldReaction = $appearNote.myReaction;
 	if (oldReaction) {
 		const confirm = await os.confirm({
 			type: 'warning',
@@ -721,10 +722,19 @@ async function toggleReaction(reaction) {
 		misskeyApi('notes/reactions/delete', {
 			noteId: note.id,
 		}).then(() => {
+			noteEvents.emit(`unreacted:${appearNote.id}`, {
+				userId: $i!.id,
+				reaction: oldReaction,
+			});
 			if (oldReaction !== reaction) {
 				misskeyApi('notes/reactions/create', {
 					noteId: note.id,
 					reaction: reaction,
+				}).then(() => {
+					noteEvents.emit(`reacted:${appearNote.id}`, {
+						userId: $i!.id,
+						reaction: reaction,
+					});
 				});
 			}
 		});
@@ -732,7 +742,9 @@ async function toggleReaction(reaction) {
 		notesReactionsCreate({
 			noteId: appearNote.id,
 			reaction: reaction,
-		}).then(() => {
+		}).then(({ canceled }) => {
+			if (canceled) return;
+
 			noteEvents.emit(`reacted:${appearNote.id}`, {
 				userId: $i!.id,
 				reaction: reaction,
@@ -753,21 +765,28 @@ function heartReact(): void {
 	notesReactionsCreate({
 		noteId: appearNote.id,
 		reaction: prefer.s.selectReaction,
-	});
+	}).then(({ canceled }) => {
+		if (canceled) return;
 
-	if (appearNote.text && appearNote.text.length > 100 && (Date.now() - new Date(appearNote.createdAt).getTime() < 1000 * 3)) {
-		claimAchievement('reactWithoutRead');
-	}
-
-	const el = heartReactButton.value;
-	if (el && prefer.s.animation) {
-		const rect = el.getBoundingClientRect();
-		const x = rect.left + (el.offsetWidth / 2);
-		const y = rect.top + (el.offsetHeight / 2);
-		const { dispose } = os.popup(MkRippleEffect, { x, y }, {
-			end: () => dispose(),
+		noteEvents.emit(`reacted:${appearNote.id}`, {
+			userId: $i!.id,
+			reaction: prefer.s.selectReaction,
 		});
-	}
+
+		if (appearNote.text && appearNote.text.length > 100 && (Date.now() - new Date(appearNote.createdAt).getTime() < 1000 * 3)) {
+			claimAchievement('reactWithoutRead');
+		}
+
+		const el = heartReactButton.value;
+		if (el && prefer.s.animation) {
+			const rect = el.getBoundingClientRect();
+			const x = rect.left + (el.offsetWidth / 2);
+			const y = rect.top + (el.offsetHeight / 2);
+			const { dispose } = os.popup(MkRippleEffect, { x, y }, {
+				end: () => dispose(),
+			});
+		}
+	});
 }
 
 function undoReact(targetNote: Misskey.entities.Note): void {

@@ -128,6 +128,8 @@ type Source = {
 	deactivateAntennaThreshold?: number;
 	pidFile: string;
 
+	hashtagTrendExcludeBotUsers?: boolean;
+
 	logging?: {
 		sql?: {
 			disableQueryTruncation?: boolean,
@@ -250,6 +252,7 @@ export type Config = {
 	perUserNotificationsMaxCount: number;
 	deactivateAntennaThreshold: number;
 	pidFile: string;
+	hashtagTrendExcludeBotUsers: boolean | undefined;
 };
 
 export type FulltextSearchProvider = 'sqlLike' | 'sqlPgroonga' | 'meilisearch' | 'opensearch';
@@ -376,6 +379,7 @@ export function loadConfig(): Config {
 		perUserNotificationsMaxCount: config.perUserNotificationsMaxCount ?? 500,
 		deactivateAntennaThreshold: config.deactivateAntennaThreshold ?? (1000 * 60 * 60 * 24 * 7),
 		pidFile: config.pidFile,
+		hashtagTrendExcludeBotUsers: config.hashtagTrendExcludeBotUsers,
 		logging: config.logging,
 	};
 }

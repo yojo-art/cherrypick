@@ -160,7 +160,7 @@ onUnmounted(() => {
 
 <style lang="scss" module>
 .root {
-	position: fixed;
+	position: relative;
 	z-index: 1;
 	bottom: 0;
 	padding: 0 10px env(safe-area-inset-bottom, 0px);

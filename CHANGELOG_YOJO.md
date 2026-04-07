@@ -1,3 +1,23 @@
+## 1.7.2
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-04-07
+
+### General
+
+### Client
+- Fix: 非ログイン状態でLTL/ユーザーTLが表示されない問題の修正 [#890](https://github.com/yojo-art/cherrypick/pull/890)
+- Fix: 自鯖に同名があるリモート絵文字をクリックした時にリアクションが表示に反映されないことがある問題の修正 [#892](https://github.com/yojo-art/cherrypick/pull/892)
+- Fix: リアクション確認ダイアログが正しく動作していないのを修正 [#895](https://github.com/yojo-art/cherrypick/pull/895)
+- Fix: リアクション変更時に古いリアクションが削除されないことがある問題の修正 [#898](https://github.com/yojo-art/cherrypick/pull/898)
+- Fix: お気に入りハッシュタグのボタンが機能しない問題の修正 [#919](https://github.com/yojo-art/cherrypick/pull/919)
+
+### Server
+- Enhance: botをハッシュタグトレンドから除外できるように [#865](https://github.com/yojo-art/cherrypick/pull/865)
+- Fix: データベースのマイグレーションに失敗する場合がある不具合の修正 [#885](https://github.com/yojo-art/cherrypick/pull/885)
+
 ## 1.7.1
 Cherrypick 4.17.0  
 Misskey 2025.10.2

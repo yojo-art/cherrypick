@@ -278,6 +278,9 @@ proxyBypassHosts:
 # Upload or download file size limits (bytes)
 #maxFileSize: 262144000
 
+# Exclude bot users from hashtag trends
+#hashtagTrendExcludeBotUsers: true
+
 # Log settings
 # logging:
 #   sql:

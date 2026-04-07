@@ -8,7 +8,7 @@ import * as sound from '@/utility/sound.js';
 import { prefer } from '@/preferences.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 
-export async function notesReactionsCreate(data:{ noteId: string, reaction: string }, opt = { mute: false }) {
+export async function notesReactionsCreate(data:{ noteId: string, reaction: string }, opt = { mute: false }) : Promise<{ canceled: boolean }> {
 	if (prefer.s.checkReactionDialog === true ) {
 		const { canceled } = await os.confirm({
 			type: 'warning',
@@ -17,8 +17,9 @@ export async function notesReactionsCreate(data:{ noteId: string, reaction: stri
 			okText: i18n.ts._reactionConfirm.confirm,
 			cancelText: i18n.ts.cancel,
 		});
-		if (canceled) return;
+		if (canceled) return { canceled: true };
 	}
 	if (!opt.mute) sound.playMisskeySfx('reaction');
 	await misskeyApi('notes/reactions/create', data);
+	return { canceled: false };
 }
