@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import MkUserSetupDialog_Privacy from './MkUserSetupDialog.Privacy.vue';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { StoryObj } from '@storybook/vue3';
+import MkUserSetupDialog_Privacy from './MkUserSetupDialog.Privacy.vue';
 export const Default = {
 	render(args) {
 		return {

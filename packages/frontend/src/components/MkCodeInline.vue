@@ -13,7 +13,7 @@ const props = defineProps<{
 }>();
 </script>
 
-<style lang="scss" module>
+<style module lang="scss">
 .root {
 	display: inline-block;
 	font-family: Consolas, Monaco, Andale Mono, Ubuntu Mono, monospace;

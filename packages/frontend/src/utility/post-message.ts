@@ -4,7 +4,7 @@
  */
 
 export const postMessageEventTypes = [
-	'cherrypick:shareForm:shareCompleted',
+	'misskey:shareForm:shareCompleted',
 ] as const;
 
 export type PostMessageEventType = typeof postMessageEventTypes[number];

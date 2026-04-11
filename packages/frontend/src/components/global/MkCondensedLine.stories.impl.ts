@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import MkCondensedLine from './MkCondensedLine.vue';
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import type { StoryObj } from '@storybook/vue3';
+import MkCondensedLine from './MkCondensedLine.vue';
 export const Default = {
 	render(args) {
 		return {

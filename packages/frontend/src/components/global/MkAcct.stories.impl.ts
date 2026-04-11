@@ -3,9 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
+import type { StoryObj } from '@storybook/vue3';
 import { userDetailed } from '../../../.storybook/fakes.js';
 import MkAcct from './MkAcct.vue';
-import type { StoryObj } from '@storybook/vue3';
 export const Default = {
 	render(args) {
 		return {
@@ -52,7 +53,7 @@ export const Long = {
 		user: {
 			...userDetailed(),
 			username: 'the_quick_brown_fox_jumped_over_the_lazy_dog',
-			host: 'cherrypick.example',
+			host: 'misskey.example',
 		},
 	},
 	decorators: [

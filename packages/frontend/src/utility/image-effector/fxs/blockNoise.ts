@@ -4,8 +4,8 @@
  */
 
 import seedrandom from 'seedrandom';
-import { defineImageEffectorFx } from '../ImageEffector.js';
 import shader from './blockNoise.glsl';
+import { defineImageEffectorFx } from '../ImageEffector.js';
 import { i18n } from '@/i18n.js';
 
 export const FX_blockNoise = defineImageEffectorFx({

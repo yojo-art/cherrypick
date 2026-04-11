@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+/* eslint-disable @typescript-eslint/explicit-function-return-type */
 import { expect, userEvent, waitFor, within } from '@storybook/test';
+import type { StoryObj } from '@storybook/vue3';
 import { onBeforeUnmount } from 'vue';
 import MkSignupServerRules from './MkSignupDialog.rules.vue';
-import type { StoryObj } from '@storybook/vue3';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
 export const Empty = {

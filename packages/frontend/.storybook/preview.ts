@@ -18,7 +18,7 @@ const appInitialized = Symbol();
 let lastStory: string | null = null;
 let moduleInitialized = false;
 let unobserve = () => {};
-let cherrypickOS = null;
+let misskeyOS = null;
 
 function loadTheme(applyTheme: typeof import('../src/theme')['applyTheme']) {
 	unobserve();
@@ -30,7 +30,7 @@ function loadTheme(applyTheme: typeof import('../src/theme')['applyTheme']) {
 	}
 	const observer = new MutationObserver((entries) => {
 		for (const entry of entries) {
-			if (entry.attributeName === 'data-cherrypick-theme') {
+			if (entry.attributeName === 'data-misskey-theme') {
 				const target = entry.target as HTMLElement;
 				const theme = themes[target.dataset.misskeyTheme];
 				if (theme) {
@@ -43,7 +43,7 @@ function loadTheme(applyTheme: typeof import('../src/theme')['applyTheme']) {
 	});
 	observer.observe(window.document.documentElement, {
 		attributes: true,
-		attributeFilter: ['data-cherrypick-theme'],
+		attributeFilter: ['data-misskey-theme'],
 	});
 	unobserve = () => observer.disconnect();
 }
@@ -79,7 +79,7 @@ queueMicrotask(() => {
 			components(app);
 			directives(app);
 			widgets(app);
-			cherrypickOS = os;
+			misskeyOS = os;
 			if (isChromatic()) {
 				prefer.commit('animation', false);
 			}
@@ -125,7 +125,7 @@ const preview = {
 				setup() {
 					return {
 						context,
-						popups: cherrypickOS.popups,
+						popups: misskeyOS.popups,
 					};
 				},
 				template:

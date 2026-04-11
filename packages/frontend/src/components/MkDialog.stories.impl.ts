@@ -5,9 +5,9 @@
 
 import { action } from 'storybook/actions';
 import { expect, userEvent, waitFor, within } from '@storybook/test';
-import MkDialog from './MkDialog.vue';
 import type { StoryObj } from '@storybook/vue3';
 import { i18n } from '@/i18n.js';
+import MkDialog from './MkDialog.vue';
 const Base = {
 	render(args) {
 		return {
