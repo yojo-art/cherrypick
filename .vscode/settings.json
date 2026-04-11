@@ -10,7 +10,7 @@
 	"jest.virtualFolders": [
 		{ "name": "backend unit", "jestCommandLine": "pnpm -F backend run test" },
 		{ "name": "backend e2e", "jestCommandLine": "pnpm -F backend run test:e2e"},
-		{ "name": "cherrypick-js", "jestCommandLine": "pnpm -F cherrypick-js run jest" }
+		{ "name": "misskey-js", "jestCommandLine": "pnpm -F misskey-js run jest" }
 	],
 	"editor.codeActionsOnSave": {
 		"source.fixAll": "explicit"

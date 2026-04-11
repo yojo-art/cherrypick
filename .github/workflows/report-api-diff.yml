@@ -4,7 +4,7 @@ on:
   workflow_run:
     types: [completed]
     workflows:
-      - Get api.json from CherryPick # get-api-diff.yml
+      - Get api.json from Misskey # get-api-diff.yml
 
 jobs:
   compare-diff:

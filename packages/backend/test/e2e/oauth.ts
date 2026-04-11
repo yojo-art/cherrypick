@@ -4,7 +4,7 @@
  */
 
 /**
- * Basic OAuth tests to make sure the library is correctly integrated to CherryPick
+ * Basic OAuth tests to make sure the library is correctly integrated to Misskey
  * and not regressed by version updates or potential migration to another library.
  */
 
@@ -140,7 +140,7 @@ function assertIndirectError(response: Response, error: string): void {
 	assert.strictEqual(location.searchParams.get('error'), error);
 
 	// https://datatracker.ietf.org/doc/html/rfc9207#name-response-parameter-iss
-	assert.strictEqual(location.searchParams.get('iss'), 'http://cherrypick.local');
+	assert.strictEqual(location.searchParams.get('iss'), 'http://misskey.local');
 	// https://datatracker.ietf.org/doc/html/rfc6749.html#section-4.1.2.1
 	assert.ok(location.searchParams.has('state'));
 }
@@ -172,12 +172,12 @@ describe('OAuth', () => {
 	}, 1000 * 60 * 2);
 
 	beforeEach(async () => {
-		await sendEnvUpdateRequest({ key: 'CHERRYPICK_TEST_CHECK_IP_RANGE', value: '' });
+		await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_IP_RANGE', value: '' });
 		sender = (reply): void => {
 			reply.send(`
 				<!DOCTYPE html>
 				<link rel="redirect_uri" href="/redirect" />
-				<div class="h-app"><a href="/" class="u-url p-name">Crpklient
+				<div class="h-app"><a href="/" class="u-url p-name">Misklient
 			`);
 		};
 	});
@@ -203,7 +203,7 @@ describe('OAuth', () => {
 		const meta = getMeta(await response.text());
 		assert.strictEqual(typeof meta.transactionId, 'string');
 		assert.ok(meta.transactionId);
-		assert.strictEqual(meta.clientName, 'Crpklient');
+		assert.strictEqual(meta.clientName, 'Misklient');
 
 		const decisionResponse = await fetchDecision(meta.transactionId, alice);
 		assert.strictEqual(decisionResponse.status, 302);
@@ -217,7 +217,7 @@ describe('OAuth', () => {
 		assert.ok(location.searchParams.has('code'));
 		assert.strictEqual(location.searchParams.get('state'), 'state');
 		// https://datatracker.ietf.org/doc/html/rfc9207#name-response-parameter-iss
-		assert.strictEqual(location.searchParams.get('iss'), 'http://cherrypick.local');
+		assert.strictEqual(location.searchParams.get('iss'), 'http://misskey.local');
 
 		const code = new URL(location).searchParams.get('code');
 		assert.ok(code);
@@ -606,7 +606,7 @@ describe('OAuth', () => {
 				bearer: true,
 			});
 			assert.strictEqual(createResult.status, 403);
-			assert.ok(createResult.headers.get('WWW-Authenticate')?.startsWith('Bearer realm="CherryPick", error="insufficient_scope", error_description'));
+			assert.ok(createResult.headers.get('WWW-Authenticate')?.startsWith('Bearer realm="Misskey", error="insufficient_scope", error_description'));
 		});
 	});
 
@@ -705,7 +705,7 @@ describe('OAuth', () => {
 		assert.strictEqual(response.status, 200);
 
 		const body = await response.json();
-		assert.strictEqual(body.issuer, 'http://cherrypick.local');
+		assert.strictEqual(body.issuer, 'http://misskey.local');
 		assert.ok(body.scopes_supported.includes('write:notes'));
 	});
 
@@ -815,7 +815,7 @@ describe('OAuth', () => {
 					reply.header('Link', '</redirect>; rel="redirect_uri"');
 					reply.send(`
 						<!DOCTYPE html>
-						<div class="h-app"><a href="/" class="u-url p-name">Crpklient
+						<div class="h-app"><a href="/" class="u-url p-name">Misklient
 					`);
 				},
 				'Mixed links': reply => {
@@ -823,14 +823,14 @@ describe('OAuth', () => {
 					reply.send(`
 						<!DOCTYPE html>
 						<link rel="redirect_uri" href="/redirect2" />
-						<div class="h-app"><a href="/" class="u-url p-name">Crpklient
+						<div class="h-app"><a href="/" class="u-url p-name">Misklient
 					`);
 				},
 				'Multiple items in Link header': reply => {
 					reply.header('Link', '</redirect2>; rel="redirect_uri",</redirect>; rel="redirect_uri"');
 					reply.send(`
 						<!DOCTYPE html>
-						<div class="h-app"><a href="/" class="u-url p-name">Crpklient
+						<div class="h-app"><a href="/" class="u-url p-name">Misklient
 					`);
 				},
 				'Multiple items in HTML': reply => {
@@ -838,7 +838,7 @@ describe('OAuth', () => {
 						<!DOCTYPE html>
 						<link rel="redirect_uri" href="/redirect2" />
 						<link rel="redirect_uri" href="/redirect" />
-						<div class="h-app"><a href="/" class="u-url p-name">Crpklient
+						<div class="h-app"><a href="/" class="u-url p-name">Misklient
 					`);
 				},
 			};
@@ -864,7 +864,7 @@ describe('OAuth', () => {
 				sender = (reply): void => {
 					reply.send(`
 						<!DOCTYPE html>
-						<div class="h-app"><a href="/" class="u-url p-name">Crpklient
+						<div class="h-app"><a href="/" class="u-url p-name">Misklient
 					`);
 				};
 
@@ -884,7 +884,7 @@ describe('OAuth', () => {
 		});
 
 		test('Disallow loopback', async () => {
-			await sendEnvUpdateRequest({ key: 'CHERRYPICK_TEST_CHECK_IP_RANGE', value: '1' });
+			await sendEnvUpdateRequest({ key: 'MISSKEY_TEST_CHECK_IP_RANGE', value: '1' });
 
 			const client = new AuthorizationCode(clientConfig);
 			const response = await fetch(client.authorizeURL({
@@ -922,7 +922,7 @@ describe('OAuth', () => {
 				reply.send(`
 					<!DOCTYPE html>
 					<div class="h-app">
-						<a href="/" class="u-url p-name">CherryPicklient</a>
+						<a href="/" class="u-url p-name">Misklient</a>
 						<img src="/logo.png" class="u-logo" />
 					</div>
 				`);
@@ -940,7 +940,7 @@ describe('OAuth', () => {
 			} as AuthorizationParamsExtended));
 			assert.strictEqual(response.status, 200);
 			const meta = getMeta(await response.text());
-			assert.strictEqual(meta.clientName, 'CherryPicklient');
+			assert.strictEqual(meta.clientName, 'Misklient');
 			assert.strictEqual(meta.clientLogo, `http://127.0.0.1:${clientPort}/logo.png`);
 		});
 
@@ -949,7 +949,7 @@ describe('OAuth', () => {
 				reply.header('Link', '</redirect>; rel="redirect_uri"');
 				reply.send(`
 					<!DOCTYPE html>
-					<div class="h-app"><a href="/" class="u-url p-name">CherryPicklient
+					<div class="h-app"><a href="/" class="u-url p-name">Misklient
 				`);
 				reply.send();
 			};
@@ -965,7 +965,7 @@ describe('OAuth', () => {
 			} as AuthorizationParamsExtended));
 			assert.strictEqual(response.status, 200);
 			const meta = getMeta(await response.text());
-			assert.strictEqual(meta.clientName, 'CherryPicklient');
+			assert.strictEqual(meta.clientName, 'Misklient');
 			assert.strictEqual(meta.clientLogo, undefined);
 		});
 
@@ -974,7 +974,7 @@ describe('OAuth', () => {
 				reply.header('Link', '</redirect>; rel="redirect_uri"');
 				reply.send(`
 					<!DOCTYPE html>
-					<div class="h-app"><a href="/foo" class="u-url p-name">Crpklient
+					<div class="h-app"><a href="/foo" class="u-url p-name">Misklient
 				`);
 				reply.send();
 			};

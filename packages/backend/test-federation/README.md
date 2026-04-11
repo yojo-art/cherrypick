@@ -1,5 +1,5 @@
 ## test-federation
-Test federation between two CherryPick servers: `a.test` and `b.test`.
+Test federation between two Misskey servers: `a.test` and `b.test`.
 
 Before testing, you need to build the entire project, and change working directory to here:
 ```sh

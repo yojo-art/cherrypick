@@ -72,7 +72,7 @@ jobs:
         with:
           node-version-file: ${{ matrix.node-version-file }}
           cache: 'pnpm'
-      - name: Build CherryPick
+      - name: Build Misskey
         run: |
           pnpm i --frozen-lockfile
           pnpm build

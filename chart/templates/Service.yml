@@ -1,7 +1,7 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ include "cherrypick.fullname" . }}
+  name: {{ include "misskey.fullname" . }}
   annotations:
     dev.okteto.com/auto-ingress: "true"
 spec:
@@ -11,4 +11,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    {{- include "cherrypick.selectorLabels" . | nindent 4 }}
+    {{- include "misskey.selectorLabels" . | nindent 4 }}

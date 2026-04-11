@@ -10,14 +10,14 @@ on:
       # for permissions
       - packages/misskey-js/**
       - .github/workflows/test-backend.yml
-      - .github/cherrypick/test.yml
+      - .github/misskey/test.yml
   pull_request:
     paths:
       - packages/backend/**
       # for permissions
       - packages/misskey-js/**
       - .github/workflows/test-backend.yml
-      - .github/cherrypick/test.yml
+      - .github/misskey/test.yml
   workflow_dispatch:
     inputs:
       force_ffmpeg_cache_update:
@@ -42,7 +42,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -94,7 +94,7 @@ jobs:
     - name: Check pnpm-lock.yaml
       run: git diff --exit-code pnpm-lock.yaml
     - name: Copy Configure
-      run: cp .github/cherrypick/test.yml .config
+      run: cp .github/misskey/test.yml .config
     - name: Build
       run: pnpm build
     - name: Test
@@ -121,7 +121,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -143,7 +143,7 @@ jobs:
       - name: Check pnpm-lock.yaml
         run: git diff --exit-code pnpm-lock.yaml
       - name: Copy Configure
-        run: cp .github/cherrypick/test.yml .config
+        run: cp .github/misskey/test.yml .config
       - name: Build
         run: pnpm build
       - name: Test
@@ -169,7 +169,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
 
     steps:
@@ -190,13 +190,13 @@ jobs:
       - name: Check pnpm-lock.yaml
         run: git diff --exit-code pnpm-lock.yaml
       - name: Copy Configure
-        run: cp .github/cherrypick/test.yml .config
+        run: cp .github/misskey/test.yml .config
       - name: Build
         run: pnpm build
       - name: Run migrations
-        run: CHERRYPICK_CONFIG_YML=test.yml pnpm --filter backend migrate
+        run: MISSKEY_CONFIG_YML=test.yml pnpm --filter backend migrate
       - name: Check no migrations are remaining
-        run: CHERRYPICK_CONFIG_YML=test.yml pnpm --filter backend check-migrations
+        run: MISSKEY_CONFIG_YML=test.yml pnpm --filter backend check-migrations
 
   opensearch-e2e:
     runs-on: ubuntu-latest
@@ -213,7 +213,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -241,7 +241,7 @@ jobs:
       - name: Check pnpm-lock.yaml
         run: git diff --exit-code pnpm-lock.yaml
       - name: Copy Configure
-        run: cp .github/cherrypick/test-opensearch.yml .config/test.yml
+        run: cp .github/misskey/test-opensearch.yml .config/test.yml
       - name: Build
         run: pnpm build
       - name: Test
