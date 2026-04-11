@@ -1,2 +1,2 @@
-# CherryPick Backend
+# Misskey Backend
 ![](../../assets/backend.png)

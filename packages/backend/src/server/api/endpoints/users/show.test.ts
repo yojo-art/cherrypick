@@ -16,8 +16,8 @@ describe('api:users/show', () => {
 		const v = getValidator(paramDef);
 
 		test('Reject empty', () => expect(v({})).toBe(INVALID));
-		test('Reject host only', () => expect(v({ host: 'cherrypick.test' })).toBe(INVALID));
+		test('Reject host only', () => expect(v({ host: 'misskey.test' })).toBe(INVALID));
 		test('Accept userId only', () => expect(v({ userId: '1' })).toBe(VALID));
-		test('Accept username and host', () => expect(v({ username: 'alice', host: 'cherrypick.test' })).toBe(VALID));
+		test('Accept username and host', () => expect(v({ username: 'alice', host: 'misskey.test' })).toBe(VALID));
 	});
 });

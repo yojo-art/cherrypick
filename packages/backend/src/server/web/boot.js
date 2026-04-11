@@ -142,7 +142,7 @@
 			messages = JSON.parse(bootloaderLocales);
 		}
 		if (!messages) {
-			// older version of cherrypick does not store bootloaderLocales, stores locale as a whole
+			// older version of misskey does not store bootloaderLocales, stores locale as a whole
 			const legacyLocale = localStorage.getItem('locale');
 			if (legacyLocale) {
 				const parsed = JSON.parse(legacyLocale);
@@ -235,7 +235,7 @@
 			font-family: BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 		}
 
-		#cherypick_app,
+		#misskey_app,
 		#splash {
 			display: none !important;
 		}
@@ -258,7 +258,7 @@
 			margin-top: 12px;
 
 			&:not(:first-child) {
-				margin-bottom: 12px;
+			margin-bottom: 12px;
 			}
 		}
 
