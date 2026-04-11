@@ -1,5 +1,5 @@
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CherryPick configuration
+# Misskey configuration
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 #   ┌────────────────────────┐
@@ -8,10 +8,10 @@
 # Password to initiate setting up admin account.
 # It will not be used after the initial setup is complete.
 #
-# Be sure to change this when you set up CherryPick via the Internet.
+# Be sure to change this when you set up Misskey via the Internet.
 #
-# The provider of the service who sets up CherryPick on behalf of the customer should
-# set this value to something unique when generating the CherryPick config file,
+# The provider of the service who sets up Misskey on behalf of the customer should
+# set this value to something unique when generating the Misskey config file,
 # and provide it to the customer.
 setupPassword: example_password_please_change_this_or_you_will_get_hacked
 
@@ -19,7 +19,7 @@ setupPassword: example_password_please_change_this_or_you_will_get_hacked
 #───┘ URL └─────────────────────────────────────────────────────
 
 # Final accessible URL seen by a user.
-url: 'http://cherrypick.local'
+url: 'http://misskey.local'
 
 # ONCE YOU HAVE STARTED THE INSTANCE, DO NOT CHANGE THE
 # URL SETTINGS AFTER THAT!
@@ -28,19 +28,19 @@ url: 'http://cherrypick.local'
 #───┘ Port and TLS settings └───────────────────────────────────
 
 #
-# CherryPick requires a reverse proxy to support HTTPS connections.
+# Misskey requires a reverse proxy to support HTTPS connections.
 #
-#                 +-------- https://example.tld/ ------------+
-#   +------+      |+-------------+      +-------------------+|
-#   | User | ---> || Proxy (443) | ---> | CherryPick (3000) ||
-#   +------+      |+-------------+      +-------------------+|
-#                 +------------------------------------------+
+#                 +----- https://example.tld/ ------------+
+#   +------+      |+-------------+      +----------------+|
+#   | User | ---> || Proxy (443) | ---> | Misskey (3000) ||
+#   +------+      |+-------------+      +----------------+|
+#                 +---------------------------------------+
 #
 #   You need to set up a reverse proxy. (e.g. nginx)
 #   An encrypted connection with HTTPS is highly recommended
 #   because tokens may be transferred in GET requests.
 
-# The port that your CherryPick server should listen on.
+# The port that your Misskey server should listen on.
 port: 61812
 
 #   ┌──────────────────────────┐
@@ -51,7 +51,7 @@ db:
   port: 5432
 
   # Database name
-  db: cherrypick
+  db: misskey
 
   # Auth
   user: postgres
