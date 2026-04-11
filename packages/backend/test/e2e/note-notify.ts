@@ -7,7 +7,7 @@ import * as assert from 'node:assert';
 import { setTimeout } from 'node:timers/promises';
 import { describe, beforeAll, test } from '@jest/globals';
 import { api, signup } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('users/notify/list', () => {
 	let alice: misskey.entities.SignupResponse;

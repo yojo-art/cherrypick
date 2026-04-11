@@ -9,7 +9,7 @@
 import * as assert from 'assert';
 import { setTimeout } from 'node:timers/promises';
 import { Redis } from 'ioredis';
-import { SignupResponse, Note, UserList } from 'cherrypick-js/entities.js';
+import { SignupResponse, Note, UserList } from 'misskey-js/entities.js';
 import { api, post, randomString, sendEnvUpdateRequest, signup, uploadUrl } from '../utils.js';
 import { loadConfig } from '@/config.js';
 

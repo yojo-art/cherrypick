@@ -1,17 +1,17 @@
-name: Check CherryPick JS autogen
+name: Check Misskey JS autogen
 
 on:
   pull_request_target:
     branches:
       - master
       - develop
-      - improve-cherrypick-js-autogen-check
+      - improve-misskey-js-autogen-check
     paths:
       - packages/backend/**
 
 jobs:
   # pull_request_target safety: permissions: read-all, and there are no secrets used in this job
-  generate-cherrypick-js:
+  generate-misskey-js:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -45,21 +45,21 @@ jobs:
       - name: Generate API JSON
         run: pnpm --filter backend generate-api-json
 
-      # build cherrypick js
-      - name: Build cherrypick-js
+      # build misskey js
+      - name: Build misskey-js
         run: |-
-          cp packages/backend/built/api.json packages/cherrypick-js/generator/api.json
-          pnpm run --filter cherrypick-js-type-generator generate
+          cp packages/backend/built/api.json packages/misskey-js/generator/api.json
+          pnpm run --filter misskey-js-type-generator generate
 
-      # packages/cherrypick-js/generator/built/autogen
+      # packages/misskey-js/generator/built/autogen
       - name: Upload Generated
         uses: actions/upload-artifact@v5
         with:
-          name: generated-cherrypick-js
-          path: packages/cherrypick-js/generator/built/autogen
+          name: generated-misskey-js
+          path: packages/misskey-js/generator/built/autogen
 
   # pull_request_target safety: permissions: read-all, and no user codes are executed
-  get-actual-cherrypick-js:
+  get-actual-misskey-js:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -75,61 +75,61 @@ jobs:
       - name: Upload From Merged
         uses: actions/upload-artifact@v5
         with:
-          name: actual-cherrypick-js
-          path: packages/cherrypick-js/src/autogen
+          name: actual-misskey-js
+          path: packages/misskey-js/src/autogen
 
   # pull_request_target safety: nothing is cloned from repository
-  comment-cherrypick-js-autogen:
+  comment-misskey-js-autogen:
     runs-on: ubuntu-latest
-    needs: [generate-cherrypick-js, get-actual-cherrypick-js]
+    needs: [generate-misskey-js, get-actual-misskey-js]
     permissions:
       pull-requests: write
     steps:
-      - name: download generated-cherrypick-js
+      - name: download generated-misskey-js
         uses: actions/download-artifact@v4
         with:
-          name: generated-cherrypick-js
-          path: cherrypick-js-generated
+          name: generated-misskey-js
+          path: misskey-js-generated
 
-      - name: download actual-cherrypick-js
+      - name: download actual-misskey-js
         uses: actions/download-artifact@v4
         with:
-          name: actual-cherrypick-js
-          path: cherrypick-js-actual
+          name: actual-misskey-js
+          path: misskey-js-actual
 
-      - name: check cherrypick-js changes
+      - name: check misskey-js changes
         id: check-changes
         run: |
-          diff -r -u --label=generated --label=on-tree ./cherrypick-js-generated ./cherrypick-js-actual > cherrypick-js.diff || true
+          diff -r -u --label=generated --label=on-tree ./misskey-js-generated ./misskey-js-actual > misskey-js.diff || true
 
-          if [ -s cherrypick-js.diff ]; then
+          if [ -s misskey-js.diff ]; then
             echo "changes=true" >> $GITHUB_OUTPUT
           else
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Print full diff
-        run: cat ./cherrypick-js.diff
+        run: cat ./misskey-js.diff
 
       - name: send message
         if: steps.check-changes.outputs.changes == 'true'
         uses: thollander/actions-comment-pull-request@v2
         with:
-          comment_tag: check-cherrypick-js-autogen
+          comment_tag: check-misskey-js-autogen
           message: |-
             Thank you for sending us a great Pull Request! 👍
-            Please regenerate cherrypick-js type definitions! 🙏
+            Please regenerate misskey-js type definitions! 🙏
 
             example:
             ```sh
-            pnpm run build-cherrypick-js-with-types
+            pnpm run build-misskey-js-with-types
             ```
 
       - name: send message
         if: steps.check-changes.outputs.changes == 'false'
         uses: thollander/actions-comment-pull-request@v2
         with:
-          comment_tag: check-cherrypick-js-autogen
+          comment_tag: check-misskey-js-autogen
           mode: delete
           message: "Thank you!"
           create_if_not_exists: false

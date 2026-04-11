@@ -1,5 +1,5 @@
 import { deepStrictEqual, strictEqual } from 'assert';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { createAccount, type LoginUser, resolveRemoteUser } from './utils.js';
 
 describe('fetch-outbox', () => {
