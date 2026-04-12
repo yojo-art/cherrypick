@@ -293,21 +293,20 @@ async function menu(ev) {
 		text: `:${reactionName.value}:`,
 	});
 
-	if (canGetInfo.value) {
-		menuItems.push({
-			text: i18n.ts.info,
-			icon: 'ti ti-info-circle',
-			action: async () => {
-				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
-					emoji: await misskeyApiGet('emoji', {
-						name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
-					}),
-				}, {
-					closed: () => dispose(),
-				});
-			},
-		});
-	}
+	menuItems.push({
+		text: i18n.ts.info,
+		icon: 'ti ti-info-circle',
+		action: async () => {
+			const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
+				emoji: await misskeyApiGet('emoji', {
+					name: props.reaction.replace(/:/g, '').replace(/@.+/, ''),
+					...(!props.reaction.endsWith('@.:') && { host: props.reaction.split('@')[1].replace(':', '') }),
+				}),
+			}, {
+				closed: () => dispose(),
+			});
+		},
+	});
 
 	if (customEmojis.value.find(it => it.name === reactionName.value)?.name) {
 		menuItems.push({
