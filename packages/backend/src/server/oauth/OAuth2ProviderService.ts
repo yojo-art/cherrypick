@@ -420,7 +420,7 @@ export class OAuth2ProviderService {
 				// "the server may want to resolve the domain name first and avoid fetching the document
 				// if the IP address is within the loopback range defined by [RFC5735]
 				// or any other implementation-specific internal IP address."
-				if (process.env.NODE_ENV !== 'test' || process.env.CHERRYPICK_TEST_CHECK_IP_RANGE === '1') {
+				if (process.env.NODE_ENV !== 'test' || process.env.MISSKEY_TEST_CHECK_IP_RANGE === '1') {
 					const lookup = await dns.lookup(clientUrl.hostname);
 					if (ipaddr.parse(lookup.address).range() !== 'unicast') {
 						throw new AuthorizationError('client_id resolves to disallowed IP range.', 'invalid_request');
