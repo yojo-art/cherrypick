@@ -10,7 +10,7 @@ import { CommandModule } from '@/cli/CommandModule.js';
 import { NestLogger } from '@/NestLogger.js';
 import { CommandService } from '@/cli/CommandService.js';
 
-process.title = 'CherryPick Cli';
+process.title = 'Misskey Cli';
 
 Error.stackTraceLimit = Infinity;
 EventEmitter.defaultMaxListeners = 128;
