@@ -96,7 +96,7 @@ watch(() => props.lang, (to) => {
 
 	& pre,
 	& code {
-		font-family: Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
+		font-family: "JetBrains Mono", "Pretendard JP", Pretendard, Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
 	}
 }
 
@@ -114,6 +114,7 @@ watch(() => props.lang, (to) => {
 	& span {
 		color: var(--shiki-light);
 	}
+	font-family: "JetBrains Mono", "Pretendard JP", Pretendard, Consolas, Monaco, "Andale Mono", "Ubuntu Mono", monospace;
 }
 
 .light.outerStyle.codeBlockRoot :global(.shiki),
