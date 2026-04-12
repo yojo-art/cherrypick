@@ -288,7 +288,11 @@ export function loadConfig(): Config {
 
 	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
 
-	const url = tryCreateUrl(config.url ?? process.env.CHERRYPICK_URL ?? '');
+	const url = tryCreateUrl(
+		config.url ??
+		process.env.CHERRYPICK_URL ??
+		process.env.MISSKEY_URL ??
+		'');
 	const version = meta.version;
 	const basedMisskeyVersion = meta.basedMisskeyVersion;
 	const basedCherrypickVersion = meta.basedCherrypickVersion;
