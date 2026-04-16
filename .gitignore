@@ -41,7 +41,7 @@ docker-compose.yml
 .devcontainer/compose.yml
 !/.devcontainer/compose.yml
 
-# cherrypick
+# misskey
 os-data/
 /build
 built
