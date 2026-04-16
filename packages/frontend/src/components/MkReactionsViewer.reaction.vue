@@ -204,9 +204,9 @@ function stealReaction(ev: MouseEvent) {
 			icon: 'ti ti-info-circle',
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
-					emoji: await misskeyApiGet('emoji', {
+					emoji: await misskeyApiGet('emoji', isLocalCustomEmoji ? {	name: reactionName.value } : {
 						name: reactionName.value,
-						host: isLocalCustomEmoji ? null : reactionHost.value,
+						host: reactionHost.value,
 					}),
 				}, {
 					closed: () => dispose(),
@@ -300,9 +300,9 @@ async function menu(ev) {
 			icon: 'ti ti-info-circle',
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
-					emoji: await misskeyApiGet('emoji', {
+					emoji: await misskeyApiGet('emoji', isLocalCustomEmoji ? {	name: reactionName.value } : {
 						name: reactionName.value,
-						host: isLocalCustomEmoji ? null : reactionHost.value,
+						host: reactionHost.value,
 					}),
 				}, {
 					closed: () => dispose(),
