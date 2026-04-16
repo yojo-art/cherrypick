@@ -205,7 +205,8 @@ function stealReaction(ev: MouseEvent) {
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
 					emoji: await misskeyApiGet('emoji', {
-						name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
+						name: reactionName.value,
+						host: isLocalCustomEmoji.value ? undefined : reactionHost.value,
 					}),
 				}, {
 					closed: () => dispose(),
@@ -300,7 +301,8 @@ async function menu(ev) {
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
 					emoji: await misskeyApiGet('emoji', {
-						name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
+						name: reactionName.value,
+						host: isLocalCustomEmoji.value ? undefined : reactionHost.value,
 					}),
 				}, {
 					closed: () => dispose(),
