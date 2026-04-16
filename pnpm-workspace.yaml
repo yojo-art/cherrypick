@@ -6,8 +6,8 @@ packages:
   - packages/frontend-embed
   - packages/icons-subsetter
   - packages/sw
-  - packages/cherrypick-js
-  - packages/cherrypick-js/generator
+  - packages/misskey-js
+  - packages/misskey-js/generator
   - packages/misskey-reversi
   - packages/misskey-bubble-game
 onlyBuiltDependencies:

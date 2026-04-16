@@ -1,7 +1,7 @@
-## cherrypick-js向け型生成モジュール
+## misskey-js向け型生成モジュール
 
-バックエンドが吐き出すOpenAPI準拠のapi.jsonからcherrypick-jsで使用される型エイリアスを生成するためのモジュールです。
-このモジュールはcherrypick-jsそのものにバンドルされることは想定しておらず、生成物をcherrypick-jsのsrc配下にコピーして使用することを想定しています。
+バックエンドが吐き出すOpenAPI準拠のapi.jsonからmisskey-jsで使用される型エイリアスを生成するためのモジュールです。
+このモジュールはmisskey-jsそのものにバンドルされることは想定しておらず、生成物をmisskey-jsのsrc配下にコピーして使用することを想定しています。
 
 ## 使い方
 

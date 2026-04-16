@@ -7,7 +7,7 @@
 
 import { markRaw, ref, defineAsyncComponent, nextTick } from 'vue';
 import { EventEmitter } from 'eventemitter3';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { Component, Ref } from 'vue';
 import type { ComponentEmit, ComponentProps as CP } from 'vue-component-type-helpers';
 import type { Form, GetFormResultType } from '@/utility/form.js';

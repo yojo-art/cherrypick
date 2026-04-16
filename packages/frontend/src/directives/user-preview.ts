@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { Directive } from 'vue';
 import { popup } from '@/os.js';
 import { isTouchUsing } from '@/utility/touch.js';

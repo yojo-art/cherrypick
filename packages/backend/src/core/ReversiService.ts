@@ -7,7 +7,7 @@ import { randomUUID } from 'crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import { ModuleRef } from '@nestjs/core';
-import { reversiUpdateKeys } from 'cherrypick-js';
+import { reversiUpdateKeys } from 'misskey-js';
 import * as Reversi from 'misskey-reversi';
 import { LessThan, MoreThan } from 'typeorm';
 import type {

@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import * as os from '@/os.js';
 
 export type SystemWebhookEventType = Misskey.entities.SystemWebhook['on'][number];

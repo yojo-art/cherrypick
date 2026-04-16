@@ -206,7 +206,7 @@ command.
 You can run non-backend tests by executing following commands:
 ```sh
 pnpm --filter frontend test
-pnpm --filter cherrypick-js test
+pnpm --filter misskey-js test
 ```
 
 Backend tests require manual preparation of servers. See the next section for more on this.
@@ -300,7 +300,7 @@ CherryPick uses [Storybook](https://storybook.js.org/) for UI development.
 #### Setup
 
 ```bash
-pnpm --filter cherrypick-js build
+pnpm --filter misskey-js build
 ```
 
 #### Run
@@ -483,7 +483,7 @@ describe('test', () => {
 
 ### CherryPick.jsの型生成
 ```bash
-pnpm build-cherrypick-js-with-types
+pnpm build-misskey-js-with-types
 ```
 
 ### How to resolve conflictions occurred at pnpm-lock.yaml?

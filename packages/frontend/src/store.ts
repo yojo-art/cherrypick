@@ -4,7 +4,7 @@
  */
 
 import { markRaw, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import lightTheme from '@@/themes/l-cherrypick.json5';
 import darkTheme from '@@/themes/d-cherrypick.json5';
 import { prefersReducedMotion } from '@@/js/config.js';

@@ -59,7 +59,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 /* eslint-disable @typescript-eslint/no-non-null-assertion */
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { computed, onMounted, ref, useCssModule } from 'vue';
 import type { RequestLogItem } from '@/pages/admin/custom-emojis-manager.impl.js';
 import type { GridCellValidationEvent, GridCellValueChangeEvent, GridEvent } from '@/components/grid/grid-event.js';

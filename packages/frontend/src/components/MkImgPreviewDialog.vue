@@ -22,7 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref } from 'vue';
 import MkModalWindow from './MkModalWindow.vue';
-import type * as Misskey from 'cherrypick-js';
+import type * as Misskey from 'misskey-js';
 
 defineProps<{
 	file: Misskey.entities.DriveFile;

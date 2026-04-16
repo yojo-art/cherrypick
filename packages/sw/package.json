@@ -14,7 +14,7 @@
 	"dependencies": {
 		"esbuild": "0.25.10",
 		"idb-keyval": "6.2.2",
-		"cherrypick-js": "workspace:*"
+		"misskey-js": "workspace:*"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.1",
