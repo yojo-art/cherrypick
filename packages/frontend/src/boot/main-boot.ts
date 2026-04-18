@@ -77,7 +77,7 @@ export async function mainBoot() {
 
 		// prefereces migration
 		// TODO: そのうち消す
-		if (lastVersion && (compareVersions('4.16.0-alpha.0', lastVersion) === 1)) {
+		if (lastVersion && (compareVersions('1.6.0', lastVersion) === 1)) {
 			console.log('Preferences migration');
 
 			migrateOldSettings();
