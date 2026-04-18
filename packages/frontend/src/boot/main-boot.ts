@@ -70,7 +70,7 @@ export async function mainBoot() {
 	reactionPicker.init();
 	emojiPicker.init();
 
-	if ((isClientUpdated || isClientMigrated) && $i) {
+	if (isClientUpdated && $i) {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUpdated.vue')), {}, {
 			closed: () => dispose(),
 		});
@@ -82,9 +82,7 @@ export async function mainBoot() {
 
 			migrateOldSettings();
 		}
-	}
-
-	if (isClientMigrated && $i) {
+	}	else if (isClientMigrated && $i) {
 		miLocalStorage.removeItem('neverShowDonationInfo');
 		miLocalStorage.removeItem('latestDonationInfoShownAt');
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkMigrated.vue')), {}, {
