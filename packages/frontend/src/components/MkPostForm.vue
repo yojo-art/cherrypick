@@ -605,7 +605,8 @@ function setVisibility() {
 function setSearchbility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/CPSearchbilityPicker.vue')), {
 		currentSearchbility: searchableBy.value,
-		src: searchbilityButton.value,
+		anchorElement: searchbilityButton.value ?? undefined,
+		src: searchbilityButton.value ?? undefined,
 	}, {
 		changeSearchbility: v => {
 			searchableBy.value = v;
