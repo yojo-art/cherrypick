@@ -1628,6 +1628,7 @@ _compression:
     high: "高品質"
     medium: "中品質"
     low: "低品質"
+    webpcompress: "WebP圧縮のみ"
   _size:
     large: "サイズ大"
     medium: "サイズ中"

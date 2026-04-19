@@ -6521,6 +6521,10 @@ export interface Locale extends ILocale {
              * 低品質
              */
             "low": string;
+            /**
+             * WebP圧縮のみ
+             */
+            "webpcompress": string;
         };
         "_size": {
             /**
