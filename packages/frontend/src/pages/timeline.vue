@@ -341,24 +341,21 @@ async function chooseHashTag(ev: MouseEvent): Promise<void> {
 		}
 	}
 
-	const channels = await favoritedChannelsCache.fetch();
-	const items: (MenuItem | undefined)[] = [
-		...tags.map(tag => {
-			return {
-				type: 'link' as const,
-				text: tag,
-				to: `/tags/${encodeURIComponent(tag)}`,
-			};
-		}),
-		(channels.length === 0 ? undefined : { type: 'divider' }),
+	const items: MenuItem[] = [
+		...tags.map(tag => ({
+			type: 'link' as const,
+			text: tag,
+			to: `/tags/${encodeURIComponent(tag)}`,
+		})),
+		...(tags.length > 0 ? [{ type: 'divider' as const }] : []),
 		{
-			type: 'link',
+			type: 'link' as const,
 			icon: 'ti ti-plus',
 			text: i18n.ts.createNew,
 			to: '/my/tags',
 		},
 	];
-	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);
+	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
 async function chooseChannel(ev: MouseEvent): Promise<void> {

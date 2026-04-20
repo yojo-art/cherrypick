@@ -84,15 +84,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 				<MkSwitch v-model="isSensitive">isSensitive</MkSwitch>
 				<MkSwitch v-model="localOnly">{{ i18n.ts.localOnly }}</MkSwitch>
-				<MkSelect v-model="copyPermission">
+				<MkSelect v-model="copyPermission" :items="copyPermissionDef">
 					<template #label>{{ i18n.ts._emoji.copyPermission }}</template>
-					<option value="allow">{{ i18n.ts._emoji.allow }}</option>
-					<option value="deny">{{ i18n.ts._emoji.deny }}</option>
-					<option value="conditional">{{ i18n.ts._emoji.conditional }}</option>
 				</MkSelect>
 				<MkKeyValue v-if="importFrom">
 					<template #key>{{ i18n.ts._emoji.importFrom }}</template>
-					<template #value><Mfm :text="emoji.importFrom"/></template>
+					<template #value><Mfm :text="emoji?.importFrom??''"/></template>
 				</MkKeyValue>
 				<MkButton v-if="emoji" danger @click="del()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
@@ -122,6 +119,7 @@ import { selectFile } from '@/utility/drive.js';
 import MkRolePreview from '@/components/MkRolePreview.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkKeyValue from '@/components/MkKeyValue.vue';
+import { useMkSelect } from '@/composables/use-mkselect.js';
 
 const props = defineProps<{
 	emoji?: Misskey.entities.EmojiDetailed,
@@ -142,11 +140,22 @@ const license = ref<string>(props.emoji?.license ? props.emoji.license : '');
 const isSensitive = ref(props.emoji ? props.emoji.isSensitive : false);
 const localOnly = ref(props.emoji ? props.emoji.localOnly : false);
 
-const description = ref<string>(props.emoji ? props.emoji.description : null);
-const author = ref<string>(props.emoji ? props.emoji.author : null);
-const usageInfo = ref<string>(props.emoji ? props.emoji.usageInfo : null);
-const isBasedOn = ref<string>(props.emoji ? props.emoji.isBasedOn : null);
-const copyPermission = ref<string>(props.emoji ? props.emoji.copyPermission : 'allow');
+const description = ref<string>(props.emoji?.description ? props.emoji.description : '');
+const author = ref<string>(props.emoji?.author ? props.emoji.author : '');
+const usageInfo = ref<string>(props.emoji?.usageInfo ? props.emoji.usageInfo : '');
+const isBasedOn = ref<string>(props.emoji?.isBasedOn ? props.emoji.isBasedOn : '');
+
+const {
+	model: copyPermission,
+	def: copyPermissionDef,
+} = useMkSelect({
+	items: [
+		{ label: i18n.ts._emoji.allow, value: 'allow' },
+		{ label: i18n.ts._emoji.deny, value: 'deny' },
+		{ label: i18n.ts._emoji.conditional, value: 'conditional' },
+	],
+	initialValue: props.emoji?.copyPermission ? props.emoji.copyPermission : 'allow',
+});
 const importFrom = computed(() => props.emoji ? props.emoji.importFrom : null);
 
 const roleIdsThatCanBeUsedThisEmojiAsReaction = ref(props.emoji ? props.emoji.roleIdsThatCanBeUsedThisEmojiAsReaction : []);

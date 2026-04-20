@@ -1,6 +1,6 @@
 {
 	"name": "yojo-art",
-	"version": "1.7.1",
+	"version": "1.7.2",
 	"basedCherrypickVersion": "4.17.0",
 	"basedMisskeyVersion": "2025.10.2",
 	"codename": "nasubi",
@@ -54,7 +54,7 @@
 	},
 	"resolutions": {
 		"chokidar": "4.0.3",
-		"lodash": "4.17.23"
+		"lodash": "4.18.1"
 	},
 	"dependencies": {
 		"cssnano": "7.1.1",
