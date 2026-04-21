@@ -121,6 +121,7 @@ import { $i } from '@/i.js';
 import { instance } from '@/instance.js';
 import { emojiPicker } from '@/utility/emoji-picker';
 import { Paginator } from '@/utility/paginator.js';
+import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 
 const props = withDefaults(defineProps<{
 	query?: string;
