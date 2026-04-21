@@ -3366,7 +3366,7 @@ type NotificationsCreateRequest = operations['notifications___create']['requestB
 type NotificationsDeleteRequest = operations['notifications___delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken", "pollVote"];
+export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken"];
 
 // @public (undocumented)
 export function nyaize(text: string): string;
