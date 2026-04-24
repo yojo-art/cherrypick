@@ -51,7 +51,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<template #label><SearchLabel>Translator type</SearchLabel></template>
 									<option :value="null">{{ i18n.ts.none }}</option>
 									<option value="deepl">DeepL</option>
-									<option value="google_no_api">Google Translate(without API)</option>
 									<option value="ctav3">Cloud Translation - Advanced(v3)</option>
 									<option value="libretranslate">LibreTranslate</option>
 								</MkRadios>
