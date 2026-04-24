@@ -373,38 +373,37 @@ export async function mainBoot() {
 				});
 			});
 
-		main.on('unreadNotification', () => {
-			const unreadNotificationsCount = ($i?.unreadNotificationsCount ?? 0) + 1;
-			updateCurrentAccountPartial({
-				hasUnreadNotification: true,
-				unreadNotificationsCount,
+			main.on('unreadNotification', () => {
+				const unreadNotificationsCount = ($i?.unreadNotificationsCount ?? 0) + 1;
+				updateCurrentAccountPartial({
+					hasUnreadNotification: true,
+					unreadNotificationsCount,
+				});
 			});
-		});
 
-		main.on('unreadMention', () => {
-			updateCurrentAccountPartial({ hasUnreadMentions: true });
-		});
+			main.on('unreadMention', () => {
+				updateCurrentAccountPartial({ hasUnreadMentions: true });
+			});
 
-		main.on('readAllUnreadMentions', () => {
-			updateCurrentAccountPartial({ hasUnreadMentions: false });
-		});
+			main.on('readAllUnreadMentions', () => {
+				updateCurrentAccountPartial({ hasUnreadMentions: false });
+			});
 
-		main.on('unreadSpecifiedNote', () => {
-			updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: true });
-		});
+			main.on('unreadSpecifiedNote', () => {
+				updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: true });
+			});
 
-		main.on('readAllUnreadSpecifiedNotes', () => {
-			updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: false });
-		});
+			main.on('readAllUnreadSpecifiedNotes', () => {
+				updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: false });
+			});
 
-		main.on('readAllAntennas', () => {
-			updateCurrentAccountPartial({ hasUnreadAntenna: false });
-		});
+			main.on('readAllAntennas', () => {
+				updateCurrentAccountPartial({ hasUnreadAntenna: false });
+			});
 
-		main.on('unreadAntenna', () => {
-			updateCurrentAccountPartial({ hasUnreadAntenna: true });
-			sound.playMisskeySfx('antenna');
-		});
+			main.on('unreadAntenna', () => {
+				updateCurrentAccountPartial({ hasUnreadAntenna: true });
+			});
 
 			main.on('newChatMessage', () => {
 				updateCurrentAccountPartial({ hasUnreadChatMessages: true });
