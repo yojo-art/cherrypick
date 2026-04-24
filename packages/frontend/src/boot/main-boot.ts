@@ -70,21 +70,19 @@ export async function mainBoot() {
 	reactionPicker.init();
 	emojiPicker.init();
 
-	if ((isClientUpdated || isClientMigrated) && $i) {
+	if (isClientUpdated && $i) {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUpdated.vue')), {}, {
 			closed: () => dispose(),
 		});
 
 		// prefereces migration
 		// TODO: そのうち消す
-		if (lastVersion && (compareVersions('4.16.0-alpha.0', lastVersion) === 1)) {
+		if (lastVersion && (compareVersions('1.6.0', lastVersion) === 1)) {
 			console.log('Preferences migration');
 
 			migrateOldSettings();
 		}
-	}
-
-	if (isClientMigrated && $i) {
+	}	else if (isClientMigrated && $i) {
 		miLocalStorage.removeItem('neverShowDonationInfo');
 		miLocalStorage.removeItem('latestDonationInfoShownAt');
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkMigrated.vue')), {}, {
