@@ -1595,6 +1595,7 @@ _compression:
     high: "High quality"
     medium: "Medium quality"
     low: "Low quality"
+    webpcompress: "WebP Compress"
   _size:
     large: "Large size"
     medium: "Medium size"

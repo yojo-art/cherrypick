@@ -129,6 +129,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkSelect
 								v-model="defaultImageCompressionLevel" :items="[
 									{ label: i18n.ts.none, value: 0 },
+									{ label: i18n.ts._compression._quality.webpcompress, value: 10 },
 									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 1 },
 									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 2 },
 									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 3 },
@@ -153,6 +154,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkSelect
 								v-model="defaultVideoCompressionLevel" :items="[
 									{ label: i18n.ts.none, value: 0 },
+									{ label: i18n.ts._compression._quality.webpcompress, value: 10 },
 									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 1 },
 									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 2 },
 									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 3 },
