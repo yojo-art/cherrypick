@@ -981,9 +981,6 @@ export async function getRenoteMenu(props: {
 					visibility = smallerVisibility(visibility, 'home');
 				}
 
-				const result = await confirmRenote(appearNote.id);
-				if (result) return;
-
 				if (!props.mock) {
 					const canceled = await confirmRenote(appearNote.id);
 					if (canceled) return;
