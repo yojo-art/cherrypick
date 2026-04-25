@@ -321,24 +321,29 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div v-else-if="tab === 'history'">
-			<div v-if="!historiesLoaded" style="padding: 16px">
-				<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
+			<div v-if="historiesLoading" style="padding: 16px; text-align: center;">
+				<MkLoading/>
 			</div>
-			<MkSwitch v-if="historiesLoaded" v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
-			<MkNoteHistory
-				v-for="(history, index) in histories"
-				:key="history.id"
-				:oldNote="histories[index+1] ? histories[index+1] : null"
-				:newNote="history"
-				:originalNote="appearNote"
-				:class="$style.reply"
-				:detail="true"
-				:raw="history_raw"
-				:index="index"
-			/>
-			<div v-if="historiesLoaded && !history_list_end" style="padding: 16px">
-				<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
-			</div>
+			<template v-if="historiesLoadError">
+				<MkError type="error" @retry="loadHistories"/>
+			</template>
+			<template v-else-if="historiesLoaded && histories.length > 0">
+				<MkSwitch v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
+				<MkNoteHistory
+					v-for="(history, index) in histories"
+					:key="history.id"
+					:oldNote="histories[index+1] ? histories[index+1] : null"
+					:newNote="history"
+					:originalNote="appearNote"
+					:class="$style.reply"
+					:detail="true"
+					:raw="history_raw"
+					:index="index"
+				/>
+				<div v-if="!history_list_end" style="padding: 16px">
+					<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
+				</div>
+			</template>
 		</div>
 		<div v-else-if="tab === 'tag'">
 			<MkA
@@ -363,7 +368,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, markRaw, onMounted, provide, ref, useTemplateRef } from 'vue';
+import { computed, inject, markRaw, onMounted, provide, ref, useTemplateRef, watch } from 'vue';
 import * as mfm from 'mfc-js';
 import * as Misskey from 'cherrypick-js';
 import { isLink } from '@@/js/is-link.js';
@@ -486,7 +491,9 @@ const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibili
 const viewTextSource = ref(false);
 const noNyaize = ref(false);
 const histories = ref<Misskey.entities.NoteHistory[]>([]);
+const historiesLoading = ref(false);
 const historiesLoaded = ref(false);
+const historiesLoadError = ref(false);
 const histories_untilId = ref<Misskey.entities.NoteHistory['id']>();
 const history_list_end = ref(false);
 const history_raw = ref(false);
@@ -950,8 +957,11 @@ function showOnRemote() {
 	if (props.note.user.instance !== undefined) window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
 
-function loadHistories() {
-	historiesLoaded.value = true;
+async function loadHistories() {
+	if (historiesLoading.value) return;
+	historiesLoading.value = true;
+	historiesLoadError.value = false;
+
 	misskeyApi('notes/history', {
 		...(histories_untilId.value ? { untilId: histories_untilId.value } : {} ),
 		noteId: appearNote.id,
@@ -988,10 +998,21 @@ function loadHistories() {
 		if (res.length < 5) {
 			history_list_end.value = true;
 		}
-		histories_untilId.value = res[ res.length - 1 ].id;
+		histories_untilId.value = res[res.length - 1].id;
 		histories.value = histories.value.concat(res);
+	}).catch(() => {
+		historiesLoadError.value = true;
+	}).finally(() => {
+		historiesLoaded.value = true;
+		historiesLoading.value = false;
 	});
 }
+
+watch(() => tab.value, async (newTab) => {
+	if (newTab === 'history' && !historiesLoaded.value) {
+		await loadHistories();
+	}
+});
 </script>
 
 <style lang="scss" module>
