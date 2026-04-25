@@ -147,9 +147,19 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
 
+const translateServices = [
+	'deepl',
+	'libretranslate',
+	'ctav3',
+] as const;
+
 const meta = await misskeyApi('admin/meta');
 
-const provider = ref(meta.translatorType);
+const provider = ref<string | null>(
+	meta.translatorType != null && (translateServices as readonly string[]).includes(meta.translatorType)
+		? meta.translatorType
+		: null,
+);
 const deeplAuthKey = ref(meta.deeplAuthKey ?? '');
 const deeplIsPro = ref(meta.deeplIsPro);
 const ctav3SaKey = ref(meta.ctav3SaKey ?? '');
