@@ -341,13 +341,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div v-else-if="tab === 'tag'">
-			<MkA
-				v-for="tag in appearNote.tags" :key="'tag:' + tag"
-				:to="`/tags/${tag}`"
-				style="margin-left: 6px;margin-right: 16px; color: #FF9900 "
-			>
-				#{{ tag }}
-			</MkA>
+			<template v-if="appearNote.tags && appearNote.tags.length > 0">
+				<div :class="$style.tags">
+					<MkA v-for="tag in appearNote.tags" :key="'tag:' + tag" :to="`/tags/${tag}`">
+						<div :class="$style.tag">
+							<span>#{{ tag }}</span>
+						</div>
+					</MkA>
+				</div>
+			</template>
+			<MkResult v-else type="empty" :text="i18n.ts.nothing"/>
 		</div>
 	</div>
 </div>
@@ -1447,5 +1450,21 @@ function loadHistories() {
 	gap: 6px;
 	flex-wrap: wrap;
 	margin-top: 6px;
+}
+
+.tags {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	grid-gap: 12px;
+	padding: 16px;
+}
+
+.tag {
+	display: flex;
+	align-items: center;
+	padding: 16px;
+	background: var(--MI_THEME-buttonBg);
+	border-radius: 6px;
+	cursor: pointer;
 }
 </style>
