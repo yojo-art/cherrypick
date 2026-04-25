@@ -32,7 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	draggable="false"
 	@error="errored = true"
 	@load="errored = false"
-	@click="onClick"
+	@click.stop="onClick"
 	@mouseover="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 	@mouseout="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 	@touchstart="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
