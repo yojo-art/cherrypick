@@ -2160,8 +2160,10 @@ declare namespace entities {
         UsersGroupsInvitationsAcceptRequest,
         UsersGroupsInvitationsRejectRequest,
         UsersGroupsInviteRequest,
+        UsersGroupsJoinedRequest,
         UsersGroupsJoinedResponse,
         UsersGroupsLeaveRequest,
+        UsersGroupsOwnedRequest,
         UsersGroupsOwnedResponse,
         UsersGroupsPullRequest,
         UsersGroupsShowRequest,
@@ -3888,10 +3890,16 @@ type UsersGroupsInvitationsRejectRequest = operations['users___groups___invitati
 type UsersGroupsInviteRequest = operations['users___groups___invite']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type UsersGroupsJoinedRequest = operations['users___groups___joined']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type UsersGroupsJoinedResponse = operations['users___groups___joined']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type UsersGroupsLeaveRequest = operations['users___groups___leave']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type UsersGroupsOwnedRequest = operations['users___groups___owned']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type UsersGroupsOwnedResponse = operations['users___groups___owned']['responses']['200']['content']['application/json'];

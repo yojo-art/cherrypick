@@ -37187,6 +37187,18 @@ export interface operations {
         };
     };
     users___groups___joined: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 10 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {
@@ -37308,6 +37320,18 @@ export interface operations {
         };
     };
     users___groups___owned: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 10 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {

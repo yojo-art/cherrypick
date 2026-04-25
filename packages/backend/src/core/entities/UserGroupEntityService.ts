@@ -42,5 +42,12 @@ export class UserGroupEntityService {
 			userIds: users.map((x: { userId: any; }) => x.userId),
 		};
 	}
+
+	@bindThis
+	public async packMany(
+		requests: MiUserGroup[],
+	) {
+		return await Promise.all(requests.map(x => this.pack(x)));
+	}
 }
 

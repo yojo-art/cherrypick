@@ -642,8 +642,10 @@ import type {
 	UsersGroupsInvitationsAcceptRequest,
 	UsersGroupsInvitationsRejectRequest,
 	UsersGroupsInviteRequest,
+	UsersGroupsJoinedRequest,
 	UsersGroupsJoinedResponse,
 	UsersGroupsLeaveRequest,
+	UsersGroupsOwnedRequest,
 	UsersGroupsOwnedResponse,
 	UsersGroupsPullRequest,
 	UsersGroupsShowRequest,
@@ -1125,9 +1127,9 @@ export type Endpoints = {
 	'users/groups/invitations/accept': { req: UsersGroupsInvitationsAcceptRequest; res: EmptyResponse };
 	'users/groups/invitations/reject': { req: UsersGroupsInvitationsRejectRequest; res: EmptyResponse };
 	'users/groups/invite': { req: UsersGroupsInviteRequest; res: EmptyResponse };
-	'users/groups/joined': { req: EmptyRequest; res: UsersGroupsJoinedResponse };
+	'users/groups/joined': { req: UsersGroupsJoinedRequest; res: UsersGroupsJoinedResponse };
 	'users/groups/leave': { req: UsersGroupsLeaveRequest; res: EmptyResponse };
-	'users/groups/owned': { req: EmptyRequest; res: UsersGroupsOwnedResponse };
+	'users/groups/owned': { req: UsersGroupsOwnedRequest; res: UsersGroupsOwnedResponse };
 	'users/groups/pull': { req: UsersGroupsPullRequest; res: EmptyResponse };
 	'users/groups/show': { req: UsersGroupsShowRequest; res: UsersGroupsShowResponse };
 	'users/groups/transfer': { req: UsersGroupsTransferRequest; res: UsersGroupsTransferResponse };

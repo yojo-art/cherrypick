@@ -7,6 +7,7 @@ import { Not, In } from 'typeorm';
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserGroupsRepository, UserGroupJoiningsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { QueryService } from '@/core/QueryService.js';
 import { UserGroupEntityService } from '@/core/entities/UserGroupEntityService.js';
 import { DI } from '@/di-symbols.js';
 
@@ -32,34 +33,43 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
+	properties: {
+		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+		sinceId: { type: 'string', format: 'misskey:id' },
+		untilId: { type: 'string', format: 'misskey:id' },
+	},
 	required: [],
 } as const;
 
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
-		@Inject(DI.userGroupsRepository)
-		private userGroupsRepository: UserGroupsRepository,
-
 		@Inject(DI.userGroupJoiningsRepository)
 		private userGroupJoiningsRepository: UserGroupJoiningsRepository,
 
 		private userGroupEntityService: UserGroupEntityService,
+		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const ownedGroups = await this.userGroupsRepository.findBy({
-				userId: me.id,
-			});
+			const query = this.queryService.makePaginationQuery(
+				this.userGroupJoiningsRepository.createQueryBuilder('joining'),
+				ps.sinceId,
+				ps.untilId,
+				null,
+				null,
+				'userGroupId',
+			)
+				.andWhere('joining.userId = :userId', { userId: me.id })
+				.innerJoinAndSelect('joining.userGroup', 'user_group')
+				.andWhere('user_group.userId != :userId', { userId: me.id }); // 自分が作ったグループを除外
 
-			const joinings = await this.userGroupJoiningsRepository.findBy({
-				userId: me.id,
-				...(ownedGroups.length > 0 ? {
-					userGroupId: Not(In(ownedGroups.map(x => x.id))),
-				} : {}),
-			});
+			const joinings = await query
+				.take(ps.limit)
+				.getMany();
 
-			return await Promise.all(joinings.map(x => this.userGroupEntityService.pack(x.userGroupId)));
+			return await this.userGroupEntityService.packMany(
+				joinings.map(x => x.userGroup!),
+			);
 		});
 	}
 }
