@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, signup } from '../utils.js';
+import { api, signup, sleep } from '../utils.js';
 import type * as misskey from 'cherrypick-js';
 
 describe('UserGroup', () => {
@@ -33,6 +33,7 @@ describe('UserGroup', () => {
 					userId: alice.id,
 				}, bob);
 			}
+			await sleep();
 		}, 1000 * 60 * 2);
 
 		afterAll(async () => {
@@ -57,10 +58,12 @@ describe('UserGroup', () => {
 		test('他人宛ての招待は含まれない', async () => {
 			// carolに対して別途招待を作っておく
 			const carolTargetGroup = await api('users/groups/create', { name: 'carol-target-group' }, bob);
+
 			await api('users/groups/invite', {
 				groupId: carolTargetGroup.body.id,
 				userId: carol.id,
 			}, bob);
+			await sleep();
 
 			// aliceの一覧にcarol宛てのものが混ざっていないことを確認
 			const res = await api('i/user-group-invites', {}, alice);
@@ -171,6 +174,7 @@ describe('UserGroup', () => {
 				groupId: extra.body.id,
 				userId: alice.id,
 			}, bob);
+			await sleep();
 
 			const res = await api('i/user-group-invites', { limit: 1 }, alice);
 			assert.strictEqual(res.status, 200);
@@ -273,6 +277,7 @@ describe('UserGroup', () => {
 				groupId: bobGroup.body.id,
 				userId: alice.id,
 			}, bob);
+			await sleep();
 
 			const invitations = await api('i/user-group-invites', {}, alice);
 			for (const inv of invitations.body) {
@@ -385,6 +390,7 @@ describe('UserGroup', () => {
 				groupId: carolGroup.body.id,
 				userId: alice.id,
 			}, carol);
+			await sleep();
 
 			// aliceが招待を承認(エンドポイント名は実装に合わせて)
 			const invitations = await api('i/user-group-invites', {}, alice);
@@ -443,6 +449,8 @@ describe('UserGroup', () => {
 				groupId: leaveTestGroup.body.id,
 				userId: alice.id,
 			}, carol);
+			await sleep();
+
 			const invitations = await api('i/user-group-invites', {}, alice);
 			for (const inv of invitations.body) {
 				await api('users/groups/invitations/accept', { invitationId: inv.id }, alice);
@@ -471,6 +479,7 @@ describe('UserGroup', () => {
 				groupId: rejectTestGroup.body.id,
 				userId: alice.id,
 			}, bob);
+			await sleep();
 
 			// aliceが拒否
 			const invitations = await api('i/user-group-invites', {}, alice);
@@ -545,6 +554,8 @@ describe('UserGroup', () => {
 				groupId: secretGroup.body.id,
 				userId: bob.id,
 			}, carol);
+			await sleep();
+
 			const bobInvitations = await api('i/user-group-invites', {}, bob);
 			for (const inv of bobInvitations.body) {
 				await api('users/groups/invitations/accept', { invitationId: inv.id }, bob);
