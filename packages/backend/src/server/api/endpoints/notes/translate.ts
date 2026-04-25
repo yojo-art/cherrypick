@@ -96,37 +96,63 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				return;
 			}
 
-			const translatorServices = [
-				'deepl',
-				'ctav3',
-				'Libretranslate',
-			];
-
-			if (this.serverSettings.translatorType == null || !translatorServices.includes(this.serverSettings.translatorType)) {
-				throw new ApiError(meta.errors.noTranslateService);
-			}
-
 			let targetLang = ps.targetLang;
 			if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
 
 			let translationResult;
 
-			if (this.serverSettings.translatorType === 'deepl') {
-				if (this.serverSettings.deeplAuthKey == null) {
-					throw new ApiError(meta.errors.unavailable);
+			const translatorType = this.serverSettings.translatorType?.toLowerCase() ?? null;
+			switch (translatorType) {
+				case 'deepl':
+				{
+					if (this.serverSettings.deeplAuthKey == null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+
+					translationResult = await this.translateDeepL(
+						(note.cw ? note.cw + '\n' : '') + note.text,
+						targetLang,
+						this.serverSettings.deeplAuthKey,
+						this.serverSettings.deeplIsPro,
+						translatorType);
+					break;
 				}
-				translationResult = await this.translateDeepL((note.cw ? note.cw + '\n' : '') + note.text, targetLang, this.serverSettings.deeplAuthKey, this.serverSettings.deeplIsPro, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'ctav3') {
-				if (this.serverSettings.ctav3SaKey == null) return Promise.resolve(204);
-				else if (this.serverSettings.ctav3ProjectId == null) return Promise.resolve(204);
-				else if (this.serverSettings.ctav3Location == null) return Promise.resolve(204);
-				translationResult = await this.apiCloudTranslationAdvanced((note.cw ? note.cw + '\n' : '') + note.text, targetLang, this.serverSettings.ctav3SaKey, this.serverSettings.ctav3ProjectId, this.serverSettings.ctav3Location, this.serverSettings.ctav3Model, this.serverSettings.ctav3Glossary, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'Libretranslate') {
-				const endPoint = this.serverSettings.libreTranslateEndPoint;
-				if (endPoint === null) throw new Error('libreTranslateEndPoint is null');
-				translationResult = await this.translateLibretranslate((note.cw ? note.cw + '\n' : '') + note.text, targetLang, endPoint, this.serverSettings.libreTranslateApiKey);
-			} else {
-				throw new Error('Unsupported translator type');
+
+				case 'ctav3':
+				{
+					if (this.serverSettings.ctav3SaKey == null || this.serverSettings.ctav3ProjectId == null || this.serverSettings.ctav3Location == null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+
+					translationResult = await this.apiCloudTranslationAdvanced(
+						(note.cw ? note.cw + '\n' : '') + note.text,
+						targetLang,
+						this.serverSettings.ctav3SaKey,
+						this.serverSettings.ctav3ProjectId,
+						this.serverSettings.ctav3Location,
+						this.serverSettings.ctav3Model,
+						this.serverSettings.ctav3Glossary,
+						translatorType);
+					break;
+				}
+
+				case 'libretranslate':
+				{
+					const endPoint = this.serverSettings.libreTranslateEndPoint;
+					if (endPoint === null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+
+					translationResult = await this.translateLibretranslate(
+						(note.cw ? note.cw + '\n' : '') + note.text,
+						targetLang,
+						endPoint,
+						this.serverSettings.libreTranslateApiKey,
+						translatorType);
+					break;
+				}
+				default:
+					throw new ApiError(meta.errors.noTranslateService);
 			}
 
 			return Promise.resolve({
@@ -215,7 +241,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			translator: provider,
 		};
 	}
-	private async translateLibretranslate(text: string, targetLang: string, endpoint: string, apiKey:string | null ) {
+	private async translateLibretranslate(text: string, targetLang: string, endpoint: string, apiKey:string | null, provider: string) {
 		const res = await this.httpRequestService.send(endpoint + '/translate', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -240,7 +266,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: json.detectedLanguage.language,
 			text: json.translatedText,
-			translator: 'Libretranslate',
+			translator: provider,
 		};
 	}
 }
