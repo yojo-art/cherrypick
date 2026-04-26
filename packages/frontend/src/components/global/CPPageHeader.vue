@@ -380,7 +380,7 @@ onUnmounted(() => {
 }
 
 .titleContainer_canBack {
-	margin-left: -32px;
+	margin-left: -8px;
 }
 
 .titleAvatarContainer {
