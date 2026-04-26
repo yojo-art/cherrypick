@@ -134,7 +134,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					break;
 				}
 				default:
-					throw new Error('Unsupported translator type');
+					throw new ApiError(meta.errors.noTranslateService);
 			}
 
 			return Promise.resolve({
