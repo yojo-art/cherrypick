@@ -19,7 +19,7 @@ import {
 	ctav3SingleResponse,
 	ctav3DetectResponse,
 	me,
-} from './_translate-shared.js';
+} from '../../../../helpers/translate-shared.js';
 import { DI } from '@/di-symbols.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { GetterService } from '@/server/api/GetterService.js';

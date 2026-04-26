@@ -19,7 +19,7 @@ import {
 	ctav3MultiResponse,
 	ctav3DetectResponse,
 	me,
-} from './_translate-shared.js';
+} from '../../../../helpers/translate-shared.js';
 import { DI } from '@/di-symbols.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -84,14 +84,11 @@ describe('endpoints/notes/polls/translate', () => {
 			await expect(callEndpoint()).resolves.toBeUndefined();
 		});
 
-		// 注意: 他のtranslateエンドポイントと違い、polls/translate は default 時に
-		// ApiError ではなく素の Error('Unsupported translator type') を投げる仕様。
-		// 挙動を固定しつつコードレビュー時に修正候補にすべき。
-		it('translatorType未設定なら素のErrorを投げる(他エンドポイントと挙動が違う)', async () => {
+		it('translatorType未設定ならNO_TRANSLATE_SERVICE', async () => {
 			await buildModule({ translatorType: null });
 			setHappyPath();
 
-			await expect(callEndpoint()).rejects.toThrow('Unsupported translator type');
+			await expect(callEndpoint()).rejects.toMatchObject({ code: 'NO_TRANSLATE_SERVICE' });
 		});
 	});
 
