@@ -31789,6 +31789,8 @@ export interface operations {
                     'application/json': {
                         sourceLang: string;
                         text?: (string | null)[];
+                        /** @enum {string} */
+                        translator: 'deepl' | 'ctav3' | 'libretranslate';
                     };
                 };
             };
@@ -32893,6 +32895,8 @@ export interface operations {
                     'application/json': {
                         sourceLang: string;
                         text: string;
+                        /** @enum {string} */
+                        translator: 'deepl' | 'ctav3' | 'libretranslate';
                     };
                 };
             };
@@ -39229,6 +39233,8 @@ export interface operations {
                     'application/json': {
                         sourceLang: string;
                         text: string;
+                        /** @enum {string} */
+                        translator: 'deepl' | 'ctav3' | 'libretranslate';
                     };
                 };
             };
