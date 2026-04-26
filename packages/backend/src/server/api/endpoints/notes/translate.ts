@@ -29,6 +29,7 @@ export const meta = {
 		properties: {
 			sourceLang: { type: 'string' },
 			text: { type: 'string' },
+			translator: { type: 'string', enum: ['deepl', 'ctav3', 'libretranslate'] },
 		},
 	},
 
@@ -113,8 +114,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						(note.cw ? note.cw + '\n' : '') + note.text,
 						targetLang,
 						this.serverSettings.deeplAuthKey,
-						this.serverSettings.deeplIsPro,
-						translatorType);
+						this.serverSettings.deeplIsPro);
 					break;
 				}
 
@@ -131,8 +131,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						this.serverSettings.ctav3ProjectId,
 						this.serverSettings.ctav3Location,
 						this.serverSettings.ctav3Model,
-						this.serverSettings.ctav3Glossary,
-						translatorType);
+						this.serverSettings.ctav3Glossary);
 					break;
 				}
 
@@ -147,8 +146,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						(note.cw ? note.cw + '\n' : '') + note.text,
 						targetLang,
 						endPoint,
-						this.serverSettings.libreTranslateApiKey,
-						translatorType);
+						this.serverSettings.libreTranslateApiKey);
 					break;
 				}
 				default:
@@ -158,12 +156,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			return Promise.resolve({
 				sourceLang: translationResult.sourceLang || '',
 				text: translationResult.text || '',
-				translator: translationResult.translator || [],
+				translator: translatorType,
 			});
 		});
 	}
 
-	private async translateDeepL(text: string, targetLang: string, authKey: string, isPro: boolean, provider: string) {
+	private async translateDeepL(text: string, targetLang: string, authKey: string, isPro: boolean) {
 		const params = new URLSearchParams();
 		params.append('auth_key', authKey);
 		params.append('text', text);
@@ -190,11 +188,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: json.translations[0].detected_source_language,
 			text: json.translations[0].text,
-			translator: provider,
 		};
 	}
 
-	private async apiCloudTranslationAdvanced(text: string, targetLang: string, saKey: string, projectId: string, location: string, model: string | null, glossary: string | null, provider: string) {
+	private async apiCloudTranslationAdvanced(text: string, targetLang: string, saKey: string, projectId: string, location: string, model: string | null, glossary: string | null) {
 		const [path, cleanup] = await createTemp();
 		fs.writeFileSync(path, saKey);
 
@@ -238,10 +235,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: detectedLanguage !== null ? detectedLanguage : detectedLanguageCode,
 			text: translatedText,
-			translator: provider,
 		};
 	}
-	private async translateLibretranslate(text: string, targetLang: string, endpoint: string, apiKey:string | null, provider: string) {
+	private async translateLibretranslate(text: string, targetLang: string, endpoint: string, apiKey:string | null) {
 		const res = await this.httpRequestService.send(endpoint + '/translate', {
 			method: 'POST',
 			body: JSON.stringify({
@@ -266,7 +262,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: json.detectedLanguage.language,
 			text: json.translatedText,
-			translator: provider,
 		};
 	}
 }
