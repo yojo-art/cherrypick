@@ -36,6 +36,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 			</div>
 		</FormSection>
+
+		<FormSection>
+			<SearchMarker
+				:keywords="['notify', 'hide', 'user']"
+			>
+				<MkFolder>
+					<template #label><SearchLabel>{{ i18n.ts.notifyUsers }}</SearchLabel></template>
+					<MkPagination v-slot="{items}" :paginator="notifyUserPaginator" withControl>
+						<div class="_gaps_s">
+							<div v-for="item in items" :key="item.id" :class="[$style.userItem ]">
+								<div :class="$style.userItemMain">
+									<MkA :class="$style.userItemMainBody" :to="userPage(item)">
+										<MkUserCardMini :user="item"/>
+									</MkA>
+									<button class="_button" :class="$style.notifyMenu" @click="showNotifyMenu(item, $event)"><i class="ti ti-dots"></i></button>
+								</div>
+							</div>
+						</div>
+					</MkPagination>
+				</MkFolder>
+			</SearchMarker>
+		</FormSection>
 		<FormSection>
 			<div class="_gaps_m">
 				<FormLink to="/settings/sounds">{{ i18n.ts.notificationSoundSettings }}</FormLink>
@@ -64,8 +86,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { useTemplateRef, computed } from 'vue';
+import { useTemplateRef, computed, markRaw } from 'vue';
 import { notificationTypes } from 'cherrypick-js';
+import * as Misskey from 'cherrypick-js';
 import XNotificationConfig from './notifications.notification-config.vue';
 import type { NotificationConfig } from './notifications.notification-config.vue';
 import FormLink from '@/components/form/link.vue';
@@ -81,8 +104,31 @@ import { definePage } from '@/page.js';
 import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 import { flushNotification } from '@/utility/check-nortification-delete.js';
+import { Paginator } from '@/utility/paginator.js';
+import MkPagination from '@/components/MkPagination.vue';
+import { userPage } from '@/filters/user.js';
+import MkUserCardMini from '@/components/MkUserCardMini.vue';
 
 const $i = ensureSignin();
+
+async function showNotifyMenu(user: Misskey.entities.UserDetailed, ev: PointerEvent) {
+	os.popupMenu([{
+		text: (user.notify === 'normal') ? i18n.ts.unnotifyNotes : i18n.ts.notifyNotes,
+		icon: (user.notify === 'normal') ? 'ti ti-x' : 'ti ti-plus',
+		action: async () => {
+			await os.apiWithDialog('following/update', {
+				userId: user.id,
+				notify: user.notify === 'normal' ? 'none' : 'normal',
+			}).then(() => {
+				user.notify = user.notify === 'normal' ? 'none' : 'normal';
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
+}
+
+const notifyUserPaginator = markRaw(new Paginator('users/notify/list', {
+	limit: 10,
+}));
 
 const nonConfigurableNotificationTypes = ['note', 'roleAssigned', 'followRequestAccepted', 'test', 'exportCompleted'] satisfies (typeof notificationTypes[number])[] as string[];
 
@@ -133,3 +179,42 @@ definePage(() => ({
 	icon: 'ti ti-bell',
 }));
 </script>
+
+<style lang="scss" module>
+.userItemMain {
+	display: flex;
+}
+
+.userItemSub {
+	padding: 6px 12px;
+	font-size: 85%;
+	color: color(from var(--MI_THEME-fg) srgb r g b / 0.75);
+}
+
+.userItemMainBody {
+	flex: 1;
+	min-width: 0;
+	margin-right: 8px;
+
+	&:hover {
+		text-decoration: none;
+	}
+}
+
+.notifyMenu {
+	width: 32px;
+	height: 32px;
+	align-self: center;
+}
+
+.chevron {
+	display: block;
+	transition: transform 0.1s ease-out;
+}
+
+.userItem.userItemOpend {
+	.chevron {
+		transform: rotateX(180deg);
+	}
+}
+</style>
