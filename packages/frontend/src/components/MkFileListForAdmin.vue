@@ -6,7 +6,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div>
 	<MkPagination v-slot="{ items }" :paginator="paginator">
-		<div :class="[$style.fileList, { [$style.grid]: viewMode === 'grid', [$style.list]: viewMode === 'list', '_gaps_s': viewMode === 'list' }]">
+		<div
+			:class="{
+				[$style.grid]: viewMode === 'grid',
+				[$style.list]: viewMode === 'list',
+				'_gaps_s': viewMode === 'list',
+			}"
+		>
 			<MkA
 				v-for="file in items"
 				:key="file.id"
@@ -14,17 +20,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:to="`/admin/file/${file.id}`"
 				:class="[$style.file, '_button']"
 			>
-				<!-- <div v-if="file.isSensitive" :class="$style.sensitiveLabel">{{ i18n.ts.sensitive }}</div> -->
+				<!--<div v-if="file.isSensitive" :class="$style.sensitiveLabel">{{ i18n.ts.sensitive }}</div>-->
 				<div :class="$style.indicators">
 					<div v-if="['image/gif'].includes(file.type)" :class="$style.indicator">GIF</div>
 					<div v-if="['image/apng'].includes(file.type)" :class="$style.indicator">APNG</div>
 					<div v-if="file.comment" :class="$style.indicator">ALT</div>
 					<div v-if="file.isSensitive" :class="$style.indicator" style="color: var(--MI_THEME-warn);" :title="i18n.ts.sensitive"><i class="ti ti-eye-exclamation"></i></div>
 				</div>
-			<div v-if="customEmojiUrls.includes(file.url)" class="label">
-				<img class="labelImg" src="/client-assets/label.svg"/>
-				<p class="labelText">{{ i18n.ts.emoji }}</p>
-			</div>
+				<div v-if="customEmojiUrls.includes(file.url)" :class="$style.label">
+					<img :class="$style.labelImg" src="/client-assets/label.svg"/>
+					<p :class="$style.labelText">{{ i18n.ts.emoji }}</p>
+				</div>
 				<MkDriveFileThumbnail :class="$style.thumbnail" :file="file" fit="contain" :highlightWhenSensitive="true"/>
 				<div v-if="viewMode === 'list'" :class="$style.body">
 					<div>
@@ -50,8 +56,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import * as Misskey from 'cherrypick-js';
-import type { Paginator } from '@/utility/paginator.js';
 import { ref, watch } from 'vue';
+import type { Paginator } from '@/utility/paginator.js';
 import MkPagination from '@/components/MkPagination.vue';
 import MkDriveFileThumbnail from '@/components/MkDriveFileThumbnail.vue';
 import bytes from '@/filters/bytes.js';
@@ -63,6 +69,7 @@ let customEmojiUrls = ref<string[]>([]);
 watch(customEmojis, emojis => {
 	customEmojiUrls.value = emojis.map(emoji => emoji.url);
 }, { immediate: true });
+
 defineProps<{
 	paginator: Paginator<'admin/drive/files'>;
 	viewMode: 'grid' | 'list';
@@ -155,55 +162,55 @@ defineProps<{
 	font-weight: bold;
 	font-size: 0.8em;
 	padding: 2px 5px;
+}
 
-	.label {
+.label {
+	position: absolute;
+	top: 0;
+	left: 0;
+	pointer-events: none;
+
+	&::before,
+	&::after {
+		content: "";
+		display: block;
 		position: absolute;
+		z-index: 1;
+		background: #0c7ac9;
+	}
+
+	&::before {
 		top: 0;
+		left: 57px;
+		width: 28px;
+		height: 8px;
+	}
+
+	&::after {
+		top: 57px;
 		left: 0;
-		pointer-events: none;
-
-		&::before,
-		&::after {
-			content: "";
-			display: block;
-			position: absolute;
-			z-index: 1;
-			background: #0c7ac9;
-		}
-
-		&::before {
-			top: 0;
-			left: 57px;
-			width: 28px;
-			height: 8px;
-		}
-
-		&::after {
-			top: 57px;
-			left: 0;
-			width: 8px;
-			height: 28px;
-		}
+		width: 8px;
+		height: 28px;
 	}
+}
 
-	.labelImg {
-		position: absolute;
-		z-index: 2;
-		top: 0;
-		left: 0;
-	}
+.labelImg {
+	position: absolute;
+	z-index: 2;
+	top: 0;
+	left: 0;
+}
 
-	.labelText {
-		position: absolute;
-		z-index: 3;
-		top: 19px;
-		left: -28px;
-		width: 120px;
-		margin: 0;
-		text-align: center;
-		line-height: 28px;
-		color: #fff;
-		transform: rotate(-45deg);
-	}
+.labelText {
+	position: absolute;
+	z-index: 3;
+	top: 19px;
+	left: -28px;
+	width: 120px;
+	margin: 0;
+	text-align: center;
+	line-height: 28px;
+	color: #fff;
+	transform: rotate(-45deg);
 }
 </style>
