@@ -7945,8 +7945,11 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     userId?: string | null;
+                    host?: string;
                 };
             };
         };
@@ -7970,6 +7973,7 @@ export interface operations {
                         name: string;
                         description: string;
                         url: string;
+                        host: string;
                         roleIdsThatCanBeUsedThisDecoration: string[];
                     }[];
                 };
