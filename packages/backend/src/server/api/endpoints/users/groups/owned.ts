@@ -6,6 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import type { UserGroupsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { QueryService } from '@/core/QueryService.js';
 import { UserGroupEntityService } from '@/core/entities/UserGroupEntityService.js';
 import { DI } from '@/di-symbols.js';
 
@@ -31,7 +32,11 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
+	properties: {
+		limit: { type: 'integer', minimum: 1, maximum: 100, default: 10 },
+		sinceId: { type: 'string', format: 'misskey:id' },
+		untilId: { type: 'string', format: 'misskey:id' },
+	},
 	required: [],
 } as const;
 
@@ -42,13 +47,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private userGroupsRepository: UserGroupsRepository,
 
 		private userGroupEntityService: UserGroupEntityService,
+		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const userGroups = await this.userGroupsRepository.findBy({
-				userId: me.id,
-			});
+			const query = this.queryService.makePaginationQuery(this.userGroupsRepository.createQueryBuilder('user_group'), ps.sinceId, ps.untilId)
+				.andWhere('user_group.userId = :userId', { userId: me.id });
 
-			return await Promise.all(userGroups.map(x => this.userGroupEntityService.pack(x)));
+			const requests = await query
+				.take(ps.limit)
+				.getMany();
+
+			return await this.userGroupEntityService.packMany(requests);
 		});
 	}
 }

@@ -77,13 +77,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #caption><SearchKeyword>{{ i18n.ts.makeIndexableDescription }}</SearchKeyword></template>
 			</MkSwitch>
 		</SearchMarker>
+
 		<SearchMarker :keywords="['searchable','index','search','yojo-art']">
-			<MkSelect v-model="searchableBy" @update:modelValue="save()">
-				<template #label><SearchLabel>{{ i18n.ts._searchbility.tooltip }}</SearchLabel><span class="_beta" style="vertical-align: middle;">yojo-art</span></template>
-				<option value="public">{{ i18n.ts._searchbility.public }}</option>
-				<option value="followersAndReacted">{{ i18n.ts._searchbility.followersAndReacted }}</option>
-				<option value="reactedOnly">{{ i18n.ts._searchbility.reactedOnly }}</option>
-				<option value="private">{{ i18n.ts._searchbility.private }}</option>
+			<MkSelect v-model="searchableBy" :items="searchableByDef" @update:modelValue="save()">
+				<template #label><SearchLabel>{{ i18n.ts._searchbility.tooltip }}</SearchLabel><span class="_beta" style="vertical-align: middle;">yojo-art</span><SearchLabel></SearchLabel></template>
 				<template #caption><SearchKeyword>{{ i18n.ts.makeSearchableByDescription }}</SearchKeyword></template>
 			</MkSelect>
 		</SearchMarker>
@@ -211,7 +208,18 @@ const {
 	],
 	initialValue: $i.chatScope,
 });
-const searchableBy = ref($i.searchableBy);
+const {
+	model: searchableBy,
+	def: searchableByDef,
+} = useMkSelect({
+	items: [
+		{ label: i18n.ts._searchbility.public, value: 'public' },
+		{ label: i18n.ts._searchbility.followersAndReacted, value: 'followersAndReacted' },
+		{ label: i18n.ts._searchbility.reactedOnly, value: 'reactedOnly' },
+		{ label: i18n.ts._searchbility.private, value: 'private' },
+	],
+	initialValue: $i.searchableBy,
+});
 
 const makeNotesFollowersOnlyBefore_type = computed({
 	get: () => {

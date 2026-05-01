@@ -253,6 +253,7 @@ onMounted(() => {
 		});
 		createDoughnut(softwareDoughnutEl.value, externalTooltipHandler, sortedData);
 	});
+
 	misskeyApiGet('federation/stats', { limit: 30 }).then(fedStats => {
 		type ChartData = {
 			name: string,
@@ -304,26 +305,6 @@ onMounted(() => {
 		});
 
 		createDoughnut(pubDoughnutEl.value, externalTooltipHandler2, pubs);
-	});
-
-	misskeyApiGet('federation/remote-software', {}).then(fedStats => {
-		type ChartData = {
-			name: string,
-			color: string | null,
-			value: number,
-			onClick?: () => void,
-		}[];
-
-		const softwareData: ChartData = fedStats.map(x => ({
-			name: x.softwareName,
-			color: x.color,
-			value: x.count,
-			onClick: () => {},
-		}));
-
-		const sortedSoftwareData = softwareData.sort((a, b) => a.value > b.value ? -1 : 1);
-
-		createDoughnut(softwareDoughnutEl.value, externalTooltipHandler3, sortedSoftwareData);
 	});
 });
 </script>

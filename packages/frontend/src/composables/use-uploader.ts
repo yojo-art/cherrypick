@@ -79,7 +79,7 @@ export type UploaderItem = {
 	uploaded: Misskey.entities.DriveFile | null;
 	uploadFailed: boolean;
 	aborted: boolean;
-	compressionLevel: 0 | 1 | 2 | 3;
+	compressionLevel: 0 | 1 | 2 | 3 | 10;
 	compressedSize?: number | null;
 	preprocessedFile?: Blob | null;
 	file: File;
@@ -90,7 +90,7 @@ export type UploaderItem = {
 	abortPreprocess?: (() => void) | null;
 };
 
-function getCompressionSettings(level: 0 | 1 | 2 | 3) {
+function getCompressionSettings(level: 0 | 1 | 2 | 3 | 10, imageWidth: number, imageHeight: number) {
 	if (level === 1) {
 		return {
 			maxWidth: 2000,
@@ -105,6 +105,11 @@ function getCompressionSettings(level: 0 | 1 | 2 | 3) {
 		return {
 			maxWidth: 2000 * 0.75 * 0.75, // =1125
 			maxHeight: 2000 * 0.75 * 0.75, // =1125
+		};
+	} else if (level === 10) {
+		return {
+			maxWidth: imageWidth,
+			maxHeight: imageHeight,
 		};
 	} else {
 		return null;
@@ -336,7 +341,7 @@ export function useUploader(options: {
 			!item.uploading &&
 			!item.uploaded
 		) {
-			function changeCompressionLevel(level: 0 | 1 | 2 | 3) {
+			function changeCompressionLevel(level: 0 | 1 | 2 | 3 | 10) {
 				item.compressionLevel = level;
 				preprocess(item).then(() => {
 					triggerRef(items);
@@ -356,6 +361,8 @@ export function useUploader(options: {
 						text += `: ${i18n.ts.medium}`;
 					} else if (item.compressionLevel === 3) {
 						text += `: ${i18n.ts.high}`;
+					} else if (item.compressionLevel === 10) {
+						text += `: ${i18n.ts._compression._quality.webpcompress}`;
 					}
 
 					return text;
@@ -366,6 +373,11 @@ export function useUploader(options: {
 					text: i18n.ts.none,
 					active: computed(() => item.compressionLevel === 0 || item.compressionLevel == null),
 					action: () => changeCompressionLevel(0),
+				}, {
+					type: 'radioOption',
+					text: i18n.ts._compression._quality.webpcompress,
+					active: computed(() => item.compressionLevel === 10),
+					action: () => changeCompressionLevel(10),
 				}, {
 					type: 'divider',
 				}, {
@@ -571,7 +583,7 @@ export function useUploader(options: {
 			});
 		}
 
-		const compressionSettings = getCompressionSettings(item.compressionLevel);
+		const compressionSettings = getCompressionSettings(item.compressionLevel, imageBitmap.width, imageBitmap.height);
 		const needsCompress = item.compressionLevel !== 0 && compressionSettings && IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(preprocessedFile.type) && !(await isAnimated(preprocessedFile));
 
 		if (needsCompress) {

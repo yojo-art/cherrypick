@@ -23,9 +23,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				{{ i18n.ts._dataSaver._avatar.title }}
 				<template v-if="props.showDescription" #caption>{{ i18n.ts._dataSaver._avatar.description }}</template>
 			</MkSwitch>
-			<MkSwitch v-model="dataSaver.urlPreview">
-				{{ i18n.ts._dataSaver._urlPreview.title }}
-				<template v-if="props.showDescription" #caption>{{ i18n.ts._dataSaver._urlPreview.description }}</template>
+			<MkSwitch v-model="dataSaver.disableUrlPreview">
+				{{ i18n.ts._dataSaver._disableUrlPreview.title }}
+				<template v-if="props.showDescription" #caption>{{ i18n.ts._dataSaver._disableUrlPreview.description }}</template>
 			</MkSwitch>
 			<MkSwitch v-model="dataSaver.code">
 				{{ i18n.ts._dataSaver._code.title }}

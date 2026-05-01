@@ -75,7 +75,7 @@ const canToggle = computed(() => {
 	//return !props.reaction.match(/@\w/) && $i && emoji && checkReactionPermissions($i, props.note, emoji);
 	return props.reaction.match(/@\w/) == null && $i != null && emoji != null;
 });
-const canGetInfo = computed(() => !props.reaction.match(/@\w/) && props.reaction.includes(':'));
+const canGetInfo = computed(() => props.reaction.includes(':'));
 const isLocalCustomEmoji = props.reaction[0] === ':' && props.reaction.includes('@.');
 
 const reactionName = computed(() => {
@@ -204,8 +204,9 @@ function stealReaction(ev: MouseEvent) {
 			icon: 'ti ti-info-circle',
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
-					emoji: await misskeyApiGet('emoji', {
-						name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
+					emoji: await misskeyApiGet('emoji', isLocalCustomEmoji ? {	name: reactionName.value } : {
+						name: reactionName.value,
+						host: reactionHost.value,
 					}),
 				}, {
 					closed: () => dispose(),
@@ -224,14 +225,14 @@ function stealReaction(ev: MouseEvent) {
 		});
 	}
 
-	if (canSteal.value) {
+	if (canSteal.value && reactionHost.value !== '.') {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 			},
 		}, {
@@ -240,7 +241,7 @@ function stealReaction(ev: MouseEvent) {
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 
 				await misskeyApi('notes/reactions/create', {
@@ -299,8 +300,9 @@ async function menu(ev) {
 			icon: 'ti ti-info-circle',
 			action: async () => {
 				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
-					emoji: await misskeyApiGet('emoji', {
-						name: props.reaction.replace(/:/g, '').replace(/@\./, ''),
+					emoji: await misskeyApiGet('emoji', isLocalCustomEmoji ? {	name: reactionName.value } : {
+						name: reactionName.value,
+						host: reactionHost.value,
 					}),
 				}, {
 					closed: () => dispose(),
@@ -319,14 +321,14 @@ async function menu(ev) {
 		});
 	}
 
-	if (canSteal.value) {
+	if (canSteal.value && reactionHost.value !== '.') {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 			},
 		}, {
@@ -335,7 +337,7 @@ async function menu(ev) {
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 
 				await misskeyApi('notes/reactions/create', {

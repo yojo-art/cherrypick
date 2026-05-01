@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{ key: 'upcoming', label: i18n.ts._event.startDate },
 						{ key: 'future', label: i18n.ts.reverseChronological },
 					]"
-					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.scrollToTransparent]: showEl && !prefer.s.useBlurEffect }]"
+					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
 				>
 				</MkTab>
 			</template>
@@ -65,10 +65,6 @@ const eventsPaginator = markRaw(new Paginator('notes/events/search', {
 		background-color: color(from var(--MI_THEME-bg) srgb r g b / 1);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
-	}
-
-	&.scrollToTransparent {
-		background-color: transparent;
 	}
 }
 

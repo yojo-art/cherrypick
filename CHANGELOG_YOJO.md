@@ -1,3 +1,33 @@
+## 1.7.3
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-05-01
+
+### General
+
+### Client
+- Fix: 埋め込みが機能していない問題の修正 [#938](https://github.com/yojo-art/cherrypick/pull/938)
+- Fix: コードエディタのフォントをハイライト層と統一しズレを修正 [#939](https://github.com/yojo-art/cherrypick/pull/939)
+- Fix: リモート絵文字も絵文字情報が表示できるように [#951](https://github.com/yojo-art/cherrypick/pull/951)
+- Fix: 設定移行が永遠と繰り返すことがある問題の修正 [#955](https://github.com/yojo-art/cherrypick/pull/955)
+- Fix: 検索許可範囲が左端に表示されてしまう問題の修正 [#956](https://github.com/yojo-art/cherrypick/pull/956)
+- Fix: データセーバーウィジェットが動作していない問題の修正 [#958](https://github.com/yojo-art/cherrypick/pull/958)
+- Fix: アカウントの検索可能範囲が変更できない問題の修正 [#960](https://github.com/yojo-art/cherrypick/pull/960)
+- Fix: 高度な検索が動作するように [#961](https://github.com/yojo-art/cherrypick/pull/961)
+- Fix: ノート検索無効時はイベント検索も利用出来ない表示にするように [#963](https://github.com/yojo-art/cherrypick/pull/963)
+- Fix: Renoteの確認ポップアップ表示されるように [#971](https://github.com/yojo-art/cherrypick/pull/971)
+- Fix: リアクションから絵文字のインポートができない問題の修正 [#973](https://github.com/yojo-art/cherrypick/pull/973)
+- Fix: ノート上の絵文字クリック時に親要素までイベントが伝播する問題を修正 [#978](https://github.com/yojo-art/cherrypick/pull/978)
+- Fix: ヘッダーのタイトルと戻るボタンが重なる問題を修正 [#981](https://github.com/yojo-art/cherrypick/pull/981)
+- Fix: UIのぼかしオフ時に下方向にスクロールするとヘッダー背景が透明になる問題の修正 [#982](https://github.com/yojo-art/cherrypick/pull/982)
+- Fix: コントロールパネルのファイル表示が絵文字ラベルでずれる問題の修正 [#985](https://github.com/yojo-art/cherrypick/pull/985)
+- Feat: 画像のアップロード時の圧縮にWebP圧縮のみの追加 [#962](https://github.com/yojo-art/cherrypick/pull/962)
+
+### Server
+- Fix: UserGroup API のページネーション不備を修正 [#964](https://github.com/yojo-art/cherrypick/pull/964)
+
 ## 1.7.2
 Cherrypick 4.17.0  
 Misskey 2025.10.2

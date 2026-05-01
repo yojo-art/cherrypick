@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					label: i18n.ts.reaction
 				}] : []),
 			]"
-			:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.scrollToTransparent]: showEl && !prefer.s.useBlurEffect }]"
+			:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
 		>
 		</MkTab>
 	</template>
@@ -88,10 +88,6 @@ const filesPaginator = markRaw(new Paginator('users/notes', {
 		background-color: color(from var(--MI_THEME-bg) srgb r g b / 1);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
-	}
-
-	&.scrollToTransparent {
-		background-color: transparent;
 	}
 }
 

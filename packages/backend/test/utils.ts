@@ -51,6 +51,10 @@ export type ApiRequest<E extends keyof misskey.Endpoints, P extends misskey.Endp
 	user: UserToken | undefined,
 };
 
+export async function sleep(ms = 250): Promise<void> {
+	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
 export const successfulApiCall = async <E extends keyof misskey.Endpoints, P extends misskey.Endpoints[E]['req']>(request: ApiRequest<E, P>, assertion: {
 	status?: number,
 } = {}): Promise<misskey.api.SwitchCaseResponseType<E, P>> => {
