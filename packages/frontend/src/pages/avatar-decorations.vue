@@ -7,6 +7,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
+			<div v-if="tab == 'remote'">
+				<MkInput
+					ref="queryHostEl"
+					v-model="queryHost"
+					type="text"
+					autocapitalize="off"
+					@enter="onSearchRequest"
+				>
+					<template #label>{{ i18n.ts.host }}</template>
+					<template v-if="queryHost != null && queryHost !== ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="queryHost = null; queryHostEl?.focus();"><i class="ti ti-x"></i></button></template>
+				</MkInput>
+			</div>
 			<div v-if="paginator.fetching.value" :class="$style.center">
 				<MkLoading/>
 			</div>
@@ -52,7 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, defineAsyncComponent, watch, markRaw, shallowRef } from 'vue';
+import { ref, computed, defineAsyncComponent, watch, markRaw, shallowRef, useTemplateRef } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import MkButton from '../components/MkButton.vue';
 import { ensureSignin } from '@/i.js';
@@ -62,6 +74,7 @@ import { definePage } from '@/page.js';
 import MkRemoteAvatarDecorationEditDialog from '@/components/MkRemoteAvatarDecorationEditDialog.vue';
 import { Paginator } from '@/utility/paginator.js';
 import { prefer } from '@/preferences.js';
+import MkInput from '@/components/MkInput.vue';
 
 const $i = ensureSignin();
 
@@ -69,6 +82,8 @@ const tab = ref('local');
 const avatarDecorations = ref<Misskey.entities.AdminAvatarDecorationsListResponse>([]);
 
 const paginator = shallowRef(createPaginator(tab.value));
+const queryHost = ref<string | null>(null);
+const queryHostEl = useTemplateRef('queryHostEl');
 
 async function add(ev: MouseEvent) {
 	const { dispose } = await os.popupAsyncWithDialog(import('./avatar-decoration-edit-dialog.vue').then(x => x.default), {
@@ -150,10 +165,20 @@ const headerTabs = computed(() => [{
 	title: i18n.ts.remote,
 }]);
 
+async function onSearchRequest() {
+	paginator.value = createPaginator('remote');
+	paginator.value.init();
+}
+
 function createPaginator(currentTab: string) {
 	return markRaw(new Paginator(
 		currentTab === 'remote' ? 'admin/avatar-decorations/list-remote' : 'admin/avatar-decorations/list',
-		{},
+		{
+			computedParams: computed(() => ({
+				...(queryHost.value != null && { host: queryHost.value }),
+			})),
+			useShallowRef: true,
+		},
 	));
 }
 
@@ -197,5 +222,24 @@ definePage(() => ({
 	align-items: center;
 	justify-content: center;
 	gap: 8px;
+}
+
+.searchArea {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 16px;
+}
+
+.deleteBtn {
+	position: relative;
+	z-index: 2;
+	margin: 0 auto;
+	border: none;
+	background: none;
+	color: inherit;
+	font-size: 0.8em;
+	cursor: pointer;
+	pointer-events: auto;
+	-webkit-tap-highlight-color: transparent;
 }
 </style>
