@@ -213,18 +213,6 @@ describe('Avatar-Decorations', () => {
 			strictEqual(list.find(d => d.name === bDeco.name), undefined);
 		});
 
-		test('host="." を指定すると a.test のローカルのみが返り、リモートは漏れない', async () => {
-			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', { host: '.' });
-
-			for (const d of list) {
-				strictEqual(d.host, null, JSON.stringify(d));
-			}
-
-			strictEqual(list.find(d => d.name === bDeco.name), undefined, 'b.test deco must not leak when host="."');
-			strictEqual(list.find(d => d.name === cDeco1.name), undefined, 'c.test old deco must not leak when host="."');
-			strictEqual(list.find(d => d.name === cDeco2.name), undefined, 'c.test new deco must not leak when host="."');
-		});
-
 		test('存在しないホストを指定すると空配列が返る', async () => {
 			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', { host: 'nonexistent.invalid' });
 			strictEqual(list.length, 0);

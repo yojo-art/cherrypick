@@ -98,11 +98,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				this.avatarDecorationsRepository.createQueryBuilder('avatar_decoration'), ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate);
 
 			if (ps.host) {
-				if (ps.host === '.') {
-					query.andWhere('avatar_decoration.host IS NULL');
-				} else {
-					query.andWhere('avatar_decoration.host = :host', { host: ps.host });
-				}
+				query.andWhere('avatar_decoration.host = :host', { host: ps.host });
 			} else {
 				query.andWhere('avatar_decoration.host IS NOT NULL');
 			}
@@ -117,7 +113,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				description: avatarDecorations.description,
 				url: avatarDecorations.url,
 				roleIdsThatCanBeUsedThisDecoration: avatarDecorations.roleIdsThatCanBeUsedThisDecoration,
-				host: avatarDecorations.host,
+				host: avatarDecorations.host!,
 			}));
 		});
 	}
