@@ -9397,6 +9397,10 @@ export interface Locale extends ILocale {
              */
             "canUseAutoTranslateDescription": string;
             /**
+             * チャンネルの作成
+             */
+            "canCreateChannel": string;
+            /**
              * アイコンデコレーションの最大取付個数
              */
             "avatarDecorationLimit": string;
