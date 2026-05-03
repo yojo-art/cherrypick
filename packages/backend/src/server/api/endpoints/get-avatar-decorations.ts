@@ -67,7 +67,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private roleService: RoleService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const decorations = await this.avatarDecorationService.getAll(true);
+			const decorations = await this.avatarDecorationService.getAll('local', false);
 			const allRoles = await this.roleService.getRoles();
 
 			return decorations.map(decoration => ({
