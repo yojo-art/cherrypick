@@ -6,7 +6,6 @@
 import { URLSearchParams } from 'node:url';
 import fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
-import { translate } from '@vitalets/google-translate-api';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -88,7 +87,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const translatorServices = [
 				'deepl',
-				'google_no_api',
 				'ctav3',
 				'Libretranslate',
 			];
@@ -106,17 +104,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw new ApiError(meta.errors.unavailable);
 				}
 				translationResult = await this.translateDeepL(target.description, targetLang, this.serverSettings.deeplAuthKey, this.serverSettings.deeplIsPro, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'google_no_api') {
-				let targetLang = ps.targetLang;
-				if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
-
-				const { text, raw } = await translate(target.description, { to: targetLang });
-
-				return {
-					sourceLang: raw.src,
-					text: text,
-					translator: this.serverSettings.translatorType, // 修正点: 配列ではなく単一の文字列
-				};
 			} else if (this.serverSettings.translatorType === 'ctav3') {
 				if (this.serverSettings.ctav3SaKey == null) return Promise.resolve(204);
 				else if (this.serverSettings.ctav3ProjectId == null) return Promise.resolve(204);
