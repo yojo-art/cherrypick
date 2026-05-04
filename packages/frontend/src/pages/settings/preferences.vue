@@ -581,14 +581,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkPreferenceContainer>
 								</SearchMarker>
 
-								<SearchMarker :keywords="['reaction', 'confirm']">
-									<MkPreferenceContainer k="confirmOnReact">
-										<MkSwitch v-model="confirmOnReact">
-											<template #label><SearchLabel>{{ i18n.ts.confirmOnReact }}</SearchLabel></template>
-										</MkSwitch>
-									</MkPreferenceContainer>
-								</SearchMarker>
-
 								<SearchMarker :keywords="['image', 'photo', 'picture', 'media', 'thumbnail', 'quality', 'raw', 'attachment']">
 									<MkPreferenceContainer k="loadRawImages">
 										<MkSwitch v-model="loadRawImages">
@@ -1495,7 +1487,6 @@ const showAvailableReactionsFirstInNote = prefer.model('showAvailableReactionsFi
 const useGroupedNotifications = prefer.model('useGroupedNotifications');
 const alwaysConfirmFollow = prefer.model('alwaysConfirmFollow');
 const confirmWhenRevealingSensitiveMedia = prefer.model('confirmWhenRevealingSensitiveMedia');
-const confirmOnReact = prefer.model('confirmOnReact');
 const defaultNoteVisibility = prefer.model('defaultNoteVisibility');
 const defaultNoteSearchbility = prefer.model('defaultNoteSearchbility');
 const defaultNoteLocalOnly = prefer.model('defaultNoteLocalOnly');
