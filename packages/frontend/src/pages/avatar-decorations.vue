@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkError @retry="paginator.init()"/>
 			</div>
 			<div v-else-if="paginator.items.value.length === 0" key="_empty_">
-				<slot name="empty"><MkResult type="empty" :text="i18n.ts.noNotes"/></slot>
+				<slot name="empty"><MkResult type="empty" :text="i18n.ts.nothing"/></slot>
 			</div>
 			<div v-else :class="$style.decorations">
 				<div
