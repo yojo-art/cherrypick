@@ -7,29 +7,56 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
-			<div v-if="tab === 'local'" :class="$style.decorations">
+			<div v-if="tab == 'remote'">
+				<MkInput
+					ref="queryHostEl"
+					v-model="queryHost"
+					type="text"
+					autocapitalize="off"
+					@enter="onSearchRequest"
+				>
+					<template #label>{{ i18n.ts.host }}</template>
+					<template v-if="queryHost != null && queryHost !== ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="queryHost = null; queryHostEl?.focus();"><i class="ti ti-x"></i></button></template>
+				</MkInput>
+			</div>
+			<div v-if="paginator.fetching.value" :class="$style.center">
+				<MkLoading/>
+			</div>
+			<div v-else-if="paginator.error.value" :class="$style.center">
+				<MkError @retry="paginator.init()"/>
+			</div>
+			<div v-else-if="paginator.items.value.length === 0" key="_empty_">
+				<slot name="empty"><MkResult type="empty" :text="i18n.ts.noNotes"/></slot>
+			</div>
+			<div v-else :class="$style.decorations">
 				<div
-					v-for="avatarDecoration in avatarDecorations"
+					v-for="avatarDecoration in paginator.items.value"
 					:key="avatarDecoration.id"
 					v-panel
 					:class="$style.decoration"
-					@click="edit(avatarDecoration)"
+					@click="tab == 'local' ? edit(avatarDecoration) : remoteMenu(avatarDecoration, $event)"
 				>
-					<div :class="$style.decorationName"><MkCondensedLine :minScale="0.5">{{ avatarDecoration.name }}</MkCondensedLine></div>
+					<div :class="$style.decorationName">
+						<MkCondensedLine :minScale="0.5">{{ avatarDecoration.name }}</MkCondensedLine>
+					</div>
 					<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: avatarDecoration.url }]" forceShowDecoration/>
 				</div>
 			</div>
-			<div v-else-if="tab === 'remote'" :class="$style.decorations">
-				<div
-					v-for="remoteDecoration in remoteAvatarDecorations"
-					:key="remoteDecoration.id"
-					v-panel
-					:class="$style.decoration"
-					@click="remoteMenu(remoteDecoration, $event)"
+
+			<div
+				v-if="paginator.canFetchOlder.value"
+				v-appear="paginator.fetchOlder"
+				:class="$style.center"
+			>
+				<MkButton
+					v-if="!paginator.fetchingOlder.value"
+					key="_more_"
+					primary rounded
+					@click="paginator.fetchOlder"
 				>
-					<div :class="$style.decorationName"><MkCondensedLine :minScale="0.5">{{ remoteDecoration.name }}</MkCondensedLine></div>
-					<MkAvatar style="width: 60px; height: 60px;" :user="$i" :decorations="[{ url: remoteDecoration.url }]" forceShowDecoration/>
-				</div>
+					<div>{{ i18n.ts.loadMore }}</div>
+				</MkButton>
+				<MkLoading v-else :inline="true"/>
 			</div>
 		</div>
 	</div>
@@ -37,32 +64,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, defineAsyncComponent, watch } from 'vue';
+import { ref, computed, defineAsyncComponent, watch, markRaw, shallowRef, useTemplateRef } from 'vue';
 import * as Misskey from 'cherrypick-js';
+import MkButton from '../components/MkButton.vue';
 import { ensureSignin } from '@/i.js';
 import * as os from '@/os.js';
-import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkRemoteAvatarDecorationEditDialog from '@/components/MkRemoteAvatarDecorationEditDialog.vue';
+import { Paginator } from '@/utility/paginator.js';
+import { prefer } from '@/preferences.js';
+import MkInput from '@/components/MkInput.vue';
 
 const $i = ensureSignin();
 
 const tab = ref('local');
 const avatarDecorations = ref<Misskey.entities.AdminAvatarDecorationsListResponse>([]);
-const remoteAvatarDecorations = ref<Misskey.entities.AdminAvatarDecorationsListRemoteResponse>([]);
 
-function load() {
-	misskeyApi('admin/avatar-decorations/list').then(_avatarDecorations => {
-		avatarDecorations.value = _avatarDecorations;
-	});
-}
-
-function remoteLoad() {
-	misskeyApi('admin/avatar-decorations/list-remote').then(_avatarDecorations => {
-		remoteAvatarDecorations.value = _avatarDecorations;
-	});
-}
+const paginator = shallowRef(createPaginator(tab.value));
+const queryHost = ref<string | null>(null);
+const queryHostEl = useTemplateRef('queryHostEl');
 
 async function add(ev: MouseEvent) {
 	const { dispose } = await os.popupAsyncWithDialog(import('./avatar-decoration-edit-dialog.vue').then(x => x.default), {
@@ -144,12 +165,26 @@ const headerTabs = computed(() => [{
 	title: i18n.ts.remote,
 }]);
 
+async function onSearchRequest() {
+	paginator.value = createPaginator('remote');
+	paginator.value.init();
+}
+
+function createPaginator(currentTab: string) {
+	return markRaw(new Paginator(
+		currentTab === 'remote' ? 'admin/avatar-decorations/list-remote' : 'admin/avatar-decorations/list',
+		{
+			computedParams: computed(() => ({
+				...(queryHost.value != null && { host: queryHost.value }),
+			})),
+			useShallowRef: true,
+		},
+	));
+}
+
 watch(tab, (newTab) => {
-	if (newTab === 'remote') {
-		remoteLoad();
-	} else if (newTab === 'local') {
-		load();
-	}
+	paginator.value = createPaginator(newTab);
+	paginator.value.init();
 }, { immediate: true });
 
 definePage(() => ({
@@ -180,5 +215,31 @@ definePage(() => ({
 	z-index: 10;
 	font-weight: bold;
 	margin-bottom: 20px;
+}
+
+.center {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.searchArea {
+	display: grid;
+	grid-template-columns: 1fr 1fr 1fr;
+	gap: 16px;
+}
+
+.deleteBtn {
+	position: relative;
+	z-index: 2;
+	margin: 0 auto;
+	border: none;
+	background: none;
+	color: inherit;
+	font-size: 0.8em;
+	cursor: pointer;
+	pointer-events: auto;
+	-webkit-tap-highlight-color: transparent;
 }
 </style>
