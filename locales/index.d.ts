@@ -5145,6 +5145,10 @@ export interface Locale extends ILocale {
      */
     "usersSearchNotAvailable": string;
     /**
+     * イベント検索は利用できません。
+     */
+    "eventsSearchNotAvailable": string;
+    /**
      * 高度な検索は利用できません。
      */
     "notesAdvancedSearchNotAvailable": string;
@@ -5624,6 +5628,10 @@ export interface Locale extends ILocale {
      * 投稿の通知を解除
      */
     "unnotifyNotes": string;
+    /**
+     * 投稿通知を設定したユーザー
+     */
+    "notifyUsers": string;
     /**
      * 認証
      */
@@ -6521,6 +6529,10 @@ export interface Locale extends ILocale {
              * 低品質
              */
             "low": string;
+            /**
+             * WebP圧縮のみ
+             */
+            "webpcompress": string;
         };
         "_size": {
             /**

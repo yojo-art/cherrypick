@@ -2240,8 +2240,10 @@ declare namespace entities {
         UsersGroupsInvitationsAcceptRequest,
         UsersGroupsInvitationsRejectRequest,
         UsersGroupsInviteRequest,
+        UsersGroupsJoinedRequest,
         UsersGroupsJoinedResponse,
         UsersGroupsLeaveRequest,
+        UsersGroupsOwnedRequest,
         UsersGroupsOwnedResponse,
         UsersGroupsPullRequest,
         UsersGroupsShowRequest,
@@ -2270,6 +2272,8 @@ declare namespace entities {
         UsersListsUpdateMembershipRequest,
         UsersNotesRequest,
         UsersNotesResponse,
+        UsersNotifyListRequest,
+        UsersNotifyListResponse,
         UsersPagesRequest,
         UsersPagesResponse,
         UsersReactionsRequest,
@@ -3446,7 +3450,7 @@ type NotificationsCreateRequest = operations['notifications___create']['requestB
 type NotificationsDeleteRequest = operations['notifications___delete']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
-export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken", "pollVote"];
+export const notificationTypes: readonly ["note", "follow", "mention", "reply", "renote", "quote", "reaction", "pollEnded", "scheduledNotePosted", "scheduledNotePostFailed", "receiveFollowRequest", "followRequestAccepted", "groupInvited", "app", "roleAssigned", "chatRoomInvitationReceived", "achievementEarned", "exportCompleted", "test", "login", "createToken"];
 
 // @public (undocumented)
 export function nyaize(text: string): string;
@@ -3968,10 +3972,16 @@ type UsersGroupsInvitationsRejectRequest = operations['users___groups___invitati
 type UsersGroupsInviteRequest = operations['users___groups___invite']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type UsersGroupsJoinedRequest = operations['users___groups___joined']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type UsersGroupsJoinedResponse = operations['users___groups___joined']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type UsersGroupsLeaveRequest = operations['users___groups___leave']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type UsersGroupsOwnedRequest = operations['users___groups___owned']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type UsersGroupsOwnedResponse = operations['users___groups___owned']['responses']['200']['content']['application/json'];
@@ -4056,6 +4066,12 @@ type UsersNotesRequest = operations['users___notes']['requestBody']['content']['
 
 // @public (undocumented)
 type UsersNotesResponse = operations['users___notes']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type UsersNotifyListRequest = operations['users___notify___list']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type UsersNotifyListResponse = operations['users___notify___list']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type UsersPagesRequest = operations['users___pages']['requestBody']['content']['application/json'];

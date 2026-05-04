@@ -321,24 +321,32 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div v-else-if="tab === 'history'">
-			<div v-if="!historiesLoaded" style="padding: 16px">
-				<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
+			<div v-if="historiesLoading" style="padding: 16px; text-align: center;">
+				<MkLoading/>
 			</div>
-			<MkSwitch v-if="historiesLoaded" v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
-			<MkNoteHistory
-				v-for="(history, index) in histories"
-				:key="history.id"
-				:oldNote="histories[index+1] ? histories[index+1] : null"
-				:newNote="history"
-				:originalNote="appearNote"
-				:class="$style.reply"
-				:detail="true"
-				:raw="history_raw"
-				:index="index"
-			/>
-			<div v-if="historiesLoaded && !history_list_end" style="padding: 16px">
-				<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
-			</div>
+			<template v-if="historiesLoadError">
+				<MkError type="error" @retry="loadHistories"/>
+			</template>
+			<template v-else-if="historiesLoaded && histories.length == 0">
+				<MkResult type="empty" :text="i18n.ts.noHistory"/>
+			</template>
+			<template v-else-if="historiesLoaded && histories.length > 0">
+				<MkSwitch v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
+				<MkNoteHistory
+					v-for="(history, index) in histories"
+					:key="history.id"
+					:oldNote="histories[index+1] ? histories[index+1] : null"
+					:newNote="history"
+					:originalNote="appearNote"
+					:class="$style.reply"
+					:detail="true"
+					:raw="history_raw"
+					:index="index"
+				/>
+				<div v-if="!history_list_end" style="padding: 16px">
+					<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
+				</div>
+			</template>
 		</div>
 		<div v-else-if="tab === 'tag'">
 			<MkA
@@ -363,7 +371,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, markRaw, onMounted, provide, ref, useTemplateRef } from 'vue';
+import { computed, inject, markRaw, onMounted, provide, ref, useTemplateRef, watch } from 'vue';
 import * as mfm from 'mfc-js';
 import * as Misskey from 'cherrypick-js';
 import { isLink } from '@@/js/is-link.js';
@@ -486,7 +494,9 @@ const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibili
 const viewTextSource = ref(false);
 const noNyaize = ref(false);
 const histories = ref<Misskey.entities.NoteHistory[]>([]);
+const historiesLoading = ref(false);
 const historiesLoaded = ref(false);
+const historiesLoadError = ref(false);
 const histories_untilId = ref<Misskey.entities.NoteHistory['id']>();
 const history_list_end = ref(false);
 const history_raw = ref(false);
@@ -692,15 +702,6 @@ function react(): void {
 	} else {
 		blur();
 		reactionPicker.show(reactButton.value ?? null, note, async (reaction) => {
-			if (prefer.s.confirmOnReact) {
-				const confirm = await os.confirm({
-					type: 'question',
-					text: i18n.tsx.reactAreYouSure({ emoji: reaction.replace('@.', '') }),
-				});
-
-				if (confirm.canceled) return;
-			}
-
 			await toggleReaction(reaction);
 		}, () => {
 			focus();
@@ -950,48 +951,64 @@ function showOnRemote() {
 	if (props.note.user.instance !== undefined) window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
 
-function loadHistories() {
-	historiesLoaded.value = true;
+async function loadHistories() {
+	if (historiesLoading.value) return;
+	historiesLoading.value = true;
+	historiesLoadError.value = false;
+
 	misskeyApi('notes/history', {
 		...(histories_untilId.value ? { untilId: histories_untilId.value } : {} ),
 		noteId: appearNote.id,
 		limit: 5,
 	}).then(res => {
-		if (histories.value.length === 0) {
-			const current_version: Misskey.entities.NoteHistory = {
-				id: appearNote.id,
-				noteId: appearNote.id,
-				createdAt: appearNote.createdAt,
-				updatedAt: appearNote.createdAt,
-				userId: appearNote.userId,
-				text: appearNote.text,
-				cw: appearNote.cw,
-				poll: appearNote.poll ? {
-					choices: appearNote.poll.choices.map(c => c.text),
-					multiple: appearNote.poll.multiple,
-					expiresAt: appearNote.poll.expiresAt ?? null,
-				} : null,
-				event: appearNote.event ? {
-					title: appearNote.event.title,
-					start: appearNote.event.start,
-					end: appearNote.event.end,
-					metadata: appearNote.event.metadata,
-				} : null,
-				fileIds: appearNote.fileIds,
-				files: appearNote.files,
-				visibility: appearNote.visibility,
-				visibleUserIds: appearNote.visibleUserIds,
-				emojis: appearNote.emojis,
-			};
-			histories.value.push(current_version);
+		if (res.length > 0) {
+			if (histories.value.length === 0) {
+				const current_version: Misskey.entities.NoteHistory = {
+					id: appearNote.id,
+					noteId: appearNote.id,
+					createdAt: appearNote.createdAt,
+					updatedAt: appearNote.createdAt,
+					userId: appearNote.userId,
+					text: appearNote.text,
+					cw: appearNote.cw,
+					poll: appearNote.poll ? {
+						choices: appearNote.poll.choices.map(c => c.text),
+						multiple: appearNote.poll.multiple,
+						expiresAt: appearNote.poll.expiresAt ?? null,
+					} : null,
+					event: appearNote.event ? {
+						title: appearNote.event.title,
+						start: appearNote.event.start,
+						end: appearNote.event.end,
+						metadata: appearNote.event.metadata,
+					} : null,
+					fileIds: appearNote.fileIds,
+					files: appearNote.files,
+					visibility: appearNote.visibility,
+					visibleUserIds: appearNote.visibleUserIds,
+					emojis: appearNote.emojis,
+				};
+				histories.value.push(current_version);
+			}
+			histories_untilId.value = res[res.length - 1].id;
+			histories.value = histories.value.concat(res);
 		}
 		if (res.length < 5) {
 			history_list_end.value = true;
 		}
-		histories_untilId.value = res[ res.length - 1 ].id;
-		histories.value = histories.value.concat(res);
+	}).catch(() => {
+		historiesLoadError.value = true;
+	}).finally(() => {
+		historiesLoaded.value = true;
+		historiesLoading.value = false;
 	});
 }
+
+watch(() => tab.value, async (newTab) => {
+	if (newTab === 'history' && !historiesLoaded.value) {
+		await loadHistories();
+	}
+});
 </script>
 
 <style lang="scss" module>

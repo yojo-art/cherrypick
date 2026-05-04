@@ -33,7 +33,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 
 	<div v-else-if="tab === 'event'" class="_spacer" style="--MI_SPACER-w: 800px;">
-		<XEvent/>
+		<div v-if="notesSearchAvailable || ignoreNotesSearchAvailable">
+			<XEvent/>
+		</div>
+		<div v-else>
+			<MkInfo warn>{{ i18n.ts.eventsSearchNotAvailable }}</MkInfo>
+		</div>
 	</div>
 </PageWithHeader>
 </template>

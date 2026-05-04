@@ -88,7 +88,10 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		try { // 変なバージョン文字列来るとcompareVersionsでエラーになるため
 			if ((lastVersion != null && compareVersions(version, lastVersion) === 1) || (lastBasedMisskeyVersion != null && compareVersions(basedMisskeyVersion, lastBasedMisskeyVersion) === 1) || (lastBasedCherrypickVersion != null && compareVersions(basedCherrypickVersion, lastBasedCherrypickVersion) === 1)) {
 				isClientUpdated = true;
-			} else if (lastVersion != null && compareVersions(version, lastVersion) === -1) isClientMigrated = true;
+			} else if (lastVersion != null && compareVersions(version, lastVersion) === -1 && lastBasedCherrypickVersion == null) {
+				// misskeyやcherrypickからマイグレーションした場合にtrue
+				isClientMigrated = true;
+			}
 		} catch (err) { /* empty */ }
 	}
 	//#endregion

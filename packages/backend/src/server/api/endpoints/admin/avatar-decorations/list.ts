@@ -7,7 +7,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
-import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
+import { QueryService } from '@/core/QueryService.js';
+import type { AvatarDecorationsRepository } from '@/models/_.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -81,11 +82,19 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
-		private avatarDecorationService: AvatarDecorationService,
+		@Inject(DI.avatarDecorationsRepository)
+		private avatarDecorationsRepository: AvatarDecorationsRepository,
+
 		private idService: IdService,
+		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const avatarDecorations = await this.avatarDecorationService.getAll(true);
+			const query = this.queryService.makePaginationQuery(
+				this.avatarDecorationsRepository.createQueryBuilder('avatar_decoration'), ps.sinceId, ps.untilId, ps.sinceDate, ps.untilDate);
+
+			query.andWhere('avatar_decoration.host IS NULL');
+
+			const avatarDecorations = await query.limit(ps.limit).getMany();
 
 			return avatarDecorations.map(avatarDecoration => ({
 				id: avatarDecoration.id,

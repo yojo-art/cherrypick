@@ -70,21 +70,19 @@ export async function mainBoot() {
 	reactionPicker.init();
 	emojiPicker.init();
 
-	if ((isClientUpdated || isClientMigrated) && $i) {
+	if (isClientUpdated && $i) {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUpdated.vue')), {}, {
 			closed: () => dispose(),
 		});
 
 		// prefereces migration
 		// TODO: そのうち消す
-		if (lastVersion && (compareVersions('4.16.0-alpha.0', lastVersion) === 1)) {
+		if (lastVersion && (compareVersions('1.6.0', lastVersion) === 1)) {
 			console.log('Preferences migration');
 
 			migrateOldSettings();
 		}
-	}
-
-	if (isClientMigrated && $i) {
+	}	else if (isClientMigrated && $i) {
 		miLocalStorage.removeItem('neverShowDonationInfo');
 		miLocalStorage.removeItem('latestDonationInfoShownAt');
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkMigrated.vue')), {}, {
@@ -373,38 +371,37 @@ export async function mainBoot() {
 				});
 			});
 
-		main.on('unreadNotification', () => {
-			const unreadNotificationsCount = ($i?.unreadNotificationsCount ?? 0) + 1;
-			updateCurrentAccountPartial({
-				hasUnreadNotification: true,
-				unreadNotificationsCount,
+			main.on('unreadNotification', () => {
+				const unreadNotificationsCount = ($i?.unreadNotificationsCount ?? 0) + 1;
+				updateCurrentAccountPartial({
+					hasUnreadNotification: true,
+					unreadNotificationsCount,
+				});
 			});
-		});
 
-		main.on('unreadMention', () => {
-			updateCurrentAccountPartial({ hasUnreadMentions: true });
-		});
+			main.on('unreadMention', () => {
+				updateCurrentAccountPartial({ hasUnreadMentions: true });
+			});
 
-		main.on('readAllUnreadMentions', () => {
-			updateCurrentAccountPartial({ hasUnreadMentions: false });
-		});
+			main.on('readAllUnreadMentions', () => {
+				updateCurrentAccountPartial({ hasUnreadMentions: false });
+			});
 
-		main.on('unreadSpecifiedNote', () => {
-			updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: true });
-		});
+			main.on('unreadSpecifiedNote', () => {
+				updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: true });
+			});
 
-		main.on('readAllUnreadSpecifiedNotes', () => {
-			updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: false });
-		});
+			main.on('readAllUnreadSpecifiedNotes', () => {
+				updateCurrentAccountPartial({ hasUnreadSpecifiedNotes: false });
+			});
 
-		main.on('readAllAntennas', () => {
-			updateCurrentAccountPartial({ hasUnreadAntenna: false });
-		});
+			main.on('readAllAntennas', () => {
+				updateCurrentAccountPartial({ hasUnreadAntenna: false });
+			});
 
-		main.on('unreadAntenna', () => {
-			updateCurrentAccountPartial({ hasUnreadAntenna: true });
-			sound.playMisskeySfx('antenna');
-		});
+			main.on('unreadAntenna', () => {
+				updateCurrentAccountPartial({ hasUnreadAntenna: true });
+			});
 
 			main.on('newChatMessage', () => {
 				updateCurrentAccountPartial({ hasUnreadChatMessages: true });

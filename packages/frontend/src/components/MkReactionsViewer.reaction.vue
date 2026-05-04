@@ -150,16 +150,6 @@ async function toggleReaction(ev: MouseEvent) {
 			}
 		});
 	} else {
-		if (prefer.s.confirmOnReact) {
-			const confirm = await os.confirm({
-				type: 'question',
-				text: i18n.tsx.reactAreYouSure({ emoji: props.reaction.replace('@.', '') }),
-			});
-
-			if (confirm.canceled) return;
-		}
-		haptic();
-
 		if (mock) {
 			emit('reactionToggled', props.reaction, (props.count + 1));
 			return;
@@ -225,14 +215,14 @@ function stealReaction(ev: MouseEvent) {
 		});
 	}
 
-	if (canSteal.value) {
+	if (canSteal.value && reactionHost.value !== '.') {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 			},
 		}, {
@@ -241,7 +231,7 @@ function stealReaction(ev: MouseEvent) {
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 
 				await misskeyApi('notes/reactions/create', {
@@ -321,14 +311,14 @@ async function menu(ev) {
 		});
 	}
 
-	if (canSteal.value) {
+	if (canSteal.value && reactionHost.value !== '.') {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 			},
 		}, {
@@ -337,7 +327,7 @@ async function menu(ev) {
 			action: async () => {
 				await os.apiWithDialog('admin/emoji/steal', {
 					name: reactionName.value,
-					host: props.note.user.host ?? '',
+					host: reactionHost.value,
 				});
 
 				await misskeyApi('notes/reactions/create', {

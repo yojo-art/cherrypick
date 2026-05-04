@@ -4202,6 +4202,15 @@ export type paths = {
          */
         post: operations['users___notes'];
     };
+    '/users/notify/list': {
+        /**
+         * users/notify/list
+         * @description List of following users with notification enabled.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *read:following*
+         */
+        post: operations['users___notify___list'];
+    };
     '/users/pages': {
         /**
          * users/pages
@@ -8062,8 +8071,11 @@ export interface operations {
                     sinceId?: string;
                     /** Format: misskey:id */
                     untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
                     /** Format: misskey:id */
                     userId?: string | null;
+                    host?: string;
                 };
             };
         };
@@ -8087,6 +8099,7 @@ export interface operations {
                         name: string;
                         description: string;
                         url: string;
+                        host: string;
                         roleIdsThatCanBeUsedThisDecoration: string[];
                     }[];
                 };
@@ -38191,6 +38204,18 @@ export interface operations {
         };
     };
     users___groups___joined: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 10 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {
@@ -38312,6 +38337,18 @@ export interface operations {
         };
     };
     users___groups___owned: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @default 10 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {
@@ -39488,6 +39525,78 @@ export interface operations {
                 };
                 content: {
                     'application/json': components['schemas']['Note'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    users___notify___list: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                    sinceDate?: number;
+                    untilDate?: number;
+                    /** @default 10 */
+                    limit?: number;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['UserDetailed'][];
                 };
             };
             /** @description Client error */
