@@ -327,6 +327,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template v-if="historiesLoadError">
 				<MkError type="error" @retry="loadHistories"/>
 			</template>
+			<template v-else-if="historiesLoaded && histories.length == 0">
+				<MkResult type="empty" :text="i18n.ts.noHistory"/>
+			</template>
 			<template v-else-if="historiesLoaded && histories.length > 0">
 				<MkSwitch v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
 				<MkNoteHistory
@@ -967,39 +970,41 @@ async function loadHistories() {
 		noteId: appearNote.id,
 		limit: 5,
 	}).then(res => {
-		if (histories.value.length === 0) {
-			const current_version: Misskey.entities.NoteHistory = {
-				id: appearNote.id,
-				noteId: appearNote.id,
-				createdAt: appearNote.createdAt,
-				updatedAt: appearNote.createdAt,
-				userId: appearNote.userId,
-				text: appearNote.text,
-				cw: appearNote.cw,
-				poll: appearNote.poll ? {
-					choices: appearNote.poll.choices.map(c => c.text),
-					multiple: appearNote.poll.multiple,
-					expiresAt: appearNote.poll.expiresAt ?? null,
-				} : null,
-				event: appearNote.event ? {
-					title: appearNote.event.title,
-					start: appearNote.event.start,
-					end: appearNote.event.end,
-					metadata: appearNote.event.metadata,
-				} : null,
-				fileIds: appearNote.fileIds,
-				files: appearNote.files,
-				visibility: appearNote.visibility,
-				visibleUserIds: appearNote.visibleUserIds,
-				emojis: appearNote.emojis,
-			};
-			histories.value.push(current_version);
+		if (res.length > 0) {
+			if (histories.value.length === 0) {
+				const current_version: Misskey.entities.NoteHistory = {
+					id: appearNote.id,
+					noteId: appearNote.id,
+					createdAt: appearNote.createdAt,
+					updatedAt: appearNote.createdAt,
+					userId: appearNote.userId,
+					text: appearNote.text,
+					cw: appearNote.cw,
+					poll: appearNote.poll ? {
+						choices: appearNote.poll.choices.map(c => c.text),
+						multiple: appearNote.poll.multiple,
+						expiresAt: appearNote.poll.expiresAt ?? null,
+					} : null,
+					event: appearNote.event ? {
+						title: appearNote.event.title,
+						start: appearNote.event.start,
+						end: appearNote.event.end,
+						metadata: appearNote.event.metadata,
+					} : null,
+					fileIds: appearNote.fileIds,
+					files: appearNote.files,
+					visibility: appearNote.visibility,
+					visibleUserIds: appearNote.visibleUserIds,
+					emojis: appearNote.emojis,
+				};
+				histories.value.push(current_version);
+			}
+			histories_untilId.value = res[res.length - 1].id;
+			histories.value = histories.value.concat(res);
 		}
 		if (res.length < 5) {
 			history_list_end.value = true;
 		}
-		histories_untilId.value = res[res.length - 1].id;
-		histories.value = histories.value.concat(res);
 	}).catch(() => {
 		historiesLoadError.value = true;
 	}).finally(() => {
