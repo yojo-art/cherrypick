@@ -384,6 +384,11 @@ describe('Account Move', () => {
 
 		test.each([
 			'antennas/create',
+			'channels/create',
+			'channels/favorite',
+			'channels/follow',
+			'channels/unfavorite',
+			'channels/unfollow',
 			'clips/add-note',
 			'clips/create',
 			'clips/favorite',

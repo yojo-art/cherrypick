@@ -224,7 +224,7 @@ export function migrateOldSettings() {
 		prefer.commit('enableBubbleTimeline', store.s.enableBubbleTimeline);
 		prefer.commit('enableListTimeline', store.s.enableListTimeline);
 		prefer.commit('enableAntennaTimeline', store.s.enableAntennaTimeline);
-		//prefer.commit('enableChannelTimeline', store.s.enableChannelTimeline);
+		prefer.commit('enableChannelTimeline', store.s.enableChannelTimeline);
 
 		// yojo-art
 		prefer.commit('rememberNoteSearchbility', store.s.rememberNoteSearchbility);
