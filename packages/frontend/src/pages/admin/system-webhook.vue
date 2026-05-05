@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onMounted, ref } from 'vue';
-import { entities } from 'cherrypick-js';
+import { entities } from 'misskey-js';
 import XItem from './system-webhook.item.vue';
 import FormSection from '@/components/form/section.vue';
 import { definePage } from '@/page.js';

@@ -4,7 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { DI } from '@/di-symbols.js';
 import type { SigninsRepository, UserProfilesRepository } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';

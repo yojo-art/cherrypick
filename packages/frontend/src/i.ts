@@ -4,7 +4,7 @@
  */
 
 import { reactive } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { miLocalStorage } from '@/local-storage.js';
 
 // TODO: 他のタブと永続化されたstateを同期

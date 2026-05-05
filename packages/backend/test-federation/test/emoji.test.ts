@@ -1,5 +1,5 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin } from './utils.js';
 
 describe('Emoji', () => {

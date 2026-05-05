@@ -87,8 +87,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { useTemplateRef, computed, markRaw } from 'vue';
-import { notificationTypes } from 'cherrypick-js';
-import * as Misskey from 'cherrypick-js';
+import { notificationTypes } from 'misskey-js';
+import * as Misskey from 'misskey-js';
 import XNotificationConfig from './notifications.notification-config.vue';
 import type { NotificationConfig } from './notifications.notification-config.vue';
 import FormLink from '@/components/form/link.vue';

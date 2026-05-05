@@ -4,7 +4,7 @@
  */
 
 import { AISCRIPT_VERSION } from '@syuilo/aiscript';
-import type { entities } from 'cherrypick-js'
+import type { entities } from 'misskey-js'
 import { date, imageDataUrl, text } from "./fake-utils.js";
 
 export function abuseUserReport() {

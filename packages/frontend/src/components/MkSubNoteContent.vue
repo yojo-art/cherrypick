@@ -169,7 +169,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, inject, provide, ref, useTemplateRef, watch } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@@/js/collapsed.js';
 import { concat } from '@@/js/array.js';
 import { host } from '@@/js/config.js';

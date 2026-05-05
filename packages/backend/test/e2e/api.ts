@@ -18,7 +18,7 @@ import {
 	uploadFile,
 	waitFire,
 } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('API', () => {
 	let alice: misskey.entities.SignupResponse;

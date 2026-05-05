@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { Component, ComputedRef, Ref, MaybeRef } from 'vue';
 import type { ComponentProps as CP } from 'vue-component-type-helpers';
 

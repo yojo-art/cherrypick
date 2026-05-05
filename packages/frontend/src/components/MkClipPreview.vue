@@ -27,7 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { computed, ref, watchEffect } from 'vue';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';

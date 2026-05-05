@@ -4,7 +4,7 @@
  */
 
 import { get } from 'idb-keyval';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 
 export async function getAccountFromId(id: string): Promise<Pick<Misskey.entities.SignupResponse, 'id' | 'token'> | undefined> {
 	const accounts = await get<Pick<Misskey.entities.SignupResponse, 'id' | 'token'>[]>('accounts');

@@ -8,7 +8,7 @@ process.env.NODE_ENV = 'test';
 import * as assert from 'assert';
 import { setTimeout } from 'node:timers/promises';
 import { api, post, signup, waitFire } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('Renote Mute', () => {
 	// alice mutes carol

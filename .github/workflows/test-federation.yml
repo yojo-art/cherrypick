@@ -7,12 +7,12 @@ on:
       - develop
     paths:
       - packages/backend/**
-      - packages/cherrypick-js/**
+      - packages/misskey-js/**
       - .github/workflows/test-federation.yml
   pull_request:
     paths:
       - packages/backend/**
-      - packages/cherrypick-js/**
+      - packages/misskey-js/**
       - .github/workflows/test-federation.yml
   workflow_dispatch:
     inputs:

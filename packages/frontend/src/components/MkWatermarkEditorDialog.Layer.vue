@@ -344,7 +344,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { WatermarkPreset } from '@/utility/watermark.js';
 import { i18n } from '@/i18n.js';
 import MkButton from '@/components/MkButton.vue';

@@ -1,22 +1,22 @@
 # This workflow will do a clean install of node dependencies, build the source code and run tests across different versions of node
 # For more information see: https://help.github.com/actions/language-and-framework-guides/using-nodejs-with-github-actions
 
-name: Test (cherrypick.js)
+name: Test (misskey.js)
 
 on:
   push:
     branches: [ develop ]
     paths:
-      - packages/cherrypick-js/**
-      - .github/workflows/test-cherrypick-js.yml
+      - packages/misskey-js/**
+      - .github/workflows/test-misskey-js.yml
   pull_request:
     branches: [ develop ]
     paths:
-      - packages/cherrypick-js/**
-      - .github/workflows/test-cherrypick-js.yml
+      - packages/misskey-js/**
+      - .github/workflows/test-misskey-js.yml
 jobs:
   test:
-    name: Unit tests (cherrypick.js)
+    name: Unit tests (misskey.js)
 
     runs-on: ubuntu-latest
 
@@ -40,10 +40,10 @@ jobs:
         run: git diff --exit-code pnpm-lock.yaml
 
       - name: Build
-        run: pnpm --filter cherrypick-js build
+        run: pnpm --filter misskey-js build
 
       - name: Test
-        run: pnpm --filter cherrypick-js test
+        run: pnpm --filter misskey-js test
         env:
           CI: true
 
@@ -51,4 +51,4 @@ jobs:
         uses: codecov/codecov-action@v5
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-          files: ./packages/cherrypick-js/coverage/coverage-final.json
+          files: ./packages/misskey-js/coverage/coverage-final.json

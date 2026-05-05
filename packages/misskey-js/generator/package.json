@@ -1,5 +1,5 @@
 {
-	"name": "cherrypick-js-type-generator",
+	"name": "misskey-js-type-generator",
 	"version": "0.0.0",
 	"description": "CherryPick TypeGenerator",
 	"type": "module",

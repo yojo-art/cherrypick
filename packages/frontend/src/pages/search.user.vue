@@ -39,7 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, markRaw, ref, shallowRef, toRef, useTemplateRef } from 'vue';
-import type { Endpoints } from 'cherrypick-js';
+import type { Endpoints } from 'misskey-js';
 import type { MkSelectItem } from '@/components/MkSelect.vue';
 import MkUserList from '@/components/MkUserList.vue';
 import MkInput from '@/components/MkInput.vue';
