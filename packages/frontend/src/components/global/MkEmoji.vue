@@ -4,8 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<img v-if="shouldMute" :class="$style.root" src="/client-assets/unknown.png" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click.stop="onClick"/>
-<img v-else-if="!useOsNativeEmojis" :class="$style.root" :src="url" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click.stop="onClick"/>
+<img v-if="shouldMute" :class="$style.root" src="/client-assets/unknown.png" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click="onClick"/>
+<img v-else-if="!useOsNativeEmojis" :class="$style.root" :src="url" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click="onClick"/>
 <span v-else :alt="props.emoji" @pointerenter="computeTitle" @click.stop="onClick">{{ colorizedNativeEmoji }}</span>
 </template>
 
@@ -69,6 +69,7 @@ function unmute() {
 
 function onClick(ev: MouseEvent) {
 	if (props.menu) {
+		ev.stopPropagation();
 		const menuItems: MenuItem[] = [];
 
 		menuItems.push({
