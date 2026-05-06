@@ -345,6 +345,9 @@ export const PREF_DEF = definePreferences({
 	useGroupedNotifications: {
 		default: true,
 	},
+	useGroupedNoteNotifications: {
+		default: false,
+	},
 	dataSaver: {
 		default: {
 			media: false,

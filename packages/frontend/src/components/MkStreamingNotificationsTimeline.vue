@@ -70,6 +70,7 @@ const paginator = prefer.s.useGroupedNotifications && !props.notUseGrouped ? mar
 	limit: 20,
 	computedParams: computed(() => ({
 		excludeTypes: props.excludeTypes ?? undefined,
+		groupNote: prefer.s.useGroupedNoteNotifications && !props.notUseGrouped,
 	})),
 })) : markRaw(new Paginator('i/notifications', {
 	limit: 20,

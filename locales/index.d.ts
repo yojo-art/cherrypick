@@ -5805,6 +5805,10 @@ export interface Locale extends ILocale {
      */
     "useGroupedNotifications": string;
     /**
+     * 新規投稿通知もグルーピング
+     */
+    "useGroupedNoteNotifications": string;
+    /**
      * メールアドレスの確認中に問題が発生しました。リンクの有効期限が切れている可能性があります。
      */
     "emailVerificationFailedError": string;

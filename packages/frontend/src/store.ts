@@ -382,6 +382,10 @@ export const store = markRaw(new Pizzax('base', {
 		where: 'device',
 		default: true,
 	},
+	useGroupedNoteNotifications: {
+		where: 'device',
+		default: false,
+	},
 	dataSaver: {
 		where: 'device',
 		default: {
