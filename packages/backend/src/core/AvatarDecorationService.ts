@@ -277,7 +277,7 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		const instance = await this.instancesRepository.findOneBy({ host: decoration.host });
 		if (!instance) return null;
 
-		if (!['misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) {
+		if (!['yojo-art', 'misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) {
 			return null;
 		}
 
