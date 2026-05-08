@@ -116,6 +116,20 @@ export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Miss
 		action: () => describe(file),
 	});
 
+	if (isImage) {
+		menuItems.push({
+			text: i18n.ts.preview,
+			icon: 'ti ti-photo-search',
+			action: async () => {
+				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImgPreviewDialog.vue').then(x => x.default), {
+					file: file,
+				}, {
+					closed: () => dispose(),
+				});
+			},
+		});
+	}
+
 	menuItems.push({ type: 'divider' }, {
 		text: i18n.ts.createNoteFromTheFile,
 		icon: 'ti ti-pencil',
