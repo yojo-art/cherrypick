@@ -136,11 +136,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				/>
 				<a v-if="appearNote.renote != null" :class="$style.rn">RN:</a>
 				<div v-if="prefer.s.showTranslateButtonInNote && (!prefer.s.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (prefer.s.useAutoTranslate && (appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && (appearNote.text || appearNote.poll) && isForeignLanguage" style="padding: 5px 0; color: var(--MI_THEME-accent);">
-					<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click="translate()">{{ i18n.ts.translateNote }}</button>
-					<button v-else class="_button" @click="translation = null">{{ i18n.ts.close }}</button>
+					<button v-if="translateStatus === 'none'" ref="translateButton" class="_button" @click="translate(false)">{{ i18n.ts.translateNote }}</button>
+					<button v-else class="_button" @click="translateStatus = 'none'; translation = null">{{ i18n.ts.close }}</button>
 				</div>
-				<div v-if="translating || translation" :class="$style.translation">
-					<MkLoading v-if="translating" mini/>
+				<div v-if="translateStatus !== 'none'" :class="$style.translation">
+					<MkLoading v-if="translateStatus === 'running'" mini/>
+					<MkResult v-else-if="translateStatus === 'error'" type="error" :text="i18n.ts.translateError">
+						<MkButton :class="$style.button" rounded @click.stop="() => translate(false)">{{ i18n.ts.retry }}</MkButton>
+					</MkResult>
 					<div v-else-if="translation">
 						<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
 						<Mfm
@@ -382,6 +385,7 @@ import { host } from '@@/js/config.js';
 import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
 import type { Keymap } from '@/utility/hotkey.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import { parseMfmCached } from '@/utility/mfm-cache.js';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
@@ -487,7 +491,7 @@ const isDeleted = ref(false);
 const isAnimatedMfm = $i ? true : shouldAnimatedMfm(appearNote);
 const muted = ref($i ? checkWordMute(appearNote, $i, $i.mutedWords) : false);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
-const translating = ref(false);
+const translateStatus = ref<TranslateStatus>('none');
 const parsed = appearNote.text ? parseMfmCached(appearNote.text) : null;
 const urls = parsed ? extractUrlFromMfm(parsed).filter((url) => appearNote.renote?.url !== url && appearNote.renote?.uri !== url) : null;
 const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
@@ -814,7 +818,7 @@ function onContextmenu(ev: MouseEvent): void {
 		ev.preventDefault();
 		react();
 	} else {
-		const { menu, cleanup } = getNoteMenu({ note: note, translation, translating, viewTextSource, noNyaize });
+		const { menu, cleanup } = getNoteMenu({ note: note, translation, translateStatus, viewTextSource, noNyaize });
 		os.contextMenu(menu, ev).then(focus).finally(cleanup);
 	}
 }
@@ -822,7 +826,7 @@ function onContextmenu(ev: MouseEvent): void {
 function showMenu(): void {
 	haptic();
 
-	const { menu, cleanup } = getNoteMenu({ note: note, translation, translating, viewTextSource, noNyaize });
+	const { menu, cleanup } = getNoteMenu({ note: note, translation, translateStatus, viewTextSource, noNyaize });
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 
@@ -841,39 +845,40 @@ const isForeignLanguage: boolean = (appearNote.text != null || appearNote.poll !
 	return false;
 })();
 
-if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate();
+if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate(true);
 
-async function translate(): Promise<void> {
+async function translate(isAuto: boolean): Promise<void> {
 	if (translation.value != null) return;
-	translating.value = true;
-
-	haptic();
+	translateStatus.value = 'running';
 
 	if (appearNote.text == null) {
-		translating.value = false;
-		translation.value = {
-			sourceLang: '',
-			text: '',
-		};
+		translateStatus.value = 'success';
+		translation.value = null;
 		return;
 	}
+
+	haptic();
 
 	const res = await misskeyApi('notes/translate', {
 		noteId: appearNote.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).then((r) => {
+		translateStatus.value = 'success';
+		translation.value = r;
 	}).catch((err) => {
-		translating.value = false;
-		os.alert(
-			{
-				type: 'error',
-				title: err.message,
-				text: err.id,
-			});
+		translateStatus.value = 'error';
+		translation.value = null;
+		if (!isAuto) {
+			os.alert(
+				{
+					type: 'error',
+					title: i18n.ts.translateError,
+					text: err.id,
+				});
+		}
+	}).finally(() => {
+		hapticConfirm();
 	});
-	translating.value = false;
-	translation.value = res;
-
-	hapticConfirm();
 }
 
 async function clip(): Promise<void> {
@@ -1483,5 +1488,9 @@ watch(() => tab.value, async (newTab) => {
 	background: var(--MI_THEME-buttonBg);
 	border-radius: 6px;
 	cursor: pointer;
+}
+
+.button {
+	margin: 0 auto;
 }
 </style>

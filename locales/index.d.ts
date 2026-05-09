@@ -4361,6 +4361,10 @@ export interface Locale extends ILocale {
      */
     "translatedFrom": ParameterizedString<"x">;
     /**
+     * 翻訳に失敗しました
+     */
+    "translateError": string;
+    /**
      * アカウントの削除が進行中です
      */
     "accountDeletionInProgress": string;
