@@ -799,4 +799,7 @@ export const PREF_DEF = definePreferences({
 	'experimental.enableWebTranslatorApi': {
 		default: false,
 	},
+	'searchbility': {
+		default: 'public' as (typeof Misskey.noteSearchbility)[number],
+	},
 });
