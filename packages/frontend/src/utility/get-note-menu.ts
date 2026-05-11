@@ -1216,7 +1216,7 @@ export async function getRenoteOnly(props: {
 			});
 		}
 
-		const configuredVisibility = store.s.rememberNoteVisibility ? store.s.visibility : store.s.defaultNoteVisibility;
+		const configuredVisibility = prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility;
 
 		let visibility = appearNote.visibility;
 		visibility = smallerVisibility(visibility, configuredVisibility);
