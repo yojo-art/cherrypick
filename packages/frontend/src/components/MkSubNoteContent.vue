@@ -203,7 +203,7 @@ import { deepClone } from '@/utility/clone.js';
 import { reactionPicker } from '@/utility/reaction-picker.js';
 import { claimAchievement } from '@/utility/achievements.js';
 import { noteEvents, useNoteCapture } from '@/composables/use-note-capture.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import { misskeyApi, misskeyApiGet } from '@/utility/misskey-api.js';
 import { store } from '@/store.js';
 import { DI } from '@/di.js';
@@ -602,8 +602,9 @@ async function translate(isAuto: boolean): Promise<void> {
 		translation.value = null;
 		return;
 	}
-
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
 	if (props.mock) {
 		return;
@@ -623,8 +624,6 @@ async function translate(isAuto: boolean): Promise<void> {
 				title: i18n.ts.translateError,
 				text: err.id,
 			});
-	}).finally(() => {
-		hapticConfirm(); // 成功でも失敗でも振動
 	});
 }
 

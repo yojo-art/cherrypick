@@ -458,7 +458,7 @@ import { globalEvents } from '@/events.js';
 import { instance } from '@/instance.js';
 import { mainRouter, useRouter } from '@/router.js';
 import { miLocalStorage } from '@/local-storage.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import { store } from '@/store.js';
 import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import detectLanguage from '@/utility/detect-language.js';
@@ -1041,7 +1041,9 @@ async function translate(isAuto: boolean): Promise<void> {
 		return;
 	}
 
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
 	if (props.mock) {
 		return;
@@ -1064,8 +1066,6 @@ async function translate(isAuto: boolean): Promise<void> {
 					text: err.id,
 				});
 		}
-	}).finally(() => {
-		hapticConfirm();
 	});
 }
 

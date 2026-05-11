@@ -431,7 +431,7 @@ import { globalEvents, useGlobalEvent } from '@/events.js';
 import { Paginator } from '@/utility/paginator.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { deviceKind } from '@/utility/device-kind.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import { store } from '@/store.js';
 import detectLanguage from '@/utility/detect-language.js';
 import MkInfo from '@/components/MkInfo.vue';
@@ -856,8 +856,9 @@ async function translate(isAuto: boolean): Promise<void> {
 		translation.value = null;
 		return;
 	}
-
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
 	const res = await misskeyApi('notes/translate', {
 		noteId: appearNote.id,
@@ -876,8 +877,6 @@ async function translate(isAuto: boolean): Promise<void> {
 					text: err.id,
 				});
 		}
-	}).finally(() => {
-		hapticConfirm();
 	});
 }
 

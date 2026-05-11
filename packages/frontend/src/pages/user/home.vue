@@ -228,7 +228,7 @@ import { prefer } from '@/preferences.js';
 import MkPullToRefresh from '@/components/MkPullToRefresh.vue';
 import { miLocalStorage } from '@/local-storage.js';
 import { editNickname } from '@/utility/edit-nickname.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import detectLanguage from '@/utility/detect-language.js';
 import { globalEvents } from '@/events.js';
 import { notesSearchAvailable, canSearchNonLocalNotes } from '@/utility/check-permissions.js';
@@ -344,7 +344,9 @@ async function translate(isAuto: boolean): Promise<void> {
 	globalEvents.emit('showNoteContent', true);
 	translateStatus.value = 'running';
 
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
 	await misskeyApi('users/translate', {
 		userId: props.user.id,
@@ -363,8 +365,6 @@ async function translate(isAuto: boolean): Promise<void> {
 					text: err.id,
 				});
 		}
-	}).finally(() => {
-		hapticConfirm();
 	});
 }
 
