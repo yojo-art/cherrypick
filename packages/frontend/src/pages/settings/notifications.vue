@@ -185,12 +185,6 @@ definePage(() => ({
 	display: flex;
 }
 
-.userItemSub {
-	padding: 6px 12px;
-	font-size: 85%;
-	color: color(from var(--MI_THEME-fg) srgb r g b / 0.75);
-}
-
 .userItemMainBody {
 	flex: 1;
 	min-width: 0;
@@ -205,16 +199,5 @@ definePage(() => ({
 	width: 32px;
 	height: 32px;
 	align-self: center;
-}
-
-.chevron {
-	display: block;
-	transition: transform 0.1s ease-out;
-}
-
-.userItem.userItemOpend {
-	.chevron {
-		transform: rotateX(180deg);
-	}
 }
 </style>
