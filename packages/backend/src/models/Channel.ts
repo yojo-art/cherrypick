@@ -98,4 +98,26 @@ export class MiChannel {
 		default: true,
 	})
 	public allowRenoteToExternal: boolean;
+
+	@Column('varchar', {
+		length: 128,
+		comment: 'The username of the Channel.',
+		nullable: true,
+	})
+	public username: string | null;
+
+	@Index()
+	@Column('varchar', {
+		length: 128,
+		select: false,
+		comment: 'The username (lowercased) of the Channel.',
+		nullable: true,
+	})
+	public usernameLower: string | null;
+
+	@Column('integer', {
+		default: -1,
+		comment: 'The count of followers.',
+	})
+	public followersCount: number;
 }
