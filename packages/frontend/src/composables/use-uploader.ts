@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { readAndCompressImage } from '@misskey-dev/browser-image-resizer';
 import isAnimated from 'is-file-animated';
 import { EventEmitter } from 'eventemitter3';
@@ -334,9 +334,11 @@ export function useUploader(options: {
 				}],
 			});
 		}
+		const isImageCompressible = IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type);
+		const isVideoCompressible = VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type);
 
 		if (
-			(IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type) || VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(item.file.type)) &&
+			(isImageCompressible || isVideoCompressible) &&
 			!item.preprocessing &&
 			!item.uploading &&
 			!item.uploaded
@@ -361,7 +363,7 @@ export function useUploader(options: {
 						text += `: ${i18n.ts.medium}`;
 					} else if (item.compressionLevel === 3) {
 						text += `: ${i18n.ts.high}`;
-					} else if (item.compressionLevel === 10) {
+					} else if (isImageCompressible && item.compressionLevel === 10) {
 						text += `: ${i18n.ts._compression._quality.webpcompress}`;
 					}
 
@@ -373,12 +375,12 @@ export function useUploader(options: {
 					text: i18n.ts.none,
 					active: computed(() => item.compressionLevel === 0 || item.compressionLevel == null),
 					action: () => changeCompressionLevel(0),
-				}, {
+				}, ...(isImageCompressible ? [{
 					type: 'radioOption',
 					text: i18n.ts._compression._quality.webpcompress,
 					active: computed(() => item.compressionLevel === 10),
 					action: () => changeCompressionLevel(10),
-				}, {
+				}] as const : []), {
 					type: 'divider',
 				}, {
 					type: 'radioOption',

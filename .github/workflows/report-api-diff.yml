@@ -70,17 +70,17 @@ jobs:
       - id: out-diff
         name: Build diff Comment
         run: |
-          HEADER="이 PR에 의한 api.json 차이"
+          HEADER="このPRによるapi.jsonの差分"
           FOOTER="[Get diff files from Workflow Page](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
           DIFF_BYTES="$(stat ./api.json.diff -c '%s' | tr -d '\n')"
 
           echo "$HEADER" > ./output.md
 
           if (( "$DIFF_BYTES" <= 1 )); then
-            echo '차이점이 없습니다.' >> ./output.md
+            echo '差分はありません。' >> ./output.md
           else
             echo '<details>' >> ./output.md
-            echo '<summary>차이점은 여기에서 볼 수 있음</summary>' >> ./output.md
+            echo '<summary>差分はこちら</summary>' >> ./output.md
             echo >> ./output.md
             echo '```diff' >> ./output.md
             cat ./api.json.diff >> ./output.md
@@ -101,4 +101,4 @@ jobs:
           pr_number: ${{ steps.load-pr-num.outputs.pr-number }}
           comment_tag: show_diff_error
           message: |
-            api.json 간 차이점을 생성하는 도중 오류가 발생했습니다. 자세한 내용은 [Workflow 로그](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})를 확인해 주세요.
+            api.jsonの差分作成中にエラーが発生しました。詳細は[Workflowのログ](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})を確認してください。

@@ -16,7 +16,7 @@ import { type Response } from 'node-fetch';
 import Fastify from 'fastify';
 import { entities } from '../src/postgres.js';
 import { loadConfig } from '../src/config.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
 import { ApiError } from '@/server/api/error.js';
@@ -658,7 +658,7 @@ export async function sendEnvResetRequest() {
 }
 
 // 与えられた値を強制的にエラーとみなす。この関数は型安全性を破壊するため、異常系のアサーション以外で用いられるべきではない。
-// FIXME(cherrypick-js): cherrypick-jsがエラー情報を公開するようになったらこの関数を廃止する
+// FIXME(misskey-js): misskey-jsがエラー情報を公開するようになったらこの関数を廃止する
 export function castAsError(obj: Record<string, unknown>): { error: ApiError } {
 	return obj as { error: ApiError };
 }

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { url } from '@@/js/config.js';
 import { shouldCollapsed } from '@@/js/collapsed.js';
 import { defineAsyncComponent } from 'vue';
@@ -11,6 +11,7 @@ import { claimAchievement } from './achievements.js';
 import { confirmRenote } from './check-last-renote.js';
 import type { Ref, ShallowRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
@@ -188,7 +189,7 @@ export function getNoteMenu(props: {
 	note: Misskey.entities.Note;
 	collapsed?: Ref<boolean>;
 	translation: Ref<Misskey.entities.NotesTranslateResponse | null>;
-	translating: Ref<boolean>;
+	translateStatus: Ref<TranslateStatus>;
 	viewTextSource: Ref<boolean>;
 	noNyaize: Ref<boolean>;
 	currentClip?: Misskey.entities.Clip;
@@ -369,7 +370,7 @@ export function getNoteMenu(props: {
 		if (props.translation.value != null) return;
 		if (props.collapsed?.value != null) props.collapsed.value = false;
 		if (prefer.s['experimental.enableWebTranslatorApi'] && isInBrowserTranslationAvailable && appearNote.text != null) {
-			props.translating.value = true;
+			props.translateStatus.value = 'running';
 			try {
 				// @ts-expect-error 実験的なAPIなので型定義がない
 				const detector = await LanguageDetector.create();
@@ -399,15 +400,15 @@ export function getNoteMenu(props: {
 					text: translated,
 				};
 			} finally {
-				props.translating.value = false;
+				props.translateStatus.value = 'success';
 			}
 		} else if ($i?.policies.canUseTranslator && instance.translatorAvailable) {
-			props.translating.value = true;
+			props.translateStatus.value = 'running';
 			const res = await misskeyApi('notes/translate', {
 				noteId: appearNote.id,
 				targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
 			}).catch((err) => {
-				props.translating.value = false;
+				props.translateStatus.value = 'error';
 				os.alert(
 					{
 						type: 'error',
@@ -416,7 +417,7 @@ export function getNoteMenu(props: {
 					});
 				return null;
 			});
-			props.translating.value = false;
+			props.translateStatus.value = 'success';
 			props.translation.value = res;
 		}
 	}
@@ -1216,7 +1217,7 @@ export async function getRenoteOnly(props: {
 			});
 		}
 
-		const configuredVisibility = store.s.rememberNoteVisibility ? store.s.visibility : store.s.defaultNoteVisibility;
+		const configuredVisibility = prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility;
 
 		let visibility = appearNote.visibility;
 		visibility = smallerVisibility(visibility, configuredVisibility);

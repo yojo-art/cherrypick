@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { apiUrl, host } from '@@/js/config.js';
 import type { MenuItem } from '@/types/menu.js';
 import * as os from '@/os.js';

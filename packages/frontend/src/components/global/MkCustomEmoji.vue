@@ -32,7 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	draggable="false"
 	@error="errored = true"
 	@load="errored = false"
-	@click.stop="onClick"
+	@click="onClick"
 	@mouseover="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 	@mouseout="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 	@touchstart="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
@@ -112,6 +112,7 @@ const errored = ref(url.value == null);
 
 function onClick(ev: MouseEvent) {
 	if (props.menu) {
+		ev.stopPropagation();
 		const menuItems: MenuItem[] = [];
 
 		menuItems.push({

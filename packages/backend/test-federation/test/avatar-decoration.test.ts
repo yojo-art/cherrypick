@@ -1,5 +1,5 @@
 import { deepStrictEqual, strictEqual } from 'node:assert';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
 
 const [aAdmin, bAdmin, cAdmin] = await Promise.all([

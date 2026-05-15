@@ -8,8 +8,8 @@ services:
         source: node_modules_backend
         target: /cherrypick/packages/backend/node_modules
       - type: volume
-        source: node_modules_cherrypick-js
-        target: /cherrypick/packages/cherrypick-js/node_modules
+        source: node_modules_misskey-js
+        target: /cherrypick/packages/misskey-js/node_modules
       - type: volume
         source: node_modules_misskey-reversi
         target: /cherrypick/packages/misskey-reversi/node_modules
@@ -27,8 +27,8 @@ services:
         source: node_modules_backend_dev
         target: /cherrypick/packages/backend/node_modules
       - type: volume
-        source: node_modules_cherrypick-js_dev
-        target: /cherrypick/packages/cherrypick-js/node_modules
+        source: node_modules_misskey-js_dev
+        target: /cherrypick/packages/misskey-js/node_modules
 
   daemon:
     networks:
@@ -66,8 +66,8 @@ services:
         source: node_modules_backend
         target: /cherrypick/packages/backend/node_modules
       - type: volume
-        source: node_modules_cherrypick-js
-        target: /cherrypick/packages/cherrypick-js/node_modules
+        source: node_modules_misskey-js
+        target: /cherrypick/packages/misskey-js/node_modules
       - type: volume
         source: node_modules_misskey-reversi
         target: /cherrypick/packages/misskey-reversi/node_modules
@@ -88,8 +88,8 @@ services:
         source: node_modules_backend
         target: /cherrypick/packages/backend/node_modules
       - type: volume
-        source: node_modules_cherrypick-js
-        target: /cherrypick/packages/cherrypick-js/node_modules
+        source: node_modules_misskey-js
+        target: /cherrypick/packages/misskey-js/node_modules
       - type: volume
         source: node_modules_misskey-reversi
         target: /cherrypick/packages/misskey-reversi/node_modules
@@ -110,8 +110,8 @@ services:
         source: node_modules_backend
         target: /cherrypick/packages/backend/node_modules
       - type: volume
-        source: node_modules_cherrypick-js
-        target: /cherrypick/packages/cherrypick-js/node_modules
+        source: node_modules_misskey-js
+        target: /cherrypick/packages/misskey-js/node_modules
       - type: volume
         source: node_modules_misskey-reversi
         target: /cherrypick/packages/misskey-reversi/node_modules
@@ -136,6 +136,6 @@ volumes:
   node_modules_dev:
   node_modules_backend:
   node_modules_backend_dev:
-  node_modules_cherrypick-js:
-  node_modules_cherrypick-js_dev:
+  node_modules_misskey-js:
+  node_modules_misskey-js_dev:
   node_modules_misskey-reversi:

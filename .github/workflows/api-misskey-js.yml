@@ -1,14 +1,14 @@
-name: API report (cherrypick.js)
+name: API report (misskey.js)
 
 on:
   push:
     paths:
-      - packages/cherrypick-js/**
-      - .github/workflows/api-cherrypick-js.yml
+      - packages/misskey-js/**
+      - .github/workflows/api-misskey-js.yml
   pull_request:
     paths:
-      - packages/cherrypick-js/**
-      - .github/workflows/api-cherrypick-js.yml
+      - packages/misskey-js/**
+      - .github/workflows/api-misskey-js.yml
 jobs:
   report:
 
@@ -31,14 +31,14 @@ jobs:
         run: pnpm i --frozen-lockfile
 
       - name: Build
-        run: pnpm --filter cherrypick-js build
+        run: pnpm --filter misskey-js build
 
       - name: Check files
-        run: ls packages/cherrypick-js/built
+        run: ls packages/misskey-js/built
 
       - name: API report
-        run: pnpm --filter cherrypick-js api-prod
+        run: pnpm --filter misskey-js api-prod
 
       - name: Show report
         if: always()
-        run: cat packages/cherrypick-js/temp/cherrypick-js.api.md
+        run: cat packages/misskey-js/temp/misskey-js.api.md

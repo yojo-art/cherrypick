@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { hemisphere } from '@@/js/intl-const.js';
 import { prefersReducedMotion } from '@@/js/config.js';
 import { definePreferences } from './manager.js';
@@ -344,6 +344,9 @@ export const PREF_DEF = definePreferences({
 	},
 	useGroupedNotifications: {
 		default: true,
+	},
+	useGroupedNoteNotifications: {
+		default: false,
 	},
 	dataSaver: {
 		default: {
@@ -795,5 +798,8 @@ export const PREF_DEF = definePreferences({
 	},
 	'experimental.enableWebTranslatorApi': {
 		default: false,
+	},
+	'searchbility': {
+		default: 'public' as (typeof Misskey.noteSearchbility)[number],
 	},
 });

@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { defineAsyncComponent } from 'vue';
 import { useWidgetPropsManager } from './widget.js';
-import type { notificationTypes as notificationTypes_typeReferenceOnly } from 'cherrypick-js';
+import type { notificationTypes as notificationTypes_typeReferenceOnly } from 'misskey-js';
 import type { WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
 import type { FormWithDefault, GetFormResultType } from '@/utility/form.js';
 import MkContainer from '@/components/MkContainer.vue';

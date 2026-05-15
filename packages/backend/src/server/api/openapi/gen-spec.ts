@@ -60,7 +60,7 @@ export function genOpenapiSpec(config: Config, includeSelfRef = false) {
 		let desc = (endpoint.meta.description ? endpoint.meta.description : 'No description provided.') + '\n\n';
 
 		if (endpoint.meta.secure) {
-			desc += '**Internal Endpoint**: This endpoint is an API for the cherrypick mainframe and is not intended for use by third parties.\n';
+			desc += '**Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.\n';
 		}
 
 		desc += `**Credential required**: *${endpoint.meta.requireCredential ? 'Yes' : 'No'}*`;

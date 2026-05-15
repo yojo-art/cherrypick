@@ -8,14 +8,14 @@ on:
     paths:
       - packages/backend/**
       # for permissions
-      - packages/cherrypick-js/**
+      - packages/misskey-js/**
       - .github/workflows/test-backend.yml
       - .github/cherrypick/test.yml
   pull_request:
     paths:
       - packages/backend/**
       # for permissions
-      - packages/cherrypick-js/**
+      - packages/misskey-js/**
       - .github/workflows/test-backend.yml
       - .github/cherrypick/test.yml
   workflow_dispatch:

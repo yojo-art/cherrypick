@@ -1,5 +1,5 @@
 import { strictEqual } from 'assert';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { createAccount, fetchAdmin, isNoteUpdatedEventFired, isFired, type LoginUser, type Request, resolveRemoteUser, sleep, createRole } from './utils.js';
 
 const bAdmin = await fetchAdmin('b.test');

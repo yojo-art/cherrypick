@@ -991,7 +991,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { watch, ref, computed, useTemplateRef } from 'vue';
 import { throttle } from 'throttle-debounce';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import RolesEditorFormula from './RolesEditorFormula.vue';
 import type { MkSelectItem, GetMkSelectValueTypesFromDef } from '@/components/MkSelect.vue';
 import MkInput from '@/components/MkInput.vue';

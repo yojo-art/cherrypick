@@ -406,7 +406,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, reactive, ref, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkInput from '@/components/MkInput.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -451,7 +451,7 @@ function matchQuery(keywords: string[]): boolean {
 
 async function updateBaseRole() {
 	await os.apiWithDialog('admin/roles/update-default-policies', {
-		//@ts-expect-error cherrypick-js側の型定義が不十分
+		//@ts-expect-error misskey-js側の型定義が不十分
 		policies,
 	});
 	fetchInstance(true);

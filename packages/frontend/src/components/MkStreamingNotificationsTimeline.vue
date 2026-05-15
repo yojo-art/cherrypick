@@ -43,8 +43,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onUnmounted, onMounted, computed, useTemplateRef, TransitionGroup, markRaw, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
-import { notificationTypes } from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
+import { notificationTypes } from 'misskey-js';
 import { useInterval } from '@@/js/use-interval.js';
 import { useDocumentVisibility } from '@@/js/use-document-visibility.js';
 import { getScrollContainer, scrollToTop } from '@@/js/scroll.js';
@@ -70,6 +70,7 @@ const paginator = prefer.s.useGroupedNotifications && !props.notUseGrouped ? mar
 	limit: 20,
 	computedParams: computed(() => ({
 		excludeTypes: props.excludeTypes ?? undefined,
+		groupNote: prefer.s.useGroupedNoteNotifications && !props.notUseGrouped,
 	})),
 })) : markRaw(new Paginator('i/notifications', {
 	limit: 20,

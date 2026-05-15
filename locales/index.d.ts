@@ -4361,6 +4361,10 @@ export interface Locale extends ILocale {
      */
     "translatedFrom": ParameterizedString<"x">;
     /**
+     * 翻訳に失敗しました
+     */
+    "translateError": string;
+    /**
      * アカウントの削除が進行中です
      */
     "accountDeletionInProgress": string;
@@ -5804,6 +5808,10 @@ export interface Locale extends ILocale {
      * 通知をグルーピング
      */
     "useGroupedNotifications": string;
+    /**
+     * 新規投稿通知もグルーピング
+     */
+    "useGroupedNoteNotifications": string;
     /**
      * メールアドレスの確認中に問題が発生しました。リンクの有効期限が切れている可能性があります。
      */

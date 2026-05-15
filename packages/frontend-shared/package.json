@@ -38,7 +38,7 @@
 		"js-built"
 	],
 	"dependencies": {
-		"cherrypick-js": "workspace:*",
+		"misskey-js": "workspace:*",
 		"vue": "3.5.22"
 	}
 }

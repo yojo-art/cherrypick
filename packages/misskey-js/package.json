@@ -1,6 +1,6 @@
 {
 	"type": "module",
-	"name": "cherrypick-js",
+	"name": "misskey-js",
 	"version": "1.7.3",
 	"basedCherrypickVersion": "4.17.0",
 	"basedMisskeyVersion": "2025.10.2",
@@ -31,7 +31,7 @@
 		"lint": "pnpm typecheck && pnpm eslint",
 		"vitest": "vitest run --coverage",
 		"test": "pnpm vitest && pnpm tsd",
-		"update-autogen-code": "pnpm --filter cherrypick-js-type-generator generate && ncp generator/built/autogen src/autogen",
+		"update-autogen-code": "pnpm --filter misskey-js-type-generator generate && ncp generator/built/autogen src/autogen",
 		"biome-lint": "pnpm typecheck && pnpm biome lint src",
 		"format": "pnpm biome format",
 		"format:write": "pnpm biome format --write"
@@ -39,7 +39,7 @@
 	"repository": {
 		"type": "git",
 		"url": "git+https://github.com/yojo-art/cherrypick.git",
-		"directory": "packages/cherrypick-js"
+		"directory": "packages/misskey-js"
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.1",

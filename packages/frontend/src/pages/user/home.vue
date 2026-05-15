@@ -92,11 +92,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<Mfm v-if="user.description" :text="user.description" :isNote="false" :author="user" :enableEmojiMenu="!!$i" class="_selectable"/>
 								<p v-else class="empty">{{ i18n.ts.noAccountDescription }}</p>
 								<div v-if="user.description && isForeignLanguage">
-									<MkButton v-if="!(translating || translation)" class="translateButton" small @click="translate"><i class="ti ti-language-hiragana"></i> {{ i18n.ts.translateProfile }}</MkButton>
-									<MkButton v-else class="translateButton" small @click="translation = null"><i class="ti ti-x"></i> {{ i18n.ts.close }}</MkButton>
+									<MkButton v-if="translateStatus === 'none'" class="translateButton" small @click="translate(false)"><i class="ti ti-language-hiragana"></i> {{ i18n.ts.translateProfile }}</MkButton>
+									<MkButton v-else class="translateButton" small @click="translateStatus = 'none'; translation = null"><i class="ti ti-x"></i> {{ i18n.ts.close }}</MkButton>
 								</div>
-								<div v-if="translating || translation" class="translation">
-									<MkLoading v-if="translating" mini/>
+								<div v-if="translateStatus === 'error'" class="translation">
+									<MkResult type="error" :text="i18n.ts.translateError">
+										<MkButton :class="$style.button" rounded @click.stop="() => translate(false)">{{ i18n.ts.retry }}</MkButton>
+									</MkResult>
+								</div>
+								<div v-else-if="translateStatus !== 'none'" class="translation">
+									<MkLoading v-if="translateStatus === 'running'" mini/>
 									<div v-else-if="translation">
 										<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
 										<Mfm :text="translation.text" :isNote="false" :author="user" :nyaize="false" :enableEmojiMenu="!!$i" class="_selectable"/>
@@ -194,8 +199,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, computed, onMounted, onUnmounted, onActivated, onDeactivated, nextTick, watch, ref, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { getScrollContainer } from '@@/js/scroll.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import MkNote from '@/components/MkNote.vue';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import MkAccountMoved from '@/components/MkAccountMoved.vue';
@@ -222,7 +228,7 @@ import { prefer } from '@/preferences.js';
 import MkPullToRefresh from '@/components/MkPullToRefresh.vue';
 import { miLocalStorage } from '@/local-storage.js';
 import { editNickname } from '@/utility/edit-nickname.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import detectLanguage from '@/utility/detect-language.js';
 import { globalEvents } from '@/events.js';
 import { notesSearchAvailable, canSearchNonLocalNotes } from '@/utility/check-permissions.js';
@@ -274,7 +280,7 @@ const moderationNote = ref(props.user.moderationNote ?? '');
 const editModerationNote = ref(false);
 
 const translation = ref<Misskey.entities.UsersTranslateResponse | null>(null);
-const translating = ref(false);
+const translateStatus = ref<TranslateStatus>('none');
 
 watch(moderationNote, async () => {
 	await misskeyApi('admin/update-user-note', { userId: props.user.id, text: moderationNote.value });
@@ -333,30 +339,33 @@ const isForeignLanguage: boolean = props.user.description != null && (() => {
 	return postLang !== '' && postLang !== targetLang;
 })();
 
-async function translate(): Promise<void> {
+async function translate(isAuto: boolean): Promise<void> {
 	if (translation.value != null) return;
 	globalEvents.emit('showNoteContent', true);
-	translating.value = true;
+	translateStatus.value = 'running';
 
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
-	const res = await misskeyApi('users/translate', {
+	await misskeyApi('users/translate', {
 		userId: props.user.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).then((r) => {
+		translateStatus.value = 'success';
+		translation.value = r;
 	}).catch((err) => {
-		translating.value = false;
-		os.alert(
-			{
-				type: 'error',
-				title: err.message,
-				text: err.id,
-			});
-		return null;
+		translateStatus.value = 'error';
+		translation.value = null;
+		if (!isAuto) {
+			os.alert(
+				{
+					type: 'error',
+					title: i18n.ts.translateError,
+					text: err.id,
+				});
+		}
 	});
-	translating.value = false;
-	translation.value = res;
-
-	hapticConfirm();
 }
 
 function resetTimer() {
@@ -991,5 +1000,9 @@ onDeactivated(disposeBannerParallaxResizeObserver);
 .mutualLinkImg {
 	max-width: 200px;
 	max-height: 40px;
+}
+
+.button {
+	margin: 0 auto;
 }
 </style>

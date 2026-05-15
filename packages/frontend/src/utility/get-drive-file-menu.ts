@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { defineAsyncComponent } from 'vue';
 import { selectDriveFolder } from './drive.js';
 import type { MenuItem } from '@/types/menu.js';
@@ -24,6 +24,8 @@ function rename(file: Misskey.entities.DriveFile) {
 		misskeyApi('drive/files/update', {
 			fileId: file.id,
 			name: name,
+		}).then(updated => {
+			globalEvents.emit('driveFilesUpdated', [updated]);
 		});
 	});
 }
@@ -37,6 +39,8 @@ async function describe(file: Misskey.entities.DriveFile) {
 			misskeyApi('drive/files/update', {
 				fileId: file.id,
 				comment: caption.length === 0 ? null : caption,
+			}).then(updated => {
+				globalEvents.emit('driveFilesUpdated', [updated]);
 			});
 		},
 		closed: () => dispose(),
@@ -48,6 +52,8 @@ function move(file: Misskey.entities.DriveFile) {
 		misskeyApi('drive/files/update', {
 			fileId: file.id,
 			folderId: folder[0] ? folder[0].id : null,
+		}).then(updated => {
+			globalEvents.emit('driveFilesUpdated', [updated]);
 		});
 	});
 }
@@ -56,6 +62,8 @@ function toggleSensitive(file: Misskey.entities.DriveFile) {
 	misskeyApi('drive/files/update', {
 		fileId: file.id,
 		isSensitive: !file.isSensitive,
+	}).then(updated => {
+		globalEvents.emit('driveFilesUpdated', [updated]);
 	}).catch(err => {
 		os.alert({
 			type: 'error',
@@ -115,6 +123,20 @@ export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Miss
 		icon: 'ti ti-text-caption',
 		action: () => describe(file),
 	});
+
+	if (isImage) {
+		menuItems.push({
+			text: i18n.ts.preview,
+			icon: 'ti ti-photo-search',
+			action: async () => {
+				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImgPreviewDialog.vue').then(x => x.default), {
+					file: file,
+				}, {
+					closed: () => dispose(),
+				});
+			},
+		});
+	}
 
 	menuItems.push({ type: 'divider' }, {
 		text: i18n.ts.createNoteFromTheFile,
