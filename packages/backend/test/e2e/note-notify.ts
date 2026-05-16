@@ -33,14 +33,14 @@ describe('users/notify/list', () => {
 
 	test('通知設定ありのフォローがある場合、そのユーザーが返る', async () => {
 		// alice が carol をフォローして通知ON
-		await api('following/create', { userId: carol.id, withReplies: false }, alice);
+		await api('following/create', { userId: carol.id }, alice);
 		await api('following/update', { userId: carol.id, notify: 'normal' }, alice);
 
 		const res = await api('users/notify/list', {}, alice);
 
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 1);
-		assert.strictEqual(res.body[0].id, carol.id);
+		assert.strictEqual(res.body[0].user.id, carol.id);
 	});
 
 	test('複数ユーザーで通知設定ありの場合、全員返る', async () => {
@@ -52,7 +52,7 @@ describe('users/notify/list', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 2);
 
-		const ids = res.body.map((u: { id: string }) => u.id).sort();
+		const ids = res.body.map((u: { id: string, user: misskey.entities.UserDetailed }) => u.user.id).sort();
 		assert.deepStrictEqual(ids, [bob.id, carol.id].sort());
 	});
 
@@ -63,7 +63,7 @@ describe('users/notify/list', () => {
 
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 1);
-		assert.strictEqual(res.body[0].id, carol.id);
+		assert.strictEqual(res.body[0].user.id, carol.id);
 	});
 
 	test('他のユーザーの通知対象は見えない', async () => {
@@ -79,7 +79,7 @@ describe('users/notify/list', () => {
 		// bob の一覧には carol だけが含まれる
 		const bobRes = await api('users/notify/list', {}, bob);
 		assert.strictEqual(bobRes.body.length, 1);
-		assert.strictEqual(bobRes.body[0].id, carol.id);
+		assert.strictEqual(bobRes.body[0].user.id, carol.id);
 
 		// 後片付け: bob → carol のフォローを解除
 		await api('following/delete', { userId: carol.id }, bob);
@@ -122,6 +122,34 @@ describe('users/notify/list', () => {
 		const res = await api('users/notify/list', { limit: 1 }, alice);
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 1);
+	});
+
+	test('untilId パラメータが効く', async () => {
+		const allRes = await api('users/notify/list', {}, alice);
+		assert.strictEqual(allRes.status, 200);
+		assert.strictEqual(allRes.body.length, 2);
+
+		const newerId = allRes.body[0].id;
+		const olderId = allRes.body[1].id;
+
+		const res = await api('users/notify/list', { untilId: newerId }, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(res.body.length, 1);
+		assert.strictEqual(res.body[0].id, olderId);
+	});
+
+	test('sinceId パラメータが効く', async () => {
+		const allRes = await api('users/notify/list', {}, alice);
+		assert.strictEqual(allRes.status, 200);
+		assert.strictEqual(allRes.body.length, 2);
+
+		const newerId = allRes.body[0].id;
+		const olderId = allRes.body[1].id;
+
+		const res = await api('users/notify/list', { sinceId: olderId }, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(res.body.length, 1);
+		assert.strictEqual(res.body[0].id, newerId);
 	});
 
 	test('未認証の場合はエラー', async () => {

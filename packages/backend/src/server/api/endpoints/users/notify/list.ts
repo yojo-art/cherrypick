@@ -22,8 +22,18 @@ export const meta = {
 		optional: false, nullable: false,
 		items: {
 			type: 'object',
-			optional: false, nullable: false,
-			ref: 'UserDetailed',
+			nullable: false,
+			properties: {
+				id: {
+					type: 'string',
+					format: 'misskey:id',
+				},
+				user: {
+					type: 'object',
+					ref: 'UserDetailed',
+				},
+			},
+			required: ['id', 'user'],
 		},
 	},
 
@@ -80,7 +90,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const users = followings.map(f => f.followee!);
 
-			return await this.userEntityService.packMany(users, me, { schema: 'UserDetailed' });
+			const userMap = await this.userEntityService.packMany(users, me, { schema: 'UserDetailed' })
+				.then(packed => new Map(packed.map(u => [u.id, u])));
+			return followings.map(following => ({
+				id: following.id,
+				user: userMap.get(following.followeeId)!,
+			}));
 		});
 	}
 }
