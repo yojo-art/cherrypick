@@ -103,8 +103,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			});
 
 			await this.channelsRepository.update(channel.id, {
-				name: ps.name,
-				...(ps.name !== undefined ? { color: ps.name } : {}),
+				...(ps.name !== undefined ? { name: ps.name } : {}),
 				description: ps.description ?? null,
 				bannerId: banner ? banner.id : null,
 				isSensitive: ps.isSensitive ?? false,
@@ -114,7 +113,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			return await this.channelEntityService.pack({
 				...channel,
-				...(ps.name !== undefined ? { color: ps.name } : {}),
+				...(ps.name !== undefined ? { name: ps.name } : {}),
 				description: ps.description ?? null,
 				bannerId: banner ? banner.id : null,
 				isSensitive: ps.isSensitive ?? false,
