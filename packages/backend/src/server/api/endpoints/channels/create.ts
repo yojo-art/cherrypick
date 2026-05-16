@@ -60,9 +60,9 @@ export const paramDef = {
 		color: { type: 'string', minLength: 1, maxLength: 16 },
 		isSensitive: { type: 'boolean', nullable: true },
 		allowRenoteToExternal: { type: 'boolean', nullable: true },
-		username: { type: 'string', optional: false, nullable: false },
+		username: { type: 'string' },
 	},
-	required: ['name'],
+	required: ['name', 'username'],
 } as const;
 
 @Injectable()
