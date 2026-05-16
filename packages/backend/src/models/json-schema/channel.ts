@@ -89,5 +89,17 @@ export const packedChannelSchema = {
 				ref: 'Note',
 			},
 		},
+		host: {
+			type: 'string',
+			optional: true, nullable: true,
+		},
+		username: {
+			type: 'string',
+			optional: true, nullable: false,
+		},
+		followersCount: {
+			type: 'number',
+			optional: true, nullable: false,
+		},
 	},
 } as const;

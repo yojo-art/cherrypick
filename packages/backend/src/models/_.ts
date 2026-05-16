@@ -33,6 +33,7 @@ import { MiBubbleGameRecord } from '@/models/BubbleGameRecord.js';
 import { MiChannel } from '@/models/Channel.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
+import { MiChannelKeypair } from '@/models/ChannelKeypair.js';
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiChatMessage } from '@/models/ChatMessage.js';
 import { MiChatRoom } from '@/models/ChatRoom.js';
@@ -183,6 +184,7 @@ export {
 	MiBlocking,
 	MiChannelFollowing,
 	MiChannelFavorite,
+	MiChannelKeypair,
 	MiClip,
 	MiClipNote,
 	MiClipFavorite,
@@ -270,6 +272,7 @@ export type AvatarDecorationsRepository = Repository<MiAvatarDecoration> & MiRep
 export type AuthSessionsRepository = Repository<MiAuthSession> & MiRepository<MiAuthSession>;
 export type BlockingsRepository = Repository<MiBlocking> & MiRepository<MiBlocking>;
 export type ChannelFollowingsRepository = Repository<MiChannelFollowing> & MiRepository<MiChannelFollowing>;
+export type ChannelKeypairRepository = Repository<MiChannelKeypair> & MiRepository<MiChannelKeypair>;
 export type ChannelFavoritesRepository = Repository<MiChannelFavorite> & MiRepository<MiChannelFavorite>;
 export type ClipsRepository = Repository<MiClip> & MiRepository<MiClip>;
 export type ClipNotesRepository = Repository<MiClipNote> & MiRepository<MiClipNote>;

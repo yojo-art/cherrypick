@@ -11,6 +11,9 @@ import type { MiChannel } from '@/models/Channel.js';
 import { IdService } from '@/core/IdService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { SignupService } from '@/core/SignupService.js';
+import { RoleService } from '@/core/RoleService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -39,6 +42,12 @@ export const meta = {
 			code: 'NO_SUCH_FILE',
 			id: 'cd1e9f3e-5a12-4ab4-96f6-5d0a2cc32050',
 		},
+
+		invalidUsername: {
+			message: 'Invalid Username',
+			code: 'INVALID_USERNAME',
+			id: '3f7d8c21-1c57-4854-9f02-0a2b4fc229df',
+		},
 	},
 } as const;
 
@@ -51,6 +60,7 @@ export const paramDef = {
 		color: { type: 'string', minLength: 1, maxLength: 16 },
 		isSensitive: { type: 'boolean', nullable: true },
 		allowRenoteToExternal: { type: 'boolean', nullable: true },
+		username: { type: 'string', optional: false, nullable: false },
 	},
 	required: ['name'],
 } as const;
@@ -66,6 +76,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private idService: IdService,
 		private channelEntityService: ChannelEntityService,
+		private userEntityService: UserEntityService,
+		private signupService: SignupService,
+		private roleService: RoleService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			let banner = null;
@@ -79,10 +92,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw new ApiError(meta.errors.noSuchFile);
 				}
 			}
-
-			const channel = await this.channelsRepository.insertOne({
-				id: this.idService.gen(),
+			// Validate username
+			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
+				throw new ApiError(meta.errors.invalidUsername);
+			}
+			const channel = await signupService.signupChannel({
+				username: ps.username,
 				userId: me.id,
+				ignorePreservedUsernames: await this.roleService.isModerator(me),
+			});
+
+			await this.channelsRepository.update(channel.id, {
 				name: ps.name,
 				description: ps.description ?? null,
 				bannerId: banner ? banner.id : null,
@@ -91,7 +111,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				allowRenoteToExternal: ps.allowRenoteToExternal ?? true,
 			} as MiChannel);
 
-			return await this.channelEntityService.pack(channel, me);
+			return await this.channelEntityService.pack({
+				...channel,
+				name: ps.name,
+				description: ps.description ?? null,
+				bannerId: banner ? banner.id : null,
+				isSensitive: ps.isSensitive ?? false,
+				...(ps.color !== undefined ? { color: ps.color } : {}),
+				allowRenoteToExternal: ps.allowRenoteToExternal ?? true,
+			}, me);
 		});
 	}
 }

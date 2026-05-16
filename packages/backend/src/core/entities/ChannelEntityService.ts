@@ -86,6 +86,9 @@ export class ChannelEntityService {
 			notesCount: channel.notesCount,
 			isSensitive: channel.isSensitive,
 			allowRenoteToExternal: channel.allowRenoteToExternal,
+			username: channel.username ?? undefined, //連合が実装されてないバージョンからマイグレ時にnullになる
+			host: channel.username ? channel.host : undefined, //ローカルユーザーはnullリモートユーザーはstringマイグレするとundefined
+			followersCount: channel.followersCount >= 0 ? channel.followersCount : undefined, //純正からマイグレすると-1になる
 
 			...(me ? {
 				isFollowing,

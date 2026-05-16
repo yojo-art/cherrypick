@@ -7,6 +7,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithHeader :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 700px;">
 		<div v-if="channelId == null || channel != null" class="_gaps_m">
+			<MkInput v-model="username" type="text" pattern="^[a-zA-Z0-9_]{1,20}$" :spellcheck="false" :readonly="props.channelId != null" autocomplete="username" required @update:modelValue="onChangeUsername">
+				<template #label>{{ i18n.ts.username }} <div v-tooltip:dialog="i18n.ts.usernameInfo" class="_button _help"><i class="ti ti-help-circle"></i></div></template>
+				<template #prefix>@</template>
+				<template #suffix>@{{ host }}</template>
+				<template #caption>
+					<div><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.cannotBeChangedLater }}</div>
+					<span v-if="usernameState === 'wait'" style="color:#999"><MkLoading :em="true"/> {{ i18n.ts.checking }}</span>
+					<span v-else-if="usernameState === 'ok'" style="color: var(--MI_THEME-success)"><i class="ti ti-check ti-fw"></i> {{ i18n.ts.available }}</span>
+					<span v-else-if="usernameState === 'unavailable'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.unavailable }}</span>
+					<span v-else-if="usernameState === 'error'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.error }}</span>
+					<span v-else-if="usernameState === 'invalid-format'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.usernameInvalidFormat }}</span>
+					<span v-else-if="usernameState === 'min-range'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.tooShort }}</span>
+					<span v-else-if="usernameState === 'max-range'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.tooLong }}</span>
+				</template>
+			</MkInput>
 			<MkInput v-model="name">
 				<template #label>{{ i18n.ts.name }}</template>
 			</MkInput>
@@ -70,6 +85,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, ref, watch, defineAsyncComponent } from 'vue';
 import * as Misskey from 'misskey-js';
+import { toUnicode } from 'punycode.js';
+import * as config from '@@/js/config.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkColorInput from '@/components/MkColorInput.vue';
@@ -101,6 +118,11 @@ const isSensitive = ref(false);
 const allowRenoteToExternal = ref(true);
 const pinnedNotes = ref<{ id: Misskey.entities.Note['id'] }[]>([]);
 
+const host = toUnicode(config.host);
+const username = ref<string>('');
+const usernameState = ref<null | 'wait' | 'ok' | 'unavailable' | 'error' | 'invalid-format' | 'min-range' | 'max-range'>(null);
+const usernameAbortController = ref<null | AbortController>(null);
+
 watch(() => bannerId.value, async () => {
 	if (bannerId.value == null) {
 		bannerUrl.value = null;
@@ -111,6 +133,42 @@ watch(() => bannerId.value, async () => {
 	}
 });
 
+function onChangeUsername(): void {
+	if (username.value === '') {
+		usernameState.value = null;
+		return;
+	}
+
+	{
+		const err =
+			!username.value.match(/^[a-zA-Z0-9_]+$/) ? 'invalid-format' :
+			username.value.length < 1 ? 'min-range' :
+			username.value.length > 20 ? 'max-range' :
+			null;
+
+		if (err) {
+			usernameState.value = err;
+			return;
+		}
+	}
+
+	if (usernameAbortController.value != null) {
+		usernameAbortController.value.abort();
+	}
+	usernameState.value = 'wait';
+	usernameAbortController.value = new AbortController();
+
+	misskeyApi('username/available', {
+		username: username.value,
+	}, undefined, usernameAbortController.value.signal).then(result => {
+		usernameState.value = result.available ? 'ok' : 'unavailable';
+	}).catch((err) => {
+		if (err.name !== 'AbortError') {
+			usernameState.value = 'error';
+		}
+	});
+}
+
 async function fetchChannel() {
 	if (props.channelId == null) return;
 
@@ -119,6 +177,7 @@ async function fetchChannel() {
 	});
 
 	name.value = result.name;
+	username.value = result.username ?? '';
 	description.value = result.description;
 	bannerId.value = result.bannerId;
 	bannerUrl.value = result.bannerUrl;
@@ -155,6 +214,7 @@ function removePinnedNote(index: number) {
 function save() {
 	const params = {
 		name: name.value,
+		username: username.value,
 		description: description.value,
 		bannerId: bannerId.value,
 		color: color.value,

@@ -101,6 +101,12 @@ export class MiChannel {
 
 	@Column('varchar', {
 		length: 128,
+		nullable: true,
+	})
+	public host: string | null;
+
+	@Column('varchar', {
+		length: 128,
 		comment: 'The username of the Channel.',
 		nullable: true,
 	})
@@ -120,4 +126,11 @@ export class MiChannel {
 		comment: 'The count of followers.',
 	})
 	public followersCount: number;
+	constructor(data: Partial<MiChannel>) {
+		if (data == null) return;
+
+		for (const [k, v] of Object.entries(data)) {
+			(this as any)[k] = v;
+		}
+	}
 }

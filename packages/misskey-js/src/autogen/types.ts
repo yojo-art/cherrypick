@@ -5438,6 +5438,9 @@ export type components = {
             isFollowing?: boolean;
             isFavorited?: boolean;
             pinnedNotes?: components['schemas']['Note'][];
+            host?: string | null;
+            username?: string;
+            followersCount?: number;
         };
         QueueCount: {
             waiting: number;
@@ -16040,6 +16043,7 @@ export interface operations {
                     color?: string;
                     isSensitive?: boolean | null;
                     allowRenoteToExternal?: boolean | null;
+                    username?: string;
                 };
             };
         };

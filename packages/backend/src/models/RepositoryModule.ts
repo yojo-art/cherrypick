@@ -22,6 +22,7 @@ import {
 	MiChannel,
 	MiChannelFavorite,
 	MiChannelFollowing,
+	MiChannelKeypair,
 	MiClip,
 	MiClipFavorite,
 	MiClipFavoriteRemote,
@@ -466,6 +467,12 @@ const $channelsRepository: Provider = {
 const $channelFollowingsRepository: Provider = {
 	provide: DI.channelFollowingsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiChannelFollowing).extend(miRepository as MiRepository<MiChannelFollowing>),
+	inject: [DI.db],
+};
+
+const $channelKeypairRepository: Provider = {
+	provide: DI.channelKeypairRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiChannelKeypair).extend(miRepository as MiRepository<MiChannelKeypair>),
 	inject: [DI.db],
 };
 

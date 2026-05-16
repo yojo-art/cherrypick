@@ -9,8 +9,9 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as argon2 from 'argon2';
 import { DataSource, IsNull } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
 import { MiUser } from '@/models/User.js';
+import { MiChannel } from '@/models/Channel.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
 import { IdService } from '@/core/IdService.js';
 import { MiUserKeypair } from '@/models/UserKeypair.js';
@@ -23,6 +24,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { UserService } from '@/core/UserService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { MetaService } from '@/core/MetaService.js';
+import { MiChannelKeypair } from '@/models/ChannelKeypair.js';
 
 @Injectable()
 export class SignupService {
@@ -35,6 +37,8 @@ export class SignupService {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		@Inject(DI.usedUsernamesRepository)
 		private usedUsernamesRepository: UsedUsernamesRepository,
@@ -163,6 +167,92 @@ export class SignupService {
 		}
 
 		return { account, secret };
+	}
+
+	@bindThis
+	public async signupChannel(opts: {
+		username: MiChannel['username'];
+		userId: MiUser['id'];
+		ignorePreservedUsernames?: boolean;
+	}) {
+		const { username } = opts;
+
+		// Validate username
+		if (!this.userEntityService.validateLocalUsername(username)) {
+			throw new Error('INVALID_USERNAME');
+		}
+
+		// Check username duplication
+		if (await this.channelsRepository.exists({ where: { usernameLower: username.toLowerCase(), host: IsNull() } })) {
+			throw new Error('DUPLICATED_USERNAME');
+		}
+
+		// Check deleted username duplication
+		if (await this.usedUsernamesRepository.exists({ where: { username: username.toLowerCase() } })) {
+			throw new Error('USED_USERNAME');
+		}
+
+		if (!opts.ignorePreservedUsernames) {
+			const isPreserved = this.meta.preservedUsernames.map(x => x.toLowerCase()).includes(username.toLowerCase());
+			if (isPreserved) {
+				throw new Error('USED_USERNAME');
+			}
+
+			const hasProhibitedWords = this.utilityService.isKeyWordIncluded(username.toLowerCase(), this.meta.prohibitedWordsForNameOfUser);
+			if (hasProhibitedWords) {
+				throw new Error('USED_USERNAME');
+			}
+		}
+
+		const keyPair = await new Promise<string[]>((res, rej) =>
+			generateKeyPair('rsa', {
+				modulusLength: 2048,
+				publicKeyEncoding: {
+					type: 'spki',
+					format: 'pem',
+				},
+				privateKeyEncoding: {
+					type: 'pkcs8',
+					format: 'pem',
+					cipher: undefined,
+					passphrase: undefined,
+				},
+			}, (err, publicKey, privateKey) =>
+				err ? rej(err) : res([publicKey, privateKey]),
+			));
+
+		let account!: MiChannel;
+
+		// Start transaction
+		await this.db.transaction(async transactionalEntityManager => {
+			const exist = await transactionalEntityManager.findOneBy(MiChannel, {
+				usernameLower: username.toLowerCase(),
+				host: IsNull(),
+			});
+
+			if (exist) throw new Error(' the username is already used');
+
+			account = await transactionalEntityManager.save(new MiChannel({
+				id: this.idService.gen(),
+				username: username,
+				usernameLower: username.toLowerCase(),
+				host: null,
+				userId: opts.userId,
+			}));
+
+			await transactionalEntityManager.save(new MiChannelKeypair({
+				publicKey: keyPair[0],
+				privateKey: keyPair[1],
+				channelId: account.id,
+			}));
+
+			await transactionalEntityManager.save(new MiUsedUsername({
+				createdAt: new Date(),
+				username: username.toLowerCase(),
+			}));
+		});
+
+		return account;
 	}
 }
 
