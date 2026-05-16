@@ -236,6 +236,7 @@ export class SignupService {
 				id: this.idService.gen(),
 				username: username,
 				usernameLower: username.toLowerCase(),
+				name: username,
 				host: null,
 				userId: opts.userId,
 			}));

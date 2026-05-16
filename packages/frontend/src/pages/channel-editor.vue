@@ -214,7 +214,7 @@ function removePinnedNote(index: number) {
 function save() {
 	const params = {
 		name: name.value,
-		username: username.value,
+		username: username.value.length >= 1 ? username.value : undefined,
 		description: description.value,
 		bannerId: bannerId.value,
 		color: color.value,
