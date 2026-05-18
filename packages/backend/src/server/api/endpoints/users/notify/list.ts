@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
-import type { FollowingsRepository, MiMeta } from '@/models/_.js';
+import type { FollowingsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { QueryService } from '@/core/QueryService.js';
 import { DI } from '@/di-symbols.js';
@@ -22,28 +22,18 @@ export const meta = {
 		optional: false, nullable: false,
 		items: {
 			type: 'object',
-			optional: false, nullable: false,
-			ref: 'UserDetailed',
-		},
-	},
-
-	errors: {
-		noSuchUser: {
-			message: 'No such user.',
-			code: 'NO_SUCH_USER',
-			id: '63e4aba4-4156-4e53-be25-c9559e42d71b',
-		},
-
-		forbidden: {
-			message: 'Forbidden.',
-			code: 'FORBIDDEN',
-			id: 'f6cdb0df-c19f-ec5c-7dbb-0ba84a1f92ba',
-		},
-
-		signinRequired: {
-			message: 'Signin required.',
-			code: 'SIGNIN_REQUIRED',
-			id: '9748b741-4742-4a34-97d4-c5abcb537ca4',
+			nullable: false,
+			properties: {
+				id: {
+					type: 'string',
+					format: 'misskey:id',
+				},
+				user: {
+					type: 'object',
+					ref: 'UserDetailed',
+				},
+			},
+			required: ['id', 'user'],
 		},
 	},
 } as const;
@@ -80,7 +70,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const users = followings.map(f => f.followee!);
 
-			return await this.userEntityService.packMany(users, me, { schema: 'UserDetailed' });
+			const userMap = await this.userEntityService.packMany(users, me, { schema: 'UserDetailed' })
+				.then(packed => new Map(packed.map(u => [u.id, u])));
+			return followings.map(following => ({
+				id: following.id,
+				user: userMap.get(following.followeeId)!,
+			}));
 		});
 	}
 }
