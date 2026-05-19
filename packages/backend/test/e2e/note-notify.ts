@@ -68,7 +68,7 @@ describe('users/notify/list', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 3);
 
-		const ids = res.body.map((u: { id: string }) => u.id).sort();
+		const ids = res.body.map((u: { id: string, user: misskey.entities.UserDetailed }) => u.user.id).sort();
 		assert.deepStrictEqual(ids, [bob.id, carol.id, dave.id].sort());
 	});
 
@@ -79,7 +79,7 @@ describe('users/notify/list', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 3);
 
-		const ids = res.body.map((u: { id: string }) => u.id);
+		const ids = res.body.map(r => r.user.id);
 		assert.strictEqual(ids.includes(bob.id), true);
 		assert.strictEqual(ids.includes(carol.id), true);
 		assert.strictEqual(ids.includes(dave.id), true);
@@ -93,7 +93,7 @@ describe('users/notify/list', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 2);
 
-		const ids = res.body.map((u: { id: string }) => u.id);
+		const ids = res.body.map((u: { id: string, user: misskey.entities.UserDetailed }) => u.user.id);
 		assert.strictEqual(ids.includes(dave.id), false);
 	});
 
@@ -114,7 +114,7 @@ describe('users/notify/list', () => {
 
 		// alice の一覧には bob の通知設定は反映されない
 		const aliceRes = await api('users/notify/list', {}, alice);
-		const aliceIds = aliceRes.body.map((u: { id: string }) => u.id);
+		const aliceIds = aliceRes.body.map((u: { id: string, user: misskey.entities.UserDetailed }) => u.user.id);
 		assert.strictEqual(aliceIds.includes(bob.id), false);
 
 		// bob の一覧には carol だけが含まれる
