@@ -34,20 +34,20 @@ const ev = new Xev();
 let isShuttingDown = false;
 
 if (cluster.isPrimary && !envOption.disableClustering) {
-// Listen new workers
-cluster.on('fork', worker => {
-	clusterLogger.debug(`Process forked: [${worker.id}]`);
-});
+	// Listen new workers
+	cluster.on('fork', worker => {
+		clusterLogger.debug(`Process forked: [${worker.id}]`);
+	});
 
-// Listen online workers
-cluster.on('online', worker => {
-	clusterLogger.debug(`Process is now online: [${worker.id}]`);
-});
+	// Listen online workers
+	cluster.on('online', worker => {
+		clusterLogger.debug(`Process is now online: [${worker.id}]`);
+	});
 
-// Listen for dying workers
+	// Listen for dying workers
 	cluster.on('exit', (worker, code, signal) => {
-	// Replace the dead worker,
-	// we're not sentimental
+		// Replace the dead worker,
+		// we're not sentimental
 		clusterLogger.error(chalk.red(`[${worker.id}] died (${signal || code})`));
 		if (!isShuttingDown) cluster.fork();
 		else clusterLogger.info(chalk.yellow('Worker respawn disabled because of shutdown'));
