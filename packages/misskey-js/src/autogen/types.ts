@@ -4358,7 +4358,7 @@ export type components = {
             username: string;
             /**
              * @description The local host is represented with `null`.
-             * @example cherrypick.example.com
+             * @example misskey.example.com
              */
             host: string | null;
             /** Format: url */
@@ -4369,12 +4369,12 @@ export type components = {
                 id: string;
                 angle?: number;
                 flipH?: boolean;
+                /** Format: url */
+                url: string;
                 offsetX?: number;
                 offsetY?: number;
                 scale?: number;
                 opacity?: number;
-                /** Format: url */
-                url: string;
             }[];
             isLocked: boolean;
             isBot?: boolean;
@@ -5334,7 +5334,7 @@ export type components = {
             blockee: components['schemas']['UserDetailedNotMe'];
         };
         Hashtag: {
-            /** @example cherrypick */
+            /** @example misskey */
             tag: string;
             mentionedUsersCount: number;
             mentionedLocalUsersCount: number;
@@ -5533,7 +5533,7 @@ export type components = {
             id: string;
             /** Format: date-time */
             firstRetrievedAt: string;
-            /** @example cherrypick.example.com */
+            /** @example misskey.example.com */
             host: string;
             usersCount: number;
             notesCount: number;
@@ -5544,7 +5544,7 @@ export type components = {
             /** @enum {string} */
             suspensionState: 'none' | 'manuallySuspended' | 'goneSuspended' | 'autoSuspendedForNotResponding' | 'softwareSuspended';
             isBlocked: boolean;
-            /** @example cherrypick */
+            /** @example misskey */
             softwareName: string | null;
             softwareVersion: string | null;
             /** @example true */
@@ -5895,7 +5895,7 @@ export type components = {
             shortName: string | null;
             /**
              * Format: url
-             * @example https://cherrypick.example.com
+             * @example https://misskey.example.com
              */
             uri: string;
             description: string | null;
