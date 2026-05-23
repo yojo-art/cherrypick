@@ -14,6 +14,7 @@ import { DI } from '@/di-symbols.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { RoleService } from '@/core/RoleService.js';
+import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -96,11 +97,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
 				throw new ApiError(meta.errors.invalidUsername);
 			}
-			const channel = await signupService.signupChannel({
-				username: ps.username,
-				userId: me.id,
-				ignorePreservedUsernames: await this.roleService.isModerator(me),
-			});
+			let channel;
+			try {
+				channel = await signupService.signupChannel({
+					username: ps.username,
+					userId: me.id,
+					ignorePreservedUsernames: await this.roleService.isModerator(me),
+				});
+			} catch (err) {
+				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
+			}
 
 			await this.channelsRepository.update(channel.id, {
 				...(ps.name !== undefined ? { name: ps.name } : {}),
