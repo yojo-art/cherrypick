@@ -619,7 +619,7 @@ color: color(from var(--MI_THEME-accent) srgb r g b / 0.5);
 ```
 
 ## 考え方
-この内容はMisskeyに限定されたもので、Misskeyの意思を代表しません。
+この内容はMisskeyに限定されたもので、yojo-artの意思を代表しません。
 
 ### DRYに囚われるな
 必要なのは一般化ではなく抽象化と考えます。
