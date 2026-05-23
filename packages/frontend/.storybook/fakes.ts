@@ -209,7 +209,7 @@ export function federationInstance(): entities.FederationInstance {
 		isBlocked: false,
 		isMediaSilenced: false,
 		softwareName: 'yojo-art',
-		softwareVersion: '1.7.2',
+		softwareVersion: '1.8.0',
 		openRegistrations: false,
 		name: 'Misskey Hub',
 		description: '',
