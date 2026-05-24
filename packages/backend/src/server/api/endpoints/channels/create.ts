@@ -4,6 +4,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { channel } from 'node:diagnostics_channel';
 import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
 import * as argon2 from 'argon2';
@@ -102,82 +103,37 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
 				throw new ApiError(meta.errors.invalidUsername);
 			}
-			const user = await this.usersRepository.findOneBy({
-				usernameLower: ps.username.toLocaleLowerCase(),
-				channelId: Not(IsNull()),
-			});
-			if (user && user.channelId) {
-				//すでにチャンネルアカウントがある
-				const channel = await this.channelsRepository.findOneBy({
-					id: user.channelId,
-				});
-				if (channel) {
-					//チャンネルもあるなら関連付けして終了
-					await this.channelsRepository.update(channel.id, {
-						...(ps.name !== undefined ? { name: ps.name } : {}),
-						...(ps.description !== undefined ? { description: ps.description } : {}),
-						...(ps.color !== undefined ? { color: ps.color } : {}),
-						...(banner ? { bannerId: banner.id } : {}),
-						...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
-						...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
-						actor: user,
-						actorId: user.id,
-					});
-					return await this.channelEntityService.pack({
-						...channel,
-						...(ps.name !== undefined ? { name: ps.name } : {}),
-						...(ps.description !== undefined ? { description: ps.description } : {}),
-						...(ps.color !== undefined ? { color: ps.color } : {}),
-						...(banner ? { bannerId: banner.id } : {}),
-						...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
-						...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
-						actor: user,
-						actorId: user.id,
-					}, me);
-				}
-			}
-			const channel = await this.channelsRepository.insertOne({
-				id: this.idService.gen(),
-				name: ps.name ?? ps.username,
-				description: ps.description ?? null,
-				bannerId: banner ? banner.id : null,
-				isSensitive: ps.isSensitive ?? false,
-				...(ps.color !== undefined ? { color: ps.color } : {}),
-				allowRenoteToExternal: ps.allowRenoteToExternal ?? true,
-			});
 			let actor:MiUser;
-			if (user == null) {
-				//チャンネルアカウントを作成
-				try {
-					const password = randomUUID() + randomUUID();
-
-					// Generate hash of password
-					//const salt = await bcrypt.genSalt(8);
-					//どうせログインしないのでパスワードは適当
-					const hash = await argon2.hash(password);
-
-					const { account, secret } = await signupService.signup({
-						username: ps.username,
-						ignorePreservedUsernames: await this.roleService.isModerator(me),
-						password: hash,
-					});
-					actor = account;
-				} catch (err) {
-					throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
-				}
-			} else {
-				actor = user;
+			let _channel:MiChannel;
+			//チャンネルアカウントを作成
+			try {
+				const { account, channel } = await signupService.signupChannel({
+					username: ps.username,
+					ignorePreservedUsernames: await this.roleService.isModerator(me),
+				});
+				actor = account;
+				_channel = channel;
+			} catch (err) {
+				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
 			}
+			const channel = _channel;
 
 			await this.channelsRepository.update(channel.id, {
-				actor,
-				actorId: actor.id,
+				...(ps.name !== undefined ? { name: ps.name } : {}),
+				...(ps.description !== undefined ? { description: ps.description } : {}),
+				...(ps.color !== undefined ? { color: ps.color } : {}),
+				...(banner ? { bannerId: banner.id } : {}),
+				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
+				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			});
-
 			return await this.channelEntityService.pack({
 				...channel,
-				actor,
-				actorId: actor.id,
+				...(ps.name !== undefined ? { name: ps.name } : {}),
+				...(ps.description !== undefined ? { description: ps.description } : {}),
+				...(ps.color !== undefined ? { color: ps.color } : {}),
+				...(banner ? { bannerId: banner.id } : {}),
+				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
+				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			}, me);
 		});
 	}

@@ -337,6 +337,8 @@ export class ApPersonService implements OnModuleInit {
 		const tags = extractApHashtags(person.tag).map(normalizeForSearch).splice(0, 32);
 
 		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application';
+		//TODO チャンネル連合
+		const isChannel = getApType(object) === 'Group';
 
 		const [followingVisibility, followersVisibility] = await Promise.all(
 			[

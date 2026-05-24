@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { generateKeyPair } from 'node:crypto';
+import { generateKeyPair, randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 //import bcrypt from 'bcryptjs';
 import * as argon2 from 'argon2';
@@ -166,6 +166,125 @@ export class SignupService {
 		}
 
 		return { account, secret };
+	}
+	@bindThis
+	public async signupChannel(opts: {
+		username: MiUser['username'];
+		host?: string | null;
+		ignorePreservedUsernames?: boolean;
+	}) {
+		const { username, host } = opts;
+
+		// Validate username
+		if (!this.userEntityService.validateLocalUsername(username)) {
+			throw new Error('INVALID_USERNAME');
+		}
+		const password = randomUUID() + randomUUID();
+
+		// Generate hash of password
+		//const salt = await bcrypt.genSalt(8);
+		//どうせログインしないのでパスワードは適当
+		const hash = await argon2.hash(password);
+
+		// Generate secret
+		const secret = generateNativeUserToken();
+
+		// Check username duplication
+		if (await this.usersRepository.exists({ where: { usernameLower: username.toLowerCase(), host: IsNull() } })) {
+			throw new Error('DUPLICATED_USERNAME');
+		}
+
+		// Check deleted username duplication
+		if (await this.usedUsernamesRepository.exists({ where: { username: username.toLowerCase() } })) {
+			throw new Error('USED_USERNAME');
+		}
+
+		if (!opts.ignorePreservedUsernames && this.meta.rootUserId != null) {
+			const isPreserved = this.meta.preservedUsernames.map(x => x.toLowerCase()).includes(username.toLowerCase());
+			if (isPreserved) {
+				throw new Error('USED_USERNAME');
+			}
+
+			const hasProhibitedWords = this.utilityService.isKeyWordIncluded(username.toLowerCase(), this.meta.prohibitedWordsForNameOfUser);
+			if (hasProhibitedWords) {
+				throw new Error('USED_USERNAME');
+			}
+		}
+
+		const keyPair = await new Promise<string[]>((res, rej) =>
+			generateKeyPair('rsa', {
+				modulusLength: 2048,
+				publicKeyEncoding: {
+					type: 'spki',
+					format: 'pem',
+				},
+				privateKeyEncoding: {
+					type: 'pkcs8',
+					format: 'pem',
+					cipher: undefined,
+					passphrase: undefined,
+				},
+			}, (err, publicKey, privateKey) =>
+				err ? rej(err) : res([publicKey, privateKey]),
+			));
+
+		let account!: MiUser;
+		let channel!:MiChannel;
+
+		// Start transaction
+		await this.db.transaction(async transactionalEntityManager => {
+			const exist = await transactionalEntityManager.findOneBy(MiUser, {
+				usernameLower: username.toLowerCase(),
+				host: IsNull(),
+			});
+
+			if (exist) throw new Error(' the username is already used');
+
+			account = await transactionalEntityManager.save(new MiUser({
+				id: this.idService.gen(),
+				username: username,
+				usernameLower: username.toLowerCase(),
+				host: this.utilityService.toPunyNullable(host),
+				token: secret,
+			}));
+
+			await transactionalEntityManager.save(new MiUserKeypair({
+				publicKey: keyPair[0],
+				privateKey: keyPair[1],
+				userId: account.id,
+			}));
+
+			await transactionalEntityManager.save(new MiUserProfile({
+				userId: account.id,
+				autoAcceptFollowed: true,
+				password: hash,
+			}));
+
+			await transactionalEntityManager.save(new MiUsedUsername({
+				createdAt: new Date(),
+				username: username.toLowerCase(),
+			}));
+			await transactionalEntityManager.save(new MiUsedUsername({
+				createdAt: new Date(),
+				username: username.toLowerCase(),
+			}));
+			channel = await transactionalEntityManager.save(new MiChannel({
+				id: this.idService.gen(),
+				name: username,
+				actor: account,
+				actorId: account.id,
+			}));
+		});
+
+		this.usersChart.update(account, true);
+		//一旦WebHookはなし
+		//this.userService.notifySystemWebhook(account, 'userCreated');
+
+		if (this.meta.rootUserId == null) {
+			await this.metaService.update({ rootUserId: account.id });
+		}
+
+		return { account, channel };
 	}
 }
 
