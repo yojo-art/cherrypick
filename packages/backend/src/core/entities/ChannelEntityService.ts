@@ -4,8 +4,9 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { ChannelFavoritesRepository, ChannelFollowingsRepository, ChannelsRepository, DriveFilesRepository, NotesRepository } from '@/models/_.js';
+import type { ChannelFavoritesRepository, FollowingsRepository, ChannelsRepository, DriveFilesRepository, NotesRepository } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { } from '@/models/Blocking.js';
 import type { MiUser } from '@/models/User.js';
@@ -14,7 +15,6 @@ import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
 import { DriveFileEntityService } from './DriveFileEntityService.js';
 import { NoteEntityService } from './NoteEntityService.js';
-import { In } from 'typeorm';
 
 @Injectable()
 export class ChannelEntityService {
@@ -22,8 +22,8 @@ export class ChannelEntityService {
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
 
 		@Inject(DI.channelFavoritesRepository)
 		private channelFavoritesRepository: ChannelFavoritesRepository,
@@ -51,10 +51,10 @@ export class ChannelEntityService {
 
 		const banner = channel.bannerId ? await this.driveFilesRepository.findOneBy({ id: channel.bannerId }) : null;
 
-		const isFollowing = meId ? await this.channelFollowingsRepository.exists({
+		const isFollowing = meId && channel.actorId != null ? await this.followingsRepository.exists({
 			where: {
 				followerId: meId,
-				followeeId: channel.id,
+				followeeId: channel.actorId,
 			},
 		}) : false;
 
@@ -86,9 +86,8 @@ export class ChannelEntityService {
 			notesCount: channel.notesCount,
 			isSensitive: channel.isSensitive,
 			allowRenoteToExternal: channel.allowRenoteToExternal,
-			username: channel.username ?? undefined, //連合が実装されてないバージョンからマイグレ時にnullになる
-			host: channel.username ? channel.host : undefined, //ローカルユーザーはnullリモートユーザーはstringマイグレするとundefined
-			followersCount: channel.followersCount >= 0 ? channel.followersCount : undefined, //純正からマイグレすると-1になる
+			host: channel.host, //ローカルユーザーはnullリモートユーザーはstring
+			actorId: channel.actorId ?? undefined, //マイグレすると無い事がある
 
 			...(me ? {
 				isFollowing,

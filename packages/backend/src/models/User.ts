@@ -7,6 +7,7 @@ import { Entity, Column, Index, OneToOne, JoinColumn, PrimaryColumn } from 'type
 import { searchableTypes } from '@/types.js';
 import { id } from './util/id.js';
 import { MiDriveFile } from './DriveFile.js';
+import { MiChannel } from './Channel.js';
 
 @Entity('user')
 @Index(['usernameLower', 'host'], { unique: true })
@@ -190,6 +191,19 @@ export class MiUser {
 		comment: 'Whether the User is a cat.',
 	})
 	public isCat: boolean;
+
+	@Column({
+		...id(),
+		nullable: true,
+		comment: 'Whether the User is channel.',
+	})
+	public channelId: MiChannel['id'] | null;
+
+	@OneToOne(type => MiChannel, {
+		onDelete: 'SET NULL',
+	})
+	@JoinColumn()
+	public channel: MiChannel | null;
 
 	@Index()
 	@Column('boolean', {

@@ -15,7 +15,7 @@ import type { IMentionedRemoteUsers } from '@/models/Note.js';
 import { MiNote } from '@/models/Note.js';
 import { MiEvent } from '@/models/Event.js';
 import type { IEvent } from '@/models/Event.js';
-import type { BlockingsRepository, ChannelFollowingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { BlockingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiApp } from '@/models/App.js';
 import { concat } from '@/misc/prelude/array.js';
@@ -60,6 +60,7 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import renotes from '@/server/api/endpoints/notes/renotes.js';
 import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
@@ -227,9 +228,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
 
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
-
 		@Inject(DI.blockingsRepository)
 		private blockingsRepository: BlockingsRepository,
 
@@ -273,6 +271,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
+		channelId: MiUser['channelId'];
 	}, data: {
 		createdAt: Date;
 		updatedAt?: Date | null;
@@ -454,6 +453,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
+		channelId: MiUser['channelId'];
 	}, data: Option, silent = false): Promise<MiNote> {
 		//このフォークではローカルのみを認めない
 		data.localOnly = undefined;
@@ -740,6 +740,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		username: MiUser['username'];
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
+		channelId: MiUser['channelId'];
 	}, data: Option, silent: boolean, tags: string[], mentionedUsers: MinimumUser[]) {
 		this.notesChart.update(note, true);
 		if (note.visibility !== 'specified' && (this.meta.enableChartsForRemoteUser || (user.host == null))) {
@@ -911,6 +912,24 @@ export class NoteCreateService implements OnApplicationShutdown {
 					trackPromise(dm.execute());
 				})();
 			}
+			if (note.channelId != null && note.channel == null) {
+				note.channel = await this.channelsRepository.findOneBy({ id: note.channelId });
+			}
+			if (note.channel?.actorId != null && note.channel.host == null && !user.channelId && ['public', 'home'].includes(note.visibility)) {
+				//ローカルのチャンネルに投稿が作成された時リノートする
+				note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+				if (note.channel.actor) {
+					//awaitせず非同期でやる
+					this.create(note.channel.actor, {
+						createdAt: this.idService.parse(note.id).date,
+						renote: note,
+						visibility: note.visibility,
+						searchableBy: note.searchableBy,
+					});
+				} else {
+					console.log('チャンネルに連動したアカウントが見つからない');
+				}
+			}
 			//#endregion
 		}
 
@@ -1064,25 +1083,30 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		const r = this.redisForTimelines.pipeline();
 
-		if (note.channelId) {
+		//投稿の作成者がチャンネルアカウントであるチャンネルを取得
+		const query = this.channelsRepository.createQueryBuilder('channel')
+			.innerJoinAndSelect('channel.actor', 'actor').andWhere(`(select "id" from "user" where id = channel."actorId")=${user.id}`);
+		const channel_user = await query.getOne();
+		if (channel_user != null) {
+			//チャンネルユーザーが作成したチャンネル投稿
+			note.channel = channel_user;
+			if (note.renoteId && note.renote == null) {
+				note.renote = await this.notesRepository.findOneBy({ id: note.renoteId });
+			}
+			if (note.renote) {
+				//TLにはリノートの中身を投入する
+				note = note.renote;
+			}
+		} else {
+			//投稿の作成者がチャンネルアカウントではないチャンネル投稿
+			if (note.channelId) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		}
+		if (note.channelId && note.channel) {
 			this.fanoutTimelineService.push(`channelTimeline:${note.channelId}`, note.id, this.config.perChannelMaxNoteCacheCount, r);
 
 			this.fanoutTimelineService.push(`userTimelineWithChannel:${user.id}`, note.id, note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax, r);
-
-			const channelFollowings = await this.channelFollowingsRepository.find({
-				where: {
-					followeeId: note.channelId,
-				},
-				select: ['followerId'],
-			});
-
-			for (const channelFollowing of channelFollowings) {
-				this.fanoutTimelineService.push(`homeTimeline:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax, r);
-				if (note.fileIds.length > 0) {
-					this.fanoutTimelineService.push(`homeTimelineWithFiles:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax / 2, r);
-				}
-			}
-		} else {
+		}
+		{
 			// TODO: キャッシュ？
 			// eslint-disable-next-line prefer-const
 			let [followings, userListMemberships] = await Promise.all([

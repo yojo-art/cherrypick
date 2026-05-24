@@ -5,7 +5,7 @@
 
 import { Brackets } from 'typeorm';
 import { Inject, Injectable } from '@nestjs/common';
-import type { NotesRepository, ChannelFollowingsRepository, MiMeta } from '@/models/_.js';
+import type { NotesRepository, MiMeta, UsersRepository, FollowingsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { QueryService } from '@/core/QueryService.js';
 import ActiveUsersChart from '@/core/chart/charts/active-users.js';
@@ -62,8 +62,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
 
 		private noteEntityService: NoteEntityService,
 		private activeUsersChart: ActiveUsersChart,
@@ -144,11 +144,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 	private async getFromDb(ps: { untilId: string | null; sinceId: string | null; limit: number; includeMyRenotes: boolean; includeRenotedMyNotes: boolean; includeLocalRenotes: boolean; withFiles: boolean; withRenotes: boolean; withCats: boolean; }, me: MiLocalUser) {
 		const followees = await this.userFollowingService.getFollowees(me.id);
-		const followingChannels = await this.channelFollowingsRepository.find({
-			where: {
-				followerId: me.id,
-			},
-		});
+		const followingChannels = await this.followingsRepository.createQueryBuilder('following')
+			.select('following.followeeId')
+			.where('following.followerId = :followerId', { followerId: me.id })
+			.innerJoinAndSelect('follow.followee', 'followee')
+			.andWhere('followee.channelId IS NOT NULL')
+			.getMany();
 
 		//#region Construct query
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)

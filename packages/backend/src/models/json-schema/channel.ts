@@ -91,14 +91,10 @@ export const packedChannelSchema = {
 		},
 		host: {
 			type: 'string',
-			optional: true, nullable: true,
+			optional: false, nullable: true,
 		},
-		username: {
+		actorId: {
 			type: 'string',
-			optional: true, nullable: false,
-		},
-		followersCount: {
-			type: 'number',
 			optional: true, nullable: false,
 		},
 	},

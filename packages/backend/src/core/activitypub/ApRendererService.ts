@@ -21,9 +21,10 @@ import type { MiPollVote } from '@/models/PollVote.js';
 import { UserKeypairService } from '@/core/UserKeypairService.js';
 import { MfmService, type Appender } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { MiUserKeypair } from '@/models/UserKeypair.js';
-import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip } from '@/models/_.js';
+import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip, MiChannel } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
@@ -65,6 +66,7 @@ export class ApRendererService {
 
 		private customEmojiService: CustomEmojiService,
 		private userEntityService: UserEntityService,
+		private channelEntityService: ChannelEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private jsonLdService: JsonLdService,
 		private userKeypairService: UserKeypairService,

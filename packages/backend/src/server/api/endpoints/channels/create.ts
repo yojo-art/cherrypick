@@ -3,10 +3,12 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
+import * as argon2 from 'argon2';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { ChannelsRepository, DriveFilesRepository } from '@/models/_.js';
+import type { ChannelsRepository, DriveFilesRepository, MiUser } from '@/models/_.js';
 import type { MiChannel } from '@/models/Channel.js';
 import { IdService } from '@/core/IdService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
@@ -97,35 +99,37 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
 				throw new ApiError(meta.errors.invalidUsername);
 			}
-			let channel;
+			let actor:MiUser;
 			try {
-				channel = await signupService.signupChannel({
+				const password = randomUUID() + randomUUID();
+
+				// Generate hash of password
+				//const salt = await bcrypt.genSalt(8);
+				//どうせログインしないのでパスワードは適当
+				const hash = await argon2.hash(password);
+
+				const { account, secret } = await signupService.signup({
 					username: ps.username,
-					userId: me.id,
 					ignorePreservedUsernames: await this.roleService.isModerator(me),
+					password: hash,
 				});
+				actor = account;
 			} catch (err) {
 				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
 			}
-
-			await this.channelsRepository.update(channel.id, {
+			const channel = await this.channelsRepository.insertOne({
+				id: this.idService.gen(),
 				...(ps.name !== undefined ? { name: ps.name } : {}),
 				description: ps.description ?? null,
 				bannerId: banner ? banner.id : null,
 				isSensitive: ps.isSensitive ?? false,
 				...(ps.color !== undefined ? { color: ps.color } : {}),
 				allowRenoteToExternal: ps.allowRenoteToExternal ?? true,
-			} as MiChannel);
+				actor,
+				actorId: actor.id,
+			});
 
-			return await this.channelEntityService.pack({
-				...channel,
-				...(ps.name !== undefined ? { name: ps.name } : {}),
-				description: ps.description ?? null,
-				bannerId: banner ? banner.id : null,
-				isSensitive: ps.isSensitive ?? false,
-				...(ps.color !== undefined ? { color: ps.color } : {}),
-				allowRenoteToExternal: ps.allowRenoteToExternal ?? true,
-			}, me);
+			return await this.channelEntityService.pack(channel, me);
 		});
 	}
 }

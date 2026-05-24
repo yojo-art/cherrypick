@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { ChannelFollowingsRepository } from '@/models/_.js';
+import type { FollowingsRepository } from '@/models/_.js';
 import { QueryService } from '@/core/QueryService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
@@ -43,8 +43,8 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
 
 		private channelEntityService: ChannelEntityService,
 		private queryService: QueryService,
@@ -52,14 +52,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			const query = this.queryService
 				.makePaginationQuery(
-					this.channelFollowingsRepository.createQueryBuilder(),
+					this.followingsRepository.createQueryBuilder('follow'),
 					ps.sinceId,
 					ps.untilId,
 					ps.sinceDate,
 					ps.untilDate,
 					'followeeId',
 				)
-				.andWhere({ followerId: me.id });
+				.andWhere({ followerId: me.id })
+				.innerJoinAndSelect('follow.followee', 'followee')
+				.andWhere('followee.channelId IS NOT NULL');
 
 			const followings = await query
 				.limit(ps.limit)
