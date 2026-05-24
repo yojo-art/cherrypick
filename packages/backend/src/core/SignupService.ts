@@ -170,10 +170,11 @@ export class SignupService {
 	@bindThis
 	public async signupChannel(opts: {
 		username: MiUser['username'];
+		ownerId: MiUser['id'],
 		host?: string | null;
 		ignorePreservedUsernames?: boolean;
 	}) {
-		const { username, host } = opts;
+		const { username, ownerId, host } = opts;
 
 		// Validate username
 		if (!this.userEntityService.validateLocalUsername(username)) {
@@ -271,9 +272,16 @@ export class SignupService {
 			channel = await transactionalEntityManager.save(new MiChannel({
 				id: this.idService.gen(),
 				name: username,
+				userId: ownerId,
 				actor: account,
 				actorId: account.id,
 			}));
+			transactionalEntityManager.update(MiUser, {
+				id: account.id,
+			}, {
+				channelId: channel.id,
+				channel: channel,
+			});
 		});
 
 		this.usersChart.update(account, true);

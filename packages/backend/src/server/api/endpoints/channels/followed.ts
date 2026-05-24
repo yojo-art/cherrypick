@@ -4,11 +4,13 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { ObjectLiteral, SelectQueryBuilder } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { FollowingsRepository } from '@/models/_.js';
 import { QueryService } from '@/core/QueryService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
+import { IdService } from '@/core/IdService.js';
 
 export const meta = {
 	tags: ['channels', 'account'],
@@ -48,26 +50,60 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private channelEntityService: ChannelEntityService,
 		private queryService: QueryService,
+		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const query = this.queryService
-				.makePaginationQuery(
-					this.followingsRepository.createQueryBuilder('follow'),
-					ps.sinceId,
-					ps.untilId,
-					ps.sinceDate,
-					ps.untilDate,
-					'followeeId',
-				)
+			const q = this.followingsRepository.createQueryBuilder('following').leftJoinAndSelect('following.followee', 'followee');
+			const query = this.makePaginationQuery(
+				q,
+				ps.sinceId,
+				ps.untilId,
+				ps.sinceDate,
+				ps.untilDate,
+				'followee.channelId',
+			)
 				.andWhere({ followerId: me.id })
-				.innerJoinAndSelect('follow.followee', 'followee')
 				.andWhere('followee.channelId IS NOT NULL');
 
-			const followings = await query
+			const followings = (await query
 				.limit(ps.limit)
-				.getMany();
+				.getMany()).map(x => x.followee?.channelId).filter(x => x != null);
 
-			return await Promise.all(followings.map(x => this.channelEntityService.pack(x.followeeId, me)));
+			return await Promise.all(followings.map(x => this.channelEntityService.pack(x, me)));
 		});
+	}
+	//queryServiceはjoinしたテーブルでソートができない
+	private makePaginationQuery<T extends ObjectLiteral>(
+		q: SelectQueryBuilder<T>,
+		sinceId?: string | null,
+		untilId?: string | null,
+		sinceDate?: number | null,
+		untilDate?: number | null,
+		targetColumn = 'id',
+	): SelectQueryBuilder<T> {
+		if (sinceId && untilId) {
+			q.andWhere(`${targetColumn} > :sinceId`, { sinceId: sinceId });
+			q.andWhere(`${targetColumn} < :untilId`, { untilId: untilId });
+			q.orderBy(`${targetColumn}`, 'DESC');
+		} else if (sinceId) {
+			q.andWhere(`${targetColumn} > :sinceId`, { sinceId: sinceId });
+			q.orderBy(`${targetColumn}`, 'ASC');
+		} else if (untilId) {
+			q.andWhere(`${targetColumn} < :untilId`, { untilId: untilId });
+			q.orderBy(`${targetColumn}`, 'DESC');
+		} else if (sinceDate && untilDate) {
+			q.andWhere(`${targetColumn} > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
+			q.andWhere(`${targetColumn} < :untilId`, { untilId: this.idService.gen(untilDate) });
+			q.orderBy(`${targetColumn}`, 'DESC');
+		} else if (sinceDate) {
+			q.andWhere(`${targetColumn} > :sinceId`, { sinceId: this.idService.gen(sinceDate) });
+			q.orderBy(`${targetColumn}`, 'ASC');
+		} else if (untilDate) {
+			q.andWhere(`${targetColumn} < :untilId`, { untilId: this.idService.gen(untilDate) });
+			q.orderBy(`${targetColumn}`, 'DESC');
+		} else {
+			q.orderBy(`${targetColumn}`, 'DESC');
+		}
+		return q;
 	}
 }
