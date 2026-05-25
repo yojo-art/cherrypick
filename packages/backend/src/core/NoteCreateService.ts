@@ -778,14 +778,16 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.saveReply(data.reply, note);
 		}
 
-		if (data.reply == null && !silent && (user.channelId != null && data.reply == null && data.renote != null && data.text == null)) {
+		const isPureRenote = this.isRenote(data) && !this.isQuote(data) ? true : false;
+		if (user.channelId != null && isPureRenote) {
+			//チャンネルによる純粋リノートは通知しない
+		} else if (data.reply == null && !silent) {
 			// TODO: キャッシュ
 			this.followingsRepository.findBy({
 				followeeId: user.id,
 				notify: 'normal',
 			}).then(async followings => {
 				if (note.visibility !== 'specified') {
-					const isPureRenote = this.isRenote(data) && !this.isQuote(data) ? true : false;
 					for (const following of followings) {
 						// TODO: ワードミュート考慮
 						let isRenoteMuted = false;
@@ -864,7 +866,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				const type = this.isQuote(data) ? 'quote' : 'renote';
 
 				// Notify
-				if (data.renote.userHost === null) {
+				if (data.renote.userHost === null && !(user.channelId != null && type === 'renote')) {
 					nm.push(data.renote.userId, type);
 				}
 
