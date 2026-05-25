@@ -4379,6 +4379,8 @@ export type components = {
             isLocked: boolean;
             isBot?: boolean;
             isCat?: boolean;
+            /** Format: id */
+            channelId?: string;
             requireSigninToViewContents?: boolean;
             makeNotesFollowersOnlyBefore?: number | null;
             makeNotesHiddenBefore?: number | null;

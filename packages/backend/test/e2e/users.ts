@@ -41,6 +41,7 @@ describe('ユーザー', () => {
 			isLocked: user.isLocked,
 			isBot: user.isBot,
 			isCat: user.isCat,
+			channelId: user.channelId,
 			instance: user.instance,
 			emojis: user.emojis,
 			onlineStatus: user.onlineStatus,
@@ -315,6 +316,7 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.avatarBlurhash, null);
 		assert.deepStrictEqual(response.avatarDecorations, []);
 		assert.strictEqual(response.isLocked, false);
+		assert.strictEqual(response.channelId, null);
 		assert.strictEqual(response.isBot, false);
 		assert.strictEqual(response.isCat, false);
 		assert.strictEqual(response.instance, undefined);

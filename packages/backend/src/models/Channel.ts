@@ -105,7 +105,7 @@ export class MiChannel {
 	})
 	public host: string | null;
 
-	@Index()
+	@Index({ unique: true })
 	@Column({
 		...id(),
 		nullable: true,

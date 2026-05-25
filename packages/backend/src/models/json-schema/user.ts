@@ -127,6 +127,11 @@ export const packedUserLiteSchema = {
 			type: 'boolean',
 			nullable: false, optional: true,
 		},
+		channelId: {
+			type: 'string',
+			nullable: false, optional: true,
+			format: 'id',
+		},
 		requireSigninToViewContents: {
 			type: 'boolean',
 			nullable: false, optional: true,

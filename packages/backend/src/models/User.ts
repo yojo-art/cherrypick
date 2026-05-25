@@ -192,13 +192,6 @@ export class MiUser {
 	})
 	public isCat: boolean;
 
-	@Column({
-		...id(),
-		nullable: true,
-		comment: 'Whether the User is channel.',
-	})
-	public channelId: MiChannel['id'] | null;
-
 	@OneToOne(type => MiChannel, {
 		onDelete: 'SET NULL',
 	})
@@ -365,6 +358,14 @@ export class MiUser {
 		length: 512, nullable: true,
 	})
 	public clipsUri: string | null;
+
+	@Index({ unique: true })
+	@Column({
+		...id(),
+		nullable: true,
+		comment: 'Whether the User is channel.',
+	})
+	public channelId: MiChannel['id'] | null;
 }
 
 export type MiLocalUser = MiUser & {

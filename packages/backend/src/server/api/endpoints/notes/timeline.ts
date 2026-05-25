@@ -143,13 +143,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	}
 
 	private async getFromDb(ps: { untilId: string | null; sinceId: string | null; limit: number; includeMyRenotes: boolean; includeRenotedMyNotes: boolean; includeLocalRenotes: boolean; withFiles: boolean; withRenotes: boolean; withCats: boolean; }, me: MiLocalUser) {
-		const followees = await this.userFollowingService.getFollowees(me.id);
-		const followingChannels = await this.followingsRepository.createQueryBuilder('following')
-			.select('following.followeeId')
+		const followeesHasChannels = await this.followingsRepository.createQueryBuilder('following')
+			.innerJoinAndSelect('following.followee', 'followee')
+			.select(['followee.channelId', 'following.followeeId'])
 			.where('following.followerId = :followerId', { followerId: me.id })
-			.innerJoinAndSelect('follow.followee', 'followee')
-			.andWhere('followee.channelId IS NOT NULL')
+			//.andWhere('followee.channelId IS NOT NULL')
 			.getMany();
+		const followeeIds = followeesHasChannels.filter(x => x.followee?.channelId == null).map(f => f.followeeId);
+		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null);
 
 		//#region Construct query
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
@@ -157,12 +158,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			.leftJoinAndSelect('note.reply', 'reply')
 			.leftJoinAndSelect('note.renote', 'renote')
 			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser');
+			.leftJoinAndSelect('renote.user', 'renoteUser')
+			.andWhere('user.channelId IS NULL');
 
-		if (followees.length > 0 && followingChannels.length > 0) {
+		if (followeeIds.length > 0 && followingChannelIds.length > 0) {
 			// ユーザー・チャンネルともにフォローあり
-			const meOrFolloweeIds = [me.id, ...followees.map(f => f.followeeId)];
-			const followingChannelIds = followingChannels.map(x => x.followeeId);
+			const meOrFolloweeIds = [me.id, ...followeeIds];
 			query.andWhere(new Brackets(qb => {
 				qb
 					.where(new Brackets(qb2 => {
@@ -172,15 +173,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}))
 					.orWhere('note.channelId IN (:...followingChannelIds)', { followingChannelIds });
 			}));
-		} else if (followees.length > 0) {
+		} else if (followeeIds.length > 0) {
 			// ユーザーフォローのみ（チャンネルフォローなし）
-			const meOrFolloweeIds = [me.id, ...followees.map(f => f.followeeId)];
+			const meOrFolloweeIds = [me.id, ...followeeIds];
 			query
 				.andWhere('note.channelId IS NULL')
 				.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
-		} else if (followingChannels.length > 0) {
+		} else if (followingChannelIds.length > 0) {
 			// チャンネルフォローのみ（ユーザーフォローなし）
-			const followingChannelIds = followingChannels.map(x => x.followeeId);
 			query.andWhere(new Brackets(qb => {
 				qb
 					.where('note.channelId IN (:...followingChannelIds)', { followingChannelIds })

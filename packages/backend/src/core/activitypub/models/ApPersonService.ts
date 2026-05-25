@@ -8,7 +8,7 @@ import promiseLimit from 'promise-limit';
 import { DataSource } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
-import { type FollowingsRepository, type InstancesRepository, type MiMeta, type MiDriveFile, type UserProfilesRepository, type UserPublickeysRepository, type UsersRepository, MiClip } from '@/models/_.js';
+import { type FollowingsRepository, type InstancesRepository, type MiMeta, type MiDriveFile, type UserProfilesRepository, type UserPublickeysRepository, type UsersRepository, type ChannelsRepository, MiChannel } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import { MiUser } from '@/models/User.js';
@@ -106,6 +106,9 @@ export class ApPersonService implements OnModuleInit {
 
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private roleService: RoleService,
 
@@ -337,7 +340,7 @@ export class ApPersonService implements OnModuleInit {
 		const tags = extractApHashtags(person.tag).map(normalizeForSearch).splice(0, 32);
 
 		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application';
-		//TODO チャンネル連合
+
 		const isChannel = getApType(object) === 'Group';
 
 		const [followingVisibility, followersVisibility] = await Promise.all(
@@ -427,8 +430,27 @@ export class ApPersonService implements OnModuleInit {
 		try {
 			// Start transaction
 			await this.db.transaction(async transactionalEntityManager => {
+				let _description: string | null = null;
+
+				if (person._misskey_summary) {
+					_description = truncate(person._misskey_summary, summaryLength);
+				} else if (person.summary) {
+					_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
+				}
+				const user_id = this.idService.gen();
+				let channel = null as MiChannel | null;
+				if (isChannel) {
+					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
+					channel = await transactionalEntityManager.save(new MiChannel({
+						id: this.idService.gen(),
+						name: truncate(person.name, nameLength),
+						description: _description,
+						userId: user_id,
+						actorId: user_id,
+					}));
+				}
 				user = await transactionalEntityManager.save(new MiUser({
-					id: this.idService.gen(),
+					id: user_id,
 					avatarId: null,
 					bannerId: null,
 					lastFetchedAt: new Date(),
@@ -486,15 +508,8 @@ export class ApPersonService implements OnModuleInit {
 					isSquareAvatars: person.isSquareAvatars,
 					canChat: (person as any)._misskey_canChat ?? true,
 					clipsUri: person._yojoart_clips ? getApId(person._yojoart_clips) : person.playlists ? getApId(person.playlists) : undefined,
+					channelId: channel?.id,
 				})) as MiRemoteUser;
-
-				let _description: string | null = null;
-
-				if (person._misskey_summary) {
-					_description = truncate(person._misskey_summary, summaryLength);
-				} else if (person.summary) {
-					_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
-				}
 
 				await transactionalEntityManager.save(new MiUserProfile({
 					userId: user.id,
@@ -702,6 +717,41 @@ export class ApPersonService implements OnModuleInit {
 				notesCount = undefined;
 			}
 		}
+
+		const display_name = truncate(person.name, nameLength) ?? exist.name ?? exist.username;
+		let _description: string | null = null;
+
+		if (person._misskey_summary) {
+			_description = truncate(person._misskey_summary, summaryLength);
+		} else if (person.summary) {
+			_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
+		}
+		let channelId = null as MiChannel['id'] | null;
+		if (getApType(object) === 'Group') {
+			//チャンネルアカウント
+			const _channel = await this.channelsRepository.findOneBy({
+				actorId: exist.id,
+			});
+			if (_channel) {
+				channelId = _channel.id;
+				if (_channel.description !== _description) {
+					//TODO チャンネル連合 バナー画像の扱い
+					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
+					await this.channelsRepository.update({ actorId: exist.id }, { description: _description });
+				}
+			} else {
+				//チャンネルアカウントなのにチャンネルが無い時は作る
+				//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
+				const channel = await this.channelsRepository.insertOne({
+					id: this.idService.gen(),
+					name: display_name,
+					userId: exist.id,
+					actorId: exist.id,
+					description: _description,
+				});
+				channelId = channel.id;
+			}
+		}
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
 		const updates = {
 			lastFetchedAt: new Date(),
@@ -738,7 +788,7 @@ export class ApPersonService implements OnModuleInit {
 						: undefined,
 			featured: person.featured ? getApId(person.featured) : undefined,
 			emojis: emojiNames,
-			name: truncate(person.name, nameLength),
+			name: display_name,
 			tags,
 			isBot: getApType(object) === 'Service' || getApType(object) === 'Application',
 			isCat: (person as any).isCat === true,
@@ -751,6 +801,7 @@ export class ApPersonService implements OnModuleInit {
 			canChat: (person as any)._misskey_canChat ?? true,
 			clipsUri: person._yojoart_clips ?? person.playlists,
 			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
+			...(channelId ? { channelId } : {}),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;
 
 		const moving = ((): boolean => {
@@ -788,13 +839,6 @@ export class ApPersonService implements OnModuleInit {
 			});
 		}
 
-		let _description: string | null = null;
-
-		if (person._misskey_summary) {
-			_description = truncate(person._misskey_summary, summaryLength);
-		} else if (person.summary) {
-			_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
-		}
 		const mutualLinkSections = await this.mutualLinkSections(person, exist, role_policy);
 
 		let filter_fields = fields;

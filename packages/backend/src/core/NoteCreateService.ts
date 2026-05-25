@@ -778,7 +778,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.saveReply(data.reply, note);
 		}
 
-		if (data.reply == null && !silent) {
+		if (data.reply == null && !silent && (user.channelId != null && data.reply == null && data.renote != null && data.text == null)) {
 			// TODO: キャッシュ
 			this.followingsRepository.findBy({
 				followeeId: user.id,
@@ -925,6 +925,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 						renote: note,
 						visibility: note.visibility,
 						searchableBy: note.searchableBy,
+						channel: note.channel,
 					});
 				} else {
 					console.log('チャンネルに連動したアカウントが見つからない');
