@@ -51,8 +51,14 @@ export class HomeTimelineChannel extends Channel {
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
 
 		if (note.channelId) {
-			if (note.user.channelId != null) return;//yojo-art チャンネルアカウントによる投稿はTLに流さない
 			if (!this.followingChannels.has(note.channelId)) return;
+			if (note.user.channelId != null) {
+				// チャンネルアカウントによる純粋なリノートの場合
+				if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
+					//yojo-art その内容部分の投稿を展開してTLに流す
+					note = note.renote;
+				}
+			}
 		} else {
 			// その投稿のユーザーをフォローしていなかったら弾く
 			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;

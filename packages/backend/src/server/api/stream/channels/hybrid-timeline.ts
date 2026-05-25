@@ -60,7 +60,13 @@ export class HybridTimelineChannel extends Channel {
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
 
-		if (note.user.channelId != null) return;//yojo-art チャンネルアカウントによる投稿はTLに流さない
+		if (note.user.channelId != null) {
+			// チャンネルアカウントによる純粋なリノートの場合
+			if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
+				//yojo-art その内容部分の投稿を展開してTLに流す
+				note = note.renote;
+			}
+		}
 
 		// チャンネルの投稿ではなく、自分自身の投稿 または
 		// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
