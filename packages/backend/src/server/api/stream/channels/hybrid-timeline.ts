@@ -4,16 +4,16 @@
  */
 
 import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { MetaService } from '@/core/MetaService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
+import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import Channel, { type ChannelRequest } from '../channel.js';
-import { REQUEST } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class HybridTimelineChannel extends Channel {
@@ -59,6 +59,8 @@ export class HybridTimelineChannel extends Channel {
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
+
+		if (note.user.channelId != null) return;//yojo-art チャンネルアカウントによる投稿はTLに流さない
 
 		// チャンネルの投稿ではなく、自分自身の投稿 または
 		// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または

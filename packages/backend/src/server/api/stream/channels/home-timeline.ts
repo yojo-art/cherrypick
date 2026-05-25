@@ -4,14 +4,14 @@
  */
 
 import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import { bindThis } from '@/decorators.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
+import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import Channel, { type ChannelRequest } from '../channel.js';
-import { REQUEST } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class HomeTimelineChannel extends Channel {
@@ -51,6 +51,7 @@ export class HomeTimelineChannel extends Channel {
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
 
 		if (note.channelId) {
+			if (note.user.channelId != null) return;//yojo-art チャンネルアカウントによる投稿はTLに流さない
 			if (!this.followingChannels.has(note.channelId)) return;
 		} else {
 			// その投稿のユーザーをフォローしていなかったら弾く

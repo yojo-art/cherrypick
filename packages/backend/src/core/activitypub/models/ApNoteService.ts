@@ -6,7 +6,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { PollsRepository, EmojisRepository, MiMeta, NotesRepository } from '@/models/_.js';
+import type { PollsRepository, EmojisRepository, MiMeta, NotesRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
@@ -59,6 +59,9 @@ export class ApNoteService {
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private idService: IdService,
 		private apMfmService: ApMfmService,
@@ -230,6 +233,14 @@ export class ApNoteService {
 				visibility = 'public';
 			}
 		}
+		let channel = null as MiChannel | null;
+		for (const user of noteAudience.mentionedUsers) {
+			const channelId = user.channelId;
+			if (channelId) {
+				channel = await this.channelsRepository.findOneBy({ id: channelId });
+			}
+			if (channel) break;//最初に発見されたチャンネルに投稿
+		}
 
 		// 添付ファイル
 		const files: MiDriveFile[] = [];
@@ -342,6 +353,7 @@ export class ApNoteService {
 				uri: note.id,
 				url: url,
 				deleteAt: note.deleteAt ? new Date(note.deleteAt) : null,
+				channel,
 			}, silent);
 		} catch (err: any) {
 			if (err.name !== 'duplicated') {
