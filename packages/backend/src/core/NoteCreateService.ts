@@ -60,7 +60,6 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
-import renotes from '@/server/api/endpoints/notes/renotes.js';
 import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
@@ -1087,9 +1086,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		const r = this.redisForTimelines.pipeline();
 
 		//投稿の作成者がチャンネルアカウントであるチャンネルを取得
-		const query = this.channelsRepository.createQueryBuilder('channel')
-			.innerJoinAndSelect('channel.actor', 'actor').andWhere(`(select "id" from "user" where id = channel."actorId")=${user.id}`);
-		const channel_user = await query.getOne();
+		const channel_user = note.channelId ? await this.channelsRepository.createQueryBuilder('channel')
+			.andWhere(`(select "id" from "user" where id = channel."actorId")=${user.id}`).getOne() : null;
 		if (channel_user != null) {
 			//チャンネルユーザーが作成したチャンネル投稿
 			note.channel = channel_user;
