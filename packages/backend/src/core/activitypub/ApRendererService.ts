@@ -24,7 +24,7 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { MiUserKeypair } from '@/models/UserKeypair.js';
-import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip, MiChannel } from '@/models/_.js';
+import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip, MiChannel, ChannelsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
@@ -63,6 +63,9 @@ export class ApRendererService {
 
 		@Inject(DI.eventsRepository)
 		private eventsRepository: EventsRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private customEmojiService: CustomEmojiService,
 		private userEntityService: UserEntityService,
@@ -456,6 +459,14 @@ export class ApRendererService {
 		const attributedTo = this.userEntityService.genLocalUserUri(note.userId);
 
 		const mentions = (JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers).map(x => x.uri);
+
+		if (note.channelId) {
+			note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+			if (note.channel?.actorId) {
+				const channelActor = this.userEntityService.genLocalUserUri(note.channel.actorId);
+				mentions.push(channelActor);
+			}
+		}
 
 		let to: string[] = [];
 		let cc: string[] = [];
