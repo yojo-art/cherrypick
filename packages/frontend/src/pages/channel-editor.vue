@@ -175,9 +175,12 @@ async function fetchChannel() {
 	const result = await misskeyApi('channels/show', {
 		channelId: props.channelId,
 	});
+	const actor = result.actorId ? await misskeyApi('users/show', {
+		userId: result.actorId,
+	}) : null;
 
 	name.value = result.name;
-	username.value = result.username ?? '';
+	username.value = actor?.username ?? '';
 	description.value = result.description;
 	bannerId.value = result.bannerId;
 	bannerUrl.value = result.bannerUrl;
@@ -213,8 +216,8 @@ function removePinnedNote(index: number) {
 
 function save() {
 	const params = {
-		name: name.value,
-		username: username.value.length >= 1 ? username.value : undefined,
+		name: name.value.length >= 1 ? username.value : '',
+		username: username.value,
 		description: description.value,
 		bannerId: bannerId.value,
 		color: color.value,
@@ -225,6 +228,7 @@ function save() {
 	if (props.channelId != null) {
 		os.apiWithDialog('channels/update', {
 			...params,
+			username: undefined,
 			channelId: props.channelId,
 			pinnedNoteIds: pinnedNotes.value.map(x => x.id),
 		});
