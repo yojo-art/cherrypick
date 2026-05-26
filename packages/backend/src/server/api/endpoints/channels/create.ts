@@ -106,6 +106,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				const { account, channel } = await this.signupService.signupChannel({
 					username: ps.username,
 					ownerId: me.id,
+					description: ps.description,
 					ignorePreservedUsernames: await this.roleService.isModerator(me),
 				});
 				actor = account;

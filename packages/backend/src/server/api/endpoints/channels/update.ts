@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository } from '@/models/_.js';
+import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -81,6 +81,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private usersRepository: UsersRepository,
 		@Inject(DI.userNotePiningsRepository)
 		private userNotePiningsRepository: UserNotePiningsRepository,
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 
 		private channelEntityService: ChannelEntityService,
 		private notePiningService: NotePiningService,
@@ -116,9 +118,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				banner = null;
 			}
 			if (channel.actorId) {
-				await this.usersRepository.update({ id: channel.actorId }, {
-					bannerId: banner?.id,
-				});
+				if (ps.name || ps.bannerId) {
+					await this.usersRepository.update({ id: channel.actorId }, {
+						...(ps.bannerId !== undefined ? { name: ps.bannerId } : {}),
+						...(ps.name !== undefined ? { name: ps.name } : {}),
+						...(ps.description !== undefined ? { description: ps.description } : {}),
+					});
+				}
+				if (ps.description) {
+					await this.userProfilesRepository.update({ userId: channel.actorId }, {
+						description: ps.description,
+					});
+				}
 				if (ps.pinnedNoteIds) {
 					const pinnedNoteIds = (await this.userNotePiningsRepository.find({
 						where: { userId: channel.actorId },
