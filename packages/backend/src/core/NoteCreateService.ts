@@ -1103,10 +1103,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 			if (note.channelId) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
 		}
 		if (note.channelId && note.channel) {
-			const channelFollowings = note.channel.actorId ? await this.followingsRepository.createQueryBuilder('following')
-				.select(['following.followerId'])
-				.where('following.followeeId = :followeeId', { followeeId: note.channel.actorId })
-				.getMany() : [];
+			const channelFollowings = note.channel.actorId ? await this.followingsRepository.find({
+				where: {
+					followeeId: note.channel.actorId,
+				},
+				select: ['followerId'],
+			}) : [];
 
 			for (const channelFollowing of channelFollowings) {
 				this.fanoutTimelineService.push(`homeTimeline:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax, r);
