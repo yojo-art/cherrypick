@@ -289,10 +289,6 @@ export class SignupService {
 		//一旦WebHookはなし
 		//this.userService.notifySystemWebhook(account, 'userCreated');
 
-		if (this.meta.rootUserId == null) {
-			await this.metaService.update({ rootUserId: account.id });
-		}
-
 		return { account, channel };
 	}
 }
