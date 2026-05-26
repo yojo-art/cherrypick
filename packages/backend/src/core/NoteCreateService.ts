@@ -1103,11 +1103,21 @@ export class NoteCreateService implements OnApplicationShutdown {
 			if (note.channelId) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
 		}
 		if (note.channelId && note.channel) {
+			const channelFollowings = note.channel.actorId ? await this.followingsRepository.createQueryBuilder('following')
+				.select(['following.followerId'])
+				.where('following.followeeId = :followeeId', { followeeId: note.channel.actorId })
+				.getMany() : [];
+
+			for (const channelFollowing of channelFollowings) {
+				this.fanoutTimelineService.push(`homeTimeline:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax, r);
+				if (note.fileIds.length > 0) {
+					this.fanoutTimelineService.push(`homeTimelineWithFiles:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax / 2, r);
+				}
+			}
 			this.fanoutTimelineService.push(`channelTimeline:${note.channelId}`, note.id, this.config.perChannelMaxNoteCacheCount, r);
 
 			this.fanoutTimelineService.push(`userTimelineWithChannel:${user.id}`, note.id, note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax, r);
-		}
-		{
+		} else {
 			// TODO: キャッシュ？
 			// eslint-disable-next-line prefer-const
 			let [followings, userListMemberships] = await Promise.all([
