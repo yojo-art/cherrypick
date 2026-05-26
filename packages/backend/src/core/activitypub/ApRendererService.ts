@@ -460,14 +460,6 @@ export class ApRendererService {
 
 		const mentions = (JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers).map(x => x.uri);
 
-		if (note.channelId) {
-			note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
-			if (note.channel?.actorId) {
-				const channelActor = this.userEntityService.genLocalUserUri(note.channel.actorId);
-				mentions.push(channelActor);
-			}
-		}
-
 		let to: string[] = [];
 		let cc: string[] = [];
 
@@ -482,6 +474,14 @@ export class ApRendererService {
 			cc = mentions;
 		} else {
 			to = mentions;
+		}
+		if (note.channelId && note.userId) {
+			note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+			if (note.channel?.actorId && note.channel.actorId !== note.userId) {
+				//チャンネル自分自身は宛先にしない
+				const channelActor = this.userEntityService.genLocalUserUri(note.channel.actorId);
+				cc.push(channelActor);
+			}
 		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
