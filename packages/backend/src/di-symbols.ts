@@ -80,7 +80,6 @@ export const DI = {
 	relaysRepository: Symbol('relaysRepository'),
 	channelsRepository: Symbol('channelsRepository'),
 	channelFavoritesRepository: Symbol('channelFavoritesRepository'),
-	channelKeypairRepository: Symbol('channelKeypairRepository'),
 	registryItemsRepository: Symbol('registryItemsRepository'),
 	webhooksRepository: Symbol('webhooksRepository'),
 	systemWebhooksRepository: Symbol('systemWebhooksRepository'),

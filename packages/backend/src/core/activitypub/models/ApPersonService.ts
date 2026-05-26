@@ -445,6 +445,7 @@ export class ApPersonService implements OnModuleInit {
 						id: this.idService.gen(),
 						name: truncate(person.name, nameLength),
 						description: _description,
+						host,
 						userId: user_id,
 						actorId: user_id,
 					}));

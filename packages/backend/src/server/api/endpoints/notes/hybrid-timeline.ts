@@ -204,7 +204,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			.innerJoinAndSelect('following.followee', 'followee')
 			.select(['followee.channelId', 'following.followeeId'])
 			.where('following.followerId = :followerId', { followerId: me.id })
-			//.andWhere('followee.channelId IS NOT NULL')
 			.getMany();
 		const followeeIds = followeesHasChannels.filter(x => x.followee?.channelId == null).map(f => f.followeeId);
 		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null);
