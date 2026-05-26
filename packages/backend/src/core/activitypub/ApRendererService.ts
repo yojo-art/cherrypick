@@ -674,7 +674,7 @@ export class ApRendererService {
 		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
 
 		const person: any = {
-			type: isSystem ? 'Application' : user.isBot ? 'Service' : 'Person',
+			type: isSystem ? 'Application' : user.channelId ? 'Group' : user.isBot ? 'Service' : 'Person',
 			id,
 			inbox: `${id}/inbox`,
 			outbox: `${id}/outbox`,

@@ -279,6 +279,7 @@ export class SignupService {
 			transactionalEntityManager.update(MiUser, {
 				id: account.id,
 			}, {
+				isBot: true,
 				channelId: channel.id,
 				channel: channel,
 			});
