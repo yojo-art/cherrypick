@@ -307,6 +307,8 @@ describe('ユーザー', () => {
 		// signupの時はtokenが含まれる特別なMeDetailedが返ってくる
 		assert.match(response.token, /[a-zA-Z0-9]{16}/);
 
+		//yojo-art 普通に作ったアカウントはチャンネルアカウントにならない
+		assert.strictEqual(response.channelId, undefined);
 		// UserLite
 		assert.match(response.id, /[0-9a-z]{10}/);
 		assert.strictEqual(response.name, null);
@@ -316,7 +318,6 @@ describe('ユーザー', () => {
 		assert.strictEqual(response.avatarBlurhash, null);
 		assert.deepStrictEqual(response.avatarDecorations, []);
 		assert.strictEqual(response.isLocked, false);
-		assert.strictEqual(response.channelId, null);
 		assert.strictEqual(response.isBot, false);
 		assert.strictEqual(response.isCat, false);
 		assert.strictEqual(response.instance, undefined);
