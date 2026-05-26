@@ -748,12 +748,15 @@ export class ApPersonService implements OnModuleInit {
 					name: display_name,
 					userId: exist.id,
 					actorId: exist.id,
+					host: exist.host,
 					description: _description,
 				});
 				channelId = channel.id;
 			}
 		}
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
+
+		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application' || channelId != null;
 		const updates = {
 			lastFetchedAt: new Date(),
 			searchableBy: person.searchableBy ?
@@ -791,7 +794,7 @@ export class ApPersonService implements OnModuleInit {
 			emojis: emojiNames,
 			name: display_name,
 			tags,
-			isBot: getApType(object) === 'Service' || getApType(object) === 'Application',
+			isBot,
 			isCat: (person as any).isCat === true,
 			isLocked: person.manuallyApprovesFollowers,
 			movedToUri: person.movedTo ?? null,
