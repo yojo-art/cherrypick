@@ -45,12 +45,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #label><SearchLabel>{{ i18n.ts.notifyUsers }}</SearchLabel></template>
 					<MkPagination v-slot="{items}" :paginator="notifyUserPaginator" withControl>
 						<div class="_gaps_s">
-							<div v-for="item in items" :key="item.id" :class="[$style.userItem ]">
+							<div v-for="item in items" :key="item.id">
 								<div :class="$style.userItemMain">
-									<MkA :class="$style.userItemMainBody" :to="userPage(item)">
-										<MkUserCardMini :user="item"/>
+									<MkA :class="$style.userItemMainBody" :to="userPage(item.user)">
+										<MkUserCardMini :user="item.user"/>
 									</MkA>
-									<button class="_button" :class="$style.notifyMenu" @click="showNotifyMenu(item, $event)"><i class="ti ti-dots"></i></button>
+									<button class="_button" :class="$style.notifyMenu" @click="showNotifyMenu(item.user, $event)"><i class="ti ti-dots"></i></button>
 								</div>
 							</div>
 						</div>
@@ -185,12 +185,6 @@ definePage(() => ({
 	display: flex;
 }
 
-.userItemSub {
-	padding: 6px 12px;
-	font-size: 85%;
-	color: color(from var(--MI_THEME-fg) srgb r g b / 0.75);
-}
-
 .userItemMainBody {
 	flex: 1;
 	min-width: 0;
@@ -205,16 +199,5 @@ definePage(() => ({
 	width: 32px;
 	height: 32px;
 	align-self: center;
-}
-
-.chevron {
-	display: block;
-	transition: transform 0.1s ease-out;
-}
-
-.userItem.userItemOpend {
-	.chevron {
-		transform: rotateX(180deg);
-	}
 }
 </style>

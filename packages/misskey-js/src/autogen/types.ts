@@ -39605,7 +39605,11 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content: {
-                    'application/json': components['schemas']['UserDetailed'][];
+                    'application/json': {
+                        /** Format: misskey:id */
+                        id: string;
+                        user: components['schemas']['UserDetailed'];
+                    }[];
                 };
             };
             /** @description Client error */
