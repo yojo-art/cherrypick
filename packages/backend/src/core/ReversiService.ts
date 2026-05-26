@@ -153,6 +153,10 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 		if (targetUser.id === me.id) {
 			throw new Error('You cannot match yourself.');
 		}
+		if (me.channelId != null || targetUser.channelId != null) {
+			//チャンネルアカウントはリバーシ不可
+			throw new Error('User is Channel');
+		}
 
 		if (!multiple) {
 			// 既にマッチしている対局が無いか探す(3分以内)
@@ -261,6 +265,10 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 	}
 	@bindThis
 	public async matchAnyUser(me: MiUser, options: { noIrregularRules: boolean }, multiple = false): Promise<MiReversiGame | null> {
+		if (me.channelId != null) {
+			//チャンネルアカウントはリバーシ不可
+			throw new Error('User is Channel');
+		}
 		if (!multiple) {
 			// 既にマッチしている対局が無いか探す(3分以内)
 			const games = await this.reversiGamesRepository.find({
@@ -797,6 +805,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 				endedAt: parsed.endedAt != null ? new Date(parsed.endedAt) : null,
 				user1: parsed.user1 != null ? {
 					...parsed.user1,
+					channel: null,
 					avatar: null,
 					banner: null,
 					updatedAt: parsed.user1.updatedAt != null ? new Date(parsed.user1.updatedAt) : null,
@@ -806,6 +815,7 @@ export class ReversiService implements OnApplicationShutdown, OnModuleInit {
 				} : null,
 				user2: parsed.user2 != null ? {
 					...parsed.user2,
+					channel: null,
 					avatar: null,
 					banner: null,
 					updatedAt: parsed.user2.updatedAt != null ? new Date(parsed.user2.updatedAt) : null,
