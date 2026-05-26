@@ -216,7 +216,7 @@ function removePinnedNote(index: number) {
 
 function save() {
 	const params = {
-		name: name.value.length >= 1 ? username.value : '',
+		name: name.value.length >= 1 ? name.value : username.value,
 		username: username.value,
 		description: description.value,
 		bannerId: bannerId.value,
@@ -228,7 +228,6 @@ function save() {
 	if (props.channelId != null) {
 		os.apiWithDialog('channels/update', {
 			...params,
-			username: undefined,
 			channelId: props.channelId,
 			pinnedNoteIds: pinnedNotes.value.map(x => x.id),
 		});
