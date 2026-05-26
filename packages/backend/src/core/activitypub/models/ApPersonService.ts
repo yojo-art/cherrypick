@@ -437,21 +437,8 @@ export class ApPersonService implements OnModuleInit {
 				} else if (person.summary) {
 					_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
 				}
-				const user_id = this.idService.gen();
-				let channel = null as MiChannel | null;
-				if (isChannel) {
-					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
-					channel = await transactionalEntityManager.save(new MiChannel({
-						id: this.idService.gen(),
-						name: person.name ? truncate(person.name, nameLength) : person.preferredUsername,
-						description: _description,
-						host,
-						userId: user_id,
-						actorId: user_id,
-					}));
-				}
 				user = await transactionalEntityManager.save(new MiUser({
-					id: user_id,
+					id: this.idService.gen(),
 					avatarId: null,
 					bannerId: null,
 					lastFetchedAt: new Date(),
@@ -509,8 +496,22 @@ export class ApPersonService implements OnModuleInit {
 					isSquareAvatars: person.isSquareAvatars,
 					canChat: (person as any)._misskey_canChat ?? true,
 					clipsUri: person._yojoart_clips ? getApId(person._yojoart_clips) : person.playlists ? getApId(person.playlists) : undefined,
-					channelId: channel?.id,
 				})) as MiRemoteUser;
+
+				if (isChannel) {
+					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
+					const channel = await transactionalEntityManager.save(new MiChannel({
+						id: this.idService.gen(),
+						name: person.name ? truncate(person.name, nameLength) : person.preferredUsername,
+						description: _description,
+						host,
+						userId: user.id,
+						actorId: user.id,
+					}));
+					await this.usersRepository.update({ id: user.id, isDeleted: false }, {
+						channelId: channel.id,
+					});
+				}
 
 				await transactionalEntityManager.save(new MiUserProfile({
 					userId: user.id,
