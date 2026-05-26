@@ -11,6 +11,7 @@ import { setTimeout } from 'node:timers/promises';
 import { Redis } from 'ioredis';
 import { SignupResponse, Note, UserList } from 'misskey-js/entities.js';
 import { api, post, randomString, sendEnvUpdateRequest, signup, uploadUrl } from '../utils.js';
+import { channel as createChannel } from '../utils.js';
 import { loadConfig } from '@/config.js';
 
 function genHost() {
@@ -503,7 +504,7 @@ describe('Timelines', () => {
 			test('フォローしているユーザーのチャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel(bob);
 				await api('following/create', { userId: bob.id }, alice);
 				await setTimeout(250);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
@@ -823,7 +824,7 @@ describe('Timelines', () => {
 			test('チャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel(bob);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -1545,7 +1546,7 @@ describe('Timelines', () => {
 			test('リスインしているユーザーのチャンネルノートが含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel(bob);
 				const list = await api('users/lists/create', { name: 'list' }, alice).then(res => res.body);
 				await api('users/lists/push', { listId: list.id, userId: bob.id }, alice);
 				await setTimeout(250);
@@ -1706,7 +1707,7 @@ describe('Timelines', () => {
 			test('チャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel(bob);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -1781,7 +1782,7 @@ describe('Timelines', () => {
 			test('[withChannelNotes: true] チャンネル投稿が含まれる', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel(bob);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -1794,7 +1795,7 @@ describe('Timelines', () => {
 			test('[withChannelNotes: true] 他人が取得した場合センシティブチャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel', isSensitive: true }, bob).then(x => x.body);
+				const channel = await createChannel(bob, { name: 'channel', isSensitive: true });
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -1807,7 +1808,7 @@ describe('Timelines', () => {
 			test('[withChannelNotes: true] 自分が取得した場合センシティブチャンネル投稿が含まれる', async () => {
 				const [bob] = await Promise.all([signup()]);
 
-				const channel = await api('channels/create', { name: 'channel', isSensitive: true }, bob).then(x => x.body);
+				const channel = await createChannel(bob, { name: 'channel', isSensitive: true });
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();

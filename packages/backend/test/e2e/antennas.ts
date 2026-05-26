@@ -10,6 +10,7 @@ import {
 	api,
 	failedApiCall,
 	post,
+	randomString,
 	role,
 	signup,
 	successfulApiCall,
@@ -653,12 +654,12 @@ describe('アンテナ', () => {
 			});
 			const nonSensitiveChannel = await successfulApiCall({
 				endpoint: 'channels/create',
-				parameters: { name: 'test', isSensitive: false },
+				parameters: { username: 'test_ch_' + randomString(), isSensitive: false },
 				user: alice,
 			});
 			const sensitiveChannel = await successfulApiCall({
 				endpoint: 'channels/create',
-				parameters: { name: 'test', isSensitive: true },
+				parameters: { username: 'test_sensitive_ch_' + randomString(), isSensitive: true },
 				user: alice,
 			});
 
