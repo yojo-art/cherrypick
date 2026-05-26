@@ -3,12 +3,8 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { randomUUID } from 'node:crypto';
-import { channel } from 'node:diagnostics_channel';
 import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
-import * as argon2 from 'argon2';
-import { Not, IsNull } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { ChannelsRepository, DriveFilesRepository, MiUser, UsersRepository } from '@/models/_.js';
 import type { MiChannel } from '@/models/Channel.js';
@@ -107,7 +103,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			let _channel:MiChannel;
 			//チャンネルアカウントを作成
 			try {
-				const { account, channel } = await signupService.signupChannel({
+				const { account, channel } = await this.signupService.signupChannel({
 					username: ps.username,
 					ownerId: me.id,
 					ignorePreservedUsernames: await this.roleService.isModerator(me),
