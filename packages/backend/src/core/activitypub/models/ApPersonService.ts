@@ -443,7 +443,7 @@ export class ApPersonService implements OnModuleInit {
 					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
 					channel = await transactionalEntityManager.save(new MiChannel({
 						id: this.idService.gen(),
-						name: truncate(person.name, nameLength),
+						name: person.name ? truncate(person.name, nameLength) : person.preferredUsername,
 						description: _description,
 						host,
 						userId: user_id,
@@ -736,7 +736,6 @@ export class ApPersonService implements OnModuleInit {
 			if (_channel) {
 				channelId = _channel.id;
 				if (_channel.description !== _description) {
-					//TODO チャンネル連合 バナー画像の扱い
 					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
 					await this.channelsRepository.update({ actorId: exist.id }, { description: _description });
 				}

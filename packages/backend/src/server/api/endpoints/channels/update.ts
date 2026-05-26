@@ -5,10 +5,11 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository, ChannelsRepository } from '@/models/_.js';
+import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
+import { NotePiningService } from '@/core/NotePiningService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -74,8 +75,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
+		@Inject(DI.notesRepository)
+		private notesRepository: NotesRepository,
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
+		@Inject(DI.userNotePiningsRepository)
+		private userNotePiningsRepository: UserNotePiningsRepository,
 
 		private channelEntityService: ChannelEntityService,
+		private notePiningService: NotePiningService,
 
 		private roleService: RoleService,
 	) {
@@ -105,6 +113,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw new ApiError(meta.errors.noSuchFile);
 				}
 			} else if (ps.bannerId === null) {
+				banner = null;
+			}
+			if (channel.actorId) {
+				await this.usersRepository.update({ id: channel.actorId }, {
+					bannerId: banner?.id,
+				});
+				if (ps.pinnedNoteIds) {
+					const pinnedNoteIds = (await this.userNotePiningsRepository.find({
+						where: { userId: channel.actorId },
+						select: ['id'],
+					})).map(x => x.id);
+					const notes = (await this.notesRepository.createQueryBuilder('note').select(['id']).whereInIds(ps.pinnedNoteIds).getMany()).map(x => x.id);
+					const add = notes.filter(x => pinnedNoteIds.includes(x));
+					const remove = pinnedNoteIds.filter(x => !notes.includes(x));
+					for (const pin of remove) {
+						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin);
+					}
+					for (const pin of add) {
+						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin);
+					}
+					ps.pinnedNoteIds = [];
+				}
 				banner = null;
 			}
 
