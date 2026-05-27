@@ -289,10 +289,6 @@ export class SignupService {
 				createdAt: new Date(),
 				username: username.toLowerCase(),
 			}));
-			await transactionalEntityManager.save(new MiUsedUsername({
-				createdAt: new Date(),
-				username: username.toLowerCase(),
-			}));
 			channel = await transactionalEntityManager.save(new MiChannel({
 				id: this.idService.gen(),
 				name: name ?? username,
@@ -301,13 +297,16 @@ export class SignupService {
 				actorId: account.id,
 				description,
 			}));
-			transactionalEntityManager.update(MiUser, {
+			await transactionalEntityManager.update(MiUser, {
 				id: account.id,
 			}, {
 				isBot: true,
 				channelId: channel.id,
 				channel: channel,
 			});
+			account.isBot = true;
+			account.channel = channel;
+			account.channelId = channel.id;
 		});
 
 		this.usersChart.update(account, true);

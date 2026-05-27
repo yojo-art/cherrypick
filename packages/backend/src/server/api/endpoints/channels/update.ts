@@ -134,19 +134,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					});
 				}
 				if (ps.pinnedNoteIds) {
-					const pinnedNoteIds = (await this.userNotePiningsRepository.find({
+					const old_notes = (await this.userNotePiningsRepository.find({
 						where: { userId: channel.actorId },
 						select: ['id'],
 					})).map(x => x.id);
-					const notes = (await this.notesRepository.createQueryBuilder('note').select(['id']).whereInIds(ps.pinnedNoteIds).getMany()).map(x => x.id);
-					const add = notes.filter(x => pinnedNoteIds.includes(x));
-					const remove = pinnedNoteIds.filter(x => !notes.includes(x));
+					const new_notes = (await this.notesRepository.createQueryBuilder('note').select(['id']).whereInIds(ps.pinnedNoteIds).getMany()).map(x => x.id);
+					const add = new_notes.filter(x => !old_notes.includes(x));
+					const remove = old_notes.filter(x => !new_notes.includes(x));
 					for (const pin of remove) {
 						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin);
 					}
 					for (const pin of add) {
 						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin);
 					}
+					//ユーザーの方に設定した時はチャンネルテーブル側は消す
 					ps.pinnedNoteIds = [];
 				}
 				if (banner) {

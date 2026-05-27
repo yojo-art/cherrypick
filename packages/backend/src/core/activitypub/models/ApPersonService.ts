@@ -724,7 +724,7 @@ export class ApPersonService implements OnModuleInit {
 			}
 		}
 
-		const display_name = truncate(person.name, nameLength) ?? exist.name ?? exist.username;
+		const displayName = truncate(person.name, nameLength) ?? exist.name ?? exist.username;
 		let _description: string | null = null;
 
 		if (person._misskey_summary) {
@@ -749,7 +749,7 @@ export class ApPersonService implements OnModuleInit {
 				//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
 				const channel = await this.channelsRepository.insertOne({
 					id: this.idService.gen(),
-					name: display_name,
+					name: displayName,
 					userId: exist.id,
 					actorId: exist.id,
 					host: exist.host,
@@ -796,7 +796,7 @@ export class ApPersonService implements OnModuleInit {
 						: undefined,
 			featured: person.featured ? getApId(person.featured) : undefined,
 			emojis: emojiNames,
-			name: display_name,
+			name: displayName,
 			tags,
 			isBot,
 			isCat: (person as any).isCat === true,

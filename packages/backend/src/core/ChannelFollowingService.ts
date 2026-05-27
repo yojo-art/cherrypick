@@ -63,7 +63,7 @@ export class ChannelFollowingService implements OnModuleInit {
 		if (targetChannel.actor == null) {
 			return;
 		}
-		this.userFollowingService.follow(requestUser, targetChannel.actor);
+		await this.userFollowingService.follow(requestUser, targetChannel.actor);
 		if (this.userEntityService.isLocalUser(requestUser)) {
 			this.globalEventService.publishInternalEvent('followChannel', {
 				userId: requestUser.id,
@@ -84,7 +84,7 @@ export class ChannelFollowingService implements OnModuleInit {
 		if (targetChannel.actor == null) {
 			return;
 		}
-		this.userFollowingService.unfollow(requestUser, targetChannel.actor);
+		await this.userFollowingService.unfollow(requestUser, targetChannel.actor);
 		if (this.userEntityService.isLocalUser(requestUser)) {
 			this.globalEventService.publishInternalEvent('unfollowChannel', {
 				userId: requestUser.id,
