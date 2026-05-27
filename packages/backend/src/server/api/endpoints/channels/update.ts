@@ -4,12 +4,19 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import * as mfm from 'mfc-js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository } from '@/models/_.js';
+import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository, MiUser } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
 import { NotePiningService } from '@/core/NotePiningService.js';
+import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
+import { extractHashtags } from '@/misc/extract-hashtags.js';
+import { normalizeForSearch } from '@/misc/normalize-for-search.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { HashtagService } from '@/core/HashtagService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -86,6 +93,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private channelEntityService: ChannelEntityService,
 		private notePiningService: NotePiningService,
+		private globalEventService: GlobalEventService,
+		private hashtagService: HashtagService,
+		private driveFileEntityService: DriveFileEntityService,
 
 		private roleService: RoleService,
 	) {
@@ -102,28 +112,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (channel.userId !== me.id && !iAmModerator) {
 				throw new ApiError(meta.errors.accessDenied);
 			}
+			const updates = {} as Partial<MiUser>;
 
 			// eslint:disable-next-line:no-unnecessary-initializer
 			let banner = undefined;
 			if (ps.bannerId != null) {
-				banner = await this.driveFilesRepository.findOneBy({
-					id: ps.bannerId,
-					userId: me.id,
-				});
+				banner = await this.driveFilesRepository.findOneBy({ id: ps.bannerId });
 
-				if (banner == null) {
-					throw new ApiError(meta.errors.noSuchFile);
+				if (banner == null || banner.userId !== me.id) throw new ApiError(meta.errors.noSuchFile);
+
+				if (!banner.type.startsWith('image/')) {
+					banner = undefined;//画像以外が指定された時は変更なし
 				}
 			} else if (ps.bannerId === null) {
 				banner = null;
 			}
 			if (channel.actorId) {
-				if (ps.name !== undefined || banner) {
-					await this.usersRepository.update({ id: channel.actorId }, {
-						...(banner ? { bannerId: banner.id } : {}),
-						...(ps.name !== undefined ? { name: ps.name } : {}),
-					});
-				}
 				if (ps.description !== undefined) {
 					await this.userProfilesRepository.update({ userId: channel.actorId }, {
 						description: ps.description,
@@ -145,16 +149,59 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 					ps.pinnedNoteIds = [];
 				}
+				if (banner) {
+					updates.bannerId = banner.id;
+					updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+					updates.bannerBlurhash = banner.blurhash;
+				} else if (ps.bannerId === null) {
+					updates.bannerId = null;
+					updates.bannerUrl = null;
+					updates.bannerBlurhash = null;
+				}
+				if (ps.name !== undefined || ps.description !== undefined) {
+					const user = await this.usersRepository.findOneBy({ id: channel.actorId });
+					if (ps.name !== undefined) {
+						if (ps.name === user?.username) {
+							updates.name = null;
+						} else {
+							const trimmedName = ps.name.trim();
+							updates.name = trimmedName === '' ? null : trimmedName;
+						}
+					}
+					let emojis = [] as string[];
+					if (ps.name != null) {
+						const tokens = mfm.parseSimple(ps.name);
+						emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+					}
+					let tags = [] as string[];
+					if (ps.description != null) {
+						const tokens = mfm.parse(ps.description);
+						emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+						tags = extractHashtags(tokens).map(tag => normalizeForSearch(tag)).splice(0, 32);
+					}
+
+					updates.emojis = emojis;
+					updates.tags = tags;
+
+					// ハッシュタグ更新
+					if (user) {
+						this.hashtagService.updateUsertags(user, tags);
+					}
+				}
+				if (Object.keys(updates).length > 0) {
+					await this.usersRepository.update(channel.actorId, updates);
+					this.globalEventService.publishInternalEvent('localUserUpdated', { id: channel.actorId });
+				}
+				//ユーザーの方に設定した時はチャンネルテーブルにはnullを入れる
 				banner = null;
 			}
-
 			await this.channelsRepository.update(channel.id, {
 				...(ps.name !== undefined ? { name: ps.name } : {}),
 				...(ps.description !== undefined ? { description: ps.description } : {}),
 				...(ps.pinnedNoteIds !== undefined ? { pinnedNoteIds: ps.pinnedNoteIds } : {}),
 				...(ps.color !== undefined ? { color: ps.color } : {}),
 				...(typeof ps.isArchived === 'boolean' ? { isArchived: ps.isArchived } : {}),
-				...(banner ? { bannerId: banner.id } : {}),
+				...(banner !== undefined ? { bannerId: banner?.id ?? null } : {}),
 				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
 				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			});

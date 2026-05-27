@@ -4,6 +4,7 @@
  */
 
 import { generateKeyPair, randomUUID } from 'node:crypto';
+import * as mfm from 'mfc-js';
 import { Inject, Injectable } from '@nestjs/common';
 //import bcrypt from 'bcryptjs';
 import * as argon2 from 'argon2';
@@ -25,6 +26,10 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { UserService } from '@/core/UserService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { MetaService } from '@/core/MetaService.js';
+import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
+import { extractHashtags } from '@/misc/extract-hashtags.js';
+import { normalizeForSearch } from '@/misc/normalize-for-search.js';
+import { HashtagService } from './HashtagService.js';
 
 @Injectable()
 export class SignupService {
@@ -50,6 +55,7 @@ export class SignupService {
 		private systemAccountService: SystemAccountService,
 		private metaService: MetaService,
 		private usersChart: UsersChart,
+		private hashtagService: HashtagService,
 	) {
 	}
 
@@ -232,7 +238,17 @@ export class SignupService {
 			}, (err, publicKey, privateKey) =>
 				err ? rej(err) : res([publicKey, privateKey]),
 			));
-
+		let emojis = [] as string[];
+		if (name != null) {
+			const tokens = mfm.parseSimple(name);
+			emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+		}
+		let tags = [] as string[];
+		if (description != null) {
+			const tokens = mfm.parse(description);
+			emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+			tags = extractHashtags(tokens).map(tag => normalizeForSearch(tag)).splice(0, 32);
+		}
 		let account!: MiUser;
 		let channel!:MiChannel;
 
@@ -250,6 +266,8 @@ export class SignupService {
 				username: username,
 				usernameLower: username.toLowerCase(),
 				host: this.utilityService.toPunyNullable(host),
+				emojis,
+				tags,
 				token: secret,
 				bannerId: bannerId ?? null,
 			}));
