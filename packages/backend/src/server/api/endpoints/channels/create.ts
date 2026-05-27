@@ -104,6 +104,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			//チャンネルアカウントを作成
 			try {
 				const { account, channel } = await this.signupService.signupChannel({
+					bannerId: banner?.id,
 					username: ps.username,
 					ownerId: me.id,
 					description: ps.description,
@@ -115,15 +116,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
 			}
 			const channel = _channel;
-
-			await this.channelsRepository.update(channel.id, {
-				...(ps.name !== undefined ? { name: ps.name } : {}),
-				...(ps.description !== undefined ? { description: ps.description } : {}),
-				...(ps.color !== undefined ? { color: ps.color } : {}),
-				...(banner ? { bannerId: banner.id } : {}),
-				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
-				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
-			});
+			if (ps.name !== undefined || ps.color !== undefined || typeof ps.isSensitive === 'boolean' || typeof ps.allowRenoteToExternal === 'boolean') {
+				await this.channelsRepository.update(channel.id, {
+					...(ps.name !== undefined ? { name: ps.name } : {}),
+					...(ps.color !== undefined ? { color: ps.color } : {}),
+					...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
+					...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
+				});
+			}
 			return await this.channelEntityService.pack({
 				...channel,
 				...(ps.name !== undefined ? { name: ps.name } : {}),

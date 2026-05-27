@@ -8,6 +8,7 @@ import { Inject, Injectable } from '@nestjs/common';
 //import bcrypt from 'bcryptjs';
 import * as argon2 from 'argon2';
 import { DataSource, IsNull } from 'typeorm';
+import { DriveFile } from 'misskey-js/entities.js';
 import { DI } from '@/di-symbols.js';
 import type { ChannelsRepository, MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
 import { MiUser } from '@/models/User.js';
@@ -173,10 +174,11 @@ export class SignupService {
 		name?: MiUser['name'];
 		ownerId: MiUser['id'],
 		description?: MiChannel['description'],
+		bannerId?: DriveFile['id'],
 		host?: string | null;
 		ignorePreservedUsernames?: boolean;
 	}) {
-		const { username, name, description, ownerId, host } = opts;
+		const { username, name, bannerId, description, ownerId, host } = opts;
 
 		// Validate username
 		if (!this.userEntityService.validateLocalUsername(username)) {
@@ -249,6 +251,7 @@ export class SignupService {
 				usernameLower: username.toLowerCase(),
 				host: this.utilityService.toPunyNullable(host),
 				token: secret,
+				bannerId: bannerId ?? null,
 			}));
 
 			await transactionalEntityManager.save(new MiUserKeypair({
@@ -278,6 +281,7 @@ export class SignupService {
 				userId: ownerId,
 				actor: account,
 				actorId: account.id,
+				description,
 			}));
 			transactionalEntityManager.update(MiUser, {
 				id: account.id,
