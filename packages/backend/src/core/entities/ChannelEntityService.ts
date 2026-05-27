@@ -43,26 +43,6 @@ export class ChannelEntityService {
 	}
 
 	@bindThis
-	public async packByActor(
-		actor: MiUser & { channelId: string, channel: MiChannel },
-		me?: { id: MiUser['id'] } | null | undefined,
-		detailed?: boolean,
-	): Promise<Packed<'Channel'>> {
-		const profile = await this.userProfilesRepository.findOneBy({ userId: actor.id });
-		return await this.pack({
-			...actor.channel,
-			id: actor.channelId,
-			name: actor.name,
-			description: profile?.description ?? null,
-			bannerId: actor.bannerId,
-			banner: actor.banner,
-			notesCount: actor.notesCount,
-			host: actor.host,
-			actorId: actor.id,
-			actor: actor,
-		} as MiChannel, me, detailed);
-	}
-	@bindThis
 	public async pack(
 		src: MiChannel['id'] | MiChannel,
 		me?: { id: MiUser['id'] } | null | undefined,

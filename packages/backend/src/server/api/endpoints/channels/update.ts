@@ -196,6 +196,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				//ユーザーの方に設定した時はチャンネルテーブルにはnullを入れる
 				banner = null;
 			}
+			//nameとdescriptionはユーザーテーブルとチャンネルテーブル両方に入れる
 			await this.channelsRepository.update(channel.id, {
 				...(ps.name !== undefined ? { name: ps.name } : {}),
 				...(ps.description !== undefined ? { description: ps.description } : {}),

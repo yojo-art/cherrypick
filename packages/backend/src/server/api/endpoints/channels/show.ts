@@ -44,26 +44,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
-
-		@Inject(DI.userNotePiningsRepository)
-		private userNotePiningsRepository: UserNotePiningsRepository,
-
 		private channelEntityService: ChannelEntityService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-			const actor = await this.usersRepository.createQueryBuilder('user')
-				.where('user.channelId=:channelId', { channelId: ps.channelId })
-				.leftJoinAndSelect('user.channel', 'channel')
-				.getOne();
-			if (actor && actor.channelId !== null && actor.channel !== null) {
-				actor.channel.pinnedNoteIds = (await this.userNotePiningsRepository.find({
-					where: { userId: actor.id },
-					select: ['id'],
-				})).map(x => x.id);
-				return await this.channelEntityService.packByActor(actor as MiUser & { channelId: string, channel: MiChannel }, me, true);
-			}
 			const channel = await this.channelsRepository.findOneBy({
 				id: ps.channelId,
 			});

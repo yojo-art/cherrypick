@@ -582,7 +582,11 @@ export class ApPersonService implements OnModuleInit {
 			const updates = await this.resolveAvatarAndBanner(user, person.icon, person.image, role_policy);
 			await this.usersRepository.update(user.id, updates);
 			user = { ...user, ...updates };
-
+			if (updates.bannerId !== undefined) {
+				await this.channelsRepository.update({ actorId: user.id }, {
+					bannerId: updates.bannerId,
+				});
+			}
 			// Register to the cache
 			this.cacheService.uriPersonCache.set(user.uri, user);
 		} catch (err) {
@@ -740,9 +744,12 @@ export class ApPersonService implements OnModuleInit {
 			});
 			if (_channel) {
 				channelId = _channel.id;
-				if (_channel.description !== _description) {
+				if (_channel.description !== _description || _channel.name !== displayName) {
 					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
-					await this.channelsRepository.update({ actorId: exist.id }, { description: _description });
+					await this.channelsRepository.update({ actorId: exist.id }, {
+						name: displayName,
+						description: _description,
+					});
 				}
 			} else {
 				//チャンネルアカウントなのにチャンネルが無い時は作る
@@ -881,6 +888,11 @@ export class ApPersonService implements OnModuleInit {
 			location: person['vcard:Address'] ?? null,
 			mutualLinkSections,
 		});
+		if (updates.bannerId !== undefined) {
+			await this.channelsRepository.update({ actorId: exist.id }, {
+				bannerId: updates.bannerId,
+			});
+		}
 
 		this.globalEventService.publishInternalEvent('remoteUserUpdated', { id: exist.id });
 
