@@ -28,7 +28,7 @@ describe('Channel', () => {
 		assert(aliceChActorInC.channelId);
 		aliceChInB = await bob.client.request('channels/show', { channelId: aliceChActorInB.channelId });
 		strictEqual(aliceChActorInB.id, aliceChInB.actorId, 'チャンネルアカウントを照会するとローカルにチャンネルが作成される');
-		aliceChInC = await bob.client.request('channels/show', { channelId: aliceChActorInC.channelId });
+		aliceChInC = await carol.client.request('channels/show', { channelId: aliceChActorInC.channelId });
 	});
 
 	describe('Actor', () => {
