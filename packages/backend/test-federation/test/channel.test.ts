@@ -18,7 +18,7 @@ describe('Channel', () => {
 		[bobInA, aliceInB, aliceChActorInB] = await Promise.all([
 			resolveRemoteUser('b.test', bob.id, alice),
 			resolveRemoteUser('a.test', alice.id, bob),
-			resolveRemoteUser('b.test', aliceCh.actorId, bob),
+			resolveRemoteUser('a.test', aliceCh.actorId, bob),
 		]);
 		assert.ok(aliceChActorInB.channelId);
 		aliceChInB = await bob.client.request('channels/show', { channelId: aliceChActorInB.channelId });
