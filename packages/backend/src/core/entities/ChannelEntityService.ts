@@ -6,7 +6,7 @@
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { ChannelFavoritesRepository, FollowingsRepository, ChannelsRepository, DriveFilesRepository, NotesRepository } from '@/models/_.js';
+import type { ChannelFavoritesRepository, FollowingsRepository, ChannelsRepository, DriveFilesRepository, NotesRepository, UserProfilesRepository } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { } from '@/models/Blocking.js';
 import type { MiUser } from '@/models/User.js';
@@ -33,6 +33,8 @@ export class ChannelEntityService {
 
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 
 		private noteEntityService: NoteEntityService,
 		private driveFileEntityService: DriveFileEntityService,
@@ -46,9 +48,12 @@ export class ChannelEntityService {
 		me?: { id: MiUser['id'] } | null | undefined,
 		detailed?: boolean,
 	): Promise<Packed<'Channel'>> {
+		const profile = await this.userProfilesRepository.findOneBy({ userId: actor.id });
 		return await this.pack({
 			...actor.channel,
 			id: actor.channelId,
+			name: actor.name,
+			description: profile?.description ?? null,
 			bannerId: actor.bannerId,
 			banner: actor.banner,
 			notesCount: actor.notesCount,
