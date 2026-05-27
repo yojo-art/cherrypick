@@ -4,7 +4,7 @@ import { createAccount, type LoginUser, randomUsername, resolveRemoteNote, resol
 
 describe('Channel', () => {
 	let alice: LoginUser, bob: LoginUser, carol: LoginUser;
-	let bobInA: Misskey.entities.UserDetailedNotMe, aliceInB: Misskey.entities.UserDetailedNotMe, carolInB: Misskey.entities.UserDetailedNotMe;
+	let bobInA: Misskey.entities.UserDetailedNotMe, aliceInB: Misskey.entities.UserDetailedNotMe, carolInA: Misskey.entities.UserDetailedNotMe, carolInB: Misskey.entities.UserDetailedNotMe;
 	let aliceChActorInB: Misskey.entities.UserDetailedNotMe, aliceChActorInC: Misskey.entities.UserDetailedNotMe;
 	let aliceCh: Misskey.entities.Channel, aliceChInB: Misskey.entities.Channel, aliceChInC: Misskey.entities.Channel;
 
@@ -17,10 +17,11 @@ describe('Channel', () => {
 		aliceCh = await alice.client.request('channels/create', { username: randomUsername() });
 		assert(aliceCh.actorId, 'チャンネルアカウントが作成されそのidが入る');
 
-		[bobInA, aliceInB, carolInB, aliceChActorInB, aliceChActorInC] = await Promise.all([
+		[bobInA, aliceInB, carolInB, carolInA, aliceChActorInB, aliceChActorInC] = await Promise.all([
 			resolveRemoteUser('b.test', bob.id, alice),
 			resolveRemoteUser('a.test', alice.id, bob),
 			resolveRemoteUser('c.test', carol.id, bob),
+			resolveRemoteUser('c.test', carol.id, alice),
 			resolveRemoteUser('a.test', aliceCh.actorId, bob),
 			resolveRemoteUser('a.test', aliceCh.actorId, carol),
 		]);
@@ -100,10 +101,17 @@ describe('Channel', () => {
 				visibility: 'public',
 			})).createdNote;
 
-			const resolvedNote = await resolveRemoteNote('c.test', note.id, bob);
-			strictEqual(carolInB.id, resolvedNote.userId);
-			strictEqual(resolvedNote.channelId, aliceChInB.id);
-			strictEqual(resolvedNote.visibility, 'public');
+			strictEqual(note.channelId, aliceChInC.id, 'チャンネル投稿として作成される');
+
+			const resolvedNoteInA = await resolveRemoteNote('c.test', note.id, alice);
+			strictEqual(carolInA.id, resolvedNoteInA.userId);
+			strictEqual(resolvedNoteInA.channelId, aliceCh.id);
+			strictEqual(resolvedNoteInA.visibility, 'public');
+
+			const resolvedNoteInB = await resolveRemoteNote('c.test', note.id, bob);
+			strictEqual(carolInB.id, resolvedNoteInB.userId);
+			strictEqual(resolvedNoteInB.channelId, aliceChInB.id);
+			strictEqual(resolvedNoteInB.visibility, 'public');
 		});
 	});
 	describe('Timeline', () => {
@@ -120,8 +128,8 @@ describe('Channel', () => {
 				text: randomUsername(),
 				visibility: 'public',
 			})).createdNote;
-			await sleep();
-			const bobHTL = await bob.client.request('notes/timeline', {});
+			await sleep(1000);
+			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
 
 			assert(!bobHTL.map(note => note.text).includes(channelNoteInA.text));
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text));
@@ -132,6 +140,7 @@ describe('Channel', () => {
 				visibility: 'public',
 			});
 			assert(aliceChInB.actorId);
+			await sleep(1000);
 			const channelActorInB = await bob.client.request('users/show', { userId: aliceChInB.actorId });
 			assert(channelActorInB.isFollowing, 'チャンネルをフォローするとチャンネルアカウントがフォローされる');
 			const normalNoteInA = (await alice.client.request('notes/create', {
@@ -147,7 +156,8 @@ describe('Channel', () => {
 				text: randomUsername(),
 				visibility: 'public',
 			})).createdNote;
-			const bobHTL = await bob.client.request('notes/timeline', {});
+			await sleep(1000);
+			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
 
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
 			assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
