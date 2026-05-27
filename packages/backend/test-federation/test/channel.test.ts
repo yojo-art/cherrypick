@@ -152,6 +152,7 @@ describe('Channel', () => {
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
 			assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
 			assert(!bobHTL.map(note => note.text).includes(normalNoteInC.text), 'carolをフォローしていないのでHTLに流れてこない');
+			strictEqual(bobHTL.filter(note => note.user.channelId != null), 0, 'チャンネルアカウントの投稿はHTLに流れてこない');
 		});
 	});
 });
