@@ -111,7 +111,7 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public renderAnnounce(object: string | IObject, note: MiNote): IAnnounce {
+	public async renderAnnounce(object: string | IObject, note: MiNote): Promise<IAnnounce> {
 		const attributedTo = this.userEntityService.genLocalUserUri(note.userId);
 
 		let to: string[] = [];
@@ -128,6 +128,14 @@ export class ApRendererService {
 			cc = [];
 		} else {
 			throw new Error('renderAnnounce: cannot render non-public note');
+		}
+		if (note.channelId && note.userId) {
+			note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+			if (note.channel?.actorId && note.channel.actorId !== note.userId) {
+				//チャンネル自分自身は宛先にしない
+				const channelActor = this.userEntityService.genLocalUserUri(note.channel.actorId);
+				cc.push(channelActor);
+			}
 		}
 
 		return {

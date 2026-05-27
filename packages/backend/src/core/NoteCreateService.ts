@@ -1045,7 +1045,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.localOnly) return null;
 
 		const content = this.isRenote(data) && !this.isQuote(data)
-			? this.apRendererService.renderAnnounce(data.renote.uri ? data.renote.uri : `${this.config.url}/notes/${data.renote.id}`, note)
+			? await this.apRendererService.renderAnnounce(data.renote.uri ? data.renote.uri : `${this.config.url}/notes/${data.renote.id}`, note)
 			: this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 
 		return this.apRendererService.addContext(content);
