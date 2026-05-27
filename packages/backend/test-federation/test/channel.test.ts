@@ -33,9 +33,14 @@ describe('Channel', () => {
 			await sleep();
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			strictEqual(aliceCh.name, 'test Channel');
+			assert.ok(aliceCh.actorId);
+			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			strictEqual(channelActorInA.name, aliceCh.name);
+			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
+			await sleep();
 
-			const channelActor = await bob.client.request('users/show', { userId: aliceChActorInB.id });
-			strictEqual(channelActor.name, aliceCh.name);
+			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+			strictEqual(channelActorInB.name, aliceCh.name);
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.name, aliceCh.name);
 		});
@@ -45,9 +50,14 @@ describe('Channel', () => {
 			await sleep();
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			strictEqual(aliceCh.description, 'Channel Description');
+			assert.ok(aliceCh.actorId);
+			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			strictEqual(channelActorInA.description, aliceCh.description);
+			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
+			await sleep();
 
-			const channelActor = await bob.client.request('users/show', { userId: aliceChActorInB.id });
-			strictEqual(channelActor.description, aliceCh.description);
+			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+			strictEqual(channelActorInB.description, aliceCh.description);
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.description, aliceCh.description);
 		});
