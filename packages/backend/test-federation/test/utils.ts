@@ -155,10 +155,8 @@ export async function createRole(
 	});
 }
 
-export async function createChannel(host: Host): Promise<Misskey.entities.Channel> {
-	const username = crypto.randomUUID().replaceAll('-', '').substring(0, 20);
-	const admin = await fetchAdmin(host);
-	return await admin.client.request('channels/create', { username });
+export function randomUsername() {
+	return crypto.randomUUID().replaceAll('-', '').substring(0, 20);
 }
 
 export async function resolveRemoteUser(

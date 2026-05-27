@@ -1,6 +1,6 @@
 import assert, { rejects, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, deepStrictEqualWithExcludedFields, type LoginUser, resolveRemoteNote, resolveRemoteUser, createChannel, sleep } from './utils.js';
+import { createAccount, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
 describe('Channel', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -8,12 +8,12 @@ describe('Channel', () => {
 	let aliceCh: Misskey.entities.Channel, aliceChInB: Misskey.entities.Channel;
 
 	beforeAll(async () => {
-		[alice, bob, aliceCh] = await Promise.all([
+		[alice, bob] = await Promise.all([
 			createAccount('a.test'),
 			createAccount('b.test'),
-			createChannel('a.test'),
 		]);
-		assert.ok(aliceCh.actorId);
+		aliceCh = await alice.client.request('channels/create', { username: randomUsername() });
+		assert.ok(aliceCh.actorId, 'チャンネルアカウントが作成されそのidが入る');
 
 		[bobInA, aliceInB, aliceChActorInB] = await Promise.all([
 			resolveRemoteUser('b.test', bob.id, alice),
@@ -22,10 +22,12 @@ describe('Channel', () => {
 		]);
 		assert.ok(aliceChActorInB.channelId);
 		aliceChInB = await bob.client.request('channels/show', { channelId: aliceChActorInB.channelId });
+		strictEqual(aliceChActorInB.id, aliceChInB.actorId, 'チャンネルアカウントを照会するとローカルにチャンネルが作成される');
 	});
 
 	describe('Actor', () => {
 		test('チャンネル名が連合する', async () => {
+			strictEqual(aliceChActorInB.username, aliceCh.name, 'デフォルトはusername==name');
 			assert.ok(aliceChActorInB.channelId);
 			await alice.client.request('channels/update', { channelId: aliceCh.id, name: 'test Channel' });
 			await sleep();
