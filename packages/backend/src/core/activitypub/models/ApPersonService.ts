@@ -514,6 +514,7 @@ export class ApPersonService implements OnModuleInit {
 						isBot: true,
 						channelId: channel.id,
 					});
+					user.channelId = channel.id;
 				}
 
 				await transactionalEntityManager.save(new MiUserProfile({
