@@ -508,7 +508,7 @@ export class ApPersonService implements OnModuleInit {
 						userId: user.id,
 						actorId: user.id,
 					}));
-					transactionalEntityManager.update(MiUser, {
+					await transactionalEntityManager.update(MiUser, {
 						id: user.id,
 					}, {
 						isBot: true,
