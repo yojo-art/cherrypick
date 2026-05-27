@@ -122,7 +122,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					await this.usersRepository.update({ id: channel.actorId }, {
 						...(ps.bannerId !== undefined ? { name: ps.bannerId } : {}),
 						...(ps.name !== undefined ? { name: ps.name } : {}),
-						...(ps.description !== undefined ? { description: ps.description } : {}),
 					});
 				}
 				if (ps.description) {
