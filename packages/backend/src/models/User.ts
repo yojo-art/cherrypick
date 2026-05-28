@@ -357,7 +357,6 @@ export class MiUser {
 	@Column({
 		...id(),
 		nullable: true,
-		comment: 'Whether the User is channel.',
 	})
 	public channelId: MiChannel['id'] | null;
 
