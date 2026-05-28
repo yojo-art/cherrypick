@@ -142,6 +142,7 @@ describe('Channel', () => {
 			})).createdNote;
 			await sleep(1000);
 			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
+			assert(bobHTL.length > 0, JSON.stringify(bobHTL));
 
 			assert(!bobHTL.map(note => note.text).includes(channelNoteInA.text));
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text));
@@ -161,7 +162,7 @@ describe('Channel', () => {
 			})).createdNote;
 			const channelNoteInC = (await carol.client.request('notes/create', {
 				text: randomUsername(),
-				channelId: aliceCh.id,
+				channelId: aliceChInC.id,
 				visibility: 'public',
 			})).createdNote;
 			const normalNoteInC = (await carol.client.request('notes/create', {
@@ -170,6 +171,7 @@ describe('Channel', () => {
 			})).createdNote;
 			await sleep(1000);
 			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
+			assert(bobHTL.length > 0, JSON.stringify(bobHTL));
 
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
 			assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
