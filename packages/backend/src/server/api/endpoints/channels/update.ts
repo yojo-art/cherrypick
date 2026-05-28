@@ -112,6 +112,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (channel.userId !== me.id && !iAmModerator) {
 				throw new ApiError(meta.errors.accessDenied);
 			}
+			if (channel.host !== null) {
+				throw new ApiError(meta.errors.accessDenied);
+			}
 			const updates = {} as Partial<MiUser>;
 
 			// eslint:disable-next-line:no-unnecessary-initializer
