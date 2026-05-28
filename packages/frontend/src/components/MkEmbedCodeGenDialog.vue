@@ -233,15 +233,15 @@ function windowEventHandler(event: MessageEvent) {
 	if (event.source !== iframeEl.value?.contentWindow) {
 		return;
 	}
-	if (event.data.type === 'cherrypick:embed:ready') {
+	if (event.data.type === 'misskey:embed:ready') {
 		iframeEl.value!.contentWindow?.postMessage({
-			type: 'cherrypick:embedParent:registerIframeId',
+			type: 'misskey:embedParent:registerIframeId',
 			payload: {
 				iframeId: 'embedCodeGen', // 同じタイミングで複数のembed iframeがある際の区別用なのでここではなんでもいい
 			},
 		});
 	}
-	if (event.data.type === 'cherrypick:embed:changeHeight') {
+	if (event.data.type === 'misskey:embed:changeHeight') {
 		iframeHeight.value = event.data.payload.height;
 		nextTick(() => {
 			calcScale();

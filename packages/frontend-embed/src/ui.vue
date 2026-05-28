@@ -71,7 +71,7 @@ let previousHeight = 0;
 const resizeObserver = new ResizeObserver(async () => {
 	const height = rootEl.value!.scrollHeight + (embedNoBorder.value ? 0 : 2); // border 上下1px
 	if (Math.abs(previousHeight - height) < 1) return; // 1px未満の変化は無視
-	postMessageToParentWindow('cherrypick:embed:changeHeight', {
+	postMessageToParentWindow('misskey:embed:changeHeight', {
 		height: (maxHeight.value > 0 && height > maxHeight.value) ? maxHeight.value : height,
 	});
 	previousHeight = height;
