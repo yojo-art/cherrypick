@@ -44,7 +44,13 @@ describe('Channel', () => {
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.name, aliceCh.name);
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
-			await sleep(2000);
+			for (let i = 0; i < 10; i++) {
+				await sleep(1000);
+				const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+				if (channelActorInB.name === aliceCh.name) {
+					break;
+				}
+			}
 
 			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
 			strictEqual(channelActorInB.name, aliceCh.name);
@@ -61,7 +67,13 @@ describe('Channel', () => {
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.description, aliceCh.description);
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
-			await sleep(2000);
+			for (let i = 0; i < 10; i++) {
+				await sleep(1000);
+				const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+				if (channelActorInB.description === aliceCh.description) {
+					break;
+				}
+			}
 
 			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
 			strictEqual(channelActorInB.description, aliceCh.description);
