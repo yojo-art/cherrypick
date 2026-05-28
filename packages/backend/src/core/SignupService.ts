@@ -179,12 +179,11 @@ export class SignupService {
 		username: MiUser['username'];
 		name?: MiUser['name'];
 		ownerId: MiUser['id'],
-		description?: MiChannel['description'],
-		bannerId?: DriveFile['id'],
-		host?: string | null;
+		description?: MiChannel['description'];
+		bannerId?: DriveFile['id'];
 		ignorePreservedUsernames?: boolean;
 	}) {
-		const { username, name, bannerId, description, ownerId, host } = opts;
+		const { username, name, bannerId, description, ownerId } = opts;
 
 		// Validate username
 		if (!this.userEntityService.validateLocalUsername(username)) {
@@ -265,7 +264,7 @@ export class SignupService {
 				id: this.idService.gen(),
 				username: username,
 				usernameLower: username.toLowerCase(),
-				host: this.utilityService.toPunyNullable(host),
+				host: null,
 				emojis,
 				tags,
 				token: secret,

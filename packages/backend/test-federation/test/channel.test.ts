@@ -1,6 +1,6 @@
 import assert, { rejects, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
+import { createAccount, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
 
 describe('Channel', () => {
 	let alice: LoginUser, bob: LoginUser, carol: LoginUser;
@@ -44,15 +44,9 @@ describe('Channel', () => {
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.name, aliceCh.name);
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
-			for (let i = 0; i < 10; i++) {
-				await sleep(1000);
-				const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
-				if (channelActorInB.name === aliceCh.name) {
-					break;
-				}
-			}
+			await sleep(1000);
 
-			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			strictEqual(channelActorInB.name, aliceCh.name);
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.name, aliceCh.name);
@@ -67,18 +61,25 @@ describe('Channel', () => {
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.description, aliceCh.description);
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
-			for (let i = 0; i < 10; i++) {
-				await sleep(1000);
-				const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
-				if (channelActorInB.description === aliceCh.description) {
-					break;
-				}
-			}
+			await sleep(1000);
 
-			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			strictEqual(channelActorInB.description, aliceCh.description);
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.description, aliceCh.description);
+		});
+		test('バナー画像が連合する', async () => {
+			const image = await uploadFile('a.test', alice);
+			await alice.client.request('channels/update', { channelId: aliceCh.id, bannerId: image.id });
+			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
+			strictEqual(aliceCh.bannerUrl, image.url, 'ローカルにバナー画像が設定される');
+			assert(aliceCh.actorId);
+			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			strictEqual(channelActorInA.bannerUrl, aliceCh.bannerUrl, 'バナー画像を設定するとローカルの対応したユーザーのバナーになる');
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			assert(channelActorInB.bannerUrl != null, 'バナー画像を設定したユーザーが連合する');
+			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+			strictEqual(channelActorInB.bannerUrl, aliceChInB.bannerUrl, 'リモートにバナー画像が設定される');
 		});
 	});
 	describe('Fetch Note', () => {
@@ -176,7 +177,7 @@ describe('Channel', () => {
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
 			assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
 			assert(!bobHTL.map(note => note.text).includes(normalNoteInC.text), 'carolをフォローしていないのでHTLに流れてこない');
-			strictEqual(bobHTL.filter(note => note.user.channelId != null), 0, 'チャンネルアカウントの投稿はHTLに流れてこない');
+			strictEqual(bobHTL.filter(note => note.user.channelId != null).length, 0, 'チャンネルアカウントの投稿はHTLに流れてこない');
 		});
 	});
 });
