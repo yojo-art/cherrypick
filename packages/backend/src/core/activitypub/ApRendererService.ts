@@ -111,6 +111,25 @@ export class ApRendererService {
 	}
 
 	@bindThis
+	public async getChannelUri(note: MiNote & { channelId: string }): Promise<string | null> {
+		note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId == null) {
+			//チャンネルアカウントが作成されてない
+			return null;
+		}
+		if (note.channel.actorId === note.userId) {
+			//チャンネル自分自身は宛先にしない
+			return null;
+		}
+		if (note.channel.host === null) {
+			return this.userEntityService.genLocalUserUri(note.channel.actorId);
+		} else {
+			note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+			return note.channel.actor?.uri ?? null;
+		}
+	}
+
+	@bindThis
 	public async renderAnnounce(object: string | IObject, note: MiNote): Promise<IAnnounce> {
 		const attributedTo = this.userEntityService.genLocalUserUri(note.userId);
 
@@ -130,12 +149,8 @@ export class ApRendererService {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
 		if (note.channelId && note.userId) {
-			note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
-			if (note.channel?.actorId && note.channel.actorId !== note.userId) {
-				//チャンネル自分自身は宛先にしない
-				const channelActor = this.userEntityService.genLocalUserUri(note.channel.actorId);
-				cc.push(channelActor);
-			}
+			const channelActorUri = await this.getChannelUri(note as MiNote & { channelId: string });
+			if (channelActorUri)cc.push(channelActorUri);
 		}
 
 		return {
@@ -484,12 +499,8 @@ export class ApRendererService {
 			to = mentions;
 		}
 		if (note.channelId && note.userId) {
-			note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
-			if (note.channel?.actorId && note.channel.actorId !== note.userId) {
-				//チャンネル自分自身は宛先にしない
-				const channelActor = this.userEntityService.genLocalUserUri(note.channel.actorId);
-				cc.push(channelActor);
-			}
+			const channelActorUri = await this.getChannelUri(note as MiNote & { channelId: string });
+			if (channelActorUri)cc.push(channelActorUri);
 		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
