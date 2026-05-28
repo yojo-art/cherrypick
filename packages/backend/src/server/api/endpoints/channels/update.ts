@@ -150,8 +150,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					for (const pin of add) {
 						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin);
 					}
-					//ユーザーの方に設定した時はチャンネルテーブル側は消す
-					ps.pinnedNoteIds = [];
 				}
 				if (banner) {
 					updates.bannerId = banner.id;
@@ -196,10 +194,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					await this.usersRepository.update(channel.actorId, updates);
 					this.globalEventService.publishInternalEvent('localUserUpdated', { id: channel.actorId });
 				}
-				//ユーザーの方に設定した時はチャンネルテーブルにはnullを入れる
-				banner = null;
 			}
-			//nameとdescriptionはユーザーテーブルとチャンネルテーブル両方に入れる
 			await this.channelsRepository.update(channel.id, {
 				...(ps.name !== undefined ? { name: ps.name } : {}),
 				...(ps.description !== undefined ? { description: ps.description } : {}),
