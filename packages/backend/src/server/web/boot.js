@@ -258,7 +258,7 @@
 			margin-top: 12px;
 
 			&:not(:first-child) {
-			margin-bottom: 12px;
+				margin-bottom: 12px;
 			}
 		}
 
