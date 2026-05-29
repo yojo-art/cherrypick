@@ -878,6 +878,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			nm.notify();
 
+			if (note.channelId != null && note.channel == null) {
+				note.channel = await this.channelsRepository.findOneBy({ id: note.channelId });
+			}
 			//#region AP deliver
 			if (!data.localOnly && this.userEntityService.isLocalUser(user)) {
 				await (async () => {
@@ -887,6 +890,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 					// メンションされたリモートユーザーに配送
 					for (const u of mentionedUsers.filter(u => this.userEntityService.isRemoteUser(u))) {
 						dm.addDirectRecipe(u as MiRemoteUser);
+					}
+
+					if (note.channel != null && note.channel.host != null && note.channel.actorId) {
+						//リモートのチャンネルに投稿する時はそのホストに配送
+						note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+						if (note.channel.actor?.host && note.channel.actor.uri) {
+							dm.addDirectRecipe(note.channel.actor as MiRemoteUser);
+						}
 					}
 
 					// 投稿がリプライかつ投稿者がローカルユーザーかつリプライ先の投稿の投稿者がリモートユーザーなら配送
@@ -912,9 +923,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 					trackPromise(dm.execute());
 				})();
-			}
-			if (note.channelId != null && note.channel == null) {
-				note.channel = await this.channelsRepository.findOneBy({ id: note.channelId });
 			}
 			if (note.channel?.actorId != null && note.channel.host == null && !user.channelId && ['public', 'home'].includes(note.visibility)) {
 				//ローカルのチャンネルに投稿が作成された時リノートする
