@@ -189,7 +189,7 @@ describe('Channel', () => {
 			test('チャンネルをフォローしているとチャンネル投稿も流れてくる', async () => {
 				const channelNoteInA = (await alice.client.request('notes/create', {
 					text: randomUsername(),
-					channelId: carolCh.id,
+					channelId: carolChInA.id,
 					visibility: 'public',
 				})).createdNote;
 				const normalNoteInA = (await alice.client.request('notes/create', {
