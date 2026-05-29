@@ -1,6 +1,6 @@
 import assert, { rejects, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
 
 describe('Channel', () => {
 	let alice: LoginUser, bob: LoginUser, carol: LoginUser;
@@ -127,12 +127,19 @@ describe('Channel', () => {
 			strictEqual(resolvedNoteInB.visibility, 'public');
 		});
 	});
-	describe('Timeline', () => {
+	describe.each([
+		{ enableFanoutTimeline: true },
+		{ enableFanoutTimeline: false },
+	])('Timelines (enableFanoutTimeline: $enableFanoutTimeline)', ({ enableFanoutTimeline }) => {
 		beforeAll(async () => {
-			await bob.client.request('following/create', { userId: aliceInB.id });
+			await Promise.all([
+				async () => (await fetchAdmin('a.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+				async () => (await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+				bob.client.request('following/create', { userId: aliceInB.id }),
+			]);
 			//フォロー処理待ち
 			await sleep(800);
-		});
+		}, 1000 * 60 * 2);
 		test('ユーザーをフォローしてもHTLにチャンネル投稿は流れてこない', async () => {
 			const channelNoteInA = (await alice.client.request('notes/create', {
 				text: randomUsername(),
