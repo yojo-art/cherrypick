@@ -147,6 +147,7 @@ export const isPost = (object: IObject): object is IPost => {
 
 export interface IPost extends IObject {
 	type: 'Note' | 'Question' | 'Article' | 'Audio' | 'Document' | 'Image' | 'Page' | 'Video' | 'Event';
+	actor?: string;
 	source?: {
 		content: string;
 		mediaType: string;
