@@ -741,6 +741,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 		isBot: MiUser['isBot'];
 		channelId: MiUser['channelId'];
 	}, data: Option, silent: boolean, tags: string[], mentionedUsers: MinimumUser[]) {
+		if (user.channelId != null) {
+			//チャンネルアカウントによる投稿はすべてチャンネル投稿にする
+			note.channelId = user.channelId;
+		}
 		this.notesChart.update(note, true);
 		if (note.visibility !== 'specified' && (this.meta.enableChartsForRemoteUser || (user.host == null))) {
 			this.perUserNotesChart.update(user, note, true);
