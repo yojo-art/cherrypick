@@ -130,6 +130,8 @@ describe('Channel', () => {
 	describe('Timeline', () => {
 		beforeAll(async () => {
 			await bob.client.request('following/create', { userId: aliceInB.id });
+			//フォロー処理待ち
+			await sleep(800);
 		});
 		test('ユーザーをフォローしてもHTLにチャンネル投稿は流れてこない', async () => {
 			const channelNoteInA = (await alice.client.request('notes/create', {
