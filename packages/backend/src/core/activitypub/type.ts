@@ -37,6 +37,7 @@ export interface IObject {
 	sensitive?: boolean;
 	disableRightClick?: boolean;
 	deleteAt?: Date;
+	audience?: string;
 }
 
 /**

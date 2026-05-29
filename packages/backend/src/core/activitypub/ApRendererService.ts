@@ -148,10 +148,8 @@ export class ApRendererService {
 		} else {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
-		if (note.channelId && note.userId) {
-			const channelActorUri = await this.getChannelUri(note as MiNote & { channelId: string });
-			if (channelActorUri)cc.push(channelActorUri);
-		}
+		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri)cc.push(channelActorUri);
 
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
@@ -162,6 +160,7 @@ export class ApRendererService {
 			to,
 			cc,
 			object,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 	}
 
@@ -185,17 +184,20 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public renderCreate(object: IObject, note: MiNote): ICreate {
+	public async renderCreate(object: IObject, note: MiNote): Promise<ICreate> {
+		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		const activity: ICreate = {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
 			type: 'Create',
 			published: this.idService.parse(note.id).date.toISOString(),
 			object,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
+		if (channelActorUri && Array.isArray(activity.cc))activity.cc.push(channelActorUri);
 
 		return activity;
 	}
@@ -498,10 +500,8 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
-		if (note.channelId && note.userId) {
-			const channelActorUri = await this.getChannelUri(note as MiNote & { channelId: string });
-			if (channelActorUri)cc.push(channelActorUri);
-		}
+		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri)cc.push(channelActorUri);
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
 			searchableBy = undefined;
@@ -623,6 +623,7 @@ export class ApRendererService {
 			...asDeleteAt,
 			...asEvent,
 			...asPoll,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 	}
 
