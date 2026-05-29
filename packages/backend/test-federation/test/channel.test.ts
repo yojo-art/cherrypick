@@ -151,12 +151,9 @@ describe('Channel', () => {
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text));
 		});
 		test('チャンネルをフォローするとチャンネル投稿も流れてくる', async () => {
-			await bob.client.request('channels/follow', {
-				channelId: aliceChInB.id,
-				visibility: 'public',
-			});
-			assert(aliceChInB.actorId);
+			await bob.client.request('channels/follow', { channelId: aliceChInB.id });
 			await sleep(1000);
+			assert(aliceChInB.actorId);
 			const channelActorInB = await bob.client.request('users/show', { userId: aliceChInB.actorId });
 			assert(channelActorInB.isFollowing, 'チャンネルをフォローするとチャンネルアカウントがフォローされる');
 			const normalNoteInA = (await alice.client.request('notes/create', {
