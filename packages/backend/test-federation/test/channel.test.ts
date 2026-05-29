@@ -126,70 +126,83 @@ describe('Channel', () => {
 			strictEqual(resolvedNoteInB.channelId, aliceChInB.id);
 			strictEqual(resolvedNoteInB.visibility, 'public');
 		});
+		test('チャンネルアカウントのTLにはチャンネル投稿しか無い', async () => {
+			const notes = (await alice.client.request('users/notes', {
+				userId: aliceChActorInB.id,
+				withChannelNotes: true,
+				withRenotes: true,
+			}));
+
+			strictEqual(notes.filter(note => note.channelId == null).length, 0);
+		});
 	});
-	describe.each([
-		{ enableFanoutTimeline: true },
-		{ enableFanoutTimeline: false },
-	])('Timelines (enableFanoutTimeline: $enableFanoutTimeline)', ({ enableFanoutTimeline }) => {
+	describe('Timelines', () => {
 		beforeAll(async () => {
-			await Promise.all([
-				async () => (await fetchAdmin('a.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
-				async () => (await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
-				bob.client.request('following/create', { userId: aliceInB.id }),
-			]);
+			await bob.client.request('following/create', { userId: aliceInB.id });
 			//フォロー処理待ち
 			await sleep(800);
-		}, 1000 * 60 * 2);
-		test('ユーザーをフォローしてもHTLにチャンネル投稿は流れてこない', async () => {
-			const channelNoteInA = (await alice.client.request('notes/create', {
-				text: randomUsername(),
-				channelId: aliceCh.id,
-				visibility: 'public',
-			})).createdNote;
-			const normalNoteInA = (await alice.client.request('notes/create', {
-				text: randomUsername(),
-				visibility: 'public',
-			})).createdNote;
-			await sleep(1000);
-			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
-			assert(bobHTL.length > 0, JSON.stringify(bobHTL));
-
-			assert(!bobHTL.map(note => note.text).includes(channelNoteInA.text));
-			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text));
 		});
-		test('チャンネルをフォローするとチャンネル投稿も流れてくる', async () => {
-			await bob.client.request('channels/follow', { channelId: aliceChInB.id });
-			await sleep(1000);
-			assert(aliceChInB.actorId);
-			const channelActorInB = await bob.client.request('users/show', { userId: aliceChInB.actorId });
-			assert(channelActorInB.isFollowing, 'チャンネルをフォローするとチャンネルアカウントがフォローされる');
-			const channelNoteInA = (await alice.client.request('notes/create', {
-				text: randomUsername(),
-				channelId: aliceCh.id,
-				visibility: 'public',
-			})).createdNote;
-			const normalNoteInA = (await alice.client.request('notes/create', {
-				text: randomUsername(),
-				visibility: 'public',
-			})).createdNote;
-			const channelNoteInC = (await carol.client.request('notes/create', {
-				text: randomUsername(),
-				channelId: aliceChInC.id,
-				visibility: 'public',
-			})).createdNote;
-			const normalNoteInC = (await carol.client.request('notes/create', {
-				text: randomUsername(),
-				visibility: 'public',
-			})).createdNote;
-			await sleep(1000);
-			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
-			assert(bobHTL.length > 0, JSON.stringify(bobHTL));
+		describe.each([
+			{ enableFanoutTimeline: true },
+			{ enableFanoutTimeline: false },
+		])('enableFanoutTimeline: $enableFanoutTimeline', ({ enableFanoutTimeline }) => {
+			beforeAll(async () => {
+				await Promise.all([
+					async () => (await fetchAdmin('a.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+					async () => (await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+				]);
+			}, 1000 * 60 * 2);
+			test('ユーザーをフォローしてもHTLにチャンネル投稿は流れてこない', async () => {
+				const channelNoteInA = (await alice.client.request('notes/create', {
+					text: randomUsername(),
+					channelId: aliceCh.id,
+					visibility: 'public',
+				})).createdNote;
+				const normalNoteInA = (await alice.client.request('notes/create', {
+					text: randomUsername(),
+					visibility: 'public',
+				})).createdNote;
+				await sleep(1000);
+				const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
+				assert(bobHTL.length > 0, JSON.stringify(bobHTL));
 
-			assert(bobHTL.map(note => note.text).includes(channelNoteInA.text), 'aliceとaliceCh両方フォローしているのでHTLに流れてくる');
-			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
-			assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
-			assert(!bobHTL.map(note => note.text).includes(normalNoteInC.text), 'carolをフォローしていないのでHTLに流れてこない');
-			strictEqual(bobHTL.filter(note => note.user.channelId != null).length, 0, 'チャンネルアカウントの投稿はHTLに流れてこない');
+				assert(!bobHTL.map(note => note.text).includes(channelNoteInA.text));
+				assert(bobHTL.map(note => note.text).includes(normalNoteInA.text));
+			});
+			test('チャンネルをフォローするとチャンネル投稿も流れてくる', async () => {
+				await bob.client.request('channels/follow', { channelId: aliceChInB.id });
+				await sleep(1000);
+				assert(aliceChInB.actorId);
+				const channelActorInB = await bob.client.request('users/show', { userId: aliceChInB.actorId });
+				assert(channelActorInB.isFollowing, 'チャンネルをフォローするとチャンネルアカウントがフォローされる');
+				const channelNoteInA = (await alice.client.request('notes/create', {
+					text: randomUsername(),
+					channelId: aliceCh.id,
+					visibility: 'public',
+				})).createdNote;
+				const normalNoteInA = (await alice.client.request('notes/create', {
+					text: randomUsername(),
+					visibility: 'public',
+				})).createdNote;
+				const channelNoteInC = (await carol.client.request('notes/create', {
+					text: randomUsername(),
+					channelId: aliceChInC.id,
+					visibility: 'public',
+				})).createdNote;
+				const normalNoteInC = (await carol.client.request('notes/create', {
+					text: randomUsername(),
+					visibility: 'public',
+				})).createdNote;
+				await sleep(1000);
+				const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
+				assert(bobHTL.length > 0, JSON.stringify(bobHTL));
+
+				assert(bobHTL.map(note => note.text).includes(channelNoteInA.text), 'aliceとaliceCh両方フォローしているのでHTLに流れてくる');
+				assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
+				assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
+				assert(!bobHTL.map(note => note.text).includes(normalNoteInC.text), 'carolをフォローしていないのでHTLに流れてこない');
+				strictEqual(bobHTL.filter(note => note.user.channelId != null).length, 0, 'チャンネルアカウントの投稿はHTLに流れてこない');
+			});
 		});
 	});
 });
