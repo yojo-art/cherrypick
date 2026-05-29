@@ -1010,6 +1010,20 @@ export class ActivityPubServerService {
 			}
 		});
 
+		fastify.get<{ Params: { channel: string; } }>('/channels/:channel', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
+			vary(reply.raw, 'Accept');
+
+			const channelId = request.params.channel;
+
+			const user = await this.usersRepository.findOneBy({
+				channelId,
+				host: IsNull(),
+				isSuspended: false,
+			});
+			if (user) reply.redirect(`/users/${user.id}`);
+			reply.code(404);
+		});
+
 		fastify.get<{ Params: { user: string; } }>('/users/:user', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
 			vary(reply.raw, 'Accept');
 
