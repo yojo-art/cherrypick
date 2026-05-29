@@ -1093,22 +1093,18 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		const r = this.redisForTimelines.pipeline();
 
-		//投稿の作成者がチャンネルアカウントであるチャンネルを取得
-		const channelUser = note.channelId ? await this.channelsRepository.findOneBy({
-			actorId: user.id,
-		}) : null;
-		if (channelUser != null) {
+		if (note.channelId && note.channel == null) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId === user.id) {
 			//チャンネルユーザーが作成したチャンネル投稿
-			note.channel = channelUser;
 			if (isRenote(note) && !isQuote(note)) {
 				note.renote = await this.notesRepository.findOneBy({ id: note.renoteId });
 			}
 			if (note.renote) {
+				note.renote.channel = note.channel;
 				//TLにはリノートの中身を投入する
 				note = note.renote;
 			}
 		}
-		if (note.channelId && note.channel == null) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
 		if (note.channelId && note.channel) {
 			const channelFollowings = note.channel.actorId ? await this.followingsRepository.find({
 				where: {
