@@ -156,6 +156,11 @@ describe('Channel', () => {
 			assert(aliceChInB.actorId);
 			const channelActorInB = await bob.client.request('users/show', { userId: aliceChInB.actorId });
 			assert(channelActorInB.isFollowing, 'チャンネルをフォローするとチャンネルアカウントがフォローされる');
+			const channelNoteInA = (await alice.client.request('notes/create', {
+				text: randomUsername(),
+				channelId: aliceCh.id,
+				visibility: 'public',
+			})).createdNote;
 			const normalNoteInA = (await alice.client.request('notes/create', {
 				text: randomUsername(),
 				visibility: 'public',
@@ -173,6 +178,7 @@ describe('Channel', () => {
 			const bobHTL = await bob.client.request('notes/timeline', { limit: 100 });
 			assert(bobHTL.length > 0, JSON.stringify(bobHTL));
 
+			assert(bobHTL.map(note => note.text).includes(channelNoteInA.text), 'aliceとaliceCh両方フォローしているのでHTLに流れてくる');
 			assert(bobHTL.map(note => note.text).includes(normalNoteInA.text), 'aliceをフォローしているのでHTLに流れてくる');
 			assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'aliceChをフォローしているのでHTLに流れてくる');
 			assert(!bobHTL.map(note => note.text).includes(normalNoteInC.text), 'carolをフォローしていないのでHTLに流れてこない');
