@@ -117,10 +117,6 @@ export class ApRendererService {
 			//チャンネルアカウントが作成されてない
 			return null;
 		}
-		if (note.channel.actorId === note.userId) {
-			//チャンネル自分自身は宛先にしない
-			return null;
-		}
 		if (note.channel.host === null) {
 			return this.userEntityService.genLocalUserUri(note.channel.actorId);
 		} else {
@@ -149,8 +145,10 @@ export class ApRendererService {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
 		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri)cc.push(channelActorUri);
-
+		if (channelActorUri && note.channel?.actorId === note.userId) {
+			//チャンネル自分自身は宛先にしない
+			cc.push(channelActorUri);
+		}
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
@@ -197,8 +195,10 @@ export class ApRendererService {
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
-		if (channelActorUri && Array.isArray(activity.cc))activity.cc.push(channelActorUri);
-
+		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId === note.userId) {
+			//チャンネル自分自身は宛先にしない
+			activity.cc.push(channelActorUri);
+		}
 		return activity;
 	}
 
@@ -501,7 +501,10 @@ export class ApRendererService {
 			to = mentions;
 		}
 		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri)cc.push(channelActorUri);
+		if (channelActorUri && note.channel?.actorId === note.userId) {
+			//チャンネル自分自身は宛先にしない
+			cc.push(channelActorUri);
+		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
 			searchableBy = undefined;
