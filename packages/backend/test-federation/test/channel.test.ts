@@ -53,52 +53,71 @@ describe('Channel', () => {
 		test('チャンネル名が連合する', async () => {
 			strictEqual(aliceChActorInB.username, aliceCh.name, 'デフォルトはusername==name');
 			assert(aliceChActorInB.channelId);
+
 			await alice.client.request('channels/update', { channelId: aliceCh.id, name: 'test Channel' });
 			await sleep();
+
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			strictEqual(aliceCh.name, 'test Channel');
 			assert(aliceCh.actorId);
+
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.name, aliceCh.name);
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
-			await sleep(1000);
+			await sleep();
 
 			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			strictEqual(channelActorInB.name, aliceCh.name);
+
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.name, aliceCh.name);
 		});
+
 		test('チャンネル説明文が連合する', async () => {
 			assert(aliceChActorInB.channelId);
+
 			await alice.client.request('channels/update', { channelId: aliceCh.id, description: 'Channel Description' });
 			await sleep();
+
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			strictEqual(aliceCh.description, 'Channel Description');
 			assert(aliceCh.actorId);
+
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.description, aliceCh.description);
+
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
-			await sleep(1000);
+			await sleep();
 
 			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			strictEqual(channelActorInB.description, aliceCh.description);
+
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.description, aliceCh.description);
 		});
+
 		test('バナー画像が連合する', async () => {
 			const image = await uploadFile('a.test', alice);
 			await alice.client.request('channels/update', { channelId: aliceCh.id, bannerId: image.id });
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			strictEqual(aliceCh.bannerUrl, image.url, 'ローカルにバナー画像が設定される');
 			assert(aliceCh.actorId);
+
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.bannerUrl, aliceCh.bannerUrl, 'バナー画像を設定するとローカルの対応したユーザーのバナーになる');
+			await sleep();
+
+			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
+			await sleep();
+
 			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			assert(channelActorInB.bannerUrl != null, 'バナー画像を設定したユーザーが連合する');
+
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(channelActorInB.bannerUrl, aliceChInB.bannerUrl, 'リモートにバナー画像が設定される');
 		});
 	});
+
 	describe('Fetch Note', () => {
 		test('パブリックなチャンネル投稿がパブリックなチャンネル投稿として照会できる', async () => {
 			const note = (await alice.client.request('notes/create', {
@@ -112,6 +131,7 @@ describe('Channel', () => {
 			strictEqual(resolvedNote.channelId, aliceChInB.id);
 			strictEqual(resolvedNote.visibility, 'public');
 		});
+
 		test('ホームなチャンネル投稿がホームなチャンネル投稿として照会できる', async () => {
 			const note = (await alice.client.request('notes/create', {
 				text: 'I am Alice!',
@@ -124,6 +144,7 @@ describe('Channel', () => {
 			strictEqual(resolvedNote.channelId, aliceChInB.id);
 			strictEqual(resolvedNote.visibility, 'home');
 		});
+
 		test('チャンネル管理、閲覧、投稿がすべて別インスタンスでも動く', async () => {
 			const note = (await carol.client.request('notes/create', {
 				text: 'I am Carol!',
@@ -143,6 +164,7 @@ describe('Channel', () => {
 			strictEqual(resolvedNoteInB.channelId, aliceChInB.id);
 			strictEqual(resolvedNoteInB.visibility, 'public');
 		});
+
 		test('チャンネルアカウントのTLにはチャンネル投稿しか無い', async () => {
 			const notes = (await alice.client.request('users/notes', {
 				userId: aliceChActorInB.id,
@@ -153,6 +175,7 @@ describe('Channel', () => {
 			strictEqual(notes.filter(note => note.channelId == null).length, 0);
 		});
 	});
+
 	describe('Timelines', () => {
 		beforeAll(async () => {
 			await bob.client.request('following/create', { userId: aliceInB.id });
@@ -169,6 +192,7 @@ describe('Channel', () => {
 					async () => (await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
 				]);
 			}, 1000 * 60 * 2);
+
 			test('ユーザーをフォローしてもHTLにチャンネル投稿は流れてこない', async () => {
 				const channelNoteInA = (await alice.client.request('notes/create', {
 					text: randomUsername(),
@@ -186,6 +210,7 @@ describe('Channel', () => {
 				assert(!bobHTL.map(note => note.text).includes(channelNoteInA.text));
 				assert(bobHTL.map(note => note.text).includes(normalNoteInA.text));
 			});
+
 			test('チャンネルをフォローしているとチャンネル投稿も流れてくる', async () => {
 				const channelNoteInA = (await alice.client.request('notes/create', {
 					text: randomUsername(),
