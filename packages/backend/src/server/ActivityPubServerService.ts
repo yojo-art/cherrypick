@@ -116,7 +116,7 @@ export class ActivityPubServerService {
 			return await this.apRendererService.renderAnnounce(renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`, note);
 		}
 
-		return this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
+		return await this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 	}
 
 	@bindThis
