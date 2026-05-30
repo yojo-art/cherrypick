@@ -188,8 +188,8 @@ describe('Channel', () => {
 		])('enableFanoutTimeline: $enableFanoutTimeline', ({ enableFanoutTimeline }) => {
 			beforeAll(async () => {
 				await Promise.all([
-					async () => (await fetchAdmin('a.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
-					async () => (await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+					(await fetchAdmin('a.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+					(await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
 				]);
 			}, 1000 * 60 * 2);
 
