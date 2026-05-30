@@ -145,7 +145,7 @@ export class ApRendererService {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri && note.channel?.actorId === note.userId) {
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
 			if (!cc.includes(channelActorUri)) {
 				cc.push(channelActorUri);
@@ -197,7 +197,7 @@ export class ApRendererService {
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
-		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId === note.userId) {
+		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
 			if (!activity.cc.includes(channelActorUri)) {
 				activity.cc.push(channelActorUri);
@@ -505,7 +505,7 @@ export class ApRendererService {
 			to = mentions;
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri && note.channel?.actorId === note.userId) {
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
 			if (!cc.includes(channelActorUri)) {
 				cc.push(channelActorUri);
