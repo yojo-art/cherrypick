@@ -5,6 +5,7 @@
 
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { IsNull, Not } from 'typeorm';
+import { ModuleRef } from '@nestjs/core';
 import type { MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import type {
 	FollowRequestsRepository,
@@ -12,7 +13,7 @@ import type {
 	NoteReactionsRepository,
 	NotesRepository,
 	PollsRepository,
-	UsersRepository
+	UsersRepository,
 } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -29,7 +30,6 @@ import { ApRendererService } from './ApRendererService.js';
 import { ApRequestService } from './ApRequestService.js';
 import { FetchAllowSoftFailMask } from './misc/check-against-url.js';
 import type { IClip, IObject, ICollection, IOrderedCollection, IOrderedCollectionPage } from './type.js';
-import { ModuleRef } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class Resolver {
@@ -196,7 +196,7 @@ export class Resolver {
 					.then(async note => {
 						if (parsed.rest === 'activity') {
 							// this refers to the create activity and not the note itself
-							return this.apRendererService.addContext(this.apRendererService.renderCreate(await this.apRendererService.renderNote(note), note));
+							return this.apRendererService.addContext(await this.apRendererService.renderCreate(await this.apRendererService.renderNote(note), note));
 						} else {
 							return this.apRendererService.renderNote(note);
 						}
