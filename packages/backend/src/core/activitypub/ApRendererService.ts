@@ -144,10 +144,12 @@ export class ApRendererService {
 		} else {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
-		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		if (channelActorUri && note.channel?.actorId === note.userId) {
 			//チャンネル自分自身は宛先にしない
-			cc.push(channelActorUri);
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
 		}
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
@@ -183,7 +185,7 @@ export class ApRendererService {
 
 	@bindThis
 	public async renderCreate(object: IObject, note: MiNote): Promise<ICreate> {
-		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		const activity: ICreate = {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
@@ -197,7 +199,9 @@ export class ApRendererService {
 		if (object.cc) activity.cc = object.cc;
 		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId === note.userId) {
 			//チャンネル自分自身は宛先にしない
-			activity.cc.push(channelActorUri);
+			if (!activity.cc.includes(channelActorUri)) {
+				activity.cc.push(channelActorUri);
+			}
 		}
 		return activity;
 	}
@@ -500,10 +504,12 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
-		const channelActorUri = note.channelId && note.userId ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		if (channelActorUri && note.channel?.actorId === note.userId) {
 			//チャンネル自分自身は宛先にしない
-			cc.push(channelActorUri);
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
 		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
