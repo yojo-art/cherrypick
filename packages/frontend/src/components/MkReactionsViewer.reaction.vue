@@ -75,7 +75,7 @@ const canToggle = computed(() => {
 	//return !props.reaction.match(/@\w/) && $i && emoji && checkReactionPermissions($i, props.note, emoji);
 	return props.reaction.match(/@\w/) == null && $i != null && emoji != null;
 });
-const canGetInfo = computed(() => props.reaction.includes(':'));
+const canGetInfo = computed(() => props.reaction.startsWith(':'));
 const isLocalCustomEmoji = props.reaction[0] === ':' && props.reaction.includes('@.');
 
 const reactionName = computed(() => {
@@ -93,6 +93,10 @@ const router = useRouter();
 const alternative: ComputedRef<string | null> = computed(() => prefer.s.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
 
 const canSteal = computed(() => $i != null && ($i.isAdmin || $i.policies.canManageCustomEmojis));
+
+const canImport = computed(() => canSteal.value && props.reaction.startsWith(':') && !!reactionHost.value && reactionHost.value !== '.' && !customEmojisMap.has(reactionName.value));
+
+const reactionLabel = computed(() => props.reaction.startsWith(':') ? `:${reactionName.value}:` : props.reaction);
 
 const longTouchEmoji = ref(false);
 
@@ -185,7 +189,7 @@ function stealReaction(ev: MouseEvent) {
 
 	menuItems.push({
 		type: 'label',
-		text: `:${reactionName.value}:`,
+		text: reactionLabel.value,
 	});
 
 	if (canGetInfo.value) {
@@ -215,7 +219,7 @@ function stealReaction(ev: MouseEvent) {
 		});
 	}
 
-	if (canSteal.value && reactionHost.value && reactionHost.value !== '.') {
+	if (canImport.value) {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
@@ -281,7 +285,7 @@ async function menu(ev) {
 
 	menuItems.push({
 		type: 'label',
-		text: `:${reactionName.value}:`,
+		text: reactionLabel.value,
 	});
 
 	if (canGetInfo.value) {
@@ -311,7 +315,7 @@ async function menu(ev) {
 		});
 	}
 
-	if (canSteal.value && reactionHost.value && reactionHost.value !== '.') {
+	if (canImport.value) {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
