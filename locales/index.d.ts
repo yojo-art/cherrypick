@@ -6400,6 +6400,10 @@ export interface Locale extends ILocale {
      */
     "deviceInfoDescription": string;
     /**
+     * あなたは管理者です
+     */
+    "youAreAdmin": string;
+    /**
      * 下書き一覧
      */
     "draftNoteList": string;
