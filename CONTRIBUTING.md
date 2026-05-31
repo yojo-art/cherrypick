@@ -254,11 +254,11 @@ pnpm run e2e
 This uses `.github/cherrypick/test.yml` as the config, so the test DB and Redis must be reachable on `localhost` (for example, by running `docker compose -f packages/backend/test/compose.yml up` beforehand).
 
 #### Running in the Dev Container
-Inside the [Dev Container](#use-devcontainer), the DB and Redis are provided as the `db` and `redis` services instead of `localhost`. The build and migration are already done during the Dev Container setup, so you can run:
+Inside the [Dev Container](#use-devcontainer), the required services are already provided, so you can run:
 ```sh
 pnpm run e2e-dev-container
 ```
-This copies `.config/cypress-devcontainer.yml` (which points to the `db` / `redis` services) to `.config/test.yml`, then starts the test server and runs Cypress.
+To keep the test data isolated from your development environment, the E2E setup uses a dedicated `redis-test` service and a separate `cherrypick_test` database on the shared `db` server. This script copies `.config/cypress-devcontainer.yml` to `.config/test.yml`, migrates the test database, then starts the test server and runs Cypress.
 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.

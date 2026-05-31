@@ -26,6 +26,18 @@ services:
       interval: 5s
       retries: 20
 
+  redis-test:
+    restart: unless-stopped
+    image: redis:7-alpine
+    networks:
+      - internal_network
+    volumes:
+      - redis-test-data:/data
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 5s
+      retries: 20
+
   db:
     restart: unless-stopped
     image: postgres:15-alpine
@@ -37,6 +49,7 @@ services:
       POSTGRES_DB: cherrypick
     volumes:
       - postgres-data:/var/lib/postgresql/data
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
@@ -45,6 +58,7 @@ services:
 volumes:
   postgres-data:
   redis-data:
+  redis-test-data:
   node_modules:
 
 networks:
