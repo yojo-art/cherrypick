@@ -165,7 +165,6 @@ type Option = {
 	event?: IEvent | null;
 	localOnly?: boolean | null;
 	reactionAcceptance?: MiNote['reactionAcceptance'];
-	disableRightClick?: boolean | null;
 	cw?: string | null;
 	visibility?: string | null;
 	searchableBy: string | null,
@@ -287,7 +286,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		channelId: MiChannel['id'] | null;
 		localOnly: boolean;
 		reactionAcceptance: MiNote['reactionAcceptance'];
-		disableRightClick: boolean | null;
 		poll: IPoll | null;
 		event: IEvent | null;
 		tagText?: string;
@@ -435,7 +433,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			cw: data.cw,
 			localOnly: data.localOnly,
 			reactionAcceptance: data.reactionAcceptance,
-			disableRightClick: data.disableRightClick,
 			visibility: data.visibility,
 			searchableBy: data.searchableBy,
 			visibleUsers,
@@ -461,7 +458,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.createdAt == null) data.createdAt = new Date();
 		if (data.visibility == null) data.visibility = 'public';
 		if (data.localOnly == null) data.localOnly = false;
-		if (data.disableRightClick == null) data.disableRightClick = false;
 
 		if (data.visibility === 'public') {
 			const sensitiveWords = this.meta.sensitiveWords;
@@ -635,7 +631,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			userId: user.id,
 			localOnly: data.localOnly!,
 			reactionAcceptance: data.reactionAcceptance ?? null,
-			disableRightClick: data.disableRightClick!,
 			deleteAt: data.deleteAt,
 			visibility: data.visibility as any,
 			searchableBy: data.searchableBy as any,
