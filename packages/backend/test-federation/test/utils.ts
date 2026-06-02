@@ -47,7 +47,7 @@ export async function sleep(ms = 250): Promise<void> {
  */
 export async function waitFor(
 	predicate: () => Promise<boolean> | boolean,
-	{ timeout = 30_000, interval = 500 }: { timeout?: number; interval?: number } = {},
+	{ timeout = 10_000, interval = 500 }: { timeout?: number; interval?: number } = {},
 ): Promise<void> {
 	const start = Date.now();
 	for (;;) {
@@ -67,7 +67,7 @@ export async function waitFor(
  */
 export async function waitForSettled<T>(
 	sample: () => Promise<T> | T,
-	{ stableTimes = 3, interval = 500, timeout = 60_000 }: { stableTimes?: number; interval?: number; timeout?: number } = {},
+	{ stableTimes = 3, interval = 500, timeout = 10_000 }: { stableTimes?: number; interval?: number; timeout?: number } = {},
 ): Promise<T> {
 	const start = Date.now();
 	let last = await sample();
