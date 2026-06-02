@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep, waitFor, waitForSettled } from './utils.js';
 
 const [aAdmin, bAdmin, cAdmin] = await Promise.all([
 	fetchAdmin('a.test'),
@@ -148,21 +148,38 @@ describe('Avatar-Decorations', () => {
 		});
 
 		test('a.test でリモートのアバターデコレーションの取得に成功すること', async () => {
-			// a.test から bob, carol を resolve
+			// a.test 上の list-remote から、リモート(host非null)デコレーションのname集合を取得する
+			const remoteDecoNames = async (): Promise<Set<string>> => {
+				const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', { limit: 100 });
+				return new Set(list.map(d => d.name));
+			};
+			const expectedNames = [bDeco.name, cDeco1.name, cDeco2.name];
+
+			// a.test から bob, carol を resolve すると createPerson が remoteUserUpdate を
+			// fire-and-forget で呼ぶため、ここからリモートデコレーションの伝播が始まる
 			const carolInAlice = await resolveRemoteUser('c.test', carol.id, alice);
 			const bobInAlice = await resolveRemoteUser('b.test', bob.id, alice);
-			// ちょっと待つ
-			await sleep(1 * 1000);
 
-			// resolveRemoteUserしてもデコレーションが来ない（？？？
-			// なので、ApPersonServiceのupdatePersonを叩く
+			// fire-and-forget の伝播が落ち着くのを待つ。これを待たずに明示更新を呼ぶと
+			// remoteUserUpdate の check-then-create が二重に走り、重複レコードが生成され得る
+			await waitForSettled(async () => (await remoteDecoNames()).size);
+
+			// resolve だけでは伝播しないことがあるため、明示的に updatePerson を起動する。
+			// 伝播済みなら既存レコードは update パスとなり重複は生じない
 			await alice.client.request('federation/update-remote-user', { userId: bobInAlice.id });
 			await alice.client.request('federation/update-remote-user', { userId: carolInAlice.id });
-			// ちょっと待つ
-			await sleep(1 * 1000);
 
-			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});
-			strictEqual(list.length, 3, JSON.stringify(list));
+			// b.test 1件 + c.test 2件 = 3種類が出揃うまで待つ(固定sleepの代わり)
+			await waitFor(async () => {
+				const names = await remoteDecoNames();
+				return expectedNames.every(name => names.has(name));
+			});
+
+			const names = await remoteDecoNames();
+			strictEqual(names.size, 3, JSON.stringify([...names]));
+			for (const name of expectedNames) {
+				strictEqual(names.has(name), true, JSON.stringify([...names]));
+			}
 		});
 
 		test('host 未指定で叩くと b.test と c.test 両方のデコレーションが見えること', async () => {
@@ -219,8 +236,9 @@ describe('Avatar-Decorations', () => {
 		});
 
 		test('limit=1が正しく動作すること', async () => {
-			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', { host: 'c.test' });
-			strictEqual(list.length, 2, JSON.stringify(list));
+			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', { host: 'c.test', limit: 100 });
+			const cNames = new Set(list.map(d => d.name));
+			strictEqual(cNames.size, 2, JSON.stringify(list));
 
 			const limitList = await aAdmin.client.request('admin/avatar-decorations/list-remote', { host: 'c.test', limit: 1 });
 			strictEqual(limitList.length, 1, JSON.stringify(limitList));
