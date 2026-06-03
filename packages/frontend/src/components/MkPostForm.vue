@@ -244,7 +244,6 @@ watch(hideTag, () => prefer.commit('hideTagUiTags', hideTag.value));
 const recentHashtags = ref(JSON.parse(miLocalStorage.getItem('hashtags') ?? '[]'));
 const imeText = ref('');
 const showingOptions = ref(false);
-const disableRightClick = ref(false);
 const saveToDraft = ref(false);
 const textAreaReadOnly = ref(false);
 const justEndedComposition = ref(false);
@@ -467,7 +466,6 @@ function watchForDraft() {
 	watch(text, () => saveDraft());
 	watch(useCw, () => saveDraft());
 	watch(cw, () => saveDraft());
-	watch(disableRightClick, () => saveDraft());
 	watch(saveToDraft, () => saveDraft());
 	watch(poll, () => saveDraft());
 	watch(event, () => saveDraft());
@@ -750,7 +748,6 @@ function clear() {
 	scheduledAt.value = null;
 	scheduledNoteDelete.value = null;
 	saveToDraft.value = false;
-	disableRightClick.value = false;
 }
 
 function onKeydown(ev: KeyboardEvent) {
@@ -910,7 +907,6 @@ function saveDraft() {
 			text: text.value,
 			useCw: useCw.value,
 			cw: cw.value,
-			disableRightClick: disableRightClick.value,
 			saveToDraft: text.value === '' ? false : saveToDraft.value,
 			visibility: visibility.value,
 			searchableBy: searchableBy.value,
@@ -943,7 +939,6 @@ async function saveServerDraft(options: {
 		...(serverDraftId.value == null ? {} : { draftId: serverDraftId.value }),
 		text: text.value,
 		cw: useCw.value ? cw.value || null : null,
-		disableRightClick: disableRightClick.value,
 		visibility: visibility.value,
 		hashtag: hashtags.value,
 		fileIds: files.value.map(f => f.id),
@@ -1104,7 +1099,6 @@ async function post(ev?: MouseEvent) {
 		visibility: visibility.value,
 		visibleUserIds: visibility.value === 'specified' ? visibleUsers.value.map(u => u.id) : undefined,
 		reactionAcceptance: reactionAcceptance.value,
-		disableRightClick: disableRightClick.value,
 		noteId: props.updateMode ? props.initialNote?.id : undefined,
 		scheduledDelete: scheduledNoteDelete.value,
 		searchableBy: searchableBy.value,
@@ -1348,7 +1342,6 @@ async function openAccountMenu(ev: MouseEvent) {
 				text.value = draft.text ?? '';
 				useCw.value = draft.cw != null;
 				cw.value = draft.cw ?? null;
-				disableRightClick.value = draft.disableRightClick ?? false;
 				visibility.value = draft.visibility;
 				//localOnly.value = draft.localOnly ?? false;
 				files.value = draft.files ?? [];
@@ -1526,14 +1519,6 @@ function showOtherMenu(ev: MouseEvent) {
 		});
 	}
 
-	menuItems.push({ type: 'divider' }, {
-		type: 'switch',
-		text: i18n.ts.disableRightClick,
-		icon: 'ti ti-mouse-off',
-		ref: disableRightClick,
-		disabled: files.value.length < 1,
-	});
-
 	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
@@ -1559,7 +1544,6 @@ onMounted(() => {
 				text.value = draft.data.text;
 				useCw.value = draft.data.useCw;
 				cw.value = draft.data.cw;
-				disableRightClick.value = draft.data.disableRightClick;
 				saveToDraft.value = draft.data.saveToDraft;
 				visibility.value = draft.data.visibility;
 				searchableBy.value = draft.data.searchableBy;
@@ -1625,7 +1609,6 @@ onMounted(() => {
 			}
 			quoteId.value = renoteTargetNote.value ? renoteTargetNote.value.id : null;
 			reactionAcceptance.value = init.reactionAcceptance;
-			disableRightClick.value = init.disableRightClick != null;
 			saveToDraft.value = false;
 			if (init.deletedAt) {
 				scheduledNoteDelete.value = {

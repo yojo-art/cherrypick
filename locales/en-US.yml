@@ -130,7 +130,6 @@ performanceWarning: "High resource usage can result in higher device temperature
 photosensitiveSeizuresWarning: "Can cause photosensitive seizures"
 useBoldFont: "Bold Text"
 newNoteReceivedNotification: "When receive a new note notification"
-disableRightClick: "Prohibit right click"
 cherrypickUpdatedCacheClearTitle: "Clear the cache?"
 cherrypickUpdatedCacheClear: "It is <b>recommended to clear the cache</b> after the client is updated, as changes such as theme, color, and locale may not be reflected properly.\nYour account login status remains the same!"
 cherrypickUpdatedCacheClearLater: "If you want to clear the cache later, you can do it in <b>Settings</b> → <b>Clear Cache</b>!"
