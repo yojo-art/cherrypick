@@ -161,10 +161,17 @@ describe('Avatar-Decorations', () => {
 			await alice.client.request('federation/update-remote-user', { userId: bobInAlice.id });
 			await alice.client.request('federation/update-remote-user', { userId: carolInAlice.id });
 
-			// b.test 1件 + c.test 2件 = 3件が出揃うまで待つ(固定sleepの代わり)
-			await waitFor(async () => (await aAdmin.client.request('admin/avatar-decorations/list-remote', {})).length >= 3);
+			// b.test 1件 + c.test 2件 が伝播するまで待つ(固定sleepの代わり)
+			await waitFor(async () => {
+				const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});
+				return list.filter(d => d.host === 'b.test').length >= 1
+					&& list.filter(d => d.host === 'c.test').length >= 2;
+			});
 
 			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});
+			// 増殖した場合はテストが落ちるべきなので、ホストごとの件数と総数を厳密に検証する
+			strictEqual(list.filter(d => d.host === 'b.test').length, 1, JSON.stringify(list));
+			strictEqual(list.filter(d => d.host === 'c.test').length, 2, JSON.stringify(list));
 			strictEqual(list.length, 3, JSON.stringify(list));
 		});
 
