@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep, waitFor, waitForSettled } from './utils.js';
 
 const [aAdmin, bAdmin, cAdmin] = await Promise.all([
 	fetchAdmin('a.test'),
@@ -148,20 +148,30 @@ describe('Avatar-Decorations', () => {
 		});
 
 		test('a.test でリモートのアバターデコレーションの取得に成功すること', async () => {
-			// a.test から bob, carol を resolve
+			// a.test から bob, carol を resolve する。createPerson が remoteUserUpdate を
+			// fire-and-forget で呼ぶため、ここからリモートデコレーションの伝播が始まる
 			const carolInAlice = await resolveRemoteUser('c.test', carol.id, alice);
 			const bobInAlice = await resolveRemoteUser('b.test', bob.id, alice);
-			// ちょっと待つ
-			await sleep(1 * 1000);
 
-			// resolveRemoteUserしてもデコレーションが来ない（？？？
-			// なので、ApPersonServiceのupdatePersonを叩く
+			// fire-and-forget の伝播が落ち着くのを待ってから明示更新する。
+			// 待たずに更新すると remoteUserUpdate の check-then-create が二重に走り重複し得る
+			await waitForSettled(async () => (await aAdmin.client.request('admin/avatar-decorations/list-remote', {})).length);
+
+			// resolve だけでは伝播しないことがあるため、明示的に updatePerson を起動する
 			await alice.client.request('federation/update-remote-user', { userId: bobInAlice.id });
 			await alice.client.request('federation/update-remote-user', { userId: carolInAlice.id });
-			// ちょっと待つ
-			await sleep(1 * 1000);
+
+			// b.test 1件 + c.test 2件 が伝播するまで待つ(固定sleepの代わり)
+			await waitFor(async () => {
+				const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});
+				return list.filter(d => d.host === 'b.test').length >= 1
+					&& list.filter(d => d.host === 'c.test').length >= 2;
+			});
 
 			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});
+			// 増殖した場合はテストが落ちるべきなので、ホストごとの件数と総数を厳密に検証する
+			strictEqual(list.filter(d => d.host === 'b.test').length, 1, JSON.stringify(list));
+			strictEqual(list.filter(d => d.host === 'c.test').length, 2, JSON.stringify(list));
 			strictEqual(list.length, 3, JSON.stringify(list));
 		});
 
