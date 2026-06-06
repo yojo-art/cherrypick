@@ -1147,6 +1147,10 @@ export interface Locale extends ILocale {
      */
     "reactions": string;
     /**
+     * リアクションしたユーザー
+     */
+    "reactionUsers": string;
+    /**
      * 絵文字ピッカー
      */
     "emojiPicker": string;
