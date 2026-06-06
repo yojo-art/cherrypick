@@ -75,8 +75,6 @@ onMounted(() => {
 		noteId: props.noteId,
 	}).then((res) => {
 		reactions.value = Object.keys(res.reactions);
-		console.log(props.initialReaction);
-		console.log(reactions.value);
 		tab.value = (props.initialReaction && reactions.value.includes(props.initialReaction))
 			? props.initialReaction
 			: reactions.value[0];
