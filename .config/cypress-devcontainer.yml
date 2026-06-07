@@ -51,7 +51,7 @@ db:
   port: 5432
 
   # Database name
-  db: misskey
+  db: misskey_test
 
   # Auth
   user: postgres
@@ -85,7 +85,7 @@ dbReplications: false
 #───┘ Redis configuration └─────────────────────────────────────
 
 redis:
-  host: redis
+  host: redis-test
   port: 6379
   #family: 0  # 0=Both, 4=IPv4, 6=IPv6
   #pass: example-pass

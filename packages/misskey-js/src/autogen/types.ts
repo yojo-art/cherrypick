@@ -5784,6 +5784,7 @@ export type components = {
             canUseTranslator: boolean;
             canUseAutoTranslate: boolean;
             canHideAds: boolean;
+            canCreateChannel: boolean;
             driveCapacityMb: number;
             maxFileSizeMb: number;
             uploadableFileTypes: string[];

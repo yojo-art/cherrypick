@@ -174,6 +174,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkSwitch>
 					</MkFolder>
 
+					<MkFolder v-if="matchQuery([i18n.ts._role._options.canCreateChannel, 'canCreateChannel'])">
+						<template #label>{{ i18n.ts._role._options.canCreateChannel }}</template>
+						<template #suffix>{{ policies.canCreateChannel ? i18n.ts.yes : i18n.ts.no }}</template>
+						<MkSwitch v-model="policies.canCreateChannel">
+							<template #label>{{ i18n.ts.enable }}</template>
+						</MkSwitch>
+					</MkFolder>
+
 					<MkFolder v-if="matchQuery([i18n.ts._role._options.canUseAutoTranslate, 'canUseAutoTranslate'])">
 						<template #label>{{ i18n.ts._role._options.canUseAutoTranslate }}</template>
 						<template #suffix>{{ policies.canUseAutoTranslate ? i18n.ts.yes : i18n.ts.no }}</template>
