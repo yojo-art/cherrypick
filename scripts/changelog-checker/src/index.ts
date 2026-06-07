@@ -17,13 +17,13 @@ function abort(message?: string) {
 }
 
 function main() {
-	if (!fs.existsSync('./CHANGELOG-base.md') || !fs.existsSync('./CHANGELOG-head.md')) {
-		console.error('CHANGELOG-base.md or CHANGELOG-head.md is missing.');
+	if (!fs.existsSync('./CHANGELOG_YOJO-base.md') || !fs.existsSync('./CHANGELOG_YOJO-head.md')) {
+		console.error('CHANGELOG_YOJO-base.md or CHANGELOG_YOJO-head.md is missing.');
 		return;
 	}
 
-	const base = parseChangeLog('./CHANGELOG-base.md');
-	const head = parseChangeLog('./CHANGELOG-head.md');
+	const base = parseChangeLog('./CHANGELOG_YOJO-base.md');
+	const head = parseChangeLog('./CHANGELOG_YOJO-head.md');
 
 	const result = (base.length < head.length)
 		? checkNewRelease(base, head)
