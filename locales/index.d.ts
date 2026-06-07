@@ -561,10 +561,6 @@ export interface Locale extends ILocale {
      */
     "newNoteReceivedNotification": string;
     /**
-     * 右クリックを禁止
-     */
-    "disableRightClick": string;
-    /**
      * キャッシュをクリアしましょうか？
      */
     "cherrypickUpdatedCacheClearTitle": string;

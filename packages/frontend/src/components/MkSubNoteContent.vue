@@ -69,7 +69,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div v-show="showContent">
 			<div v-if="note.files && note.files.length > 0">
-				<MkMediaList :mediaList="note.files" :disableRightClick="note.disableRightClick" @click.stop @contextmenu="disableRightClickHandler"/>
+				<MkMediaList :mediaList="note.files" @click.stop/>
 			</div>
 			<div v-if="note.poll">
 				<MkPoll
@@ -271,10 +271,6 @@ const collapseLabel = computed(() => {
 		props.note.files && props.note.files.length !== 0 ? [i18n.tsx._cw.files({ count: props.note.files.length })] : [],
 	] as string[][]).join(' / ');
 });
-
-const disableRightClickHandler = (event: Event) => {
-	if (props.note.disableRightClick) event.preventDefault();
-};
 
 provide(DI.mfmEmojiReactCallback, (reaction) => {
 	sound.playMisskeySfx('reaction');

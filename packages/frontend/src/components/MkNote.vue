@@ -146,7 +146,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</div>
 						<div v-if="appearNote.files && appearNote.files.length > 0" style="margin-top: 8px;">
-							<MkMediaList ref="galleryEl" :mediaList="appearNote.files" :disableRightClick="appearNote.disableRightClick" @click.stop @contextmenu="disableRightClickHandler"/>
+							<MkMediaList ref="galleryEl" :mediaList="appearNote.files" @click.stop/>
 						</div>
 						<MkPoll
 							v-if="appearNote.poll"
@@ -263,7 +263,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 				<div v-if="appearNote.files && appearNote.files.length > 0">
-					<MkMediaList ref="galleryEl" :mediaList="appearNote.files" :disableRightClick="appearNote.disableRightClick" @click.stop @contextmenu="disableRightClickHandler"/>
+					<MkMediaList ref="galleryEl" :mediaList="appearNote.files" @click.stop/>
 				</div>
 				<MkPoll
 					v-if="appearNote.poll"
@@ -569,10 +569,6 @@ const collapseLabel = computed(() => {
 		appearNote.files && appearNote.files.length !== 0 ? [i18n.tsx._cw.files({ count: appearNote.files.length })] : [],
 	] as string[][]).join(' / ');
 });
-
-const disableRightClickHandler = (event: Event) => {
-	if (appearNote.disableRightClick) event.preventDefault();
-};
 
 /* eslint-disable no-redeclare */
 /** checkOnlyでは純粋なワードミュート結果をbooleanで返却する */
