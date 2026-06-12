@@ -60,7 +60,7 @@
 	},
 	"dependencies": {
 		"cssnano": "7.1.1",
-		"esbuild": "0.25.10",
+		"esbuild": "0.28.1",
 		"execa": "9.6.0",
 		"fast-glob": "3.3.3",
 		"glob": "11.1.0",
