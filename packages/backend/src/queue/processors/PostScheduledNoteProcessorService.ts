@@ -51,7 +51,6 @@ export class PostScheduledNoteProcessorService {
 				cw: draft.cw,
 				localOnly: draft.localOnly,
 				reactionAcceptance: draft.reactionAcceptance,
-				disableRightClick: draft.disableRightClick,
 				visibility: draft.visibility,
 				visibleUserIds: draft.visibleUserIds,
 				channelId: draft.channelId,
