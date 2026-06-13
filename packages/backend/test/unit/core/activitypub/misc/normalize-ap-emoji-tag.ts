@@ -74,6 +74,19 @@ describe(normalizeApEmojiTag, () => {
 		})).license).toBe('MIT');
 	});
 
+	it('author がないとき creator から author を解決する', () => {
+		expect(normalizeApEmojiTag(createApEmojiTag({
+			creator: '@alice@a.test',
+		})).author).toBe('@alice@a.test');
+	});
+
+	it('author が creator より優先される', () => {
+		expect(normalizeApEmojiTag(createApEmojiTag({
+			author: '@author@a.test',
+			creator: '@creator@a.test',
+		})).author).toBe('@author@a.test');
+	});
+
 	it('文字列以外の optional 文字列フィールドは null になる', () => {
 		expect(normalizeApEmojiTag(createApEmojiTag({
 			category: 123 as unknown as string,

@@ -303,7 +303,7 @@ export interface IApEmoji extends IObject {
 	keywords?: string[];
 	usageInfo?: string;
 	author?: string;
-	crator?: string;
+	creator?: string;
 	description?: string;
 	isBasedOn?: string;
 }
