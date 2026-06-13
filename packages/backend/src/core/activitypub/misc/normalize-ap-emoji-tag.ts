@@ -17,44 +17,22 @@ export type NormalizedApEmojiFields = {
 	isBasedOn: string | null;
 };
 
-const VALID_COPY_PERMISSIONS = ['allow', 'deny', 'conditional'] as const;
-
-function normalizeOptionalString(value: unknown): string | null {
-	return typeof value === 'string' ? value : null;
-}
-
-function normalizeCopyPermission(value: unknown): 'allow' | 'deny' | 'conditional' | null {
-	if (typeof value === 'string' && (VALID_COPY_PERMISSIONS as readonly string[]).includes(value)) {
-		return value as typeof VALID_COPY_PERMISSIONS[number];
-	}
-	return null;
-}
-
-function normalizeAliases(keywords: unknown): string[] {
-	return Array.isArray(keywords) ? keywords : [];
-}
-
-function normalizeLicense(tag: IApEmoji): string | null {
-	if (tag.license !== undefined) {
-		return normalizeOptionalString(tag.license);
-	}
-	return normalizeOptionalString(tag._misskey_license?.freeText ?? null);
-}
-
-function normalizeAuthor(tag: IApEmoji): string | null {
-	return normalizeOptionalString(tag.author ?? tag.creator ?? null);
-}
-
 export function normalizeApEmojiTag(tag: IApEmoji): NormalizedApEmojiFields {
+	const str = (value: unknown): string | null => typeof value === 'string' ? value : null;
+
 	return {
-		license: normalizeLicense(tag),
+		license: tag.license !== undefined
+			? str(tag.license)
+			: str(tag._misskey_license?.freeText ?? null),
 		isSensitive: tag.isSensitive ?? false,
-		copyPermission: normalizeCopyPermission(tag.copyPermission),
-		category: normalizeOptionalString(tag.category),
-		aliases: normalizeAliases(tag.keywords),
-		usageInfo: normalizeOptionalString(tag.usageInfo),
-		author: normalizeAuthor(tag),
-		description: normalizeOptionalString(tag.description),
-		isBasedOn: normalizeOptionalString(tag.isBasedOn),
+		copyPermission: (tag.copyPermission === 'allow' || tag.copyPermission === 'deny' || tag.copyPermission === 'conditional')
+			? tag.copyPermission
+			: null,
+		category: str(tag.category),
+		aliases: Array.isArray(tag.keywords) ? tag.keywords : [],
+		usageInfo: str(tag.usageInfo),
+		author: str(tag.author ?? tag.creator ?? null),
+		description: str(tag.description),
+		isBasedOn: str(tag.isBasedOn),
 	};
 }
