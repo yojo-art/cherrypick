@@ -39,11 +39,11 @@ describe(normalizeApEmojiTag, () => {
 	});
 
 	it('keywords が null のとき aliases は空配列になる', () => {
-		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: null as unknown as string[] })).aliases).toEqual([]);
+		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: null } as IApEmoji)).aliases).toEqual([]);
 	});
 
 	it('keywords が配列でないとき aliases は空配列になる', () => {
-		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: 'alias' as unknown as string[] })).aliases).toEqual([]);
+		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: 'alias' } as IApEmoji)).aliases).toEqual([]);
 	});
 
 	it('keywords が配列のときそのまま aliases になる', () => {
@@ -89,11 +89,11 @@ describe(normalizeApEmojiTag, () => {
 
 	it('文字列以外の optional 文字列フィールドは null になる', () => {
 		expect(normalizeApEmojiTag(createApEmojiTag({
-			category: 123 as unknown as string,
-			usageInfo: {} as unknown as string,
-			description: [] as unknown as string,
-			isBasedOn: false as unknown as string,
-		}))).toMatchObject({
+			category: 123,
+			usageInfo: {},
+			description: [],
+			isBasedOn: false,
+		} as IApEmoji))).toMatchObject({
 			category: null,
 			usageInfo: null,
 			description: null,
