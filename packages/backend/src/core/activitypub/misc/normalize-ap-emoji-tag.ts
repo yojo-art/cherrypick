@@ -17,19 +17,44 @@ export type NormalizedApEmojiFields = {
 	isBasedOn: string | null;
 };
 
-/**
- * TODO(#1049): 未実装スタブ。現状の extractEmojis と同じく正規化しない。
- */
+const VALID_COPY_PERMISSIONS = ['allow', 'deny', 'conditional'] as const;
+
+function normalizeOptionalString(value: unknown): string | null {
+	return typeof value === 'string' ? value : null;
+}
+
+function normalizeCopyPermission(value: unknown): 'allow' | 'deny' | 'conditional' | null {
+	if (typeof value === 'string' && (VALID_COPY_PERMISSIONS as readonly string[]).includes(value)) {
+		return value as typeof VALID_COPY_PERMISSIONS[number];
+	}
+	return null;
+}
+
+function normalizeAliases(keywords: unknown): string[] {
+	return Array.isArray(keywords) ? keywords : [];
+}
+
+function normalizeLicense(tag: IApEmoji): string | null {
+	if (tag.license !== undefined) {
+		return normalizeOptionalString(tag.license);
+	}
+	return normalizeOptionalString(tag._misskey_license?.freeText ?? null);
+}
+
+function normalizeAuthor(tag: IApEmoji): string | null {
+	return normalizeOptionalString(tag.author ?? tag.creator ?? null);
+}
+
 export function normalizeApEmojiTag(tag: IApEmoji): NormalizedApEmojiFields {
 	return {
-		license: (tag.license ?? tag._misskey_license?.freeText ?? null),
+		license: normalizeLicense(tag),
 		isSensitive: tag.isSensitive ?? false,
-		copyPermission: tag.copyPermission ?? null,
-		category: tag.category ?? null,
-		aliases: tag.keywords ?? null as unknown as string[],
-		usageInfo: tag.usageInfo ?? null,
-		author: tag.author ?? null,
-		description: tag.description ?? null,
-		isBasedOn: tag.isBasedOn ?? null,
+		copyPermission: normalizeCopyPermission(tag.copyPermission),
+		category: normalizeOptionalString(tag.category),
+		aliases: normalizeAliases(tag.keywords),
+		usageInfo: normalizeOptionalString(tag.usageInfo),
+		author: normalizeAuthor(tag),
+		description: normalizeOptionalString(tag.description),
+		isBasedOn: normalizeOptionalString(tag.isBasedOn),
 	};
 }
