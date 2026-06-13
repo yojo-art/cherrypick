@@ -6,7 +6,7 @@
 import { normalizeApEmojiTag } from '@/core/activitypub/misc/normalize-ap-emoji-tag.js';
 import type { IApEmoji } from '@/core/activitypub/type.js';
 
-function createApEmojiTag(overrides: Partial<IApEmoji> = {}): IApEmoji {
+function createApEmojiTag(overrides: Record<string, unknown> = {}): IApEmoji {
 	return {
 		type: 'Emoji',
 		name: ':test:',
@@ -16,7 +16,7 @@ function createApEmojiTag(overrides: Partial<IApEmoji> = {}): IApEmoji {
 			url: 'https://example.com/emoji.png',
 		},
 		...overrides,
-	};
+	} as IApEmoji;
 }
 
 describe(normalizeApEmojiTag, () => {
@@ -39,11 +39,11 @@ describe(normalizeApEmojiTag, () => {
 	});
 
 	it('keywords が null のとき aliases は空配列になる', () => {
-		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: null } as IApEmoji)).aliases).toEqual([]);
+		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: null })).aliases).toEqual([]);
 	});
 
 	it('keywords が配列でないとき aliases は空配列になる', () => {
-		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: 'alias' } as IApEmoji)).aliases).toEqual([]);
+		expect(normalizeApEmojiTag(createApEmojiTag({ keywords: 'alias' })).aliases).toEqual([]);
 	});
 
 	it('keywords が配列のときそのまま aliases になる', () => {
@@ -51,8 +51,9 @@ describe(normalizeApEmojiTag, () => {
 	});
 
 	it('不正な copyPermission は null になる', () => {
-		expect(normalizeApEmojiTag(createApEmojiTag({ copyPermission: 'unknown' as 'allow' })).copyPermission).toBeNull();
-		expect(normalizeApEmojiTag(createApEmojiTag({ copyPermission: '' as 'allow' })).copyPermission).toBeNull();
+		expect(normalizeApEmojiTag(createApEmojiTag({ copyPermission: 'unknown' })).copyPermission).toBeNull();
+		expect(normalizeApEmojiTag(createApEmojiTag({ copyPermission: '' })).copyPermission).toBeNull();
+		expect(normalizeApEmojiTag(createApEmojiTag({ copyPermission: 'none' })).copyPermission).toBeNull();
 	});
 
 	it('有効な copyPermission はそのまま保持される', () => {
@@ -93,7 +94,7 @@ describe(normalizeApEmojiTag, () => {
 			usageInfo: {},
 			description: [],
 			isBasedOn: false,
-		} as IApEmoji))).toMatchObject({
+		}))).toMatchObject({
 			category: null,
 			usageInfo: null,
 			description: null,
