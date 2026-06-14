@@ -41,6 +41,10 @@ export function federationTestStubUri(path: string): string {
 	return `https://${FEDERATION_STUB_HOST}/${path}`;
 }
 
+export function assertEmojiAliasesEqual(actual: readonly string[], expected: readonly string[]): void {
+	deepStrictEqual(JSON.stringify(actual), JSON.stringify(expected));
+}
+
 export async function sleep(ms = 250): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }

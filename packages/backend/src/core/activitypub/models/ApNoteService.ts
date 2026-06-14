@@ -31,6 +31,7 @@ import { ApDbResolverService } from '../ApDbResolverService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import { parseSearchableByFromProperty } from '../misc/searchableBy.js';
+import { buildApEmojiUpdateFromTag, normalizeApEmojiTag } from '../misc/normalize-ap-emoji-tag.js';
 import { ApPersonService } from './ApPersonService.js';
 import { extractApHashtags } from './tag.js';
 import { ApMentionService } from './ApMentionService.js';
@@ -491,6 +492,7 @@ export class ApNoteService {
 		return await Promise.all(eomjiTags.map(async tag => {
 			const name = tag.name.replaceAll(':', '');
 			tag.icon = toSingle(tag.icon);
+			const normalized = normalizeApEmojiTag(tag);
 
 			const exists = existingEmojis.find(x => x.name === name);
 
@@ -508,16 +510,7 @@ export class ApNoteService {
 						originalUrl: tag.icon.url,
 						publicUrl: tag.icon.url,
 						updatedAt: new Date(),
-						// _misskey_license が存在しなければ `null`
-						license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-						isSensitive: tag.isSensitive ?? false,
-						copyPermission: tag.copyPermission,
-						category: tag.category,
-						aliases: tag.keywords,
-						usageInfo: tag.usageInfo,
-						author: tag.author ?? tag.crator,
-						description: tag.description,
-						isBasedOn: tag.isBasedOn,
+						...buildApEmojiUpdateFromTag(tag, normalized),
 					});
 
 					const emoji = await this.emojisRepository.findOneBy({ host, name });
@@ -538,16 +531,15 @@ export class ApNoteService {
 				originalUrl: tag.icon.url,
 				publicUrl: tag.icon.url,
 				updatedAt: new Date(),
-				// _misskey_license が存在しなければ `null`
-				license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-				isSensitive: tag.isSensitive ?? false,
-				copyPermission: tag.copyPermission,
-				category: tag.category,
-				aliases: tag.keywords,
-				usageInfo: tag.usageInfo,
-				author: tag.author ?? tag.crator,
-				description: tag.description,
-				isBasedOn: tag.isBasedOn,
+				license: normalized.license,
+				isSensitive: normalized.isSensitive,
+				copyPermission: normalized.copyPermission,
+				category: normalized.category,
+				aliases: normalized.aliases,
+				usageInfo: normalized.usageInfo,
+				author: normalized.author,
+				description: normalized.description,
+				isBasedOn: normalized.isBasedOn,
 			});
 		}));
 	}

@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'misskey-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, resolveFederationTestNote, waitForRemoteEmoji } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, resolveFederationTestNote, waitForRemoteEmoji, assertEmojiAliasesEqual } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -515,7 +515,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		await resolveFederationTestNote(bob, 'copy-permission-none');
 
 		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
-		deepStrictEqual(emoji.aliases, []);
+		assertEmojiAliasesEqual(emoji.aliases, []);
 		strictEqual(emoji.copyPermission, null);
 		strictEqual(emoji.isSensitive, false);
 		strictEqual(emoji.license, null);
@@ -529,7 +529,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		await resolveFederationTestNote(bob, 'invalid-extension-fields');
 
 		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
-		deepStrictEqual(emoji.aliases, []);
+		assertEmojiAliasesEqual(emoji.aliases, []);
 		strictEqual(emoji.copyPermission, null);
 		strictEqual(emoji.category, null);
 		strictEqual(emoji.usageInfo, null);
@@ -545,7 +545,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
 		strictEqual(emoji.copyPermission, 'deny');
-		deepStrictEqual(emoji.aliases, ['old', 'keep-me']);
+		assertEmojiAliasesEqual(emoji.aliases, ['old', 'keep-me']);
 		strictEqual(emoji.license, 'CC0');
 		strictEqual(emoji.category, 'animals');
 		strictEqual(emoji.usageInfo, 'old usage');
@@ -561,6 +561,6 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		await resolveFederationTestNote(bob, 'existing-remote-alias-update');
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
-		deepStrictEqual(emoji.aliases, ['new', 'alias']);
+		assertEmojiAliasesEqual(emoji.aliases, ['new', 'alias']);
 	});
 });

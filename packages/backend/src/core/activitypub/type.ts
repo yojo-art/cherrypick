@@ -296,13 +296,14 @@ export interface IApEmoji extends IObject {
 	_misskey_license?: {
 		freeText: string | null;
 	};
-	copyPermission?: 'allow' | 'deny' | 'conditional';
+	copyPermission?: string;
 	isSensitive?: boolean;
 	category?: string;
 	license?: string;
 	keywords?: string[];
 	usageInfo?: string;
 	author?: string;
+	creator?: string;
 	crator?: string;
 	description?: string;
 	isBasedOn?: string;
