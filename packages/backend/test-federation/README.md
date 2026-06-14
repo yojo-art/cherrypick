@@ -22,3 +22,7 @@ For testing a specific file, run a following command:
 ```sh
 NODE_VERSION=22 docker compose run --no-deps --rm tester -- pnpm -F backend test:fed packages/backend/test-federation/test/user.test.ts
 ```
+
+### AP emoji normalization tests (`#1049`)
+
+Tests under `describe('AP emoji tag normalization')` in `test/emoji.test.ts` fetch static ActivityPub fixtures from the dedicated stub host `z.test` (`stub/` served by nginx only — not a Misskey instance). Run `bash ./setup.sh` to generate `z.test` TLS material and `.config/z.test.conf`.

@@ -35,6 +35,12 @@ export type Request = <
 ) => Promise<Misskey.api.SwitchCaseResponseType<E, P>>;
 
 type Host = 'a.test' | 'b.test' | 'c.test';
+export type FederationStubHost = 'z.test';
+export const FEDERATION_STUB_HOST: FederationStubHost = 'z.test';
+
+export function federationTestStubUri(path: string): string {
+	return `https://${FEDERATION_STUB_HOST}/${path}`;
+}
 
 export async function sleep(ms = 250): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
@@ -227,6 +233,46 @@ export async function resolveRemoteNote(
 			strictEqual(res.object.uri, uri);
 			return res.object;
 		});
+}
+
+export async function resolveFederationTestNote(
+	viewer: LoginUser,
+	notePath: string,
+): Promise<Misskey.entities.Note> {
+	const uri = federationTestStubUri(`notes/${notePath}`);
+	return await viewer.client.request('ap/show', { uri })
+		.then(res => {
+			strictEqual(res.type, 'Note');
+			strictEqual(res.object.uri, uri);
+			return res.object;
+		});
+}
+
+export async function fetchRemoteEmojiByName(
+	viewer: LoginUser,
+	name: string,
+	host: Host | FederationStubHost = FEDERATION_STUB_HOST,
+): Promise<Misskey.entities.EmojiDetailed> {
+	return await viewer.client.request('emoji', { name, host });
+}
+
+export async function waitForRemoteEmoji(
+	viewer: LoginUser,
+	name: string,
+	host: Host | FederationStubHost = FEDERATION_STUB_HOST,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.EmojiDetailed> {
+	let emoji: Misskey.entities.EmojiDetailed | undefined;
+	await waitFor(async () => {
+		try {
+			emoji = await fetchRemoteEmojiByName(viewer, name, host);
+			return true;
+		} catch {
+			return false;
+		}
+	}, options);
+	if (emoji == null) throw new Error(`remote emoji not found: ${name}@${host}`);
+	return emoji;
 }
 
 export async function uploadFile(

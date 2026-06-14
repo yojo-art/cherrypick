@@ -1,0 +1,25 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/copy-permission-none",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/alice",
+	"content": "<p>:copy_permission_none:</p>",
+	"published": "2020-01-01T00:00:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"tag": [
+		{
+			"type": "Emoji",
+			"id": "https://z.test/emojis/copy_permission_none",
+			"name": ":copy_permission_none:",
+			"updated": "2020-01-01T00:00:00.000Z",
+			"icon": {
+				"type": "Image",
+				"mediaType": "image/png",
+				"url": "https://z.test/emoji/copy_permission_none.png"
+			},
+			"copyPermission": "none"
+		}
+	]
+}

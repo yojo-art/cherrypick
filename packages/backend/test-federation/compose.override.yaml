@@ -116,6 +116,10 @@ services:
         source: node_modules_misskey-reversi
         target: /cherrypick/packages/misskey-reversi/node_modules
 
+  z.test:
+    networks:
+      - internal_network
+
 networks:
   external_network:
     driver: bridge

@@ -1,0 +1,28 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/existing-remote-alias-update",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/alice",
+	"content": "<p>:existing_remote: alias update</p>",
+	"published": "2022-01-01T00:00:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"tag": [
+		{
+			"type": "Emoji",
+			"id": "https://z.test/emojis/existing_remote",
+			"name": ":existing_remote:",
+			"updated": "2022-01-01T00:00:00.000Z",
+			"icon": {
+				"type": "Image",
+				"mediaType": "image/png",
+				"url": "https://z.test/emoji/existing_remote_alias.png"
+			},
+			"keywords": [
+				"new",
+				"alias"
+			]
+		}
+	]
+}

@@ -1,0 +1,17 @@
+{
+	"@context": [
+		"https://www.w3.org/ns/activitystreams",
+		"https://w3id.org/security/v1"
+	],
+	"id": "https://z.test/users/alice",
+	"type": "Person",
+	"preferredUsername": "federation-test-alice",
+	"name": "Federation Test Alice",
+	"inbox": "https://z.test/inbox",
+	"outbox": "https://z.test/outbox",
+	"publicKey": {
+		"id": "https://z.test/users/alice#main-key",
+		"owner": "https://z.test/users/alice",
+		"publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxoPmSf7277SP70KLxRFj\niJuizI0WGeRk71dBiHJAilyZrtZ9dg4sjBhAOW37A1BZbRQylgyDuKLlrE+yJlEq\nANccuUMiYMY7W4nzopvWv3fdKCY9dlUvQtHs5iP0VoMfXnngZs3mHiGYPJoFWljv\nOvk7PgYYuWz6/OaWSOPzvZNr/2Pdp3GwU+74DSwl1u1nesCc2yM4REfR/NEt572M\nnETyE1FNQRrDUHhe5mjjTo0eTM6+jWxRrI/2CujDybcoCSHDMRnedsOpH4KataIV\nb14JXFwSNI+BJC6LbdxUgw7dxJCMFa6y7KC0Gki0uvJY6/J41pw56pJnzZtdCFDU\nhQIDAQAB\n-----END PUBLIC KEY-----\n"
+	}
+}

@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'misskey-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, resolveFederationTestNote, waitForRemoteEmoji } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -500,5 +500,73 @@ describe('Emoji', () => {
 			isBasedOn: 'isBasedOn',
 			importFrom: 'a.test',
 		}), JSON.stringify(res));
+	});
+});
+
+describe('AP emoji tag normalization (#1049)', () => {
+	let bob: LoginUser;
+
+	beforeAll(async () => {
+		bob = await createAccount('b.test');
+		await sleep();
+	});
+
+	test('normalizes unsupported copyPermission value from remote AP emoji before insert', async () => {
+		await resolveFederationTestNote(bob, 'copy-permission-none');
+		await sleep();
+
+		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
+		deepStrictEqual(emoji.aliases, []);
+		strictEqual(emoji.copyPermission, null);
+		strictEqual(emoji.isSensitive, false);
+		strictEqual(emoji.license, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+	});
+
+	test('normalizes invalid remote AP emoji extension fields before insert', async () => {
+		await resolveFederationTestNote(bob, 'invalid-extension-fields');
+		await sleep();
+
+		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
+		deepStrictEqual(emoji.aliases, []);
+		strictEqual(emoji.copyPermission, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+	});
+
+	test('does not overwrite existing remote emoji metadata with missing AP emoji tag fields', async () => {
+		await resolveFederationTestNote(bob, 'existing-remote-initial');
+		await sleep();
+		await waitForRemoteEmoji(bob, 'existing_remote');
+
+		await resolveFederationTestNote(bob, 'existing-remote-partial-update');
+		await sleep();
+
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
+		strictEqual(emoji.copyPermission, 'deny');
+		deepStrictEqual(emoji.aliases, ['old', 'keep-me']);
+		strictEqual(emoji.license, 'CC0');
+		strictEqual(emoji.category, 'animals');
+		strictEqual(emoji.usageInfo, 'old usage');
+		strictEqual(emoji.description, 'old description');
+		strictEqual(emoji.isBasedOn, 'https://example.com/base');
+		strictEqual(emoji.isSensitive, true);
+	});
+
+	test('updates aliases only when keywords is present in remote AP emoji tag', async () => {
+		await resolveFederationTestNote(bob, 'existing-remote-initial');
+		await sleep();
+		await waitForRemoteEmoji(bob, 'existing_remote');
+
+		await resolveFederationTestNote(bob, 'existing-remote-alias-update');
+		await sleep();
+
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
+		deepStrictEqual(emoji.aliases, ['new', 'alias']);
 	});
 });

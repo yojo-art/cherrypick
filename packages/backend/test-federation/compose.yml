@@ -2,6 +2,7 @@ include:
   - ./compose.a.yml
   - ./compose.b.yml
   - ./compose.c.yml
+  - ./compose.z.yml
 
 services:
   setup:
@@ -30,6 +31,8 @@ services:
       c.test:
         condition: service_healthy
       cherrypick.c.test:
+        condition: service_healthy
+      z.test:
         condition: service_healthy
     environment:
       - NODE_ENV=development

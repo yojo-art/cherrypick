@@ -1,0 +1,33 @@
+services:
+  z.test:
+    extends:
+      file: ./compose.tpl.yml
+      service: nginx
+    networks:
+      - internal_network_z
+    volumes:
+      - type: bind
+        source: ./stub
+        target: /var/www/stub
+        read_only: true
+      - type: bind
+        source: ./.config/z.test.conf
+        target: /etc/nginx/conf.d/z.test.conf
+        read_only: true
+      - type: bind
+        source: ./certificates/z.test.crt
+        target: /etc/nginx/certificates/z.test.crt
+        read_only: true
+      - type: bind
+        source: ./certificates/z.test.key
+        target: /etc/nginx/certificates/z.test.key
+        read_only: true
+
+networks:
+  internal_network_z:
+    internal: true
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.25.0.0/16
+          ip_range: 172.25.0.0/24
