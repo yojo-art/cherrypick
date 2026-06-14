@@ -80,6 +80,8 @@ export async function waitForFederationTestNote(
 ): Promise<Misskey.entities.Note> {
 	const uri = federationTestStubUri(`notes/${notePath}`);
 	let note: Misskey.entities.Note | undefined;
+	// inbox キュー処理を優先し、ap/show による z.test への重複 GET を抑える
+	await sleep(500);
 	await waitFor(async () => {
 		try {
 			const result = await viewer.client.request('ap/show', { uri });
@@ -89,7 +91,7 @@ export async function waitForFederationTestNote(
 		} catch {
 			return false;
 		}
-	}, { timeout: options?.timeout ?? 30_000, interval: 500 });
+	}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
 	if (note == null) throw new Error(`federation test note not ingested: ${uri}`);
 	return note;
 }

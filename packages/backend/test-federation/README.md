@@ -32,4 +32,6 @@ Tests under `describe('AP絵文字タグの正規化')` in `test/emoji.test.ts` 
 
 テストは `POST https://z.test/deliver` を呼ぶだけで、署名は z.test 側が行う（Misskey / tester 側では署名しない）。
 
-`bash ./setup.sh` で `z.test` の TLS 証明書と `.config/z.test.conf` を生成する。`example.stub.conf` に `/deliver` の proxy 設定を追加した場合は、既存の `.config/z.test.conf` を再生成するか `location /deliver` ブロックを手動でマージしてから `docker compose up` すること。
+`stub/` には `outbox` / `inbox` / `.well-known/nodeinfo` / `manifest.json` など、b.test がリモートインスタンスとして参照する最小エンドポイントも置いている。
+
+`bash ./setup.sh` で `z.test` の TLS 証明書と `.config/z.test.conf` を生成する。
