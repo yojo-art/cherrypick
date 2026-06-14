@@ -1,5 +1,4 @@
 import { deepStrictEqual, strictEqual } from 'assert';
-import { createHash, randomUUID, sign } from 'node:crypto';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -38,84 +37,40 @@ export type Request = <
 type Host = 'a.test' | 'b.test' | 'c.test' | 'z.test';
 type FederationTestTargetHost = 'a.test' | 'b.test' | 'c.test';
 export const FEDERATION_STUB_HOST: Host = 'z.test';
-const FEDERATION_STUB_ACTOR_URI = `https://${FEDERATION_STUB_HOST}/users/alice`;
-const FEDERATION_STUB_KEY_ID = `${FEDERATION_STUB_ACTOR_URI}#main-key`;
-
-let federationStubAlicePrivateKeyPem: string | undefined;
 
 export function federationTestStubUri(path: string): string {
 	return `https://${FEDERATION_STUB_HOST}/${path}`;
 }
 
-async function getFederationStubAlicePrivateKeyPem(): Promise<string> {
-	if (federationStubAlicePrivateKeyPem == null) {
-		federationStubAlicePrivateKeyPem = JSON.parse(await readFile(
-			join(__dirname, '../stub/users/alice-key.json'),
-			'utf8',
-		)).privateKeyPem as string;
-	}
-	return federationStubAlicePrivateKeyPem;
-}
-
-function createSignedActivityPost(args: {
-	url: string;
-	body: string;
-	privateKeyPem: string;
-	keyId: string;
-}): Record<string, string> {
-	const url = new URL(args.url);
-	const digestHeader = `SHA-256=${createHash('sha256').update(args.body).digest('base64')}`;
-	const date = new Date().toUTCString();
-	const signingString = `(request-target): post ${url.pathname}\ndate: ${date}\nhost: ${url.host}\ndigest: ${digestHeader}`;
-	const signature = sign('sha256', Buffer.from(signingString), args.privateKeyPem).toString('base64');
-	const signatureHeader = `keyId="${args.keyId}",algorithm="rsa-sha256",headers="(request-target) date host digest",signature="${signature}"`;
-
-	return {
-		'Content-Type': 'application/activity+json',
-		'Date': date,
-		'Digest': digestHeader,
-		'Signature': signatureHeader,
-	};
-}
-
-async function fetchFederationStubNote(notePath: string): Promise<Record<string, unknown>> {
-	const response = await fetch(federationTestStubUri(`notes/${notePath}`), {
-		headers: {
-			Accept: 'application/activity+json',
-		},
-	});
-	strictEqual(response.status, 200);
-	return await response.json() as Record<string, unknown>;
-}
+type DeliverFederationTestNoteResponse = {
+	activityId: string;
+	inboxUrl: string;
+	inboxStatus: number;
+};
 
 export async function deliverFederationTestNote(
 	targetHost: FederationTestTargetHost,
 	notePath: string,
-): Promise<void> {
-	const note = await fetchFederationStubNote(notePath);
-	const body = JSON.stringify({
-		'@context': 'https://www.w3.org/ns/activitystreams',
-		type: 'Create',
-		id: `${federationTestStubUri(`activities/create/${notePath}`)}#${randomUUID()}`,
-		actor: FEDERATION_STUB_ACTOR_URI,
-		object: note,
-		to: ['https://www.w3.org/ns/activitystreams#Public'],
-	});
-	const privateKeyPem = await getFederationStubAlicePrivateKeyPem();
-	const inboxUrl = `https://${targetHost}/inbox`;
-	const headers = createSignedActivityPost({
-		url: inboxUrl,
-		body,
-		privateKeyPem,
-		keyId: FEDERATION_STUB_KEY_ID,
-	});
-
-	const response = await fetch(inboxUrl, {
+): Promise<DeliverFederationTestNoteResponse> {
+	const response = await fetch(federationTestStubUri('deliver'), {
 		method: 'POST',
-		headers,
-		body,
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ targetHost, notePath }),
 	});
-	strictEqual(response.status, 202, `signed inbox delivery failed for ${notePath} -> ${targetHost}: ${response.status}`);
+	const body = await response.json() as DeliverFederationTestNoteResponse & { error?: string };
+	strictEqual(
+		response.status,
+		200,
+		`z.test deliver API failed for ${notePath} -> ${targetHost}: ${response.status} ${JSON.stringify(body)}`,
+	);
+	strictEqual(
+		body.inboxStatus,
+		202,
+		`z.test signed inbox delivery failed for ${notePath} -> ${targetHost}: inbox returned ${body.inboxStatus}`,
+	);
+	return body;
 }
 
 export async function waitForFederationTestNote(
@@ -134,7 +89,7 @@ export async function waitForFederationTestNote(
 		} catch {
 			return false;
 		}
-	}, options);
+	}, { timeout: options?.timeout ?? 30_000, interval: 500 });
 	if (note == null) throw new Error(`federation test note not ingested: ${uri}`);
 	return note;
 }
@@ -351,6 +306,37 @@ export async function fetchRemoteEmojiByName(
 	host: Host = FEDERATION_STUB_HOST,
 ): Promise<Misskey.entities.EmojiDetailed> {
 	return await viewer.client.request('emoji', { name, host });
+}
+
+/**
+ * リモート絵文字が DB に登録されていることを検証する。
+ * #1049 未修正時は extractEmojis が失敗して絵文字だけ未登録になる（ノート受信は成功する）ため、
+ * 長いポーリングではなく短い待機のあと明確なエラーで落とす。
+ */
+export async function requireRemoteEmoji(
+	viewer: LoginUser,
+	name: string,
+	host: Host = FEDERATION_STUB_HOST,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.EmojiDetailed> {
+	let emoji: Misskey.entities.EmojiDetailed | undefined;
+	const timeout = options?.timeout ?? 3_000;
+	await waitFor(async () => {
+		try {
+			emoji = await fetchRemoteEmojiByName(viewer, name, host);
+			return true;
+		} catch {
+			return false;
+		}
+	}, { timeout, interval: 300 });
+	if (emoji == null) {
+		throw new Error(
+			`リモート絵文字が未登録: ${name}@${host}。` +
+			'ノート受信後も絵文字が登録されない場合、#1049 未修正で extractEmojis が DB 制約違反により失敗している可能性があります（TDD 想定の失敗）。' +
+			'ノート自体が取り込まれていない場合は inbox 配送または z.test への到達性を確認してください。',
+		);
+	}
+	return emoji;
 }
 
 export async function waitForRemoteEmoji(

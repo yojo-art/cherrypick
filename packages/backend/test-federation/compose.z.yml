@@ -3,6 +3,9 @@ services:
     extends:
       file: ./compose.tpl.yml
       service: nginx
+    depends_on:
+      z.test.deliver:
+        condition: service_healthy
     networks:
       - internal_network_z
     volumes:
@@ -22,6 +25,31 @@ services:
         source: ./certificates/z.test.key
         target: /etc/nginx/certificates/z.test.key
         read_only: true
+
+  z.test.deliver:
+    image: node:${NODE_VERSION}
+    environment:
+      - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/rootCA.crt
+    volumes:
+      - type: bind
+        source: ./stub
+        target: /stub
+        read_only: true
+      - type: bind
+        source: ./stub-deliver.mjs
+        target: /app/stub-deliver.mjs
+        read_only: true
+      - type: bind
+        source: ./certificates/rootCA.crt
+        target: /usr/local/share/ca-certificates/rootCA.crt
+        read_only: true
+    command: node /app/stub-deliver.mjs
+    healthcheck:
+      test: ['CMD', 'node', '-e', "fetch('http://127.0.0.1:3000/health').then(r => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"]
+      interval: 5s
+      retries: 20
+    networks:
+      - internal_network_z
 
 networks:
   internal_network_z:

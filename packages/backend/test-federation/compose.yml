@@ -34,6 +34,8 @@ services:
         condition: service_healthy
       z.test:
         condition: service_healthy
+      z.test.deliver:
+        condition: service_healthy
     environment:
       - NODE_ENV=development
       - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/rootCA.crt
@@ -49,10 +51,6 @@ services:
       - type: bind
         source: ./test
         target: /cherrypick/packages/backend/test-federation/test
-        read_only: true
-      - type: bind
-        source: ./stub
-        target: /misskey/packages/backend/test-federation/stub
         read_only: true
       - type: bind
         source: ../jest.config.cjs
