@@ -48,6 +48,10 @@ type DeliverFederationTestNoteResponse = {
 	inboxStatus: number;
 };
 
+/**
+ * z.test に stub Note の署名付き inbox 配送を依頼する。
+ * `notePath` は `stub/notes/` からの相対パス（例: `ap-emoji-1049/copy-permission-none`）。
+ */
 export async function deliverFederationTestNote(
 	targetHost: FederationTestTargetHost,
 	notePath: string,
@@ -73,6 +77,10 @@ export async function deliverFederationTestNote(
 	return body;
 }
 
+/**
+ * `viewer` のインスタンスが stub Note を連合受信するまで待つ。
+ * `ap/show` で `https://z.test/notes/<notePath>` が取れることを確認する。
+ */
 export async function waitForFederationTestNote(
 	viewer: LoginUser,
 	notePath: string,
@@ -293,7 +301,11 @@ export async function resolveRemoteNote(
 		});
 }
 
-export async function resolveFederationTestNote(
+/**
+ * z.test の stub Note を `targetHost` に連合配送し、取り込み完了まで待つ。
+ * `resolveRemoteNote` と違い inbox 配送を行う（静的スタブを Misskey に届けるため）。
+ */
+export async function requestFederationTestNote(
 	viewer: LoginUser,
 	notePath: string,
 	targetHost: FederationTestTargetHost = 'b.test',

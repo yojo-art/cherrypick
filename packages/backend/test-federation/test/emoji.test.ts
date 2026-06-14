@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'misskey-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, resolveFederationTestNote, waitForRemoteEmoji, assertEmojiAliasesEqual } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji, assertEmojiAliasesEqual } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -512,7 +512,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('insert前に未対応のcopyPermissionを正規化してリモートAP絵文字を登録する', async () => {
-		await resolveFederationTestNote(bob, 'ap-emoji-1049/copy-permission-none');
+		await requestFederationTestNote(bob, 'ap-emoji-1049/copy-permission-none');
 
 		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
 		assertEmojiAliasesEqual(emoji.aliases, []);
@@ -526,7 +526,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('insert前に不正な拡張フィールドを正規化してリモートAP絵文字を登録する', async () => {
-		await resolveFederationTestNote(bob, 'ap-emoji-1049/invalid-extension-fields');
+		await requestFederationTestNote(bob, 'ap-emoji-1049/invalid-extension-fields');
 
 		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
 		assertEmojiAliasesEqual(emoji.aliases, []);
@@ -538,10 +538,10 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('部分タグ更新時にタグから欠落した既存メタデータをクリアする', async () => {
-		await resolveFederationTestNote(bob, 'ap-emoji-1049/existing-remote-initial');
+		await requestFederationTestNote(bob, 'ap-emoji-1049/existing-remote-initial');
 		await waitForRemoteEmoji(bob, 'existing_remote');
 
-		await resolveFederationTestNote(bob, 'ap-emoji-1049/existing-remote-partial-update');
+		await requestFederationTestNote(bob, 'ap-emoji-1049/existing-remote-partial-update');
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
 		strictEqual(emoji.copyPermission, 'deny');
@@ -555,10 +555,10 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('keywordsが明示されたときのみaliasesを更新する', async () => {
-		await resolveFederationTestNote(bob, 'ap-emoji-1049/existing-remote-alias-only-initial');
+		await requestFederationTestNote(bob, 'ap-emoji-1049/existing-remote-alias-only-initial');
 		await waitForRemoteEmoji(bob, 'existing_remote_alias');
 
-		await resolveFederationTestNote(bob, 'ap-emoji-1049/existing-remote-alias-update');
+		await requestFederationTestNote(bob, 'ap-emoji-1049/existing-remote-alias-update');
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
 		assertEmojiAliasesEqual(emoji.aliases, ['new', 'alias']);
