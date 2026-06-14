@@ -1,6 +1,6 @@
 {
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://z.test/notes/existing-remote-partial-update",
+	"id": "https://z.test/notes/ap-emoji-1049/existing-remote-partial-update",
 	"type": "Note",
 	"attributedTo": "https://z.test/users/alice",
 	"content": "<p>:existing_remote: again</p>",

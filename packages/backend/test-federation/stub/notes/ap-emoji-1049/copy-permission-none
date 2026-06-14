@@ -1,6 +1,6 @@
 {
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://z.test/notes/copy-permission-none",
+	"id": "https://z.test/notes/ap-emoji-1049/copy-permission-none",
 	"type": "Note",
 	"attributedTo": "https://z.test/users/alice",
 	"content": "<p>:copy_permission_none:</p>",

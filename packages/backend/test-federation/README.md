@@ -32,6 +32,6 @@ Tests under `describe('AP絵文字タグの正規化')` in `test/emoji.test.ts` 
 
 テストは `POST https://z.test/deliver` を呼ぶだけで、署名は z.test 側が行う（Misskey / tester 側では署名しない）。
 
-`stub/` には `outbox` / `inbox` / `.well-known/nodeinfo` / `manifest.json` など、b.test がリモートインスタンスとして参照する最小エンドポイントも置いている。絵文字画像は `stub/emoji/hello_world.png` の 1 枚を共通利用する。
+`stub/` には `outbox` / `inbox` / `.well-known/nodeinfo` / `manifest.json` など、b.test がリモートインスタンスとして参照する最小エンドポイントも置いている。Note フィクスチャは `stub/notes/<suite>/` にテストスイートごとに分ける（`#1049` は `stub/notes/ap-emoji-1049/`）。絵文字画像は `stub/emoji/hello_world.png` の 1 枚を共通利用する。
 
 `bash ./setup.sh` で `z.test` の TLS 証明書・`.config/z.test.conf`・`alice` の鍵ペア（`stub/users/alice` / `stub/users/alice-key.json`）を生成する。`z.test.deliver` 起動時にも鍵は再生成される。

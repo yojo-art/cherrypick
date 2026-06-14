@@ -6,7 +6,7 @@
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { createHash, randomUUID, sign } from 'node:crypto';
-import { join } from 'node:path';
+import { join, resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 const STUB_ROOT = '/stub';
@@ -43,10 +43,14 @@ function createSignedActivityPost({ url, body, privateKeyPem: keyPem, keyId }) {
 }
 
 async function loadNote(notePath) {
-	if (!/^[a-z0-9-]+$/.test(notePath)) {
+	if (!/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(notePath)) {
 		throw new Error(`invalid notePath: ${notePath}`);
 	}
-	return JSON.parse(await readFile(join(STUB_ROOT, 'notes', notePath), 'utf8'));
+	const noteFile = resolve(STUB_ROOT, 'notes', ...notePath.split('/'));
+	if (!noteFile.startsWith(resolve(STUB_ROOT, 'notes'))) {
+		throw new Error(`invalid notePath: ${notePath}`);
+	}
+	return JSON.parse(await readFile(noteFile, 'utf8'));
 }
 
 async function deliverNote(targetHost, notePath) {

@@ -201,7 +201,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch('https://b.test/api/admin/emoji/copy', {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -236,7 +236,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch('https://b.test/api/admin/emoji/steal', {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -364,7 +364,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch('https://b.test/api/admin/emoji/copy', {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -399,7 +399,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch('https://b.test/api/admin/emoji/steal', {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -504,6 +504,8 @@ describe('Emoji', () => {
 });
 
 describe('AP絵文字タグの正規化 (#1049)', () => {
+	const noteStub = (name: string) => `ap-emoji-1049/${name}`;
+
 	let bob: LoginUser;
 
 	beforeAll(async () => {
@@ -512,7 +514,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('insert前に未対応のcopyPermissionを正規化してリモートAP絵文字を登録する', async () => {
-		await resolveFederationTestNote(bob, 'copy-permission-none');
+		await resolveFederationTestNote(bob, noteStub('copy-permission-none'));
 
 		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
 		assertEmojiAliasesEqual(emoji.aliases, []);
@@ -526,7 +528,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('insert前に不正な拡張フィールドを正規化してリモートAP絵文字を登録する', async () => {
-		await resolveFederationTestNote(bob, 'invalid-extension-fields');
+		await resolveFederationTestNote(bob, noteStub('invalid-extension-fields'));
 
 		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
 		assertEmojiAliasesEqual(emoji.aliases, []);
@@ -541,7 +543,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		await resolveFederationTestNote(bob, 'existing-remote-initial');
 		await waitForRemoteEmoji(bob, 'existing_remote');
 
-		await resolveFederationTestNote(bob, 'existing-remote-partial-update');
+		await resolveFederationTestNote(bob, noteStub('existing-remote-partial-update'));
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
 		strictEqual(emoji.copyPermission, 'deny');
@@ -555,10 +557,10 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 	});
 
 	test('keywordsが明示されたときのみaliasesを更新する', async () => {
-		await resolveFederationTestNote(bob, 'existing-remote-alias-only-initial');
+		await resolveFederationTestNote(bob, noteStub('existing-remote-alias-only-initial'));
 		await waitForRemoteEmoji(bob, 'existing_remote_alias');
 
-		await resolveFederationTestNote(bob, 'existing-remote-alias-update');
+		await resolveFederationTestNote(bob, noteStub('existing-remote-alias-update'));
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
 		assertEmojiAliasesEqual(emoji.aliases, ['new', 'alias']);
