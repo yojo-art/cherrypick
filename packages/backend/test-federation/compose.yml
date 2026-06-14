@@ -51,6 +51,10 @@ services:
         target: /cherrypick/packages/backend/test-federation/test
         read_only: true
       - type: bind
+        source: ./stub
+        target: /misskey/packages/backend/test-federation/stub
+        read_only: true
+      - type: bind
         source: ../jest.config.cjs
         target: /cherrypick/packages/backend/jest.config.cjs
         read_only: true

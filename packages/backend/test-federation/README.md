@@ -29,4 +29,6 @@ Tests under `describe('AP絵文字タグの正規化')` in `test/emoji.test.ts` 
 
 `resolveFederationTestNote()` builds a signed `Create` activity with `stub/users/alice-key.json`, POSTs it to the target instance inbox (`/inbox`), then waits until `ap/show` can resolve the note. Remote emoji assertions use the `emoji` API after inbox processing completes.
 
+The `tester` service bind-mounts `stub/` so Jest can read `alice-key.json` inside the container.
+
 `stub/users/alice` is a static Actor whose public key matches the test private key above.
