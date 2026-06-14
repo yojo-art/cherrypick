@@ -1,4 +1,5 @@
 import { deepStrictEqual, strictEqual } from 'assert';
+import { createHash, randomUUID, sign } from 'node:crypto';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
@@ -35,10 +36,107 @@ export type Request = <
 ) => Promise<Misskey.api.SwitchCaseResponseType<E, P>>;
 
 type Host = 'a.test' | 'b.test' | 'c.test' | 'z.test';
+type FederationTestTargetHost = 'a.test' | 'b.test' | 'c.test';
 export const FEDERATION_STUB_HOST: Host = 'z.test';
+const FEDERATION_STUB_ACTOR_URI = `https://${FEDERATION_STUB_HOST}/users/alice`;
+const FEDERATION_STUB_KEY_ID = `${FEDERATION_STUB_ACTOR_URI}#main-key`;
+
+let federationStubAlicePrivateKeyPem: string | undefined;
 
 export function federationTestStubUri(path: string): string {
 	return `https://${FEDERATION_STUB_HOST}/${path}`;
+}
+
+async function getFederationStubAlicePrivateKeyPem(): Promise<string> {
+	if (federationStubAlicePrivateKeyPem == null) {
+		federationStubAlicePrivateKeyPem = JSON.parse(await readFile(
+			join(__dirname, '../stub/users/alice-key.json'),
+			'utf8',
+		)).privateKeyPem as string;
+	}
+	return federationStubAlicePrivateKeyPem;
+}
+
+function createSignedActivityPost(args: {
+	url: string;
+	body: string;
+	privateKeyPem: string;
+	keyId: string;
+}): Record<string, string> {
+	const url = new URL(args.url);
+	const digestHeader = `SHA-256=${createHash('sha256').update(args.body).digest('base64')}`;
+	const date = new Date().toUTCString();
+	const signingString = `(request-target): post ${url.pathname}\ndate: ${date}\nhost: ${url.host}\ndigest: ${digestHeader}`;
+	const signature = sign('sha256', Buffer.from(signingString), args.privateKeyPem).toString('base64');
+	const signatureHeader = `keyId="${args.keyId}",algorithm="rsa-sha256",headers="(request-target) date host digest",signature="${signature}"`;
+
+	return {
+		'Content-Type': 'application/activity+json',
+		'Date': date,
+		'Digest': digestHeader,
+		'Signature': signatureHeader,
+	};
+}
+
+async function fetchFederationStubNote(notePath: string): Promise<Record<string, unknown>> {
+	const response = await fetch(federationTestStubUri(`notes/${notePath}`), {
+		headers: {
+			Accept: 'application/activity+json',
+		},
+	});
+	strictEqual(response.status, 200);
+	return await response.json() as Record<string, unknown>;
+}
+
+export async function deliverFederationTestNote(
+	targetHost: FederationTestTargetHost,
+	notePath: string,
+): Promise<void> {
+	const note = await fetchFederationStubNote(notePath);
+	const body = JSON.stringify({
+		'@context': 'https://www.w3.org/ns/activitystreams',
+		type: 'Create',
+		id: `${federationTestStubUri(`activities/create/${notePath}`)}#${randomUUID()}`,
+		actor: FEDERATION_STUB_ACTOR_URI,
+		object: note,
+		to: ['https://www.w3.org/ns/activitystreams#Public'],
+	});
+	const privateKeyPem = await getFederationStubAlicePrivateKeyPem();
+	const inboxUrl = `https://${targetHost}/inbox`;
+	const headers = createSignedActivityPost({
+		url: inboxUrl,
+		body,
+		privateKeyPem,
+		keyId: FEDERATION_STUB_KEY_ID,
+	});
+
+	const response = await fetch(inboxUrl, {
+		method: 'POST',
+		headers,
+		body,
+	});
+	strictEqual(response.status, 202, `signed inbox delivery failed for ${notePath} -> ${targetHost}: ${response.status}`);
+}
+
+export async function waitForFederationTestNote(
+	viewer: LoginUser,
+	notePath: string,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.Note> {
+	const uri = federationTestStubUri(`notes/${notePath}`);
+	let note: Misskey.entities.Note | undefined;
+	await waitFor(async () => {
+		try {
+			const result = await viewer.client.request('ap/show', { uri });
+			if (result.type !== 'Note') return false;
+			note = result.object;
+			return true;
+		} catch {
+			return false;
+		}
+	}, options);
+	if (note == null) throw new Error(`federation test note not ingested: ${uri}`);
+	return note;
 }
 
 export function assertEmojiAliasesEqual(actual: readonly string[], expected: readonly string[]): void {
@@ -241,14 +339,10 @@ export async function resolveRemoteNote(
 export async function resolveFederationTestNote(
 	viewer: LoginUser,
 	notePath: string,
+	targetHost: FederationTestTargetHost = 'b.test',
 ): Promise<Misskey.entities.Note> {
-	const uri = federationTestStubUri(`notes/${notePath}`);
-	return await viewer.client.request('ap/show', { uri })
-		.then(res => {
-			strictEqual(res.type, 'Note');
-			strictEqual(res.object.uri, uri);
-			return res.object;
-		});
+	await deliverFederationTestNote(targetHost, notePath);
+	return await waitForFederationTestNote(viewer, notePath);
 }
 
 export async function fetchRemoteEmojiByName(
@@ -274,7 +368,9 @@ export async function waitForRemoteEmoji(
 			return false;
 		}
 	}, options);
-	if (emoji == null) throw new Error(`remote emoji not found: ${name}@${host}`);
+	if (emoji == null) {
+		throw new Error(`remote emoji not found: ${name}@${host} (note may be ingested but emoji was not registered)`);
+	}
 	return emoji;
 }
 

@@ -12,6 +12,6 @@
 	"publicKey": {
 		"id": "https://z.test/users/alice#main-key",
 		"owner": "https://z.test/users/alice",
-		"publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAxoPmSf7277SP70KLxRFj\niJuizI0WGeRk71dBiHJAilyZrtZ9dg4sjBhAOW37A1BZbRQylgyDuKLlrE+yJlEq\nANccuUMiYMY7W4nzopvWv3fdKCY9dlUvQtHs5iP0VoMfXnngZs3mHiGYPJoFWljv\nOvk7PgYYuWz6/OaWSOPzvZNr/2Pdp3GwU+74DSwl1u1nesCc2yM4REfR/NEt572M\nnETyE1FNQRrDUHhe5mjjTo0eTM6+jWxRrI/2CujDybcoCSHDMRnedsOpH4KataIV\nb14JXFwSNI+BJC6LbdxUgw7dxJCMFa6y7KC0Gki0uvJY6/J41pw56pJnzZtdCFDU\nhQIDAQAB\n-----END PUBLIC KEY-----\n"
+		"publicKeyPem": "-----BEGIN PUBLIC KEY-----\nMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAsHPC92znGtjSq+AbH+Uo\nY4skO+zEbIeuBmO7lwZgwNLd0Psy0zrvEEHtsOJ/fC7ocVSMH6kQxB/+ddWKYlnG\nQC7Ey+gDK1NET6GnqVu9DxDKEdrZbnT4WCK3wg1oG0Ok9/7l7x6qEVf63sgrkjZS\nRj0VlnSAi5mPMimF76uJo3J3AuSWXjqZnnuQ4+C2sKJ8hyG1aInnYuo4fEmr4KzS\n2FjvlkUYoN9r0R/OLtwlAA90ou+SeU6ppvAuKaJk2FOpyFvrd3qABaHQVVHJS/QU\nZI6FXIKyKpM0OYZtdAiHuhVBvu9LaT4NW7DRW6hMhabvsjVONprzV1M9AGFin757\nFwIDAQAB\n-----END PUBLIC KEY-----\n"
 	}
 }
