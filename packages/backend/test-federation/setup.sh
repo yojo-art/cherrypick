@@ -44,7 +44,7 @@ function generate_stub {
     -passin pass:rootCA \
     -out certificates/$1.crt \
     -days 500
-  if [ ! -f .config/$1.conf ]; then sed "s/\${HOST}/$1/g" .config/example.stub.conf > .config/$1.conf; fi
+  sed "s/\${HOST}/$1/g" .config/example.stub.conf > .config/$1.conf
 }
 
 generate a.test
