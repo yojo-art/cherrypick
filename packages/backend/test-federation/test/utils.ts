@@ -34,9 +34,8 @@ export type Request = <
 	credential?: string | null,
 ) => Promise<Misskey.api.SwitchCaseResponseType<E, P>>;
 
-type Host = 'a.test' | 'b.test' | 'c.test';
-export type FederationStubHost = 'z.test';
-export const FEDERATION_STUB_HOST: FederationStubHost = 'z.test';
+type Host = 'a.test' | 'b.test' | 'c.test' | 'z.test';
+export const FEDERATION_STUB_HOST: Host = 'z.test';
 
 export function federationTestStubUri(path: string): string {
 	return `https://${FEDERATION_STUB_HOST}/${path}`;
@@ -251,7 +250,7 @@ export async function resolveFederationTestNote(
 export async function fetchRemoteEmojiByName(
 	viewer: LoginUser,
 	name: string,
-	host: Host | FederationStubHost = FEDERATION_STUB_HOST,
+	host: Host = FEDERATION_STUB_HOST,
 ): Promise<Misskey.entities.EmojiDetailed> {
 	return await viewer.client.request('emoji', { name, host });
 }
@@ -259,7 +258,7 @@ export async function fetchRemoteEmojiByName(
 export async function waitForRemoteEmoji(
 	viewer: LoginUser,
 	name: string,
-	host: Host | FederationStubHost = FEDERATION_STUB_HOST,
+	host: Host = FEDERATION_STUB_HOST,
 	options?: { timeout?: number },
 ): Promise<Misskey.entities.EmojiDetailed> {
 	let emoji: Misskey.entities.EmojiDetailed | undefined;

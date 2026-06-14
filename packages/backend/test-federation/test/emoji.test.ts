@@ -513,7 +513,6 @@ describe('AP emoji tag normalization (#1049)', () => {
 
 	test('normalizes unsupported copyPermission value from remote AP emoji before insert', async () => {
 		await resolveFederationTestNote(bob, 'copy-permission-none');
-		await sleep();
 
 		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
 		deepStrictEqual(emoji.aliases, []);
@@ -528,7 +527,6 @@ describe('AP emoji tag normalization (#1049)', () => {
 
 	test('normalizes invalid remote AP emoji extension fields before insert', async () => {
 		await resolveFederationTestNote(bob, 'invalid-extension-fields');
-		await sleep();
 
 		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
 		deepStrictEqual(emoji.aliases, []);
@@ -541,11 +539,9 @@ describe('AP emoji tag normalization (#1049)', () => {
 
 	test('does not overwrite existing remote emoji metadata with missing AP emoji tag fields', async () => {
 		await resolveFederationTestNote(bob, 'existing-remote-initial');
-		await sleep();
 		await waitForRemoteEmoji(bob, 'existing_remote');
 
 		await resolveFederationTestNote(bob, 'existing-remote-partial-update');
-		await sleep();
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
 		strictEqual(emoji.copyPermission, 'deny');
@@ -559,14 +555,12 @@ describe('AP emoji tag normalization (#1049)', () => {
 	});
 
 	test('updates aliases only when keywords is present in remote AP emoji tag', async () => {
-		await resolveFederationTestNote(bob, 'existing-remote-initial');
-		await sleep();
-		await waitForRemoteEmoji(bob, 'existing_remote');
+		await resolveFederationTestNote(bob, 'existing-remote-alias-only-initial');
+		await waitForRemoteEmoji(bob, 'existing_remote_alias');
 
 		await resolveFederationTestNote(bob, 'existing-remote-alias-update');
-		await sleep();
 
-		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
 		deepStrictEqual(emoji.aliases, ['new', 'alias']);
 	});
 });
