@@ -25,6 +25,6 @@ NODE_VERSION=22 docker compose run --no-deps --rm tester -- pnpm -F backend test
 
 ### AP emoji normalization tests (`#1049`)
 
-Tests under `describe('AP emoji tag normalization')` in `test/emoji.test.ts` fetch static ActivityPub fixtures from the dedicated stub host `z.test` (`stub/` served by nginx only — not a Misskey instance). Run `bash ./setup.sh` to generate `z.test` TLS material and `.config/z.test.conf`.
+Tests under `describe('AP絵文字タグの正規化')` in `test/emoji.test.ts` fetch static ActivityPub fixtures from the dedicated stub host `z.test` (`stub/` served by nginx only — not a Misskey instance). Run `bash ./setup.sh` to generate `z.test` TLS material and `.config/z.test.conf`.
 
 `z.test` inherits the nginx `healthcheck` from `compose.tpl.yml`. `stub/users/alice` is a static Actor for `ap/show` resolution only (no private key; outbound signed delivery is not supported).

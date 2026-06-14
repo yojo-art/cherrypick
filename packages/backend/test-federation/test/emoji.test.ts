@@ -503,7 +503,7 @@ describe('Emoji', () => {
 	});
 });
 
-describe('AP emoji tag normalization (#1049)', () => {
+describe('AP絵文字タグの正規化 (#1049)', () => {
 	let bob: LoginUser;
 
 	beforeAll(async () => {
@@ -511,7 +511,7 @@ describe('AP emoji tag normalization (#1049)', () => {
 		await sleep();
 	});
 
-	test('normalizes unsupported copyPermission value from remote AP emoji before insert', async () => {
+	test('insert前に未対応のcopyPermissionを正規化してリモートAP絵文字を登録する', async () => {
 		await resolveFederationTestNote(bob, 'copy-permission-none');
 
 		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
@@ -525,7 +525,7 @@ describe('AP emoji tag normalization (#1049)', () => {
 		strictEqual(emoji.isBasedOn, null);
 	});
 
-	test('normalizes invalid remote AP emoji extension fields before insert', async () => {
+	test('insert前に不正な拡張フィールドを正規化してリモートAP絵文字を登録する', async () => {
 		await resolveFederationTestNote(bob, 'invalid-extension-fields');
 
 		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
@@ -537,7 +537,7 @@ describe('AP emoji tag normalization (#1049)', () => {
 		strictEqual(emoji.isBasedOn, null);
 	});
 
-	test('does not overwrite existing remote emoji metadata with missing AP emoji tag fields', async () => {
+	test('部分タグ更新時に欠落フィールドで既存メタデータを上書きしない', async () => {
 		await resolveFederationTestNote(bob, 'existing-remote-initial');
 		await waitForRemoteEmoji(bob, 'existing_remote');
 
@@ -554,7 +554,7 @@ describe('AP emoji tag normalization (#1049)', () => {
 		strictEqual(emoji.isSensitive, true);
 	});
 
-	test('updates aliases only when keywords is present in remote AP emoji tag', async () => {
+	test('keywordsが明示されたときのみaliasesを更新する', async () => {
 		await resolveFederationTestNote(bob, 'existing-remote-alias-only-initial');
 		await waitForRemoteEmoji(bob, 'existing_remote_alias');
 
