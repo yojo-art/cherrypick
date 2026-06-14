@@ -4,3 +4,5 @@ volumes
 docker.env
 *.test.conf
 *.test.default.yml
+stub/users/alice
+stub/users/alice-key.json

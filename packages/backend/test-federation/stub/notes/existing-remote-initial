@@ -17,7 +17,7 @@
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",
-				"url": "https://z.test/emoji/existing_remote_old.png"
+				"url": "https://z.test/emoji/hello_world.png"
 			},
 			"keywords": [
 				"old",

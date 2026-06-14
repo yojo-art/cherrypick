@@ -7,6 +7,7 @@ import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { createHash, randomUUID, sign } from 'node:crypto';
 import { join } from 'node:path';
+import { pathToFileURL } from 'node:url';
 
 const STUB_ROOT = '/stub';
 const STUB_HOST = 'z.test';
@@ -97,37 +98,47 @@ function readJsonBody(req) {
 	});
 }
 
-const server = createServer(async (req, res) => {
-	try {
-		if (req.method === 'GET' && req.url === '/health') {
-			res.writeHead(200, { 'Content-Type': 'text/plain' });
-			res.end('ok');
-			return;
-		}
+async function main() {
+	const { generateActorKeys } = await import(pathToFileURL(join(STUB_ROOT, 'generate-actor-keys.mjs')).href);
+	await generateActorKeys(STUB_ROOT);
 
-		if (req.method === 'POST' && req.url === '/deliver') {
-			const { targetHost, notePath } = await readJsonBody(req);
-			if (typeof targetHost !== 'string' || typeof notePath !== 'string') {
-				res.writeHead(400, { 'Content-Type': 'application/json' });
-				res.end(JSON.stringify({ error: 'targetHost and notePath are required' }));
+	const server = createServer(async (req, res) => {
+		try {
+			if (req.method === 'GET' && req.url === '/health') {
+				res.writeHead(200, { 'Content-Type': 'text/plain' });
+				res.end('ok');
 				return;
 			}
 
-			const result = await deliverNote(targetHost, notePath);
-			res.writeHead(200, { 'Content-Type': 'application/json' });
-			res.end(JSON.stringify(result));
-			return;
+			if (req.method === 'POST' && req.url === '/deliver') {
+				const { targetHost, notePath } = await readJsonBody(req);
+				if (typeof targetHost !== 'string' || typeof notePath !== 'string') {
+					res.writeHead(400, { 'Content-Type': 'application/json' });
+					res.end(JSON.stringify({ error: 'targetHost and notePath are required' }));
+					return;
+				}
+
+				const result = await deliverNote(targetHost, notePath);
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify(result));
+				return;
+			}
+
+			res.writeHead(404, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify({ error: 'not found' }));
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			res.writeHead(500, { 'Content-Type': 'application/json' });
+			res.end(JSON.stringify({ error: message }));
 		}
+	});
 
-		res.writeHead(404, { 'Content-Type': 'application/json' });
-		res.end(JSON.stringify({ error: 'not found' }));
-	} catch (error) {
-		const message = error instanceof Error ? error.message : String(error);
-		res.writeHead(500, { 'Content-Type': 'application/json' });
-		res.end(JSON.stringify({ error: message }));
-	}
-});
+	server.listen(3000, () => {
+		console.log('z.test stub-deliver listening on :3000');
+	});
+}
 
-server.listen(3000, () => {
-	console.log('z.test stub-deliver listening on :3000');
+main().catch((error) => {
+	console.error(error);
+	process.exit(1);
 });

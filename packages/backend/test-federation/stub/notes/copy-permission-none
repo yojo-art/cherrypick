@@ -17,7 +17,7 @@
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",
-				"url": "https://z.test/emoji/copy_permission_none.png"
+				"url": "https://z.test/emoji/hello_world.png"
 			},
 			"copyPermission": "none"
 		}

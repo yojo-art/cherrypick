@@ -45,6 +45,7 @@ function generate_stub {
     -out certificates/$1.crt \
     -days 500
   sed "s/\${HOST}/$1/g" .config/example.stub.conf > .config/$1.conf
+  node stub/generate-actor-keys.mjs stub
 }
 
 generate a.test

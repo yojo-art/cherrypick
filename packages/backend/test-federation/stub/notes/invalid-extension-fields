@@ -17,7 +17,7 @@
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",
-				"url": "https://z.test/emoji/invalid_extension_fields.png"
+				"url": "https://z.test/emoji/hello_world.png"
 			},
 			"keywords": null,
 			"copyPermission": "none",

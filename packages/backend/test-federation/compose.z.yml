@@ -34,7 +34,6 @@ services:
       - type: bind
         source: ./stub
         target: /stub
-        read_only: true
       - type: bind
         source: ./stub-deliver.mjs
         target: /app/stub-deliver.mjs
