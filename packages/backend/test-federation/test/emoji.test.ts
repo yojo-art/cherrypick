@@ -537,7 +537,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		strictEqual(emoji.isBasedOn, null);
 	});
 
-	test('部分タグ更新時に欠落フィールドで既存メタデータを上書きしない', async () => {
+	test('部分タグ更新時にタグから欠落した既存メタデータをクリアする', async () => {
 		await resolveFederationTestNote(bob, 'existing-remote-initial');
 		await waitForRemoteEmoji(bob, 'existing_remote');
 
@@ -545,13 +545,13 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
 		strictEqual(emoji.copyPermission, 'deny');
-		assertEmojiAliasesEqual(emoji.aliases, ['old', 'keep-me']);
-		strictEqual(emoji.license, 'CC0');
-		strictEqual(emoji.category, 'animals');
-		strictEqual(emoji.usageInfo, 'old usage');
-		strictEqual(emoji.description, 'old description');
-		strictEqual(emoji.isBasedOn, 'https://example.com/base');
-		strictEqual(emoji.isSensitive, true);
+		assertEmojiAliasesEqual(emoji.aliases, []);
+		strictEqual(emoji.license, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+		strictEqual(emoji.isSensitive, false);
 	});
 
 	test('keywordsが明示されたときのみaliasesを更新する', async () => {
