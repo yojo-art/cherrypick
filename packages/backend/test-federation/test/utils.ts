@@ -77,30 +77,47 @@ export async function deliverFederationTestNote(
 	return body;
 }
 
+const federationTestZackUserIdCache = new Map<FederationTestTargetHost, string>();
+
 /**
  * `viewer` のインスタンスが stub Note を連合受信するまで待つ。
- * `ap/show` で `https://z.test/notes/<notePath>` が取れることを確認する。
+ * z.test の zack の `users/notes` で最新ノートが対象 URI になることを確認する。
  */
 export async function waitForFederationTestNote(
 	viewer: LoginUser,
 	notePath: string,
+	targetHost: FederationTestTargetHost,
 	options?: { timeout?: number },
 ): Promise<Misskey.entities.Note> {
-	const uri = federationTestStubUri(`notes/${notePath}`);
+	const targetUri = federationTestStubUri(`notes/${notePath}`);
 	let note: Misskey.entities.Note | undefined;
-	// inbox キュー処理を優先し、ap/show による z.test への重複 GET を抑える
-	await sleep(500);
+	let zackUserId = federationTestZackUserIdCache.get(targetHost);
 	await waitFor(async () => {
 		try {
-			const result = await viewer.client.request('ap/show', { uri });
-			if (result.type !== 'Note') return false;
-			note = result.object;
+			if (zackUserId == null) {
+				try {
+					const zack = await resolveRemoteUser(FEDERATION_STUB_HOST, 'zack', viewer);
+					zackUserId = zack.id;
+					federationTestZackUserIdCache.set(targetHost, zack.id);
+				} catch {
+					return false;
+				}
+			}
+			const notes = await viewer.client.request('users/notes', {
+				userId: zackUserId,
+				withReplies: false,
+				withRenotes: true,
+				limit: 1,
+			});
+			const latest = notes[0];
+			if (latest?.uri !== targetUri) return false;
+			note = latest;
 			return true;
 		} catch {
 			return false;
 		}
 	}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
-	if (note == null) throw new Error(`federation test note not ingested: ${uri}`);
+	if (note == null) throw new Error(`federation test note not ingested: ${targetUri}`);
 	return note;
 }
 
@@ -311,7 +328,7 @@ export async function requestFederationTestNote(
 	targetHost: FederationTestTargetHost = 'b.test',
 ): Promise<Misskey.entities.Note> {
 	await deliverFederationTestNote(targetHost, notePath);
-	return await waitForFederationTestNote(viewer, notePath);
+	return await waitForFederationTestNote(viewer, notePath, targetHost);
 }
 
 export async function fetchRemoteEmojiByName(
