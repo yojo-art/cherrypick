@@ -11,7 +11,7 @@ import { pathToFileURL } from 'node:url';
 
 const STUB_ROOT = '/stub';
 const STUB_HOST = 'z.test';
-const ACTOR_URI = `https://${STUB_HOST}/users/alice`;
+const ACTOR_URI = `https://${STUB_HOST}/users/zack`;
 const KEY_ID = `${ACTOR_URI}#main-key`;
 const ALLOWED_TARGETS = new Set(['a.test', 'b.test', 'c.test']);
 
@@ -20,7 +20,7 @@ let privateKeyPem;
 
 async function getPrivateKeyPem() {
 	if (privateKeyPem == null) {
-		const key = JSON.parse(await readFile(join(STUB_ROOT, 'users/alice-key.json'), 'utf8'));
+		const key = JSON.parse(await readFile(join(STUB_ROOT, 'users/zack-key.json'), 'utf8'));
 		privateKeyPem = key.privateKeyPem;
 	}
 	return privateKeyPem;

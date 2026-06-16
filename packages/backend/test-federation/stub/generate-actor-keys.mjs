@@ -9,7 +9,7 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const STUB_HOST = 'z.test';
-const ACTOR_URI = `https://${STUB_HOST}/users/alice`;
+const ACTOR_URI = `https://${STUB_HOST}/users/zack`;
 
 export async function generateActorKeys(stubRoot) {
 	const { publicKey, privateKey } = generateKeyPairSync('rsa', {
@@ -22,7 +22,7 @@ export async function generateActorKeys(stubRoot) {
 	await mkdir(usersDir, { recursive: true });
 
 	await writeFile(
-		join(usersDir, 'alice-key.json'),
+		join(usersDir, 'zack-key.json'),
 		`${JSON.stringify({ privateKeyPem: privateKey }, null, '\t')}\n`,
 	);
 
@@ -33,8 +33,8 @@ export async function generateActorKeys(stubRoot) {
 		],
 		id: ACTOR_URI,
 		type: 'Person',
-		preferredUsername: 'federation-test-alice',
-		name: 'Federation Test Alice',
+		preferredUsername: 'federation-test-zack',
+		name: 'Federation Test Zack',
 		inbox: `https://${STUB_HOST}/inbox`,
 		outbox: `https://${STUB_HOST}/outbox`,
 		publicKey: {
@@ -45,7 +45,7 @@ export async function generateActorKeys(stubRoot) {
 	};
 
 	await writeFile(
-		join(usersDir, 'alice'),
+		join(usersDir, 'zack'),
 		`${JSON.stringify(actor, null, '\t')}\n`,
 	);
 }

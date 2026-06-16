@@ -2,7 +2,7 @@
 	"@context": "https://www.w3.org/ns/activitystreams",
 	"id": "https://z.test/notes/ap-emoji-1049/existing-remote-alias-only-initial",
 	"type": "Note",
-	"attributedTo": "https://z.test/users/alice",
+	"attributedTo": "https://z.test/users/zack",
 	"content": "<p>:existing_remote_alias:</p>",
 	"published": "2020-01-01T00:00:00.000Z",
 	"to": [
