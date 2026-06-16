@@ -77,8 +77,6 @@ export async function deliverFederationTestNote(
 	return body;
 }
 
-const federationTestZackUserIdCache = new Map<FederationTestTargetHost, string>();
-
 /**
  * `viewer` のインスタンスが stub Note を連合受信するまで待つ。
  * z.test の zack の `users/notes` で最新ノートが対象 URI になることを確認する。
@@ -86,32 +84,20 @@ const federationTestZackUserIdCache = new Map<FederationTestTargetHost, string>(
 export async function waitForFederationTestNote(
 	viewer: LoginUser,
 	notePath: string,
-	targetHost: FederationTestTargetHost,
 	options?: { timeout?: number },
 ): Promise<Misskey.entities.Note> {
-	const targetUri = federationTestStubUri(`notes/${notePath}`);
 	let note: Misskey.entities.Note | undefined;
-	let zackUserId = federationTestZackUserIdCache.get(targetHost);
+	const targetUri = federationTestStubUri(`notes/${notePath}`);
+	const zack = await resolveRemoteUser(FEDERATION_STUB_HOST, 'zack', viewer);
+
 	await waitFor(async () => {
 		try {
-			if (zackUserId == null) {
-				try {
-					const zack = await resolveRemoteUser(FEDERATION_STUB_HOST, 'zack', viewer);
-					zackUserId = zack.id;
-					federationTestZackUserIdCache.set(targetHost, zack.id);
-				} catch {
-					return false;
-				}
-			}
 			const notes = await viewer.client.request('users/notes', {
-				userId: zackUserId,
-				withReplies: false,
-				withRenotes: true,
+				userId: zack.id,
 				limit: 1,
 			});
-			const latest = notes[0];
-			if (latest?.uri !== targetUri) return false;
-			note = latest;
+			if (notes[0].uri !== targetUri) return false;
+			note = notes[0];
 			return true;
 		} catch {
 			return false;
@@ -328,7 +314,7 @@ export async function requestFederationTestNote(
 	targetHost: FederationTestTargetHost = 'b.test',
 ): Promise<Misskey.entities.Note> {
 	await deliverFederationTestNote(targetHost, notePath);
-	return await waitForFederationTestNote(viewer, notePath, targetHost);
+	return await waitForFederationTestNote(viewer, notePath);
 }
 
 export async function fetchRemoteEmojiByName(
