@@ -4,7 +4,7 @@
 	"type": "Note",
 	"attributedTo": "https://z.test/users/zack",
 	"content": "<p>:existing_remote_alias: alias update</p>",
-	"published": "2022-01-01T00:00:00.000Z",
+	"published": "2026-06-01T00:00:05.000Z",
 	"to": [
 		"https://www.w3.org/ns/activitystreams#Public"
 	],
@@ -13,7 +13,7 @@
 			"type": "Emoji",
 			"id": "https://z.test/emojis/existing_remote_alias",
 			"name": ":existing_remote_alias:",
-			"updated": "2022-01-01T00:00:00.000Z",
+			"updated": "2026-06-01T00:00:05.000Z",
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",

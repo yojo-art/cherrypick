@@ -4,7 +4,7 @@
 	"type": "Note",
 	"attributedTo": "https://z.test/users/zack",
 	"content": "<p>:copy_permission_none:</p>",
-	"published": "2020-01-01T00:00:00.000Z",
+	"published": "2026-06-01T00:00:00.000Z",
 	"to": [
 		"https://www.w3.org/ns/activitystreams#Public"
 	],
@@ -13,7 +13,7 @@
 			"type": "Emoji",
 			"id": "https://z.test/emojis/copy_permission_none",
 			"name": ":copy_permission_none:",
-			"updated": "2020-01-01T00:00:00.000Z",
+			"updated": "2026-06-01T00:00:00.000Z",
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",
