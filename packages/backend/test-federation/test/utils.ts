@@ -50,7 +50,7 @@ type DeliverFederationTestNoteResponse = {
 
 /**
  * z.test に stub Note の署名付き inbox 配送を依頼する。
- * `notePath` は `stub/notes/` からの相対パス（例: `ap-emoji-1049/copy-permission-none`）。
+ * `notePath` は `stub/notes/` からの相対パス（例: `ap-emoji-1049/10-copy-permission-none`）。
  */
 export async function deliverFederationTestNote(
 	targetHost: FederationTestTargetHost,

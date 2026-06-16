@@ -1,9 +1,9 @@
 {
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://z.test/notes/ap-emoji-1049/invalid-extension-fields",
+	"id": "https://z.test/notes/ap-emoji-1049/10-copy-permission-none",
 	"type": "Note",
 	"attributedTo": "https://z.test/users/zack",
-	"content": "<p>:invalid_extension_fields:</p>",
+	"content": "<p>:copy_permission_none:</p>",
 	"published": "2020-01-01T00:00:00.000Z",
 	"to": [
 		"https://www.w3.org/ns/activitystreams#Public"
@@ -11,24 +11,15 @@
 	"tag": [
 		{
 			"type": "Emoji",
-			"id": "https://z.test/emojis/invalid_extension_fields",
-			"name": ":invalid_extension_fields:",
+			"id": "https://z.test/emojis/copy_permission_none",
+			"name": ":copy_permission_none:",
 			"updated": "2020-01-01T00:00:00.000Z",
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",
 				"url": "https://z.test/emoji/hello_world.png"
 			},
-			"keywords": null,
-			"copyPermission": "none",
-			"category": {
-				"name": "invalid"
-			},
-			"usageInfo": 123,
-			"description": false,
-			"isBasedOn": [
-				"https://example.com/base"
-			]
+			"copyPermission": "none"
 		}
 	]
 }

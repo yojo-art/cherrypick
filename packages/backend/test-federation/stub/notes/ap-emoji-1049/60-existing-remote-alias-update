@@ -1,10 +1,10 @@
 {
 	"@context": "https://www.w3.org/ns/activitystreams",
-	"id": "https://z.test/notes/ap-emoji-1049/existing-remote-alias-only-initial",
+	"id": "https://z.test/notes/ap-emoji-1049/60-existing-remote-alias-update",
 	"type": "Note",
 	"attributedTo": "https://z.test/users/zack",
-	"content": "<p>:existing_remote_alias:</p>",
-	"published": "2020-01-01T00:00:00.000Z",
+	"content": "<p>:existing_remote_alias: alias update</p>",
+	"published": "2022-01-01T00:00:00.000Z",
 	"to": [
 		"https://www.w3.org/ns/activitystreams#Public"
 	],
@@ -13,15 +13,15 @@
 			"type": "Emoji",
 			"id": "https://z.test/emojis/existing_remote_alias",
 			"name": ":existing_remote_alias:",
-			"updated": "2020-01-01T00:00:00.000Z",
+			"updated": "2022-01-01T00:00:00.000Z",
 			"icon": {
 				"type": "Image",
 				"mediaType": "image/png",
-				"url": "https://z.test/emoji/hello_world.png"
+				"url": "https://z.test/emoji/hello_world.png?rev=alias"
 			},
 			"keywords": [
-				"old",
-				"alias-only"
+				"new",
+				"alias"
 			]
 		}
 	]
