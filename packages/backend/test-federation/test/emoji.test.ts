@@ -511,11 +511,12 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		await sleep();
 	});
 
+	// 優先度1: insert前に未対応のcopyPermissionを正規化
 	test('insert前に未対応のcopyPermissionを正規化してリモートAP絵文字を登録する', async () => {
 		await requestFederationTestNote(bob, 'ap-emoji-1049/10-copy-permission-none');
 
 		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
-		assertEmojiAliasesEqual(emoji.aliases, []);
+		deepStrictEqual(emoji.aliases, []);
 		strictEqual(emoji.copyPermission, null);
 		strictEqual(emoji.isSensitive, false);
 		strictEqual(emoji.license, null);
@@ -525,11 +526,12 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		strictEqual(emoji.isBasedOn, null);
 	});
 
+	// 優先度2: 不正な拡張フィールド型を正規化
 	test('insert前に不正な拡張フィールドを正規化してリモートAP絵文字を登録する', async () => {
 		await requestFederationTestNote(bob, 'ap-emoji-1049/20-invalid-extension-fields');
 
 		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
-		assertEmojiAliasesEqual(emoji.aliases, []);
+		deepStrictEqual(emoji.aliases, []);
 		strictEqual(emoji.copyPermission, null);
 		strictEqual(emoji.category, null);
 		strictEqual(emoji.usageInfo, null);
@@ -545,7 +547,7 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
 		strictEqual(emoji.copyPermission, 'deny');
-		assertEmojiAliasesEqual(emoji.aliases, []);
+		deepStrictEqual(emoji.aliases, []);
 		strictEqual(emoji.license, null);
 		strictEqual(emoji.category, null);
 		strictEqual(emoji.usageInfo, null);
@@ -561,6 +563,6 @@ describe('AP絵文字タグの正規化 (#1049)', () => {
 		await requestFederationTestNote(bob, 'ap-emoji-1049/60-existing-remote-alias-update');
 
 		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
-		assertEmojiAliasesEqual(emoji.aliases, ['new', 'alias']);
+		deepStrictEqual(emoji.aliases, ['new', 'alias']);
 	});
 });

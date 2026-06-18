@@ -107,10 +107,6 @@ export async function waitForFederationTestNote(
 	return note;
 }
 
-export function assertEmojiAliasesEqual(actual: readonly string[], expected: readonly string[]): void {
-	deepStrictEqual(JSON.stringify(actual), JSON.stringify(expected));
-}
-
 export async function sleep(ms = 250): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
@@ -325,37 +321,6 @@ export async function fetchRemoteEmojiByName(
 	return await viewer.client.request('emoji', { name, host });
 }
 
-/**
- * リモート絵文字が DB に登録されていることを検証する。
- * #1049 未修正時は extractEmojis が失敗して絵文字だけ未登録になる（ノート受信は成功する）ため、
- * 長いポーリングではなく短い待機のあと明確なエラーで落とす。
- */
-export async function requireRemoteEmoji(
-	viewer: LoginUser,
-	name: string,
-	host: Host = FEDERATION_STUB_HOST,
-	options?: { timeout?: number },
-): Promise<Misskey.entities.EmojiDetailed> {
-	let emoji: Misskey.entities.EmojiDetailed | undefined;
-	const timeout = options?.timeout ?? 3_000;
-	await waitFor(async () => {
-		try {
-			emoji = await fetchRemoteEmojiByName(viewer, name, host);
-			return true;
-		} catch {
-			return false;
-		}
-	}, { timeout, interval: 300 });
-	if (emoji == null) {
-		throw new Error(
-			`リモート絵文字が未登録: ${name}@${host}。` +
-			'ノート受信後も絵文字が登録されない場合、#1049 未修正で extractEmojis が DB 制約違反により失敗している可能性があります（TDD 想定の失敗）。' +
-			'ノート自体が取り込まれていない場合は inbox 配送または z.test への到達性を確認してください。',
-		);
-	}
-	return emoji;
-}
-
 export async function waitForRemoteEmoji(
 	viewer: LoginUser,
 	name: string,
@@ -370,7 +335,7 @@ export async function waitForRemoteEmoji(
 		} catch {
 			return false;
 		}
-	}, options);
+	}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
 	if (emoji == null) {
 		throw new Error(`remote emoji not found: ${name}@${host} (note may be ingested but emoji was not registered)`);
 	}

@@ -32,6 +32,7 @@ function generate {
 }
 
 function generate_stub {
+  # z.test は nginx 静的スタブホストのため、Misskey 設定ファイル (.default.yml) は不要
   openssl req -new -newkey rsa:2048 -sha256 -nodes \
     -keyout certificates/$1.key \
     -subj "/CN=$1/emailAddress=admin@$1/C=JP/ST=/L=/O=Misskey Tester/OU=Some Unit" \
