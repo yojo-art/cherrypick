@@ -201,7 +201,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch('https://b.test/api/admin/emoji/copy', {
+		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -236,7 +236,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch('https://b.test/api/admin/emoji/steal', {
+		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -364,7 +364,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch('https://b.test/api/admin/emoji/copy', {
+		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -399,7 +399,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch('https://b.test/api/admin/emoji/steal', {
+		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
