@@ -130,33 +130,6 @@ export async function waitFor(
 	}
 }
 
-/**
- * Polls `sample` until it returns a strictly-equal value `stableTimes` times in a row,
- * approximating that background processing (e.g. a fire-and-forget federation job) has settled.
- * Returns the last observed value. On timeout it returns the current value instead of throwing,
- * leaving the final assertion to a subsequent {@link waitFor} call.
- */
-export async function waitForSettled<T>(
-	sample: () => Promise<T> | T,
-	{ stableTimes = 3, interval = 500, timeout = 10_000 }: { stableTimes?: number; interval?: number; timeout?: number } = {},
-): Promise<T> {
-	const start = Date.now();
-	let last = await sample();
-	let stable = 1;
-	for (;;) {
-		await sleep(interval);
-		const current = await sample();
-		if (current === last) {
-			stable += 1;
-			if (stable >= stableTimes) return current;
-		} else {
-			stable = 1;
-			last = current;
-		}
-		if (Date.now() - start >= timeout) return current;
-	}
-}
-
 async function signin(
 	host: Host,
 	params: Misskey.entities.SigninFlowRequest,
