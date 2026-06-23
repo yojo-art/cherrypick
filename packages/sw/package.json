@@ -12,7 +12,7 @@
 		"format:write": "pnpm biome format --write"
 	},
 	"dependencies": {
-		"esbuild": "0.25.10",
+		"esbuild": "0.28.1",
 		"idb-keyval": "6.2.2",
 		"misskey-js": "workspace:*"
 	},

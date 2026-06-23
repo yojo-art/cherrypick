@@ -55,10 +55,6 @@ export const packedNoteDraftSchema = {
 			optional: true, nullable: true,
 			ref: 'Note',
 		},
-		disableRightClick: {
-			type: 'boolean',
-			optional: true, nullable: false,
-		},
 		visibility: {
 			type: 'string',
 			optional: false, nullable: false,

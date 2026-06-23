@@ -60,7 +60,6 @@ class NoteStream extends ReadableStream<Record<string, unknown>> {
 				visibleUserIds: note.visibleUserIds,
 				localOnly: note.localOnly,
 				reactionAcceptance: note.reactionAcceptance,
-				disableRightClick: note.disableRightClick,
 			};
 		};
 

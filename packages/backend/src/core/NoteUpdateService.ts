@@ -40,7 +40,6 @@ type Option = {
 	name?: string | null;
 	text?: string | null;
 	tagText?: string | null;
-	disableRightClick?: boolean | null;
 	cw?: string | null;
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
@@ -142,7 +141,6 @@ export class NoteUpdateService implements OnApplicationShutdown {
 			cw: data.cw ?? null,
 			tags: tags.map(tag => normalizeForSearch(tag)),
 			emojis,
-			disableRightClick: data.disableRightClick!,
 			attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
 			updatedAtHistory: [...updatedAtHistory, new Date()],
 			deleteAt: data.deleteAt!,
@@ -284,7 +282,7 @@ export class NoteUpdateService implements OnApplicationShutdown {
 				});
 			}
 
-			this.globalEventService.publishNoteStream(note, 'updated', { cw: note.cw, text: note.text, disableRightClick: note.disableRightClick, deleteAt: note.deleteAt });
+			this.globalEventService.publishNoteStream(note, 'updated', { cw: note.cw, text: note.text, deleteAt: note.deleteAt });
 
 			//#region AP deliver
 			if (this.userEntityService.isLocalUser(user) && !note.localOnly) {

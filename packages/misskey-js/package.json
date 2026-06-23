@@ -48,7 +48,7 @@
 		"@typescript-eslint/eslint-plugin": "8.48.1",
 		"@typescript-eslint/parser": "8.48.1",
 		"@vitest/coverage-v8": "3.2.4",
-		"esbuild": "0.25.10",
+		"esbuild": "0.28.1",
 		"execa": "9.6.0",
 		"glob": "11.1.0",
 		"ncp": "2.0.0",
