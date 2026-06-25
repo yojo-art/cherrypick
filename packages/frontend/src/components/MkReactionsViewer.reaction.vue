@@ -10,8 +10,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 	class="_button"
 	:class="[$style.root, { [$style.reacted]: myReaction == reaction, [$style.canToggle]: (canToggle || alternative), [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
 	@click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"
-	@touchstart.stop="(ev) => openEmojiMenu(ev)"
-	@touchend.stop="closeEmojiMenu"
 	@contextmenu.prevent.stop="menu"
 >
 	<MkReactionIcon style="pointer-events: none;" :class="prefer.s.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction" :emojiUrl="reactionEmojis[reaction.substring(1, reaction.length - 1)]" @click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"/>
@@ -20,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, onMounted, ref, useTemplateRef, watch } from 'vue';
+import { computed, inject, onMounted, defineAsyncComponent, useTemplateRef, watch } from 'vue';
 import * as Misskey from 'misskey-js';
 import { getUnicodeEmojiOrNull } from '@@/js/emojilist.js';
 import MkCustomEmojiDetailedDialog from './MkCustomEmojiDetailedDialog.vue';
@@ -75,7 +73,7 @@ const canToggle = computed(() => {
 	//return !props.reaction.match(/@\w/) && $i && emoji && checkReactionPermissions($i, props.note, emoji);
 	return props.reaction.match(/@\w/) == null && $i != null && emoji != null;
 });
-const canGetInfo = computed(() => props.reaction.includes(':'));
+const canGetInfo = computed(() => props.reaction.startsWith(':'));
 const isLocalCustomEmoji = props.reaction[0] === ':' && props.reaction.includes('@.');
 
 const reactionName = computed(() => {
@@ -92,9 +90,16 @@ const router = useRouter();
 
 const alternative: ComputedRef<string | null> = computed(() => prefer.s.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
 
-const canSteal = computed(() => props.note.user.host && $i && ($i.isAdmin || $i.policies.canManageCustomEmojis));
+const canImport = computed(() =>
+	$i != null &&
+	($i.isAdmin || $i.policies.canManageCustomEmojis) &&
+	props.reaction.startsWith(':') &&
+	!!reactionHost.value &&
+	reactionHost.value !== '.' &&
+	!customEmojisMap.has(reactionName.value),
+);
 
-const longTouchEmoji = ref(false);
+const reactionLabel = computed(() => props.reaction.startsWith(':') ? `:${reactionName.value}:` : props.reaction);
 
 async function toggleReaction(ev: MouseEvent) {
 	haptic();
@@ -185,7 +190,7 @@ function stealReaction(ev: MouseEvent) {
 
 	menuItems.push({
 		type: 'label',
-		text: `:${reactionName.value}:`,
+		text: reactionLabel.value,
 	});
 
 	if (canGetInfo.value) {
@@ -215,7 +220,7 @@ function stealReaction(ev: MouseEvent) {
 		});
 	}
 
-	if (canSteal.value && reactionHost.value !== '.') {
+	if (canImport.value) {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
@@ -281,7 +286,7 @@ async function menu(ev) {
 
 	menuItems.push({
 		type: 'label',
-		text: `:${reactionName.value}:`,
+		text: reactionLabel.value,
 	});
 
 	if (canGetInfo.value) {
@@ -311,7 +316,7 @@ async function menu(ev) {
 		});
 	}
 
-	if (canSteal.value && reactionHost.value !== '.') {
+	if (canImport.value) {
 		menuItems.push({
 			text: i18n.ts.import,
 			icon: 'ti ti-plus',
@@ -386,7 +391,21 @@ async function menu(ev) {
 			});
 		}
 	}
+	menuItems.push({
+		icon: 'ti ti-icons',
+		text: i18n.ts.reactionUsers,
+		action: () => showReactions(props.reaction),
+	});
 	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
+}
+
+function showReactions(reaction: string): void {
+	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkReactedUsersDialog.vue')), {
+		noteId: props.note.id,
+		initialReaction: reaction,
+	}, {
+		closed: () => dispose(),
+	});
 }
 
 function anime() {
@@ -447,17 +466,6 @@ async function chooseAlternative(ev) {
 			});
 		});
 	}
-}
-
-async function openEmojiMenu(ev) {
-	longTouchEmoji.value = true;
-	window.setTimeout(async () => {
-		if (longTouchEmoji.value === true) stealReaction(ev);
-	}, 500);
-}
-
-function closeEmojiMenu() {
-	longTouchEmoji.value = false;
 }
 
 watch(() => props.count, (newCount, oldCount) => {

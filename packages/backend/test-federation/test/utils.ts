@@ -40,6 +40,52 @@ export async function sleep(ms = 250): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
 }
 
+/**
+ * Polls `predicate` until it resolves to `true`, or throws once `timeout` (ms) elapses.
+ * Prefer this over a fixed `sleep` when waiting for eventual federation propagation,
+ * so the test does not depend on a hard-coded delay being long enough.
+ */
+export async function waitFor(
+	predicate: () => Promise<boolean> | boolean,
+	{ timeout = 10_000, interval = 500 }: { timeout?: number; interval?: number } = {},
+): Promise<void> {
+	const start = Date.now();
+	for (;;) {
+		if (await predicate()) return;
+		if (Date.now() - start >= timeout) {
+			throw new Error(`waitFor: condition was not met within ${timeout}ms`);
+		}
+		await sleep(interval);
+	}
+}
+
+/**
+ * Polls `sample` until it returns a strictly-equal value `stableTimes` times in a row,
+ * approximating that background processing (e.g. a fire-and-forget federation job) has settled.
+ * Returns the last observed value. On timeout it returns the current value instead of throwing,
+ * leaving the final assertion to a subsequent {@link waitFor} call.
+ */
+export async function waitForSettled<T>(
+	sample: () => Promise<T> | T,
+	{ stableTimes = 3, interval = 500, timeout = 10_000 }: { stableTimes?: number; interval?: number; timeout?: number } = {},
+): Promise<T> {
+	const start = Date.now();
+	let last = await sample();
+	let stable = 1;
+	for (;;) {
+		await sleep(interval);
+		const current = await sample();
+		if (current === last) {
+			stable += 1;
+			if (stable >= stableTimes) return current;
+		} else {
+			stable = 1;
+			last = current;
+		}
+		if (Date.now() - start >= timeout) return current;
+	}
+}
+
 async function signin(
 	host: Host,
 	params: Misskey.entities.SigninFlowRequest,

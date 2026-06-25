@@ -561,10 +561,6 @@ export interface Locale extends ILocale {
      */
     "newNoteReceivedNotification": string;
     /**
-     * 右クリックを禁止
-     */
-    "disableRightClick": string;
-    /**
      * キャッシュをクリアしましょうか？
      */
     "cherrypickUpdatedCacheClearTitle": string;
@@ -1146,6 +1142,10 @@ export interface Locale extends ILocale {
      * リアクション
      */
     "reactions": string;
+    /**
+     * リアクションしたユーザー
+     */
+    "reactionUsers": string;
     /**
      * 絵文字ピッカー
      */
@@ -6400,6 +6400,10 @@ export interface Locale extends ILocale {
      */
     "deviceInfoDescription": string;
     /**
+     * あなたは管理者です
+     */
+    "youAreAdmin": string;
+    /**
      * 下書き一覧
      */
     "draftNoteList": string;
@@ -9392,6 +9396,10 @@ export interface Locale extends ILocale {
              * <b>それでも続けましょうか？</b>
              */
             "canUseAutoTranslateDescription": string;
+            /**
+             * チャンネルの作成
+             */
+            "canCreateChannel": string;
             /**
              * アイコンデコレーションの最大取付個数
              */

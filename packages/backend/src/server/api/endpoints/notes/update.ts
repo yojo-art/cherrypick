@@ -114,7 +114,6 @@ export const paramDef = {
 			},
 		},
 		cw: { type: 'string', nullable: true, maxLength: 100 },
-		disableRightClick: { type: 'boolean', default: false },
 		scheduledDelete: {
 			type: 'object',
 			nullable: true,
@@ -211,7 +210,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				} : null,
 				text: ps.text ?? null,
 				cw: ps.cw ?? null,
-				disableRightClick: ps.disableRightClick,
 				deleteAt: ps.scheduledDelete?.deleteAt ? new Date(ps.scheduledDelete.deleteAt) : ps.scheduledDelete?.deleteAfter ? new Date(Date.now() + ps.scheduledDelete.deleteAfter) : null,
 			};
 
