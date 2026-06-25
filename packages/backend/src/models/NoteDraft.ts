@@ -88,11 +88,6 @@ export class MiNoteDraft {
 	})
 	public reactionAcceptance: typeof noteReactionAcceptances[number];
 
-	@Column('boolean', {
-		default: false,
-	})
-	public disableRightClick: boolean;
-
 	/**
 	 * public ... 公開
 	 * home ... ホームタイムライン(ユーザーページのタイムライン含む)のみに流す

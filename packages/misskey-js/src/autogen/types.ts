@@ -4822,7 +4822,6 @@ export type components = {
             renoteId?: string | null;
             reply?: components['schemas']['Note'] | null;
             renote?: components['schemas']['Note'] | null;
-            disableRightClick?: boolean;
             isHidden?: boolean;
             /** @enum {string} */
             visibility: 'public' | 'home' | 'followers' | 'specified';
@@ -4911,7 +4910,6 @@ export type components = {
             renoteId: string | null;
             reply?: components['schemas']['Note'] | null;
             renote?: components['schemas']['Note'] | null;
-            disableRightClick?: boolean;
             /** @enum {string} */
             visibility: 'public' | 'home' | 'followers' | 'specified';
             /** @enum {string|null} */
@@ -31419,8 +31417,6 @@ export interface operations {
                      */
                     searchableBy?: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
                     /** @default false */
-                    disableRightClick?: boolean;
-                    /** @default false */
                     noExtractMentions?: boolean;
                     /** @default false */
                     noExtractHashtags?: boolean;
@@ -31673,8 +31669,6 @@ export interface operations {
                      * @enum {string|null}
                      */
                     reactionAcceptance?: null | 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote';
-                    /** @default false */
-                    disableRightClick?: boolean;
                     /** Format: misskey:id */
                     replyId?: string | null;
                     /** Format: misskey:id */
@@ -31921,8 +31915,6 @@ export interface operations {
                     visibility?: 'public' | 'home' | 'followers' | 'specified';
                     visibleUserIds?: string[];
                     cw?: string | null;
-                    /** @default false */
-                    disableRightClick?: boolean;
                     hashtag?: string | null;
                     localOnly?: boolean;
                     /** @enum {string|null} */
@@ -34067,8 +34059,6 @@ export interface operations {
                         metadata?: Record<string, never>;
                     } | null;
                     cw: string | null;
-                    /** @default false */
-                    disableRightClick?: boolean;
                     scheduledDelete?: {
                         deleteAt?: number | null;
                         deleteAfter?: number | null;

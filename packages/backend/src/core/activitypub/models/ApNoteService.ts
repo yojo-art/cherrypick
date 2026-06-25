@@ -39,6 +39,7 @@ import { ApEventService } from './ApEventService.js';
 import { ApImageService } from './ApImageService.js';
 import type { Resolver } from '../ApResolverService.js';
 import type { IObject, IPost } from '../type.js';
+import { normalizeApEmojiTag } from '../misc/normalize-ap-emoji-tag.js';
 
 @Injectable()
 export class ApNoteService {
@@ -330,7 +331,6 @@ export class ApNoteService {
 				cw,
 				text,
 				localOnly: false,
-				disableRightClick: note.disableRightClick,
 				visibility,
 				visibleUsers,
 				searchableBy: searchableBy,
@@ -427,7 +427,6 @@ export class ApNoteService {
 				name: note.name,
 				cw,
 				text,
-				disableRightClick: note.disableRightClick,
 				apHashtags,
 				apEmojis,
 				poll,
@@ -491,6 +490,7 @@ export class ApNoteService {
 		return await Promise.all(eomjiTags.map(async tag => {
 			const name = tag.name.replaceAll(':', '');
 			tag.icon = toSingle(tag.icon);
+			const normalized = normalizeApEmojiTag(tag);
 
 			const exists = existingEmojis.find(x => x.name === name);
 
@@ -509,15 +509,15 @@ export class ApNoteService {
 						publicUrl: tag.icon.url,
 						updatedAt: new Date(),
 						// _misskey_license が存在しなければ `null`
-						license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-						isSensitive: tag.isSensitive ?? false,
-						copyPermission: tag.copyPermission,
-						category: tag.category,
-						aliases: tag.keywords,
-						usageInfo: tag.usageInfo,
-						author: tag.author ?? tag.crator,
-						description: tag.description,
-						isBasedOn: tag.isBasedOn,
+						license: normalized.license,
+						isSensitive: normalized.isSensitive,
+						copyPermission: normalized.copyPermission,
+						category: normalized.category,
+						aliases: normalized.aliases,
+						usageInfo: normalized.usageInfo,
+						author: normalized.author,
+						description: normalized.description,
+						isBasedOn: normalized.isBasedOn,
 					});
 
 					const emoji = await this.emojisRepository.findOneBy({ host, name });
@@ -539,15 +539,15 @@ export class ApNoteService {
 				publicUrl: tag.icon.url,
 				updatedAt: new Date(),
 				// _misskey_license が存在しなければ `null`
-				license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-				isSensitive: tag.isSensitive ?? false,
-				copyPermission: tag.copyPermission,
-				category: tag.category,
-				aliases: tag.keywords,
-				usageInfo: tag.usageInfo,
-				author: tag.author ?? tag.crator,
-				description: tag.description,
-				isBasedOn: tag.isBasedOn,
+				license: normalized.license,
+				isSensitive: normalized.isSensitive,
+				copyPermission: normalized.copyPermission,
+				category: normalized.category,
+				aliases: normalized.aliases,
+				usageInfo: normalized.usageInfo,
+				author: normalized.author,
+				description: normalized.description,
+				isBasedOn: normalized.isBasedOn,
 			});
 		}));
 	}

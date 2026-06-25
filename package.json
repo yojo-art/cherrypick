@@ -60,14 +60,14 @@
 	},
 	"dependencies": {
 		"cssnano": "7.1.1",
-		"esbuild": "0.25.10",
+		"esbuild": "0.28.1",
 		"execa": "9.6.0",
 		"fast-glob": "3.3.3",
 		"glob": "11.1.0",
 		"ignore-walk": "8.0.0",
 		"js-yaml": "4.1.1",
 		"postcss": "8.5.11",
-		"tar": "7.5.11",
+		"tar": "7.5.16",
 		"terser": "5.44.0",
 		"typescript": "5.9.3"
 	},
