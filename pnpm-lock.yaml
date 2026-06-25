@@ -433,8 +433,8 @@ importers:
         specifier: 1.6.0
         version: 1.6.0
       tmp:
-        specifier: 0.2.6
-        version: 0.2.6
+        specifier: 0.2.7
+        version: 0.2.7
       tsc-alias:
         specifier: 1.8.16
         version: 1.8.16
@@ -11502,8 +11502,8 @@ packages:
     resolution: {integrity: sha512-8PWx8tvC4jDB39BQw1m4x8y5MH1BcQ5xHeL2n7UVFulMPH/3Q0uiamahFJ3lXA0zO2SUyRXuVVbWSDmstlt9YA==}
     hasBin: true
 
-  tmp@0.2.6:
-    resolution: {integrity: sha512-5sJPdPjfI5Kx+qbrDesxkglRBxW//g7hCsqspEjwkewGvBMGIKMOTKzLt1hFVJzyadba3lDUN20O9qhvbQUSTA==}
+  tmp@0.2.7:
+    resolution: {integrity: sha512-e0votIpp4Uo2AJYSzVHV6xCcawuiez3DzqDAbrTc3YxBkplN6e+dM13ZeIcZnDg/QpSuU2zfZ3rzwY8ukEnaXw==}
     engines: {node: '>=14.14'}
 
   tmpl@1.0.5:
@@ -18723,7 +18723,7 @@ snapshots:
       semver: 7.7.3
       supports-color: 8.1.1
       systeminformation: 5.27.7
-      tmp: 0.2.6
+      tmp: 0.2.7
       tree-kill: 1.2.2
       untildify: 4.0.0
       yauzl: 2.10.0
@@ -23010,7 +23010,7 @@ snapshots:
       minimist: 1.2.8
       protobufjs: 7.2.4
       semver: 7.7.3
-      tmp: 0.2.6
+      tmp: 0.2.7
       uglify-js: 3.19.3
 
   protobufjs@7.2.4:
@@ -24395,7 +24395,7 @@ snapshots:
     dependencies:
       tldts-core: 7.0.19
 
-  tmp@0.2.6: {}
+  tmp@0.2.7: {}
 
   tmpl@1.0.5: {}
 
