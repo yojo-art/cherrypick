@@ -1586,7 +1586,6 @@ _videoCodec:
   vp9: "VP9 (WebM)"
   copy: "そのまま"
 videoBitrate: "ビットレート"
-videoBitrateMode: "ビットレート設定"
 videoBitrateValue: "ビットレート値"
 videoBitrateValue_description: "0または空欄で自動設定に従います。単位はMbpsです。"
 inMinutes: "分"

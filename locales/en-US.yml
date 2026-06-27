@@ -1569,7 +1569,6 @@ _videoCodec:
   vp9: "VP9 (WebM)"
   copy: "Keep original"
 videoBitrate: "Bitrate"
-videoBitrateMode: "Bitrate setting"
 videoBitrateValue: "Bitrate value"
 videoBitrateValue_description: "Leave empty or 0 to follow automatic setting. Unit is Mbps."
 inMinutes: "Minute(s)"

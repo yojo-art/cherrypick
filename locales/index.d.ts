@@ -6382,10 +6382,6 @@ export interface Locale extends ILocale {
      */
     "videoBitrate": string;
     /**
-     * ビットレート設定
-     */
-    "videoBitrateMode": string;
-    /**
      * ビットレート値
      */
     "videoBitrateValue": string;
