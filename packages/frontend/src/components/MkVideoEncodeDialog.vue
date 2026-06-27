@@ -43,9 +43,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template v-if="codec !== 'copy'">
 				<MkSelect
 					v-model="qualityMode" :items="[
-						{ value: 'low', label: `${i18n.ts._compression._quality.high} (${i18n.ts.low})` },
-						{ value: 'medium', label: `${i18n.ts._compression._quality.medium} (${i18n.ts.medium})` },
-						{ value: 'high', label: `${i18n.ts._compression._quality.low} (${i18n.ts.high})` },
+						{ value: 'low', label: `${i18n.ts._compression._quality.high}` },
+						{ value: 'medium', label: `${i18n.ts._compression._quality.medium}` },
+						{ value: 'high', label: `${i18n.ts._compression._quality.low}` },
 						{ value: 'bitrate', label: i18n.ts.bitrateSpecify },
 					]"
 				>
