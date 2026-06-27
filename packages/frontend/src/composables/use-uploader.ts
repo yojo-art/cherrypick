@@ -83,7 +83,7 @@ export type UploaderItem = {
 	aborted: boolean;
 	compressionLevel: 0 | 1 | 2 | 3 | 10;
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	videoBitrateMode: 'auto' | 'manual';
+	videoCompressionLevel: 'low' | 'medium' | 'high' | 'manual';
 	videoBitrateValue: number | null;
 	skipVideoDialog?: boolean;
 	compressedSize?: number | null;
@@ -147,20 +147,9 @@ export function useUploader(options: {
 		const id = genId();
 		const filename = file.name ?? 'untitled';
 		const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
-		items.value.push({
-			id,
-			name: prefer.s.keepOriginalFilename ? filename : id + extension,
-			progress: null,
-			thumbnail: THUMBNAIL_SUPPORTED_TYPES.includes(file.type) ? window.URL.createObjectURL(file) : null,
-			preprocessing: false,
-			preprocessProgress: null,
-			uploading: false,
-			aborted: false,
-			uploaded: null,
-			uploadFailed: false,
 			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
 			videoCodec: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCodec : 'copy',
-			videoBitrateMode: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? (prefer.s.defaultVideoCompressionLevel === 10 ? 'manual' : 'auto') : 'auto',
+			videoCompressionLevel: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 'medium',
 			videoBitrateValue: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateValue : null,
 			watermarkPresetId: uploaderFeatures.value.watermark && $i.policies.watermarkAvailable ? prefer.s.defaultWatermarkPresetId : null,
 			file: markRaw(file),
@@ -362,10 +351,10 @@ export function useUploader(options: {
 							text += `: ${i18n.ts._videoCodec.copy}`;
 						} else {
 							text += `: ${i18n.ts._videoCodec[item.videoCodec]}`;
-							if (item.compressionLevel === 10 && item.videoBitrateValue != null) {
+							if (item.videoCompressionLevel === 'manual' && item.videoBitrateValue != null) {
 								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
 							} else {
-								text += ` / ${item.compressionLevel === 1 ? i18n.ts.low : item.compressionLevel === 3 ? i18n.ts.high : i18n.ts.medium}`;
+								text += ` / ${i18n.ts[item.videoCompressionLevel]}`;
 							}
 						}
 						return text;
@@ -378,7 +367,7 @@ export function useUploader(options: {
 										file: item.file,
 										mode: 'edit',
 										defaultCodec: item.videoCodec,
-										defaultCompressionLevel: item.compressionLevel as 0 | 1 | 2 | 3 | 10,
+										defaultVideoCompressionLevel: item.videoCompressionLevel,
 										defaultBitrateValue: item.videoBitrateValue,
 										allowApplyToAll: false,
 									},
@@ -696,7 +685,7 @@ export function useUploader(options: {
 							file: item.file,
 							mode: 'new',
 							defaultCodec: prefer.s.defaultVideoCodec,
-							defaultCompressionLevel: prefer.s.defaultVideoCompressionLevel,
+							defaultVideoCompressionLevel: prefer.s.defaultVideoCompressionLevel,
 							defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
 						},
 					{
@@ -743,10 +732,10 @@ export function useUploader(options: {
 			});
 
 			let bitrate: number | Quality;
-			if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
+			if (item.videoCompressionLevel === 'manual' && item.videoBitrateValue != null) {
 				bitrate = item.videoBitrateValue;
 			} else {
-				bitrate = item.compressionLevel === 1 ? mediabunny.QUALITY_VERY_HIGH : item.compressionLevel === 2 ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;
+				bitrate = item.videoCompressionLevel === 'low' ? mediabunny.QUALITY_VERY_HIGH : item.videoCompressionLevel === 'medium' ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;
 			}
 
 			const currentConversion = await mediabunny.Conversion.init({
@@ -792,8 +781,7 @@ export function useUploader(options: {
 
 	function applyVideoEncodeSettings(item: UploaderItem, settings: VideoEncodeDialogResult) {
 		item.videoCodec = settings.videoCodec;
-		item.compressionLevel = settings.compressionLevel as 0 | 1 | 2 | 3;
-		item.videoBitrateMode = settings.videoBitrateMode;
+		item.videoCompressionLevel = settings.videoCompressionLevel;
 		item.videoBitrateValue = settings.videoBitrateValue;
 	}
 

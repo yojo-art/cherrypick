@@ -71,8 +71,7 @@ import { i18n } from '@/i18n.js';
 
 export type VideoEncodeDialogResult = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	compressionLevel: 0 | 1 | 2 | 3 | 10;
-	videoBitrateMode: 'auto' | 'manual';
+	videoCompressionLevel: 'low' | 'medium' | 'high' | 'bitrate';
 	videoBitrateValue: number | null;
 	applyToAll: boolean;
 };
@@ -81,7 +80,7 @@ const props = defineProps<{
 	file: File;
 	mode?: 'new' | 'edit';
 	defaultCodec?: 'h264' | 'vp9' | 'copy';
-	defaultCompressionLevel?: 0 | 1 | 2 | 3 | 10;
+	defaultVideoCompressionLevel?: 'low' | 'medium' | 'high' | 'manual';
 	defaultBitrateValue?: number | null;
 	allowApplyToAll?: boolean;
 }>();
@@ -101,9 +100,9 @@ function handleClose() {
 }
 
 function resolveQualityMode(): 'low' | 'medium' | 'high' | 'bitrate' {
-	if (props.defaultCompressionLevel === 10) return 'bitrate';
-	if (props.defaultCompressionLevel === 1) return 'low';
-	if (props.defaultCompressionLevel === 3) return 'high';
+	if (props.defaultVideoCompressionLevel === 'manual') return 'bitrate';
+	if (props.defaultVideoCompressionLevel === 'low') return 'low';
+	if (props.defaultVideoCompressionLevel === 'high') return 'high';
 	return 'medium';
 }
 
@@ -120,12 +119,10 @@ const videoUrl = computed(() => {
 });
 
 function resolveResult(): VideoEncodeDialogResult {
-	const isBitrate = qualityMode.value === 'bitrate';
 	return {
 		videoCodec: codec.value,
-		compressionLevel: isBitrate ? 10 : qualityMode.value === 'low' ? 1 : qualityMode.value === 'high' ? 3 : 2,
-		videoBitrateMode: isBitrate ? 'manual' : 'auto',
-		videoBitrateValue: isBitrate ? bitrateMbps.value * 1_000_000 : null,
+		videoCompressionLevel: qualityMode.value,
+		videoBitrateValue: qualityMode.value === 'bitrate' ? bitrateMbps.value * 1_000_000 : null,
 		applyToAll: applyToAll.value,
 	};
 }

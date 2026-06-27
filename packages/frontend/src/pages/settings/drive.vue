@@ -167,15 +167,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template v-if="defaultVideoCodec !== 'copy'">
 						<SearchMarker :keywords="['default', 'video', 'compression']">
 							<MkPreferenceContainer k="defaultVideoCompressionLevel">
-								<MkSelect
-									v-model="defaultVideoCompressionLevel" :items="[
-										{ label: i18n.ts.none, value: 0 },
-										{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 1 },
-										{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 2 },
-										{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 3 },
-										{ label: i18n.ts.bitrateSpecify, value: 10 },
-									]"
-								>
+							<MkSelect
+								v-model="defaultVideoCompressionLevel" :items="[
+									{ label: i18n.ts.none, value: 'none' },
+									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 'low' },
+									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 'medium' },
+									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 'high' },
+									{ label: i18n.ts.bitrateSpecify, value: 'manual' },
+								]"
+							>
 									<template #label><SearchLabel>{{ i18n.ts.defaultCompressionLevel }}</SearchLabel></template>
 									<template #caption><div v-html="i18n.ts.defaultCompressionLevel_description"></div></template>
 								</MkSelect>
