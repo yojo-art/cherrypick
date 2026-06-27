@@ -1567,7 +1567,7 @@ videoCodec_description: "Default video encoding format on upload"
 _videoCodec:
   h264: "H.264 (MP4)"
   vp9: "VP9 (WebM)"
-  copy: "Keep original (no re-encode)"
+  copy: "Keep original"
 videoBitrate: "Bitrate"
 videoBitrateMode: "Bitrate setting"
 videoBitrateValue: "Bitrate value"

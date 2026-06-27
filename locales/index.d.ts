@@ -6363,6 +6363,20 @@ export interface Locale extends ILocale {
      * 動画アップロード時のデフォルトのエンコード形式
      */
     "videoCodec_description": string;
+    "_videoCodec": {
+        /**
+         * H.264 (MP4)
+         */
+        "h264": string;
+        /**
+         * VP9 (WebM)
+         */
+        "vp9": string;
+        /**
+         * そのまま
+         */
+        "copy": string;
+    };
     /**
      * ビットレート
      */
@@ -6604,20 +6618,6 @@ export interface Locale extends ILocale {
              */
             "small": string;
         };
-    };
-    "_videoCodec": {
-        /**
-         * H.264 (MP4)
-         */
-        "h264": string;
-        /**
-         * VP9 (WebM)
-         */
-        "vp9": string;
-        /**
-         * そのまま（再エンコードしない）
-         */
-        "copy": string;
     };
     "_order": {
         /**

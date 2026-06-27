@@ -29,29 +29,34 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 
-			<MkSelect v-model="codec" :items="[
-				{ value: 'h264', label: i18n.ts._videoCodec.h264 },
-				{ value: 'vp9', label: i18n.ts._videoCodec.vp9 },
-				{ value: 'copy', label: i18n.ts._videoCodec.copy },
-			]">
-				<template #label>{{ i18n.ts.videoCodec }}</template>
-			</MkSelect>
+			<MkTab
+				v-model="codec"
+				:tabs="[
+					{ key: 'h264', label: i18n.ts._videoCodec.h264 },
+					{ key: 'vp9', label: i18n.ts._videoCodec.vp9 },
+					{ key: 'copy', label: i18n.ts._videoCodec.copy },
+				]"
+				:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
+			>
+			</MkTab>
 
-		<template v-if="codec !== 'copy'">
-			<MkSelect v-model="qualityMode" :items="[
-				{ value: 'low', label: `${i18n.ts._compression._quality.high} (${i18n.ts.low})` },
-				{ value: 'medium', label: `${i18n.ts._compression._quality.medium} (${i18n.ts.medium})` },
-				{ value: 'high', label: `${i18n.ts._compression._quality.low} (${i18n.ts.high})` },
-				{ value: 'bitrate', label: i18n.ts.bitrateSpecify },
-			]">
-				<template #label>{{ i18n.ts.quality }}</template>
-			</MkSelect>
+			<template v-if="codec !== 'copy'">
+				<MkSelect
+					v-model="qualityMode" :items="[
+						{ value: 'low', label: `${i18n.ts._compression._quality.high} (${i18n.ts.low})` },
+						{ value: 'medium', label: `${i18n.ts._compression._quality.medium} (${i18n.ts.medium})` },
+						{ value: 'high', label: `${i18n.ts._compression._quality.low} (${i18n.ts.high})` },
+						{ value: 'bitrate', label: i18n.ts.bitrateSpecify },
+					]"
+				>
+					<template #label>{{ i18n.ts.quality }}</template>
+				</MkSelect>
 
-			<MkInput v-if="qualityMode === 'bitrate'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
-				<template #label>{{ i18n.ts.videoBitrateValue }}</template>
-				<template #suffix>Mbps</template>
-			</MkInput>
-		</template>
+				<MkInput v-if="qualityMode === 'bitrate'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
+					<template #label>{{ i18n.ts.videoBitrateValue }}</template>
+					<template #suffix>Mbps</template>
+				</MkInput>
+			</template>
 
 			<MkSwitch v-if="props.allowApplyToAll" v-model="applyToAll">
 				<template #label>{{ i18n.ts.applyToAll }}</template>
@@ -67,7 +72,9 @@ import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
+import MkTab from '@/components/MkTab.vue';
 import { i18n } from '@/i18n.js';
+import { prefer } from '@/preferences.js';
 
 export type VideoEncodeDialogResult = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
@@ -138,3 +145,19 @@ onUnmounted(() => {
 	}
 });
 </script>
+
+<style lang="scss" module>
+.tab {
+	padding: calc(var(--MI-margin) / 2) 0;
+	background: var(--MI_THEME-bg);
+	-webkit-backdrop-filter: var(--MI-blur, blur(15px));
+	backdrop-filter: var(--MI-blur, blur(15px));
+	transition: opacity 0.5s, background-color 0.5s;
+
+	&.reduceBlurEffect {
+		background-color: color(from var(--MI_THEME-bg) srgb r g b / 1);
+		-webkit-backdrop-filter: none;
+		backdrop-filter: none;
+	}
+}
+</style>
