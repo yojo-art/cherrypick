@@ -1,0 +1,12 @@
+{
+	"version": "2.0",
+	"software": {
+		"name": "federation-test-stub",
+		"version": "0.0.0"
+	},
+	"protocols": [
+		"activitypub"
+	],
+	"openRegistrations": false,
+	"metadata": {}
+}
