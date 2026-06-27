@@ -6245,6 +6245,10 @@ export interface Locale extends ILocale {
      */
     "applyToAll": string;
     /**
+     * ビットレート指定
+     */
+    "bitrateSpecify": string;
+    /**
      * 右
      */
     "right": string;

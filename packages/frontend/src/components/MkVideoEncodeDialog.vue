@@ -42,12 +42,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 				{ value: 'low', label: `${i18n.ts._compression._quality.high} (${i18n.ts.low})` },
 				{ value: 'medium', label: `${i18n.ts._compression._quality.medium} (${i18n.ts.medium})` },
 				{ value: 'high', label: `${i18n.ts._compression._quality.low} (${i18n.ts.high})` },
-				{ value: 'manual', label: i18n.ts.manualInput },
+				{ value: 'bitrate', label: i18n.ts.bitrateSpecify },
 			]">
 				<template #label>{{ i18n.ts.quality }}</template>
 			</MkSelect>
 
-			<MkInput v-if="qualityMode === 'manual'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
+			<MkInput v-if="qualityMode === 'bitrate'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
 				<template #label>{{ i18n.ts.videoBitrateValue }}</template>
 				<template #suffix>Mbps</template>
 			</MkInput>
@@ -71,7 +71,7 @@ import { i18n } from '@/i18n.js';
 
 export type VideoEncodeDialogResult = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	compressionLevel: 0 | 1 | 2 | 3;
+	compressionLevel: 0 | 1 | 2 | 3 | 10;
 	videoBitrateMode: 'auto' | 'manual';
 	videoBitrateValue: number | null;
 	applyToAll: boolean;
@@ -81,8 +81,7 @@ const props = defineProps<{
 	file: File;
 	mode?: 'new' | 'edit';
 	defaultCodec?: 'h264' | 'vp9' | 'copy';
-	defaultCompressionLevel?: 0 | 1 | 2 | 3;
-	defaultBitrateMode?: 'auto' | 'manual';
+	defaultCompressionLevel?: 0 | 1 | 2 | 3 | 10;
 	defaultBitrateValue?: number | null;
 	allowApplyToAll?: boolean;
 }>();
@@ -101,15 +100,15 @@ function handleClose() {
 	dialog.value?.close();
 }
 
-function resolveQualityMode(): 'low' | 'medium' | 'high' | 'manual' {
-	if (props.defaultBitrateMode === 'manual') return 'manual';
+function resolveQualityMode(): 'low' | 'medium' | 'high' | 'bitrate' {
+	if (props.defaultCompressionLevel === 10) return 'bitrate';
 	if (props.defaultCompressionLevel === 1) return 'low';
 	if (props.defaultCompressionLevel === 3) return 'high';
 	return 'medium';
 }
 
 const codec = ref<'h264' | 'vp9' | 'copy'>(props.defaultCodec ?? 'copy');
-const qualityMode = ref<'low' | 'medium' | 'high' | 'manual'>(resolveQualityMode());
+const qualityMode = ref<'low' | 'medium' | 'high' | 'bitrate'>(resolveQualityMode());
 const bitrateMbps = ref<number>(props.defaultBitrateValue != null ? props.defaultBitrateValue / 1_000_000 : 5);
 const applyToAll = ref(false);
 
@@ -121,12 +120,12 @@ const videoUrl = computed(() => {
 });
 
 function resolveResult(): VideoEncodeDialogResult {
-	const isManual = qualityMode.value === 'manual';
+	const isBitrate = qualityMode.value === 'bitrate';
 	return {
 		videoCodec: codec.value,
-		compressionLevel: isManual ? 2 : qualityMode.value === 'low' ? 1 : qualityMode.value === 'high' ? 3 : 2,
-		videoBitrateMode: isManual ? 'manual' : 'auto',
-		videoBitrateValue: isManual ? bitrateMbps.value * 1_000_000 : null,
+		compressionLevel: isBitrate ? 10 : qualityMode.value === 'low' ? 1 : qualityMode.value === 'high' ? 3 : 2,
+		videoBitrateMode: isBitrate ? 'manual' : 'auto',
+		videoBitrateValue: isBitrate ? bitrateMbps.value * 1_000_000 : null,
 		applyToAll: applyToAll.value,
 	};
 }

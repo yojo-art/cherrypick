@@ -160,7 +160,7 @@ export function useUploader(options: {
 			uploadFailed: false,
 			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
 			videoCodec: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCodec : 'copy',
-			videoBitrateMode: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateMode : 'auto',
+			videoBitrateMode: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? (prefer.s.defaultVideoCompressionLevel === 10 ? 'manual' : 'auto') : 'auto',
 			videoBitrateValue: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateValue : null,
 			watermarkPresetId: uploaderFeatures.value.watermark && $i.policies.watermarkAvailable ? prefer.s.defaultWatermarkPresetId : null,
 			file: markRaw(file),
@@ -362,7 +362,7 @@ export function useUploader(options: {
 							text += `: ${i18n.ts._videoCodec.copy}`;
 						} else {
 							text += `: ${i18n.ts._videoCodec[item.videoCodec]}`;
-							if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
+							if (item.compressionLevel === 10 && item.videoBitrateValue != null) {
 								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
 							} else {
 								text += ` / ${item.compressionLevel === 1 ? i18n.ts.low : item.compressionLevel === 3 ? i18n.ts.high : i18n.ts.medium}`;
@@ -372,17 +372,16 @@ export function useUploader(options: {
 					}),
 					action: async () => {
 						const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
-							os.popupAsyncWithDialog(
-								import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
-								{
-									file: item.file,
-									mode: 'edit',
-									defaultCodec: item.videoCodec,
-									defaultCompressionLevel: item.compressionLevel as 0 | 1 | 2 | 3,
-									defaultBitrateMode: item.videoBitrateMode,
-									defaultBitrateValue: item.videoBitrateValue,
-									allowApplyToAll: false,
-								},
+								os.popupAsyncWithDialog(
+									import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+									{
+										file: item.file,
+										mode: 'edit',
+										defaultCodec: item.videoCodec,
+										defaultCompressionLevel: item.compressionLevel as 0 | 1 | 2 | 3 | 10,
+										defaultBitrateValue: item.videoBitrateValue,
+										allowApplyToAll: false,
+									},
 								{
 									done: (value: VideoEncodeDialogResult | null) => {
 										if (value == null) return;
@@ -691,16 +690,15 @@ export function useUploader(options: {
 			applyVideoEncodeSettings(item, pendingVideoEncodeSettings);
 		} else {
 			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
-				os.popupAsyncWithDialog(
-					import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
-					{
-						file: item.file,
-						mode: 'new',
-						defaultCodec: prefer.s.defaultVideoCodec,
-						defaultCompressionLevel: prefer.s.defaultVideoCompressionLevel,
-						defaultBitrateMode: prefer.s.defaultVideoBitrateMode,
-						defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
-					},
+					os.popupAsyncWithDialog(
+						import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+						{
+							file: item.file,
+							mode: 'new',
+							defaultCodec: prefer.s.defaultVideoCodec,
+							defaultCompressionLevel: prefer.s.defaultVideoCompressionLevel,
+							defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
+						},
 					{
 						done: (value) => resolve(value),
 						closed: () => resolve(null),

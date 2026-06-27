@@ -149,22 +149,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label><SearchLabel>{{ i18n.ts.video }}</SearchLabel></template>
 
 				<div class="_gaps_m">
-					<SearchMarker :keywords="['default', 'video', 'compression']">
-						<MkPreferenceContainer k="defaultVideoCompressionLevel">
-							<MkSelect
-								v-model="defaultVideoCompressionLevel" :items="[
-									{ label: i18n.ts.none, value: 0 },
-									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 1 },
-									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 2 },
-									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 3 },
-								]"
-							>
-								<template #label><SearchLabel>{{ i18n.ts.defaultCompressionLevel }}</SearchLabel></template>
-								<template #caption><div v-html="i18n.ts.defaultCompressionLevel_description"></div></template>
-							</MkSelect>
-						</MkPreferenceContainer>
-					</SearchMarker>
-
 					<SearchMarker :keywords="['default', 'video', 'codec']">
 						<MkPreferenceContainer k="defaultVideoCodec">
 							<MkSelect
@@ -180,28 +164,34 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkPreferenceContainer>
 					</SearchMarker>
 
-					<SearchMarker :keywords="['default', 'video', 'bitrate']">
-						<MkPreferenceContainer k="defaultVideoBitrateMode">
-							<MkSelect
-								v-model="defaultVideoBitrateMode" :items="[
-									{ label: i18n.ts.automatic, value: 'auto' },
-									{ label: i18n.ts.manualInput, value: 'manual' },
-								]"
-							>
-								<template #label><SearchLabel>{{ i18n.ts.videoBitrateMode }}</SearchLabel></template>
-							</MkSelect>
-						</MkPreferenceContainer>
-					</SearchMarker>
+					<template v-if="defaultVideoCodec !== 'copy'">
+						<SearchMarker :keywords="['default', 'video', 'compression']">
+							<MkPreferenceContainer k="defaultVideoCompressionLevel">
+								<MkSelect
+									v-model="defaultVideoCompressionLevel" :items="[
+										{ label: i18n.ts.none, value: 0 },
+										{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 1 },
+										{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 2 },
+										{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 3 },
+										{ label: i18n.ts.bitrateSpecify, value: 10 },
+									]"
+								>
+									<template #label><SearchLabel>{{ i18n.ts.defaultCompressionLevel }}</SearchLabel></template>
+									<template #caption><div v-html="i18n.ts.defaultCompressionLevel_description"></div></template>
+								</MkSelect>
+							</MkPreferenceContainer>
+						</SearchMarker>
 
-					<SearchMarker :keywords="['default', 'video', 'bitrate', 'value']">
-						<MkPreferenceContainer k="defaultVideoBitrateValue">
-							<MkInput v-model="defaultVideoBitrateValue" type="number">
-								<template #label><SearchLabel>{{ i18n.ts.videoBitrateValue }}</SearchLabel></template>
-								<template #caption><SearchText>{{ i18n.ts.videoBitrateValue_description }}</SearchText></template>
-								<template #suffix>bps</template>
-							</MkInput>
-						</MkPreferenceContainer>
-					</SearchMarker>
+						<SearchMarker v-if="defaultVideoCompressionLevel === 10" :keywords="['default', 'video', 'bitrate', 'value']">
+							<MkPreferenceContainer k="defaultVideoBitrateValue">
+								<MkInput v-model="defaultVideoBitrateValue" type="number">
+									<template #label><SearchLabel>{{ i18n.ts.videoBitrateValue }}</SearchLabel></template>
+									<template #caption><SearchText>{{ i18n.ts.videoBitrateValue_description }}</SearchText></template>
+									<template #suffix>bps</template>
+								</MkInput>
+							</MkPreferenceContainer>
+						</SearchMarker>
+					</template>
 				</div>
 			</FormSection>
 		</SearchMarker>
@@ -263,7 +253,6 @@ const defaultWatermarkPresetId = prefer.model('defaultWatermarkPresetId');
 const defaultImageCompressionLevel = prefer.model('defaultImageCompressionLevel');
 const defaultVideoCompressionLevel = prefer.model('defaultVideoCompressionLevel');
 const defaultVideoCodec = prefer.model('defaultVideoCodec');
-const defaultVideoBitrateMode = prefer.model('defaultVideoBitrateMode');
 const defaultVideoBitrateValue = prefer.model('defaultVideoBitrateValue');
 
 const watermarkPresetsSyncEnabled = ref(prefer.isSyncEnabled('watermarkPresets'));

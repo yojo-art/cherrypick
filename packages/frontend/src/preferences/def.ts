@@ -455,13 +455,10 @@ export const PREF_DEF = definePreferences({
 		default: 2 as 0 | 1 | 2 | 3,
 	},
 	defaultVideoCompressionLevel: {
-		default: 2 as 0 | 1 | 2 | 3,
+		default: 2 as 0 | 1 | 2 | 3 | 10,
 	},
 	defaultVideoCodec: {
 		default: 'copy' as 'h264' | 'vp9' | 'copy',
-	},
-	defaultVideoBitrateMode: {
-		default: 'auto' as 'auto' | 'manual',
 	},
 	defaultVideoBitrateValue: {
 		default: null as number | null,
