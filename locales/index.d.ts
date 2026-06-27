@@ -6229,14 +6229,6 @@ export interface Locale extends ILocale {
      */
     "compress": string;
     /**
-     * 自動
-     */
-    "automatic": string;
-    /**
-     * 手動入力
-     */
-    "manualInput": string;
-    /**
      * 品質
      */
     "quality": string;
