@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:withOkButton="true"
 	:okButtonDisabled="false"
 	@ok="ok()"
-	@close="dialog?.close()"
+	@close="handleClose()"
 	@closed="emit('closed')"
 >
 	<template #header>{{ i18n.ts.videoCodec }}</template>
@@ -79,6 +79,7 @@ export type VideoEncodeDialogResult = {
 
 const props = defineProps<{
 	file: File;
+	mode?: 'new' | 'edit';
 	defaultCodec?: 'h264' | 'vp9' | 'copy';
 	defaultCompressionLevel?: 0 | 1 | 2 | 3;
 	defaultBitrateMode?: 'auto' | 'manual';
@@ -87,11 +88,18 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(ev: 'done', v: VideoEncodeDialogResult): void;
+	(ev: 'done', v: VideoEncodeDialogResult | null): void;
 	(ev: 'closed'): void;
 }>();
 
 const dialog = useTemplateRef('dialog');
+
+function handleClose() {
+	if (props.mode === 'edit') {
+		emit('done', null as any);
+	}
+	dialog.value?.close();
+}
 
 function resolveQualityMode(): 'low' | 'medium' | 'high' | 'manual' {
 	if (props.defaultBitrateMode === 'manual') return 'manual';

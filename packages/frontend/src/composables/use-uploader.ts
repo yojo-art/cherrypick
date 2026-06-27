@@ -9,6 +9,7 @@ import isAnimated from 'is-file-animated';
 import { EventEmitter } from 'eventemitter3';
 import { computed, markRaw, onMounted, onUnmounted, ref, triggerRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
+import type { VideoEncodeDialogResult } from '@/components/MkVideoEncodeDialog.vue';
 import { genId } from '@/utility/id.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
@@ -17,7 +18,6 @@ import { uploadFile, UploadAbortedError } from '@/utility/drive.js';
 import * as os from '@/os.js';
 import { ensureSignin } from '@/i.js';
 import { WatermarkRenderer } from '@/utility/watermark.js';
-import type { VideoEncodeDialogResult } from '@/components/MkVideoEncodeDialog.vue';
 
 export type UploaderFeatures = {
 	imageEditing?: boolean;
@@ -352,137 +352,113 @@ export function useUploader(options: {
 			!item.uploaded
 		) {
 			if (isVideoCompressible) {
-				function changeVideoCodec(codec: 'h264' | 'vp9' | 'copy') {
-					item.videoCodec = codec;
+				menu.push({
+					icon: 'ti ti-movie',
+					text: computed(() => {
+						let text = i18n.ts.videoCodec;
+						if (item.videoCodec === 'copy') {
+							text += `: ${i18n.ts._videoCodec.copy}`;
+						} else {
+							text += `: ${i18n.ts._videoCodec[item.videoCodec]}`;
+							if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
+								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
+							} else {
+								text += ` / ${item.compressionLevel === 1 ? i18n.ts.low : item.compressionLevel === 3 ? i18n.ts.high : i18n.ts.medium}`;
+							}
+						}
+						return text;
+					}),
+					action: async () => {
+						const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
+							os.popupAsyncWithDialog(
+								import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+								{
+									file: item.file,
+									mode: 'edit',
+									defaultCodec: item.videoCodec,
+									defaultCompressionLevel: item.compressionLevel as 0 | 1 | 2 | 3,
+									defaultBitrateMode: item.videoBitrateMode,
+									defaultBitrateValue: item.videoBitrateValue,
+									allowApplyToAll: false,
+								},
+								{
+									done: (value: VideoEncodeDialogResult | null) => {
+										if (value == null) return;
+										resolve(value);
+									},
+									closed: () => resolve(null),
+								},
+							);
+						});
+
+						if (settings == null) return;
+
+						applyVideoEncodeSettings(item, settings);
+						preprocess(item).then(() => {
+							triggerRef(items);
+						});
+					},
+				});
+			}
+
+			if (isImageCompressible) {
+				function changeCompressionLevel(level: 0 | 1 | 2 | 3 | 10) {
+					item.compressionLevel = level;
 					preprocess(item).then(() => {
 						triggerRef(items);
 					});
 				}
 
 				menu.push({
-					icon: 'ti ti-movie',
+					icon: 'ti ti-leaf',
 					text: computed(() => {
-						return `${i18n.ts.videoCodec}: ${i18n.ts._videoCodec[item.videoCodec]}`;
+						let text = i18n.ts.compress;
+
+						if (item.compressionLevel === 0 || item.compressionLevel == null) {
+							text += `: ${i18n.ts.none}`;
+						} else if (item.compressionLevel === 1) {
+							text += `: ${i18n.ts.low}`;
+						} else if (item.compressionLevel === 2) {
+							text += `: ${i18n.ts.medium}`;
+						} else if (item.compressionLevel === 3) {
+							text += `: ${i18n.ts.high}`;
+						} else if (isImageCompressible && item.compressionLevel === 10) {
+							text += `: ${i18n.ts._compression._quality.webpcompress}`;
+						}
+
+						return text;
 					}),
 					type: 'parent',
 					children: [{
 						type: 'radioOption',
-						text: i18n.ts._videoCodec.h264,
-						active: computed(() => item.videoCodec === 'h264'),
-						action: () => changeVideoCodec('h264'),
+						text: i18n.ts.none,
+						active: computed(() => item.compressionLevel === 0 || item.compressionLevel == null),
+						action: () => changeCompressionLevel(0),
+					}, ...(isImageCompressible ? [{
+						type: 'radioOption',
+						text: i18n.ts._compression._quality.webpcompress,
+						active: computed(() => item.compressionLevel === 10),
+						action: () => changeCompressionLevel(10),
+					}] as const : []), {
+						type: 'divider',
 					}, {
 						type: 'radioOption',
-						text: i18n.ts._videoCodec.vp9,
-						active: computed(() => item.videoCodec === 'vp9'),
-						action: () => changeVideoCodec('vp9'),
+						text: i18n.ts.low,
+						active: computed(() => item.compressionLevel === 1),
+						action: () => changeCompressionLevel(1),
 					}, {
 						type: 'radioOption',
-						text: i18n.ts._videoCodec.copy,
-						active: computed(() => item.videoCodec === 'copy'),
-						action: () => changeVideoCodec('copy'),
+						text: i18n.ts.medium,
+						active: computed(() => item.compressionLevel === 2),
+						action: () => changeCompressionLevel(2),
+					}, {
+						type: 'radioOption',
+						text: i18n.ts.high,
+						active: computed(() => item.compressionLevel === 3),
+						action: () => changeCompressionLevel(3),
 					}],
 				});
-
-				if (item.videoCodec !== 'copy') {
-					function changeBitrateMode(mode: 'auto' | 'manual') {
-						item.videoBitrateMode = mode;
-						preprocess(item).then(() => {
-							triggerRef(items);
-						});
-					}
-
-					menu.push({
-						icon: 'ti ti-speedometer',
-						text: computed(() => {
-							if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
-								return `${i18n.ts.videoBitrate}: ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
-							}
-							return `${i18n.ts.videoBitrate}: ${i18n.ts.automatic}`;
-						}),
-						type: 'parent',
-						children: [{
-							type: 'radioOption',
-							text: i18n.ts.automatic,
-							active: computed(() => item.videoBitrateMode === 'auto'),
-							action: () => changeBitrateMode('auto'),
-						}, {
-							type: 'divider',
-						}, {
-							type: 'button',
-							text: computed(() => item.videoBitrateValue != null ? `${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps` : i18n.ts.manualInput),
-							action: async () => {
-								const { result, canceled } = await os.inputNumber({
-									title: i18n.ts.videoBitrate,
-									default: item.videoBitrateValue != null ? item.videoBitrateValue / 1_000_000 : 5,
-								});
-								if (canceled) return;
-								item.videoBitrateMode = 'manual';
-								item.videoBitrateValue = result * 1_000_000;
-								preprocess(item).then(() => {
-									triggerRef(items);
-								});
-							},
-						}],
-					});
-				}
 			}
-
-			function changeCompressionLevel(level: 0 | 1 | 2 | 3 | 10) {
-				item.compressionLevel = level;
-				preprocess(item).then(() => {
-					triggerRef(items);
-				});
-			}
-
-			menu.push({
-				icon: 'ti ti-leaf',
-				text: computed(() => {
-					let text = i18n.ts.compress;
-
-					if (item.compressionLevel === 0 || item.compressionLevel == null) {
-						text += `: ${i18n.ts.none}`;
-					} else if (item.compressionLevel === 1) {
-						text += `: ${i18n.ts.low}`;
-					} else if (item.compressionLevel === 2) {
-						text += `: ${i18n.ts.medium}`;
-					} else if (item.compressionLevel === 3) {
-						text += `: ${i18n.ts.high}`;
-					} else if (isImageCompressible && item.compressionLevel === 10) {
-						text += `: ${i18n.ts._compression._quality.webpcompress}`;
-					}
-
-					return text;
-				}),
-				type: 'parent',
-				children: [{
-					type: 'radioOption',
-					text: i18n.ts.none,
-					active: computed(() => item.compressionLevel === 0 || item.compressionLevel == null),
-					action: () => changeCompressionLevel(0),
-				}, ...(isImageCompressible ? [{
-					type: 'radioOption',
-					text: i18n.ts._compression._quality.webpcompress,
-					active: computed(() => item.compressionLevel === 10),
-					action: () => changeCompressionLevel(10),
-				}] as const : []), {
-					type: 'divider',
-				}, {
-					type: 'radioOption',
-					text: i18n.ts.low,
-					active: computed(() => item.compressionLevel === 1),
-					action: () => changeCompressionLevel(1),
-				}, {
-					type: 'radioOption',
-					text: i18n.ts.medium,
-					active: computed(() => item.compressionLevel === 2),
-					action: () => changeCompressionLevel(2),
-				}, {
-					type: 'radioOption',
-					text: i18n.ts.high,
-					active: computed(() => item.compressionLevel === 3),
-					action: () => changeCompressionLevel(3),
-				}],
-			});
 		}
 
 		if (!item.preprocessing && !item.uploading && !item.uploaded) {
@@ -714,6 +690,7 @@ export function useUploader(options: {
 					import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
 					{
 						file: item.file,
+						mode: 'new',
 						defaultCodec: prefer.s.defaultVideoCodec,
 						defaultCompressionLevel: prefer.s.defaultVideoCompressionLevel,
 						defaultBitrateMode: prefer.s.defaultVideoBitrateMode,
@@ -844,4 +821,3 @@ export function useUploader(options: {
 		events,
 	};
 }
-
