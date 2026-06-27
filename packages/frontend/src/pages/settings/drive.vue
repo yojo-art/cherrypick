@@ -169,14 +169,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkPreferenceContainer k="defaultVideoQualityLevel">
 								<MkSelect
 									v-model="defaultVideoQualityLevel" :items="[
-										{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 'low' },
-										{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 'medium' },
-										{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 'high' },
+										{ label: `${i18n.ts._compression._quality.low} (${i18n.ts._compression._size.small})`, value: 'low' },
+										{ label: `${i18n.ts._compression._quality.medium} (${i18n.ts._compression._size.medium})`, value: 'medium' },
+										{ label: `${i18n.ts._compression._quality.high} (${i18n.ts._compression._size.large})`, value: 'high' },
 										{ label: i18n.ts.bitrateSpecify, value: 'manual' },
 									]"
 								>
-									<template #label><SearchLabel>{{ i18n.ts.defaultCompressionLevel }}</SearchLabel></template>
-									<template #caption>{{ i18n.ts.defaultCompressionLevel_description }}</template>
+									<template #label><SearchLabel>{{ i18n.ts.defaultVideoQualityLevel }}</SearchLabel></template>
+									<template #caption>{{ i18n.ts.defaultVideoQualityLevel_description }}</template>
 								</MkSelect>
 							</MkPreferenceContainer>
 						</SearchMarker>

@@ -6348,6 +6348,14 @@ export interface Locale extends ILocale {
      */
     "defaultCompressionLevel_description": string;
     /**
+     * デフォルトの品質
+     */
+    "defaultVideoQualityLevel": string;
+    /**
+     * 品質が高ければ高いほど高画質になりますが、ファイルサイズは増加します。
+     */
+    "defaultVideoQualityLevel_description": string;
+    /**
      * エンコード形式
      */
     "videoCodec": string;
@@ -6357,11 +6365,11 @@ export interface Locale extends ILocale {
     "videoCodec_description": string;
     "_videoCodec": {
         /**
-         * H.264 (MP4)
+         * H.264 (高互換性)
          */
         "h264": string;
         /**
-         * VP9 (WebM)
+         * VP9 (推奨)
          */
         "vp9": string;
         /**
@@ -6374,7 +6382,7 @@ export interface Locale extends ILocale {
      */
     "videoBitrate": string;
     /**
-     * 0または空欄で自動設定に従います。単位はMbpsです。
+     * ビットレートが高ければ高いほど高画質になりますが、ファイルサイズは増加します。
      */
     "videoBitrate_description": string;
     /**
