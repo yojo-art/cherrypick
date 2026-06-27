@@ -756,7 +756,7 @@ export function useUploader(options: {
 			});
 
 			let bitrate: number | Quality;
-			if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null) {
+			if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null && item.videoBitrateValue > 0) {
 				bitrate = item.videoBitrateValue;
 			} else {
 				bitrate = item.videoQualityLevel === 'low' ? mediabunny.QUALITY_VERY_HIGH : item.videoQualityLevel === 'medium' ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;

@@ -1584,7 +1584,7 @@ _videoCodec:
   vp9: "VP9 (WebM)"
   copy: "そのまま"
 videoBitrate: "ビットレート"
-videoBitrate_description: "0または空欄で自動設定に従います。単位はMbpsです。"
+videoBitrate_description: "0または空欄の場合は中品質でエンコードします。単位はMbpsです。"
 inMinutes: "分"
 inDays: "日"
 safeModeEnabled: "セーフモードが有効です"
