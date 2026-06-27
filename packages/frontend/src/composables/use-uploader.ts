@@ -83,7 +83,7 @@ export type UploaderItem = {
 	aborted: boolean;
 	compressionLevel: 0 | 1 | 2 | 3 | 10;
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	videoCompressionLevel: 'low' | 'medium' | 'high' | 'manual';
+	videoQualityLevel: 'low' | 'medium' | 'high' | 'manual';
 	videoBitrateValue: number | null;
 	skipVideoDialog?: boolean;
 	compressedSize?: number | null;
@@ -149,7 +149,7 @@ export function useUploader(options: {
 		const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
 			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
 			videoCodec: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCodec : 'copy',
-			videoCompressionLevel: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 'medium',
+			videoQualityLevel: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoQualityLevel : 'medium',
 			videoBitrateValue: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateValue : null,
 			watermarkPresetId: uploaderFeatures.value.watermark && $i.policies.watermarkAvailable ? prefer.s.defaultWatermarkPresetId : null,
 			file: markRaw(file),
@@ -351,10 +351,10 @@ export function useUploader(options: {
 							text += `: ${i18n.ts._videoCodec.copy}`;
 						} else {
 							text += `: ${i18n.ts._videoCodec[item.videoCodec]}`;
-							if (item.videoCompressionLevel === 'manual' && item.videoBitrateValue != null) {
+							if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null) {
 								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
 							} else {
-								text += ` / ${i18n.ts[item.videoCompressionLevel]}`;
+								text += ` / ${i18n.ts[item.videoQualityLevel]}`;
 							}
 						}
 						return text;
@@ -367,7 +367,7 @@ export function useUploader(options: {
 										file: item.file,
 										mode: 'edit',
 										defaultCodec: item.videoCodec,
-										defaultVideoCompressionLevel: item.videoCompressionLevel,
+										defaultVideoQualityLevel: item.videoQualityLevel,
 										defaultBitrateValue: item.videoBitrateValue,
 										allowApplyToAll: false,
 									},
@@ -685,7 +685,7 @@ export function useUploader(options: {
 							file: item.file,
 							mode: 'new',
 							defaultCodec: prefer.s.defaultVideoCodec,
-							defaultVideoCompressionLevel: prefer.s.defaultVideoCompressionLevel,
+							defaultVideoQualityLevel: prefer.s.defaultVideoQualityLevel,
 							defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
 						},
 					{
@@ -732,10 +732,10 @@ export function useUploader(options: {
 			});
 
 			let bitrate: number | Quality;
-			if (item.videoCompressionLevel === 'manual' && item.videoBitrateValue != null) {
+			if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null) {
 				bitrate = item.videoBitrateValue;
 			} else {
-				bitrate = item.videoCompressionLevel === 'low' ? mediabunny.QUALITY_VERY_HIGH : item.videoCompressionLevel === 'medium' ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;
+				bitrate = item.videoQualityLevel === 'low' ? mediabunny.QUALITY_VERY_HIGH : item.videoQualityLevel === 'medium' ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;
 			}
 
 			const currentConversion = await mediabunny.Conversion.init({
@@ -781,7 +781,7 @@ export function useUploader(options: {
 
 	function applyVideoEncodeSettings(item: UploaderItem, settings: VideoEncodeDialogResult) {
 		item.videoCodec = settings.videoCodec;
-		item.videoCompressionLevel = settings.videoCompressionLevel;
+		item.videoQualityLevel = settings.videoQualityLevel;
 		item.videoBitrateValue = settings.videoBitrateValue;
 	}
 

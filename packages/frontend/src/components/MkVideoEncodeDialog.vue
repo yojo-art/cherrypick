@@ -71,7 +71,7 @@ import { i18n } from '@/i18n.js';
 
 export type VideoEncodeDialogResult = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	videoCompressionLevel: 'low' | 'medium' | 'high' | 'bitrate';
+	videoQualityLevel: 'low' | 'medium' | 'high' | 'bitrate';
 	videoBitrateValue: number | null;
 	applyToAll: boolean;
 };
@@ -121,7 +121,7 @@ const videoUrl = computed(() => {
 function resolveResult(): VideoEncodeDialogResult {
 	return {
 		videoCodec: codec.value,
-		videoCompressionLevel: qualityMode.value,
+		videoQualityLevel: qualityMode.value,
 		videoBitrateValue: qualityMode.value === 'bitrate' ? bitrateMbps.value * 1_000_000 : null,
 		applyToAll: applyToAll.value,
 	};

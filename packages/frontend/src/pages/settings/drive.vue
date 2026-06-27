@@ -165,11 +165,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</SearchMarker>
 
 					<template v-if="defaultVideoCodec !== 'copy'">
-						<SearchMarker :keywords="['default', 'video', 'compression']">
-							<MkPreferenceContainer k="defaultVideoCompressionLevel">
+					<SearchMarker :keywords="['default', 'video', 'compression']">
+						<MkPreferenceContainer k="defaultVideoQualityLevel">
 							<MkSelect
-								v-model="defaultVideoCompressionLevel" :items="[
-									{ label: i18n.ts.none, value: 'none' },
+								v-model="defaultVideoQualityLevel" :items="[
 									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 'low' },
 									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 'medium' },
 									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 'high' },
@@ -182,7 +181,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkPreferenceContainer>
 						</SearchMarker>
 
-						<SearchMarker v-if="defaultVideoCompressionLevel === 10" :keywords="['default', 'video', 'bitrate', 'value']">
+						<SearchMarker v-if="defaultVideoQualityLevel === 'manual'" :keywords="['default', 'video', 'bitrate', 'value']">
 							<MkPreferenceContainer k="defaultVideoBitrateValue">
 								<MkInput v-model="defaultVideoBitrateValue" type="number">
 									<template #label><SearchLabel>{{ i18n.ts.videoBitrateValue }}</SearchLabel></template>
@@ -251,7 +250,7 @@ const meterStyle = computed(() => {
 const keepOriginalFilename = prefer.model('keepOriginalFilename');
 const defaultWatermarkPresetId = prefer.model('defaultWatermarkPresetId');
 const defaultImageCompressionLevel = prefer.model('defaultImageCompressionLevel');
-const defaultVideoCompressionLevel = prefer.model('defaultVideoCompressionLevel');
+const defaultVideoQualityLevel = prefer.model('defaultVideoQualityLevel');
 const defaultVideoCodec = prefer.model('defaultVideoCodec');
 const defaultVideoBitrateValue = prefer.model('defaultVideoBitrateValue');
 
