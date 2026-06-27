@@ -9,6 +9,7 @@ import isAnimated from 'is-file-animated';
 import { EventEmitter } from 'eventemitter3';
 import { computed, markRaw, onMounted, onUnmounted, ref, triggerRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
+import type { Quality } from 'mediabunny';
 import type { VideoEncodeDialogResult } from '@/components/MkVideoEncodeDialog.vue';
 import { genId } from '@/utility/id.js';
 import { i18n } from '@/i18n.js';
@@ -84,6 +85,7 @@ export type UploaderItem = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
 	videoBitrateMode: 'auto' | 'manual';
 	videoBitrateValue: number | null;
+	skipVideoDialog?: boolean;
 	compressedSize?: number | null;
 	preprocessedFile?: Blob | null;
 	file: File;
@@ -394,6 +396,7 @@ export function useUploader(options: {
 						if (settings == null) return;
 
 						applyVideoEncodeSettings(item, settings);
+						item.skipVideoDialog = true;
 						preprocess(item).then(() => {
 							triggerRef(items);
 						});
@@ -682,7 +685,9 @@ export function useUploader(options: {
 	}
 
 	async function preprocessForVideo(item: UploaderItem): Promise<void> {
-		if (pendingVideoEncodeSettings != null) {
+		if (item.skipVideoDialog) {
+			item.skipVideoDialog = false;
+		} else if (pendingVideoEncodeSettings != null) {
 			applyVideoEncodeSettings(item, pendingVideoEncodeSettings);
 		} else {
 			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
@@ -739,7 +744,7 @@ export function useUploader(options: {
 				format: outputFormat,
 			});
 
-			let bitrate: number;
+			let bitrate: number | Quality;
 			if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
 				bitrate = item.videoBitrateValue;
 			} else {
