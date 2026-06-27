@@ -1588,7 +1588,7 @@ _videoCodec:
 videoBitrate: "ビットレート"
 videoBitrateMode: "ビットレート設定"
 videoBitrateValue: "ビットレート値"
-videoBitrateValue_description: "0または空欄で自動設定に従います。単位はbpsです。"
+videoBitrateValue_description: "0または空欄で自動設定に従います。単位はMbpsです。"
 inMinutes: "分"
 inDays: "日"
 safeModeEnabled: "セーフモードが有効です"

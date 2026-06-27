@@ -1571,7 +1571,7 @@ _videoCodec:
 videoBitrate: "Bitrate"
 videoBitrateMode: "Bitrate setting"
 videoBitrateValue: "Bitrate value"
-videoBitrateValue_description: "Leave empty or 0 to follow automatic setting. Unit is bps."
+videoBitrateValue_description: "Leave empty or 0 to follow automatic setting. Unit is Mbps."
 inMinutes: "Minute(s)"
 inDays: "Day(s)"
 safeModeEnabled: "Safe mode is enabled"

@@ -183,10 +183,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<SearchMarker v-if="defaultVideoQualityLevel === 'manual'" :keywords="['default', 'video', 'bitrate', 'value']">
 							<MkPreferenceContainer k="defaultVideoBitrateValue">
-								<MkInput v-model="defaultVideoBitrateValue" type="number">
+								<MkInput v-model="defaultVideoBitrateValueMbps" type="number">
 									<template #label><SearchLabel>{{ i18n.ts.videoBitrateValue }}</SearchLabel></template>
 									<template #caption><SearchText>{{ i18n.ts.videoBitrateValue_description }}</SearchText></template>
-									<template #suffix>bps</template>
+									<template #suffix>Mbps</template>
 								</MkInput>
 							</MkPreferenceContainer>
 						</SearchMarker>
@@ -253,6 +253,13 @@ const defaultImageCompressionLevel = prefer.model('defaultImageCompressionLevel'
 const defaultVideoQualityLevel = prefer.model('defaultVideoQualityLevel');
 const defaultVideoCodec = prefer.model('defaultVideoCodec');
 const defaultVideoBitrateValue = prefer.model('defaultVideoBitrateValue');
+
+const defaultVideoBitrateValueMbps = computed({
+	get: () => defaultVideoBitrateValue.value != null ? defaultVideoBitrateValue.value / 1_000_000 : null,
+	set: (val) => {
+		defaultVideoBitrateValue.value = val != null ? val * 1_000_000 : null;
+	},
+});
 
 const watermarkPresetsSyncEnabled = ref(prefer.isSyncEnabled('watermarkPresets'));
 
