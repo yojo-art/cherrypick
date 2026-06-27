@@ -147,7 +147,18 @@ export function useUploader(options: {
 		const id = genId();
 		const filename = file.name ?? 'untitled';
 		const extension = filename.split('.').length > 1 ? '.' + filename.split('.').pop() : '';
-			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
+		items.value.push({
+			id,
+			name: prefer.s.keepOriginalFilename ? filename : id + extension,
+			progress: null,
+			thumbnail: THUMBNAIL_SUPPORTED_TYPES.includes(file.type) ? window.URL.createObjectURL(file) : null,
+			preprocessing: false,
+			preprocessProgress: null,
+			uploading: false,
+			aborted: false,
+			uploaded: null,
+			uploadFailed: false,
+			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : 0,
 			videoCodec: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCodec : 'copy',
 			videoQualityLevel: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoQualityLevel : 'medium',
 			videoBitrateValue: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateValue : null,
@@ -361,16 +372,16 @@ export function useUploader(options: {
 					}),
 					action: async () => {
 						const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
-								os.popupAsyncWithDialog(
-									import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
-									{
-										file: item.file,
-										mode: 'edit',
-										defaultCodec: item.videoCodec,
-										defaultVideoQualityLevel: item.videoQualityLevel,
-										defaultBitrateValue: item.videoBitrateValue,
-										allowApplyToAll: false,
-									},
+							os.popupAsyncWithDialog(
+								import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+								{
+									file: item.file,
+									mode: 'edit',
+									defaultCodec: item.videoCodec,
+									defaultVideoQualityLevel: item.videoQualityLevel,
+									defaultBitrateValue: item.videoBitrateValue,
+									allowApplyToAll: false,
+								},
 								{
 									done: (value: VideoEncodeDialogResult | null) => {
 										if (value == null) return;
@@ -679,15 +690,15 @@ export function useUploader(options: {
 			applyVideoEncodeSettings(item, pendingVideoEncodeSettings);
 		} else {
 			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
-					os.popupAsyncWithDialog(
-						import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
-						{
-							file: item.file,
-							mode: 'new',
-							defaultCodec: prefer.s.defaultVideoCodec,
-							defaultVideoQualityLevel: prefer.s.defaultVideoQualityLevel,
-							defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
-						},
+				os.popupAsyncWithDialog(
+					import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+					{
+						file: item.file,
+						mode: 'new',
+						defaultCodec: prefer.s.defaultVideoCodec,
+						defaultVideoQualityLevel: prefer.s.defaultVideoQualityLevel,
+						defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
+					},
 					{
 						done: (value) => resolve(value),
 						closed: () => resolve(null),
