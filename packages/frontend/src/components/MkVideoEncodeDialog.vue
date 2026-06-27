@@ -29,16 +29,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 
-			<MkTab
-				v-model="codec"
-				:tabs="[
-					{ key: 'h264', label: i18n.ts._videoCodec.h264 },
-					{ key: 'vp9', label: i18n.ts._videoCodec.vp9 },
-					{ key: 'copy', label: i18n.ts._videoCodec.copy },
-				]"
-				:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
-			>
-			</MkTab>
+			<div>
+				<div :class="$style.tabLabel">{{ i18n.ts.videoCodec }}</div>
+				<MkTab
+					v-model="codec"
+					:tabs="[
+						{ key: 'h264', label: i18n.ts._videoCodec.h264 },
+						{ key: 'vp9', label: i18n.ts._videoCodec.vp9 },
+						{ key: 'copy', label: i18n.ts._videoCodec.copy },
+					]"
+					:class="[$style.tab,]"
+				>
+				</MkTab>
+			</div>
 
 			<template v-if="codec !== 'copy'">
 				<MkSelect
@@ -159,5 +162,11 @@ onUnmounted(() => {
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
 	}
+}
+
+.tabLabel {
+	font-size: 0.85em;
+	color: var(--MI_THEME-fg);
+	user-select: none;
 }
 </style>
