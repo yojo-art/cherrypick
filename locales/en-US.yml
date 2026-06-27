@@ -1567,7 +1567,7 @@ _videoCodec:
   vp9: "VP9 (WebM)"
   copy: "Keep original"
 videoBitrate: "Bitrate"
-videoBitrate_description: "Leave empty or 0 to encode with medium quality. Unit is Mbps."
+videoBitrate_description: "Unit is Mbps."
 inMinutes: "Minute(s)"
 inDays: "Day(s)"
 safeModeEnabled: "Safe mode is enabled"
