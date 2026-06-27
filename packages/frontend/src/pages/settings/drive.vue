@@ -165,18 +165,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</SearchMarker>
 
 					<template v-if="defaultVideoCodec !== 'copy'">
-					<SearchMarker :keywords="['default', 'video', 'compression']">
-						<MkPreferenceContainer k="defaultVideoQualityLevel">
-							<MkSelect
-								v-model="defaultVideoQualityLevel" :items="[
-									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 'low' },
-									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 'medium' },
-									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 'high' },
-									{ label: i18n.ts.bitrateSpecify, value: 'manual' },
-								]"
-							>
+						<SearchMarker :keywords="['default', 'video', 'compression']">
+							<MkPreferenceContainer k="defaultVideoQualityLevel">
+								<MkSelect
+									v-model="defaultVideoQualityLevel" :items="[
+										{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 'low' },
+										{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 'medium' },
+										{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 'high' },
+										{ label: i18n.ts.bitrateSpecify, value: 'manual' },
+									]"
+								>
 									<template #label><SearchLabel>{{ i18n.ts.defaultCompressionLevel }}</SearchLabel></template>
-									<template #caption><div v-html="i18n.ts.defaultCompressionLevel_description"></div></template>
+									<template #caption>{{ i18n.ts.defaultCompressionLevel_description }}</template>
 								</MkSelect>
 							</MkPreferenceContainer>
 						</SearchMarker>
@@ -184,8 +184,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<SearchMarker v-if="defaultVideoQualityLevel === 'manual'" :keywords="['default', 'video', 'bitrate', 'value']">
 							<MkPreferenceContainer k="defaultVideoBitrateValue">
 								<MkInput v-model="defaultVideoBitrateValueMbps" type="number">
-									<template #label><SearchLabel>{{ i18n.ts.videoBitrateValue }}</SearchLabel></template>
-									<template #caption><SearchText>{{ i18n.ts.videoBitrateValue_description }}</SearchText></template>
+									<template #label><SearchLabel>{{ i18n.ts.videoBitrate }}</SearchLabel></template>
+									<template #caption><SearchText>{{ i18n.ts.videoBitrate_description }}</SearchText></template>
 									<template #suffix>Mbps</template>
 								</MkInput>
 							</MkPreferenceContainer>

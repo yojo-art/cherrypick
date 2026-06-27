@@ -53,7 +53,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkSelect>
 
 				<MkInput v-if="qualityMode === 'bitrate'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
-					<template #label>{{ i18n.ts.videoBitrateValue }}</template>
+					<template #label>{{ i18n.ts.videoBitrate }}</template>
 					<template #suffix>Mbps</template>
 				</MkInput>
 			</template>

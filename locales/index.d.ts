@@ -6374,13 +6374,9 @@ export interface Locale extends ILocale {
      */
     "videoBitrate": string;
     /**
-     * ビットレート値
-     */
-    "videoBitrateValue": string;
-    /**
      * 0または空欄で自動設定に従います。単位はMbpsです。
      */
-    "videoBitrateValue_description": string;
+    "videoBitrate_description": string;
     /**
      * 分
      */
