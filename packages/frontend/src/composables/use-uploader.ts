@@ -17,6 +17,7 @@ import { uploadFile, UploadAbortedError } from '@/utility/drive.js';
 import * as os from '@/os.js';
 import { ensureSignin } from '@/i.js';
 import { WatermarkRenderer } from '@/utility/watermark.js';
+import type { VideoEncodeDialogResult } from '@/components/MkVideoEncodeDialog.vue';
 
 export type UploaderFeatures = {
 	imageEditing?: boolean;
@@ -80,6 +81,9 @@ export type UploaderItem = {
 	uploadFailed: boolean;
 	aborted: boolean;
 	compressionLevel: 0 | 1 | 2 | 3 | 10;
+	videoCodec: 'h264' | 'vp9' | 'copy';
+	videoBitrateMode: 'auto' | 'manual';
+	videoBitrateValue: number | null;
 	compressedSize?: number | null;
 	preprocessedFile?: Blob | null;
 	file: File;
@@ -135,6 +139,7 @@ export function useUploader(options: {
 	});
 
 	const items = ref<UploaderItem[]>([]);
+	let pendingVideoEncodeSettings: VideoEncodeDialogResult | null = null;
 
 	function initializeFile(file: File) {
 		const id = genId();
@@ -152,6 +157,9 @@ export function useUploader(options: {
 			uploaded: null,
 			uploadFailed: false,
 			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
+			videoCodec: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCodec : 'copy',
+			videoBitrateMode: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateMode : 'auto',
+			videoBitrateValue: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateValue : null,
 			watermarkPresetId: uploaderFeatures.value.watermark && $i.policies.watermarkAvailable ? prefer.s.defaultWatermarkPresetId : null,
 			file: markRaw(file),
 		});
@@ -343,6 +351,82 @@ export function useUploader(options: {
 			!item.uploading &&
 			!item.uploaded
 		) {
+			if (isVideoCompressible) {
+				function changeVideoCodec(codec: 'h264' | 'vp9' | 'copy') {
+					item.videoCodec = codec;
+					preprocess(item).then(() => {
+						triggerRef(items);
+					});
+				}
+
+				menu.push({
+					icon: 'ti ti-movie',
+					text: computed(() => {
+						return `${i18n.ts.videoCodec}: ${i18n.ts._videoCodec[item.videoCodec]}`;
+					}),
+					type: 'parent',
+					children: [{
+						type: 'radioOption',
+						text: i18n.ts._videoCodec.h264,
+						active: computed(() => item.videoCodec === 'h264'),
+						action: () => changeVideoCodec('h264'),
+					}, {
+						type: 'radioOption',
+						text: i18n.ts._videoCodec.vp9,
+						active: computed(() => item.videoCodec === 'vp9'),
+						action: () => changeVideoCodec('vp9'),
+					}, {
+						type: 'radioOption',
+						text: i18n.ts._videoCodec.copy,
+						active: computed(() => item.videoCodec === 'copy'),
+						action: () => changeVideoCodec('copy'),
+					}],
+				});
+
+				if (item.videoCodec !== 'copy') {
+					function changeBitrateMode(mode: 'auto' | 'manual') {
+						item.videoBitrateMode = mode;
+						preprocess(item).then(() => {
+							triggerRef(items);
+						});
+					}
+
+					menu.push({
+						icon: 'ti ti-speedometer',
+						text: computed(() => {
+							if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
+								return `${i18n.ts.videoBitrate}: ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
+							}
+							return `${i18n.ts.videoBitrate}: ${i18n.ts.automatic}`;
+						}),
+						type: 'parent',
+						children: [{
+							type: 'radioOption',
+							text: i18n.ts.automatic,
+							active: computed(() => item.videoBitrateMode === 'auto'),
+							action: () => changeBitrateMode('auto'),
+						}, {
+							type: 'divider',
+						}, {
+							type: 'button',
+							text: computed(() => item.videoBitrateValue != null ? `${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps` : i18n.ts.manualInput),
+							action: async () => {
+								const { result, canceled } = await os.inputNumber({
+									title: i18n.ts.videoBitrate,
+									default: item.videoBitrateValue != null ? item.videoBitrateValue / 1_000_000 : 5,
+								});
+								if (canceled) return;
+								item.videoBitrateMode = 'manual';
+								item.videoBitrateValue = result * 1_000_000;
+								preprocess(item).then(() => {
+									triggerRef(items);
+								});
+							},
+						}],
+					});
+				}
+			}
+
 			function changeCompressionLevel(level: 0 | 1 | 2 | 3 | 10) {
 				item.compressionLevel = level;
 				preprocess(item).then(() => {
@@ -509,6 +593,7 @@ export function useUploader(options: {
 	}
 
 	function abortAll() {
+		pendingVideoEncodeSettings = null;
 		for (const item of items.value) {
 			if (item.uploaded != null) {
 				continue;
@@ -621,9 +706,42 @@ export function useUploader(options: {
 	}
 
 	async function preprocessForVideo(item: UploaderItem): Promise<void> {
+		if (pendingVideoEncodeSettings != null) {
+			applyVideoEncodeSettings(item, pendingVideoEncodeSettings);
+		} else {
+			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
+				os.popupAsyncWithDialog(
+					import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+					{
+						file: item.file,
+						defaultCodec: prefer.s.defaultVideoCodec,
+						defaultCompressionLevel: prefer.s.defaultVideoCompressionLevel,
+						defaultBitrateMode: prefer.s.defaultVideoBitrateMode,
+						defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
+					},
+					{
+						done: (value) => resolve(value),
+						closed: () => resolve(null),
+					},
+				);
+			});
+
+			if (settings == null) {
+				item.aborted = true;
+				item.preprocessing = false;
+				removeItem(item);
+				return;
+			}
+
+			applyVideoEncodeSettings(item, settings);
+			if (settings.applyToAll) {
+				pendingVideoEncodeSettings = settings;
+			}
+		}
+
 		let preprocessedFile: Blob | File = item.file;
 
-		const needsCompress = item.compressionLevel !== 0 && VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(preprocessedFile.type);
+		const needsCompress = item.videoCodec !== 'copy' && VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(preprocessedFile.type);
 
 		if (needsCompress) {
 			const mediabunny = await import('mediabunny');
@@ -635,17 +753,29 @@ export function useUploader(options: {
 				formats: mediabunny.ALL_FORMATS,
 			});
 
+			const outputFormat = item.videoCodec === 'vp9'
+				? new mediabunny.WebMOutputFormat()
+				: new mediabunny.Mp4OutputFormat();
+
 			const output = new mediabunny.Output({
 				target: new mediabunny.BufferTarget(),
-				format: new mediabunny.Mp4OutputFormat(),
+				format: outputFormat,
 			});
+
+			let bitrate: number;
+			if (item.videoBitrateMode === 'manual' && item.videoBitrateValue != null) {
+				bitrate = item.videoBitrateValue;
+			} else {
+				bitrate = item.compressionLevel === 1 ? mediabunny.QUALITY_VERY_HIGH : item.compressionLevel === 2 ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;
+			}
 
 			const currentConversion = await mediabunny.Conversion.init({
 				input,
 				output,
 				video: {
+					codec: item.videoCodec === 'vp9' ? 'vp9' : 'avc',
 					//width: 320, // Height will be deduced automatically to retain aspect ratio
-					bitrate: item.compressionLevel === 1 ? mediabunny.QUALITY_VERY_HIGH : item.compressionLevel === 2 ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW,
+					bitrate,
 				},
 				audio: {
 					// Explicitly keep audio (don't discard) and copy it if possible
@@ -669,7 +799,7 @@ export function useUploader(options: {
 
 			preprocessedFile = new Blob([output.target.buffer!], { type: output.format.mimeType });
 			item.compressedSize = output.target.buffer!.byteLength;
-			item.uploadName = `${item.name}.mp4`;
+			item.uploadName = `${item.name}${outputFormat.fileExtension}`;
 		} else {
 			item.compressedSize = null;
 			item.uploadName = item.name;
@@ -680,7 +810,15 @@ export function useUploader(options: {
 		item.preprocessedFile = markRaw(preprocessedFile);
 	}
 
+	function applyVideoEncodeSettings(item: UploaderItem, settings: VideoEncodeDialogResult) {
+		item.videoCodec = settings.videoCodec;
+		item.compressionLevel = settings.compressionLevel as 0 | 1 | 2 | 3;
+		item.videoBitrateMode = settings.videoBitrateMode;
+		item.videoBitrateValue = settings.videoBitrateValue;
+	}
+
 	function dispose() {
+		pendingVideoEncodeSettings = null;
 		for (const item of items.value) {
 			if (item.thumbnail != null) URL.revokeObjectURL(item.thumbnail);
 		}

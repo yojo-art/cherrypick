@@ -6229,6 +6229,22 @@ export interface Locale extends ILocale {
      */
     "compress": string;
     /**
+     * 自動
+     */
+    "automatic": string;
+    /**
+     * 手動入力
+     */
+    "manualInput": string;
+    /**
+     * 品質
+     */
+    "quality": string;
+    /**
+     * 以降のファイルにも同じ設定を適用
+     */
+    "applyToAll": string;
+    /**
      * 右
      */
     "right": string;
@@ -6335,6 +6351,30 @@ export interface Locale extends ILocale {
      * 低くすると品質を保てますが、ファイルサイズは増加します。<br>高くするとファイルサイズを減らせますが、品質は低下します。
      */
     "defaultCompressionLevel_description": string;
+    /**
+     * エンコード形式
+     */
+    "videoCodec": string;
+    /**
+     * 動画アップロード時のデフォルトのエンコード形式
+     */
+    "videoCodec_description": string;
+    /**
+     * ビットレート
+     */
+    "videoBitrate": string;
+    /**
+     * ビットレート設定
+     */
+    "videoBitrateMode": string;
+    /**
+     * ビットレート値
+     */
+    "videoBitrateValue": string;
+    /**
+     * 0または空欄で自動設定に従います。単位はbpsです。
+     */
+    "videoBitrateValue_description": string;
     /**
      * 分
      */
@@ -6560,6 +6600,20 @@ export interface Locale extends ILocale {
              */
             "small": string;
         };
+    };
+    "_videoCodec": {
+        /**
+         * H.264 (MP4)
+         */
+        "h264": string;
+        /**
+         * VP9 (WebM)
+         */
+        "vp9": string;
+        /**
+         * そのまま（再エンコードしない）
+         */
+        "copy": string;
     };
     "_order": {
         /**
