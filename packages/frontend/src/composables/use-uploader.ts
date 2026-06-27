@@ -365,7 +365,20 @@ export function useUploader(options: {
 							if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null) {
 								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
 							} else {
-								text += ` / ${i18n.ts[item.videoQualityLevel]}`;
+								switch (item.videoQualityLevel) {
+									case 'low':
+										text += ` /  ${i18n.ts.low}`;
+										break;
+
+									case 'high':
+										text += ` /  ${i18n.ts.high}`;
+										break;
+
+									case 'medium':
+									default:
+										text += ` /  ${i18n.ts.medium}`;
+										break;
+								}
 							}
 						}
 						return text;
