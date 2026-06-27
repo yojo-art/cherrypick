@@ -87,7 +87,7 @@ const props = defineProps<{
 	file: File;
 	mode?: 'new' | 'edit';
 	defaultCodec?: 'h264' | 'vp9' | 'copy';
-	defaultVideoCompressionLevel?: 'low' | 'medium' | 'high' | 'manual';
+	defaultVideoQualityLevel?: 'low' | 'medium' | 'high' | 'manual';
 	defaultBitrateValue?: number | null;
 	allowApplyToAll?: boolean;
 }>();
@@ -107,9 +107,9 @@ function handleClose() {
 }
 
 function resolveQualityMode(): 'low' | 'medium' | 'high' | 'bitrate' {
-	if (props.defaultVideoCompressionLevel === 'manual') return 'bitrate';
-	if (props.defaultVideoCompressionLevel === 'low') return 'low';
-	if (props.defaultVideoCompressionLevel === 'high') return 'high';
+	if (props.defaultVideoQualityLevel === 'manual') return 'bitrate';
+	if (props.defaultVideoQualityLevel === 'low') return 'low';
+	if (props.defaultVideoQualityLevel === 'high') return 'high';
 	return 'medium';
 }
 
