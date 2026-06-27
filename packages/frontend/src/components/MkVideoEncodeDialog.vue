@@ -38,22 +38,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkSelect>
 
 		<template v-if="codec !== 'copy'">
-			<MkSelect v-model="compressionLevel" :items="[
-				{ value: 1, label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})` },
-				{ value: 2, label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})` },
-				{ value: 3, label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})` },
+			<MkSelect v-model="qualityMode" :items="[
+				{ value: 'low', label: `${i18n.ts._compression._quality.high} (${i18n.ts.low})` },
+				{ value: 'medium', label: `${i18n.ts._compression._quality.medium} (${i18n.ts.medium})` },
+				{ value: 'high', label: `${i18n.ts._compression._quality.low} (${i18n.ts.high})` },
+				{ value: 'manual', label: i18n.ts.manualInput },
 			]">
 				<template #label>{{ i18n.ts.quality }}</template>
 			</MkSelect>
 
-			<MkSelect v-model="bitrateMode" :items="[
-				{ value: 'auto', label: i18n.ts.automatic },
-				{ value: 'manual', label: i18n.ts.manualInput },
-			]">
-				<template #label>{{ i18n.ts.videoBitrateMode }}</template>
-			</MkSelect>
-
-			<MkInput v-if="bitrateMode === 'manual'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
+			<MkInput v-if="qualityMode === 'manual'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
 				<template #label>{{ i18n.ts.videoBitrateValue }}</template>
 				<template #suffix>Mbps</template>
 			</MkInput>
@@ -99,9 +93,15 @@ const emit = defineEmits<{
 
 const dialog = useTemplateRef('dialog');
 
+function resolveQualityMode(): 'low' | 'medium' | 'high' | 'manual' {
+	if (props.defaultBitrateMode === 'manual') return 'manual';
+	if (props.defaultCompressionLevel === 1) return 'low';
+	if (props.defaultCompressionLevel === 3) return 'high';
+	return 'medium';
+}
+
 const codec = ref<'h264' | 'vp9' | 'copy'>(props.defaultCodec ?? 'copy');
-const compressionLevel = ref<0 | 1 | 2 | 3>(props.defaultCompressionLevel ?? 2);
-const bitrateMode = ref<'auto' | 'manual'>(props.defaultBitrateMode ?? 'auto');
+const qualityMode = ref<'low' | 'medium' | 'high' | 'manual'>(resolveQualityMode());
 const bitrateMbps = ref<number>(props.defaultBitrateValue != null ? props.defaultBitrateValue / 1_000_000 : 5);
 const applyToAll = ref(false);
 
@@ -112,22 +112,19 @@ const videoUrl = computed(() => {
 	return null;
 });
 
-const videoBitrateValue = computed((): number | null => {
-	if (codec.value === 'copy') return null;
-	if (bitrateMode.value === 'manual') {
-		return bitrateMbps.value * 1_000_000;
-	}
-	return null;
-});
+function resolveResult(): VideoEncodeDialogResult {
+	const isManual = qualityMode.value === 'manual';
+	return {
+		videoCodec: codec.value,
+		compressionLevel: isManual ? 2 : qualityMode.value === 'low' ? 1 : qualityMode.value === 'high' ? 3 : 2,
+		videoBitrateMode: isManual ? 'manual' : 'auto',
+		videoBitrateValue: isManual ? bitrateMbps.value * 1_000_000 : null,
+		applyToAll: applyToAll.value,
+	};
+}
 
 async function ok() {
-	emit('done', {
-		videoCodec: codec.value,
-		compressionLevel: compressionLevel.value,
-		videoBitrateMode: bitrateMode.value,
-		videoBitrateValue: videoBitrateValue.value,
-		applyToAll: applyToAll.value,
-	});
+	emit('done', resolveResult());
 	await dialog.value?.close();
 }
 
