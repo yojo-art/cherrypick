@@ -25,7 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkStreamingNotesTimeline
 			v-else
 			ref="tlComponent"
-			:key="src + withRenotes + withReplies + onlyFiles + onlyCats + withSensitive"
+			:key="src + withRenotes + withReplies + onlyFiles + onlyCats + withSensitive + withBots"
 			:class="$style.tl"
 			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
 			:list="src.split(':')[1]"
@@ -34,6 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:withSensitive="withSensitive"
 			:onlyFiles="onlyFiles"
 			:onlyCats="onlyCats"
+			:withBots="withBots"
 			:sound="true"
 		/>
 	</div>
@@ -124,6 +125,10 @@ const onlyFiles = computed<boolean>({
 const onlyCats = computed({
 	get: () => store.r.tl.value.filter.onlyCats,
 	set: (x: boolean) => saveTlFilter('onlyCats', x),
+});
+const withBots = computed({
+	get: () => store.r.tl.value.filter.withBots,
+	set: (x: boolean) => saveTlFilter('withBots', x),
 });
 
 watch([withReplies, onlyFiles, onlyCats], ([withRepliesTo, onlyFilesTo, onlyCatsTo]) => {
@@ -580,6 +585,11 @@ const headerActions = computed(() => {
 						icon: 'ti ti-cat',
 						text: i18n.ts.showCatOnly,
 						ref: onlyCats,
+					}, {
+						type: 'switch',
+						icon: 'ti ti-robot',
+						text: i18n.ts.excludeBotUsersOnly,
+						ref: withBots,
 					}, { type: 'divider' }, {
 						type: 'switch',
 						text: i18n.ts.forceCollapseAllRenotes,

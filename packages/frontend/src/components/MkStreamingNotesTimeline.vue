@@ -137,12 +137,14 @@ const props = withDefaults(defineProps<{
 	withSensitive?: boolean;
 	onlyFiles?: boolean;
 	onlyCats?: boolean;
-}>(), {
+	withBots?: boolean;
+}(), {
 	withRenotes: true,
 	withReplies: false,
 	withSensitive: true,
 	onlyFiles: false,
 	onlyCats: false,
+	withBots: true,
 	sound: false,
 	customSound: null,
 });
@@ -166,6 +168,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -176,6 +179,7 @@ if (props.src === 'antenna') {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -186,6 +190,7 @@ if (props.src === 'antenna') {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -195,6 +200,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -205,6 +211,7 @@ if (props.src === 'antenna') {
 			withReplies: false,
 			withFiles: true,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -214,6 +221,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -234,6 +242,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 			listId: props.list!,
 		})),
 		useShallowRef: true,
@@ -401,6 +410,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.main = stream.useChannel('main');
 		connections.homeTimeline.on('note', prepend);
@@ -410,6 +420,7 @@ function connectChannel() {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.localTimeline.on('note', prepend);
 	} else if (props.src === 'social') {
@@ -418,6 +429,7 @@ function connectChannel() {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.hybridTimeline.on('note', prepend);
 	} else if (props.src === 'global') {
@@ -425,6 +437,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.globalTimeline.on('note', prepend);
 	} else if (props.src === 'media') {
@@ -433,6 +446,7 @@ function connectChannel() {
 			withReplies: false,
 			withFiles: true,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.hybridTimeline.on('note', prepend);
 	} else if (props.src === 'bubble') {
@@ -440,6 +454,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.bubbleTimeline.on('note', prepend);
 	} else if (props.src === 'mentions') {
@@ -459,6 +474,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 			listId: props.list,
 		});
 		connections.userList.on('note', prepend);
@@ -491,7 +507,7 @@ if (store.s.realtimeMode) {
 	connectChannel();
 }
 
-watch(() => [props.list, props.antenna, props.channel, props.role, props.withRenotes], () => {
+watch(() => [props.list, props.antenna, props.channel, props.role, props.withRenotes, props.withBots], () => {
 	if (store.s.realtimeMode) {
 		disconnectChannel();
 		connectChannel();
