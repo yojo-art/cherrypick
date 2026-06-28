@@ -364,21 +364,12 @@ export function useUploader(options: {
 							text += `: ${i18n.ts._videoCodec[item.videoCodec]}`;
 							if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null) {
 								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
+							} else if (item.videoQualityLevel === 'high') {
+								text += ` /  ${i18n.ts.high}`;
+							} else if (item.videoQualityLevel === 'low') {
+								text += ` /  ${i18n.ts.low}`;
 							} else {
-								switch (item.videoQualityLevel) {
-									case 'low':
-										text += ` /  ${i18n.ts.low}`;
-										break;
-
-									case 'high':
-										text += ` /  ${i18n.ts.high}`;
-										break;
-
-									case 'medium':
-									default:
-										text += ` /  ${i18n.ts.medium}`;
-										break;
-								}
+								text += ` /  ${i18n.ts.medium}`;
 							}
 						}
 						return text;
