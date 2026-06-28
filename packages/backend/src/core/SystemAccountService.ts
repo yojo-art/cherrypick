@@ -96,13 +96,31 @@ export class SystemAccountService implements OnApplicationShutdown {
 		if (systemAccount) {
 			this.cache.set(type, systemAccount.user as MiLocalUser);
 			return systemAccount.user as MiLocalUser;
-		} else {
+		}
+
+		// 複数の並行リクエストが同時にアカウント作成を試みる可能性がある。
+		// PostgreSQLではNULLを含む複合ユニークインデックスで重複検出が不完全なため
+		// (MiUserの(host)がnullableで、PGではNULL != NULL)、
+		// 並行INSERTが両方MiUserに成功し、後続テーブル(used_username)で初めて
+		// 衝突が発生するケースがある。その場合は既存レコードを返却する。
+		try {
 			const created = await this.createCorrespondingUser(type, {
 				username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
 				name: this.meta.name,
 			});
 			this.cache.set(type, created);
 			return created;
+		} catch (err: any) {
+			// 競合が発生した可能性。DBから再度検索してみる。
+			const retried = await this.systemAccountsRepository.findOne({
+				where: { type: type },
+				relations: ['user'],
+			});
+			if (retried) {
+				this.cache.set(type, retried.user as MiLocalUser);
+				return retried.user as MiLocalUser;
+			}
+			throw err;
 		}
 	}
 
@@ -160,10 +178,15 @@ export class SystemAccountService implements OnApplicationShutdown {
 				password: hash,
 			});
 
-			await transactionalEntityManager.insert(MiUsedUsername, {
-				createdAt: new Date(),
+			const usedUsernameExists = await transactionalEntityManager.findOneBy(MiUsedUsername, {
 				username: extra.username.toLowerCase(),
 			});
+			if (!usedUsernameExists) {
+				await transactionalEntityManager.insert(MiUsedUsername, {
+					createdAt: new Date(),
+					username: extra.username.toLowerCase(),
+				});
+			}
 
 			await transactionalEntityManager.insert(MiSystemAccount, {
 				id: this.idService.gen(),
