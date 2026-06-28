@@ -5,6 +5,7 @@ import { NestFactory } from '@nestjs/core';
 import { INestApplicationContext } from '@nestjs/common';
 import { MainModule } from '@/MainModule.js';
 import { ServerService } from '@/server/ServerService.js';
+import { SYSTEM_ACCOUNT_TYPES, SystemAccountService } from '@/core/SystemAccountService.js';
 import { loadConfig } from '@/config.js';
 import { NestLogger } from '@/NestLogger.js';
 
@@ -15,6 +16,13 @@ process.env.NODE_ENV = 'test';
 
 let app: INestApplicationContext;
 let serverService: ServerService;
+
+async function initializeSystemAccounts(): Promise<void> {
+	const systemAccountService = app.get(SystemAccountService);
+	for (const type of SYSTEM_ACCOUNT_TYPES) {
+		await systemAccountService.fetch(type);
+	}
+}
 
 /**
  * テスト用のサーバインスタンスを起動する
@@ -29,6 +37,7 @@ async function launch() {
 	});
 	serverService = app.get(ServerService);
 	await serverService.launch();
+	await initializeSystemAccounts();
 
 	await startControllerEndpoints();
 
@@ -88,6 +97,7 @@ async function startControllerEndpoints(port = config.port + 1000) {
 		});
 		serverService = app.get(ServerService);
 		await serverService.launch();
+		await initializeSystemAccounts();
 
 		res.code(200).send({ success: true });
 	});

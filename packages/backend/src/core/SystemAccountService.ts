@@ -26,6 +26,7 @@ export const SYSTEM_ACCOUNT_TYPES = ['actor', 'relay', 'proxy'] as const;
 @Injectable()
 export class SystemAccountService implements OnApplicationShutdown {
 	private cache: MemoryKVCache<MiLocalUser>;
+	private pendingFetches = new Map<typeof SYSTEM_ACCOUNT_TYPES[number], Promise<MiLocalUser>>();
 
 	constructor(
 		@Inject(DI.redisForSub)
@@ -88,6 +89,18 @@ export class SystemAccountService implements OnApplicationShutdown {
 		const cached = this.cache.get(type);
 		if (cached) return cached;
 
+		const pending = this.pendingFetches.get(type);
+		if (pending) return pending;
+
+		const promise = this.fetchInternal(type).finally(() => {
+			this.pendingFetches.delete(type);
+		});
+		this.pendingFetches.set(type, promise);
+		return promise;
+	}
+
+	@bindThis
+	private async fetchInternal(type: typeof SYSTEM_ACCOUNT_TYPES[number]): Promise<MiLocalUser> {
 		const systemAccount = await this.systemAccountsRepository.findOne({
 			where: { type: type },
 			relations: ['user'],
@@ -98,30 +111,12 @@ export class SystemAccountService implements OnApplicationShutdown {
 			return systemAccount.user as MiLocalUser;
 		}
 
-		// 複数の並行リクエストが同時にアカウント作成を試みる可能性がある。
-		// PostgreSQLではNULLを含む複合ユニークインデックスで重複検出が不完全なため
-		// (MiUserの(host)がnullableで、PGではNULL != NULL)、
-		// 並行INSERTが両方MiUserに成功し、後続テーブル(used_username)で初めて
-		// 衝突が発生するケースがある。その場合は既存レコードを返却する。
-		try {
-			const created = await this.createCorrespondingUser(type, {
-				username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
-				name: this.meta.name,
-			});
-			this.cache.set(type, created);
-			return created;
-		} catch (err: any) {
-			// 競合が発生した可能性。DBから再度検索してみる。
-			const retried = await this.systemAccountsRepository.findOne({
-				where: { type: type },
-				relations: ['user'],
-			});
-			if (retried) {
-				this.cache.set(type, retried.user as MiLocalUser);
-				return retried.user as MiLocalUser;
-			}
-			throw err;
-		}
+		const created = await this.createCorrespondingUser(type, {
+			username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
+			name: this.meta.name,
+		});
+		this.cache.set(type, created);
+		return created;
 	}
 
 	@bindThis
@@ -151,6 +146,15 @@ export class SystemAccountService implements OnApplicationShutdown {
 
 			if (exist) {
 				account = exist;
+
+				const systemAccountExists = await transactionalEntityManager.findOneBy(MiSystemAccount, { type: type });
+				if (!systemAccountExists) {
+					await transactionalEntityManager.insert(MiSystemAccount, {
+						id: this.idService.gen(),
+						userId: account.id,
+						type: type,
+					});
+				}
 				return;
 			}
 
@@ -178,15 +182,10 @@ export class SystemAccountService implements OnApplicationShutdown {
 				password: hash,
 			});
 
-			const usedUsernameExists = await transactionalEntityManager.findOneBy(MiUsedUsername, {
+			await transactionalEntityManager.insert(MiUsedUsername, {
+				createdAt: new Date(),
 				username: extra.username.toLowerCase(),
 			});
-			if (!usedUsernameExists) {
-				await transactionalEntityManager.insert(MiUsedUsername, {
-					createdAt: new Date(),
-					username: extra.username.toLowerCase(),
-				});
-			}
 
 			await transactionalEntityManager.insert(MiSystemAccount, {
 				id: this.idService.gen(),
