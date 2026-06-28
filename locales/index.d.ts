@@ -6428,9 +6428,9 @@ export interface Locale extends ILocale {
      */
     "showCatOnly": string;
     /**
-     * BOTユーザーを除外する
+     * BOTユーザーを含める
      */
-    "excludeBotUsers": string;
+    "withBots": string;
     /**
      * Playへの追加許可
      */
