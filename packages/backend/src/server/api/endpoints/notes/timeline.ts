@@ -79,18 +79,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const sinceId = ps.sinceId ?? (ps.sinceDate ? this.idService.gen(ps.sinceDate!) : null);
 
 			if (!this.serverSettings.enableFanoutTimeline) {
-			const timeline = await this.getFromDb({
-				untilId,
-				sinceId,
-				limit: ps.limit,
-				includeMyRenotes: ps.includeMyRenotes,
-				includeRenotedMyNotes: ps.includeRenotedMyNotes,
-				includeLocalRenotes: ps.includeLocalRenotes,
-				withFiles: ps.withFiles,
-				withRenotes: ps.withRenotes,
-				withCats: ps.withCats,
-				withBots: ps.withBots,
-			}, me);
+				const timeline = await this.getFromDb({
+					untilId,
+					sinceId,
+					limit: ps.limit,
+					includeMyRenotes: ps.includeMyRenotes,
+					includeRenotedMyNotes: ps.includeRenotedMyNotes,
+					includeLocalRenotes: ps.includeLocalRenotes,
+					withFiles: ps.withFiles,
+					withRenotes: ps.withRenotes,
+					withCats: ps.withCats,
+					withBots: ps.withBots,
+				}, me);
 
 				process.nextTick(() => {
 					this.activeUsersChart.read(me);

@@ -105,18 +105,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.withReplies && ps.withFiles) throw new ApiError(meta.errors.bothWithRepliesAndWithFiles);
 
 			if (!this.serverSettings.enableFanoutTimeline) {
-			const timeline = await this.getFromDb({
-				untilId,
-				sinceId,
-				limit: ps.limit,
-				includeMyRenotes: ps.includeMyRenotes,
-				includeRenotedMyNotes: ps.includeRenotedMyNotes,
-				includeLocalRenotes: ps.includeLocalRenotes,
-				withFiles: ps.withFiles,
-				withReplies: ps.withReplies,
-				withCats: ps.withCats,
-				withBots: ps.withBots,
-			}, me);
+				const timeline = await this.getFromDb({
+					untilId,
+					sinceId,
+					limit: ps.limit,
+					includeMyRenotes: ps.includeMyRenotes,
+					includeRenotedMyNotes: ps.includeRenotedMyNotes,
+					includeLocalRenotes: ps.includeLocalRenotes,
+					withFiles: ps.withFiles,
+					withReplies: ps.withReplies,
+					withCats: ps.withCats,
+					withBots: ps.withBots,
+				}, me);
 
 				process.nextTick(() => {
 					this.activeUsersChart.read(me);
