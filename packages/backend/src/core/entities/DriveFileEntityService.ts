@@ -113,7 +113,7 @@ export class DriveFileEntityService {
 	@bindThis
 	public getPublicUrl({
 		file,
-		mode = 'avatar',
+		mode,
 		ap = false,
 		allowProxiedUrl = false,
 	}: {
