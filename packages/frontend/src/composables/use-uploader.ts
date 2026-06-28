@@ -141,7 +141,6 @@ export function useUploader(options: {
 	});
 
 	const items = ref<UploaderItem[]>([]);
-	let pendingVideoEncodeSettings: VideoEncodeDialogResult | null = null;
 
 	function initializeFile(file: File) {
 		const id = genId();
@@ -574,7 +573,6 @@ export function useUploader(options: {
 	}
 
 	function abortAll() {
-		pendingVideoEncodeSettings = null;
 		for (const item of items.value) {
 			if (item.uploaded != null) {
 				continue;
@@ -689,8 +687,6 @@ export function useUploader(options: {
 	async function preprocessForVideo(item: UploaderItem): Promise<void> {
 		if (item.skipVideoDialog) {
 			item.skipVideoDialog = false;
-		} else if (pendingVideoEncodeSettings != null) {
-			applyVideoEncodeSettings(item, pendingVideoEncodeSettings);
 		} else {
 			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
 				os.popupAsyncWithDialog(
@@ -801,7 +797,6 @@ export function useUploader(options: {
 	}
 
 	function dispose() {
-		pendingVideoEncodeSettings = null;
 		for (const item of items.value) {
 			if (item.thumbnail != null) URL.revokeObjectURL(item.thumbnail);
 		}

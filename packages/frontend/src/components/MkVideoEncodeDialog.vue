@@ -98,16 +98,13 @@ const dialog = useTemplateRef('dialog');
 
 function handleClose() {
 	if (props.mode === 'edit') {
-		emit('done', null as any);
+		emit('done', null);
 	}
 	dialog.value?.close();
 }
 
 function resolveQualityMode(): 'low' | 'medium' | 'high' | 'manual' {
-	if (props.defaultVideoQualityLevel === 'manual') return 'manual';
-	if (props.defaultVideoQualityLevel === 'low') return 'low';
-	if (props.defaultVideoQualityLevel === 'high') return 'high';
-	return 'medium';
+	return props.defaultVideoQualityLevel ?? 'medium';
 }
 
 const codec = ref<'h264' | 'vp9' | 'copy'>(props.defaultCodec ?? 'copy');
