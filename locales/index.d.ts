@@ -6430,7 +6430,7 @@ export interface Locale extends ILocale {
     /**
      * BOTユーザーを含める
      */
-    "withBots": string;
+    "includeBots": string;
     /**
      * Playへの追加許可
      */

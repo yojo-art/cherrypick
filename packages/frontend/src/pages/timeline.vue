@@ -588,7 +588,7 @@ const headerActions = computed(() => {
 					}, {
 						type: 'switch',
 						icon: 'ti ti-robot',
-						text: i18n.ts.withBots,
+						text: i18n.ts.includeBots,
 						ref: withBots,
 					}, { type: 'divider' }, {
 						type: 'switch',
