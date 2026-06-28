@@ -393,7 +393,6 @@ export function useUploader(options: {
 									defaultCodec: item.videoCodec,
 									defaultVideoQualityLevel: item.videoQualityLevel,
 									defaultBitrateValue: item.videoBitrateValue,
-									allowApplyToAll: false,
 								},
 								{
 									done: (value: VideoEncodeDialogResult | null) => {
@@ -727,9 +726,6 @@ export function useUploader(options: {
 			}
 
 			applyVideoEncodeSettings(item, settings);
-			if (settings.applyToAll) {
-				pendingVideoEncodeSettings = settings;
-			}
 		}
 
 		let preprocessedFile: Blob | File = item.file;

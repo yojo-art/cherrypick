@@ -60,10 +60,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #suffix>Mbps</template>
 				</MkInput>
 			</template>
-
-			<MkSwitch v-if="props.allowApplyToAll" v-model="applyToAll">
-				<template #label>{{ i18n.ts.applyToAll }}</template>
-			</MkSwitch>
 		</div>
 	</div>
 </MkModalWindow>
@@ -83,7 +79,6 @@ export type VideoEncodeDialogResult = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
 	videoQualityLevel: 'low' | 'medium' | 'high' | 'manual';
 	videoBitrateValue: number | null;
-	applyToAll: boolean;
 };
 
 const props = defineProps<{
@@ -92,7 +87,6 @@ const props = defineProps<{
 	defaultCodec?: 'h264' | 'vp9' | 'copy';
 	defaultVideoQualityLevel?: 'low' | 'medium' | 'high' | 'manual';
 	defaultBitrateValue?: number | null;
-	allowApplyToAll?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -119,7 +113,6 @@ function resolveQualityMode(): 'low' | 'medium' | 'high' | 'manual' {
 const codec = ref<'h264' | 'vp9' | 'copy'>(props.defaultCodec ?? 'copy');
 const qualityMode = ref<'low' | 'medium' | 'high' | 'manual'>(resolveQualityMode());
 const bitrateMbps = ref<number>(props.defaultBitrateValue != null ? props.defaultBitrateValue / 1_000_000 : 5);
-const applyToAll = ref(false);
 
 const videoUrl = computed(() => {
 	if (props.file.type.startsWith('video/')) {
@@ -133,7 +126,6 @@ function resolveResult(): VideoEncodeDialogResult {
 		videoCodec: codec.value,
 		videoQualityLevel: qualityMode.value,
 		videoBitrateValue: qualityMode.value === 'manual' ? bitrateMbps.value * 1_000_000 : null,
-		applyToAll: applyToAll.value,
 	};
 }
 

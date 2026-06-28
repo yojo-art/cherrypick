@@ -6233,10 +6233,6 @@ export interface Locale extends ILocale {
      */
     "quality": string;
     /**
-     * 以降のファイルにも同じ設定を適用
-     */
-    "applyToAll": string;
-    /**
      * ビットレート指定
      */
     "bitrateSpecify": string;
