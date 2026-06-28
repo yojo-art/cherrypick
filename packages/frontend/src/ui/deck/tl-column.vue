@@ -184,7 +184,7 @@ const menu = computed<MenuItem[]>(() => {
 		ref: onlyCats,
 	}, {
 		type: 'switch',
-		text: i18n.ts.excludeBotUsersOnly,
+		text: i18n.ts.excludeBotUsers,
 		ref: withBots,
 	});
 

@@ -138,7 +138,7 @@ const props = withDefaults(defineProps<{
 	onlyFiles?: boolean;
 	onlyCats?: boolean;
 	withBots?: boolean;
-}(), {
+}>(), {
 	withRenotes: true,
 	withReplies: false,
 	withSensitive: true,

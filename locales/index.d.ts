@@ -6428,6 +6428,10 @@ export interface Locale extends ILocale {
      */
     "showCatOnly": string;
     /**
+     * BOTユーザーを除外する
+     */
+    "excludeBotUsers": string;
+    /**
      * Playへの追加許可
      */
     "additionalPermissionsForFlash": string;
