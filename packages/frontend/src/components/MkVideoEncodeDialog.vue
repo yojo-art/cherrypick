@@ -81,7 +81,7 @@ import { prefer } from '@/preferences.js';
 
 export type VideoEncodeDialogResult = {
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	videoQualityLevel: 'low' | 'medium' | 'high' | 'bitrate';
+	videoQualityLevel: 'low' | 'medium' | 'high' | 'manual';
 	videoBitrateValue: number | null;
 	applyToAll: boolean;
 };

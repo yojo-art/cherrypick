@@ -83,7 +83,7 @@ export type UploaderItem = {
 	aborted: boolean;
 	compressionLevel: 0 | 1 | 2 | 3 | 10;
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	videoQualityLevel: 'low' | 'medium' | 'high' | 'bitrate';
+	videoQualityLevel: 'low' | 'medium' | 'high' | 'manual';
 	videoBitrateValue: number | null;
 	skipVideoDialog?: boolean;
 	compressedSize?: number | null;
@@ -758,8 +758,12 @@ export function useUploader(options: {
 			let bitrate: number | Quality;
 			if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null && item.videoBitrateValue > 0) {
 				bitrate = item.videoBitrateValue;
+			} else if (item.videoQualityLevel === 'high') {
+				bitrate = mediabunny.QUALITY_VERY_HIGH;
+			} else if (item.videoQualityLevel === 'low') {
+				bitrate = mediabunny.QUALITY_VERY_LOW;
 			} else {
-				bitrate = item.videoQualityLevel === 'low' ? mediabunny.QUALITY_VERY_HIGH : item.videoQualityLevel === 'medium' ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW;
+				bitrate = mediabunny.QUALITY_MEDIUM;
 			}
 
 			const currentConversion = await mediabunny.Conversion.init({
