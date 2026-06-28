@@ -38,7 +38,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{ key: 'vp9', label: i18n.ts._videoCodec.vp9 },
 						{ key: 'copy', label: i18n.ts._videoCodec.copy },
 					]"
-					:class="[$style.tab,]"
+					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
 				>
 				</MkTab>
 			</div>
@@ -49,13 +49,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{ value: 'low', label: `${i18n.ts._compression._quality.high}` },
 						{ value: 'medium', label: `${i18n.ts._compression._quality.medium}` },
 						{ value: 'high', label: `${i18n.ts._compression._quality.low}` },
-						{ value: 'bitrate', label: i18n.ts.bitrateSpecify },
+						{ value: 'manual', label: i18n.ts.bitrateSpecify },
 					]"
 				>
 					<template #label>{{ i18n.ts.quality }}</template>
 				</MkSelect>
 
-				<MkInput v-if="qualityMode === 'bitrate'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
+				<MkInput v-if="qualityMode === 'manual'" v-model="bitrateMbps" type="number" :min="0.1" :step="0.1">
 					<template #label>{{ i18n.ts.videoBitrate }}</template>
 					<template #suffix>Mbps</template>
 				</MkInput>
@@ -109,15 +109,15 @@ function handleClose() {
 	dialog.value?.close();
 }
 
-function resolveQualityMode(): 'low' | 'medium' | 'high' | 'bitrate' {
-	if (props.defaultVideoQualityLevel === 'manual') return 'bitrate';
+function resolveQualityMode(): 'low' | 'medium' | 'high' | 'manual' {
+	if (props.defaultVideoQualityLevel === 'manual') return 'manual';
 	if (props.defaultVideoQualityLevel === 'low') return 'low';
 	if (props.defaultVideoQualityLevel === 'high') return 'high';
 	return 'medium';
 }
 
 const codec = ref<'h264' | 'vp9' | 'copy'>(props.defaultCodec ?? 'copy');
-const qualityMode = ref<'low' | 'medium' | 'high' | 'bitrate'>(resolveQualityMode());
+const qualityMode = ref<'low' | 'medium' | 'high' | 'manual'>(resolveQualityMode());
 const bitrateMbps = ref<number>(props.defaultBitrateValue != null ? props.defaultBitrateValue / 1_000_000 : 5);
 const applyToAll = ref(false);
 
@@ -132,7 +132,7 @@ function resolveResult(): VideoEncodeDialogResult {
 	return {
 		videoCodec: codec.value,
 		videoQualityLevel: qualityMode.value,
-		videoBitrateValue: qualityMode.value === 'bitrate' ? bitrateMbps.value * 1_000_000 : null,
+		videoBitrateValue: qualityMode.value === 'manual' ? bitrateMbps.value * 1_000_000 : null,
 		applyToAll: applyToAll.value,
 	};
 }

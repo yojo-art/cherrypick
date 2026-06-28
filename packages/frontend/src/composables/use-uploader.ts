@@ -83,7 +83,7 @@ export type UploaderItem = {
 	aborted: boolean;
 	compressionLevel: 0 | 1 | 2 | 3 | 10;
 	videoCodec: 'h264' | 'vp9' | 'copy';
-	videoQualityLevel: 'low' | 'medium' | 'high' | 'manual';
+	videoQualityLevel: 'low' | 'medium' | 'high' | 'bitrate';
 	videoBitrateValue: number | null;
 	skipVideoDialog?: boolean;
 	compressedSize?: number | null;
