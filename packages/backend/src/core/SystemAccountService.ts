@@ -26,6 +26,7 @@ export const SYSTEM_ACCOUNT_TYPES = ['actor', 'relay', 'proxy'] as const;
 @Injectable()
 export class SystemAccountService implements OnApplicationShutdown {
 	private cache: MemoryKVCache<MiLocalUser>;
+	/** 同時に fetch されたとき、進行中の作成処理を共有する（二重作成防止） */
 	private pendingFetches = new Map<typeof SYSTEM_ACCOUNT_TYPES[number], Promise<MiLocalUser>>();
 
 	constructor(
