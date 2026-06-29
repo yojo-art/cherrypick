@@ -111,7 +111,21 @@ export class DriveFileEntityService {
 	}
 
 	@bindThis
-	public getPublicUrl(file: MiDriveFile, mode?: 'avatar', ap?: boolean): string { // static = thumbnail
+	public getPublicUrl({
+		file,
+		mode = 'avatar',
+		ap = false,
+		allowProxiedUrl = false,
+	}: {
+		file: MiDriveFile;
+		mode?: 'static' | 'avatar' | undefined,
+		ap?: boolean,
+		allowProxiedUrl?: boolean
+	}): string { // static = thumbnail
+		if (!allowProxiedUrl) {
+			return file.webpublicUrl ?? file.url;
+		}
+
 		// PublicUrlにはexternalMediaProxyEnabledでもremoteProxyを使う
 		// https://github.com/yojo-art/cherrypick/issues/84
 		if (file.uri != null && file.userHost != null && mode !== 'avatar' && this.config.remoteProxy != null) {
@@ -230,7 +244,7 @@ export class DriveFileEntityService {
 			isSensitive: file.isSensitive,
 			blurhash: file.blurhash,
 			properties: opts.self ? file.properties : this.getPublicProperties(file),
-			url: opts.self ? file.url : this.getPublicUrl(file),
+			url: opts.self ? file.url : this.getPublicUrl({ file: file, allowProxiedUrl: true }),
 			thumbnailUrl: this.getThumbnailUrl(file),
 			comment: file.comment,
 			folderId: file.folderId,
@@ -268,7 +282,7 @@ export class DriveFileEntityService {
 			isSensitive: file.isSensitive,
 			blurhash: file.blurhash,
 			properties: opts.self ? file.properties : this.getPublicProperties(file),
-			url: opts.self ? file.url : this.getPublicUrl(file),
+			url: opts.self ? file.url : this.getPublicUrl({ file: file, allowProxiedUrl: true }),
 			thumbnailUrl: this.getThumbnailUrl(file),
 			comment: file.comment,
 			folderId: file.folderId,

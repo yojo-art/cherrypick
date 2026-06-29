@@ -78,7 +78,7 @@ export class ChannelEntityService {
 			name: channel.name,
 			description: channel.description,
 			userId: channel.userId,
-			bannerUrl: banner ? this.driveFileEntityService.getPublicUrl(banner) : null,
+			bannerUrl: banner ? this.driveFileEntityService.getPublicUrl({ file: banner, allowProxiedUrl: true }) : null,
 			pinnedNoteIds: channel.pinnedNoteIds,
 			color: channel.color,
 			isArchived: channel.isArchived,

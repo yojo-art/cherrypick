@@ -74,8 +74,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 								mode="default"
 							>
 								<template v-if="useAvatarAsStone">
-									<img v-if="stone === true" :class="$style.boardCellStone" :src="blackUserUrl ?? undefined"/>
-									<img v-else-if="stone === false" :class="$style.boardCellStone" :src="whiteUserUrl ?? undefined"/>
+									<img v-if="stone === true" :class="$style.boardCellStone" :src="getProxiedImageUrl(blackUserUrl,'avatar') ?? undefined"/>
+									<img v-else-if="stone === false" :class="$style.boardCellStone" :src="getProxiedImageUrl(whiteUserUrl, 'avatar') ?? undefined"/>
 								</template>
 								<template v-else>
 									<img v-if="stone === true" :class="$style.boardCellStone" src="/client-assets/reversi/stone_b.png"/>

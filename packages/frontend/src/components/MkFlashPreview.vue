@@ -17,7 +17,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<Mfm class="summaryMfm" :text="flash.summary" :plain="true" :nowrap="true" :author="flash.user" :emojiUrls="flash.emojis"/>
 		</p>
 		<footer>
-			<img class="icon" :src="flash.user.avatarUrl"/>
+			<img class="icon" :src="(flash.user.avatarUrl) ? getProxiedImageUrl(flash.user.avatarUrl, 'avatar') : undefined"/>
 			<p>{{ userName(flash.user) }}</p>
 		</footer>
 	</article>
@@ -32,6 +32,7 @@ import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { pleaseLogin } from '@/utility/please-login.js';
 import { $i } from '@/i.js';
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const props = defineProps<{
 	flash: Misskey.entities.Flash;

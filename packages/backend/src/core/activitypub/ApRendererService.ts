@@ -187,7 +187,7 @@ export class ApRendererService {
 		return {
 			type: 'Document',
 			mediaType: file.webpublicType ?? file.type,
-			url: this.driveFileEntityService.getPublicUrl(file, undefined, true),
+			url: this.driveFileEntityService.getPublicUrl({ file: file, mode: undefined, ap: true, allowProxiedUrl: false }),
 			name: file.comment,
 			sensitive: file.isSensitive,
 		};
@@ -282,7 +282,7 @@ export class ApRendererService {
 	public renderImage(file: MiDriveFile): IApImage {
 		return {
 			type: 'Image',
-			url: this.driveFileEntityService.getPublicUrl(file, undefined, true),
+			url: this.driveFileEntityService.getPublicUrl({ file: file, mode: undefined, ap: true, allowProxiedUrl: false }),
 			sensitive: file.isSensitive,
 			name: file.comment,
 		};
