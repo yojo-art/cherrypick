@@ -6474,6 +6474,10 @@ export interface Locale extends ILocale {
      */
     "showCatOnly": string;
     /**
+     * BOTユーザーを含める
+     */
+    "includeBots": string;
+    /**
      * Playへの追加許可
      */
     "additionalPermissionsForFlash": string;
