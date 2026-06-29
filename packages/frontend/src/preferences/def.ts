@@ -454,8 +454,14 @@ export const PREF_DEF = definePreferences({
 	defaultImageCompressionLevel: {
 		default: 2 as 0 | 1 | 2 | 3,
 	},
-	defaultVideoCompressionLevel: {
-		default: 2 as 0 | 1 | 2 | 3,
+	defaultVideoQualityLevel: {
+		default: 'medium' as 'low' | 'medium' | 'high' | 'manual',
+	},
+	defaultVideoCodec: {
+		default: 'copy' as 'h264' | 'vp9' | 'copy',
+	},
+	defaultVideoBitrateValue: {
+		default: null as number | null,
 	},
 
 	'sound.masterVolume': {

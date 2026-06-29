@@ -6229,6 +6229,14 @@ export interface Locale extends ILocale {
      */
     "compress": string;
     /**
+     * 品質
+     */
+    "quality": string;
+    /**
+     * ビットレート指定
+     */
+    "bitrateSpecify": string;
+    /**
      * 右
      */
     "right": string;
@@ -6335,6 +6343,44 @@ export interface Locale extends ILocale {
      * 低くすると品質を保てますが、ファイルサイズは増加します。<br>高くするとファイルサイズを減らせますが、品質は低下します。
      */
     "defaultCompressionLevel_description": string;
+    /**
+     * デフォルトの品質
+     */
+    "defaultVideoQualityLevel": string;
+    /**
+     * 品質が高ければ高いほど高画質になりますが、ファイルサイズは増加します。
+     */
+    "defaultVideoQualityLevel_description": string;
+    /**
+     * エンコード形式
+     */
+    "videoCodec": string;
+    /**
+     * 動画アップロード時のデフォルトのエンコード形式
+     */
+    "videoCodec_description": string;
+    "_videoCodec": {
+        /**
+         * H.264 (高互換性)
+         */
+        "h264": string;
+        /**
+         * VP9 (推奨)
+         */
+        "vp9": string;
+        /**
+         * そのまま
+         */
+        "copy": string;
+    };
+    /**
+     * ビットレート
+     */
+    "videoBitrate": string;
+    /**
+     * ビットレートが高ければ高いほど高画質になりますが、ファイルサイズは増加します。
+     */
+    "videoBitrate_description": string;
     /**
      * 分
      */
