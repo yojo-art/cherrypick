@@ -32329,6 +32329,8 @@ export interface operations {
                     withRenotes?: boolean;
                     /** @default false */
                     withCats?: boolean;
+                    /** @default true */
+                    withBots?: boolean;
                     /** @default 10 */
                     limit?: number;
                     /** Format: misskey:id */
@@ -32497,6 +32499,8 @@ export interface operations {
                     withReplies?: boolean;
                     /** @default false */
                     withCats?: boolean;
+                    /** @default true */
+                    withBots?: boolean;
                 };
             };
         };
@@ -32569,6 +32573,8 @@ export interface operations {
                     withReplies?: boolean;
                     /** @default false */
                     withCats?: boolean;
+                    /** @default true */
+                    withBots?: boolean;
                     /** @default 10 */
                     limit?: number;
                     /** Format: misskey:id */
@@ -33830,6 +33836,8 @@ export interface operations {
                     withRenotes?: boolean;
                     /** @default false */
                     withCats?: boolean;
+                    /** @default true */
+                    withBots?: boolean;
                 };
             };
         };
@@ -34165,6 +34173,8 @@ export interface operations {
                     withFiles?: boolean;
                     /** @default false */
                     withCats?: boolean;
+                    /** @default true */
+                    withBots?: boolean;
                 };
             };
         };

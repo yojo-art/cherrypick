@@ -9,6 +9,8 @@ import isAnimated from 'is-file-animated';
 import { EventEmitter } from 'eventemitter3';
 import { computed, markRaw, onMounted, onUnmounted, ref, triggerRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
+import type { Quality } from 'mediabunny';
+import type { VideoEncodeDialogResult } from '@/components/MkVideoEncodeDialog.vue';
 import { genId } from '@/utility/id.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
@@ -47,6 +49,7 @@ const VIDEO_COMPRESSION_SUPPORTED_TYPES = [ // TODO
 	'video/mp4',
 	'video/quicktime',
 	'video/x-matroska',
+	'video/webm',
 ];
 
 const WATERMARK_SUPPORTED_TYPES = IMAGE_EDITING_SUPPORTED_TYPES;
@@ -80,6 +83,10 @@ export type UploaderItem = {
 	uploadFailed: boolean;
 	aborted: boolean;
 	compressionLevel: 0 | 1 | 2 | 3 | 10;
+	videoCodec: 'h264' | 'vp9' | 'copy';
+	videoQualityLevel: 'low' | 'medium' | 'high' | 'manual';
+	videoBitrateValue: number | null;
+	skipVideoDialog?: boolean;
 	compressedSize?: number | null;
 	preprocessedFile?: Blob | null;
 	file: File;
@@ -151,7 +158,10 @@ export function useUploader(options: {
 			aborted: false,
 			uploaded: null,
 			uploadFailed: false,
-			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCompressionLevel : 0,
+			compressionLevel: IMAGE_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultImageCompressionLevel : 0,
+			videoCodec: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoCodec : 'copy',
+			videoQualityLevel: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoQualityLevel : 'medium',
+			videoBitrateValue: VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(file.type) ? prefer.s.defaultVideoBitrateValue : null,
 			watermarkPresetId: uploaderFeatures.value.watermark && $i.policies.watermarkAvailable ? prefer.s.defaultWatermarkPresetId : null,
 			file: markRaw(file),
 		});
@@ -343,62 +353,117 @@ export function useUploader(options: {
 			!item.uploading &&
 			!item.uploaded
 		) {
-			function changeCompressionLevel(level: 0 | 1 | 2 | 3 | 10) {
-				item.compressionLevel = level;
-				preprocess(item).then(() => {
-					triggerRef(items);
+			if (isVideoCompressible) {
+				menu.push({
+					icon: 'ti ti-movie',
+					text: computed(() => {
+						let text = i18n.ts.videoCodec;
+						if (item.videoCodec === 'copy') {
+							text += `: ${i18n.ts._videoCodec.copy}`;
+						} else {
+							text += `: ${i18n.ts._videoCodec[item.videoCodec]}`;
+							if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null) {
+								text += ` / ${(item.videoBitrateValue / 1_000_000).toFixed(1)} Mbps`;
+							} else if (item.videoQualityLevel === 'high') {
+								text += ` /  ${i18n.ts.high}`;
+							} else if (item.videoQualityLevel === 'low') {
+								text += ` /  ${i18n.ts.low}`;
+							} else {
+								text += ` /  ${i18n.ts.medium}`;
+							}
+						}
+						return text;
+					}),
+					action: async () => {
+						const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
+							os.popupAsyncWithDialog(
+								import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+								{
+									file: item.file,
+									mode: 'edit',
+									defaultCodec: item.videoCodec,
+									defaultVideoQualityLevel: item.videoQualityLevel,
+									defaultBitrateValue: item.videoBitrateValue,
+								},
+								{
+									done: (value: VideoEncodeDialogResult | null) => {
+										if (value == null) return;
+										resolve(value);
+									},
+									closed: () => resolve(null),
+								},
+							);
+						});
+
+						if (settings == null) return;
+
+						applyVideoEncodeSettings(item, settings);
+						item.skipVideoDialog = true;
+						preprocess(item).then(() => {
+							triggerRef(items);
+						});
+					},
 				});
 			}
 
-			menu.push({
-				icon: 'ti ti-leaf',
-				text: computed(() => {
-					let text = i18n.ts.compress;
+			if (isImageCompressible) {
+				function changeCompressionLevel(level: 0 | 1 | 2 | 3 | 10) {
+					item.compressionLevel = level;
+					preprocess(item).then(() => {
+						triggerRef(items);
+					});
+				}
 
-					if (item.compressionLevel === 0 || item.compressionLevel == null) {
-						text += `: ${i18n.ts.none}`;
-					} else if (item.compressionLevel === 1) {
-						text += `: ${i18n.ts.low}`;
-					} else if (item.compressionLevel === 2) {
-						text += `: ${i18n.ts.medium}`;
-					} else if (item.compressionLevel === 3) {
-						text += `: ${i18n.ts.high}`;
-					} else if (isImageCompressible && item.compressionLevel === 10) {
-						text += `: ${i18n.ts._compression._quality.webpcompress}`;
-					}
+				menu.push({
+					icon: 'ti ti-leaf',
+					text: computed(() => {
+						let text = i18n.ts.compress;
 
-					return text;
-				}),
-				type: 'parent',
-				children: [{
-					type: 'radioOption',
-					text: i18n.ts.none,
-					active: computed(() => item.compressionLevel === 0 || item.compressionLevel == null),
-					action: () => changeCompressionLevel(0),
-				}, ...(isImageCompressible ? [{
-					type: 'radioOption',
-					text: i18n.ts._compression._quality.webpcompress,
-					active: computed(() => item.compressionLevel === 10),
-					action: () => changeCompressionLevel(10),
-				}] as const : []), {
-					type: 'divider',
-				}, {
-					type: 'radioOption',
-					text: i18n.ts.low,
-					active: computed(() => item.compressionLevel === 1),
-					action: () => changeCompressionLevel(1),
-				}, {
-					type: 'radioOption',
-					text: i18n.ts.medium,
-					active: computed(() => item.compressionLevel === 2),
-					action: () => changeCompressionLevel(2),
-				}, {
-					type: 'radioOption',
-					text: i18n.ts.high,
-					active: computed(() => item.compressionLevel === 3),
-					action: () => changeCompressionLevel(3),
-				}],
-			});
+						if (item.compressionLevel === 0 || item.compressionLevel == null) {
+							text += `: ${i18n.ts.none}`;
+						} else if (item.compressionLevel === 1) {
+							text += `: ${i18n.ts.low}`;
+						} else if (item.compressionLevel === 2) {
+							text += `: ${i18n.ts.medium}`;
+						} else if (item.compressionLevel === 3) {
+							text += `: ${i18n.ts.high}`;
+						} else if (isImageCompressible && item.compressionLevel === 10) {
+							text += `: ${i18n.ts._compression._quality.webpcompress}`;
+						}
+
+						return text;
+					}),
+					type: 'parent',
+					children: [{
+						type: 'radioOption',
+						text: i18n.ts.none,
+						active: computed(() => item.compressionLevel === 0 || item.compressionLevel == null),
+						action: () => changeCompressionLevel(0),
+					}, ...(isImageCompressible ? [{
+						type: 'radioOption',
+						text: i18n.ts._compression._quality.webpcompress,
+						active: computed(() => item.compressionLevel === 10),
+						action: () => changeCompressionLevel(10),
+					}] as const : []), {
+						type: 'divider',
+					}, {
+						type: 'radioOption',
+						text: i18n.ts.low,
+						active: computed(() => item.compressionLevel === 1),
+						action: () => changeCompressionLevel(1),
+					}, {
+						type: 'radioOption',
+						text: i18n.ts.medium,
+						active: computed(() => item.compressionLevel === 2),
+						action: () => changeCompressionLevel(2),
+					}, {
+						type: 'radioOption',
+						text: i18n.ts.high,
+						active: computed(() => item.compressionLevel === 3),
+						action: () => changeCompressionLevel(3),
+					}],
+				});
+			}
 		}
 
 		if (!item.preprocessing && !item.uploading && !item.uploaded) {
@@ -621,9 +686,39 @@ export function useUploader(options: {
 	}
 
 	async function preprocessForVideo(item: UploaderItem): Promise<void> {
+		if (item.skipVideoDialog) {
+			item.skipVideoDialog = false;
+		} else {
+			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
+				os.popupAsyncWithDialog(
+					import('@/components/MkVideoEncodeDialog.vue').then(x => x.default),
+					{
+						file: item.file,
+						mode: 'new',
+						defaultCodec: prefer.s.defaultVideoCodec,
+						defaultVideoQualityLevel: prefer.s.defaultVideoQualityLevel,
+						defaultBitrateValue: prefer.s.defaultVideoBitrateValue,
+					},
+					{
+						done: (value) => resolve(value),
+						closed: () => resolve(null),
+					},
+				);
+			});
+
+			if (settings == null) {
+				item.aborted = true;
+				item.preprocessing = false;
+				removeItem(item);
+				return;
+			}
+
+			applyVideoEncodeSettings(item, settings);
+		}
+
 		let preprocessedFile: Blob | File = item.file;
 
-		const needsCompress = item.compressionLevel !== 0 && VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(preprocessedFile.type);
+		const needsCompress = item.videoCodec !== 'copy' && VIDEO_COMPRESSION_SUPPORTED_TYPES.includes(preprocessedFile.type);
 
 		if (needsCompress) {
 			const mediabunny = await import('mediabunny');
@@ -635,17 +730,33 @@ export function useUploader(options: {
 				formats: mediabunny.ALL_FORMATS,
 			});
 
+			const outputFormat = item.videoCodec === 'vp9'
+				? new mediabunny.WebMOutputFormat()
+				: new mediabunny.Mp4OutputFormat();
+
 			const output = new mediabunny.Output({
 				target: new mediabunny.BufferTarget(),
-				format: new mediabunny.Mp4OutputFormat(),
+				format: outputFormat,
 			});
+
+			let bitrate: number | Quality;
+			if (item.videoQualityLevel === 'manual' && item.videoBitrateValue != null && item.videoBitrateValue > 0) {
+				bitrate = item.videoBitrateValue;
+			} else if (item.videoQualityLevel === 'high') {
+				bitrate = mediabunny.QUALITY_VERY_HIGH;
+			} else if (item.videoQualityLevel === 'low') {
+				bitrate = mediabunny.QUALITY_VERY_LOW;
+			} else {
+				bitrate = mediabunny.QUALITY_MEDIUM;
+			}
 
 			const currentConversion = await mediabunny.Conversion.init({
 				input,
 				output,
 				video: {
+					codec: item.videoCodec === 'vp9' ? 'vp9' : 'avc',
 					//width: 320, // Height will be deduced automatically to retain aspect ratio
-					bitrate: item.compressionLevel === 1 ? mediabunny.QUALITY_VERY_HIGH : item.compressionLevel === 2 ? mediabunny.QUALITY_MEDIUM : mediabunny.QUALITY_VERY_LOW,
+					bitrate,
 				},
 				audio: {
 					// Explicitly keep audio (don't discard) and copy it if possible
@@ -669,7 +780,7 @@ export function useUploader(options: {
 
 			preprocessedFile = new Blob([output.target.buffer!], { type: output.format.mimeType });
 			item.compressedSize = output.target.buffer!.byteLength;
-			item.uploadName = `${item.name}.mp4`;
+			item.uploadName = `${item.name}${outputFormat.fileExtension}`;
 		} else {
 			item.compressedSize = null;
 			item.uploadName = item.name;
@@ -678,6 +789,12 @@ export function useUploader(options: {
 		if (item.thumbnail != null) URL.revokeObjectURL(item.thumbnail);
 		item.thumbnail = THUMBNAIL_SUPPORTED_TYPES.includes(preprocessedFile.type) ? window.URL.createObjectURL(preprocessedFile) : null;
 		item.preprocessedFile = markRaw(preprocessedFile);
+	}
+
+	function applyVideoEncodeSettings(item: UploaderItem, settings: VideoEncodeDialogResult) {
+		item.videoCodec = settings.videoCodec;
+		item.videoQualityLevel = settings.videoQualityLevel;
+		item.videoBitrateValue = settings.videoBitrateValue;
 	}
 
 	function dispose() {
@@ -706,4 +823,3 @@ export function useUploader(options: {
 		events,
 	};
 }
-

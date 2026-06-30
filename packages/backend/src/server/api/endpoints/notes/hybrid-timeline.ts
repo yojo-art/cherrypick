@@ -67,6 +67,7 @@ export const paramDef = {
 		withRenotes: { type: 'boolean', default: true },
 		withReplies: { type: 'boolean', default: false },
 		withCats: { type: 'boolean', default: false },
+		withBots: { type: 'boolean', default: true },
 	},
 	required: [],
 } as const;
@@ -114,6 +115,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withFiles: ps.withFiles,
 					withReplies: ps.withReplies,
 					withCats: ps.withCats,
+					withBots: ps.withBots,
 				}, me);
 
 				process.nextTick(() => {
@@ -161,6 +163,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				alwaysIncludeMyNotes: true,
 				excludePureRenotes: !ps.withRenotes,
 				withCats: ps.withCats,
+				withBots: ps.withBots,
 				noteFilter: note => {
 					if (note.reply && note.reply.visibility === 'followers') {
 						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
@@ -178,6 +181,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withFiles: ps.withFiles,
 					withReplies: ps.withReplies,
 					withCats: ps.withCats,
+					withBots: ps.withBots,
 				}, me),
 			});
 
@@ -199,6 +203,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		withFiles: boolean,
 		withReplies: boolean,
 		withCats: boolean,
+		withBots: boolean,
 	}, me: MiLocalUser) {
 		const followeesHasChannels = await this.followingsRepository.createQueryBuilder('following')
 			.innerJoinAndSelect('following.followee', 'followee')
@@ -287,6 +292,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		if (ps.withCats) {
 			query.andWhere('(select "isCat" from "user" where id = note."userId")');
+		}
+
+		if (!ps.withBots) {
+			query.andWhere('user.isBot = FALSE');
 		}
 		//#endregion
 
