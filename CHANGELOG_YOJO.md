@@ -1,3 +1,17 @@
+## 1.7.5
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-06-29
+
+### General
+
+### Client
+
+### Server
+- Fix: セキュリティに関する修正 (Cherry-picked from misskey 2026.6.0)
+
 ## 1.7.4
 Cherrypick 4.17.0  
 Misskey 2025.10.2
