@@ -4,7 +4,7 @@
  */
 
 /**
- * CherryPick Entry Point!
+ * Misskey Entry Point!
  */
 
 import cluster from 'node:cluster';
@@ -20,7 +20,7 @@ import { readyRef } from './ready.js';
 
 import 'reflect-metadata';
 
-process.title = `CherryPick (${cluster.isPrimary ? 'master' : 'worker'})`;
+process.title = `Misskey (${cluster.isPrimary ? 'master' : 'worker'})`;
 
 Error.stackTraceLimit = Infinity;
 EventEmitter.defaultMaxListeners = 128;

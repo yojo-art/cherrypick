@@ -84,7 +84,7 @@ window.document.documentElement.style.maxWidth = '500px';
 
 // iframeIdの設定
 function setIframeIdHandler(event: MessageEvent) {
-	if (event.data?.type === 'cherrypick:embedParent:registerIframeId' && event.data.payload?.iframeId != null) {
+	if (event.data?.type === 'misskey:embedParent:registerIframeId' && event.data.payload?.iframeId != null) {
 		setIframeId(event.data.payload.iframeId);
 		window.removeEventListener('message', setIframeIdHandler);
 	}
@@ -126,7 +126,7 @@ const rootEl = ((): HTMLElement => {
 	return root;
 })();
 
-postMessageToParentWindow('cherrypick:embed:ready');
+postMessageToParentWindow('misskey:embed:ready');
 
 app.mount(rootEl);
 

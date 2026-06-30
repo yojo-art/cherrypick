@@ -1,7 +1,7 @@
 import { DataSource } from 'typeorm';
 import { loadConfig } from './built/config.js';
 import { entities } from './built/postgres.js';
-import { isConcurrentIndexMigrationEnabled } from './migration/js/migration-config.js';
+import { isConcurrentIndexMigrationEnabled } from "./migration/js/migration-config.js";
 
 const config = loadConfig();
 

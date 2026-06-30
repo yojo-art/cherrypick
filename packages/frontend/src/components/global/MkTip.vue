@@ -58,4 +58,5 @@ function showMenu(ev: MouseEvent) {
 		color: var(--MI_THEME-infoWarnFg);
 	}
 }
+
 </style>

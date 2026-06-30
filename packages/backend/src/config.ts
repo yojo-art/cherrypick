@@ -268,8 +268,8 @@ const dir = `${_dirname}/../../../.config`;
 /**
  * Path of configuration file
  */
-export const path = process.env.CHERRYPICK_CONFIG_YML
-	? resolve(dir, process.env.CHERRYPICK_CONFIG_YML)
+export const path = process.env.MISSKEY_CONFIG_YML
+	? resolve(dir, process.env.MISSKEY_CONFIG_YML)
 	: process.env.NODE_ENV === 'test'
 		? resolve(dir, 'test.yml')
 		: resolve(dir, 'default.yml');
@@ -288,7 +288,11 @@ export function loadConfig(): Config {
 
 	const config = yaml.load(fs.readFileSync(path, 'utf-8')) as Source;
 
-	const url = tryCreateUrl(config.url ?? process.env.CHERRYPICK_URL ?? '');
+	const url = tryCreateUrl(
+		config.url ??
+		process.env.CHERRYPICK_URL ??
+		process.env.MISSKEY_URL ??
+		'');
 	const version = meta.version;
 	const basedMisskeyVersion = meta.basedMisskeyVersion;
 	const basedCherrypickVersion = meta.basedCherrypickVersion;

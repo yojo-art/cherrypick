@@ -45,6 +45,7 @@ export type ChartSrc =
 </script>
 
 <script lang="ts" setup>
+
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
 import { Chart } from 'chart.js';
 import * as Misskey from 'misskey-js';
@@ -877,6 +878,7 @@ watch(() => [props.src, props.span], fetchAndRender);
 onMounted(() => {
 	fetchAndRender();
 });
+
 </script>
 
 <style lang="scss" module>

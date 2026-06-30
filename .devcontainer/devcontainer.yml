@@ -1,5 +1,5 @@
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CherryPick configuration
+# Misskey configuration
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 #   ┌─────┐
@@ -15,19 +15,19 @@ url: http://127.0.0.1:3000/
 #───┘ Port and TLS settings └───────────────────────────────────
 
 #
-# CherryPick requires a reverse proxy to support HTTPS connections.
+# Misskey requires a reverse proxy to support HTTPS connections.
 #
-#                 +-------- https://example.tld/ ------------+
-#   +------+      |+-------------+      +-------------------+|
-#   | User | ---> || Proxy (443) | ---> | CherryPick (3000) ||
-#   +------+      |+-------------+      +-------------------+|
-#                 +------------------------------------------+
+#                 +----- https://example.tld/ ------------+
+#   +------+      |+-------------+      +----------------+|
+#   | User | ---> || Proxy (443) | ---> | Misskey (3000) ||
+#   +------+      |+-------------+      +----------------+|
+#                 +---------------------------------------+
 #
 #   You need to set up a reverse proxy. (e.g. nginx)
 #   An encrypted connection with HTTPS is highly recommended
 #   because tokens may be transferred in GET requests.
 
-# The port that your CherryPick server should listen on.
+# The port that your Misskey server should listen on.
 port: 3000
 
 #   ┌──────────────────────────┐
@@ -38,7 +38,7 @@ db:
   port: 5432
 
   # Database name
-  db: cherrypick
+  db: misskey
 
   # Auth
   user: postgres
@@ -56,17 +56,17 @@ dbReplications: false
 # You can configure any number of replicas here
 #dbSlaves:
 #  -
-#    host: localhost
-#    port: 5433
-#    db: cherrypick
-#    user: example-cherrypick-user
-#    pass: example-cherrypick-pass
+#    host:
+#    port:
+#    db:
+#    user:
+#    pass:
 #  -
-#    host: localhost
-#    port: 5434
-#    db: cherrypick
-#    user: example-cherrypick-user
-#    pass: example-cherrypick-pass
+#    host:
+#    port:
+#    db:
+#    user:
+#    pass:
 
 #   ┌─────────────────────┐
 #───┘ Redis configuration └─────────────────────────────────────

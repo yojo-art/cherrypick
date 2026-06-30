@@ -28,8 +28,10 @@ async function connectToRedis(redisOptions) {
 		try {
 			await redis.connect();
 			resolve();
+
 		} catch (e) {
 			reject(e);
+
 		} finally {
 			redis.disconnect(false);
 		}
@@ -48,7 +50,7 @@ const promises = Array
 	]))
 	.map(connectToRedis)
 	.concat([
-		connectToPostgres(),
+		connectToPostgres()
 	]);
 
 await Promise.all(promises);

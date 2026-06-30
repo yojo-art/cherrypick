@@ -111,7 +111,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template #icon><i class="ti ti-code"></i></template>
 							{{ i18n.ts._aboutMisskey.source }}
 						</FormLink>
-						<FormLink v-if="instance.providesTarball" :to="`/tarball/cherrypick-${version}.tar.gz`" external>
+						<FormLink v-if="instance.providesTarball" :to="`/tarball/misskey-${version}.tar.gz`" external>
 							<template #icon><i class="ti ti-download"></i></template>
 							{{ i18n.ts._aboutMisskey.source }}
 							<template #suffix>Tarball</template>

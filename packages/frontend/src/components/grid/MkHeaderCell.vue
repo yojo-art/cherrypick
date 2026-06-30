@@ -164,7 +164,7 @@ onUnmounted(() => {
 
 </script>
 
-<style lang="scss" module>
+<style module lang="scss">
 $handleWidth: 5px;
 $cellHeight: 28px;
 

@@ -75,7 +75,7 @@ export async function masterMain() {
 		process.exit(1);
 	}
 
-	bootLogger.succ(chalk.hex('#ffa9c3')('Cherry') + chalk.hex('#95e3e8')('Pick') + (' initialized'));
+	bootLogger.succ('Misskey initialized');
 
 	if (config.sentryForBackend) {
 		Sentry.init({

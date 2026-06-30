@@ -1,5 +1,5 @@
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CherryPick configuration
+# Misskey configuration
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 #   ┌─────┐
@@ -15,33 +15,33 @@
 #───┘ Port and TLS settings └───────────────────────────────────
 
 #
-# CherryPick supports two deployment options for public.
+# Misskey supports two deployment options for public.
 #
 
 # Option 1: With Reverse Proxy
 #
-#                 +-------- https://example.tld/ ------------+
-#   +------+      |+-------------+      +-------------------+|
-#   | User | ---> || Proxy (443) | ---> | CherryPick (3000) ||
-#   +------+      |+-------------+      +-------------------+|
-#                 +------------------------------------------+
+#                 +----- https://example.tld/ ------------+
+#   +------+      |+-------------+      +----------------+|
+#   | User | ---> || Proxy (443) | ---> | Misskey (3000) ||
+#   +------+      |+-------------+      +----------------+|
+#                 +---------------------------------------+
 #
 #   You need to setup reverse proxy. (eg. nginx)
 #   You do not define 'https' section.
 
 # Option 2: Standalone
 #
-#                 +-- https://example.tld/ --+
-#   +------+      |   +------------------+   |
-#   | User | ---> |   | CherryPick (443) |   |
-#   +------+      |   +------------------+   |
-#                 +--------------------------+
+#                 +- https://example.tld/ -+
+#   +------+      |   +---------------+    |
+#   | User | ---> |   | Misskey (443) |    |
+#   +------+      |   +---------------+    |
+#                 +------------------------+
 #
-#   You need to run CherryPick as root.
+#   You need to run Misskey as root.
 #   You need to set Certificate in 'https' section.
 
 # To use option 1, uncomment below line.
-port: 3000 # A port that your CherryPick server should listen.
+port: 3000 # A port that your Misskey server should listen.
 
 # To use option 2, uncomment below lines.
 #port: 443
@@ -59,11 +59,11 @@ db:
   port: 5432
 
   # Database name
-  db: cherrypick
+  db: misskey
 
   # Auth
-  user: example-cherrypick-user
-  pass: example-cherrypick-pass
+  user: example-misskey-user
+  pass: example-misskey-pass
 
   # Whether disable Caching queries
   #disableCache: true
@@ -77,17 +77,17 @@ dbReplications: false
 # You can configure any number of replicas here
 #dbSlaves:
 #  -
-#    host: localhost
-#    port: 5433
-#    db: cherrypick
-#    user: example-cherrypick-user
-#    pass: example-cherrypick-pass
+#    host:
+#    port:
+#    db:
+#    user:
+#    pass:
 #  -
-#    host: localhost
-#    port: 5434
-#    db: cherrypick
-#    user: example-cherrypick-user
-#    pass: example-cherrypick-pass
+#    host:
+#    port:
+#    db:
+#    user:
+#    pass:
 
 #   ┌─────────────────────┐
 #───┘ Redis configuration └─────────────────────────────────────

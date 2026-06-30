@@ -4,7 +4,7 @@ services:
       file: ./compose.tpl.yml
       service: nginx
     depends_on:
-      cherrypick.c.test:
+      misskey.c.test:
         condition: service_healthy
     networks:
       - internal_network_c
@@ -22,10 +22,10 @@ services:
         target: /etc/nginx/certificates/c.test.key
         read_only: true
 
-  cherrypick.c.test:
+  misskey.c.test:
     extends:
       file: ./compose.tpl.yml
-      service: cherrypick
+      service: misskey
     depends_on:
       db.c.test:
         condition: service_healthy
@@ -38,7 +38,7 @@ services:
     volumes:
       - type: bind
         source: ./.config/c.test.default.yml
-        target: /cherrypick/.config/default.yml
+        target: /misskey/.config/default.yml
         read_only: true
 
   db.c.test:

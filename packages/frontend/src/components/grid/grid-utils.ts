@@ -6,12 +6,12 @@
 import { isRef } from 'vue';
 import type { Ref } from 'vue';
 import type { DataSource, SizeStyle } from '@/components/grid/grid.js';
+import { CELL_ADDRESS_NONE } from '@/components/grid/cell.js';
 import type { CellAddress, CellValue, GridCell } from '@/components/grid/cell.js';
 import type { GridRow } from '@/components/grid/row.js';
 import type { GridContext } from '@/components/grid/grid-event.js';
-import type { GridColumn, GridColumnSetting } from '@/components/grid/column.js';
 import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
-import { CELL_ADDRESS_NONE } from '@/components/grid/cell.js';
+import type { GridColumn, GridColumnSetting } from '@/components/grid/column.js';
 
 export function isCellElement(elem: HTMLElement): boolean {
 	return elem.hasAttribute('data-grid-cell');

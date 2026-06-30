@@ -78,7 +78,7 @@ describe('ap-request', () => {
 			'https://alice.example.com/abc',
 			FetchAllowSoftFailMask.Any,
 		), 'validation should fail no matter what if the response URL is inconsistent with the object ID');
-
+		
 		assert.doesNotThrow(() => assertActivityMatchesUrl(
 			'https://alice.example.com/abc#test',
 			{ id: 'https://alice.example.com/abc' } as IObject,

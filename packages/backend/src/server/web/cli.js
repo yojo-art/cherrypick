@@ -17,12 +17,12 @@ window.onload = async () => {
 			// Send request
 			fetch(endpoint.indexOf('://') > -1 ? endpoint : `/api/${endpoint}`, {
 				headers: {
-					'Content-Type': 'application/json',
+					'Content-Type': 'application/json'
 				},
 				method: 'POST',
 				body: JSON.stringify(data),
 				credentials: 'omit',
-				cache: 'no-cache',
+				cache: 'no-cache'
 			}).then(async (res) => {
 				const body = res.status === 204 ? null : await res.json();
 
@@ -41,7 +41,7 @@ window.onload = async () => {
 
 	document.getElementById('submit').addEventListener('click', () => {
 		api('notes/create', {
-			text: document.getElementById('text').value,
+			text: document.getElementById('text').value
 		}).then(() => {
 			location.reload();
 		});
@@ -51,10 +51,8 @@ window.onload = async () => {
 		const tl = document.getElementById('tl');
 		for (const note of notes) {
 			const el = document.createElement('div');
-
 			const name = document.createElement('header');
 			name.textContent = `${note.user.name} @${note.user.username}`;
-
 			const text = document.createElement('div');
 			if (note.renoteId !== null) {
 				const renoteTextShrinked = note.renote.text.slice(0, 30).concat('...');

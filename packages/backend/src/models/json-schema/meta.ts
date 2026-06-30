@@ -43,7 +43,7 @@ export const packedMetaLiteSchema = {
 			type: 'string',
 			optional: false, nullable: false,
 			format: 'url',
-			example: 'https://cherrypick.example.com',
+			example: 'https://misskey.example.com',
 		},
 		description: {
 			type: 'string',

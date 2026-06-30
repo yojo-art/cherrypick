@@ -26,13 +26,13 @@ jobs:
           git fetch --depth 1 origin ${{ github.base_ref }}
           git checkout origin/${{ github.base_ref }} CHANGELOG_YOJO.md
 
-      - name: Copy to Checker directory for CHANGELOG-base.md
-        run: cp _base/CHANGELOG_YOJO.md scripts/changelog-checker/CHANGELOG-base.md
-      - name: Copy to Checker directory for CHANGELOG-head.md
-        run: cp CHANGELOG_YOJO.md scripts/changelog-checker/CHANGELOG-head.md
+      - name: Copy to Checker directory for CHANGELOG_YOJO-base.md
+        run: cp _base/CHANGELOG_YOJO.md scripts/changelog-checker/CHANGELOG-base_YOJO.md
+      - name: Copy to Checker directory for CHANGELOG_YOJO-head.md
+        run: cp CHANGELOG_YOJO.md scripts/changelog-checker/CHANGELOG_YOJO-head.md
       - name: diff
         continue-on-error: true
-        run: diff -u CHANGELOG_CHERRYPICK-base.md CHANGELOG_CHERRYPICK-head.md
+        run: diff -u CHANGELOG_YOJO-base.md CHANGELOG_YOJO-head.md
         working-directory: scripts/changelog-checker
 
       - name: Setup Checker

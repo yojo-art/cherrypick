@@ -14,7 +14,7 @@ export const meta = {
 	tags: ['account'],
 
 	requireCredential: true,
-	kind: 'read:account',
+	kind: "read:account",
 
 	res: {
 		type: 'object',
@@ -46,8 +46,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private userEntityService: UserEntityService,
 	) {
-		super(meta, paramDef, async (ps, user, token, flashToken) => {
-			const isSecure = token == null && flashToken == null;
+		super(meta, paramDef, async (ps, user, token) => {
+			const isSecure = token == null;
 
 			const now = new Date();
 			const today = `${now.getFullYear()}/${now.getMonth() + 1}/${now.getDate()}`;

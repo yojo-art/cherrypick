@@ -90,7 +90,7 @@
 			messages = JSON.parse(bootloaderLocales);
 		}
 		if (!messages) {
-			// older version of cherrypick does not store bootloaderLocales, stores locale as a whole
+			// older version of misskey does not store bootloaderLocales, stores locale as a whole
 			const legacyLocale = localStorage.getItem('locale');
 			if (legacyLocale) {
 				const parsed = JSON.parse(legacyLocale);
@@ -102,7 +102,7 @@
 		}
 		if (!messages) messages = {};
 
-		const title = messages?.title || 'Failed to initialize CherryPick';
+		const title = messages?.title || 'Failed to initialize Misskey';
 		const reload = messages?.reload || 'Reload';
 
 		document.body.innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="icon"><path stroke="none" d="M0 0h24v24H0z" fill="none"/><path d="M12 12m-9 0a9 9 0 1 0 18 0a9 9 0 1 0 -18 0" /><path d="M12 9v4" /><path d="M12 16v.01" /></svg>
@@ -112,7 +112,7 @@
 			<div>${reload}</div>
 		</button>`;
 		addStyle(`
-		#cherrypick_app,
+		#misskey_app,
 		#splash {
 			display: none !important;
 		}
@@ -137,7 +137,7 @@
 			box-sizing: border-box;
 			overflow: hidden;
 
-			border-radius: var(--MI-radius, 12px);
+			border-radius: var(--radius, 12px);
 			border: 1px solid rgba(231, 255, 251, 0.14);
 		}
 
@@ -149,7 +149,7 @@
 			width: 100%;
 			height: 100%;
 			background: #192320;
-			border-radius: var(--MI-radius, 12px);
+			border-radius: var(--radius, 12px);
 			z-index: -1;
 		}
 
