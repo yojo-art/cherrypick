@@ -5,6 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import * as mfm from 'mfc-js';
+import { In } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository, MiUser } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
@@ -141,14 +142,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						where: { userId: channel.actorId },
 						select: ['id'],
 					})).map(x => x.id);
-					const new_notes = (await this.notesRepository.createQueryBuilder('note').select(['id']).whereInIds(ps.pinnedNoteIds).getMany()).map(x => x.id);
+					const new_notes = (await this.userNotePiningsRepository.find({
+						where: { id: In(ps.pinnedNoteIds) },
+						select: ['id'],
+					})).map(x => x.id);
 					const add = new_notes.filter(x => !old_notes.includes(x));
 					const remove = old_notes.filter(x => !new_notes.includes(x));
 					for (const pin of remove) {
-						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin);
+						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 					for (const pin of add) {
-						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin);
+						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 				}
 				if (banner) {
