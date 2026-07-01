@@ -523,8 +523,10 @@ export class ApRendererService {
 		} else { // if (note.searchableBy === searchableTypes[3])
 			searchableBy = ['as:Limited', 'kmyblue:Limited'];
 		}
-		const mentionedUsers = note.mentions.length > 0 ? await this.usersRepository.findBy({
-			id: In(note.mentions),
+		const mentionUserIds = note.mentions.concat();
+		if (note.channel?.actorId)mentionUserIds.push(note.channel.actorId);
+		const mentionedUsers = mentionUserIds.length > 0 ? await this.usersRepository.findBy({
+			id: In(mentionUserIds),
 		}) : [];
 
 		const hashtagTags = note.tags.map(tag => this.renderHashtag(tag));
@@ -606,7 +608,7 @@ export class ApRendererService {
 
 		return {
 			id: `${this.config.url}/notes/${note.id}`,
-			type: 'Note',
+			type: inReplyTo === null && channelActorUri ? 'Page' : 'Note',
 			attributedTo,
 			summary: summary ?? undefined,
 			content: content ?? undefined,

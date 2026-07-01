@@ -593,6 +593,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 				data.visibleUsers.push(await this.usersRepository.findOneByOrFail({ id: data.reply!.userId }));
 			}
 		}
+		if (data.channel) {
+			//チャンネル投稿のチャンネルへのメンションは表示しない
+			mentionedUsers = mentionedUsers.filter(x => x.id !== data.channel?.id);
+		}
 
 		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
