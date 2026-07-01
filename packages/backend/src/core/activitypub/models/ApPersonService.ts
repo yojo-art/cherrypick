@@ -1068,6 +1068,14 @@ export class ApPersonService implements OnModuleInit {
 					noteId: note.id,
 				});
 			}
+			if (user.channelId) {
+				const pinnedNoteIds = featuredNotes.filter(x => x != null).map(x => x.id);
+				transactionalEntityManager.update(MiChannel, {
+					pinnedNoteIds,
+				}, {
+					id: user.channelId,
+				});
+			}
 		});
 	}
 
