@@ -1051,16 +1051,14 @@ export class ApPersonService implements OnModuleInit {
 		const featuredNotes = await Promise.all(items
 			.filter(item => isPost(item))	// yojo-art: Note限定からisPostに判定を変更
 			.slice(0, rolePolicies.pinLimit)// yojo-art: ピン留め上限をロール基準に
-			.map(item => limit(() => {
+			.map(item => limit(async () => {
 				if (user.channelId) {
 					const isRemoteNote = new URL(getApId(item)).origin !== userUri.origin;
-					const note = this.apNoteService.resolveNote(isRemoteNote ? getApId(item) : item, {
+					const note = await this.apNoteService.resolveNote(isRemoteNote ? getApId(item) : item, {
 						resolver: _resolver,
 						sentFrom: isRemoteNote ? undefined : userUri,
 					});
-					return note.then(note => {
-						return note?.channelId === user.channelId ? note : null;
-					});
+					return note?.channelId === user.channelId ? note : null;
 				} else {
 					return this.apNoteService.resolveNote(item, {
 						resolver: _resolver,

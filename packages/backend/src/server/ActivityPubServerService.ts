@@ -421,7 +421,7 @@ export class ActivityPubServerService {
 			this.notesRepository.findOneByOrFail({ id: pining.noteId }))))
 			.filter(note => !note.localOnly && ['public', 'home'].includes(note.visibility));
 
-		const renderedNotes = await Promise.all(pinnedNotes.map(note => this.apRendererService.renderNote(note)));
+		const renderedNotes = user.channelId ? pinnedNotes.map(note => note.uri ?? `${this.config.url}/notes/${note.id}`) : await Promise.all(pinnedNotes.map(note => this.apRendererService.renderNote(note)));
 
 		const rendered = this.apRendererService.renderOrderedCollection(
 			`${this.config.url}/users/${userId}/collections/featured`,
