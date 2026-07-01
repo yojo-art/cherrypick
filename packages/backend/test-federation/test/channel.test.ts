@@ -196,8 +196,6 @@ describe('Channel', () => {
 			assert(updateChannelActorInB.pinnedNoteIds.length === 0, 'ピン留め解除したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			assert(aliceChInB.pinnedNoteIds.length === 0, 'リモートのピン留めが解除される');
-			await alice.client.request('following/delete', { userId: channelActorInB.id });
-			await sleep(500);
 		});
 	});
 
@@ -261,6 +259,7 @@ describe('Channel', () => {
 
 	describe('Timelines', () => {
 		beforeAll(async () => {
+			await alice.client.request('following/delete', { userId: channelActorInB.id });
 			await bob.client.request('following/create', { userId: aliceInB.id });
 			//フォロー処理待ち
 			await sleep(800);
