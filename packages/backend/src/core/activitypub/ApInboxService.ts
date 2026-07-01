@@ -995,7 +995,6 @@ export class ApInboxService {
 		if (activity.target === actor.featured) {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
-			let channel = undefined as MiChannel | undefined;
 			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
 				id: actor.channelId,
 			}) ?? undefined : undefined;
