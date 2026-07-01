@@ -1047,13 +1047,27 @@ export class ApPersonService implements OnModuleInit {
 		const rolePolicies = await this.roleService.getUserPolicies(user.id);
 		// Resolve and regist Notes
 		const limit = promiseLimit<MiNote | null>(2);
+		const userUri = new URL(user.uri);
 		const featuredNotes = await Promise.all(items
 			.filter(item => isPost(item))	// yojo-art: Note限定からisPostに判定を変更
 			.slice(0, rolePolicies.pinLimit)// yojo-art: ピン留め上限をロール基準に
-			.map(item => limit(() => this.apNoteService.resolveNote(item, {
-				resolver: _resolver,
-				sentFrom: new URL(user.uri),
-			}))));
+			.map(item => limit(() => {
+				if (user.channelId) {
+					const isRemoteNote = new URL(getApId(item)).origin !== userUri.origin;
+					const note = this.apNoteService.resolveNote(isRemoteNote ? getApId(item) : item, {
+						resolver: _resolver,
+						sentFrom: isRemoteNote ? undefined : userUri,
+					});
+					return note.then(note => {
+						return note?.channelId === user.channelId ? note : null;
+					});
+				} else {
+					return this.apNoteService.resolveNote(item, {
+						resolver: _resolver,
+						sentFrom: userUri,
+					});
+				}
+			})));
 
 		await this.db.transaction(async transactionalEntityManager => {
 			await transactionalEntityManager.delete(MiUserNotePining, { userId: user.id });
