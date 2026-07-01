@@ -39,7 +39,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
-import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
+import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPost, isPropertyValue } from '../type.js';
 import { parseSearchableByFromTags, parseSearchableByFromProperty } from '../misc/searchableBy.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -1044,11 +1044,12 @@ export class ApPersonService implements OnModuleInit {
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
 		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
 
+		const rolePolicies = await this.roleService.getUserPolicies(user.id);
 		// Resolve and regist Notes
 		const limit = promiseLimit<MiNote | null>(2);
 		const featuredNotes = await Promise.all(items
-			.filter(item => getApType(item) === 'Note')	// TODO: Noteでなくてもいいかも
-			.slice(0, 5)
+			.filter(item => isPost(item))	// yojo-art: Note限定からisPostに判定を変更
+			.slice(0, rolePolicies.pinLimit)// yojo-art: ピン留め上限をロール基準に
 			.map(item => limit(() => this.apNoteService.resolveNote(item, {
 				resolver: _resolver,
 				sentFrom: new URL(user.uri),
