@@ -259,6 +259,8 @@ describe('Channel', () => {
 
 	describe('Timelines', () => {
 		beforeAll(async () => {
+			assert(aliceCh.actorId);
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			await alice.client.request('following/delete', { userId: channelActorInB.id });
 			await bob.client.request('following/create', { userId: aliceInB.id });
 			//フォロー処理待ち
