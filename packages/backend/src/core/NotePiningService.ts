@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { MiChannel, NotesRepository, UserNotePiningsRepository, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, MiChannel, NotesRepository, UserNotePiningsRepository, UsersRepository } from '@/models/_.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type { MiUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
@@ -33,6 +33,8 @@ export class NotePiningService {
 
 		@Inject(DI.userNotePiningsRepository)
 		private userNotePiningsRepository: UserNotePiningsRepository,
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private userEntityService: UserEntityService,
 		private idService: IdService,
@@ -83,7 +85,9 @@ export class NotePiningService {
 			userId: user.id,
 			noteId: note.id,
 		} as MiUserNotePining);
-
+		if (channel && !channel.pinnedNoteIds.includes(note.id)) {
+			await this.channelsRepository.update(channel.id, { pinnedNoteIds: [...channel.pinnedNoteIds, note.id] });
+		}
 		// Deliver to remote followers
 		if (this.userEntityService.isLocalUser(user) && !note.localOnly && ['public', 'home'].includes(note.visibility)) {
 			this.deliverPinnedChange(user.id, note, true);
@@ -119,7 +123,11 @@ export class NotePiningService {
 			userId: user.id,
 			noteId: note.id,
 		});
-
+		if (channel && channel.pinnedNoteIds.includes(note.id)) {
+			await this.channelsRepository.update(channel.id, {
+				pinnedNoteIds: channel.pinnedNoteIds.filter(id => id !== note.id),
+			});
+		}
 		// Deliver to remote followers
 		if (this.userEntityService.isLocalUser(user) && !note.localOnly && ['public', 'home'].includes(note.visibility)) {
 			this.deliverPinnedChange(user.id, note, false);

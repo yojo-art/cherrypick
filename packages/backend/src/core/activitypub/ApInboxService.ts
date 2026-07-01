@@ -374,12 +374,9 @@ export class ApInboxService {
 		if (activity.target === actor.featured) {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
-			let channel = undefined as MiChannel | undefined;
-			if (note.channelId && note.channelId === actor.channelId) {
-				channel = await this.channelsRepository.findOneBy({
-					id: note.channelId,
-				}) ?? undefined;
-			}
+			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
+				id: actor.channelId,
+			}) ?? undefined : undefined;
 			await this.notePiningService.addPinned(actor, note.id, channel);
 			return;
 		}
@@ -999,11 +996,9 @@ export class ApInboxService {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
 			let channel = undefined as MiChannel | undefined;
-			if (note.channelId && note.channelId === actor.channelId) {
-				channel = await this.channelsRepository.findOneBy({
-					id: note.channelId,
-				}) ?? undefined;
-			}
+			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
+				id: actor.channelId,
+			}) ?? undefined : undefined;
 			await this.notePiningService.removePinned(actor, note.id, channel);
 			return;
 		}
