@@ -149,11 +149,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					const add = new_notes.filter(x => !old_notes.includes(x));
 					const remove = old_notes.filter(x => !new_notes.includes(x));
 					for (const pin of remove) {
-						console.log('remove pin note' + pin.id);
+						console.log('remove pin note' + pin);
 						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 					for (const pin of add) {
-						console.log('add pin note' + pin.id);
+						console.log('add pin note' + pin);
 						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 				}
