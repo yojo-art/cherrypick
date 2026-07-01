@@ -116,7 +116,7 @@ describe('Channel', () => {
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(channelActorInB.bannerUrl, aliceChInB.bannerUrl, 'リモートにバナー画像が設定される');
 		});
-		test('チャンネルはローカルのチャンネル投稿をピン止めできる', async () => {
+		test('チャンネルはローカルのチャンネル投稿をピン留めできる', async () => {
 			const note = (await alice.client.request('notes/create', {
 				text: 'I am Alice!',
 				channelId: aliceCh.id,
@@ -126,18 +126,18 @@ describe('Channel', () => {
 
 			assert(aliceCh.actorId);
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
-			strictEqual(channelActorInA.pinnedNoteIds[0], note.id, 'ピン止めするとローカルの対応したユーザーにピン止めされる');
+			strictEqual(channelActorInA.pinnedNoteIds[0], note.id, 'ピン留めするとローカルの対応したユーザーにピン留めされる');
 			await sleep();
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
 			await sleep();
 			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
-			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン止めを設定したユーザーが連合する');
+			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
-			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン止めが設定される');
+			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン留めが設定される');
 		});
-		test('チャンネルはリモートのチャンネル投稿をピン止めできる', async () => {
+		test('チャンネルはリモートのチャンネル投稿をピン留めできる', async () => {
 			const note = (await carol.client.request('notes/create', {
 				text: 'I am Carol!',
 				channelId: aliceChInC.id,
@@ -147,16 +147,16 @@ describe('Channel', () => {
 
 			assert(aliceCh.actorId);
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
-			strictEqual(channelActorInA.pinnedNoteIds[0], note.id, 'ピン止めするとローカルの対応したユーザーにピン止めされる');
+			strictEqual(channelActorInA.pinnedNoteIds[0], note.id, 'ピン留めするとローカルの対応したユーザーにピン留めされる');
 			await sleep();
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
 			await sleep();
 			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			const resolvedNote = await resolveRemoteNote('c.test', note.id, bob);
-			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン止めを設定したユーザーが連合する');
+			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
-			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン止めが設定される');
+			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン留めが設定される');
 		});
 	});
 
