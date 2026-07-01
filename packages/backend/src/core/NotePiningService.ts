@@ -86,7 +86,7 @@ export class NotePiningService {
 
 		// Deliver to remote followers
 		if (this.userEntityService.isLocalUser(user) && !note.localOnly && ['public', 'home'].includes(note.visibility)) {
-			this.deliverPinnedChange(user.id, note.id, true);
+			this.deliverPinnedChange(user.id, note, true);
 		}
 	}
 
@@ -122,19 +122,19 @@ export class NotePiningService {
 
 		// Deliver to remote followers
 		if (this.userEntityService.isLocalUser(user) && !note.localOnly && ['public', 'home'].includes(note.visibility)) {
-			this.deliverPinnedChange(user.id, noteId, false);
+			this.deliverPinnedChange(user.id, note, false);
 		}
 	}
 
 	@bindThis
-	public async deliverPinnedChange(userId: MiUser['id'], noteId: MiNote['id'], isAddition: boolean) {
+	private async deliverPinnedChange(userId: MiUser['id'], note: MiNote, isAddition: boolean) {
 		const user = await this.usersRepository.findOneBy({ id: userId });
 		if (user == null) throw new Error('user not found');
 
 		if (!this.userEntityService.isLocalUser(user)) return;
 
 		const target = `${this.config.url}/users/${user.id}/collections/featured`;
-		const item = `${this.config.url}/notes/${noteId}`;
+		const item = note.url ?? note.uri ?? `${this.config.url}/notes/${note.id}`;
 		const content = this.apRendererService.addContext(isAddition ? this.apRendererService.renderAdd(user, target, item) : this.apRendererService.renderRemove(user, target, item));
 
 		this.apDeliverManagerService.deliverToFollowers(user, content);

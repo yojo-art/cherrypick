@@ -142,7 +142,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						where: { userId: channel.actorId },
 						select: ['id'],
 					})).map(x => x.id);
-					const new_notes = (await this.userNotePiningsRepository.find({
+					const new_notes = (await this.notesRepository.find({
 						where: { id: In(ps.pinnedNoteIds) },
 						select: ['id'],
 					})).map(x => x.id);
