@@ -1074,7 +1074,7 @@ export class ApPersonService implements OnModuleInit {
 			let td = 0;
 			for (const note of featuredNotes.filter(x => x != null)) {
 				td -= 1000;
-				transactionalEntityManager.insert(MiUserNotePining, {
+				await transactionalEntityManager.insert(MiUserNotePining, {
 					id: this.idService.gen(Date.now() + td),
 					userId: user.id,
 					noteId: note.id,
@@ -1082,7 +1082,7 @@ export class ApPersonService implements OnModuleInit {
 			}
 			if (user.channelId) {
 				const pinnedNoteIds = featuredNotes.filter(x => x != null).map(x => x.id);
-				transactionalEntityManager.update(MiChannel, {
+				await transactionalEntityManager.update(MiChannel, {
 					id: user.channelId,
 				}, {
 					pinnedNoteIds,
