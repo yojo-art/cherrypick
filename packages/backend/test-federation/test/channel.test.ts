@@ -140,6 +140,8 @@ describe('Channel', () => {
 			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [] });
 			const updateChannelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			assert(updateChannelActorInA.pinnedNoteIds.length === 0, 'ピン留め解除するとローカルの対応したユーザーにも反映される');
+			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
+			await sleep();
 			const updateChannelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			assert(updateChannelActorInB.pinnedNoteIds.length === 0, 'ピン留め解除したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
@@ -151,7 +153,8 @@ describe('Channel', () => {
 				channelId: aliceChInC.id,
 				visibility: 'public',
 			})).createdNote;
-			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [note.id] });
+			const resolvedNoteInA = await resolveRemoteNote('c.test', note.id, alice);
+			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [resolvedNoteInA.id] });
 
 			assert(aliceCh.actorId);
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
