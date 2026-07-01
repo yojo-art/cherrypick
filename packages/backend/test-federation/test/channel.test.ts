@@ -131,12 +131,19 @@ describe('Channel', () => {
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
 			await sleep();
-			await resolveRemoteUser('a.test', aliceCh.actorId, bob);
-			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
 			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン留めが設定される');
+
+			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [] });
+			const updateChannelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			assert(updateChannelActorInA.pinnedNoteIds.length === 0, 'ピン留め解除するとローカルの対応したユーザーにも反映される');
+			const updateChannelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			assert(updateChannelActorInB.pinnedNoteIds.length === 0, 'ピン留め解除したユーザーが連合する');
+			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+			assert(aliceChInB.pinnedNoteIds.length === 0, 'リモートのピン留めが解除される');
 		});
 		test('チャンネルはリモートのチャンネル投稿をピン留めできる', async () => {
 			const note = (await carol.client.request('notes/create', {
@@ -153,8 +160,7 @@ describe('Channel', () => {
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
 			await sleep();
-			await resolveRemoteUser('a.test', aliceCh.actorId, bob);
-			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			const resolvedNote = await resolveRemoteNote('c.test', note.id, bob);
 			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
