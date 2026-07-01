@@ -168,6 +168,9 @@ describe('Channel', () => {
 			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン留めが設定される');
+			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [] });
+			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
+			await sleep();
 		});
 		test('ピン留めが配送される', async () => {
 			assert(aliceCh.actorId);
