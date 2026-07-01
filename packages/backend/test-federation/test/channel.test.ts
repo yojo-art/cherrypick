@@ -116,7 +116,7 @@ describe('Channel', () => {
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(channelActorInB.bannerUrl, aliceChInB.bannerUrl, 'リモートにバナー画像が設定される');
 		});
-		test('チャンネルはローカルのチャンネル投稿をピン留めできる', async () => {
+		test('ローカルのチャンネル投稿をピン留めできる', async () => {
 			const note = (await alice.client.request('notes/create', {
 				text: 'I am Alice!',
 				channelId: aliceCh.id,
@@ -147,7 +147,7 @@ describe('Channel', () => {
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			assert(aliceChInB.pinnedNoteIds.length === 0, 'リモートのピン留めが解除される');
 		});
-		test('チャンネルはリモートのチャンネル投稿をピン留めできる', async () => {
+		test('リモートのチャンネル投稿をピン留めできる', async () => {
 			const note = (await carol.client.request('notes/create', {
 				text: 'I am Carol!',
 				channelId: aliceChInC.id,
@@ -158,7 +158,7 @@ describe('Channel', () => {
 
 			assert(aliceCh.actorId);
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
-			strictEqual(channelActorInA.pinnedNoteIds[0], note.id, 'ピン留めするとローカルの対応したユーザーにピン留めされる');
+			strictEqual(channelActorInA.pinnedNoteIds[0], resolvedNoteInA.id, 'ピン留めするとローカルの対応したユーザーにピン留めされる');
 			await sleep();
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
@@ -168,6 +168,33 @@ describe('Channel', () => {
 			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
 			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン留めが設定される');
+		});
+		test('ピン留めが配送される', async () => {
+			assert(aliceCh.actorId);
+			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			await bob.client.request('following/create', { userId: channelActorInB.id });
+			//フォロー処理待ち
+			await sleep(800);
+			const note = (await alice.client.request('notes/create', {
+				text: 'I am Alice!',
+				channelId: aliceCh.id,
+				visibility: 'public',
+			})).createdNote;
+			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [note.id] });
+			await sleep(800);//配送待ち
+			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
+			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
+			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+			strictEqual(aliceChInB.pinnedNoteIds[0], resolvedNote.id, 'リモートにピン留めが設定される');
+
+			await alice.client.request('channels/update', { channelId: aliceCh.id, pinnedNoteIds: [] });
+			await sleep(800);//配送待ち
+			const updateChannelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			assert(updateChannelActorInB.pinnedNoteIds.length === 0, 'ピン留め解除したユーザーが連合する');
+			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+			assert(aliceChInB.pinnedNoteIds.length === 0, 'リモートのピン留めが解除される');
+			await alice.client.request('following/delete', { userId: channelActorInB.id });
+			await sleep(500);
 		});
 	});
 
