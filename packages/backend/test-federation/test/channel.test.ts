@@ -131,7 +131,8 @@ describe('Channel', () => {
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
 			await sleep();
-			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
 			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
 			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
@@ -152,7 +153,8 @@ describe('Channel', () => {
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });
 			await sleep();
-			const channelActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			await resolveRemoteUser('a.test', aliceCh.actorId, bob);
+			const channelActorInB = await bob.client.request('users/show', { userId: aliceChActorInB.id });
 			const resolvedNote = await resolveRemoteNote('c.test', note.id, bob);
 			strictEqual(channelActorInB.pinnedNoteIds[0], resolvedNote.id, 'ピン留めを設定したユーザーが連合する');
 			aliceChInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
