@@ -36,8 +36,8 @@ async function launch() {
 		logger: new NestLogger(),
 	});
 	serverService = app.get(ServerService);
-	await serverService.launch();
 	await initializeSystemAccounts();
+	await serverService.launch();
 
 	await startControllerEndpoints();
 
@@ -96,8 +96,8 @@ async function startControllerEndpoints(port = config.port + 1000) {
 			logger: new NestLogger(),
 		});
 		serverService = app.get(ServerService);
-		await serverService.launch();
 		await initializeSystemAccounts();
+		await serverService.launch();
 
 		res.code(200).send({ success: true });
 	});
