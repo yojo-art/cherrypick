@@ -148,18 +148,27 @@ export class SystemAccountService implements OnApplicationShutdown {
 				this.logger.info(`System account '${type}' create: existing user found, reusing`);
 				return;
 			}
-
-			account = await transactionalEntityManager.insert(MiUser, {
-				id: this.idService.gen(),
-				username: extra.username,
-				usernameLower: extra.username.toLowerCase(),
-				host: null,
-				token: secret,
-				isLocked: true,
-				isExplorable: false,
-				isBot: true,
-				name: extra.name,
-			}).then(x => transactionalEntityManager.findOneByOrFail(MiUser, x.identifiers[0]));
+			try {
+				account = await transactionalEntityManager.insert(MiUser, {
+					id: this.idService.gen(),
+					username: extra.username,
+					usernameLower: extra.username.toLowerCase(),
+					host: null,
+					token: secret,
+					isLocked: true,
+					isExplorable: false,
+					isBot: true,
+					name: extra.name,
+				}).then(x => transactionalEntityManager.findOneByOrFail(MiUser, x.identifiers[0]));
+			} catch (e) {
+				// insertでこけたなら、別で作成された可能性があるのでそっちを使ってみる
+				this.logger.info(`System account '${type}' already created by another worker, reusing existing one`);
+				account = await transactionalEntityManager.findOneByOrFail(MiUser, {
+					usernameLower: extra.username.toLowerCase(),
+					host: IsNull(),
+				});
+				return;
+			}
 
 			await transactionalEntityManager.insert(MiUserKeypair, {
 				publicKey: keyPair.publicKey,
