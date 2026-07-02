@@ -21,7 +21,7 @@ import { IdService } from '@/core/IdService.js';
 import { genRsaKeyPair } from '@/misc/gen-key-pair.js';
 import type { OnApplicationShutdown } from '@nestjs/common';
 import { LoggerService } from '@/core/LoggerService.js';
-import Logger from '@/logger.js';
+import type Logger from '@/logger.js';
 
 export const SYSTEM_ACCOUNT_TYPES = ['actor', 'relay', 'proxy'] as const;
 
