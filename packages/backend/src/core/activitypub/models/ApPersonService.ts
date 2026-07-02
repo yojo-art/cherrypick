@@ -1041,29 +1041,48 @@ export class ApPersonService implements OnModuleInit {
 		if (!isCollectionOrOrderedCollection(collection)) throw new Error('Object is not Collection or OrderedCollection');
 
 		// Resolve to Object(may be Note) arrays
+		const userUri = new URL(user.uri);
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
-		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
+		const items = await Promise.all(toArray(unresolvedItems).map(async(item) => {
+			const id = getApId(item);
+			const isRemote = new URL(id).origin !== userUri.origin;
+			if (isRemote && !user.channelId) {
+				//リモート投稿はチャンネルアカウントのみ許可される
+				return null;
+			}
+			//resolveはPromise.allで並列化される
+			//ここで得られるobjectはUserが勝手に言ってるだけで信頼できないのでsentFromを見る必要がある
+			//ただしidはUserが決めるもので信頼して良い
+			const object = await _resolver.resolve(item);
+			//resolveした時はidのホストからfetchしてるのでidのホストにする。してない時は送ってきたUserのホスト
+			const sentFrom = typeof item === 'string' ? new URL(id) : userUri;
+			return {
+				id,
+				object,
+				sentFrom,
+			};
+		}));
 
 		const rolePolicies = await this.roleService.getUserPolicies(user.id);
 		// Resolve and regist Notes
 		const limit = promiseLimit<MiNote | null>(2);
-		const userUri = new URL(user.uri);
 		const featuredNotes = await Promise.all(items
-			.filter(item => isPost(item))	// yojo-art: Note限定からisPostに判定を変更
+			.filter(item => item != null)
+			//item.objectの内容は信頼できないが、UserにはisPostしか許可されないのにUserが変なの付けてたら拒否
+			.filter(item => isPost(item.object))// yojo-art: Note限定からisPostに判定を変更。
 			.slice(0, rolePolicies.pinLimit)// yojo-art: ピン留め上限をロール基準に
 			.map(item => limit(async () => {
+				//item.objectは信頼できる取得不要な場合とそうでない場合がある
+				//item.sentFromのホストを見て判断
+				const note = await this.apNoteService.resolveNote(item.object, {
+					resolver: _resolver,
+					sentFrom: item.sentFrom,
+				});
 				if (user.channelId) {
-					const isRemoteNote = new URL(getApId(item)).origin !== userUri.origin;
-					const note = await this.apNoteService.resolveNote(isRemoteNote ? getApId(item) : item, {
-						resolver: _resolver,
-						sentFrom: isRemoteNote ? undefined : userUri,
-					});
+					//実際にピン留めできるのはそのチャンネルに投稿された投稿のみ
 					return note?.channelId === user.channelId ? note : null;
 				} else {
-					return this.apNoteService.resolveNote(item, {
-						resolver: _resolver,
-						sentFrom: userUri,
-					});
+					return note;
 				}
 			})));
 
