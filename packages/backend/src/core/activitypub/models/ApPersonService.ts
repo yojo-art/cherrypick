@@ -1045,7 +1045,7 @@ export class ApPersonService implements OnModuleInit {
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
 		const items = await Promise.all(toArray(unresolvedItems).map(async(item) => {
 			const id = getApId(item);
-			const isRemote = new URL(id).origin !== userUri.origin;
+			//const isRemote = new URL(id).origin !== userUri.origin;
 			//if (isRemote && !user.channelId) {
 			//	//リモート投稿はチャンネルアカウントのみ許可される
 			//	return null;
