@@ -21,9 +21,10 @@ import type { MiPollVote } from '@/models/PollVote.js';
 import { UserKeypairService } from '@/core/UserKeypairService.js';
 import { MfmService, type Appender } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { MiUserKeypair } from '@/models/UserKeypair.js';
-import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip } from '@/models/_.js';
+import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip, MiChannel, ChannelsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
@@ -63,8 +64,12 @@ export class ApRendererService {
 		@Inject(DI.eventsRepository)
 		private eventsRepository: EventsRepository,
 
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
+
 		private customEmojiService: CustomEmojiService,
 		private userEntityService: UserEntityService,
+		private channelEntityService: ChannelEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private jsonLdService: JsonLdService,
 		private userKeypairService: UserKeypairService,
@@ -106,7 +111,22 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public renderAnnounce(object: string | IObject, note: MiNote): IAnnounce {
+	public async getChannelUri(note: MiNote & { channelId: string }): Promise<string | null> {
+		note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId == null) {
+			//チャンネルアカウントが作成されてない
+			return null;
+		}
+		if (note.channel.host === null) {
+			return this.userEntityService.genLocalUserUri(note.channel.actorId);
+		} else {
+			note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+			return note.channel.actor?.uri ?? null;
+		}
+	}
+
+	@bindThis
+	public async renderAnnounce(object: string | IObject, note: MiNote): Promise<IAnnounce> {
 		const attributedTo = this.userEntityService.genLocalUserUri(note.userId);
 
 		let to: string[] = [];
@@ -124,7 +144,13 @@ export class ApRendererService {
 		} else {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
-
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
+		}
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
@@ -134,6 +160,7 @@ export class ApRendererService {
 			to,
 			cc,
 			object,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 	}
 
@@ -157,18 +184,25 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public renderCreate(object: IObject, note: MiNote): ICreate {
+	public async renderCreate(object: IObject, note: MiNote): Promise<ICreate> {
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		const activity: ICreate = {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
 			type: 'Create',
 			published: this.idService.parse(note.id).date.toISOString(),
 			object,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
-
+		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
+			if (!activity.cc.includes(channelActorUri)) {
+				activity.cc.push(channelActorUri);
+			}
+		}
 		return activity;
 	}
 
@@ -470,6 +504,13 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
+		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
 			searchableBy = undefined;
@@ -482,8 +523,10 @@ export class ApRendererService {
 		} else { // if (note.searchableBy === searchableTypes[3])
 			searchableBy = ['as:Limited', 'kmyblue:Limited'];
 		}
-		const mentionedUsers = note.mentions.length > 0 ? await this.usersRepository.findBy({
-			id: In(note.mentions),
+		const mentionUserIds = note.mentions.concat();
+		if (note.channel?.actorId)mentionUserIds.push(note.channel.actorId);
+		const mentionedUsers = mentionUserIds.length > 0 ? await this.usersRepository.findBy({
+			id: In(mentionUserIds),
 		}) : [];
 
 		const hashtagTags = note.tags.map(tag => this.renderHashtag(tag));
@@ -565,7 +608,7 @@ export class ApRendererService {
 
 		return {
 			id: `${this.config.url}/notes/${note.id}`,
-			type: 'Note',
+			type: inReplyTo === null && channelActorUri ? 'Page' : 'Note',
 			attributedTo,
 			summary: summary ?? undefined,
 			content: content ?? undefined,
@@ -590,6 +633,7 @@ export class ApRendererService {
 			...asDeleteAt,
 			...asEvent,
 			...asPoll,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 	}
 
@@ -660,7 +704,7 @@ export class ApRendererService {
 		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
 
 		const person: any = {
-			type: isSystem ? 'Application' : user.isBot ? 'Service' : 'Person',
+			type: isSystem ? 'Application' : user.channelId ? 'Group' : user.isBot ? 'Service' : 'Person',
 			id,
 			inbox: `${id}/inbox`,
 			outbox: `${id}/outbox`,
@@ -875,7 +919,7 @@ export class ApRendererService {
 	 * @param orderedItems attached objects (optional)
 	 */
 	@bindThis
-	public renderOrderedCollection(id: string | null, totalItems: number, first?: string, last?: string, orderedItems?: IObject[]) {
+	public renderOrderedCollection(id: string | null, totalItems: number, first?: string, last?: string, orderedItems?: IObject[] | string[]) {
 		const page: any = {
 			id,
 			type: 'OrderedCollection',

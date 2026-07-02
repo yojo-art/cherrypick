@@ -293,6 +293,7 @@ export function userDetailed(id = 'someuserid', username = 'cherrypikist', host:
 		isFollowed: false,
 		isFollowing: false,
 		isLocked: false,
+		channelId: undefined,
 		isModerator: false,
 		isMuted: false,
 		isSilenced: false,

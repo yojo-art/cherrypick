@@ -113,10 +113,10 @@ export class ActivityPubServerService {
 	private async packActivity(note: MiNote): Promise<any> {
 		if (isRenote(note) && !isQuote(note)) {
 			const renote = await this.notesRepository.findOneByOrFail({ id: note.renoteId });
-			return this.apRendererService.renderAnnounce(renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`, note);
+			return await this.apRendererService.renderAnnounce(renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`, note);
 		}
 
-		return this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
+		return await this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 	}
 
 	@bindThis
@@ -421,7 +421,7 @@ export class ActivityPubServerService {
 			this.notesRepository.findOneByOrFail({ id: pining.noteId }))))
 			.filter(note => !note.localOnly && ['public', 'home'].includes(note.visibility));
 
-		const renderedNotes = await Promise.all(pinnedNotes.map(note => this.apRendererService.renderNote(note)));
+		const renderedNotes = user.channelId ? pinnedNotes.map(note => note.uri ?? `${this.config.url}/notes/${note.id}`) : await Promise.all(pinnedNotes.map(note => this.apRendererService.renderNote(note)));
 
 		const rendered = this.apRendererService.renderOrderedCollection(
 			`${this.config.url}/users/${userId}/collections/featured`,
@@ -1008,6 +1008,20 @@ export class ActivityPubServerService {
 				reply.code(400);
 				return;
 			}
+		});
+
+		fastify.get<{ Params: { channel: string; } }>('/channels/:channel', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
+			vary(reply.raw, 'Accept');
+
+			const channelId = request.params.channel;
+
+			const user = await this.usersRepository.findOneBy({
+				channelId,
+				host: IsNull(),
+				isSuspended: false,
+			});
+			if (user) reply.redirect(`/users/${user.id}`);
+			reply.code(404);
 		});
 
 		fastify.get<{ Params: { user: string; } }>('/users/:user', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {

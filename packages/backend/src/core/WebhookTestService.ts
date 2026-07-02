@@ -72,6 +72,8 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		autoDeleteKeepFavorites: true,
 		canChat: null,
 		clipsUri: null,
+		channelId: null,
+		channel: null,
 		...override,
 	};
 }

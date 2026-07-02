@@ -245,6 +245,10 @@ export async function createRole(
 	});
 }
 
+export function randomUsername() {
+	return crypto.randomUUID().replaceAll('-', '').substring(0, 20);
+}
+
 export async function resolveRemoteUser(
 	host: Host,
 	id: string,

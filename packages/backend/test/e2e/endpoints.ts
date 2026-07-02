@@ -480,15 +480,15 @@ describe('Endpoints', () => {
 	describe('channels/search', () => {
 		test('空白検索で一覧を取得できる', async () => {
 			await api('channels/create', {
-				name: 'aaa',
+				username: 'aaa',
 				description: 'bbb',
 			}, bob);
 			await api('channels/create', {
-				name: 'ccc1',
+				username: 'ccc1',
 				description: 'ddd1',
 			}, bob);
 			await api('channels/create', {
-				name: 'ccc2',
+				username: 'ccc2',
 				description: 'ddd2',
 			}, bob);
 

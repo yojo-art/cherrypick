@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, signup } from '../utils.js';
+import { api, randomString, signup } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('channels/create with canCreateChannel policy', () => {
@@ -67,7 +67,7 @@ describe('channels/create with canCreateChannel policy', () => {
 		assert.strictEqual(iRes.status, 200);
 		assert.strictEqual(iRes.body.policies.canCreateChannel, false);
 
-		const res = await api('channels/create', { name: 'channel-ng' }, alice);
+		const res = await api('channels/create', { name: 'channel-ng', username: randomString() }, alice);
 		assert.strictEqual(res.status, 403, 'チャンネル作成が拒否されること');
 	});
 
@@ -76,7 +76,7 @@ describe('channels/create with canCreateChannel policy', () => {
 		assert.strictEqual(iRes.status, 200);
 		assert.strictEqual(iRes.body.policies.canCreateChannel, true, 'canCreateChannel が true であること');
 
-		const res = await api('channels/create', { name: 'channel-ok' }, alice);
+		const res = await api('channels/create', { name: 'channel-ok', username: randomString() }, alice);
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.name, 'channel-ok', 'チャンネル作成ができること');
 	});
@@ -94,7 +94,7 @@ describe('channels/create with canCreateChannel policy', () => {
 		assert.strictEqual(iRes2.status, 200);
 		assert.strictEqual(iRes2.body.policies.canCreateChannel, false, 'canCreateChannel が false であること');
 
-		const res2 = await api('channels/create', { name: 'channel-ng' }, alice);
+		const res2 = await api('channels/create', { name: 'channel-ng', username: randomString() }, alice);
 		assert.strictEqual(res2.status, 403, 'チャンネル作成が拒否されること');
 	});
 });

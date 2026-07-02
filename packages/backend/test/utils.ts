@@ -259,7 +259,8 @@ export const channel = async (user: UserToken, channel: Partial<misskey.entities
 	const res = await api('channels/create', {
 		bannerId: null,
 		description: null,
-		name: 'test',
+		name: 'channel',
+		username: randomString(),
 		...channel,
 	}, user);
 	return res.body;

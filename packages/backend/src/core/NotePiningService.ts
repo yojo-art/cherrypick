@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { NotesRepository, UserNotePiningsRepository, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, MiChannel, NotesRepository, UserNotePiningsRepository, UsersRepository } from '@/models/_.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type { MiUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
@@ -33,6 +33,8 @@ export class NotePiningService {
 
 		@Inject(DI.userNotePiningsRepository)
 		private userNotePiningsRepository: UserNotePiningsRepository,
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private userEntityService: UserEntityService,
 		private idService: IdService,
@@ -49,12 +51,20 @@ export class NotePiningService {
 	 * @param noteId
 	 */
 	@bindThis
-	public async addPinned(user: { id: MiUser['id']; host: MiUser['host']; }, noteId: MiNote['id']) {
+	public async addPinned(user: { id: MiUser['id']; host: MiUser['host']; }, noteId: MiNote['id'], channel?:MiChannel) {
 	// Fetch pinee
-		const note = await this.notesRepository.findOneBy({
-			id: noteId,
-			userId: user.id,
-		});
+		let note:MiNote | null;
+		if (channel?.actorId === user.id) {
+			note = await this.notesRepository.findOneBy({
+				id: noteId,
+				channelId: channel.id,
+			});
+		} else {
+			note = await this.notesRepository.findOneBy({
+				id: noteId,
+				userId: user.id,
+			});
+		}
 
 		if (note == null) {
 			throw new IdentifiableError('70c4e51f-5bea-449c-a030-53bee3cce202', 'No such note.');
@@ -75,10 +85,12 @@ export class NotePiningService {
 			userId: user.id,
 			noteId: note.id,
 		} as MiUserNotePining);
-
+		if (channel && !channel.pinnedNoteIds.includes(note.id)) {
+			await this.channelsRepository.update(channel.id, { pinnedNoteIds: [...channel.pinnedNoteIds, note.id] });
+		}
 		// Deliver to remote followers
 		if (this.userEntityService.isLocalUser(user) && !note.localOnly && ['public', 'home'].includes(note.visibility)) {
-			this.deliverPinnedChange(user.id, note.id, true);
+			this.deliverPinnedChange(user.id, note, true);
 		}
 	}
 
@@ -88,12 +100,20 @@ export class NotePiningService {
 	 * @param noteId
 	 */
 	@bindThis
-	public async removePinned(user: { id: MiUser['id']; host: MiUser['host']; }, noteId: MiNote['id']) {
+	public async removePinned(user: { id: MiUser['id']; host: MiUser['host']; }, noteId: MiNote['id'], channel?:MiChannel) {
 	// Fetch unpinee
-		const note = await this.notesRepository.findOneBy({
-			id: noteId,
-			userId: user.id,
-		});
+		let note:MiNote | null;
+		if (channel?.actorId === user.id) {
+			note = await this.notesRepository.findOneBy({
+				id: noteId,
+				channelId: channel.id,
+			});
+		} else {
+			note = await this.notesRepository.findOneBy({
+				id: noteId,
+				userId: user.id,
+			});
+		}
 
 		if (note == null) {
 			throw new IdentifiableError('b302d4cf-c050-400a-bbb3-be208681f40c', 'No such note.');
@@ -103,22 +123,26 @@ export class NotePiningService {
 			userId: user.id,
 			noteId: note.id,
 		});
-
+		if (channel && channel.pinnedNoteIds.includes(note.id)) {
+			await this.channelsRepository.update(channel.id, {
+				pinnedNoteIds: channel.pinnedNoteIds.filter(id => id !== note.id),
+			});
+		}
 		// Deliver to remote followers
 		if (this.userEntityService.isLocalUser(user) && !note.localOnly && ['public', 'home'].includes(note.visibility)) {
-			this.deliverPinnedChange(user.id, noteId, false);
+			this.deliverPinnedChange(user.id, note, false);
 		}
 	}
 
 	@bindThis
-	public async deliverPinnedChange(userId: MiUser['id'], noteId: MiNote['id'], isAddition: boolean) {
+	private async deliverPinnedChange(userId: MiUser['id'], note: MiNote, isAddition: boolean) {
 		const user = await this.usersRepository.findOneBy({ id: userId });
 		if (user == null) throw new Error('user not found');
 
 		if (!this.userEntityService.isLocalUser(user)) return;
 
 		const target = `${this.config.url}/users/${user.id}/collections/featured`;
-		const item = `${this.config.url}/notes/${noteId}`;
+		const item = note.url ?? note.uri ?? `${this.config.url}/notes/${note.id}`;
 		const content = this.apRendererService.addContext(isAddition ? this.apRendererService.renderAdd(user, target, item) : this.apRendererService.renderRemove(user, target, item));
 
 		this.apDeliverManagerService.deliverToFollowers(user, content);
