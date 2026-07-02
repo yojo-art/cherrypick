@@ -20,14 +20,15 @@ import { generateNativeUserToken } from '@/misc/token.js';
 import { IdService } from '@/core/IdService.js';
 import { genRsaKeyPair } from '@/misc/gen-key-pair.js';
 import type { OnApplicationShutdown } from '@nestjs/common';
+import { LoggerService } from '@/core/LoggerService.js';
+import Logger from '@/logger.js';
 
 export const SYSTEM_ACCOUNT_TYPES = ['actor', 'relay', 'proxy'] as const;
 
 @Injectable()
 export class SystemAccountService implements OnApplicationShutdown {
 	private cache: MemoryKVCache<MiLocalUser>;
-	/** 同時に fetch されたとき、進行中の作成処理を共有する（二重作成防止） */
-	private pendingFetches = new Map<typeof SYSTEM_ACCOUNT_TYPES[number], Promise<MiLocalUser>>();
+	private logger: Logger;
 
 	constructor(
 		@Inject(DI.redisForSub)
@@ -49,8 +50,11 @@ export class SystemAccountService implements OnApplicationShutdown {
 		private userProfilesRepository: UserProfilesRepository,
 
 		private idService: IdService,
+
+		private loggerService: LoggerService,
 	) {
 		this.cache = new MemoryKVCache<MiLocalUser>(1000 * 60 * 10); // 10m
+		this.logger = this.loggerService.getLogger('SystemAccount', 'blue');
 
 		this.redisForSub.on('message', this.onMessage);
 	}
@@ -88,36 +92,30 @@ export class SystemAccountService implements OnApplicationShutdown {
 	@bindThis
 	public async fetch(type: typeof SYSTEM_ACCOUNT_TYPES[number]): Promise<MiLocalUser> {
 		const cached = this.cache.get(type);
-		if (cached) return cached;
+		if (cached) {
+			this.logger.info(`System account '${type}' fetch: cache hit`);
+			return cached;
+		}
 
-		const pending = this.pendingFetches.get(type);
-		if (pending) return pending;
-
-		const promise = this.fetchInternal(type).finally(() => {
-			this.pendingFetches.delete(type);
-		});
-		this.pendingFetches.set(type, promise);
-		return promise;
-	}
-
-	@bindThis
-	private async fetchInternal(type: typeof SYSTEM_ACCOUNT_TYPES[number]): Promise<MiLocalUser> {
 		const systemAccount = await this.systemAccountsRepository.findOne({
 			where: { type: type },
 			relations: ['user'],
 		});
 
 		if (systemAccount) {
+			this.logger.info(`System account '${type}' fetch: db hit`);
 			this.cache.set(type, systemAccount.user as MiLocalUser);
 			return systemAccount.user as MiLocalUser;
+		} else {
+			this.logger.info(`System account '${type}' fetch: creating new account...`);
+			const created = await this.createCorrespondingUser(type, {
+				username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
+				name: this.meta.name,
+			});
+			this.cache.set(type, created);
+			this.logger.succ(`System account '${type}' created successfully`);
+			return created;
 		}
-
-		const created = await this.createCorrespondingUser(type, {
-			username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
-			name: this.meta.name,
-		});
-		this.cache.set(type, created);
-		return created;
 	}
 
 	@bindThis
@@ -147,15 +145,7 @@ export class SystemAccountService implements OnApplicationShutdown {
 
 			if (exist) {
 				account = exist;
-
-				const systemAccountExists = await transactionalEntityManager.findOneBy(MiSystemAccount, { type: type });
-				if (!systemAccountExists) {
-					await transactionalEntityManager.insert(MiSystemAccount, {
-						id: this.idService.gen(),
-						userId: account.id,
-						type: type,
-					});
-				}
+				this.logger.info(`System account '${type}' create: existing user found, reusing`);
 				return;
 			}
 
