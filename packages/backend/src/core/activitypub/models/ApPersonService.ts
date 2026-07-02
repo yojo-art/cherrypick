@@ -1046,10 +1046,10 @@ export class ApPersonService implements OnModuleInit {
 		const items = await Promise.all(toArray(unresolvedItems).map(async(item) => {
 			const id = getApId(item);
 			const isRemote = new URL(id).origin !== userUri.origin;
-			if (isRemote && !user.channelId) {
-				//リモート投稿はチャンネルアカウントのみ許可される
-				return null;
-			}
+			//if (isRemote && !user.channelId) {
+			//	//リモート投稿はチャンネルアカウントのみ許可される
+			//	return null;
+			//}
 			//resolveはPromise.allで並列化される
 			//ここで得られるobjectはUserが勝手に言ってるだけで信頼できないのでsentFromを見る必要がある
 			//ただしidはUserが決めるもので信頼して良い
@@ -1067,7 +1067,7 @@ export class ApPersonService implements OnModuleInit {
 		// Resolve and regist Notes
 		const limit = promiseLimit<MiNote | null>(2);
 		const featuredNotes = await Promise.all(items
-			.filter(item => item != null)
+			//.filter(item => item != null)
 			//item.objectの内容は信頼できないが、UserにはisPostしか許可されないのにUserが変なの付けてたら拒否
 			.filter(item => isPost(item.object))// yojo-art: Note限定からisPostに判定を変更。
 			.slice(0, rolePolicies.pinLimit)// yojo-art: ピン留め上限をロール基準に
