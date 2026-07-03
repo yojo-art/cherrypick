@@ -1039,7 +1039,6 @@ export class ApPersonService implements OnModuleInit {
 		return fields;
 	}
 	@bindThis
-	// TODO: `attachments`が`IObject`だった場合、返り値が`[]`になるようだが構わないのか？
 	public async analyzeChannelModerator(person: IActor, resolver:Resolver): Promise<MiUser | null> {
 		if (getApType(person) !== 'Group') {
 			return null;
