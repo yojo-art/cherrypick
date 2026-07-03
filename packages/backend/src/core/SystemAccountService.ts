@@ -19,6 +19,8 @@ import { bindThis } from '@/decorators.js';
 import { generateNativeUserToken } from '@/misc/token.js';
 import { IdService } from '@/core/IdService.js';
 import { genRsaKeyPair } from '@/misc/gen-key-pair.js';
+import { LoggerService } from '@/core/LoggerService.js';
+import type Logger from '@/logger.js';
 import type { OnApplicationShutdown } from '@nestjs/common';
 
 export const SYSTEM_ACCOUNT_TYPES = ['actor', 'relay', 'proxy'] as const;
@@ -26,6 +28,7 @@ export const SYSTEM_ACCOUNT_TYPES = ['actor', 'relay', 'proxy'] as const;
 @Injectable()
 export class SystemAccountService implements OnApplicationShutdown {
 	private cache: MemoryKVCache<MiLocalUser>;
+	private logger: Logger;
 
 	constructor(
 		@Inject(DI.redisForSub)
@@ -47,8 +50,11 @@ export class SystemAccountService implements OnApplicationShutdown {
 		private userProfilesRepository: UserProfilesRepository,
 
 		private idService: IdService,
+
+		private loggerService: LoggerService,
 	) {
 		this.cache = new MemoryKVCache<MiLocalUser>(1000 * 60 * 10); // 10m
+		this.logger = this.loggerService.getLogger('SystemAccount', 'blue');
 
 		this.redisForSub.on('message', this.onMessage);
 	}
@@ -94,15 +100,30 @@ export class SystemAccountService implements OnApplicationShutdown {
 		});
 
 		if (systemAccount) {
+			this.logger.info(`System account '${type}' fetch: db hit`);
 			this.cache.set(type, systemAccount.user as MiLocalUser);
 			return systemAccount.user as MiLocalUser;
 		} else {
-			const created = await this.createCorrespondingUser(type, {
-				username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
-				name: this.meta.name,
-			});
-			this.cache.set(type, created);
-			return created;
+			this.logger.info(`System account '${type}' fetch: creating new account...`);
+
+			try {
+				const created = await this.createCorrespondingUser(type, {
+					username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
+					name: this.meta.name,
+				});
+				this.cache.set(type, created);
+				this.logger.succ(`System account '${type}' created successfully`);
+				return created;
+			} catch (e) {
+				// transactionでこけたなら、別で作成された可能性がある
+				const account = await this.usersRepository.findOneByOrFail({
+					usernameLower: `system.${type}`.toLowerCase(),
+					host: IsNull(),
+				}) as MiLocalUser;
+				this.cache.set(type, account);
+				this.logger.info(`System account '${type}' already created by another worker, reusing existing one`);
+				return account;
+			}
 		}
 	}
 
@@ -133,6 +154,7 @@ export class SystemAccountService implements OnApplicationShutdown {
 
 			if (exist) {
 				account = exist;
+				this.logger.info(`System account '${type}' create: existing user found, reusing`);
 				return;
 			}
 
