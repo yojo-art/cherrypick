@@ -163,7 +163,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 																<template #label>{{ i18n.ts._profile.mutualLinksDescriptionEdit }}</template>
 															</MkInput>
 															<span>{{ i18n.ts._profile.mutualLinksBanner }}</span>
-															<img :class="$style.mutualLinkImg" :src="linkElement.imgSrc">
+															<img :class="$style.mutualLinkImg" :src="getProxiedImageUrl(linkElement.imgSrc)"/>
 															<MkButton class="_button" @click="ev => changeMutualLinkFile(ev, sectionIndex, linkIndex)">{{ i18n.ts.selectFile }}</MkButton>
 														</div>
 													</div>
@@ -263,6 +263,7 @@ import MkTextarea from '@/components/MkTextarea.vue';
 import { genId } from '@/utility/id.js';
 import { suggestReload } from '@/utility/reload-suggest.js';
 import { prefer } from '@/preferences.js';
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 import { globalEvents } from '@/events';
 
 const $i = ensureSignin();

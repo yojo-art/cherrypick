@@ -79,6 +79,7 @@ import { prefer } from '@/preferences.js';
 import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 
 const { showEl } = scrollToVisibility();
+import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const animation = ref(prefer.s.animation);
 
@@ -124,7 +125,7 @@ if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = fals
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 const url = computed(() => {
 	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(props.user.avatarUrl);
-	return props.user.avatarUrl;
+	return (props.user.avatarUrl) ? getProxiedImageUrl(props.user.avatarUrl, 'avatar') : props.user.avatarUrl;
 });
 
 function onClick(ev: MouseEvent): void {
