@@ -25,6 +25,7 @@ export class UserListChannel extends Channel {
 	private listUsersClock: NodeJS.Timeout;
 	private withFiles: boolean;
 	private withRenotes: boolean;
+	private withBots: boolean;
 
 	constructor(
 		@Inject(DI.userListsRepository)
@@ -50,6 +51,7 @@ export class UserListChannel extends Channel {
 		this.listId = params.listId;
 		this.withFiles = !!(params.withFiles ?? false);
 		this.withRenotes = !!(params.withRenotes ?? true);
+		this.withBots = !!(params.withBots ?? true);
 
 		// Check existence and owner
 		const listExist = await this.userListsRepository.exists({
@@ -97,6 +99,7 @@ export class UserListChannel extends Channel {
 		if (note.channelId) return;
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
+		if (!this.withBots && note.user.isBot) return;
 
 		if (!Object.hasOwn(this.membershipsMap, note.userId)) return;
 

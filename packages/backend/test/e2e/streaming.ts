@@ -333,6 +333,35 @@ describe('Streaming', () => {
 
 				assert.strictEqual(fired, false);
 			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'homeTimeline',	// ayano:home
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
+			});
+
+			test('withBots: false のとき通常ユーザーのノートが流れる', async () => {
+				const fired = await waitFire(
+					ayano, 'homeTimeline',	// ayano:home
+					() => api('notes/create', { text: 'human test' }, kyoko),	// kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, true);
+			});
+
 			test('withReplies: true のとき自分のfollowers投稿に対するリプライが流れる', async () => {
 				const erinNote = await post(erin, { text: 'hi', visibility: 'followers' });
 				const fired = await waitFire(
@@ -455,6 +484,23 @@ describe('Streaming', () => {
 				);
 
 				assert.strictEqual(fired, false);
+			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'localTimeline',	// ayano:local
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
 			});
 		});
 
@@ -620,6 +666,23 @@ describe('Streaming', () => {
 
 				assert.strictEqual(fired, false);
 			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'hybridTimeline',	// ayano:hybrid
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
+			});
 		});
 
 		describe('Global Timeline', () => {
@@ -691,6 +754,23 @@ describe('Streaming', () => {
 				);
 
 				assert.strictEqual(fired, false);
+			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'globalTimeline',	// ayano:global
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
 			});
 		});
 
