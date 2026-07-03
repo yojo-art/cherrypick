@@ -703,6 +703,8 @@ export class ApRendererService {
 		const keypair = await this.userKeypairService.getUserKeypair(user.id);
 		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
 
+		const channel = user.channelId ? await this.channelsRepository.findOneBy({ id: user.channelId }) : null;
+
 		const person: any = {
 			type: isSystem ? 'Application' : user.channelId ? 'Group' : user.isBot ? 'Service' : 'Person',
 			id,
@@ -736,6 +738,7 @@ export class ApRendererService {
 			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
 			isSquareAvatars: user.isSquareAvatars ?? undefined,
 			_yojoart_clips: `${id}/collections/clips`,
+			...(channel?.userId ? { attributedTo: this.userEntityService.genLocalUserUri(channel.userId) } : {} ),
 		};
 
 		if (user.movedToUri) {
