@@ -3,7 +3,7 @@
 	"version": "1.7.5",
 	"basedCherrypickVersion": "4.17.0",
 	"basedMisskeyVersion": "2025.10.2",
-	"codename": "nasubi",
+	"codename": "tonjiru",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/yojo-art/cherrypick.git"
