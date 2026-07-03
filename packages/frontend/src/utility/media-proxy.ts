@@ -32,3 +32,19 @@ export function getStaticImageUrl(...args: Parameters<MediaProxy['getStaticImage
 
 	return _mediaProxy.getStaticImageUrl(...args);
 }
+
+export function getAvatarUrl(...args: Parameters<MediaProxy['getAvatarUrl']>): string {
+	if (_mediaProxy == null) {
+		_mediaProxy = new MediaProxy(instance, url);
+	}
+
+	return _mediaProxy.getAvatarUrl(...args);
+}
+
+export function getAvatarUrlNullable(...args: Parameters<MediaProxy['getAvatarUrlNullable']>): string | null {
+	if (_mediaProxy == null) {
+		_mediaProxy = new MediaProxy(instance, url);
+	}
+
+	return _mediaProxy.getAvatarUrlNullable(...args);
+}

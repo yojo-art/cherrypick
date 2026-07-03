@@ -72,14 +72,13 @@ import * as Misskey from 'cherrypick-js';
 import { extractAvgColorFromBlurhash } from '@@/js/extract-avg-color-from-blurhash.js';
 import MkImgWithBlurhash from '../MkImgWithBlurhash.vue';
 import MkA from './MkA.vue';
-import { getStaticImageUrl } from '@/utility/media-proxy.js';
+import { getStaticImageUrl, getAvatarUrl } from '@/utility/media-proxy.js';
 import { acct, userPage } from '@/filters/user.js';
 import MkUserOnlineIndicator from '@/components/MkUserOnlineIndicator.vue';
 import { prefer } from '@/preferences.js';
 import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 
 const { showEl } = scrollToVisibility();
-import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const animation = ref(prefer.s.animation);
 
@@ -124,8 +123,9 @@ const playAnimation = ref(true);
 if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 const url = computed(() => {
-	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(props.user.avatarUrl);
-	return (props.user.avatarUrl) ? getProxiedImageUrl(props.user.avatarUrl, 'avatar') : props.user.avatarUrl;
+	if (props.user.avatarUrl == null) return props.user.avatarUrl;
+	const isStatic = prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
+	return getAvatarUrl(props.user.avatarUrl, isStatic);
 });
 
 function onClick(ev: MouseEvent): void {

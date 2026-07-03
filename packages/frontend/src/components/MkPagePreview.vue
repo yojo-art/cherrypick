@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</header>
 		<p v-if="page.summary" :title="page.summary">{{ page.summary.length > 85 ? page.summary.slice(0, 85) + '…' : page.summary }}</p>
 		<footer>
-			<img v-if="page.user.avatarUrl" class="icon" :src="getProxiedImageUrl(page.user.avatarUrl,'avatar')"/>
+			<img v-if="page.user.avatarUrl" class="icon" :src="getAvatarUrl(page.user.avatarUrl)"/>
 			<p>{{ userName(page.user) }}</p>
 		</footer>
 	</article>
@@ -32,7 +32,7 @@ import { } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import { userName } from '@/filters/user.js';
 import MediaImage from '@/components/MkMediaImage.vue';
-import { getProxiedImageUrl } from '@/utility/media-proxy.js';
+import { getAvatarUrl } from '@/utility/media-proxy.js';
 
 const props = defineProps<{
 	page: Misskey.entities.Page;

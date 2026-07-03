@@ -8,7 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_gaps" :class="$style.root">
 		<div
 			:class="[$style.avatar, { [$style.square]: prefer.s.squareAvatars }]"
-			:style="{ backgroundImage: user ? `url('${(url) ? getProxiedImageUrl(url,'avatar') : undefined}')` : undefined }"
+			:style="{ backgroundImage: user ? `url('${url ?? undefined}')` : undefined }"
 			@mouseover="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
 			@mouseout="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = false : ''"
 			@touchstart="prefer.s.showingAnimatedImages === 'interaction' ? playAnimation = true : ''"
@@ -72,12 +72,11 @@ import { instance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { prefer } from '@/preferences.js';
-import { getStaticImageUrl } from '@/utility/media-proxy.js';
+import { getAvatarUrl } from '@/utility/media-proxy.js';
 
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkCaptcha from '@/components/MkCaptcha.vue';
-import { getProxiedImageUrl } from '@/utility/media-proxy.js';
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -120,8 +119,9 @@ const playAnimation = ref(true);
 if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 const url = computed(() => {
-	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(props.user.avatarUrl);
-	return props.user.avatarUrl;
+	if (props.user.avatarUrl == null) return null;
+	const isStatic = prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
+	return getAvatarUrl(props.user.avatarUrl, isStatic);
 });
 
 function resetPassword(): void {

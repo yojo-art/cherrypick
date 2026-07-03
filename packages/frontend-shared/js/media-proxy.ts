@@ -40,6 +40,42 @@ export class MediaProxy {
 		return this.getProxiedImageUrl(imageUrl, type);
 	}
 
+	private resolveAbsoluteUrl(imageUrl: string): string {
+		return imageUrl.startsWith('http') ? imageUrl : new URL(imageUrl, this.url).href;
+	}
+
+	private isLocalAvatarEndpoint(imageUrl: string): boolean {
+		try {
+			const u = new URL(this.resolveAbsoluteUrl(imageUrl));
+			const base = new URL(this.url);
+
+			if (u.origin !== base.origin) return false;
+
+			return u.pathname.startsWith('/identicon/')
+				|| u.pathname.startsWith('/avatar/')
+				|| u.pathname.startsWith('/static-assets/');
+		} catch {
+			return false;
+		}
+	}
+
+	public getAvatarUrl(avatarUrl: string, isStatic = false): string {
+		if (this.isLocalAvatarEndpoint(avatarUrl)) {
+			return this.resolveAbsoluteUrl(avatarUrl);
+		}
+
+		if (isStatic) {
+			return this.getStaticImageUrl(avatarUrl);
+		}
+
+		return this.getProxiedImageUrl(avatarUrl, 'avatar');
+	}
+
+	public getAvatarUrlNullable(avatarUrl: string | null | undefined, isStatic = false): string | null {
+		if (avatarUrl == null) return null;
+		return this.getAvatarUrl(avatarUrl, isStatic);
+	}
+
 	public getStaticImageUrl(baseUrl: string): string {
 		const u = baseUrl.startsWith('http') ? new URL(baseUrl) : new URL(baseUrl, this.url);
 

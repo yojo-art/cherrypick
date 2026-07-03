@@ -27,7 +27,7 @@ import { computed, onMounted, onUnmounted, ref } from 'vue';
 import { host as localHost } from '@@/js/config.js';
 import type { MkABehavior } from '@/components/global/MkA.vue';
 import { $i } from '@/i.js';
-import { getStaticImageUrl, getProxiedImageUrl } from '@/utility/media-proxy.js';
+import { getAvatarUrl } from '@/utility/media-proxy.js';
 import { prefer } from '@/preferences.js';
 import { instance } from '@/instance.js';
 
@@ -50,9 +50,8 @@ if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = fals
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 const avatarUrl = computed(() => {
 	const v = `${instance.uri}/avatar/@${props.username}@${props.host}`;
-	return (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar) || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)
-		? getStaticImageUrl(v)
-		: getProxiedImageUrl(v);
+	const isStatic = (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar) || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
+	return getAvatarUrl(v, isStatic);
 });
 
 function resetTimer() {

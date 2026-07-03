@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.headerLeft">
 				<button v-if="!fixed" :class="$style.cancel" class="_button" @click="cancel"><i class="ti ti-x"></i></button>
 				<button v-click-anime v-tooltip="i18n.ts.account" :class="[$style.account, { [$style.fixed]: fixed }]" class="_button" @click="openAccountMenu">
-					<img :class="[$style.avatar, { [$style.square]: prefer.s.squareAvatars }]" :src="getProxiedImageUrl((postAccount ?? $i).avatarUrl, 'avatar')"/>
+					<img :class="[$style.avatar, { [$style.square]: prefer.s.squareAvatars }]" :src="getAvatarUrl((postAccount ?? $i).avatarUrl)"/>
 				</button>
 			</div>
 			<div :class="$style.headerRight">
@@ -184,7 +184,7 @@ import { emojiPicker } from '@/utility/emoji-picker.js';
 import { mfmFunctionPicker } from '@/utility/mfm-function-picker.js';
 import { prefer } from '@/preferences.js';
 import { getPluginHandlers } from '@/plugin.js';
-import { getProxiedImageUrl } from '@/utility/media-proxy.js';
+import { getAvatarUrl } from '@/utility/media-proxy.js';
 import { DI } from '@/di.js';
 import { globalEvents } from '@/events.js';
 import { checkDragDataType, getDragData } from '@/drag-and-drop.js';

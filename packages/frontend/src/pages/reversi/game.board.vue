@@ -74,8 +74,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 								mode="default"
 							>
 								<template v-if="useAvatarAsStone">
-									<img v-if="stone === true" :class="$style.boardCellStone" :src="getProxiedImageUrl(blackUserUrl,'avatar') ?? undefined"/>
-									<img v-else-if="stone === false" :class="$style.boardCellStone" :src="getProxiedImageUrl(whiteUserUrl, 'avatar') ?? undefined"/>
+									<img v-if="stone === true" :class="$style.boardCellStone" :src="blackUserUrl ?? undefined"/>
+									<img v-else-if="stone === false" :class="$style.boardCellStone" :src="whiteUserUrl ?? undefined"/>
 								</template>
 								<template v-else>
 									<img v-if="stone === true" :class="$style.boardCellStone" src="/client-assets/reversi/stone_b.png"/>
@@ -186,7 +186,7 @@ import { reactionPicker } from '@/utility/reaction-picker.js';
 import { confetti } from '@/utility/confetti.js';
 import { genId } from '@/utility/id.js';
 import { prefer } from '@/preferences.js';
-import { getStaticImageUrl } from '@/utility/media-proxy.js';
+import { getAvatarUrl } from '@/utility/media-proxy.js';
 import { store } from '@/store.js';
 
 //const $i = ensureSignin();
@@ -270,12 +270,14 @@ const playAnimation = ref(true);
 if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 const blackUserUrl = computed(() => {
-	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(blackUser.value.avatarUrl);
-	return blackUser.value.avatarUrl;
+	if (blackUser.value.avatarUrl == null) return null;
+	const isStatic = prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
+	return getAvatarUrl(blackUser.value.avatarUrl, isStatic);
 });
 const whiteUserUrl = computed(() => {
-	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(whiteUser.value.avatarUrl);
-	return whiteUser.value.avatarUrl;
+	if (whiteUser.value.avatarUrl == null) return null;
+	const isStatic = prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
+	return getAvatarUrl(whiteUser.value.avatarUrl, isStatic);
 });
 
 watch(logPos, (v) => {
