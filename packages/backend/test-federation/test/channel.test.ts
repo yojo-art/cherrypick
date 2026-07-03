@@ -1,4 +1,4 @@
-import assert, { rejects, strictEqual } from 'node:assert';
+import assert, { strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
 import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
 
@@ -50,6 +50,11 @@ describe('Channel', () => {
 	});
 
 	describe('Actor', () => {
+		test('管理者が連合する', async () => {
+			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
+			strictEqual(aliceCh.userId, alice.id, 'ローカル：作成者が管理者');
+			strictEqual(aliceChInB.userId, aliceInB.id, 'リモート：リモートユーザーが管理者');
+		});
 		test('チャンネル名が連合する', async () => {
 			strictEqual(aliceChActorInB.username, aliceCh.name, 'デフォルトはusername==name');
 			assert(aliceChActorInB.channelId);

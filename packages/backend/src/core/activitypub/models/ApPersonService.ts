@@ -415,6 +415,15 @@ export class ApPersonService implements OnModuleInit {
 			}
 		}
 
+		let channelModerator = null as MiUser | null;
+		if (isChannel) {
+			try {
+				channelModerator = await this.analyzeChannelModerator(person, resolver);
+			} catch(e) {
+				this.logger.warn(`Failed Resolve ChannelModerator: ${person.id}`);
+			}
+		}
+
 		// Create user
 		let user: MiRemoteUser | null = null;
 
@@ -499,13 +508,12 @@ export class ApPersonService implements OnModuleInit {
 				})) as MiRemoteUser;
 
 				if (isChannel) {
-					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
 					const channel = await transactionalEntityManager.save(new MiChannel({
 						id: this.idService.gen(),
 						name: person.name ? truncate(person.name, nameLength) : person.preferredUsername,
 						description: _description,
 						host,
-						userId: user.id,
+						userId: channelModerator?.id ?? user.id,
 						actorId: user.id,
 					}));
 					await transactionalEntityManager.update(MiUser, {
@@ -743,22 +751,27 @@ export class ApPersonService implements OnModuleInit {
 			const _channel = await this.channelsRepository.findOneBy({
 				actorId: exist.id,
 			});
+			let channelModerator = null as MiUser | null;
+			try {
+				channelModerator = await this.analyzeChannelModerator(person, resolver);
+			} catch(e) {
+				this.logger.warn(`Failed Resolve ChannelModerator: ${person.id}`);
+			}
 			if (_channel) {
 				channelId = _channel.id;
-				if (_channel.description !== _description || _channel.name !== displayName) {
-					//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
+				if (_channel.description !== _description || _channel.name !== displayName || channelModerator?.id !== _channel.userId) {
 					await this.channelsRepository.update({ actorId: exist.id }, {
 						name: displayName,
 						description: _description,
+						userId: channelModerator?.id ?? undefined,
 					});
 				}
 			} else {
 				//チャンネルアカウントなのにチャンネルが無い時は作る
-				//TODO チャンネル連合 管理者が設定されている時はuserIdをそれにする
 				const channel = await this.channelsRepository.insertOne({
 					id: this.idService.gen(),
 					name: displayName,
-					userId: exist.id,
+					userId: channelModerator?.id ?? exist.id,
 					actorId: exist.id,
 					host: exist.host,
 					description: _description,
@@ -1024,6 +1037,30 @@ export class ApPersonService implements OnModuleInit {
 		}
 
 		return fields;
+	}
+	@bindThis
+	// TODO: `attachments`が`IObject`だった場合、返り値が`[]`になるようだが構わないのか？
+	public async analyzeChannelModerator(person: IActor, resolver:Resolver): Promise<MiUser | null> {
+		if (getApType(person) !== 'Group') {
+			return null;
+		}
+		let moderators = [] as (IObject | string)[];
+		if (Array.isArray(person.attributedTo)) {
+			moderators = person.attributedTo;
+		} else if (person.attributedTo) {
+			const object = await resolver.resolve(person.attributedTo);
+			if (isCollectionOrOrderedCollection(object)) {
+				const items = isCollection(object) ? object.items : object.orderedItems;
+				moderators = toArray(items);
+			} else {
+				moderators = [object];
+			}
+		}
+		if (moderators.length > 0) {
+			const uri = getApId(moderators[0]);
+			return await this.resolvePerson(uri);
+		}
+		return null;
 	}
 
 	@bindThis
