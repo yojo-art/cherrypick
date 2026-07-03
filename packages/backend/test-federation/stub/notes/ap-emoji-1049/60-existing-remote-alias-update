@@ -1,0 +1,28 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/ap-emoji-1049/60-existing-remote-alias-update",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>:existing_remote_alias: alias update</p>",
+	"published": "2026-06-01T00:00:05.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"tag": [
+		{
+			"type": "Emoji",
+			"id": "https://z.test/emojis/existing_remote_alias",
+			"name": ":existing_remote_alias:",
+			"updated": "2026-06-01T00:00:05.000Z",
+			"icon": {
+				"type": "Image",
+				"mediaType": "image/png",
+				"url": "https://z.test/emoji/hello_world.png?rev=alias"
+			},
+			"keywords": [
+				"new",
+				"alias"
+			]
+		}
+	]
+}

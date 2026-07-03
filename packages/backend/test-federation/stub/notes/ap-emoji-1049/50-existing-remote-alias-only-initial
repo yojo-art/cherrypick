@@ -1,0 +1,28 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/ap-emoji-1049/50-existing-remote-alias-only-initial",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>:existing_remote_alias:</p>",
+	"published": "2026-06-01T00:00:04.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"tag": [
+		{
+			"type": "Emoji",
+			"id": "https://z.test/emojis/existing_remote_alias",
+			"name": ":existing_remote_alias:",
+			"updated": "2026-06-01T00:00:04.000Z",
+			"icon": {
+				"type": "Image",
+				"mediaType": "image/png",
+				"url": "https://z.test/emoji/hello_world.png"
+			},
+			"keywords": [
+				"old",
+				"alias-only"
+			]
+		}
+	]
+}

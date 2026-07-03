@@ -47,7 +47,6 @@ const base: MiNote = {
 	updatedAt: null,
 	updatedAtHistory: null,
 	hasEvent: false,
-	disableRightClick: false,
 	searchableBy: 'public',
 	deleteAt: null,
 };

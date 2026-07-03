@@ -541,7 +541,10 @@ export class ApPersonService implements OnModuleInit {
 				if (this.meta.enableChartsForFederatedInstances) {
 					this.instanceChart.newUser(i.host);
 				}
-				this.fetchInstanceMetadataService.fetchInstanceMetadata(i);
+				this.fetchInstanceMetadataService.fetchInstanceMetadata(i).then(() => {
+					// インスタンス情報の取得に成功した場合のみにリモートアバターデコレーション情報の更新を行う
+					this.avatarDecorationService.remoteUserUpdate(user!);
+				});
 			});
 		}
 
@@ -549,8 +552,6 @@ export class ApPersonService implements OnModuleInit {
 
 		// ハッシュタグ更新
 		this.hashtagService.updateUsertags(user, tags);
-
-		this.avatarDecorationService.remoteUserUpdate(user);
 
 		const role_policy = await this.roleService.getUserPolicies(user.id);
 

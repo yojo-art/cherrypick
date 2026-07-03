@@ -20,13 +20,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkStreamingNotesTimeline
 		v-else-if="column.tl"
 		ref="timeline"
-		:key="column.tl + withRenotes + withReplies + onlyFiles + onlyCats"
+		:key="column.tl + withRenotes + withReplies + onlyFiles + onlyCats + withBots"
 		:src="column.tl"
 		:withRenotes="withRenotes"
 		:withReplies="withReplies"
 		:withSensitive="withSensitive"
 		:onlyFiles="onlyFiles"
 		:onlyCats="onlyCats"
+		:withBots="withBots"
 		:sound="true"
 		:customSound="soundSetting"
 	/>
@@ -63,6 +64,7 @@ const withReplies = ref(props.column.withReplies ?? false);
 const withSensitive = ref(props.column.withSensitive ?? true);
 const onlyFiles = ref(props.column.onlyFiles ?? false);
 const onlyCats = ref(props.column.onlyCats ?? false);
+const withBots = ref(props.column.withBots ?? true);
 
 watch(withRenotes, v => {
 	updateColumn(props.column.id, {
@@ -91,6 +93,12 @@ watch(onlyFiles, v => {
 watch(onlyCats, v => {
 	updateColumn(props.column.id, {
 		onlyCats: v,
+	});
+});
+
+watch(withBots, v => {
+	updateColumn(props.column.id, {
+		withBots: v,
 	});
 });
 
@@ -174,6 +182,10 @@ const menu = computed<MenuItem[]>(() => {
 		type: 'switch',
 		text: i18n.ts.showCatOnly,
 		ref: onlyCats,
+	}, {
+		type: 'switch',
+		text: i18n.ts.includeBots,
+		ref: withBots,
 	});
 
 	return menuItems;

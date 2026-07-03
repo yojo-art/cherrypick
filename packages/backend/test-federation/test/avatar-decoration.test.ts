@@ -1,6 +1,6 @@
 import { deepStrictEqual, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
-import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep, waitFor, waitForSettled } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, resolveRemoteUser, sleep, waitFor } from './utils.js';
 
 const [aAdmin, bAdmin, cAdmin] = await Promise.all([
 	fetchAdmin('a.test'),
@@ -148,24 +148,18 @@ describe('Avatar-Decorations', () => {
 		});
 
 		test('a.test でリモートのアバターデコレーションの取得に成功すること', async () => {
-			// a.test から bob, carol を resolve する。createPerson が remoteUserUpdate を
-			// fire-and-forget で呼ぶため、ここからリモートデコレーションの伝播が始まる
-			const carolInAlice = await resolveRemoteUser('c.test', carol.id, alice);
 			const bobInAlice = await resolveRemoteUser('b.test', bob.id, alice);
+			const carolInAlice = await resolveRemoteUser('c.test', carol.id, alice);
 
-			// fire-and-forget の伝播が落ち着くのを待ってから明示更新する。
-			// 待たずに更新すると remoteUserUpdate の check-then-create が二重に走り重複し得る
-			await waitForSettled(async () => (await aAdmin.client.request('admin/avatar-decorations/list-remote', {})).length);
-
-			// resolve だけでは伝播しないことがあるため、明示的に updatePerson を起動する
-			await alice.client.request('federation/update-remote-user', { userId: bobInAlice.id });
-			await alice.client.request('federation/update-remote-user', { userId: carolInAlice.id });
-
-			// b.test 1件 + c.test 2件 が伝播するまで待つ(固定sleepの代わり)
+			// リモートアバターデコレーションが適用されているまで待つ
 			await waitFor(async () => {
-				const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});
-				return list.filter(d => d.host === 'b.test').length >= 1
-					&& list.filter(d => d.host === 'c.test').length >= 2;
+				const user = await alice.client.request('users/show', { userId: bobInAlice.id });
+				return user.avatarDecorations.length === 1;
+			});
+
+			await waitFor(async () => {
+				const user = await alice.client.request('users/show', { userId: carolInAlice.id });
+				return user.avatarDecorations.length === 2;
 			});
 
 			const list = await aAdmin.client.request('admin/avatar-decorations/list-remote', {});

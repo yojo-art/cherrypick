@@ -24,6 +24,7 @@ export class LocalTimelineChannel extends Channel {
 	private withReplies: boolean;
 	private withFiles: boolean;
 	private withCats: boolean;
+	private withBots: boolean;
 
 	constructor(
 		@Inject(REQUEST)
@@ -47,6 +48,7 @@ export class LocalTimelineChannel extends Channel {
 		this.withReplies = !!(params.withReplies ?? false);
 		this.withFiles = !!(params.withFiles ?? false);
 		this.withCats = !!(params.withCats ?? false);
+		this.withBots = !!(params.withBots ?? true);
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
@@ -56,6 +58,7 @@ export class LocalTimelineChannel extends Channel {
 	private async onNote(note: Packed<'Note'>) {
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
+		if (!this.withBots && note.user.isBot) return;
 
 		if (note.user.host !== null) return;
 		if (note.visibility !== 'public') return;

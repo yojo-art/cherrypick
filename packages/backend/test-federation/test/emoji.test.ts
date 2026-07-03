@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'misskey-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -500,5 +500,69 @@ describe('Emoji', () => {
 			isBasedOn: 'isBasedOn',
 			importFrom: 'a.test',
 		}), JSON.stringify(res));
+	});
+});
+
+describe('AP絵文字タグの正規化 (#1049)', () => {
+	let bob: LoginUser;
+
+	beforeAll(async () => {
+		bob = await createAccount('b.test');
+		await sleep();
+	});
+
+	// 優先度1: insert前に未対応のcopyPermissionを正規化
+	test('insert前に未対応のcopyPermissionを正規化してリモートAP絵文字を登録する', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/10-copy-permission-none');
+
+		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify([]));
+		strictEqual(emoji.copyPermission, null);
+		strictEqual(emoji.isSensitive, false);
+		strictEqual(emoji.license, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+	});
+
+	// 優先度2: 不正な拡張フィールド型を正規化
+	test('insert前に不正な拡張フィールドを正規化してリモートAP絵文字を登録する', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/20-invalid-extension-fields');
+
+		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify([]));
+		strictEqual(emoji.copyPermission, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+	});
+
+	test('部分タグ更新時にタグから欠落した既存メタデータをクリアする', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/30-existing-remote-initial');
+		await waitForRemoteEmoji(bob, 'existing_remote');
+
+		await requestFederationTestNote(bob, 'ap-emoji-1049/40-existing-remote-partial-update');
+
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
+		strictEqual(emoji.copyPermission, 'deny');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify([]));
+		strictEqual(emoji.license, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+		strictEqual(emoji.isSensitive, false);
+	});
+
+	test('keywordsが明示されたときのみaliasesを更新する', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/50-existing-remote-alias-only-initial');
+		await waitForRemoteEmoji(bob, 'existing_remote_alias');
+
+		await requestFederationTestNote(bob, 'ap-emoji-1049/60-existing-remote-alias-update');
+
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify(['new', 'alias']));
 	});
 });

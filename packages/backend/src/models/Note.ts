@@ -123,7 +123,6 @@ export class MiNote {
 	@Column('boolean', {
 		default: false,
 	})
-	public disableRightClick: boolean;
 
 	@Column('smallint', {
 		default: 0,
