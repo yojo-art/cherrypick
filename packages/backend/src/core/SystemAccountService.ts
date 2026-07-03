@@ -157,6 +157,7 @@ export class SystemAccountService implements OnApplicationShutdown {
 				this.logger.info(`System account '${type}' create: existing user found, reusing`);
 				return;
 			}
+
 			account = await transactionalEntityManager.insert(MiUser, {
 				id: this.idService.gen(),
 				username: extra.username,
