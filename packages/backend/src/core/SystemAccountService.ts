@@ -92,10 +92,7 @@ export class SystemAccountService implements OnApplicationShutdown {
 	@bindThis
 	public async fetch(type: typeof SYSTEM_ACCOUNT_TYPES[number]): Promise<MiLocalUser> {
 		const cached = this.cache.get(type);
-		if (cached) {
-			this.logger.info(`System account '${type}' fetch: cache hit`);
-			return cached;
-		}
+		if (cached) return cached;
 
 		const systemAccount = await this.systemAccountsRepository.findOne({
 			where: { type: type },
@@ -108,13 +105,25 @@ export class SystemAccountService implements OnApplicationShutdown {
 			return systemAccount.user as MiLocalUser;
 		} else {
 			this.logger.info(`System account '${type}' fetch: creating new account...`);
-			const created = await this.createCorrespondingUser(type, {
-				username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
-				name: this.meta.name,
-			});
-			this.cache.set(type, created);
-			this.logger.succ(`System account '${type}' created successfully`);
-			return created;
+
+			try {
+				const created = await this.createCorrespondingUser(type, {
+					username: `system.${type}`, // NOTE: (できれば避けたいが) . が含まれるかどうかでシステムアカウントかどうかを判定している処理もあるので変えないように
+					name: this.meta.name,
+				});
+				this.cache.set(type, created);
+				this.logger.succ(`System account '${type}' created successfully`);
+				return created;
+			} catch (e) {
+				// transactionでこけたなら、別で作成された可能性がある
+				const account = await this.usersRepository.findOneByOrFail({
+					usernameLower: `system.${type}`.toLowerCase(),
+					host: IsNull(),
+				}) as MiLocalUser;
+				this.cache.set(type, account);
+				this.logger.info(`System account '${type}' already created by another worker, reusing existing one`);
+				return account;
+			}
 		}
 	}
 
@@ -137,61 +146,52 @@ export class SystemAccountService implements OnApplicationShutdown {
 		let account!: MiUser;
 
 		// Start transaction
-		try {
-			await this.db.transaction(async transactionalEntityManager => {
-				const exist = await transactionalEntityManager.findOneBy(MiUser, {
-					usernameLower: extra.username.toLowerCase(),
-					host: IsNull(),
-				});
-
-				if (exist) {
-					account = exist;
-					this.logger.info(`System account '${type}' create: existing user found, reusing`);
-					return;
-				}
-				account = await transactionalEntityManager.insert(MiUser, {
-					id: this.idService.gen(),
-					username: extra.username,
-					usernameLower: extra.username.toLowerCase(),
-					host: null,
-					token: secret,
-					isLocked: true,
-					isExplorable: false,
-					isBot: true,
-					name: extra.name,
-				}).then(x => transactionalEntityManager.findOneByOrFail(MiUser, x.identifiers[0]));
-
-				await transactionalEntityManager.insert(MiUserKeypair, {
-					publicKey: keyPair.publicKey,
-					privateKey: keyPair.privateKey,
-					userId: account.id,
-				});
-
-				await transactionalEntityManager.insert(MiUserProfile, {
-					userId: account.id,
-					autoAcceptFollowed: false,
-					password: hash,
-				});
-
-				await transactionalEntityManager.insert(MiUsedUsername, {
-					createdAt: new Date(),
-					username: extra.username.toLowerCase(),
-				});
-
-				await transactionalEntityManager.insert(MiSystemAccount, {
-					id: this.idService.gen(),
-					userId: account.id,
-					type: type,
-				});
-			});
-		} catch (e) {
-			// transactionでこけたなら、別で作成された可能性がある？
-			this.logger.info(`System account '${type}' already created by another worker, reusing existing one`);
-			account = await this.usersRepository.findOneByOrFail({
+		await this.db.transaction(async transactionalEntityManager => {
+			const exist = await transactionalEntityManager.findOneBy(MiUser, {
 				usernameLower: extra.username.toLowerCase(),
 				host: IsNull(),
 			});
-		}
+
+			if (exist) {
+				account = exist;
+				this.logger.info(`System account '${type}' create: existing user found, reusing`);
+				return;
+			}
+			account = await transactionalEntityManager.insert(MiUser, {
+				id: this.idService.gen(),
+				username: extra.username,
+				usernameLower: extra.username.toLowerCase(),
+				host: null,
+				token: secret,
+				isLocked: true,
+				isExplorable: false,
+				isBot: true,
+				name: extra.name,
+			}).then(x => transactionalEntityManager.findOneByOrFail(MiUser, x.identifiers[0]));
+
+			await transactionalEntityManager.insert(MiUserKeypair, {
+				publicKey: keyPair.publicKey,
+				privateKey: keyPair.privateKey,
+				userId: account.id,
+			});
+
+			await transactionalEntityManager.insert(MiUserProfile, {
+				userId: account.id,
+				autoAcceptFollowed: false,
+				password: hash,
+			});
+
+			await transactionalEntityManager.insert(MiUsedUsername, {
+				createdAt: new Date(),
+				username: extra.username.toLowerCase(),
+			});
+
+			await transactionalEntityManager.insert(MiSystemAccount, {
+				id: this.idService.gen(),
+				userId: account.id,
+				type: type,
+			});
+		});
 
 		return account as MiLocalUser;
 	}
