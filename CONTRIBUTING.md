@@ -258,7 +258,7 @@ Inside the [Dev Container](#use-devcontainer), the required services are already
 ```sh
 pnpm run e2e-dev-container
 ```
-To keep the test data isolated from your development environment, the E2E setup uses a dedicated `redis-test` service and a separate `cherrypick_test` database on the shared `db` server. This script copies `.config/cypress-devcontainer.yml` to `.config/test.yml`, migrates the test database, then starts the test server and runs Cypress.
+To keep the test data isolated from your development environment, the E2E setup uses a dedicated `redis-test` service and a separate `misskey_test` database on the shared `db` server. This script copies `.config/cypress-devcontainer.yml` to `.config/test.yml`, migrates the test database, then starts the test server and runs Cypress.
 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
