@@ -322,7 +322,8 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
+	public async createBulkNote(note: MiNote, choices?: string[]): Promise<void> {
+
 		if (!this.opensearch) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
 
@@ -373,6 +374,12 @@ export class AdvancedSearchService {
 			nonSensitiveFileCount: nonSensitiveCount,
 			reactions: reactions,
 		};
+	}
+
+
+	@bindThis
+	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
+		const body = this.createBulkNote(note, choices)
 		this.index(this.opensearchNoteIndex as string, note.id, body);
 	}
 
@@ -528,7 +535,8 @@ export class AdvancedSearchService {
 		const limit = 100;
 		let latestid = '';
 		const loopStart = Date.now();
-		for (let index = 0; index < notesCount; index += limit) {
+		let index = 0;
+		while(true) {
 			this.logger.info('indexing' + index + '/' + notesCount);
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
@@ -547,16 +555,23 @@ export class AdvancedSearchService {
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
+
+			if (notes.length == 0) break;
+			index += notes.length;
+
+			const bulkBody: any[] = [];
+			
 			notes.forEach(note => {
 				if (note.hasPoll) {
 					this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
-						this.indexNote(note, poll ? poll.choices : undefined);
+						bulkBody.push(this.createBulkNote(note, poll ? poll.choices : undefined));
 					});
 				} else {
-					this.indexNote(note, undefined);
+					bulkBody.push(this.createBulkNote(note, undefined));
 				}
 				latestid = note.id;
 			});
+			await this.opensearch.bulk({body: bulkBody});
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('indexing ' + index + '/' + notesCount + ' done in ' + loopTime + 'ms');
 		}
