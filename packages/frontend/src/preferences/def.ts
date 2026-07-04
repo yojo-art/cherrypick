@@ -195,16 +195,18 @@ export const PREF_DEF = definePreferences({
 	menu: {
 		default: [
 			'notifications',
-			'chat',
-			'favorites',
-			'explore',
+			'clips',
+			'drive',
 			'followRequests',
+			'chat',
 			'-',
+			'official_tags',
+			'explore',
 			'announcements',
 			'channels',
 			'search',
 			'-',
-			'support',
+			'ui',
 		],
 	},
 	statusbars: {
