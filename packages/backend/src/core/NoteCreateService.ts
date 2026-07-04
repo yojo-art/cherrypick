@@ -595,7 +595,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		}
 		if (data.channel) {
 			//チャンネル投稿のチャンネルへのメンションは表示しない
-			mentionedUsers = mentionedUsers.filter(x => x.id !== data.channel?.id);
+			mentionedUsers = mentionedUsers.filter(x => x.id !== data.channel?.actorId);
 		}
 
 		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
