@@ -542,7 +542,7 @@ export class AdvancedSearchService {
 			const notesChart = await this.notesChart.getChart('hour', 1, null);
 			const notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
 			this.logger.info('Total notes count: ' + notesCount);
-			const limit = 5000;
+			const limit = 10000;
 			let latestid = '';
 			const loopStart = Date.now();
 			let index = 0;
