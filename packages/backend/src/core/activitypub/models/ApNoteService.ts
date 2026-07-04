@@ -31,6 +31,7 @@ import { ApDbResolverService } from '../ApDbResolverService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import { parseSearchableByFromProperty } from '../misc/searchableBy.js';
+import { normalizeApEmojiTag } from '../misc/normalize-ap-emoji-tag.js';
 import { ApPersonService } from './ApPersonService.js';
 import { extractApHashtags } from './tag.js';
 import { ApMentionService } from './ApMentionService.js';
@@ -39,7 +40,6 @@ import { ApEventService } from './ApEventService.js';
 import { ApImageService } from './ApImageService.js';
 import type { Resolver } from '../ApResolverService.js';
 import type { IObject, IPost } from '../type.js';
-import { normalizeApEmojiTag } from '../misc/normalize-ap-emoji-tag.js';
 
 @Injectable()
 export class ApNoteService {
@@ -246,6 +246,7 @@ export class ApNoteService {
 				}
 				if (channel) break;//最初に発見されたチャンネルに投稿
 			}
+			//TODO: チャンネル連合 チャンネルアカウントがユーザーをブロックしていた場合投稿を拒否する？
 		}
 
 		// 添付ファイル
