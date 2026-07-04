@@ -525,9 +525,9 @@ export class AdvancedSearchService {
 	public async fullIndexNote(): Promise<void> {
 		if (!this.opensearch) return;
 
-		// ワーカー間ロック: 既に実行中ならスキップ
+		// ワーカー間ロック: 既に実行中ならスキップ(期限24h)
 		const lockKey = 'fullIndexNote:lock';
-		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', 3600, 'NX');
+		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', 86400, 'NX');
 		if (lock !== 'OK') {
 			this.logger.info('fullIndexNote is already running');
 			return;
@@ -542,7 +542,7 @@ export class AdvancedSearchService {
 			const notesChart = await this.notesChart.getChart('hour', 1, null);
 			const notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
 			this.logger.info('Total notes count: ' + notesCount);
-			const limit = 10000;
+			const limit = 1000;
 			let latestid = '';
 			const loopStart = Date.now();
 			let index = 0;
@@ -554,7 +554,7 @@ export class AdvancedSearchService {
 					.leftJoin('note.renote', 'renote')
 					.select(['note'])
 					.where('note.id > :latestid', { latestid })
-					.andWhere(new Brackets(qb => {
+					.andWhere(new Brackets( qb => {
 						qb.where('note."userHost" IS NULL')
 							.orWhere(new Brackets(qb2 => {
 								qb2
@@ -566,102 +566,20 @@ export class AdvancedSearchService {
 					.orderBy('note.id', 'ASC')
 					.limit(limit)
 					.getMany();
-				const dbTime = Date.now() - dbStart;
-				this.logger.info('Notes DB query: ' + dbTime + 'ms (' + notes.length + ' rows)');
 
 				if (notes.length === 0) break;
 				index += notes.length;
 
-				// Poll一括取得
-				const noteIdsWithPoll = notes.filter(n => n.hasPoll).map(n => n.id);
-				const pollStart = Date.now();
-				const polls = noteIdsWithPoll.length > 0
-					? await this.pollsRepository.findBy({ noteId: In(noteIdsWithPoll) })
-					: [];
-				const pollTime = Date.now() - pollStart;
-				this.logger.info('Poll fetch: ' + pollTime + 'ms (' + noteIdsWithPoll.length + ' items)');
-				const pollMap = new Map(polls.map(p => [p.noteId, p.choices]));
-
-				// fileIds 一括取得
-				const allFileIds = [...new Set(notes.flatMap(n => n.fileIds))];
-				const fileStart = Date.now();
-				const driveFiles = allFileIds.length > 0
-					? await this.driveFilesRepository.findBy({ id: In(allFileIds) })
-					: [];
-				const fileTime = Date.now() - fileStart;
-				this.logger.info('DriveFiles fetch: ' + fileTime + 'ms (' + allFileIds.length + ' items, ' + driveFiles.length + ' found)');
-				const sensitiveSet = new Set(driveFiles.filter(f => f.isSensitive).map(f => f.id));
-
-				const bulkBody: any[] = [];
-
-				for (const note of notes) {
-					if (note.searchableBy === 'private' && note.userHost !== null) continue;
-
-					if (isRenote(note) && !isQuote(note)) {
-						if (note.userHost === null) {
-							if (note.renote?.searchableBy === 'private') continue;
-							bulkBody.push(
-								{ index: { _index: this.renoteIndex, _id: note.id } },
-								{
-									renoteId: note.renoteId,
-									userId: note.userId,
-									createdAt: this.idService.parse(note.id).date.getTime(),
-								},
-							);
-						}
-						continue;
-					}
-
-					const IsQuote = isRenote(note) && isQuote(note);
-					const sensitiveCount = note.fileIds.filter(id => sensitiveSet.has(id)).length;
-					const nonSensitiveCount = note.fileIds.length - sensitiveCount;
-
-					let reactions: { emoji: string; count: number }[];
-					if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
-						reactions = Object.entries(note.reactions)
-							.map(([emoji, count]) => ({ emoji, count }))
-							.filter((x) => x.emoji.includes('@') === false);
+				notes.forEach(note => {
+					if (note.hasPoll) {
+						this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
+							this.indexNote(note, poll ? poll.choices : undefined);
+						});
 					} else {
-						reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
+						this.indexNote(note, undefined);
 					}
-
-					bulkBody.push(
-						{ index: { _index: this.opensearchNoteIndex as string, _id: note.id } },
-						{
-							text: note.text,
-							cw: note.cw,
-							userId: note.userId,
-							userHost: note.userHost,
-							createdAt: this.idService.parse(note.id).date.getTime(),
-							tags: note.tags,
-							fileIds: note.fileIds,
-							visibility: note.visibility,
-							searchableBy: note.searchableBy,
-							visibleUserIds: note.visibleUserIds,
-							replyId: note.replyId,
-							renoteId: note.renoteId,
-							pollChoices: pollMap.get(note.id),
-							referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
-							sensitiveFileCount: sensitiveCount,
-							nonSensitiveFileCount: nonSensitiveCount,
-							reactions: reactions,
-						},
-					);
-				}
-
-				if (bulkBody.length > 0) {
-					const bulkStart = Date.now();
-					await this.opensearch.bulk({ body: bulkBody }).catch((err) => {
-						this.logger.error('Bulk indexing error: ' + err);
-					});
-					const bulkTime = Date.now() - bulkStart;
-					this.logger.info('Bulk send: ' + bulkTime + 'ms (' + (bulkBody.length / 2) + ' docs)');
-				}
-
-				latestid = notes[notes.length - 1].id;
-
-				const loopTime = Date.now() - loopStart;
-				this.logger.info('indexing ' + index + '/' + notesCount + ' done in ' + loopTime + 'ms');
+					latestid = note.id;
+				});
 			}
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
