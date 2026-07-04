@@ -127,8 +127,8 @@ describe('アンテナ', () => {
 		await post(userMutedByAlice, { text: 'test' });
 		await api('mute/create', { userId: userMutedByAlice.id }, alice);
 
-		testChannel = (await api('channels/create', { name: 'test' }, root)).body;
-		testMutedChannel = (await api('channels/create', { name: 'test-muted' }, root)).body;
+		testChannel = (await api('channels/create', { name: 'test', username: randomString() }, root)).body;
+		testMutedChannel = (await api('channels/create', { name: 'test-muted', username: randomString() }, root)).body;
 		await api('channels/mute/create', { channelId: testMutedChannel.id }, alice);
 	}, 1000 * 60 * 10);
 
