@@ -54,7 +54,10 @@ export class HomeTimelineChannel extends Channel {
 		if (!this.withBots && note.user.isBot) return;
 
 		if (note.channelId) {
-			if (!this.followingChannels.has(note.channelId)) return;
+			// そのチャンネルをフォローしていない
+			if (!this.followingChannels.has(note.channelId)) {
+				return;
+			}
 			if (note.user.channelId != null) {
 				// チャンネルアカウントによる純粋なリノートの場合
 				if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {

@@ -16,6 +16,8 @@ import { CacheService } from '@/core/CacheService.js';
 import { UserFollowingService } from '@/core/UserFollowingService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
+import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -72,6 +74,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private cacheService: CacheService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
 		private userFollowingService: UserFollowingService,
+		private channelMutingService: ChannelMutingService,
+		private channelFollowingService: ChannelFollowingService,
 		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -147,13 +151,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 	}
 
 	private async getFromDb(ps: { untilId: string | null; sinceId: string | null; limit: number; includeMyRenotes: boolean; includeRenotedMyNotes: boolean; includeLocalRenotes: boolean; withFiles: boolean; withRenotes: boolean; withCats: boolean; withBots: boolean; }, me: MiLocalUser) {
+		const mutingChannelIds = await this.channelMutingService
+			.list({ requestUserId: me.id }, { idOnly: true })
+			.then(x => x.map(x => x.id));
 		const followeesHasChannels = await this.followingsRepository.createQueryBuilder('following')
 			.innerJoinAndSelect('following.followee', 'followee')
 			.select(['followee.channelId', 'following.followeeId'])
 			.where('following.followerId = :followerId', { followerId: me.id })
 			.getMany();
 		const followeeIds = followeesHasChannels.filter(x => x.followee?.channelId == null).map(f => f.followeeId);
-		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null);
+		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null).filter(x => !mutingChannelIds.includes(x));
 
 		//#region Construct query
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
@@ -171,7 +178,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				qb
 					.where(new Brackets(qb2 => {
 						qb2
-							.where('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds })
+							.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds })
 							.andWhere('note.channelId IS NULL');
 					}))
 					.orWhere('note.channelId IN (:...followingChannelIds)', { followingChannelIds });
@@ -179,21 +186,32 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		} else if (followeeIds.length > 0) {
 			// ユーザーフォローのみ（チャンネルフォローなし）
 			const meOrFolloweeIds = [me.id, ...followeeIds];
-			query
-				.andWhere('note.channelId IS NULL')
-				.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
+			query.andWhere(new Brackets(qb => {
+				qb
+					.andWhere('note.channelId IS NULL')
+					.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
+				if (mutingChannelIds.length > 0) {
+					qb.andWhere('note.renoteChannelId NOT IN (:...mutingChannelIds)', { mutingChannelIds });
+				}
+			}));
 		} else if (followingChannelIds.length > 0) {
 			// チャンネルフォローのみ（ユーザーフォローなし）
 			query.andWhere(new Brackets(qb => {
 				qb
+					// renoteChannelIdは見る必要が無い
+					// ・HTLに流れてくるチャンネル＝フォローしているチャンネル
+					// ・HTLにフォロー外のチャンネルが流れるのは、フォローしているユーザがそのチャンネル投稿をリノートした場合のみ
+					// つまり、ユーザフォローしてない前提のこのブロックでは見る必要が無い
 					.where('note.channelId IN (:...followingChannelIds)', { followingChannelIds })
 					.orWhere('note.userId = :meId', { meId: me.id });
 			}));
 		} else {
 			// フォローなし
-			query
-				.andWhere('note.channelId IS NULL')
-				.andWhere('note.userId = :meId', { meId: me.id });
+			query.andWhere(new Brackets(qb => {
+				qb
+					.andWhere('note.channelId IS NULL')
+					.andWhere('note.userId = :meId', { meId: me.id });
+			}));
 		}
 
 		query.andWhere(new Brackets(qb => {

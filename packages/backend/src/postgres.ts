@@ -25,6 +25,7 @@ import { MiAvatarDecoration } from '@/models/AvatarDecoration.js';
 import { MiAuthSession } from '@/models/AuthSession.js';
 import { MiBlocking } from '@/models/Blocking.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
+import { MiChannelMuting } from "@/models/ChannelMuting.js";
 import { MiClip } from '@/models/Clip.js';
 import { MiClipNote } from '@/models/ClipNote.js';
 import { MiClipFavorite } from '@/models/ClipFavorite.js';
@@ -255,6 +256,7 @@ export const entities = [
 	MiRelay,
 	MiChannel,
 	MiChannelFavorite,
+	MiChannelMuting,
 	MiRegistryItem,
 	MiAd,
 	MiPasswordResetRequest,

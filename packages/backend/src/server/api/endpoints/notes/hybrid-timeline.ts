@@ -18,6 +18,8 @@ import { QueryService } from '@/core/QueryService.js';
 import { UserFollowingService } from '@/core/UserFollowingService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
+import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -91,6 +93,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private cacheService: CacheService,
 		private queryService: QueryService,
 		private userFollowingService: UserFollowingService,
+		private channelMutingService: ChannelMutingService,
+		private channelFollowingService: ChannelFollowingService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -205,13 +209,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		withCats: boolean,
 		withBots: boolean,
 	}, me: MiLocalUser) {
+		const mutingChannelIds = await this.channelMutingService
+			.list({ requestUserId: me.id }, { idOnly: true })
+			.then(x => x.map(x => x.id));
+
 		const followeesHasChannels = await this.followingsRepository.createQueryBuilder('following')
 			.innerJoinAndSelect('following.followee', 'followee')
 			.select(['followee.channelId', 'following.followeeId'])
 			.where('following.followerId = :followerId', { followerId: me.id })
 			.getMany();
 		const followeeIds = followeesHasChannels.filter(x => x.followee?.channelId == null).map(f => f.followeeId);
-		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null);
+		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null).filter(x => !mutingChannelIds.includes(x));
 
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
 			.andWhere(new Brackets(qb => {
@@ -238,6 +246,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}));
 		} else {
 			query.andWhere('note.channelId IS NULL');
+		}
+
+		if (mutingChannelIds.length > 0) {
+			query.andWhere(new Brackets(qb => {
+				qb.orWhere('note.renoteChannelId IS NULL');
+				qb.orWhere('note.renoteChannelId NOT IN (:...mutingChannelIds)', { mutingChannelIds });
+			}));
 		}
 
 		if (!ps.withReplies) {
