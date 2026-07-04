@@ -37,10 +37,12 @@ export class ChannelFollowingService implements OnModuleInit {
 		this.userFollowingChannelsCache = new RedisKVCache<Set<string>>(this.redisClient, 'userFollowingChannels', {
 			lifetime: 1000 * 60 * 30, // 30m
 			memoryCacheLifetime: 1000 * 60, // 1m
-			fetcher: (key) => this.followingsRepository.find({
-				where: { followerId: key },
-				select: ['followeeId'],
-			}).then(xs => new Set(xs.map(x => x.followeeId))),
+			fetcher: (key) => this.followingsRepository.createQueryBuilder('following')
+				.innerJoinAndSelect('following.followee', 'followee')
+				.select(['followee.channelId', 'following.followeeId'])
+				.where('following.followerId = :followerId', { followerId: key })
+				.andWhere('followee.channelId IS NOT NULL')
+				.getMany().then(xs => new Set(xs.map(x => x.followee?.channelId).filter(x => x != null))),
 			toRedisConverter: (value) => JSON.stringify(Array.from(value)),
 			fromRedisConverter: (value) => new Set(JSON.parse(value)),
 		});
