@@ -322,24 +322,28 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async createBulkNote(note: MiNote, choices?: string[]): Promise<void> {
+	public async createBulkNote(note: MiNote, choices?: string[]): Promise<{ index: string; id: string; body: any } | null> {
 
-		if (!this.opensearch) return;
-		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
+		if (!this.opensearch) return null;
+		if (note.searchableBy === 'private' && note.userHost !== null) return null;//リモートユーザーのprivateはインデックスしない
 
 		if (isRenote(note) && !isQuote(note)) { //リノートであり
 			if (note.userHost === null) {//ローカルユーザー
-				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
-				await this.index(this.renoteIndex, note.id, {
-					renoteId: note.renoteId,
-					userId: note.userId,
-					createdAt: this.idService.parse(note.id).date.getTime(),
-				});
-				return;
+				if (note.renote?.searchableBy === 'private') return null;//リノート元のノートがprivateならインデックスしない
+				return {
+					index: this.renoteIndex,
+					id: note.id,
+					body: {
+						renoteId: note.renoteId,
+						userId: note.userId,
+						createdAt: this.idService.parse(note.id).date.getTime(),
+					},
+				};
 			}
+			return null;
 		}
 		if (await this.redisClient.get('indexDeleted') !== null) {
-			return;
+			return null;
 		}
 		const IsQuote = isRenote(note) && isQuote(note);
 		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
@@ -355,24 +359,28 @@ export class AdvancedSearchService {
 			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
 		}
 
-		const body = {
-			text: note.text,
-			cw: note.cw,
-			userId: note.userId,
-			userHost: note.userHost,
-			createdAt: this.idService.parse(note.id).date.getTime(),
-			tags: note.tags,
-			fileIds: note.fileIds,
-			visibility: note.visibility,
-			searchableBy: note.searchableBy,
-			visibleUserIds: note.visibleUserIds,
-			replyId: note.replyId,
-			renoteId: note.renoteId,
-			pollChoices: choices,
-			referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
-			sensitiveFileCount: sensitiveCount,
-			nonSensitiveFileCount: nonSensitiveCount,
-			reactions: reactions,
+		return {
+			index: this.opensearchNoteIndex as string,
+			id: note.id,
+			body: {
+				text: note.text,
+				cw: note.cw,
+				userId: note.userId,
+				userHost: note.userHost,
+				createdAt: this.idService.parse(note.id).date.getTime(),
+				tags: note.tags,
+				fileIds: note.fileIds,
+				visibility: note.visibility,
+				searchableBy: note.searchableBy,
+				visibleUserIds: note.visibleUserIds,
+				replyId: note.replyId,
+				renoteId: note.renoteId,
+				pollChoices: choices,
+				referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
+				sensitiveFileCount: sensitiveCount,
+				nonSensitiveFileCount: nonSensitiveCount,
+				reactions: reactions,
+			},
 		};
 	}
 
