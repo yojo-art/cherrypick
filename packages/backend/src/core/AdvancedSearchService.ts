@@ -22,6 +22,7 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
+import NotesChart from '@/core/chart/charts/notes.js';
 
 type OpenSearchHit = {
 	_index: string
@@ -207,6 +208,7 @@ export class AdvancedSearchService {
 		private idService: IdService,
 		private loggerService: LoggerService,
 		private driveService: DriveService,
+		private notesChart: NotesChart,
 	) {
 		this.logger = this.loggerService.getLogger('search');
 		if (opensearch && config.opensearch && config.opensearch.index) {
@@ -520,10 +522,13 @@ export class AdvancedSearchService {
 	public async fullIndexNote(): Promise<void> {
 		if (!this.opensearch) return;
 
-		const notesCount = await this.notesRepository.createQueryBuilder('note').getCount();
+		const notesChart = await this.notesChart.getChart('hour', 1, null);
+		const notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
+		this.logger.info('Total notes count: ' + notesCount);
 		const limit = 100;
 		let latestid = '';
 		for (let index = 0; index < notesCount; index += limit) {
+			const loopStart = Date.now();
 			this.logger.info('indexing' + index + '/' + notesCount);
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
@@ -552,6 +557,8 @@ export class AdvancedSearchService {
 				}
 				latestid = note.id;
 			});
+			const loopTime = Date.now() - loopStart;
+			this.logger.info('indexing ' + index + '/' + notesCount + ' done in ' + loopTime + 'ms');
 		}
 		this.logger.info('All notes has been indexed.');
 	}
