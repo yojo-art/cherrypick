@@ -608,7 +608,7 @@ export class ApRendererService {
 
 		return {
 			id: `${this.config.url}/notes/${note.id}`,
-			type: inReplyTo === null && channelActorUri ? 'Page' : 'Note',
+			type: 'Note',
 			attributedTo,
 			summary: summary ?? undefined,
 			content: content ?? undefined,
