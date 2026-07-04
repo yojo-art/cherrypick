@@ -726,7 +726,7 @@ describe('Timelines', () => {
 					const [alice, bob] = await Promise.all([signup(), signup()]);
 					await api('following/create', { userId: bob.id }, alice);
 
-					const channel = await createChannel(bob, { name: 'channel' });
+					const channel = await createChannel('channel', bob);
 					await followChannel(channel.id, alice);
 
 					const aliceNote = await post(alice, { text: 'hi' });
