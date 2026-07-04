@@ -18,6 +18,7 @@ import { RelayService } from '@/core/RelayService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { GlobalModule } from '@/GlobalModule.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { LoggerService } from '@/core/LoggerService.js';
 
 const moduleMocker = new ModuleMocker(global);
 
@@ -38,6 +39,7 @@ describe('RelayService', () => {
 				UserEntityService,
 				SystemAccountService,
 				UtilityService,
+				LoggerService,
 			],
 		})
 			.useMocker((token) => {
