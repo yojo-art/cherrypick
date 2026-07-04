@@ -390,7 +390,56 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
-		const body = this.createBulkNote(note, choices)
+		if (!this.opensearch) return;
+		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
+
+		if (isRenote(note) && !isQuote(note)) { //リノートであり
+			if (note.userHost === null) {//ローカルユーザー
+				if (note.renote?.searchableBy === 'private') return;//リノート元のノートがprivateならインデックスしない
+				await this.index(this.renoteIndex, note.id, {
+					renoteId: note.renoteId,
+					userId: note.userId,
+					createdAt: this.idService.parse(note.id).date.getTime(),
+				});
+				return;
+			}
+		}
+		if (await this.redisClient.get('indexDeleted') !== null) {
+			return;
+		}
+		const IsQuote = isRenote(note) && isQuote(note);
+		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
+		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+		let reactions: {
+			emoji: string;
+			count: number;
+		}[];
+
+		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
+			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
+		} else {
+			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
+		}
+
+		const body = {
+			text: note.text,
+			cw: note.cw,
+			userId: note.userId,
+			userHost: note.userHost,
+			createdAt: this.idService.parse(note.id).date.getTime(),
+			tags: note.tags,
+			fileIds: note.fileIds,
+			visibility: note.visibility,
+			searchableBy: note.searchableBy,
+			visibleUserIds: note.visibleUserIds,
+			replyId: note.replyId,
+			renoteId: note.renoteId,
+			pollChoices: choices,
+			referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
+			sensitiveFileCount: sensitiveCount,
+			nonSensitiveFileCount: nonSensitiveCount,
+			reactions: reactions,
+		};
 		this.index(this.opensearchNoteIndex as string, note.id, body);
 	}
 
@@ -549,6 +598,7 @@ export class AdvancedSearchService {
 		let index = 0;
 		while (true) {
 			this.logger.info('indexing' + index + '/' + notesCount);
+			const dbStart = Date.now();
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
 				.leftJoin('note.renote', 'renote')
@@ -566,22 +616,30 @@ export class AdvancedSearchService {
 				.orderBy('note.id', 'ASC')
 				.limit(limit)
 				.getMany();
+			const dbTime = Date.now() - dbStart;
+			this.logger.info('Notes DB query: ' + dbTime + 'ms (' + notes.length + ' rows)');
 
 			if (notes.length === 0) break;
 			index += notes.length;
 
 			// Poll一括取得
 			const noteIdsWithPoll = notes.filter(n => n.hasPoll).map(n => n.id);
+			const pollStart = Date.now();
 			const polls = noteIdsWithPoll.length > 0
 				? await this.pollsRepository.findBy({ noteId: In(noteIdsWithPoll) })
 				: [];
+			const pollTime = Date.now() - pollStart;
+			this.logger.info('Poll fetch: ' + pollTime + 'ms (' + noteIdsWithPoll.length + ' items)');
 			const pollMap = new Map(polls.map(p => [p.noteId, p.choices]));
 
 			// fileIds 一括取得
 			const allFileIds = [...new Set(notes.flatMap(n => n.fileIds))];
+			const fileStart = Date.now();
 			const driveFiles = allFileIds.length > 0
 				? await this.driveFilesRepository.findBy({ id: In(allFileIds) })
 				: [];
+			const fileTime = Date.now() - fileStart;
+			this.logger.info('DriveFiles fetch: ' + fileTime + 'ms (' + allFileIds.length + ' items, ' + driveFiles.length + ' found)');
 			const sensitiveSet = new Set(driveFiles.filter(f => f.isSensitive).map(f => f.id));
 
 			const bulkBody: any[] = [];
@@ -646,9 +704,12 @@ export class AdvancedSearchService {
 			}
 
 			if (bulkBody.length > 0) {
+				const bulkStart = Date.now();
 				await this.opensearch.bulk({ body: bulkBody }).catch((err) => {
 					this.logger.error('Bulk indexing error: ' + err);
 				});
+				const bulkTime = Date.now() - bulkStart;
+				this.logger.info('Bulk send: ' + bulkTime + 'ms (' + (bulkBody.length / 2) + ' docs)');
 			}
 
 			latestid = notes[notes.length - 1].id;
