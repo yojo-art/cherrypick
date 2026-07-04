@@ -544,14 +544,14 @@ export class AdvancedSearchService {
 		let latestid = '';
 		const loopStart = Date.now();
 		let index = 0;
-		while(true) {
+		while (true) {
 			this.logger.info('indexing' + index + '/' + notesCount);
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
 				.leftJoin('note.renote', 'renote')
 				.select(['note'])
 				.where('note.id > :latestid', { latestid })
-				.andWhere(new Brackets( qb => {
+				.andWhere(new Brackets(qb => {
 					qb.where('note."userHost" IS NULL')
 						.orWhere(new Brackets(qb2 => {
 							qb2
@@ -564,22 +564,39 @@ export class AdvancedSearchService {
 				.limit(limit)
 				.getMany();
 
-			if (notes.length == 0) break;
+			if (notes.length === 0) break;
 			index += notes.length;
 
+			// Poll一括取得
+			const noteIdsWithPoll = notes.filter(n => n.hasPoll).map(n => n.id);
+			const polls = noteIdsWithPoll.length > 0
+				? await this.pollsRepository.findBy({ noteId: In(noteIdsWithPoll) })
+				: [];
+			const pollMap = new Map(polls.map(p => [p.noteId, p.choices]));
+
+			// ドキュメント生成（並列）
+			const docs = await Promise.all(
+				notes.map(note => this.createBulkNote(note, pollMap.get(note.id))),
+			);
+
+			// Bulk API body構築
 			const bulkBody: any[] = [];
-			
-			notes.forEach(note => {
-				if (note.hasPoll) {
-					this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
-						bulkBody.push(this.createBulkNote(note, poll ? poll.choices : undefined));
-					});
-				} else {
-					bulkBody.push(this.createBulkNote(note, undefined));
-				}
-				latestid = note.id;
-			});
-			await this.opensearch.bulk({body: bulkBody});
+			for (const doc of docs) {
+				if (!doc) continue;
+				bulkBody.push(
+					{ index: { _index: doc.index, _id: doc.id } },
+					doc.body,
+				);
+			}
+
+			if (bulkBody.length > 0) {
+				await this.opensearch.bulk({ body: bulkBody }).catch((err) => {
+					this.logger.error('Bulk indexing error: ' + err);
+				});
+			}
+
+			latestid = notes[notes.length - 1].id;
+
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('indexing ' + index + '/' + notesCount + ' done in ' + loopTime + 'ms');
 		}
