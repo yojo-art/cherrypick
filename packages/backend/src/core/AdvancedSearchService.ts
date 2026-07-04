@@ -12,7 +12,7 @@ import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 import { MiNote } from '@/models/Note.js';
 import { MiUser } from '@/models/_.js';
-import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository } from '@/models/_.js';
+import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository, DriveFilesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { DriveService } from '@/core/DriveService.js';
@@ -199,6 +199,9 @@ export class AdvancedSearchService {
 
 		@Inject(DI.noteFavoritesRepository)
 		private noteFavoritesRepository: NoteFavoritesRepository,
+
+		@Inject(DI.driveFilesRepository)
+		private driveFilesRepository: DriveFilesRepository,
 
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
@@ -574,18 +577,71 @@ export class AdvancedSearchService {
 				: [];
 			const pollMap = new Map(polls.map(p => [p.noteId, p.choices]));
 
-			// ドキュメント生成（並列）
-			const docs = await Promise.all(
-				notes.map(note => this.createBulkNote(note, pollMap.get(note.id))),
-			);
+			// fileIds 一括取得
+			const allFileIds = [...new Set(notes.flatMap(n => n.fileIds))];
+			const driveFiles = allFileIds.length > 0
+				? await this.driveFilesRepository.findBy({ id: In(allFileIds) })
+				: [];
+			const sensitiveSet = new Set(driveFiles.filter(f => f.isSensitive).map(f => f.id));
 
-			// Bulk API body構築
 			const bulkBody: any[] = [];
-			for (const doc of docs) {
-				if (!doc) continue;
+
+			for (const note of notes) {
+				if (note.searchableBy === 'private' && note.userHost !== null) continue;
+
+				if (isRenote(note) && !isQuote(note)) {
+					if (note.userHost === null) {
+						if (note.renote?.searchableBy === 'private') continue;
+						bulkBody.push(
+							{ index: { _index: this.renoteIndex, _id: note.id } },
+							{
+								renoteId: note.renoteId,
+								userId: note.userId,
+								createdAt: this.idService.parse(note.id).date.getTime(),
+							},
+						);
+					}
+					continue;
+				}
+
+				if (await this.redisClient.get('indexDeleted') !== null) {
+					return;
+				}
+
+				const IsQuote = isRenote(note) && isQuote(note);
+				const sensitiveCount = note.fileIds.filter(id => sensitiveSet.has(id)).length;
+				const nonSensitiveCount = note.fileIds.length - sensitiveCount;
+
+				let reactions: { emoji: string; count: number }[];
+				if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
+					reactions = Object.entries(note.reactions)
+						.map(([emoji, count]) => ({ emoji, count }))
+						.filter((x) => x.emoji.includes('@') === false);
+				} else {
+					reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
+				}
+
 				bulkBody.push(
-					{ index: { _index: doc.index, _id: doc.id } },
-					doc.body,
+					{ index: { _index: this.opensearchNoteIndex as string, _id: note.id } },
+					{
+						text: note.text,
+						cw: note.cw,
+						userId: note.userId,
+						userHost: note.userHost,
+						createdAt: this.idService.parse(note.id).date.getTime(),
+						tags: note.tags,
+						fileIds: note.fileIds,
+						visibility: note.visibility,
+						searchableBy: note.searchableBy,
+						visibleUserIds: note.visibleUserIds,
+						replyId: note.replyId,
+						renoteId: note.renoteId,
+						pollChoices: pollMap.get(note.id),
+						referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
+						sensitiveFileCount: sensitiveCount,
+						nonSensitiveFileCount: nonSensitiveCount,
+						reactions: reactions,
+					},
 				);
 			}
 
