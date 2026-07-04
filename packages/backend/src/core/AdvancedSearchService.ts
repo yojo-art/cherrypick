@@ -527,8 +527,8 @@ export class AdvancedSearchService {
 		this.logger.info('Total notes count: ' + notesCount);
 		const limit = 100;
 		let latestid = '';
+		const loopStart = Date.now();
 		for (let index = 0; index < notesCount; index += limit) {
-			const loopStart = Date.now();
 			this.logger.info('indexing' + index + '/' + notesCount);
 			const notes = await this.notesRepository
 				.createQueryBuilder('note')
@@ -560,7 +560,8 @@ export class AdvancedSearchService {
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('indexing ' + index + '/' + notesCount + ' done in ' + loopTime + 'ms');
 		}
-		this.logger.info('All notes has been indexed.');
+		const loopTime = Date.now() - loopStart;
+		this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
 	}
 
 	@bindThis
