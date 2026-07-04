@@ -325,70 +325,6 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async createBulkNote(note: MiNote, choices?: string[]): Promise<{ index: string; id: string; body: any } | null> {
-
-		if (!this.opensearch) return null;
-		if (note.searchableBy === 'private' && note.userHost !== null) return null;//リモートユーザーのprivateはインデックスしない
-
-		if (isRenote(note) && !isQuote(note)) { //リノートであり
-			if (note.userHost === null) {//ローカルユーザー
-				if (note.renote?.searchableBy === 'private') return null;//リノート元のノートがprivateならインデックスしない
-				return {
-					index: this.renoteIndex,
-					id: note.id,
-					body: {
-						renoteId: note.renoteId,
-						userId: note.userId,
-						createdAt: this.idService.parse(note.id).date.getTime(),
-					},
-				};
-			}
-			return null;
-		}
-		if (await this.redisClient.get('indexDeleted') !== null) {
-			return null;
-		}
-		const IsQuote = isRenote(note) && isQuote(note);
-		const sensitiveCount = await this.driveService.getSensitiveFileCount(note.fileIds);
-		const nonSensitiveCount = note.fileIds.length - sensitiveCount;
-		let reactions: {
-			emoji: string;
-			count: number;
-		}[];
-
-		if (this.config.opensearch?.reactionSearchLocalOnly ?? false) {
-			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count })).filter((x) => x.emoji.includes('@') === false);
-		} else {
-			reactions = Object.entries(note.reactions).map(([emoji, count]) => ({ emoji, count }));
-		}
-
-		return {
-			index: this.opensearchNoteIndex as string,
-			id: note.id,
-			body: {
-				text: note.text,
-				cw: note.cw,
-				userId: note.userId,
-				userHost: note.userHost,
-				createdAt: this.idService.parse(note.id).date.getTime(),
-				tags: note.tags,
-				fileIds: note.fileIds,
-				visibility: note.visibility,
-				searchableBy: note.searchableBy,
-				visibleUserIds: note.visibleUserIds,
-				replyId: note.replyId,
-				renoteId: note.renoteId,
-				pollChoices: choices,
-				referenceUserId: note.replyId ? note.replyUserId : IsQuote ? note.renoteUserId : null,
-				sensitiveFileCount: sensitiveCount,
-				nonSensitiveFileCount: nonSensitiveCount,
-				reactions: reactions,
-			},
-		};
-	}
-
-
-	@bindThis
 	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
@@ -592,7 +528,7 @@ export class AdvancedSearchService {
 		const notesChart = await this.notesChart.getChart('hour', 1, null);
 		const notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
 		this.logger.info('Total notes count: ' + notesCount);
-		const limit = 100;
+		const limit = 1000;
 		let latestid = '';
 		const loopStart = Date.now();
 		let index = 0;
