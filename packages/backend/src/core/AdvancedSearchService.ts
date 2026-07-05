@@ -547,7 +547,6 @@ export class AdvancedSearchService {
 			return;
 		}
 
-		let originalRefreshInterval = '1s';
 		// 前回の累計処理件数を復元
 		const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
 		let accumulatedIndex = 0;
@@ -583,7 +582,7 @@ export class AdvancedSearchService {
 			const notesChart = await this.notesChart.getChart('hour', 1, null);
 			notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
 			this.logger.info('Total notes count: ' + notesCount);
-			
+
 			const limit = 1000;
 			let latestid = await this.redisClient.get('fullIndexNote:latestid') ?? '';
 			index = 0;
@@ -653,12 +652,12 @@ export class AdvancedSearchService {
 				await this.redisClient.del('fullIndexNote:latestid');
 			}
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
-				current: index,
+				current: accumulatedIndex + index,
 				total: notesCount,
 				running: false,
 				paused: paused,
 				completedAt: paused ? null : Date.now(),
-			}), 'EX', 3600);
+			}), 'EX', maxDurationSec);
 			await this.redisClient.del(lockKey);
 		}
 	}
