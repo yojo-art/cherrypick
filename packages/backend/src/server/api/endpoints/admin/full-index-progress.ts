@@ -62,6 +62,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			const current = isNumber(parsed.current) ? parsed.current : null;
 			const total = isNumber(parsed.total) ? parsed.total : null;
 			const running = isBool(parsed.running) ? parsed.running : false;
+			const paused = isBool(parsed.paused) ? parsed.paused : false;
 			const startedAt = isNumber(parsed.startedAt) ? parsed.startedAt : null;
 			const completedAt = isNumber(parsed.completedAt) ? parsed.completedAt : null;
 
@@ -69,6 +70,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				running,
 				current,
 				total,
+				paused,
 				progressPercent: (current != null && total != null && total > 0)
 					? Math.floor((current / total) * 100)
 					: null,

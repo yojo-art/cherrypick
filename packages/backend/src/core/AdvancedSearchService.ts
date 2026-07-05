@@ -532,7 +532,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(maxDurationMin?: number): Promise<void> {
+	public async fullIndexNote(maxDurationMin?: number, limitCount?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
@@ -551,6 +551,7 @@ export class AdvancedSearchService {
 		let index = 0;
 		let notesCount = 0;
 		let loopStart = 0;
+		let paused = false;
 		try {
 			loopStart = Date.now();
 			await this.redisClient.set('fullIndexNote:running', '1', 'EX', maxDurationSec);
@@ -640,6 +641,13 @@ export class AdvancedSearchService {
 					}
 					latestid = note.id;
 				}
+
+				// limitCount 件数に達したら一時停止
+				if (limitCount != null && index >= limitCount) {
+					paused = true;
+					this.logger.info(`fullIndexNote paused at ${index} records (limitCount=${limitCount})`);
+					break;
+				}
 			}
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
@@ -660,7 +668,8 @@ export class AdvancedSearchService {
 				current: index,
 				total: notesCount,
 				running: false,
-				completedAt: Date.now(),
+				paused: paused,
+				completedAt: paused ? null : Date.now(),
 			}), 'EX', 3600);
 			await this.redisClient.del(lockKey);
 		}

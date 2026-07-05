@@ -9,15 +9,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div class="_gaps">
 			<div class="_panel" style="padding: 16px;">
 				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
+				<MkButton class="button" inline danger @click="fullIndexTest()"> {{ i18n.ts._reIndexOpenSearch.title }} (Test) </MkButton>
+				<MkButton v-if="progressData.paused" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
-				<div v-if="progressData.running || progressData.justCompleted" style="margin-top: 12px;">
+				<div v-if="progressData.running || progressData.justCompleted || progressData.paused" style="margin-top: 12px;">
 					<progress :value="progressData.percent" max="100" style="width: 100%;" />
 					<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
 						{{ progressData.current?.toLocaleString() }} / {{ progressData.total?.toLocaleString() }} ({{ progressData.percent }}%)
 					</p>
 					<p v-if="progressData.running" style="margin: 2px 0 0; font-size: 0.8em; color: var(--MI_THEME-fgTransparentWeak);">
 						Running...
+					</p>
+					<p v-else-if="progressData.paused" style="margin: 2px 0 0; font-size: 0.8em; color: var(--MI_THEME-warn);">
+						Paused (click resume to continue)
 					</p>
 					<p v-else style="margin: 2px 0 0; font-size: 0.8em; color: var(--MI_THEME-fgTransparentWeak);">
 						Completed
@@ -37,8 +42,11 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 
+const TEST_LIMIT_COUNT = 10000;
+
 type ProgressData = {
 	running: boolean;
+	paused: boolean;
 	current: number | null;
 	total: number | null;
 	percent: number;
@@ -47,6 +55,7 @@ type ProgressData = {
 
 const progressData = ref<ProgressData>({
 	running: false,
+	paused: false,
 	current: null,
 	total: null,
 	percent: 0,
@@ -62,6 +71,7 @@ async function fetchProgress() {
 		const wasRunning = progressData.value.running;
 		progressData.value = {
 			running: res.running,
+			paused: res.paused,
 			current: res.current,
 			total: res.total,
 			percent: res.progressPercent ?? 0,
@@ -123,10 +133,30 @@ async function fullIndex() {
 			index: select,
 		});
 		if (select === 'notes') {
-			// APIが処理を開始してprogressが保存されるまで少し待つ
 			setTimeout(() => startPolling(), 500);
 		}
 	}
+}
+
+async function fullIndexTest() {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: `Test re-index ${TEST_LIMIT_COUNT.toLocaleString()} notes?`,
+	});
+	if (!canceled) {
+		await os.apiWithDialog('admin/full-index', {
+			index: 'notes',
+			limitCount: TEST_LIMIT_COUNT,
+		});
+		setTimeout(() => startPolling(), 500);
+	}
+}
+
+async function fullIndexResume() {
+	await os.apiWithDialog('admin/full-index', {
+		index: 'notes',
+	});
+	setTimeout(() => startPolling(), 500);
 }
 
 async function reIndex() {

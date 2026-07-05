@@ -22,6 +22,10 @@ export const paramDef = {
 			type: 'string',
 			enum: ['notes', 'reaction', 'pollVote', 'clipNotes', 'Favorites'],
 		 },
+		limitCount: {
+			type: 'integer',
+			nullable: true,
+		},
 	},
 	required: ['index'],
 } as const;
@@ -35,7 +39,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		super(meta, paramDef, async (ps, me) => {
 			switch (ps.index) {
 				case 'notes':
-					this.advancedSearchService.fullIndexNote();
+					this.advancedSearchService.fullIndexNote(undefined, ps.limitCount ?? undefined);
 					break;
 				case 'reaction':
 					this.advancedSearchService.fullIndexReaction();
