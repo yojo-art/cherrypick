@@ -186,7 +186,6 @@ async function fullIndex() {
 			type: 'number',
 			label: i18n.ts._reIndexOpenSearch.limitCountLabel,
 			default: 10000,
-			hidden: (v: any) => v.index !== 'notes',
 		},
 		intervalMinutes: {
 			type: 'number',
@@ -198,7 +197,7 @@ async function fullIndex() {
 
 	await os.apiWithDialog('admin/full-index', {
 		index: result.index,
-		limitCount: result.index === 'notes' ? result.limitCount : undefined,
+		limitCount: result.limitCount,
 		intervalMinutes: result.intervalMinutes,
 		discardProgress: true,
 	});
@@ -211,7 +210,7 @@ async function fullIndexResume() {
 	const res = await misskeyApi('admin/full-index-progress', { index });
 	await os.apiWithDialog('admin/full-index', {
 		index,
-		limitCount: index === 'notes' ? (res.limitCount ?? undefined) : undefined,
+		limitCount: res.limitCount ?? undefined,
 		intervalMinutes: res.intervalMinutes ?? undefined,
 	});
 	window.setTimeout(() => startPolling(), 500);

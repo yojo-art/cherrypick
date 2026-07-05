@@ -721,11 +721,12 @@ export class AdvancedSearchService {
 		prefix: string;
 		label: string;
 		maxDurationMin?: number;
+		limitCount?: number;
 		getTotalCount: () => Promise<number>;
 		fetchBatch: (latestid: string, limit: number) => Promise<T[]>;
 		indexItem: (item: T) => Promise<void>;
 	}): Promise<void> {
-		const { prefix, label, getTotalCount, fetchBatch, indexItem } = opts;
+		const { prefix, label, limitCount, getTotalCount, fetchBatch, indexItem } = opts;
 		const clampedMaxMin = Math.max(1, opts.maxDurationMin ?? 120);
 		const maxDurationMs = clampedMaxMin * 60 * 1000;
 		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
@@ -807,6 +808,13 @@ export class AdvancedSearchService {
 					startedAt: loopStart,
 				};
 				await this.redisClient.set(`${prefix}progress`, JSON.stringify(progress), 'EX', maxDurationSec);
+
+				// limitCount 件数に達したら一時停止（120分の実行時間いっぱいまで回さず、指定件数ごとに区切る）
+				if (limitCount != null && index >= limitCount) {
+					status = 'paused';
+					this.logger.info(`${label} paused at ${index} records (limitCount=${limitCount}), latestid=${latestid}`);
+					break;
+				}
 			}
 			const loopTime = Date.now() - loopStart;
 			this.logger.info(`${label} has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${totalCount})`);
@@ -817,6 +825,7 @@ export class AdvancedSearchService {
 				total: totalCount,
 				latestid: latestid,
 				startedAt: loopStart,
+				limitCount: limitCount ?? undefined,
 			};
 			if (latestCount === 0) {
 				finalProgress.completedAt = Date.now();
@@ -827,21 +836,23 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexReactionQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+	public async fullIndexReactionQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		await this.queueService.systemQueue.add('fullIndexReaction', {
+			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
 		});
 	}
 
 	@bindThis
-	public async fullIndexReaction(maxDurationMin?: number): Promise<void> {
+	public async fullIndexReaction(maxDurationMin?: number, limitCount?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
 			prefix: 'fullIndexReaction:',
 			label: 'reaction',
 			maxDurationMin,
+			limitCount,
 			getTotalCount: () => this.noteReactionsRepository.createQueryBuilder('reac').getCount(),
 			fetchBatch: (latestid, limit) => this.noteReactionsRepository
 				.createQueryBuilder('reac')
@@ -866,21 +877,23 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexPollVoteQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+	public async fullIndexPollVoteQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		await this.queueService.systemQueue.add('fullIndexPollVote', {
+			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
 		});
 	}
 
 	@bindThis
-	public async fullIndexPollVote(maxDurationMin?: number): Promise<void> {
+	public async fullIndexPollVote(maxDurationMin?: number, limitCount?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
 			prefix: 'fullIndexPollVote:',
 			label: 'pollVote',
 			maxDurationMin,
+			limitCount,
 			getTotalCount: () => this.pollVotesRepository.createQueryBuilder('pv').getCount(),
 			fetchBatch: (latestid, limit) => this.pollVotesRepository
 				.createQueryBuilder('pv')
@@ -900,21 +913,23 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexClipNotesQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+	public async fullIndexClipNotesQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		await this.queueService.systemQueue.add('fullIndexClipNotes', {
+			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
 		});
 	}
 
 	@bindThis
-	public async fullIndexClipNotes(maxDurationMin?: number): Promise<void> {
+	public async fullIndexClipNotes(maxDurationMin?: number, limitCount?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
 			prefix: 'fullIndexClipNotes:',
 			label: 'clipNotes',
 			maxDurationMin,
+			limitCount,
 			getTotalCount: () => this.clipNotesRepository.createQueryBuilder('clipnote').getCount(),
 			fetchBatch: (latestid, limit) => this.clipNotesRepository
 				.createQueryBuilder('clipnote')
@@ -933,21 +948,23 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexFavoritesQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+	public async fullIndexFavoritesQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		await this.queueService.systemQueue.add('fullIndexFavorites', {
+			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
 		});
 	}
 
 	@bindThis
-	public async fullIndexFavorites(maxDurationMin?: number): Promise<void> {
+	public async fullIndexFavorites(maxDurationMin?: number, limitCount?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
 			prefix: 'fullIndexFavorites:',
 			label: 'favorites',
 			maxDurationMin,
+			limitCount,
 			getTotalCount: () => this.noteFavoritesRepository.createQueryBuilder('fv').getCount(),
 			fetchBatch: (latestid, limit) => this.noteFavoritesRepository
 				.createQueryBuilder('fv')

@@ -43,10 +43,10 @@ export class FullIndexProcessorService {
 	private async run(jobName: FullIndexJobName, maxDurationMin: number, limitCount: number | undefined, intervalMinutes: number | undefined): Promise<void> {
 		switch (jobName) {
 			case 'fullIndexNote': return this.advancedSearchService.fullIndexNote(maxDurationMin, limitCount, false, intervalMinutes);
-			case 'fullIndexReaction': return this.advancedSearchService.fullIndexReaction(maxDurationMin);
-			case 'fullIndexPollVote': return this.advancedSearchService.fullIndexPollVote(maxDurationMin);
-			case 'fullIndexClipNotes': return this.advancedSearchService.fullIndexClipNotes(maxDurationMin);
-			case 'fullIndexFavorites': return this.advancedSearchService.fullIndexFavorites(maxDurationMin);
+			case 'fullIndexReaction': return this.advancedSearchService.fullIndexReaction(maxDurationMin, limitCount);
+			case 'fullIndexPollVote': return this.advancedSearchService.fullIndexPollVote(maxDurationMin, limitCount);
+			case 'fullIndexClipNotes': return this.advancedSearchService.fullIndexClipNotes(maxDurationMin, limitCount);
+			case 'fullIndexFavorites': return this.advancedSearchService.fullIndexFavorites(maxDurationMin, limitCount);
 		}
 	}
 

@@ -50,16 +50,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					this.advancedSearchService.fullIndexNoteQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
 					break;
 				case 'reaction':
-					this.advancedSearchService.fullIndexReactionQueue(ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					this.advancedSearchService.fullIndexReactionQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
 					break;
 				case 'pollVote':
-					this.advancedSearchService.fullIndexPollVoteQueue(ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					this.advancedSearchService.fullIndexPollVoteQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
 					break;
 				case 'clipNotes':
-					this.advancedSearchService.fullIndexClipNotesQueue(ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					this.advancedSearchService.fullIndexClipNotesQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
 					break;
 				case 'Favorites':
-					this.advancedSearchService.fullIndexFavoritesQueue(ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					this.advancedSearchService.fullIndexFavoritesQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
 					break;
 			}
 		});
