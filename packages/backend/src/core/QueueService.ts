@@ -86,7 +86,13 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	name: 'cleanRemoteNotes',
 	// 毎日午前4時に起動(最も人の少ない時間帯)
 	pattern: '0 4 * * *',
-}, {
+}, // 自動実行が必要な場合は以下を有効化
+// {
+// 	name: 'fullIndexNote',
+// 	// 毎週日曜3時に起動
+// 	pattern: '0 3 * * 0',
+// },
+{
 	name: 'autoDeleteNotes',
 	// 매일 오전 3시에 실행
 	pattern: '0 3 * * *',

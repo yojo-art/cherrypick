@@ -49,6 +49,7 @@ import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
 import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteDeleteProcessorService.js';
+import { FullIndexNoteProcessorService } from './processors/FullIndexNoteProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { AutoDeleteNotesProcessorService } from './processors/AutoDeleteNotesProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
@@ -140,6 +141,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private cleanProcessorService: CleanProcessorService,
 		private autoDeleteNotesProcessorService: AutoDeleteNotesProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
+		private fullIndexNoteProcessorService: FullIndexNoteProcessorService,
 		private scheduledNoteDeleteProcessorService: ScheduledNoteDeleteProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
@@ -182,8 +184,9 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'bakeBufferedReactions': return this.bakeBufferedReactionsProcessorService.process();
 					case 'checkModeratorsActivity': return this.checkModeratorsActivityProcessorService.process();
 					case 'clean': return this.cleanProcessorService.process();
-					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
-					case 'autoDeleteNotes': return this.autoDeleteNotesProcessorService.process(job);
+				case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
+				case 'fullIndexNote': return this.fullIndexNoteProcessorService.process(job);
+				case 'autoDeleteNotes': return this.autoDeleteNotesProcessorService.process(job);
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
 			};
