@@ -50,10 +50,7 @@ import { AggregateRetentionProcessorService } from './processors/AggregateRetent
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
 import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteDeleteProcessorService.js';
 import { FullIndexNoteProcessorService } from './processors/FullIndexNoteProcessorService.js';
-import { FullIndexReactionProcessorService } from './processors/FullIndexReactionProcessorService.js';
-import { FullIndexPollVoteProcessorService } from './processors/FullIndexPollVoteProcessorService.js';
-import { FullIndexClipNotesProcessorService } from './processors/FullIndexClipNotesProcessorService.js';
-import { FullIndexFavoritesProcessorService } from './processors/FullIndexFavoritesProcessorService.js';
+import { FullIndexGenericProcessorService } from './processors/FullIndexGenericProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { AutoDeleteNotesProcessorService } from './processors/AutoDeleteNotesProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
@@ -146,10 +143,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private autoDeleteNotesProcessorService: AutoDeleteNotesProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
 		private fullIndexNoteProcessorService: FullIndexNoteProcessorService,
-		private fullIndexReactionProcessorService: FullIndexReactionProcessorService,
-		private fullIndexPollVoteProcessorService: FullIndexPollVoteProcessorService,
-		private fullIndexClipNotesProcessorService: FullIndexClipNotesProcessorService,
-		private fullIndexFavoritesProcessorService: FullIndexFavoritesProcessorService,
+		private fullIndexGenericProcessorService: FullIndexGenericProcessorService,
 		private scheduledNoteDeleteProcessorService: ScheduledNoteDeleteProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
@@ -194,10 +188,10 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'clean': return this.cleanProcessorService.process();
 					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
 					case 'fullIndexNote': return this.fullIndexNoteProcessorService.process(job);
-					case 'fullIndexReaction': return this.fullIndexReactionProcessorService.process(job);
-					case 'fullIndexPollVote': return this.fullIndexPollVoteProcessorService.process(job);
-					case 'fullIndexClipNotes': return this.fullIndexClipNotesProcessorService.process(job);
-					case 'fullIndexFavorites': return this.fullIndexFavoritesProcessorService.process(job);
+					case 'fullIndexReaction': return this.fullIndexGenericProcessorService.process('fullIndexReaction', job);
+					case 'fullIndexPollVote': return this.fullIndexGenericProcessorService.process('fullIndexPollVote', job);
+					case 'fullIndexClipNotes': return this.fullIndexGenericProcessorService.process('fullIndexClipNotes', job);
+					case 'fullIndexFavorites': return this.fullIndexGenericProcessorService.process('fullIndexFavorites', job);
 					case 'autoDeleteNotes': return this.autoDeleteNotesProcessorService.process(job);
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}

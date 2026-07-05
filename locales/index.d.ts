@@ -15289,6 +15289,54 @@ export interface Locale extends ILocale {
          * 再インデックス対象
          */
         "quesion": string;
+        /**
+         * 続きを実行
+         */
+        "resume": string;
+        /**
+         * 停止
+         */
+        "stop": string;
+        /**
+         * キューをキャンセル
+         */
+        "cancelQueue": string;
+        /**
+         * インデックス処理を停止
+         */
+        "stopIndexTitle": string;
+        /**
+         * 対象
+         */
+        "indexLabel": string;
+        /**
+         * 1回あたりの処理件数
+         */
+        "limitCountLabel": string;
+        /**
+         * 実行間隔（分）
+         */
+        "intervalMinutesLabel": string;
+        /**
+         * 実行中...
+         */
+        "statusRunning": string;
+        /**
+         * 一時停止中です。「続きを実行」で再開できます
+         */
+        "statusPaused": string;
+        /**
+         * 待機中: 次回実行 {time}
+         */
+        "statusQueued": ParameterizedString<"time">;
+        /**
+         * 完了しました
+         */
+        "statusCompleted": string;
+        /**
+         * 中止しました
+         */
+        "statusAborted": string;
     };
     "_reCreateOpenSearchIndex": {
         /**

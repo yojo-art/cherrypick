@@ -4090,6 +4090,18 @@ _searchOrApShow:
 _reIndexOpenSearch:
   title: "再インデックスする"
   quesion: "再インデックス対象"
+  resume: "続きを実行"
+  stop: "停止"
+  cancelQueue: "キューをキャンセル"
+  stopIndexTitle: "インデックス処理を停止"
+  indexLabel: "対象"
+  limitCountLabel: "1回あたりの処理件数"
+  intervalMinutesLabel: "実行間隔（分）"
+  statusRunning: "実行中..."
+  statusPaused: "一時停止中です。「続きを実行」で再開できます"
+  statusQueued: "待機中: 次回実行 {time}"
+  statusCompleted: "完了しました"
+  statusAborted: "中止しました"
 
 _reCreateOpenSearchIndex:
   title: "ノートインデックスを破棄して再作成する"

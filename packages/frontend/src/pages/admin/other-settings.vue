@@ -15,10 +15,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 
 				<!-- 実行中 → 強制停止ボタン -->
-				<MkButton v-if="currentProgress.status === 'running'" class="button" inline danger @click="abort()"> Stop </MkButton>
+				<MkButton v-if="currentProgress.status === 'running'" class="button" inline danger @click="abort()"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
 
 				<!-- キュー待ち中 → キューキャンセルボタン -->
-				<MkButton v-else-if="currentProgress.status === 'queued'" class="button" inline danger @click="abort()"> Cancel Queue </MkButton>
+				<MkButton v-else-if="currentProgress.status === 'queued'" class="button" inline danger @click="abort()"> {{ i18n.ts._reIndexOpenSearch.cancelQueue }} </MkButton>
 
 				<!-- 一時停止中 → 続きを実行ボタン (notes のみ) -->
 				<MkButton v-else-if="currentProgress.status === 'paused' && activeIndex === 'notes'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
@@ -94,7 +94,7 @@ const progressPercent = computed(() => {
 	return (c != null && t != null && t > 0) ? Math.floor((c / t) * 100) : 0;
 });
 
-let pollingInterval: ReturnType<typeof setInterval> | null = null;
+let pollingInterval: ReturnType<typeof window.setInterval> | null = null;
 
 async function fetchProgress(index: string) {
 	const res = await misskeyApi('admin/full-index-progress', { index });
@@ -116,12 +116,12 @@ async function fetchProgress(index: string) {
 async function startPolling() {
 	if (pollingInterval) return;
 	await fetchProgress(activeIndex.value);
-	pollingInterval = setInterval(() => fetchProgress(activeIndex.value), 3000);
+	pollingInterval = window.setInterval(() => fetchProgress(activeIndex.value), 3000);
 }
 
 function stopPolling() {
 	if (pollingInterval) {
-		clearInterval(pollingInterval);
+		window.clearInterval(pollingInterval);
 		pollingInterval = null;
 	}
 }
@@ -148,11 +148,11 @@ watch(activeIndex, (newVal) => {
 
 const statusText = computed(() => {
 	switch (currentProgress.value.status) {
-		case 'running': return 'Running...';
-		case 'paused': return 'Paused (click resume to continue)';
-		case 'queued': return `Waiting: next run at ${formatTime(currentProgress.value.nextRunAt)}`;
-		case 'completed': return 'Completed';
-		case 'aborted': return 'Aborted';
+		case 'running': return i18n.ts._reIndexOpenSearch.statusRunning;
+		case 'paused': return i18n.ts._reIndexOpenSearch.statusPaused;
+		case 'queued': return i18n.tsx._reIndexOpenSearch.statusQueued({ time: formatTime(currentProgress.value.nextRunAt) });
+		case 'completed': return i18n.ts._reIndexOpenSearch.statusCompleted;
+		case 'aborted': return i18n.ts._reIndexOpenSearch.statusAborted;
 		default: return '';
 	}
 });
@@ -178,19 +178,19 @@ async function fullIndex() {
 	const { canceled, result } = await os.form(i18n.ts._reIndexOpenSearch.title, {
 		index: {
 			type: 'radio',
-			label: 'Index',
+			label: i18n.ts._reIndexOpenSearch.indexLabel,
 			options: indexOptions,
 			default: activeIndex.value,
 		},
 		limitCount: {
 			type: 'number',
-			label: 'Limit count per run',
+			label: i18n.ts._reIndexOpenSearch.limitCountLabel,
 			default: 10000,
 			hidden: (v: any) => v.index !== 'notes',
 		},
 		intervalMinutes: {
 			type: 'number',
-			label: 'Interval (minutes)',
+			label: i18n.ts._reIndexOpenSearch.intervalMinutesLabel,
 			default: 5,
 			hidden: (v: any) => v.index !== 'notes',
 		},
@@ -204,7 +204,7 @@ async function fullIndex() {
 		discardProgress: true,
 	});
 	activeIndex.value = result.index;
-	setTimeout(() => startPolling(), 500);
+	window.setTimeout(() => startPolling(), 500);
 }
 
 async function fullIndexResume() {
@@ -214,14 +214,14 @@ async function fullIndexResume() {
 		limitCount: res.limitCount ?? undefined,
 		intervalMinutes: res.intervalMinutes ?? undefined,
 	});
-	setTimeout(() => startPolling(), 500);
+	window.setTimeout(() => startPolling(), 500);
 }
 
 async function abort() {
-	const { canceled, result } = await os.form('Stop Index', {
+	const { canceled, result } = await os.form(i18n.ts._reIndexOpenSearch.stopIndexTitle, {
 		index: {
 			type: 'radio',
-			label: 'Index',
+			label: i18n.ts._reIndexOpenSearch.indexLabel,
 			options: indexOptions,
 			default: activeIndex.value,
 		},
@@ -246,12 +246,7 @@ async function reIndex() {
 	}
 }
 
-const headerActions = computed(() => [{
-	asFullButton: true,
-	icon: 'ti ti-check',
-	text: i18n.ts.save,
-	handler: () => {},
-}]);
+const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
 

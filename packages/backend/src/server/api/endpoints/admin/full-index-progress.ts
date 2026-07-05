@@ -129,11 +129,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				? (parsed.status as FullIndexStatus)
 				: null;
 
+			// paused の場合のみ、自動再開待ちかどうかを nextDelay で判定する（1回読めば十分なので使い回す）
+			let nextRunAt: number | null = null;
 			if (status === 'paused' && ps.index === 'notes') {
 				const nextDelayRaw = await this.redisClient.get('fullIndexNote:nextDelay');
-				const nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
+				nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
 				if (nextRunAt && Date.now() < nextRunAt) {
 					status = 'queued';
+				} else {
+					nextRunAt = null;
 				}
 			}
 
@@ -152,9 +156,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				latestid,
 				startedAt,
 				completedAt,
-				nextRunAt: status === 'queued' && ps.index === 'notes'
-					? Number(await this.redisClient.get('fullIndexNote:nextDelay'))
-					: null,
+				nextRunAt,
 				limitCount,
 				intervalMinutes,
 			};

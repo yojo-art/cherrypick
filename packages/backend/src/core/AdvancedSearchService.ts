@@ -521,7 +521,7 @@ export class AdvancedSearchService {
 			clipId?: string,
 		}) {
 		if (await this.isFullIndexRunning()) return;
-		this.index(this.favoriteIndex, id, opts);
+		await this.index(this.favoriteIndex, id, opts);
 	}
 	@bindThis
 	public async recreateIndex(): Promise<void> {
@@ -712,24 +712,28 @@ export class AdvancedSearchService {
 		}
 	}
 
+	/**
+	 * reaction/pollVote/clipNotes/Favorites の一括再インデックス処理で共通のループ・進捗管理・ロック制御を担う。
+	 * 各呼び出し元は「件数取得」「バッチ取得」「1件のインデックス方法」だけを渡す。
+	 */
 	@bindThis
-	public async fullIndexReactionQueue(): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexReaction', {});
-	}
-
-	@bindThis
-	public async fullIndexReaction(maxDurationMin?: number): Promise<void> {
-		if (!this.opensearch) return;
-
-		const prefix = 'fullIndexReaction:';
-		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
+	private async runFullIndex<T extends { id: string }>(opts: {
+		prefix: string;
+		label: string;
+		maxDurationMin?: number;
+		getTotalCount: () => Promise<number>;
+		fetchBatch: (latestid: string, limit: number) => Promise<T[]>;
+		indexItem: (item: T) => Promise<void>;
+	}): Promise<void> {
+		const { prefix, label, getTotalCount, fetchBatch, indexItem } = opts;
+		const clampedMaxMin = Math.max(1, opts.maxDurationMin ?? 120);
 		const maxDurationMs = clampedMaxMin * 60 * 1000;
 		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
 
 		const lockKey = `${prefix}lock`;
 		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
 		if (lock !== 'OK') {
-			this.logger.info('fullIndexReaction is already running');
+			this.logger.info(`${label} is already running`);
 			return;
 		}
 
@@ -750,84 +754,67 @@ export class AdvancedSearchService {
 
 		const limit = 100;
 		let index = 0;
-		let reactionsCount = 0;
+		let totalCount = 0;
 		let latestCount = 0;
 		let loopStart = 0;
 		let status: FullIndexStatus = 'completed';
 
 		try {
 			loopStart = Date.now();
-			reactionsCount = await this.noteReactionsRepository.createQueryBuilder('reac').getCount();
+			totalCount = await getTotalCount();
 
 			const startProgress: FullIndexProgress = {
 				status: 'running',
 				current: accumulatedIndex,
-				total: reactionsCount,
+				total: totalCount,
 				latestid: latestid,
 				startedAt: loopStart,
 			};
 			await this.redisClient.set(`${prefix}progress`, JSON.stringify(startProgress), 'EX', maxDurationSec);
 
 			while (true) {
-				this.logger.info('reaction indexing ' + (accumulatedIndex + index) + '/' + reactionsCount);
+				this.logger.info(`${label} indexing ` + (accumulatedIndex + index) + '/' + totalCount);
 
 				if (Date.now() - loopStart > maxDurationMs) {
-					this.logger.info('Max duration reached, stopping fullIndexReaction');
+					this.logger.info(`Max duration reached, stopping ${label}`);
 					status = 'paused';
 					break;
 				}
 
 				if (await this.redisClient.get(`${prefix}abort`) !== null) {
-					this.logger.info('fullIndexReaction aborted by user');
+					this.logger.info(`${label} aborted by user`);
 					await this.redisClient.del(`${prefix}abort`);
 					status = 'aborted';
 					break;
 				}
 
-				const reactions = await this.noteReactionsRepository
-					.createQueryBuilder('reac')
-					.where('reac.id > :latestid', { latestid })
-					.innerJoin('reac.user', 'user')
-					.leftJoin('reac.note', 'note')
-					.select(['reac', 'note.searchableBy'])
-					.andWhere('user.host IS NULL')
-					.orderBy('reac.id', 'ASC')
-					.limit(limit)
-					.getMany();
+				const items = await fetchBatch(latestid, limit);
 
-				latestCount = reactions.length;
+				latestCount = items.length;
 				if (latestCount === 0) break;
 				index += latestCount;
 
-				reactions.forEach(reac => {
-					this.indexReaction({
-						id: reac.id,
-						noteId: reac.noteId,
-						userId: reac.userId,
-						reaction: reac.reaction,
-						remote: false,
-						reactionIncrement: false,
-						searchableBy: reac.note?.searchableBy === null ? undefined : reac.note?.searchableBy,
-					});
-					latestid = reac.id;
-				});
+				for (const item of items) {
+					await indexItem(item);
+					latestid = item.id;
+				}
 
 				const progress: FullIndexProgress = {
 					status: 'running',
 					current: accumulatedIndex + index,
-					total: reactionsCount,
+					total: totalCount,
 					latestid: latestid,
 					startedAt: loopStart,
 				};
 				await this.redisClient.set(`${prefix}progress`, JSON.stringify(progress), 'EX', maxDurationSec);
 			}
 			const loopTime = Date.now() - loopStart;
-			this.logger.info(`reactions has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${reactionsCount})`);
+			this.logger.info(`${label} has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${totalCount})`);
 		} finally {
 			const finalProgress: FullIndexProgress = {
 				status: latestCount === 0 ? 'completed' : status,
 				current: accumulatedIndex + index,
-				total: reactionsCount,
+				total: totalCount,
 				latestid: latestid,
 				startedAt: loopStart,
 			};
@@ -837,6 +824,42 @@ export class AdvancedSearchService {
 			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', 3600);
 			await this.redisClient.del(lockKey);
 		}
+	}
+
+	@bindThis
+	public async fullIndexReactionQueue(): Promise<void> {
+		await this.queueService.systemQueue.add('fullIndexReaction', {});
+	}
+
+	@bindThis
+	public async fullIndexReaction(maxDurationMin?: number): Promise<void> {
+		if (!this.opensearch) return;
+
+		await this.runFullIndex({
+			prefix: 'fullIndexReaction:',
+			label: 'reaction',
+			maxDurationMin,
+			getTotalCount: () => this.noteReactionsRepository.createQueryBuilder('reac').getCount(),
+			fetchBatch: (latestid, limit) => this.noteReactionsRepository
+				.createQueryBuilder('reac')
+				.where('reac.id > :latestid', { latestid })
+				.innerJoin('reac.user', 'user')
+				.leftJoin('reac.note', 'note')
+				.select(['reac', 'note.searchableBy'])
+				.andWhere('user.host IS NULL')
+				.orderBy('reac.id', 'ASC')
+				.limit(limit)
+				.getMany(),
+			indexItem: (reac) => this.indexReaction({
+				id: reac.id,
+				noteId: reac.noteId,
+				userId: reac.userId,
+				reaction: reac.reaction,
+				remote: false,
+				reactionIncrement: false,
+				searchableBy: reac.note?.searchableBy === null ? undefined : reac.note?.searchableBy,
+			}),
+		});
 	}
 
 	@bindThis
@@ -848,117 +871,26 @@ export class AdvancedSearchService {
 	public async fullIndexPollVote(maxDurationMin?: number): Promise<void> {
 		if (!this.opensearch) return;
 
-		const prefix = 'fullIndexPollVote:';
-		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
-		const maxDurationMs = clampedMaxMin * 60 * 1000;
-		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
-
-		const lockKey = `${prefix}lock`;
-		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
-		if (lock !== 'OK') {
-			this.logger.info('fullIndexPollVote is already running');
-			return;
-		}
-
-		let accumulatedIndex = 0;
-		let latestid = '';
-		const prevProgressRaw = await this.redisClient.get(`${prefix}progress`);
-		if (prevProgressRaw) {
-			try {
-				const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
-				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
-					accumulatedIndex = prev.current;
-				}
-				if (typeof prev.latestid === 'string') {
-					latestid = prev.latestid;
-				}
-			} catch {}
-		}
-
-		const limit = 100;
-		let index = 0;
-		let pollVotesCount = 0;
-		let latestCount = 0;
-		let loopStart = 0;
-		let status: FullIndexStatus = 'completed';
-
-		try {
-			loopStart = Date.now();
-			pollVotesCount = await this.pollVotesRepository.createQueryBuilder('pv').getCount();
-
-			const startProgress: FullIndexProgress = {
-				status: 'running',
-				current: accumulatedIndex,
-				total: pollVotesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(startProgress), 'EX', maxDurationSec);
-
-			while (true) {
-				this.logger.info('pollVote indexing ' + (accumulatedIndex + index) + '/' + pollVotesCount);
-
-				if (Date.now() - loopStart > maxDurationMs) {
-					this.logger.info('Max duration reached, stopping fullIndexPollVote');
-					status = 'paused';
-					break;
-				}
-
-				if (await this.redisClient.get(`${prefix}abort`) !== null) {
-					this.logger.info('fullIndexPollVote aborted by user');
-					await this.redisClient.del(`${prefix}abort`);
-					status = 'aborted';
-					break;
-				}
-
-				const votes = await this.pollVotesRepository
-					.createQueryBuilder('pv')
-					.where('pv.id > :latestid', { latestid })
-					.innerJoin('pv.user', 'user')
-					.select(['pv', 'user.host'])
-					.leftJoin('pv.note', 'note')
-					.andWhere('user.host IS NULL')
-					.orderBy('pv.id', 'ASC')
-					.limit(limit)
-					.getMany();
-
-				latestCount = votes.length;
-				if (latestCount === 0) break;
-				index += latestCount;
-
-				votes.forEach(pollVote => {
-					this.indexVote(pollVote.id, {
-						noteId: pollVote.noteId,
-						userId: pollVote.userId,
-					});
-					latestid = pollVote.id;
-				});
-
-				const progress: FullIndexProgress = {
-					status: 'running',
-					current: accumulatedIndex + index,
-					total: pollVotesCount,
-					latestid: latestid,
-					startedAt: loopStart,
-				};
-				await this.redisClient.set(`${prefix}progress`, JSON.stringify(progress), 'EX', maxDurationSec);
-			}
-			const loopTime = Date.now() - loopStart;
-			this.logger.info(`pollvotes has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${pollVotesCount})`);
-		} finally {
-			const finalProgress: FullIndexProgress = {
-				status: latestCount === 0 ? 'completed' : status,
-				current: accumulatedIndex + index,
-				total: pollVotesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			if (latestCount === 0) {
-				finalProgress.completedAt = Date.now();
-			}
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', 3600);
-			await this.redisClient.del(lockKey);
-		}
+		await this.runFullIndex({
+			prefix: 'fullIndexPollVote:',
+			label: 'pollVote',
+			maxDurationMin,
+			getTotalCount: () => this.pollVotesRepository.createQueryBuilder('pv').getCount(),
+			fetchBatch: (latestid, limit) => this.pollVotesRepository
+				.createQueryBuilder('pv')
+				.where('pv.id > :latestid', { latestid })
+				.innerJoin('pv.user', 'user')
+				.select(['pv', 'user.host'])
+				.leftJoin('pv.note', 'note')
+				.andWhere('user.host IS NULL')
+				.orderBy('pv.id', 'ASC')
+				.limit(limit)
+				.getMany(),
+			indexItem: (pollVote) => this.indexVote(pollVote.id, {
+				noteId: pollVote.noteId,
+				userId: pollVote.userId,
+			}),
+		});
 	}
 
 	@bindThis
@@ -970,116 +902,25 @@ export class AdvancedSearchService {
 	public async fullIndexClipNotes(maxDurationMin?: number): Promise<void> {
 		if (!this.opensearch) return;
 
-		const prefix = 'fullIndexClipNotes:';
-		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
-		const maxDurationMs = clampedMaxMin * 60 * 1000;
-		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
-
-		const lockKey = `${prefix}lock`;
-		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
-		if (lock !== 'OK') {
-			this.logger.info('fullIndexClipNotes is already running');
-			return;
-		}
-
-		let accumulatedIndex = 0;
-		let latestid = '';
-		const prevProgressRaw = await this.redisClient.get(`${prefix}progress`);
-		if (prevProgressRaw) {
-			try {
-				const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
-				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
-					accumulatedIndex = prev.current;
-				}
-				if (typeof prev.latestid === 'string') {
-					latestid = prev.latestid;
-				}
-			} catch {}
-		}
-
-		const limit = 100;
-		let index = 0;
-		let clipsCount = 0;
-		let latestCount = 0;
-		let loopStart = 0;
-		let status: FullIndexStatus = 'completed';
-
-		try {
-			loopStart = Date.now();
-			clipsCount = await this.clipNotesRepository.createQueryBuilder('clipnote').getCount();
-
-			const startProgress: FullIndexProgress = {
-				status: 'running',
-				current: accumulatedIndex,
-				total: clipsCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(startProgress), 'EX', maxDurationSec);
-
-			while (true) {
-				this.logger.info('clipNotes indexing ' + (accumulatedIndex + index) + '/' + clipsCount);
-
-				if (Date.now() - loopStart > maxDurationMs) {
-					this.logger.info('Max duration reached, stopping fullIndexClipNotes');
-					status = 'paused';
-					break;
-				}
-
-				if (await this.redisClient.get(`${prefix}abort`) !== null) {
-					this.logger.info('fullIndexClipNotes aborted by user');
-					await this.redisClient.del(`${prefix}abort`);
-					status = 'aborted';
-					break;
-				}
-
-				const clipNotes = await this.clipNotesRepository
-					.createQueryBuilder('clipnote')
-					.innerJoin('clipnote.clip', 'clip')
-					.select(['clipnote', 'clip.userId'])
-					.where('clipnote.id > :latestid', { latestid })
-					.orderBy('clipnote.id', 'ASC')
-					.limit(limit)
-					.getMany();
-
-				latestCount = clipNotes.length;
-				if (latestCount === 0) break;
-				index += latestCount;
-
-				clipNotes.forEach(clipNote => {
-					this.indexFavorite(clipNote.id, {
-						noteId: clipNote.noteId,
-						userId: clipNote.clip?.userId as string,
-						clipId: clipNote.clipId,
-					});
-					latestid = clipNote.id;
-				});
-
-				const progress: FullIndexProgress = {
-					status: 'running',
-					current: accumulatedIndex + index,
-					total: clipsCount,
-					latestid: latestid,
-					startedAt: loopStart,
-				};
-				await this.redisClient.set(`${prefix}progress`, JSON.stringify(progress), 'EX', maxDurationSec);
-			}
-			const loopTime = Date.now() - loopStart;
-			this.logger.info(`clipNotes has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${clipsCount})`);
-		} finally {
-			const finalProgress: FullIndexProgress = {
-				status: latestCount === 0 ? 'completed' : status,
-				current: accumulatedIndex + index,
-				total: clipsCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			if (latestCount === 0) {
-				finalProgress.completedAt = Date.now();
-			}
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', 3600);
-			await this.redisClient.del(lockKey);
-		}
+		await this.runFullIndex({
+			prefix: 'fullIndexClipNotes:',
+			label: 'clipNotes',
+			maxDurationMin,
+			getTotalCount: () => this.clipNotesRepository.createQueryBuilder('clipnote').getCount(),
+			fetchBatch: (latestid, limit) => this.clipNotesRepository
+				.createQueryBuilder('clipnote')
+				.innerJoin('clipnote.clip', 'clip')
+				.select(['clipnote', 'clip.userId'])
+				.where('clipnote.id > :latestid', { latestid })
+				.orderBy('clipnote.id', 'ASC')
+				.limit(limit)
+				.getMany(),
+			indexItem: (clipNote) => this.indexFavorite(clipNote.id, {
+				noteId: clipNote.noteId,
+				userId: clipNote.clip?.userId as string,
+				clipId: clipNote.clipId,
+			}),
+		});
 	}
 
 	@bindThis
@@ -1091,114 +932,23 @@ export class AdvancedSearchService {
 	public async fullIndexFavorites(maxDurationMin?: number): Promise<void> {
 		if (!this.opensearch) return;
 
-		const prefix = 'fullIndexFavorites:';
-		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
-		const maxDurationMs = clampedMaxMin * 60 * 1000;
-		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
-
-		const lockKey = `${prefix}lock`;
-		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
-		if (lock !== 'OK') {
-			this.logger.info('fullIndexFavorites is already running');
-			return;
-		}
-
-		let accumulatedIndex = 0;
-		let latestid = '';
-		const prevProgressRaw = await this.redisClient.get(`${prefix}progress`);
-		if (prevProgressRaw) {
-			try {
-				const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
-				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
-					accumulatedIndex = prev.current;
-				}
-				if (typeof prev.latestid === 'string') {
-					latestid = prev.latestid;
-				}
-			} catch {}
-		}
-
-		const limit = 100;
-		let index = 0;
-		let favoritesCount = 0;
-		let latestCount = 0;
-		let loopStart = 0;
-		let status: FullIndexStatus = 'completed';
-
-		try {
-			loopStart = Date.now();
-			favoritesCount = await this.noteFavoritesRepository.createQueryBuilder('fv').getCount();
-
-			const startProgress: FullIndexProgress = {
-				status: 'running',
-				current: accumulatedIndex,
-				total: favoritesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(startProgress), 'EX', maxDurationSec);
-
-			while (true) {
-				this.logger.info('favorites indexing ' + (accumulatedIndex + index) + '/' + favoritesCount);
-
-				if (Date.now() - loopStart > maxDurationMs) {
-					this.logger.info('Max duration reached, stopping fullIndexFavorites');
-					status = 'paused';
-					break;
-				}
-
-				if (await this.redisClient.get(`${prefix}abort`) !== null) {
-					this.logger.info('fullIndexFavorites aborted by user');
-					await this.redisClient.del(`${prefix}abort`);
-					status = 'aborted';
-					break;
-				}
-
-				const favorites = await this.noteFavoritesRepository
-					.createQueryBuilder('fv')
-					.orderBy('fv.id', 'ASC')
-					.where('fv.id > :latestid', { latestid })
-					.innerJoin('fv.note', 'note')
-					.limit(limit)
-					.getMany();
-
-				latestCount = favorites.length;
-				if (latestCount === 0) break;
-				index += latestCount;
-
-				favorites.forEach(favorite => {
-					this.indexFavorite(favorite.id, {
-						noteId: favorite.noteId,
-						userId: favorite.userId,
-					});
-					latestid = favorite.id;
-				});
-
-				const progress: FullIndexProgress = {
-					status: 'running',
-					current: accumulatedIndex + index,
-					total: favoritesCount,
-					latestid: latestid,
-					startedAt: loopStart,
-				};
-				await this.redisClient.set(`${prefix}progress`, JSON.stringify(progress), 'EX', maxDurationSec);
-			}
-			const loopTime = Date.now() - loopStart;
-			this.logger.info(`favorites has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${favoritesCount})`);
-		} finally {
-			const finalProgress: FullIndexProgress = {
-				status: latestCount === 0 ? 'completed' : status,
-				current: accumulatedIndex + index,
-				total: favoritesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			if (latestCount === 0) {
-				finalProgress.completedAt = Date.now();
-			}
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', 3600);
-			await this.redisClient.del(lockKey);
-		}
+		await this.runFullIndex({
+			prefix: 'fullIndexFavorites:',
+			label: 'favorites',
+			maxDurationMin,
+			getTotalCount: () => this.noteFavoritesRepository.createQueryBuilder('fv').getCount(),
+			fetchBatch: (latestid, limit) => this.noteFavoritesRepository
+				.createQueryBuilder('fv')
+				.orderBy('fv.id', 'ASC')
+				.where('fv.id > :latestid', { latestid })
+				.innerJoin('fv.note', 'note')
+				.limit(limit)
+				.getMany(),
+			indexItem: (favorite) => this.indexFavorite(favorite.id, {
+				noteId: favorite.noteId,
+				userId: favorite.userId,
+			}),
+		});
 	}
 	@bindThis
 	private async unindexById(index: string, id: string) {
