@@ -214,9 +214,6 @@ export class AdvancedSearchService {
 		@Inject(DI.noteFavoritesRepository)
 		private noteFavoritesRepository: NoteFavoritesRepository,
 
-		@Inject(DI.driveFilesRepository)
-		private driveFilesRepository: DriveFilesRepository,
-
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
