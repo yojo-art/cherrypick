@@ -2,6 +2,15 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 export type paths = {
+    "/admin/abort-full-index": {
+        /**
+         * admin/abort-full-index
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
+         */
+        post: operations["admin___abort-full-index"];
+    };
     "/admin/abuse-report-resolver/create": {
         /**
          * admin/abuse-report-resolver/create
@@ -6211,6 +6220,61 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
+    "admin___abort-full-index": {
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["Error"];
+                };
+            };
+        };
+    };
     "admin___abuse-report-resolver___create": {
         requestBody: {
             content: {
@@ -10159,6 +10223,9 @@ export interface operations {
                 "application/json": {
                     /** @enum {string} */
                     index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites";
+                    limitCount?: number | null;
+                    intervalMinutes?: number | null;
+                    discardProgress?: boolean | null;
                 };
             };
         };

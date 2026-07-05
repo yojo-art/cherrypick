@@ -8,15 +8,24 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
 			<div class="_panel" style="padding: 16px;">
-				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
-				<MkButton class="button" inline danger @click="fullIndexTest()"> {{ i18n.ts._reIndexOpenSearch.title }} (Test) </MkButton>
-				<MkButton v-if="progressData.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
+				<!-- 実行中 → 強制停止ボタン -->
+				<MkButton v-if="progressData.status === 'running'" class="button" inline danger @click="abort()"> Stop </MkButton>
+
+				<!-- キュー待ち中 → キューキャンセルボタン -->
+				<MkButton v-else-if="progressData.status === 'queued'" class="button" inline danger @click="abort()"> Cancel Queue </MkButton>
+
+				<!-- 一時停止中 → 続きを実行ボタン -->
+				<MkButton v-else-if="progressData.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
+
+				<!-- 完了/停止/idle → 再インデックスボタン -->
+				<MkButton v-else class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
+
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
 				<div v-if="progressData.status" style="margin-top: 12px;">
-					<progress :value="progressData.percent" max="100" style="width: 100%;" />
+					<progress :value="progressPercent" max="100" style="width: 100%;" />
 					<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
-						{{ progressData.current?.toLocaleString() }} / {{ progressData.total?.toLocaleString() }} ({{ progressData.percent }}%)
+						{{ progressData.current?.toLocaleString() }} / {{ progressData.total?.toLocaleString() }} ({{ progressPercent }}%)
 					</p>
 					<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColor }">
 						{{ statusText }}
@@ -36,20 +45,28 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 
-const TEST_LIMIT_COUNT = 10000;
-
 type ProgressData = {
 	status: string | null;
 	current: number | null;
 	total: number | null;
-	percent: number;
+	nextRunAt: number | null;
+	limitCount: number | null;
+	intervalMinutes: number | null;
 };
 
 const progressData = ref<ProgressData>({
 	status: null,
 	current: null,
 	total: null,
-	percent: 0,
+	nextRunAt: null,
+	limitCount: null,
+	intervalMinutes: null,
+});
+
+const progressPercent = computed(() => {
+	const c = progressData.value.current;
+	const t = progressData.value.total;
+	return (c != null && t != null && t > 0) ? Math.floor((c / t) * 100) : 0;
 });
 
 let pollingInterval: ReturnType<typeof setInterval> | null = null;
@@ -61,7 +78,9 @@ async function fetchProgress() {
 			status: res.status,
 			current: res.current,
 			total: res.total,
-			percent: res.progressPercent ?? 0,
+			nextRunAt: res.nextRunAt,
+			limitCount: res.limitCount,
+			intervalMinutes: res.intervalMinutes,
 		};
 		if (res.status !== 'running' && pollingInterval) {
 			stopPolling();
@@ -97,7 +116,9 @@ const statusText = computed(() => {
 	switch (progressData.value.status) {
 		case 'running': return 'Running...';
 		case 'paused': return 'Paused (click resume to continue)';
+		case 'queued': return `Waiting: next run at ${formatTime(progressData.value.nextRunAt)}`;
 		case 'completed': return 'Completed';
+		case 'aborted': return 'Aborted';
 		default: return '';
 	}
 });
@@ -106,59 +127,79 @@ const statusColor = computed(() => {
 	switch (progressData.value.status) {
 		case 'running': return 'var(--MI_THEME-fgTransparentWeak)';
 		case 'paused': return 'var(--MI_THEME-warn)';
+		case 'queued': return 'var(--MI_THEME-warn)';
 		case 'completed': return 'var(--MI_THEME-fgTransparentWeak)';
+		case 'aborted': return 'var(--MI_THEME-error)';
 		default: return 'var(--MI_THEME-fgTransparentWeak)';
 	}
 });
 
-async function fullIndex() {
-	const { canceled, result: select } = await os.select({
-		title: i18n.ts._reIndexOpenSearch.title,
-		items: [{
-			value: 'notes', label: i18n.ts.note,
-		}, {
-			value: 'reaction', label: i18n.ts.reaction,
-		}, {
-			value: 'pollVote', label: i18n.ts.poll,
-		}, {
-			value: 'clipNotes', label: i18n.ts.clip,
-		}, {
-			value: 'Favorites', label: i18n.ts.favorite,
-		}],
-		default: 'notes',
-	});
-	if (!canceled) {
-		await os.apiWithDialog('admin/full-index', {
-			index: select,
-			discardProgress: true,
-		});
-		if (select === 'notes') {
-			setTimeout(() => startPolling(), 500);
-		}
-	}
+function formatTime(ts: number | null): string {
+	if (!ts) return '?';
+	const d = new Date(ts);
+	return d.toLocaleString();
 }
 
-async function fullIndexTest() {
-	const { canceled } = await os.confirm({
-		type: 'warning',
-		text: `Test re-index ${TEST_LIMIT_COUNT.toLocaleString()} notes?`,
+async function fullIndex() {
+	const { canceled, result } = await os.form(i18n.ts._reIndexOpenSearch.title, {
+		index: {
+			type: 'radio',
+			label: 'Index',
+			options: [
+				{ value: 'notes', label: i18n.ts.note },
+				{ value: 'reaction', label: i18n.ts.reaction },
+				{ value: 'pollVote', label: i18n.ts.poll },
+				{ value: 'clipNotes', label: i18n.ts.clip },
+				{ value: 'Favorites', label: i18n.ts.favorite },
+			],
+			default: 'notes',
+		},
+		limitCount: {
+			type: 'number',
+			label: 'Limit count per run',
+			default: 10000,
+			hidden: (v: any) => v.index !== 'notes',
+		},
+		intervalMinutes: {
+			type: 'number',
+			label: 'Interval (minutes)',
+			default: 5,
+			hidden: (v: any) => v.index !== 'notes',
+		},
+		discardProgress: {
+			type: 'boolean',
+			label: 'Discard existing progress and restart',
+			default: false,
+			hidden: (v: any) => v.index !== 'notes',
+		},
 	});
-	if (!canceled) {
-		await os.apiWithDialog('admin/full-index', {
-			index: 'notes',
-			limitCount: TEST_LIMIT_COUNT,
-			discardProgress: true,
-		});
+	if (canceled) return;
+
+	await os.apiWithDialog('admin/full-index', {
+		index: result.index,
+		limitCount: result.index === 'notes' ? result.limitCount : undefined,
+		intervalMinutes: result.index === 'notes' ? result.intervalMinutes : undefined,
+		discardProgress: result.index === 'notes' ? result.discardProgress : undefined,
+	});
+	if (result.index === 'notes') {
 		setTimeout(() => startPolling(), 500);
 	}
 }
 
 async function fullIndexResume() {
+	const res = await misskeyApi('admin/full-index-progress', {});
 	await os.apiWithDialog('admin/full-index', {
 		index: 'notes',
-		limitCount: TEST_LIMIT_COUNT,
+		limitCount: res.limitCount ?? undefined,
+		intervalMinutes: res.intervalMinutes ?? undefined,
 	});
 	setTimeout(() => startPolling(), 500);
+}
+
+async function abort() {
+	await os.apiWithDialog('admin/abort-full-index', {});
+	stopPolling();
+	await fetchProgress();
 }
 
 async function reIndex() {

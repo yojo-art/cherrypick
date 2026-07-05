@@ -722,6 +722,7 @@ import type {
 } from './entities.js';
 
 export type Endpoints = {
+	'admin/abort-full-index': { req: EmptyRequest; res: EmptyResponse };
 	'admin/abuse-report-resolver/create': { req: AdminAbuseReportResolverCreateRequest; res: AdminAbuseReportResolverCreateResponse };
 	'admin/abuse-report-resolver/delete': { req: AdminAbuseReportResolverDeleteRequest; res: EmptyResponse };
 	'admin/abuse-report-resolver/list': { req: AdminAbuseReportResolverListRequest; res: AdminAbuseReportResolverListResponse };

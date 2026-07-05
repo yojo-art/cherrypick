@@ -15,6 +15,7 @@ import { MiUser } from '@/models/_.js';
 import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository, DriveFilesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
+import { QueueService } from '@/core/QueueService.js';
 import { DriveService } from '@/core/DriveService.js';
 import { QueryService } from '@/core/QueryService.js';
 import { IdService } from '@/core/IdService.js';
@@ -24,15 +25,17 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
 import NotesChart from '@/core/chart/charts/notes.js';
 
-type FullIndexStatus = 'running' | 'paused' | 'completed';
+export type FullIndexStatus = 'running' | 'paused' | 'queued' | 'completed' | 'aborted';
 
-type FullIndexProgress = {
+export type FullIndexProgress = {
 	status: FullIndexStatus;
 	current: number;
 	total: number;
 	latestid: string;
 	startedAt: number;
 	completedAt?: number;
+	limitCount?: number;
+	intervalMinutes?: number;
 };
 
 type OpenSearchHit = {
@@ -223,6 +226,7 @@ export class AdvancedSearchService {
 		private loggerService: LoggerService,
 		private driveService: DriveService,
 		private notesChart: NotesChart,
+		private queueService: QueueService,
 	) {
 		this.logger = this.loggerService.getLogger('search');
 		if (opensearch && config.opensearch && config.opensearch.index) {
@@ -550,7 +554,16 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, discardProgress = false): Promise<void> {
+	public async fullIndexNoteQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
+		await this.queueService.systemQueue.add('fullIndexNote', {
+			limitCount: limitCount ?? undefined,
+			intervalMinutes: intervalMinutes ?? undefined,
+			discardProgress,
+		});
+	}
+
+	@bindThis
+	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, discardProgress = false, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
@@ -618,12 +631,20 @@ export class AdvancedSearchService {
 			while (true) {
 				this.logger.info('indexing' + index + '/' + notesCount);
 
-				// max duration チェック
-				if (Date.now() - loopStart > maxDurationMs) {
-					this.logger.info('Max duration reached, stopping fullIndexNote');
-					status = 'paused';
-					break;
-				}
+			// max duration チェック
+			if (Date.now() - loopStart > maxDurationMs) {
+				this.logger.info('Max duration reached, stopping fullIndexNote');
+				status = 'paused';
+				break;
+			}
+
+			// abort チェック
+			if (await this.redisClient.get('fullIndexNote:abort') !== null) {
+				this.logger.info('fullIndexNote aborted by user');
+				await this.redisClient.del('fullIndexNote:abort');
+				status = 'aborted';
+				break;
+			}
 
 				const notes = await this.notesRepository
 					.createQueryBuilder('note')
@@ -677,18 +698,20 @@ export class AdvancedSearchService {
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
 		} finally {
-			const finalProgress: FullIndexProgress = {
-				status: latestNoteCount === 0 ? 'completed' : status,
-				current: accumulatedIndex + index,
-				total: notesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			if (latestNoteCount === 0) {
-				finalProgress.completedAt = Date.now();
-			}
-			await this.redisClient.set('fullIndexNote:progress', JSON.stringify(finalProgress), 'EX', 3600);
-			await this.redisClient.del(lockKey);
+		const finalProgress: FullIndexProgress = {
+			status: latestNoteCount === 0 ? 'completed' : status,
+			current: accumulatedIndex + index,
+			total: notesCount,
+			latestid: latestid,
+			startedAt: loopStart,
+			limitCount: limitCount ?? undefined,
+			intervalMinutes: intervalMinutes ?? undefined,
+		};
+		if (latestNoteCount === 0) {
+			finalProgress.completedAt = Date.now();
+		}
+		await this.redisClient.set('fullIndexNote:progress', JSON.stringify(finalProgress), 'EX', 3600);
+		await this.redisClient.del(lockKey);
 		}
 	}
 

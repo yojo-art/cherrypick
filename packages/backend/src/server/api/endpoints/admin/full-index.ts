@@ -26,6 +26,10 @@ export const paramDef = {
 			type: 'integer',
 			nullable: true,
 		},
+		intervalMinutes: {
+			type: 'integer',
+			nullable: true,
+		},
 		discardProgress: {
 			type: 'boolean',
 			nullable: true,
@@ -42,9 +46,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			switch (ps.index) {
-				case 'notes':
-					this.advancedSearchService.fullIndexNote(undefined, ps.limitCount ?? undefined, ps.discardProgress ?? false);
-					break;
+			case 'notes':
+				this.advancedSearchService.fullIndexNoteQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+				break;
 				case 'reaction':
 					this.advancedSearchService.fullIndexReaction();
 					break;
@@ -58,7 +62,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					this.advancedSearchService.fullIndexFavorites();
 					break;
 			}
-		},
-		);
+		});
 	}
 }

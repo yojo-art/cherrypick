@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import * as Redis from 'ioredis';
+import { FullIndexStatus } from '@/core/AdvancedSearchService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -22,15 +23,6 @@ export const paramDef = {
 	properties: {},
 } as const;
 
-type FullIndexProgress = {
-	status: string;
-	current: number;
-	total: number;
-	latestid: string;
-	startedAt: number;
-	completedAt?: number;
-};
-
 @Injectable()
 // eslint-disable-next-line import/no-default-export
 export default class extends Endpoint<typeof meta, typeof paramDef> {
@@ -45,10 +37,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					status: null,
 					current: null,
 					total: null,
-					progressPercent: null,
 					latestid: null,
 					startedAt: null,
 					completedAt: null,
+					nextRunAt: null,
+					limitCount: null,
+					intervalMinutes: null,
 				};
 			}
 
@@ -60,35 +54,50 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					status: null,
 					current: null,
 					total: null,
-					progressPercent: null,
 					latestid: null,
 					startedAt: null,
 					completedAt: null,
+					nextRunAt: null,
+					limitCount: null,
+					intervalMinutes: null,
 				};
 			}
 
 			const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
 			const isString = (v: unknown): v is string => typeof v === 'string';
 
-			const status = isString(parsed.status) && ['running', 'paused', 'completed'].includes(parsed.status)
-				? parsed.status
+			let status: FullIndexStatus | null = isString(parsed.status) && ['running', 'paused', 'queued', 'completed', 'aborted'].includes(parsed.status)
+				? (parsed.status as FullIndexStatus)
 				: null;
+
+			if (status === 'paused') {
+				const nextDelayRaw = await this.redisClient.get('fullIndexNote:nextDelay');
+				const nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
+				if (nextRunAt && Date.now() < nextRunAt) {
+					status = 'queued';
+				}
+			}
+
 			const current = isNumber(parsed.current) ? parsed.current : null;
 			const total = isNumber(parsed.total) ? parsed.total : null;
 			const latestid = isString(parsed.latestid) ? parsed.latestid : null;
 			const startedAt = isNumber(parsed.startedAt) ? parsed.startedAt : null;
 			const completedAt = isNumber(parsed.completedAt) ? parsed.completedAt : null;
+			const limitCount = isNumber(parsed.limitCount) ? parsed.limitCount : null;
+			const intervalMinutes = isNumber(parsed.intervalMinutes) ? parsed.intervalMinutes : null;
 
 			return {
 				status,
 				current,
 				total,
 				latestid,
-				progressPercent: (current != null && total != null && total > 0)
-					? Math.floor((current / total) * 100)
-					: null,
 				startedAt,
 				completedAt,
+				nextRunAt: status === 'queued'
+					? Number(await this.redisClient.get('fullIndexNote:nextDelay'))
+					: null,
+				limitCount,
+				intervalMinutes,
 			};
 		});
 	}
