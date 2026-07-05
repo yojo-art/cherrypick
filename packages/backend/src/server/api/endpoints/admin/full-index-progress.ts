@@ -42,21 +42,38 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				};
 			}
 
-			const parsed = JSON.parse(raw) as {
-				current: number;
-				total: number;
-				running: boolean;
-				startedAt: number;
-				completedAt?: number;
-			};
+			let parsed: Record<string, unknown>;
+			try {
+				parsed = JSON.parse(raw) as Record<string, unknown>;
+			} catch (_err) {
+				return {
+					running: false,
+					current: null,
+					total: null,
+					progressPercent: null,
+					startedAt: null,
+					completedAt: null,
+				};
+			}
+
+			const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
+			const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
+
+			const current = isNumber(parsed.current) ? parsed.current : null;
+			const total = isNumber(parsed.total) ? parsed.total : null;
+			const running = isBool(parsed.running) ? parsed.running : false;
+			const startedAt = isNumber(parsed.startedAt) ? parsed.startedAt : null;
+			const completedAt = isNumber(parsed.completedAt) ? parsed.completedAt : null;
 
 			return {
-				running: parsed.running,
-				current: parsed.current,
-				total: parsed.total,
-				progressPercent: parsed.total > 0 ? Math.floor((parsed.current / parsed.total) * 100) : null,
-				startedAt: parsed.startedAt,
-				completedAt: parsed.completedAt ?? null,
+				running,
+				current,
+				total,
+				progressPercent: (current != null && total != null && total > 0)
+					? Math.floor((current / total) * 100)
+					: null,
+				startedAt,
+				completedAt,
 			};
 		});
 	}

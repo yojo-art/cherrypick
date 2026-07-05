@@ -325,13 +325,13 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	private async isIndexingPaused(): Promise<boolean> {
+	private async isFullIndexRunning(): Promise<boolean> {
 		return (await this.redisClient.get('fullIndexNote:running')) !== null;
 	}
 
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[], skipPauseCheck = false): Promise<void> {
-		if (!skipPauseCheck && await this.isIndexingPaused()) return;
+		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (!this.opensearch) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
 
@@ -387,7 +387,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async updateNoteSensitive(fileId: string) {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		if (!this.opensearch) return;
 
 		const limit = 100;
@@ -445,7 +445,7 @@ export class AdvancedSearchService {
 		reactionIncrement?: boolean,
 		searchableBy?: string,
 	}) {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		if (!(opts.remote && opts.searchableBy === 'private')) {
 			await this.index(this.reactionIndex, opts.id, {
 				noteId: opts.noteId,
@@ -488,7 +488,7 @@ export class AdvancedSearchService {
 			noteId: string;
 			userId: string;
 		}) {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
 			userId: opts.userId,
@@ -501,7 +501,7 @@ export class AdvancedSearchService {
 			userId: string,
 			clipId?: string,
 		}) {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		this.index(this.favoriteIndex, id, opts);
 	}
 	@bindThis
@@ -535,12 +535,13 @@ export class AdvancedSearchService {
 	public async fullIndexNote(maxDurationMin?: number): Promise<void> {
 		if (!this.opensearch) return;
 
-		const maxDurationMs = (maxDurationMin ?? 120) * 60 * 1000;
+		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
+		const maxDurationMs = clampedMaxMin * 60 * 1000;
 		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
 
-		// ワーカー間ロック: 既に実行中ならスキップ(期限24h)
+		// ワーカー間ロック: 既に実行中ならスキップ
 		const lockKey = 'fullIndexNote:lock';
-		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', 86400, 'NX');
+		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
 		if (lock !== 'OK') {
 			this.logger.info('fullIndexNote is already running');
 			return;
@@ -630,16 +631,15 @@ export class AdvancedSearchService {
 					startedAt: loopStart,
 				}), 'EX', maxDurationSec + 60);
 
-				notes.forEach(note => {
+				for (const note of notes) {
 					if (note.hasPoll) {
-						this.pollsRepository.findOneBy({ noteId: note.id }).then( (poll) => {
-							this.indexNote(note, poll ? poll.choices : undefined, true);
-						});
+						const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
+						await this.indexNote(note, poll ? poll.choices : undefined, true);
 					} else {
-						this.indexNote(note, undefined, true);
+						await this.indexNote(note, undefined, true);
 					}
 					latestid = note.id;
-				});
+				}
 			}
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
@@ -654,13 +654,14 @@ export class AdvancedSearchService {
 			}).catch((error) => {
 				this.logger.error(error);
 			});
+			// running フラグを先に削除（異常終了時の永続化を避ける）
+			await this.redisClient.del('fullIndexNote:running');
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
 				current: index,
 				total: notesCount,
 				running: false,
 				completedAt: Date.now(),
 			}), 'EX', 3600);
-			await this.redisClient.del('fullIndexNote:running');
 			await this.redisClient.del(lockKey);
 		}
 	}
@@ -809,7 +810,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async unindexNote(note: MiNote): Promise<void> {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
 		}
@@ -855,7 +856,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async unindexReaction(id: string, remote: boolean, noteId: string, emoji:string): Promise<void> {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		if (!remote) this.unindexById(this.reactionIndex, id);
 		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && remote && emoji.includes('@')) return;
 		await this.opensearch?.update({
@@ -884,7 +885,7 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	public async unindexFavorite(id?: string, noteId?: string, clipId?: string, userId?: string) {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		if (clipId) {
 			this.unindexByQuery(this.favoriteIndex, {
 				bool: {
@@ -915,7 +916,7 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	public async unindexUserClip(id: string) {
-		if (await this.isIndexingPaused()) return;
+		if (await this.isFullIndexRunning()) return;
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {
 				clipId: {
