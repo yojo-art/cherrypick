@@ -32,6 +32,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
@@ -56,7 +57,7 @@ let pollingInterval: ReturnType<typeof setInterval> | null = null;
 let justCompletedTimeout: ReturnType<typeof setTimeout> | null = null;
 
 async function fetchProgress() {
-	const res = await os.api('admin/full-index-progress', {});
+	const res = await misskeyApi('admin/full-index-progress', {});
 	if (res) {
 		const wasRunning = progressData.value.running;
 		progressData.value = {
