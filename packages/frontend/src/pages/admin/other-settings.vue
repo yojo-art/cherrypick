@@ -76,9 +76,9 @@ async function fetchProgress() {
 	}
 }
 
-function startPolling() {
+async function startPolling() {
 	if (pollingInterval) return;
-	fetchProgress();
+	await fetchProgress();
 	pollingInterval = setInterval(fetchProgress, 3000);
 }
 
@@ -89,8 +89,8 @@ function stopPolling() {
 	}
 }
 
-onMounted(() => {
-	fetchProgress();
+onMounted(async () => {
+	await fetchProgress();
 	if (progressData.value.running) {
 		startPolling();
 	}
@@ -115,14 +115,15 @@ async function fullIndex() {
 		}, {
 			value: 'Favorites', label: i18n.ts.favorite,
 		}],
-		default: 'reaction',
+		default: 'notes',
 	});
 	if (!canceled) {
-		os.apiWithDialog('admin/full-index', {
+		await os.apiWithDialog('admin/full-index', {
 			index: select,
 		});
 		if (select === 'notes') {
-			startPolling();
+			// APIが処理を開始してprogressが保存されるまで少し待つ
+			setTimeout(() => startPolling(), 500);
 		}
 	}
 }

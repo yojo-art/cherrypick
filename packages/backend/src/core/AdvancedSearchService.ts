@@ -549,8 +549,18 @@ export class AdvancedSearchService {
 		let originalRefreshInterval = '1s';
 		let index = 0;
 		let notesCount = 0;
+		let loopStart = 0;
 		try {
+			loopStart = Date.now();
 			await this.redisClient.set('fullIndexNote:running', '1', 'EX', maxDurationSec);
+
+			// 開始したことを即座に示す
+			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
+				current: 0,
+				total: 0,
+				running: true,
+				startedAt: loopStart,
+			}), 'EX', maxDurationSec + 60);
 
 			// 現在のrefresh_intervalを取得
 			const currentSettings = await this.opensearch.indices.getSettings({
@@ -580,7 +590,6 @@ export class AdvancedSearchService {
 			this.logger.info('Total notes count: ' + notesCount);
 			const limit = 1000;
 			let latestid = '';
-			const loopStart = Date.now();
 			index = 0;
 			while (true) {
 				this.logger.info('indexing' + index + '/' + notesCount);
