@@ -558,13 +558,21 @@ export class AdvancedSearchService {
 				}
 			} catch {}
 		}
+		const limit = 1000;	// 1回あたりのDBからのノート取得数を指定
+
 		let index = 0;
 		let notesCount = 0;
 		let loopStart = 0;
+		let letestNoteCount = 0;
 		let paused = false;
+
 		try {
 			loopStart = Date.now();
 			await this.redisClient.set('fullIndexNote:running', '1', 'EX', maxDurationSec);
+
+			const notesChart = await this.notesChart.getChart('hour', 1, null);
+			notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
+			this.logger.info('Total notes count: ' + notesCount);
 
 			// 開始したことを即座に示す（累計件数を引き継ぐ）
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
@@ -579,13 +587,7 @@ export class AdvancedSearchService {
 				return;
 			}
 
-			const notesChart = await this.notesChart.getChart('hour', 1, null);
-			notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
-			this.logger.info('Total notes count: ' + notesCount);
-
-			const limit = 1000;
 			let latestid = await this.redisClient.get('fullIndexNote:latestid') ?? '';
-			index = 0;
 			while (true) {
 				this.logger.info('indexing' + index + '/' + notesCount);
 				const dbStart = Date.now();
@@ -614,8 +616,9 @@ export class AdvancedSearchService {
 					.limit(limit)
 					.getMany();
 
-				if (notes.length === 0) break;
-				index += notes.length;
+				letestNoteCount = notes.length;
+				if (letestNoteCount === 0) break;
+				index += letestNoteCount;
 
 				for (const note of notes) {
 					if (note.hasPoll) {
@@ -651,13 +654,18 @@ export class AdvancedSearchService {
 			if (!paused) {
 				await this.redisClient.del('fullIndexNote:latestid');
 			}
-			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
-				current: accumulatedIndex + index,
-				total: notesCount,
-				running: false,
-				paused: paused,
-				completedAt: paused ? null : Date.now(),
-			}), 'EX', maxDurationSec);
+			if (letestNoteCount > 0) {
+				await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
+					current: accumulatedIndex + index,
+					total: notesCount,
+					running: false,
+					paused: paused,
+					completedAt: paused ? null : Date.now(),
+				}), 'EX', maxDurationSec);
+			} else {
+				await this.redisClient.del('fullIndexNote:progress');
+			}
+
 			await this.redisClient.del(lockKey);
 		}
 	}
