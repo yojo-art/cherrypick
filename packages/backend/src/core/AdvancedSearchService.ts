@@ -533,7 +533,26 @@ export class AdvancedSearchService {
 			return;
 		}
 
+		let originalRefreshInterval = '1s';
 		try {
+			// 現在のrefresh_intervalを取得
+			const currentSettings = await this.opensearch.indices.getSettings({
+				index: this.opensearchNoteIndex as string,
+			});
+			const indexSettings = (currentSettings.body as any)[this.opensearchNoteIndex as string]?.settings?.index;
+			if (indexSettings?.refresh_interval) {
+				originalRefreshInterval = indexSettings.refresh_interval;
+			}
+
+			await this.opensearch.indices.putSettings({
+				index: this.opensearchNoteIndex as string,
+				body: {
+					index: {
+						refresh_interval: '60s',
+					},
+				},
+			});
+
 			if (await this.redisClient.get('indexDeleted') !== null) {
 				this.logger.info('indexDeleted flag is set, skipping');
 				return;
@@ -584,6 +603,16 @@ export class AdvancedSearchService {
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
 		} finally {
+			await this.opensearch?.indices.putSettings({
+				index: this.opensearchNoteIndex as string,
+				body: {
+					index: {
+						refresh_interval: originalRefreshInterval,
+					},
+				},
+			}).catch((error) => {
+				this.logger.error(error);
+			});
 			await this.redisClient.del(lockKey);
 		}
 	}
