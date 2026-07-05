@@ -560,7 +560,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, discardProgress = false, intervalMinutes?: number): Promise<void> {
+	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
@@ -575,25 +575,22 @@ export class AdvancedSearchService {
 			return;
 		}
 
-		// 前回の progress を復元（discardProgress=true の場合は破棄）
+		// 前回の progress を復元する。discardProgress=true の場合はここに来る前に
+		// FullIndexProcessorService が既に fullIndexNote:progress を削除済みなので、
+		// 自然に「復元するものがない」状態になる。
 		let accumulatedIndex = 0;
 		let latestid = '';
-		if (!discardProgress) {
-			const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
-			if (prevProgressRaw) {
-				try {
-					const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
-					if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
-						accumulatedIndex = prev.current;
-					}
-					if (typeof prev.latestid === 'string') {
-						latestid = prev.latestid;
-					}
-				} catch {}
-			}
-		} else {
-			// 既存 progress を破棄
-			await this.redisClient.del('fullIndexNote:progress');
+		const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
+		if (prevProgressRaw) {
+			try {
+				const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
+				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
+					accumulatedIndex = prev.current;
+				}
+				if (typeof prev.latestid === 'string') {
+					latestid = prev.latestid;
+				}
+			} catch {}
 		}
 		const limit = 1000; // 1回あたりのDBからのノート取得数を指定
 
@@ -722,11 +719,12 @@ export class AdvancedSearchService {
 		label: string;
 		maxDurationMin?: number;
 		limitCount?: number;
+		intervalMinutes?: number;
 		getTotalCount: () => Promise<number>;
 		fetchBatch: (latestid: string, limit: number) => Promise<T[]>;
 		indexItem: (item: T) => Promise<void>;
 	}): Promise<void> {
-		const { prefix, label, limitCount, getTotalCount, fetchBatch, indexItem } = opts;
+		const { prefix, label, limitCount, intervalMinutes, getTotalCount, fetchBatch, indexItem } = opts;
 		const clampedMaxMin = Math.max(1, opts.maxDurationMin ?? 120);
 		const maxDurationMs = clampedMaxMin * 60 * 1000;
 		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
@@ -826,6 +824,7 @@ export class AdvancedSearchService {
 				latestid: latestid,
 				startedAt: loopStart,
 				limitCount: limitCount ?? undefined,
+				intervalMinutes: intervalMinutes ?? undefined,
 			};
 			if (latestCount === 0) {
 				finalProgress.completedAt = Date.now();
@@ -845,7 +844,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexReaction(maxDurationMin?: number, limitCount?: number): Promise<void> {
+	public async fullIndexReaction(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -853,6 +852,7 @@ export class AdvancedSearchService {
 			label: 'reaction',
 			maxDurationMin,
 			limitCount,
+			intervalMinutes,
 			getTotalCount: () => this.noteReactionsRepository.createQueryBuilder('reac').getCount(),
 			fetchBatch: (latestid, limit) => this.noteReactionsRepository
 				.createQueryBuilder('reac')
@@ -886,7 +886,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexPollVote(maxDurationMin?: number, limitCount?: number): Promise<void> {
+	public async fullIndexPollVote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -894,6 +894,7 @@ export class AdvancedSearchService {
 			label: 'pollVote',
 			maxDurationMin,
 			limitCount,
+			intervalMinutes,
 			getTotalCount: () => this.pollVotesRepository.createQueryBuilder('pv').getCount(),
 			fetchBatch: (latestid, limit) => this.pollVotesRepository
 				.createQueryBuilder('pv')
@@ -922,7 +923,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexClipNotes(maxDurationMin?: number, limitCount?: number): Promise<void> {
+	public async fullIndexClipNotes(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -930,6 +931,7 @@ export class AdvancedSearchService {
 			label: 'clipNotes',
 			maxDurationMin,
 			limitCount,
+			intervalMinutes,
 			getTotalCount: () => this.clipNotesRepository.createQueryBuilder('clipnote').getCount(),
 			fetchBatch: (latestid, limit) => this.clipNotesRepository
 				.createQueryBuilder('clipnote')
@@ -957,7 +959,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexFavorites(maxDurationMin?: number, limitCount?: number): Promise<void> {
+	public async fullIndexFavorites(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -965,6 +967,7 @@ export class AdvancedSearchService {
 			label: 'favorites',
 			maxDurationMin,
 			limitCount,
+			intervalMinutes,
 			getTotalCount: () => this.noteFavoritesRepository.createQueryBuilder('fv').getCount(),
 			fetchBatch: (latestid, limit) => this.noteFavoritesRepository
 				.createQueryBuilder('fv')
