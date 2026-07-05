@@ -575,24 +575,6 @@ export class AdvancedSearchService {
 				startedAt: loopStart,
 			}), 'EX', maxDurationSec);
 
-			// 現在のrefresh_intervalを取得
-			const currentSettings = await this.opensearch.indices.getSettings({
-				index: this.opensearchNoteIndex as string,
-			});
-			const indexSettings = (currentSettings.body as any)[this.opensearchNoteIndex as string]?.settings?.index;
-			if (indexSettings?.refresh_interval) {
-				originalRefreshInterval = indexSettings.refresh_interval;
-			}
-
-			await this.opensearch.indices.putSettings({
-				index: this.opensearchNoteIndex as string,
-				body: {
-					index: {
-						refresh_interval: '60s',
-					},
-				},
-			});
-
 			if (await this.redisClient.get('indexDeleted') !== null) {
 				this.logger.info('indexDeleted flag is set, skipping');
 				return;
@@ -601,6 +583,7 @@ export class AdvancedSearchService {
 			const notesChart = await this.notesChart.getChart('hour', 1, null);
 			notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
 			this.logger.info('Total notes count: ' + notesCount);
+			
 			const limit = 1000;
 			let latestid = await this.redisClient.get('fullIndexNote:latestid') ?? '';
 			index = 0;
@@ -664,16 +647,6 @@ export class AdvancedSearchService {
 			const loopTime = Date.now() - loopStart;
 			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
 		} finally {
-			await this.opensearch?.indices.putSettings({
-				index: this.opensearchNoteIndex as string,
-				body: {
-					index: {
-						refresh_interval: originalRefreshInterval,
-					},
-				},
-			}).catch((error) => {
-				this.logger.error(error);
-			});
 			// running フラグを先に削除（異常終了時の永続化を避ける）
 			await this.redisClient.del('fullIndexNote:running');
 			if (!paused) {
