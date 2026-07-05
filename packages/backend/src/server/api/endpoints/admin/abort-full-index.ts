@@ -60,9 +60,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 
 			await this.redisClient.set(`${redisPrefix}abort`, '1', 'EX', 300);
 			await this.queueService.removeDelayedFullIndexJobs(jobName);
-			if (ps.index === 'notes') {
-				await this.redisClient.del('fullIndexNote:nextDelay');
-			}
+			await this.redisClient.del(`${redisPrefix}nextDelay`);
 
 			const raw = await this.redisClient.get(`${redisPrefix}progress`);
 			if (raw) {

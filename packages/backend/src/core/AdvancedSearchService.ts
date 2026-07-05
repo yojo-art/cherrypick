@@ -827,8 +827,11 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexReactionQueue(): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexReaction', {});
+	public async fullIndexReactionQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+		await this.queueService.systemQueue.add('fullIndexReaction', {
+			intervalMinutes: intervalMinutes ?? undefined,
+			discardProgress,
+		});
 	}
 
 	@bindThis
@@ -863,8 +866,11 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexPollVoteQueue(): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexPollVote', {});
+	public async fullIndexPollVoteQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+		await this.queueService.systemQueue.add('fullIndexPollVote', {
+			intervalMinutes: intervalMinutes ?? undefined,
+			discardProgress,
+		});
 	}
 
 	@bindThis
@@ -894,8 +900,11 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexClipNotesQueue(): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexClipNotes', {});
+	public async fullIndexClipNotesQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+		await this.queueService.systemQueue.add('fullIndexClipNotes', {
+			intervalMinutes: intervalMinutes ?? undefined,
+			discardProgress,
+		});
 	}
 
 	@bindThis
@@ -924,8 +933,11 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexFavoritesQueue(): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexFavorites', {});
+	public async fullIndexFavoritesQueue(intervalMinutes?: number, discardProgress = false): Promise<void> {
+		await this.queueService.systemQueue.add('fullIndexFavorites', {
+			intervalMinutes: intervalMinutes ?? undefined,
+			discardProgress,
+		});
 	}
 
 	@bindThis

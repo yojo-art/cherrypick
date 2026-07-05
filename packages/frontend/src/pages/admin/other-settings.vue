@@ -20,8 +20,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<!-- キュー待ち中 → キューキャンセルボタン -->
 				<MkButton v-else-if="currentProgress.status === 'queued'" class="button" inline danger @click="abort()"> {{ i18n.ts._reIndexOpenSearch.cancelQueue }} </MkButton>
 
-				<!-- 一時停止中 → 続きを実行ボタン (notes のみ) -->
-				<MkButton v-else-if="currentProgress.status === 'paused' && activeIndex === 'notes'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
+				<!-- 一時停止中 → 続きを実行ボタン -->
+				<MkButton v-else-if="currentProgress.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
 
 				<!-- 完了/停止/idle → 再インデックスボタン -->
 				<MkButton v-else class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
@@ -192,7 +192,6 @@ async function fullIndex() {
 			type: 'number',
 			label: i18n.ts._reIndexOpenSearch.intervalMinutesLabel,
 			default: 5,
-			hidden: (v: any) => v.index !== 'notes',
 		},
 	});
 	if (canceled) return;
@@ -200,7 +199,7 @@ async function fullIndex() {
 	await os.apiWithDialog('admin/full-index', {
 		index: result.index,
 		limitCount: result.index === 'notes' ? result.limitCount : undefined,
-		intervalMinutes: result.index === 'notes' ? result.intervalMinutes : undefined,
+		intervalMinutes: result.intervalMinutes,
 		discardProgress: true,
 	});
 	activeIndex.value = result.index;
@@ -208,10 +207,11 @@ async function fullIndex() {
 }
 
 async function fullIndexResume() {
-	const res = await misskeyApi('admin/full-index-progress', { index: 'notes' });
+	const index = activeIndex.value;
+	const res = await misskeyApi('admin/full-index-progress', { index });
 	await os.apiWithDialog('admin/full-index', {
-		index: 'notes',
-		limitCount: res.limitCount ?? undefined,
+		index,
+		limitCount: index === 'notes' ? (res.limitCount ?? undefined) : undefined,
 		intervalMinutes: res.intervalMinutes ?? undefined,
 	});
 	window.setTimeout(() => startPolling(), 500);

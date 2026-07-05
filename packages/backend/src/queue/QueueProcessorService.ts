@@ -49,8 +49,7 @@ import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
 import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteDeleteProcessorService.js';
-import { FullIndexNoteProcessorService } from './processors/FullIndexNoteProcessorService.js';
-import { FullIndexGenericProcessorService } from './processors/FullIndexGenericProcessorService.js';
+import { FullIndexProcessorService } from './processors/FullIndexProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { AutoDeleteNotesProcessorService } from './processors/AutoDeleteNotesProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
@@ -142,8 +141,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private cleanProcessorService: CleanProcessorService,
 		private autoDeleteNotesProcessorService: AutoDeleteNotesProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
-		private fullIndexNoteProcessorService: FullIndexNoteProcessorService,
-		private fullIndexGenericProcessorService: FullIndexGenericProcessorService,
+		private fullIndexProcessorService: FullIndexProcessorService,
 		private scheduledNoteDeleteProcessorService: ScheduledNoteDeleteProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
@@ -187,11 +185,11 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'checkModeratorsActivity': return this.checkModeratorsActivityProcessorService.process();
 					case 'clean': return this.cleanProcessorService.process();
 					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
-					case 'fullIndexNote': return this.fullIndexNoteProcessorService.process(job);
-					case 'fullIndexReaction': return this.fullIndexGenericProcessorService.process('fullIndexReaction', job);
-					case 'fullIndexPollVote': return this.fullIndexGenericProcessorService.process('fullIndexPollVote', job);
-					case 'fullIndexClipNotes': return this.fullIndexGenericProcessorService.process('fullIndexClipNotes', job);
-					case 'fullIndexFavorites': return this.fullIndexGenericProcessorService.process('fullIndexFavorites', job);
+					case 'fullIndexNote': return this.fullIndexProcessorService.process('fullIndexNote', job);
+					case 'fullIndexReaction': return this.fullIndexProcessorService.process('fullIndexReaction', job);
+					case 'fullIndexPollVote': return this.fullIndexProcessorService.process('fullIndexPollVote', job);
+					case 'fullIndexClipNotes': return this.fullIndexProcessorService.process('fullIndexClipNotes', job);
+					case 'fullIndexFavorites': return this.fullIndexProcessorService.process('fullIndexFavorites', job);
 					case 'autoDeleteNotes': return this.autoDeleteNotesProcessorService.process(job);
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}

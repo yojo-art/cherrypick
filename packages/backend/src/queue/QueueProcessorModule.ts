@@ -20,8 +20,7 @@ import { CleanChartsProcessorService } from './processors/CleanChartsProcessorSe
 import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { CheckModeratorsActivityProcessorService } from './processors/CheckModeratorsActivityProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
-import { FullIndexNoteProcessorService } from './processors/FullIndexNoteProcessorService.js';
-import { FullIndexGenericProcessorService } from './processors/FullIndexGenericProcessorService.js';
+import { FullIndexProcessorService } from './processors/FullIndexProcessorService.js';
 import { CleanRemoteFilesProcessorService } from './processors/CleanRemoteFilesProcessorService.js';
 import { AutoDeleteNotesProcessorService } from './processors/AutoDeleteNotesProcessorService.js';
 import { DeleteAccountProcessorService } from './processors/DeleteAccountProcessorService.js';
@@ -95,8 +94,7 @@ import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteD
 		CheckExpiredMutingsProcessorService,
 		CheckModeratorsActivityProcessorService,
 		CleanRemoteNotesProcessorService,
-		FullIndexNoteProcessorService,
-		FullIndexGenericProcessorService,
+		FullIndexProcessorService,
 		AutoDeleteNotesProcessorService,
 		QueueProcessorService,
 		ScheduledNoteDeleteProcessorService,
