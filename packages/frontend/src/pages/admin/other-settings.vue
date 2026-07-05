@@ -28,14 +28,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
-				<div v-if="currentProgress.status" style="margin-top: 12px;">
-					<progress :value="progressPercent" max="100" style="width: 100%;"/>
-					<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
-						{{ currentProgress.current?.toLocaleString() }} / {{ currentProgress.total?.toLocaleString() }} ({{ progressPercent }}%)
-					</p>
-					<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColor }">
-						{{ statusText }}
-					</p>
+				<div class="_gaps_s" style="margin-top: 12px;">
+					<template v-for="opt in indexOptions" :key="opt.value">
+						<div v-if="progressMap[opt.value].status" style="padding-top: 8px; border-top: 1px solid var(--MI_THEME-divider);">
+							<p style="margin: 0 0 4px; font-weight: bold;">{{ opt.label }}</p>
+							<div style="display: flex; align-items: center; gap: 8px;">
+								<progress :value="progressPercentOf(opt.value)" max="100" style="flex: 1; min-width: 0;"/>
+								<MkButton v-if="isAbortable(opt.value)" class="button" inline danger small @click="abortIndex(opt.value)"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
+							</div>
+							<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
+								{{ progressMap[opt.value].current?.toLocaleString() }} / {{ progressMap[opt.value].total?.toLocaleString() }} ({{ progressPercentOf(opt.value) }}%)
+							</p>
+							<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColorOf(opt.value) }">
+								{{ statusTextOf(opt.value) }}
+							</p>
+						</div>
+					</template>
 				</div>
 			</div>
 		</div>
@@ -44,7 +52,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, computed, onMounted, onUnmounted } from 'vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -88,11 +96,12 @@ const progressMap = ref<Record<string, ProgressData>>({
 const activeIndex = ref('notes');
 const currentProgress = computed(() => progressMap.value[activeIndex.value]);
 
-const progressPercent = computed(() => {
-	const c = currentProgress.value.current;
-	const t = currentProgress.value.total;
+function progressPercentOf(index: string): number {
+	const p = progressMap.value[index];
+	const c = p.current;
+	const t = p.total;
 	return (c != null && t != null && t > 0) ? Math.floor((c / t) * 100) : 0;
-});
+}
 
 let pollingInterval: ReturnType<typeof window.setInterval> | null = null;
 
@@ -107,16 +116,25 @@ async function fetchProgress(index: string) {
 			limitCount: res.limitCount,
 			intervalMinutes: res.intervalMinutes,
 		};
-		if (res.status !== 'running' && pollingInterval && activeIndex.value === index) {
-			stopPolling();
-		}
 	}
+}
+
+// redis上に存在する（＝status がある）全種別分をまとめて取得する
+async function fetchAllProgress() {
+	await Promise.all(indexOptions.map(opt => fetchProgress(opt.value)));
+}
+
+function isAnyRunning(): boolean {
+	return indexOptions.some(opt => progressMap.value[opt.value].status === 'running');
 }
 
 async function startPolling() {
 	if (pollingInterval) return;
-	await fetchProgress(activeIndex.value);
-	pollingInterval = window.setInterval(() => fetchProgress(activeIndex.value), 3000);
+	await fetchAllProgress();
+	pollingInterval = window.setInterval(async () => {
+		await fetchAllProgress();
+		if (!isAnyRunning()) stopPolling();
+	}, 3000);
 }
 
 function stopPolling() {
@@ -127,8 +145,8 @@ function stopPolling() {
 }
 
 onMounted(async () => {
-	await fetchProgress(activeIndex.value);
-	if (currentProgress.value.status === 'running') {
+	await fetchAllProgress();
+	if (isAnyRunning()) {
 		startPolling();
 	}
 });
@@ -137,28 +155,20 @@ onUnmounted(() => {
 	stopPolling();
 });
 
-watch(activeIndex, (newVal) => {
-	fetchProgress(newVal);
-	if (progressMap.value[newVal].status === 'running') {
-		startPolling();
-	} else {
-		stopPolling();
-	}
-});
-
-const statusText = computed(() => {
-	switch (currentProgress.value.status) {
+function statusTextOf(index: string): string {
+	const p = progressMap.value[index];
+	switch (p.status) {
 		case 'running': return i18n.ts._reIndexOpenSearch.statusRunning;
 		case 'paused': return i18n.ts._reIndexOpenSearch.statusPaused;
-		case 'queued': return i18n.tsx._reIndexOpenSearch.statusQueued({ time: formatTime(currentProgress.value.nextRunAt) });
+		case 'queued': return i18n.tsx._reIndexOpenSearch.statusQueued({ time: formatTime(p.nextRunAt) });
 		case 'completed': return i18n.ts._reIndexOpenSearch.statusCompleted;
 		case 'aborted': return i18n.ts._reIndexOpenSearch.statusAborted;
 		default: return '';
 	}
-});
+}
 
-const statusColor = computed(() => {
-	switch (currentProgress.value.status) {
+function statusColorOf(index: string): string {
+	switch (progressMap.value[index].status) {
 		case 'running': return 'var(--MI_THEME-fgTransparentWeak)';
 		case 'paused': return 'var(--MI_THEME-warn)';
 		case 'queued': return 'var(--MI_THEME-warn)';
@@ -166,7 +176,7 @@ const statusColor = computed(() => {
 		case 'aborted': return 'var(--MI_THEME-error)';
 		default: return 'var(--MI_THEME-fgTransparentWeak)';
 	}
-});
+}
 
 function formatTime(ts: number | null): string {
 	if (!ts) return '?';
@@ -227,9 +237,18 @@ async function abort() {
 	});
 	if (canceled) return;
 
-	await os.apiWithDialog('admin/abort-full-index', { index: result.index });
-	stopPolling();
-	await fetchProgress(result.index);
+	await abortIndex(result.index);
+}
+
+function isAbortable(index: string): boolean {
+	const status = progressMap.value[index].status;
+	return status === 'running' || status === 'queued' || status === 'paused';
+}
+
+async function abortIndex(index: string) {
+	await os.apiWithDialog('admin/abort-full-index', { index });
+	await fetchAllProgress();
+	if (!isAnyRunning()) stopPolling();
 }
 
 async function reIndex() {
