@@ -31,7 +31,13 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
+	properties: {
+		index: {
+			type: 'string',
+			enum: ['notes', 'reaction', 'pollVote', 'clipNotes', 'Favorites'],
+		},
+	},
+	required: ['index'],
 } as const;
 
 @Injectable()
@@ -42,17 +48,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private redisClient: Redis.Redis,
 		private queueService: QueueService,
 	) {
-		super(meta, paramDef, async (_ps, _me) => {
-			await this.redisClient.set('fullIndexNote:abort', '1', 'EX', 300);
-			await this.queueService.removeDelayedFullIndexJobs();
-			await this.redisClient.del('fullIndexNote:nextDelay');
+		super(meta, paramDef, async (ps, _me) => {
+			const prefixMap: Record<string, { redisPrefix: string; jobName: string }> = {
+				notes: { redisPrefix: 'fullIndexNote:', jobName: 'fullIndexNote' },
+				reaction: { redisPrefix: 'fullIndexReaction:', jobName: 'fullIndexReaction' },
+				pollVote: { redisPrefix: 'fullIndexPollVote:', jobName: 'fullIndexPollVote' },
+				clipNotes: { redisPrefix: 'fullIndexClipNotes:', jobName: 'fullIndexClipNotes' },
+				Favorites: { redisPrefix: 'fullIndexFavorites:', jobName: 'fullIndexFavorites' },
+			};
+			const { redisPrefix, jobName } = prefixMap[ps.index];
 
-			const raw = await this.redisClient.get('fullIndexNote:progress');
+			await this.redisClient.set(`${redisPrefix}abort`, '1', 'EX', 300);
+			await this.queueService.removeDelayedFullIndexJobs(jobName);
+			if (ps.index === 'notes') {
+				await this.redisClient.del('fullIndexNote:nextDelay');
+			}
+
+			const raw = await this.redisClient.get(`${redisPrefix}progress`);
 			if (raw) {
 				try {
 					const parsed = JSON.parse(raw) as Partial<FullIndexProgress>;
 					parsed.status = 'aborted';
-					await this.redisClient.set('fullIndexNote:progress', JSON.stringify(parsed), 'EX', 3600);
+					await this.redisClient.set(`${redisPrefix}progress`, JSON.stringify(parsed), 'EX', 3600);
 				} catch {}
 			}
 

@@ -42,6 +42,9 @@ type Ad = components['schemas']['Ad'];
 // Warning: (ae-forgotten-export) The symbol "operations" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
+type AdminAbortFullIndexRequest = operations['admin___abort-full-index']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type AdminAbortFullIndexResponse = operations['admin___abort-full-index']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -271,6 +274,9 @@ type AdminFederationUpdateInstanceRequest = operations['admin___federation___upd
 
 // @public (undocumented)
 type AdminForwardAbuseUserReportRequest = operations['admin___forward-abuse-user-report']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminFullIndexProgressRequest = operations['admin___full-index-progress']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AdminFullIndexProgressResponse = operations['admin___full-index-progress']['responses']['200']['content']['application/json'];
@@ -1591,6 +1597,7 @@ declare namespace entities {
         PartialRolePolicyOverride,
         EmptyRequest,
         EmptyResponse,
+        AdminAbortFullIndexRequest,
         AdminAbortFullIndexResponse,
         AdminAbuseReportResolverCreateRequest,
         AdminAbuseReportResolverCreateResponse,
@@ -1669,6 +1676,7 @@ declare namespace entities {
         AdminFederationUpdateInstanceRequest,
         AdminForwardAbuseUserReportRequest,
         AdminFullIndexRequest,
+        AdminFullIndexProgressRequest,
         AdminFullIndexProgressResponse,
         AdminGetIndexStatsResponse,
         AdminGetTableStatsResponse,

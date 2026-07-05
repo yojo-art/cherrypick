@@ -6221,6 +6221,14 @@ export type components = {
 export type $defs = Record<string, never>;
 export interface operations {
     'admin___abort-full-index': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @enum {string} */
+                    index: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {
@@ -10289,6 +10297,17 @@ export interface operations {
         };
     };
     'admin___full-index-progress': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /**
+                     * @default notes
+                     * @enum {string}
+                     */
+                    index?: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+                };
+            };
+        };
         responses: {
             /** @description OK (with results) */
             200: {

@@ -65,7 +65,13 @@ export const meta = {
 
 export const paramDef = {
 	type: 'object',
-	properties: {},
+	properties: {
+		index: {
+			type: 'string',
+			enum: ['notes', 'reaction', 'pollVote', 'clipNotes', 'Favorites'],
+			default: 'notes',
+		},
+	},
 } as const;
 
 @Injectable()
@@ -75,8 +81,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 	) {
-		super(meta, paramDef, async (_ps, _me) => {
-			const raw = await this.redisClient.get('fullIndexNote:progress');
+		super(meta, paramDef, async (ps, _me) => {
+			const prefixMap: Record<string, string> = {
+				notes: 'fullIndexNote:',
+				reaction: 'fullIndexReaction:',
+				pollVote: 'fullIndexPollVote:',
+				clipNotes: 'fullIndexClipNotes:',
+				Favorites: 'fullIndexFavorites:',
+			};
+			const prefix = prefixMap[ps.index ?? 'notes'];
+			const raw = await this.redisClient.get(`${prefix}progress`);
 			if (!raw) {
 				return {
 					status: null,
@@ -115,7 +129,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				? (parsed.status as FullIndexStatus)
 				: null;
 
-			if (status === 'paused') {
+			if (status === 'paused' && ps.index === 'notes') {
 				const nextDelayRaw = await this.redisClient.get('fullIndexNote:nextDelay');
 				const nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
 				if (nextRunAt && Date.now() < nextRunAt) {
@@ -138,7 +152,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				latestid,
 				startedAt,
 				completedAt,
-				nextRunAt: status === 'queued'
+				nextRunAt: status === 'queued' && ps.index === 'notes'
 					? Number(await this.redisClient.get('fullIndexNote:nextDelay'))
 					: null,
 				limitCount,

@@ -1,6 +1,7 @@
 import type {
 	EmptyRequest,
 	EmptyResponse,
+	AdminAbortFullIndexRequest,
 	AdminAbortFullIndexResponse,
 	AdminAbuseReportResolverCreateRequest,
 	AdminAbuseReportResolverCreateResponse,
@@ -79,6 +80,7 @@ import type {
 	AdminFederationUpdateInstanceRequest,
 	AdminForwardAbuseUserReportRequest,
 	AdminFullIndexRequest,
+	AdminFullIndexProgressRequest,
 	AdminFullIndexProgressResponse,
 	AdminGetIndexStatsResponse,
 	AdminGetTableStatsResponse,
@@ -724,7 +726,7 @@ import type {
 } from './entities.js';
 
 export type Endpoints = {
-	'admin/abort-full-index': { req: EmptyRequest; res: AdminAbortFullIndexResponse };
+	'admin/abort-full-index': { req: AdminAbortFullIndexRequest; res: AdminAbortFullIndexResponse };
 	'admin/abuse-report-resolver/create': { req: AdminAbuseReportResolverCreateRequest; res: AdminAbuseReportResolverCreateResponse };
 	'admin/abuse-report-resolver/delete': { req: AdminAbuseReportResolverDeleteRequest; res: EmptyResponse };
 	'admin/abuse-report-resolver/list': { req: AdminAbuseReportResolverListRequest; res: AdminAbuseReportResolverListResponse };
@@ -780,7 +782,7 @@ export type Endpoints = {
 	'admin/federation/update-instance': { req: AdminFederationUpdateInstanceRequest; res: EmptyResponse };
 	'admin/forward-abuse-user-report': { req: AdminForwardAbuseUserReportRequest; res: EmptyResponse };
 	'admin/full-index': { req: AdminFullIndexRequest; res: EmptyResponse };
-	'admin/full-index-progress': { req: EmptyRequest; res: AdminFullIndexProgressResponse };
+	'admin/full-index-progress': { req: AdminFullIndexProgressRequest; res: AdminFullIndexProgressResponse };
 	'admin/get-index-stats': { req: EmptyRequest; res: AdminGetIndexStatsResponse };
 	'admin/get-table-stats': { req: EmptyRequest; res: AdminGetTableStatsResponse };
 	'admin/get-user-ips': { req: AdminGetUserIpsRequest; res: AdminGetUserIpsResponse };
