@@ -155,6 +155,7 @@ async function fullIndexTest() {
 async function fullIndexResume() {
 	await os.apiWithDialog('admin/full-index', {
 		index: 'notes',
+		limitCount: TEST_LIMIT_COUNT,
 	});
 	setTimeout(() => startPolling(), 500);
 }
