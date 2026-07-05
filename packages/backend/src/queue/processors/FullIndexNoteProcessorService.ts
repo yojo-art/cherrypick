@@ -50,7 +50,7 @@ export class FullIndexNoteProcessorService {
 				intervalMinutes,
 			}, {
 				delay: delayMs,
-				jobId: `fullIndexNote:${Date.now()}`,
+				jobId: `fullIndexNote-${Date.now()}`,
 			});
 			await this.redisClient.set('fullIndexNote:nextDelay', String(nextRunAt), 'EX', 600);
 		}
