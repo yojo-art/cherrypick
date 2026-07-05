@@ -16,6 +16,51 @@ export const meta = {
 	requireAdmin: true,
 	secure: true,
 	kind: 'read:admin:reindex',
+
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			status: {
+				type: 'string',
+				optional: false, nullable: true,
+				enum: ['running', 'paused', 'queued', 'completed', 'aborted'],
+			},
+			current: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+			total: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+			latestid: {
+				type: 'string',
+				optional: false, nullable: true,
+				format: 'misskey:id',
+			},
+			startedAt: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+			completedAt: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+			nextRunAt: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+			limitCount: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+			intervalMinutes: {
+				type: 'number',
+				optional: false, nullable: true,
+			},
+		},
+	},
 } as const;
 
 export const paramDef = {

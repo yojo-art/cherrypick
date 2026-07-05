@@ -81,6 +81,7 @@ export type AdminFederationRemoveAllFollowingRequest = operations['admin___feder
 export type AdminFederationUpdateInstanceRequest = operations['admin___federation___update-instance']['requestBody']['content']['application/json'];
 export type AdminForwardAbuseUserReportRequest = operations['admin___forward-abuse-user-report']['requestBody']['content']['application/json'];
 export type AdminFullIndexRequest = operations['admin___full-index']['requestBody']['content']['application/json'];
+export type AdminFullIndexProgressResponse = operations['admin___full-index-progress']['responses']['200']['content']['application/json'];
 export type AdminGetIndexStatsResponse = operations['admin___get-index-stats']['responses']['200']['content']['application/json'];
 export type AdminGetTableStatsResponse = operations['admin___get-table-stats']['responses']['200']['content']['application/json'];
 export type AdminGetUserIpsRequest = operations['admin___get-user-ips']['requestBody']['content']['application/json'];

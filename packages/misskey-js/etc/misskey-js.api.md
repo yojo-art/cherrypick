@@ -270,6 +270,9 @@ type AdminFederationUpdateInstanceRequest = operations['admin___federation___upd
 type AdminForwardAbuseUserReportRequest = operations['admin___forward-abuse-user-report']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type AdminFullIndexProgressResponse = operations['admin___full-index-progress']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminFullIndexRequest = operations['admin___full-index']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1662,6 +1665,7 @@ declare namespace entities {
         AdminFederationUpdateInstanceRequest,
         AdminForwardAbuseUserReportRequest,
         AdminFullIndexRequest,
+        AdminFullIndexProgressResponse,
         AdminGetIndexStatsResponse,
         AdminGetTableStatsResponse,
         AdminGetUserIpsRequest,

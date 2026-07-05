@@ -10285,10 +10285,25 @@ export interface operations {
     };
     'admin___full-index-progress': {
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        /** @enum {string|null} */
+                        status: 'running' | 'paused' | 'queued' | 'completed' | 'aborted' | null;
+                        current: number | null;
+                        total: number | null;
+                        /** Format: misskey:id */
+                        latestid: string | null;
+                        startedAt: number | null;
+                        completedAt: number | null;
+                        nextRunAt: number | null;
+                        limitCount: number | null;
+                        intervalMinutes: number | null;
+                    };
                 };
             };
             /** @description Client error */
