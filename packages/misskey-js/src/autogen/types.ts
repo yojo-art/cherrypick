@@ -6222,10 +6222,15 @@ export type $defs = Record<string, never>;
 export interface operations {
     'admin___abort-full-index': {
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        success: boolean;
+                    };
                 };
             };
             /** @description Client error */
