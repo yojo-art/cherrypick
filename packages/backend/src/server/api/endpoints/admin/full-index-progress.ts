@@ -22,6 +22,15 @@ export const paramDef = {
 	properties: {},
 } as const;
 
+type FullIndexProgress = {
+	status: string;
+	current: number;
+	total: number;
+	latestid: string;
+	startedAt: number;
+	completedAt?: number;
+};
+
 @Injectable()
 // eslint-disable-next-line import/no-default-export
 export default class extends Endpoint<typeof meta, typeof paramDef> {
@@ -33,10 +42,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			const raw = await this.redisClient.get('fullIndexNote:progress');
 			if (!raw) {
 				return {
-					running: false,
+					status: null,
 					current: null,
 					total: null,
 					progressPercent: null,
+					latestid: null,
 					startedAt: null,
 					completedAt: null,
 				};
@@ -47,30 +57,33 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				parsed = JSON.parse(raw) as Record<string, unknown>;
 			} catch (_err) {
 				return {
-					running: false,
+					status: null,
 					current: null,
 					total: null,
 					progressPercent: null,
+					latestid: null,
 					startedAt: null,
 					completedAt: null,
 				};
 			}
 
 			const isNumber = (v: unknown): v is number => typeof v === 'number' && Number.isFinite(v);
-			const isBool = (v: unknown): v is boolean => typeof v === 'boolean';
+			const isString = (v: unknown): v is string => typeof v === 'string';
 
+			const status = isString(parsed.status) && ['running', 'paused', 'completed'].includes(parsed.status)
+				? parsed.status
+				: null;
 			const current = isNumber(parsed.current) ? parsed.current : null;
 			const total = isNumber(parsed.total) ? parsed.total : null;
-			const running = isBool(parsed.running) ? parsed.running : false;
-			const paused = isBool(parsed.paused) ? parsed.paused : false;
+			const latestid = isString(parsed.latestid) ? parsed.latestid : null;
 			const startedAt = isNumber(parsed.startedAt) ? parsed.startedAt : null;
 			const completedAt = isNumber(parsed.completedAt) ? parsed.completedAt : null;
 
 			return {
-				running,
+				status,
 				current,
 				total,
-				paused,
+				latestid,
 				progressPercent: (current != null && total != null && total > 0)
 					? Math.floor((current / total) * 100)
 					: null,

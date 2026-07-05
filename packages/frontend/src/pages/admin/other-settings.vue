@@ -10,22 +10,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div class="_panel" style="padding: 16px;">
 				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
 				<MkButton class="button" inline danger @click="fullIndexTest()"> {{ i18n.ts._reIndexOpenSearch.title }} (Test) </MkButton>
-				<MkButton v-if="progressData.paused" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
+				<MkButton v-if="progressData.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
-				<div v-if="progressData.running || progressData.justCompleted || progressData.paused" style="margin-top: 12px;">
+				<div v-if="progressData.status" style="margin-top: 12px;">
 					<progress :value="progressData.percent" max="100" style="width: 100%;" />
 					<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
 						{{ progressData.current?.toLocaleString() }} / {{ progressData.total?.toLocaleString() }} ({{ progressData.percent }}%)
 					</p>
-					<p v-if="progressData.running" style="margin: 2px 0 0; font-size: 0.8em; color: var(--MI_THEME-fgTransparentWeak);">
-						Running...
-					</p>
-					<p v-else-if="progressData.paused" style="margin: 2px 0 0; font-size: 0.8em; color: var(--MI_THEME-warn);">
-						Paused (click resume to continue)
-					</p>
-					<p v-else style="margin: 2px 0 0; font-size: 0.8em; color: var(--MI_THEME-fgTransparentWeak);">
-						Completed
+					<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColor }">
+						{{ statusText }}
 					</p>
 				</div>
 			</div>
@@ -45,44 +39,32 @@ import MkButton from '@/components/MkButton.vue';
 const TEST_LIMIT_COUNT = 10000;
 
 type ProgressData = {
-	running: boolean;
-	paused: boolean;
+	status: string | null;
 	current: number | null;
 	total: number | null;
 	percent: number;
-	justCompleted: boolean;
 };
 
 const progressData = ref<ProgressData>({
-	running: false,
-	paused: false,
+	status: null,
 	current: null,
 	total: null,
 	percent: 0,
-	justCompleted: false,
 });
 
 let pollingInterval: ReturnType<typeof setInterval> | null = null;
-let justCompletedTimeout: ReturnType<typeof setTimeout> | null = null;
 
 async function fetchProgress() {
 	const res = await misskeyApi('admin/full-index-progress', {});
 	if (res) {
-		const wasRunning = progressData.value.running;
 		progressData.value = {
-			running: res.running,
-			paused: res.paused,
+			status: res.status,
 			current: res.current,
 			total: res.total,
 			percent: res.progressPercent ?? 0,
-			justCompleted: wasRunning && !res.running,
 		};
-		if (!res.running && pollingInterval) {
+		if (res.status !== 'running' && pollingInterval) {
 			stopPolling();
-			if (justCompletedTimeout) clearTimeout(justCompletedTimeout);
-			justCompletedTimeout = setTimeout(() => {
-				progressData.value.justCompleted = false;
-			}, 5000);
 		}
 	}
 }
@@ -102,14 +84,31 @@ function stopPolling() {
 
 onMounted(async () => {
 	await fetchProgress();
-	if (progressData.value.running) {
+	if (progressData.value.status === 'running') {
 		startPolling();
 	}
 });
 
 onUnmounted(() => {
 	stopPolling();
-	if (justCompletedTimeout) clearTimeout(justCompletedTimeout);
+});
+
+const statusText = computed(() => {
+	switch (progressData.value.status) {
+		case 'running': return 'Running...';
+		case 'paused': return 'Paused (click resume to continue)';
+		case 'completed': return 'Completed';
+		default: return '';
+	}
+});
+
+const statusColor = computed(() => {
+	switch (progressData.value.status) {
+		case 'running': return 'var(--MI_THEME-fgTransparentWeak)';
+		case 'paused': return 'var(--MI_THEME-warn)';
+		case 'completed': return 'var(--MI_THEME-fgTransparentWeak)';
+		default: return 'var(--MI_THEME-fgTransparentWeak)';
+	}
 });
 
 async function fullIndex() {
