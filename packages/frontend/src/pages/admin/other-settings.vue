@@ -23,7 +23,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
 				<div v-if="progressData.status" style="margin-top: 12px;">
-					<progress :value="progressPercent" max="100" style="width: 100%;" />
+					<progress :value="progressPercent" max="100" style="width: 100%;"/>
 					<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
 						{{ progressData.current?.toLocaleString() }} / {{ progressData.total?.toLocaleString() }} ({{ progressPercent }}%)
 					</p>
@@ -166,12 +166,6 @@ async function fullIndex() {
 			default: 5,
 			hidden: (v: any) => v.index !== 'notes',
 		},
-		discardProgress: {
-			type: 'boolean',
-			label: 'Discard existing progress and restart',
-			default: false,
-			hidden: (v: any) => v.index !== 'notes',
-		},
 	});
 	if (canceled) return;
 
@@ -179,7 +173,7 @@ async function fullIndex() {
 		index: result.index,
 		limitCount: result.index === 'notes' ? result.limitCount : undefined,
 		intervalMinutes: result.index === 'notes' ? result.intervalMinutes : undefined,
-		discardProgress: result.index === 'notes' ? result.discardProgress : undefined,
+		discardProgress: true,
 	});
 	if (result.index === 'notes') {
 		setTimeout(() => startPolling(), 500);

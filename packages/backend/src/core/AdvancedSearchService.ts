@@ -629,22 +629,22 @@ export class AdvancedSearchService {
 			}
 
 			while (true) {
-				this.logger.info('indexing' + index + '/' + notesCount);
+				this.logger.info('note indexing ' + accumulatedIndex + index + '/' + notesCount);
 
-			// max duration チェック
-			if (Date.now() - loopStart > maxDurationMs) {
-				this.logger.info('Max duration reached, stopping fullIndexNote');
-				status = 'paused';
-				break;
-			}
+				// max duration チェック
+				if (Date.now() - loopStart > maxDurationMs) {
+					this.logger.info('Max duration reached, stopping fullIndexNote');
+					status = 'paused';
+					break;
+				}
 
-			// abort チェック
-			if (await this.redisClient.get('fullIndexNote:abort') !== null) {
-				this.logger.info('fullIndexNote aborted by user');
-				await this.redisClient.del('fullIndexNote:abort');
-				status = 'aborted';
-				break;
-			}
+				// abort チェック
+				if (await this.redisClient.get('fullIndexNote:abort') !== null) {
+					this.logger.info('fullIndexNote aborted by user');
+					await this.redisClient.del('fullIndexNote:abort');
+					status = 'aborted';
+					break;
+				}
 
 				const notes = await this.notesRepository
 					.createQueryBuilder('note')
@@ -696,22 +696,22 @@ export class AdvancedSearchService {
 				}
 			}
 			const loopTime = Date.now() - loopStart;
-			this.logger.info('All notes has been indexed. done in ' + loopTime + 'ms');
+			this.logger.info(`notes has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${notesCount}`);
 		} finally {
-		const finalProgress: FullIndexProgress = {
-			status: latestNoteCount === 0 ? 'completed' : status,
-			current: accumulatedIndex + index,
-			total: notesCount,
-			latestid: latestid,
-			startedAt: loopStart,
-			limitCount: limitCount ?? undefined,
-			intervalMinutes: intervalMinutes ?? undefined,
-		};
-		if (latestNoteCount === 0) {
-			finalProgress.completedAt = Date.now();
-		}
-		await this.redisClient.set('fullIndexNote:progress', JSON.stringify(finalProgress), 'EX', 3600);
-		await this.redisClient.del(lockKey);
+			const finalProgress: FullIndexProgress = {
+				status: latestNoteCount === 0 ? 'completed' : status,
+				current: accumulatedIndex + index,
+				total: notesCount,
+				latestid: latestid,
+				startedAt: loopStart,
+				limitCount: limitCount ?? undefined,
+				intervalMinutes: intervalMinutes ?? undefined,
+			};
+			if (latestNoteCount === 0) {
+				finalProgress.completedAt = Date.now();
+			}
+			await this.redisClient.set('fullIndexNote:progress', JSON.stringify(finalProgress), 'EX', 3600);
+			await this.redisClient.del(lockKey);
 		}
 	}
 
