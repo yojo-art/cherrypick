@@ -12,7 +12,7 @@ import type { Config } from '@/config.js';
 import { bindThis } from '@/decorators.js';
 import { MiNote } from '@/models/Note.js';
 import { MiUser } from '@/models/_.js';
-import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository, DriveFilesRepository } from '@/models/_.js';
+import type { NotesRepository, UsersRepository, PollVotesRepository, PollsRepository, NoteReactionsRepository, ClipNotesRepository, NoteFavoritesRepository } from '@/models/_.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 import { CacheService } from '@/core/CacheService.js';
 import { QueueService } from '@/core/QueueService.js';
