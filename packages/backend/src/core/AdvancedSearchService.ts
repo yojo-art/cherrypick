@@ -591,7 +591,7 @@ export class AdvancedSearchService {
 			notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
 			this.logger.info('Total notes count: ' + notesCount);
 			const limit = 1000;
-			let latestid = '';
+			let latestid = await this.redisClient.get('fullIndexNote:latestid') ?? '';
 			index = 0;
 			while (true) {
 				this.logger.info('indexing' + index + '/' + notesCount);
@@ -645,7 +645,8 @@ export class AdvancedSearchService {
 				// limitCount 件数に達したら一時停止
 				if (limitCount != null && index >= limitCount) {
 					paused = true;
-					this.logger.info(`fullIndexNote paused at ${index} records (limitCount=${limitCount})`);
+					await this.redisClient.set('fullIndexNote:latestid', latestid, 'EX', 86400 * 7); // 7日間保存
+					this.logger.info(`fullIndexNote paused at ${index} records (limitCount=${limitCount}), latestid=${latestid}`);
 					break;
 				}
 			}
@@ -664,6 +665,9 @@ export class AdvancedSearchService {
 			});
 			// running フラグを先に削除（異常終了時の永続化を避ける）
 			await this.redisClient.del('fullIndexNote:running');
+			if (!paused) {
+				await this.redisClient.del('fullIndexNote:latestid');
+			}
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
 				current: index,
 				total: notesCount,
