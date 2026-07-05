@@ -26,6 +26,10 @@ export const paramDef = {
 			type: 'integer',
 			nullable: true,
 		},
+		discardProgress: {
+			type: 'boolean',
+			nullable: true,
+		},
 	},
 	required: ['index'],
 } as const;
@@ -39,7 +43,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		super(meta, paramDef, async (ps, me) => {
 			switch (ps.index) {
 				case 'notes':
-					this.advancedSearchService.fullIndexNote(undefined, ps.limitCount ?? undefined);
+					this.advancedSearchService.fullIndexNote(undefined, ps.limitCount ?? undefined, ps.discardProgress ?? false);
 					break;
 				case 'reaction':
 					this.advancedSearchService.fullIndexReaction();

@@ -130,6 +130,7 @@ async function fullIndex() {
 	if (!canceled) {
 		await os.apiWithDialog('admin/full-index', {
 			index: select,
+			discardProgress: true,
 		});
 		if (select === 'notes') {
 			setTimeout(() => startPolling(), 500);
@@ -146,6 +147,7 @@ async function fullIndexTest() {
 		await os.apiWithDialog('admin/full-index', {
 			index: 'notes',
 			limitCount: TEST_LIMIT_COUNT,
+			discardProgress: true,
 		});
 		setTimeout(() => startPolling(), 500);
 	}
