@@ -550,7 +550,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(maxDurationMin?: number, limitCount?: number): Promise<void> {
+	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, discardProgress = false): Promise<void> {
 		if (!this.opensearch) return;
 
 		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
@@ -565,20 +565,25 @@ export class AdvancedSearchService {
 			return;
 		}
 
-		// 前回の progress を復元
-		const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
+		// 前回の progress を復元（discardProgress=true の場合は破棄）
 		let accumulatedIndex = 0;
 		let latestid = '';
-		if (prevProgressRaw) {
-			try {
-				const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
-				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
-					accumulatedIndex = prev.current;
-				}
-				if (typeof prev.latestid === 'string') {
-					latestid = prev.latestid;
-				}
-			} catch {}
+		if (!discardProgress) {
+			const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
+			if (prevProgressRaw) {
+				try {
+					const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
+					if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
+						accumulatedIndex = prev.current;
+					}
+					if (typeof prev.latestid === 'string') {
+						latestid = prev.latestid;
+					}
+				} catch {}
+			}
+		} else {
+			// 既存 progress を破棄
+			await this.redisClient.del('fullIndexNote:progress');
 		}
 		const limit = 1000; // 1回あたりのDBからのノート取得数を指定
 
