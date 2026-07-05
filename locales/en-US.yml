@@ -3851,3 +3851,23 @@ _searchOrApShow:
   question: "Want to search?"
   search: "Search"
   lookup: "Lookup"
+
+_reIndexOpenSearch:
+  title: "Reindex"
+  quesion: "Reindex target"
+  resume: "Resume"
+  stop: "Stop"
+  cancelQueue: "Cancel queue"
+  stopIndexTitle: "Stop indexing"
+  indexLabel: "Target"
+  limitCountLabel: "Number of items to process per run"
+  intervalMinutesLabel: "Retry interval (minutes)"
+  statusRunning: "Running..."
+  statusPaused: "Paused. Click \"Resume\" to continue"
+  statusQueued: "Waiting: next run at {time}"
+  statusCompleted: "Completed"
+  statusAborted: "Aborted"
+
+_reCreateOpenSearchIndex:
+  title: "Discard and recreate the note index"
+  quesion: "Are you sure you want to recreate it? The current note index will be discarded."
