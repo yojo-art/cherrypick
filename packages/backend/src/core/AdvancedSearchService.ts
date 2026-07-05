@@ -559,7 +559,7 @@ export class AdvancedSearchService {
 				}
 			} catch {}
 		}
-		let index = accumulatedIndex;
+		let index = 0;
 		let notesCount = 0;
 		let loopStart = 0;
 		let paused = false;
@@ -569,11 +569,11 @@ export class AdvancedSearchService {
 
 			// 開始したことを即座に示す（累計件数を引き継ぐ）
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
-				current: accumulatedIndex,
+				current: accumulatedIndex + index,
 				total: 0,
 				running: true,
 				startedAt: loopStart,
-			}), 'EX', maxDurationSec + 60);
+			}), 'EX', maxDurationSec);
 
 			// 現在のrefresh_intervalを取得
 			const currentSettings = await this.opensearch.indices.getSettings({
@@ -635,14 +635,6 @@ export class AdvancedSearchService {
 				if (notes.length === 0) break;
 				index += notes.length;
 
-				// 進捗保存
-				await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
-					current: index,
-					total: notesCount,
-					running: true,
-					startedAt: loopStart,
-				}), 'EX', maxDurationSec + 60);
-
 				for (const note of notes) {
 					if (note.hasPoll) {
 						const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
@@ -652,6 +644,14 @@ export class AdvancedSearchService {
 					}
 					latestid = note.id;
 				}
+
+				// index終了後に進捗保存する
+				await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
+					current: accumulatedIndex + index,
+					total: notesCount,
+					running: true,
+					startedAt: loopStart,
+				}), 'EX', maxDurationSec);
 
 				// limitCount 件数に達したら一時停止
 				if (limitCount != null && index >= limitCount) {
