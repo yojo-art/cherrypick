@@ -548,7 +548,18 @@ export class AdvancedSearchService {
 		}
 
 		let originalRefreshInterval = '1s';
-		let index = 0;
+		// 前回の累計処理件数を復元
+		const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
+		let accumulatedIndex = 0;
+		if (prevProgressRaw) {
+			try {
+				const prev = JSON.parse(prevProgressRaw) as { current?: unknown };
+				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
+					accumulatedIndex = prev.current;
+				}
+			} catch {}
+		}
+		let index = accumulatedIndex;
 		let notesCount = 0;
 		let loopStart = 0;
 		let paused = false;
@@ -556,9 +567,9 @@ export class AdvancedSearchService {
 			loopStart = Date.now();
 			await this.redisClient.set('fullIndexNote:running', '1', 'EX', maxDurationSec);
 
-			// 開始したことを即座に示す
+			// 開始したことを即座に示す（累計件数を引き継ぐ）
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify({
-				current: 0,
+				current: accumulatedIndex,
 				total: 0,
 				running: true,
 				startedAt: loopStart,
