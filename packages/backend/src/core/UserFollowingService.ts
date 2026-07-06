@@ -18,7 +18,7 @@ import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { UserWebhookService } from '@/core/UserWebhookService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, FollowRequestsRepository, InstancesRepository, MiMeta, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, FollowingsRepository, FollowRequestsRepository, InstancesRepository, MiMeta, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { bindThis } from '@/decorators.js';
@@ -72,6 +72,9 @@ export class UserFollowingService implements OnModuleInit {
 
 		@Inject(DI.instancesRepository)
 		private instancesRepository: InstancesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private cacheService: CacheService,
 		private utilityService: UtilityService,
@@ -218,6 +221,16 @@ export class UserFollowingService implements OnModuleInit {
 		}
 
 		await this.insertFollowingDoc(followee, follower, silent, withReplies);
+
+		if (this.userEntityService.isLocalUser(followee)) {
+			const targetChannel = follower.channelId ? await this.channelsRepository.findOneBy({ id: follower.channelId }) : null;
+			if (targetChannel) {
+				this.globalEventService.publishInternalEvent('followChannel', {
+					userId: followee.id,
+					channelId: targetChannel.id,
+				});
+			}
+		}
 
 		if (this.userEntityService.isRemoteUser(follower) && this.userEntityService.isLocalUser(followee)) {
 			this.deliverAccept(follower, followee, requestId);
@@ -381,6 +394,16 @@ export class UserFollowingService implements OnModuleInit {
 		this.cacheService.userFollowingsCache.refresh(follower.id);
 
 		this.decrementFollowing(following.follower, following.followee);
+
+		if (this.userEntityService.isLocalUser(following.followee)) {
+			const targetChannel = following.follower.channelId ? await this.channelsRepository.findOneBy({ id: following.follower.channelId }) : null;
+			if (targetChannel) {
+				this.globalEventService.publishInternalEvent('unfollowChannel', {
+					userId: following.followee.id,
+					channelId: targetChannel.id,
+				});
+			}
+		}
 
 		if (!silent && this.userEntityService.isLocalUser(follower)) {
 			// Publish unfollow event

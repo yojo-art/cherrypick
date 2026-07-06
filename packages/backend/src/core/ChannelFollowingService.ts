@@ -30,7 +30,7 @@ export class ChannelFollowingService implements OnModuleInit {
 		private followingsRepository: FollowingsRepository,
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
-		private idService: IdService,
+
 		private globalEventService: GlobalEventService,
 		private userEntityService: UserEntityService,
 		private userFollowingService: UserFollowingService,
@@ -107,12 +107,6 @@ export class ChannelFollowingService implements OnModuleInit {
 			return;
 		}
 		await this.userFollowingService.follow(requestUser, targetChannel.actor);
-		if (this.userEntityService.isLocalUser(requestUser)) {
-			this.globalEventService.publishInternalEvent('followChannel', {
-				userId: requestUser.id,
-				channelId: targetChannel.id,
-			});
-		}
 	}
 
 	@bindThis
@@ -128,12 +122,6 @@ export class ChannelFollowingService implements OnModuleInit {
 			return;
 		}
 		await this.userFollowingService.unfollow(requestUser, targetChannel.actor);
-		if (this.userEntityService.isLocalUser(requestUser)) {
-			this.globalEventService.publishInternalEvent('unfollowChannel', {
-				userId: requestUser.id,
-				channelId: targetChannel.id,
-			});
-		}
 	}
 
 	@bindThis
