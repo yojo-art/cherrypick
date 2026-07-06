@@ -158,11 +158,17 @@ describe('RoleService', () => {
 	afterEach(async () => {
 		clock.uninstall();
 
+		// role_assignmentはuser/roleへ、metaはuserへそれぞれFK(CASCADE/SET NULL)を持つため、
+		// 参照元(user, role)より先に参照先(role_assignment, meta)を消しておく。
+		// 同時に消すと、カスケード処理(FK制約チェック)と直接のDELETEが同じ行のロックを
+		// 取り合って deadlock detected になることがある(#1132)。
 		await Promise.all([
 			app.get(DI.metasRepository).createQueryBuilder().delete().execute(),
+			roleAssignmentsRepository.createQueryBuilder().delete().execute(),
+		]);
+		await Promise.all([
 			usersRepository.createQueryBuilder().delete().execute(),
 			rolesRepository.createQueryBuilder().delete().execute(),
-			roleAssignmentsRepository.createQueryBuilder().delete().execute(),
 		]);
 
 		await app.close();
