@@ -63,7 +63,7 @@ export class ChannelMutingService {
 		},
 	): Promise<MiChannel[]> {
 		if (opts?.idOnly) {
-			const channels = (await this.mutingChannelsCache.get(params.requestUserId))?.keys().toArray();
+			const channels = (await this.mutingChannelsCache.get(params.requestUserId))?.values().toArray();
 			return channels ? channels.map(id => ({ id } as MiChannel)) : [];
 		} else {
 			const q = this.channelsRepository.createQueryBuilder('channel')
