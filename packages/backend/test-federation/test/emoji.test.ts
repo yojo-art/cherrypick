@@ -1,6 +1,6 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'misskey-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji, waitFor } from './utils.js';
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -116,10 +116,15 @@ describe('Emoji', () => {
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
 		await sleep();
 
-		const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-		strictEqual(renewedaliceInB.name, renewedAlice.name);
-		assert(emoji.name in renewedaliceInB.emojis);
-		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
+		let renewedaliceInB: Misskey.entities.UserDetailedNotMe;
+		await waitFor(async () => {
+			renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+			return renewedaliceInB.name === renewedAlice.name;
+		});
+
+		strictEqual(renewedaliceInB!.name, renewedAlice.name);
+		assert(emoji.name in renewedaliceInB!.emojis);
+		strictEqual(renewedaliceInB!.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		deepStrictEqual(JSON.stringify({
 			id: remoteEmoji.id,
@@ -172,9 +177,14 @@ describe('Emoji', () => {
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
 		await sleep();
 
-		const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-		strictEqual(renewedaliceInB.name, renewedAlice.name);
-		deepStrictEqual({ ...renewedaliceInB.emojis }, {});
+		let renewedaliceInB: Misskey.entities.UserDetailedNotMe;
+		await waitFor(async () => {
+			renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+			return renewedaliceInB.name === renewedAlice.name;
+		});
+
+		strictEqual(renewedaliceInB!.name, renewedAlice.name);
+		deepStrictEqual({ ...renewedaliceInB!.emojis }, {});
 	});
 
 	test('コピー拒否の絵文字をコピーできない(copy)', async () => {
