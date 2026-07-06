@@ -188,6 +188,8 @@ describe('ChannelMutingService', () => {
 			await service.mute({ requestUserId: alice.id, targetChannelId: channel2.id });
 			await service.mute({ requestUserId: bob.id, targetChannelId: channel3.id });
 
+			await setTimeout(500);
+
 			const mutings = await service.list({ requestUserId: alice.id }, { idOnly: true });
 
 			expect(mutings).toHaveLength(2);
@@ -206,6 +208,8 @@ describe('ChannelMutingService', () => {
 			await service.mute({ requestUserId: alice.id, targetChannelId: channel1.id, expiresAt: past });
 			await service.mute({ requestUserId: alice.id, targetChannelId: channel2.id, expiresAt: null });
 			await service.mute({ requestUserId: alice.id, targetChannelId: channel3.id, expiresAt: future });
+
+			await setTimeout(500);
 
 			const mutings = await service.list({ requestUserId: alice.id }, { idOnly: true });
 
