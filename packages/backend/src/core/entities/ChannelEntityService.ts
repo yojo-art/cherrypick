@@ -64,7 +64,7 @@ export class ChannelEntityService {
 		let bannerFile: MiDriveFile | null = null;
 		if (channel.bannerId) {
 			bannerFile = opts?.bannerFiles?.get(channel.bannerId)
-				?? await this.driveFilesRepository.findOneByOrFail({ id: channel.bannerId });
+				?? await this.driveFilesRepository.findOneBy({ id: channel.bannerId });
 		}
 
 		let isFollowing = false;
