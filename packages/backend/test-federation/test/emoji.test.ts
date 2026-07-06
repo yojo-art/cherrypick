@@ -2,6 +2,32 @@ import assert, { deepStrictEqual, strictEqual } from 'assert';
 import * as Misskey from 'misskey-js';
 import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji, waitFor } from './utils.js';
 
+/**
+ * リモートユーザーのプロフィール更新(users/show)がpredicateを満たすまでポーリングして待つ。
+ * predicateが真を返した時点の値を返す。
+ */
+export async function waitForRemoteUserUpdate(
+	viewer: LoginUser,
+	userId: string,
+	predicate: (user: Misskey.entities.UserDetailedNotMe) => boolean,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.UserDetailedNotMe> {
+	let user: Misskey.entities.UserDetailedNotMe | undefined;
+	try {
+		await waitFor(async () => {
+			try {
+				user = await viewer.client.request('users/show', { userId });
+				return predicate(user);
+			} catch {
+				return false;
+			}
+		}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
+	} catch {
+		throw new Error(`remote user update not observed: userId=${userId}, lastObserved=${JSON.stringify(user)}`);
+	}
+	return user as Misskey.entities.UserDetailedNotMe;
+}
+
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
 	let bobInA: Misskey.entities.UserDetailedNotMe, aliceInB: Misskey.entities.UserDetailedNotMe;
@@ -114,17 +140,14 @@ describe('Emoji', () => {
 			description: 'description',
 		});
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
-		await sleep();
 
-		let renewedaliceInB: Misskey.entities.UserDetailedNotMe;
-		await waitFor(async () => {
-			renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-			return renewedaliceInB.name === renewedAlice.name;
-		});
+		const renewedaliceInB = await waitForRemoteUserUpdate(bob, aliceInB.id, user =>
+			user.name === renewedAlice.name && emoji.name in user.emojis,
+		);
 
-		strictEqual(renewedaliceInB!.name, renewedAlice.name);
-		assert(emoji.name in renewedaliceInB!.emojis);
-		strictEqual(renewedaliceInB!.emojis[emoji.name], emoji.url);
+		strictEqual(renewedaliceInB.name, renewedAlice.name);
+		assert(emoji.name in renewedaliceInB.emojis);
+		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		deepStrictEqual(JSON.stringify({
 			id: remoteEmoji.id,
@@ -175,16 +198,11 @@ describe('Emoji', () => {
 	test('Local-only custom emoji aren\'t delivered with Profile delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
-		await sleep();
 
-		let renewedaliceInB: Misskey.entities.UserDetailedNotMe;
-		await waitFor(async () => {
-			renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-			return renewedaliceInB.name === renewedAlice.name;
-		});
+		const renewedaliceInB = await waitForRemoteUserUpdate(bob, aliceInB.id, user => user.name === renewedAlice.name);
 
-		strictEqual(renewedaliceInB!.name, renewedAlice.name);
-		deepStrictEqual({ ...renewedaliceInB!.emojis }, {});
+		strictEqual(renewedaliceInB.name, renewedAlice.name);
+		deepStrictEqual({ ...renewedaliceInB.emojis }, {});
 	});
 
 	test('コピー拒否の絵文字をコピーできない(copy)', async () => {
