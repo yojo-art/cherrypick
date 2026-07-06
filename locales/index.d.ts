@@ -15298,14 +15298,6 @@ export interface Locale extends ILocale {
          */
         "stop": string;
         /**
-         * キューをキャンセル
-         */
-        "cancelQueue": string;
-        /**
-         * インデックス処理を停止
-         */
-        "stopIndexTitle": string;
-        /**
          * 対象
          */
         "indexLabel": string;

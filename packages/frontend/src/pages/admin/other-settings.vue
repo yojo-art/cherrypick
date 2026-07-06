@@ -14,14 +14,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</select>
 				</div>
 
-				<!-- 実行中 → 強制停止ボタン -->
-				<MkButton v-if="currentProgress.status === 'running'" class="button" inline danger @click="abort()"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
-
-				<!-- キュー待ち中 → キューキャンセルボタン -->
-				<MkButton v-else-if="currentProgress.status === 'queued'" class="button" inline danger @click="abort()"> {{ i18n.ts._reIndexOpenSearch.cancelQueue }} </MkButton>
-
 				<!-- 一時停止中 → 続きを実行ボタン -->
-				<MkButton v-else-if="currentProgress.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
+				<MkButton v-if="currentProgress.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
+
+				<!-- 実行中/キュー待ち中 → 下の一覧に個別の停止ボタンがあるのでここには何も出さない -->
+				<template v-else-if="currentProgress.status === 'running' || currentProgress.status === 'queued'"/>
 
 				<!-- 完了/停止/idle → 再インデックスボタン -->
 				<MkButton v-else class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
@@ -217,27 +214,14 @@ async function fullIndex() {
 
 async function fullIndexResume() {
 	const index = activeIndex.value;
-	const res = await misskeyApi('admin/full-index-progress', { index });
+	// ポーリングで既に取得済みの progressMap をそのまま使う（わざわざ取り直さない）
+	const p = progressMap.value[index];
 	await os.apiWithDialog('admin/full-index', {
 		index,
-		limitCount: res.limitCount ?? undefined,
-		intervalMinutes: res.intervalMinutes ?? undefined,
+		limitCount: p.limitCount ?? undefined,
+		intervalMinutes: p.intervalMinutes ?? undefined,
 	});
 	window.setTimeout(() => startPolling(), 500);
-}
-
-async function abort() {
-	const { canceled, result } = await os.form(i18n.ts._reIndexOpenSearch.stopIndexTitle, {
-		index: {
-			type: 'radio',
-			label: i18n.ts._reIndexOpenSearch.indexLabel,
-			options: indexOptions,
-			default: activeIndex.value,
-		},
-	});
-	if (canceled) return;
-
-	await abortIndex(result.index);
 }
 
 function isAbortable(index: string): boolean {

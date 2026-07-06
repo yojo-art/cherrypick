@@ -3857,8 +3857,6 @@ _reIndexOpenSearch:
   quesion: "Reindex target"
   resume: "Resume"
   stop: "Stop"
-  cancelQueue: "Cancel queue"
-  stopIndexTitle: "Stop indexing"
   indexLabel: "Target"
   limitCountLabel: "Number of items to process per run"
   intervalMinutesLabel: "Retry interval (minutes)"

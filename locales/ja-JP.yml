@@ -4092,8 +4092,6 @@ _reIndexOpenSearch:
   quesion: "再インデックス対象"
   resume: "続きを実行"
   stop: "停止"
-  cancelQueue: "キューをキャンセル"
-  stopIndexTitle: "インデックス処理を停止"
   indexLabel: "対象"
   limitCountLabel: "1回あたりの処理件数"
   intervalMinutesLabel: "実行間隔（分）"

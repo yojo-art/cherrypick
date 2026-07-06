@@ -20,8 +20,8 @@ export type FullIndexJobName = 'fullIndexNote' | 'fullIndexReaction' | 'fullInde
  * notes / reaction / pollVote / clipNotes / Favorites の一括再インデックスジョブは、
  * 「対象を再インデックスして、一時停止したら（指定分後 or デフォルト5分後）に再実行を予約する」
  * という処理が全て共通のため、種別ごとにファイルを分けずこのサービス1つで処理する。
- * notes だけ limitCount / intervalMinutes / discardProgress を外部から指定できるが、
- * これらは他の種別が指定しなければ単に使われないだけなので、同じ経路で扱って問題ない。
+ * limitCount / intervalMinutes / discardProgress はいずれの種別も外部（admin/full-index）から
+ * 指定できるが、指定しなければ単に使われないだけなので、同じ経路で扱って問題ない。
  */
 @Injectable()
 export class FullIndexProcessorService {

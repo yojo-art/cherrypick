@@ -23,7 +23,6 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import type Logger from '@/logger.js';
-import NotesChart from '@/core/chart/charts/notes.js';
 
 export type FullIndexStatus = 'running' | 'paused' | 'queued' | 'completed' | 'aborted';
 
@@ -94,6 +93,14 @@ function compileQuery(q: Q): string {
 		default: throw new Error('unrecognized query operator');
 	}
 }
+
+const FULL_INDEX_PROGRESS_KEYS = [
+	'fullIndexNote:progress',
+	'fullIndexReaction:progress',
+	'fullIndexPollVote:progress',
+	'fullIndexClipNotes:progress',
+	'fullIndexFavorites:progress',
+];
 
 const retryLimit = 2;
 const noteIndexBody = {
@@ -222,7 +229,6 @@ export class AdvancedSearchService {
 		private idService: IdService,
 		private loggerService: LoggerService,
 		private driveService: DriveService,
-		private notesChart: NotesChart,
 		private queueService: QueueService,
 	) {
 		this.logger = this.loggerService.getLogger('search');
@@ -336,16 +342,26 @@ export class AdvancedSearchService {
 		}
 	}
 
+	/**
+	 * notes/reaction/pollVote/clipNotes/Favorites のいずれかのフルインデックスが実行中かを判定する。
+	 * フルインデックス中に対応するライブの index/unindex 系メソッドが同時に走ると、
+	 * 同じドキュメントへの更新が競合する恐れがあるため、実行中は全種別のライブ更新を止める。
+	 * なお、各フルインデックス処理自身がバッチ内で呼ぶ index* メソッドは skipPauseCheck で
+	 * このチェックを迂回する（自分自身の running 状態で自分を止めてしまわないようにするため）。
+	 */
 	@bindThis
 	private async isFullIndexRunning(): Promise<boolean> {
-		const raw = await this.redisClient.get('fullIndexNote:progress');
-		if (!raw) return false;
-		try {
-			const parsed = JSON.parse(raw) as Record<string, unknown>;
-			return parsed.status === 'running';
-		} catch {
-			return false;
+		const raws = await this.redisClient.mget(FULL_INDEX_PROGRESS_KEYS);
+		for (const raw of raws) {
+			if (!raw) continue;
+			try {
+				const parsed = JSON.parse(raw) as Record<string, unknown>;
+				if (parsed.status === 'running') return true;
+			} catch {
+				// 壊れたJSONは無視して他の種別のチェックを続ける
+			}
 		}
+		return false;
 	}
 
 	@bindThis
@@ -463,8 +479,8 @@ export class AdvancedSearchService {
 		remote: boolean,
 		reactionIncrement?: boolean,
 		searchableBy?: string,
-	}) {
-		if (await this.isFullIndexRunning()) return;
+	}, skipPauseCheck = false) {
+		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (!(opts.remote && opts.searchableBy === 'private')) {
 			await this.index(this.reactionIndex, opts.id, {
 				noteId: opts.noteId,
@@ -506,8 +522,10 @@ export class AdvancedSearchService {
 		opts: {
 			noteId: string;
 			userId: string;
-		}) {
-		if (await this.isFullIndexRunning()) return;
+		},
+		skipPauseCheck = false,
+	) {
+		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
 			userId: opts.userId,
@@ -519,8 +537,10 @@ export class AdvancedSearchService {
 			noteId: string,
 			userId: string,
 			clipId?: string,
-		}) {
-		if (await this.isFullIndexRunning()) return;
+		},
+		skipPauseCheck = false,
+	) {
+		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		await this.index(this.favoriteIndex, id, opts);
 	}
 	@bindThis
@@ -603,8 +623,7 @@ export class AdvancedSearchService {
 		try {
 			loopStart = Date.now();
 
-			const notesChart = await this.notesChart.getChart('hour', 1, null);
-			notesCount = notesChart.local.total[0] + notesChart.remote.total[0];
+			notesCount = await this.estimateRowCount('note');
 			this.logger.info('Total notes count: ' + notesCount);
 
 			// 開始したことを即座に示す（累計件数・latestidを引き継ぐ）
@@ -706,6 +725,29 @@ export class AdvancedSearchService {
 			}
 			await this.redisClient.set('fullIndexNote:progress', JSON.stringify(finalProgress), 'EX', 3600);
 			await this.redisClient.del(lockKey);
+		}
+	}
+
+	/**
+	 * 進捗表示用のおおよその件数を取得する。
+	 * COUNT(*) はテーブル全体をスキャンするため、行数が多いテーブルだと非常に重くクエリタイムアウトの原因になる。
+	 * ここでの件数は進捗バーの分母（total）にしか使わず、多少の誤差があっても問題ないため、
+	 * PostgreSQL がテーブル統計情報として保持している概算値（pg_class.reltuples）を利用する。
+	 * これは統計情報を読むだけなのでテーブルサイズに依存せず一瞬で返る（直近の ANALYZE 時点の推定値）。
+	 * 同等の実装が admin/get-table-stats.ts にもある（そちらは全テーブルの件数とサイズをまとめて取得する）。
+	 */
+	@bindThis
+	private async estimateRowCount(tableName: string): Promise<number> {
+		try {
+			const result = await this.notesRepository.manager.query(
+				'SELECT reltuples::bigint AS estimate FROM pg_class WHERE relname = $1',
+				[tableName],
+			) as { estimate: string | null }[];
+			const estimate = result[0]?.estimate ? Number(result[0].estimate) : 0;
+			return estimate > 0 ? estimate : 0;
+		} catch (error) {
+			this.logger.error(error as Error);
+			return 0;
 		}
 	}
 
@@ -853,7 +895,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
-			getTotalCount: () => this.noteReactionsRepository.createQueryBuilder('reac').getCount(),
+			getTotalCount: () => this.estimateRowCount('note_reaction'),
 			fetchBatch: (latestid, limit) => this.noteReactionsRepository
 				.createQueryBuilder('reac')
 				.where('reac.id > :latestid', { latestid })
@@ -872,7 +914,7 @@ export class AdvancedSearchService {
 				remote: false,
 				reactionIncrement: false,
 				searchableBy: reac.note?.searchableBy === null ? undefined : reac.note?.searchableBy,
-			}),
+			}, true),
 		});
 	}
 
@@ -895,7 +937,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
-			getTotalCount: () => this.pollVotesRepository.createQueryBuilder('pv').getCount(),
+			getTotalCount: () => this.estimateRowCount('poll_vote'),
 			fetchBatch: (latestid, limit) => this.pollVotesRepository
 				.createQueryBuilder('pv')
 				.where('pv.id > :latestid', { latestid })
@@ -909,7 +951,7 @@ export class AdvancedSearchService {
 			indexItem: (pollVote) => this.indexVote(pollVote.id, {
 				noteId: pollVote.noteId,
 				userId: pollVote.userId,
-			}),
+			}, true),
 		});
 	}
 
@@ -932,7 +974,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
-			getTotalCount: () => this.clipNotesRepository.createQueryBuilder('clipnote').getCount(),
+			getTotalCount: () => this.estimateRowCount('clip_note'),
 			fetchBatch: (latestid, limit) => this.clipNotesRepository
 				.createQueryBuilder('clipnote')
 				.innerJoin('clipnote.clip', 'clip')
@@ -945,7 +987,7 @@ export class AdvancedSearchService {
 				noteId: clipNote.noteId,
 				userId: clipNote.clip?.userId as string,
 				clipId: clipNote.clipId,
-			}),
+			}, true),
 		});
 	}
 
@@ -968,7 +1010,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
-			getTotalCount: () => this.noteFavoritesRepository.createQueryBuilder('fv').getCount(),
+			getTotalCount: () => this.estimateRowCount('note_favorite'),
 			fetchBatch: (latestid, limit) => this.noteFavoritesRepository
 				.createQueryBuilder('fv')
 				.orderBy('fv.id', 'ASC')
@@ -979,7 +1021,7 @@ export class AdvancedSearchService {
 			indexItem: (favorite) => this.indexFavorite(favorite.id, {
 				noteId: favorite.noteId,
 				userId: favorite.userId,
-			}),
+			}, true),
 		});
 	}
 	@bindThis

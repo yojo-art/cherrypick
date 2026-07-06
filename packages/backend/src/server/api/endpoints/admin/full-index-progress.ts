@@ -89,7 +89,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				clipNotes: 'fullIndexClipNotes:',
 				Favorites: 'fullIndexFavorites:',
 			};
-			const prefix = prefixMap[ps.index ?? 'notes'];
+			const prefix = prefixMap[ps.index];
 			const raw = await this.redisClient.get(`${prefix}progress`);
 			if (!raw) {
 				return {
