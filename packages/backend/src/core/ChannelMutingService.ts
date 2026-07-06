@@ -5,7 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import Redis from 'ioredis';
-import { Brackets, In } from 'typeorm';
+import { Brackets, In, IsNull, MoreThan, Or } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { ChannelMutingRepository, ChannelsRepository, MiChannel, MiChannelMuting, MiUser } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
@@ -33,7 +33,7 @@ export class ChannelMutingService {
 			lifetime: 1000 * 60 * 30, // 30m
 			memoryCacheLifetime: 1000 * 60, // 1m
 			fetcher: (userId) => this.channelMutingRepository.find({
-				where: { userId: userId },
+				where: { userId: userId, expiresAt: Or(IsNull(), MoreThan(new Date())) },
 				select: ['channelId'],
 			}).then(xs => new Set(xs.map(x => x.channelId))),
 			toRedisConverter: (value) => JSON.stringify(Array.from(value)),
