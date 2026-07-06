@@ -47,12 +47,6 @@ export class HomeTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
-		const isMe = this.user!.id === note.userId;
-
-		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
-		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
-		if (!this.withBots && note.user.isBot) return;
-
 		if (note.channelId) {
 			// そのチャンネルをフォローしていない
 			if (!this.followingChannels.has(note.channelId)) {
@@ -65,13 +59,21 @@ export class HomeTimelineChannel extends Channel {
 					note = note.renote;
 				}
 			}
-		} else {
-			// その投稿のユーザーをフォローしていなかったら弾く
-			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
 		}
+
+		const isMe = this.user!.id === note.userId;
+
+		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
+		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
+		if (!this.withBots && note.user.isBot) return;
 
 		if (!this.isNoteVisibleForMe(note)) return;
 
+		if (!note.channelId) {
+			// チャンネル投稿ではない場合
+			// その投稿のユーザーをフォローしていなかったら弾く
+			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
+		}
 		if (note.reply) {
 			const reply = note.reply;
 			if (this.following[note.userId]?.withReplies) {

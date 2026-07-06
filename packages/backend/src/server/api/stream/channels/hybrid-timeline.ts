@@ -57,12 +57,6 @@ export class HybridTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
-		const isMe = this.user!.id === note.userId;
-
-		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
-		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
-		if (!this.withBots && note.user.isBot) return;
-
 		if (note.user.channelId != null) {
 			// チャンネルアカウントによる純粋なリノートの場合
 			if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
@@ -70,6 +64,11 @@ export class HybridTimelineChannel extends Channel {
 				note = note.renote;
 			}
 		}
+		const isMe = this.user!.id === note.userId;
+
+		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
+		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
+		if (!this.withBots && note.user.isBot) return;
 
 		if (!note.channelId) {
 			// 以下の条件に該当するノートのみ後続処理に通す（ので、以下のif文は該当しないノートをすべて弾くようにする）
