@@ -4100,10 +4100,11 @@ _reIndexOpenSearch:
   statusQueued: "待機中: 次回実行 {time}"
   statusCompleted: "完了しました"
   statusAborted: "中止しました"
+  alreadyRunning: "「{target}」は既に再インデックス中です。先に停止してから再度実行してください。"
 
 _reCreateOpenSearchIndex:
-  title: "ノートインデックスを破棄して再作成する"
-  quesion: "再作成しますか？、現時点のノートインデックスは破棄されます。"
+  title: "インデックスを初期化する"
+  quesion: "インデックスを初期化しますか？既存のデータは破棄されます。"
 
 _deleteConfirm:
   delete: "削除する"

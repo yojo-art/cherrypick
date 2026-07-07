@@ -8,20 +8,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
 			<div class="_panel" style="padding: 16px;">
-				<div style="margin-bottom: 12px;">
-					<select v-model="activeIndex" style="padding: 6px 12px; border-radius: 6px; border: 1px solid var(--MI_THEME-divider); background: var(--MI_THEME-bg); color: var(--MI_THEME-fg);">
-						<option v-for="opt in indexOptions" :key="opt.value" :value="opt.value">{{ opt.label }}</option>
-					</select>
-				</div>
 
 				<!-- 一時停止中 → 続きを実行ボタン -->
 				<MkButton v-if="currentProgress.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
 
-				<!-- 実行中/キュー待ち中 → 下の一覧に個別の停止ボタンがあるのでここには何も出さない -->
-				<template v-else-if="currentProgress.status === 'running' || currentProgress.status === 'queued'"/>
-
 				<!-- 完了/停止/idle → 再インデックスボタン -->
-				<MkButton v-else class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
+				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
 
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
@@ -49,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, type Ref } from 'vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -74,7 +66,7 @@ const defaultProgress = (): ProgressData => ({
 	intervalMinutes: null,
 });
 
-const indexOptions = [
+const indexOptions: { value: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites", label: string }[] = [
 	{ value: 'notes', label: i18n.ts.note },
 	{ value: 'reaction', label: i18n.ts.reaction },
 	{ value: 'pollVote', label: i18n.ts.poll },
@@ -90,7 +82,7 @@ const progressMap = ref<Record<string, ProgressData>>({
 	Favorites: defaultProgress(),
 });
 
-const activeIndex = ref('notes');
+const activeIndex = ref<"notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites">('notes');
 const currentProgress = computed(() => progressMap.value[activeIndex.value]);
 
 function progressPercentOf(index: string): number {
@@ -100,9 +92,9 @@ function progressPercentOf(index: string): number {
 	return (c != null && t != null && t > 0) ? Math.floor((c / t) * 100) : 0;
 }
 
-let pollingInterval: ReturnType<typeof window.setInterval> | null = null;
+let pollingInterval: number | null = null;
 
-async function fetchProgress(index: string) {
+async function fetchProgress(index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites") {
 	const res = await misskeyApi('admin/full-index-progress', { index });
 	if (res) {
 		progressMap.value[index] = {
@@ -202,6 +194,18 @@ async function fullIndex() {
 	});
 	if (canceled) return;
 
+	// 既に実行中・待機中ならアラートを表示して終了
+	const selectedIndex = result.index;
+	const selectedProgress = progressMap.value[selectedIndex];
+	if (selectedProgress.status === 'running' || selectedProgress.status === 'queued' || selectedProgress.status === 'paused') {
+		const selectedLabel = indexOptions.find(opt => opt.value === selectedIndex)?.label ?? selectedIndex;
+		await os.alert({
+			type: 'warning',
+			text: i18n.tsx._reIndexOpenSearch.alreadyRunning({ target: selectedLabel }),
+		});
+		return;
+	}
+
 	await os.apiWithDialog('admin/full-index', {
 		index: result.index,
 		limitCount: result.limitCount,
@@ -224,12 +228,12 @@ async function fullIndexResume() {
 	window.setTimeout(() => startPolling(), 500);
 }
 
-function isAbortable(index: string): boolean {
+function isAbortable(index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites"): boolean {
 	const status = progressMap.value[index].status;
 	return status === 'running' || status === 'queued' || status === 'paused';
 }
 
-async function abortIndex(index: string) {
+async function abortIndex(index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites") {
 	await os.apiWithDialog('admin/abort-full-index', { index });
 	await fetchAllProgress();
 	if (!isAnyRunning()) stopPolling();
@@ -244,7 +248,7 @@ async function reIndex() {
 	});
 
 	if (!canceled) {
-		os.apiWithDialog('admin/recreate-index' );
+		os.apiWithDialog('admin/recreate-index', {});
 	}
 }
 

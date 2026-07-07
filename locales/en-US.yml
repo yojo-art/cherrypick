@@ -3865,7 +3865,8 @@ _reIndexOpenSearch:
   statusQueued: "Waiting: next run at {time}"
   statusCompleted: "Completed"
   statusAborted: "Aborted"
+  alreadyRunning: "{target} is already being reindexed. Please stop it first before running again."
 
 _reCreateOpenSearchIndex:
-  title: "Discard and recreate the note index"
-  quesion: "Are you sure you want to recreate it? The current note index will be discarded."
+  title: "Initialize index"
+  quesion: "Are you sure you want to initialize the index? Existing data will be discarded."

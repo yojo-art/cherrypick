@@ -15329,14 +15329,18 @@ export interface Locale extends ILocale {
          * 中止しました
          */
         "statusAborted": string;
+        /**
+         * 「{target}」は既に再インデックス中です。先に停止してから再度実行してください。
+         */
+        "alreadyRunning": ParameterizedString<"target">;
     };
     "_reCreateOpenSearchIndex": {
         /**
-         * ノートインデックスを破棄して再作成する
+         * インデックスを初期化する
          */
         "title": string;
         /**
-         * 再作成しますか？、現時点のノートインデックスは破棄されます。
+         * インデックスを初期化しますか？既存のデータは破棄されます。
          */
         "quesion": string;
     };
