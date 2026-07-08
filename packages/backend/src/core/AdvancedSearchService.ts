@@ -572,7 +572,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async fullIndexNoteQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexNote', {
+		await this.queueService.dbQueue.add('fullIndexNote', {
 			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
@@ -878,7 +878,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async fullIndexReactionQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexReaction', {
+		await this.queueService.dbQueue.add('fullIndexReaction', {
 			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
@@ -920,7 +920,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async fullIndexPollVoteQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexPollVote', {
+		await this.queueService.dbQueue.add('fullIndexPollVote', {
 			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
@@ -957,7 +957,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async fullIndexClipNotesQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexClipNotes', {
+		await this.queueService.dbQueue.add('fullIndexClipNotes', {
 			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,
@@ -993,7 +993,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async fullIndexFavoritesQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
-		await this.queueService.systemQueue.add('fullIndexFavorites', {
+		await this.queueService.dbQueue.add('fullIndexFavorites', {
 			limitCount: limitCount ?? undefined,
 			intervalMinutes: intervalMinutes ?? undefined,
 			discardProgress,

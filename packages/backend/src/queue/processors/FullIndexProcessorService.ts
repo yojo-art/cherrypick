@@ -76,7 +76,7 @@ export class FullIndexProcessorService {
 		if (parsed.status === 'paused') {
 			const delayMs = (intervalMinutes ?? DEFAULT_RESUME_INTERVAL_MINUTES) * 60 * 1000;
 			const nextRunAt = Date.now() + delayMs;
-			await this.queueService.systemQueue.add(jobName, {
+			await this.queueService.dbQueue.add(jobName, {
 				limitCount,
 				intervalMinutes,
 			}, {
