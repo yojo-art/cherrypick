@@ -534,11 +534,17 @@ export class ApRendererService {
 
 		const files = await getPromisedFiles(note.fileIds);
 
-		const text = note.text ?? '';
+		let text = note.text ?? '';
 		let poll: MiPoll | null = null;
 
 		if (note.hasPoll) {
 			poll = await this.pollsRepository.findOneBy({ noteId: note.id });
+		}
+		if (note.channel?.actorId) {
+			note.channel.actor = await this.usersRepository.findOneBy({ id: note.channel.actorId });
+			const host = note.channel.actor?.host;
+			const mention = '@' + note.channel.actor?.username + (host ? '@' + host : '');
+			text += mention;
 		}
 
 		const apAppend: Appender[] = [];
