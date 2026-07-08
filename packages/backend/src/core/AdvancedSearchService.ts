@@ -717,7 +717,9 @@ export class AdvancedSearchService {
 		let totalCount = 0;
 		let latestCount = 0;
 		let loopStart = 0;
-		let status: FullIndexStatus = 'completed';
+		// 各 break/catch で明示的に確定させる。ここは「どの終了経路も通らなかった」場合の
+		// フォールバックであり、誤って completed（＋completedAt）にしないよう非終端の paused にしておく。
+		let status: FullIndexStatus = 'paused';
 
 		try {
 			loopStart = Date.now();
@@ -734,6 +736,9 @@ export class AdvancedSearchService {
 			await this.redisClient.set(`${prefix}progress`, JSON.stringify(startProgress), 'EX', maxDurationSec);
 
 			if (opts.beforeLoop && !await opts.beforeLoop()) {
+				// beforeLoop が false（例: indexDeleted フラグ検出）＝処理を実行しないケース。
+				// 「完了」ではなく「中止」として記録する（finally で completedAt も付かない）。
+				status = 'aborted';
 				return;
 			}
 
@@ -756,7 +761,11 @@ export class AdvancedSearchService {
 				const items = await fetchBatch(latestid, limit);
 
 				latestCount = items.length;
-				if (latestCount === 0) break;
+				// バッチが空＝取得しきった（全件処理完了）。ここが唯一の正常完了経路。
+				if (latestCount === 0) {
+					status = 'completed';
+					break;
+				}
 				index += latestCount;
 
 				for (const item of items) {
@@ -782,9 +791,16 @@ export class AdvancedSearchService {
 			}
 			const loopTime = Date.now() - loopStart;
 			this.logger.info(`${label} has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${totalCount})`);
+		} catch (err) {
+			// fetchBatch / indexItem 等が例外を投げた場合（OpenSearch障害・DBタイムアウト等）。
+			// completed 扱いにすると誤って「完了」と表示され、さらに例外を上位へ伝播させると
+			// FullIndexProcessorService の paused 時の再開チェーンに到達せず処理が黙って止まる。
+			// そのためここで握り、paused として記録して後続の自動再開に委ねる（一時障害からの自己回復）。
+			this.logger.error(`${label} full index failed, will resume later`, { e: err });
+			status = 'paused';
 		} finally {
 			const finalProgress: FullIndexProgress = {
-				status: latestCount === 0 ? 'completed' : status,
+				status,
 				current: accumulatedIndex + index,
 				total: totalCount,
 				latestid: latestid,
@@ -792,7 +808,7 @@ export class AdvancedSearchService {
 				limitCount: limitCount ?? undefined,
 				intervalMinutes: intervalMinutes ?? undefined,
 			};
-			if (latestCount === 0) {
+			if (status === 'completed') {
 				finalProgress.completedAt = Date.now();
 			}
 			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', 3600);
