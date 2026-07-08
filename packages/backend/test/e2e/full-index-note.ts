@@ -9,7 +9,7 @@ import * as assert from 'assert';
 import { api, post, signup } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
-import { loadConfig } from '../src/config.js';
+import { loadConfig } from '../../src/config.js';
 
 const config = loadConfig();
 const isOpenSearchEnabled = !!config.opensearch;
