@@ -187,11 +187,13 @@ async function fullIndex() {
 			type: 'number',
 			label: i18n.ts._reIndexOpenSearch.limitCountLabel,
 			default: 10000,
+			step: 1,
 		},
 		intervalMinutes: {
 			type: 'number',
 			label: i18n.ts._reIndexOpenSearch.intervalMinutesLabel,
 			default: 5,
+			step: 1,
 		},
 	});
 	if (canceled) return;
@@ -208,10 +210,14 @@ async function fullIndex() {
 		return;
 	}
 
+	// os.form の number は小数も返すため、バックエンドの integer/範囲検証で400にならないよう整数化＋クランプする
+	const limitCount = Math.min(100000000, Math.max(1, Math.floor(result.limitCount)));
+	const intervalMinutes = Math.min(60, Math.max(1, Math.floor(result.intervalMinutes)));
+
 	await os.apiWithDialog('admin/full-index', {
 		index: result.index,
-		limitCount: result.limitCount,
-		intervalMinutes: result.intervalMinutes,
+		limitCount,
+		intervalMinutes,
 		discardProgress: true,
 	});
 	activeIndex.value = result.index;

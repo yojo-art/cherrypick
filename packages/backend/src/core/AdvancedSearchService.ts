@@ -758,7 +758,13 @@ export class AdvancedSearchService {
 			if (status === 'completed') {
 				finalProgress.completedAt = Date.now();
 			}
-			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', 3600);
+			// paused（再開待ち）の progress は再開ジョブが読み出すまで確実に生存させる必要がある。
+			// 再開遅延は intervalMinutes（admin/full-index で最大60分に制限）ぶんなので、
+			// それを十分上回るTTLにしておく。completed/aborted は表示用に1時間保持すれば十分。
+			const progressTtlSec = status === 'paused'
+				? Math.max(3600, (intervalMinutes ?? 60) * 60 + 1800)
+				: 3600;
+			await this.redisClient.set(`${prefix}progress`, JSON.stringify(finalProgress), 'EX', progressTtlSec);
 			await this.redisClient.del(lockKey);
 		}
 	}

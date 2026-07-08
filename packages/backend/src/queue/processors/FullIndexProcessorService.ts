@@ -83,7 +83,8 @@ export class FullIndexProcessorService {
 				delay: delayMs,
 				jobId: `${jobName}-${Date.now()}`,
 			});
-			await this.redisClient.set(`${prefix}nextDelay`, String(nextRunAt), 'EX', 600);
+			// 再開予定時刻の表示用キー。実際の再開までは生存させたいので、遅延ぶん＋余裕を持たせる。
+			await this.redisClient.set(`${prefix}nextDelay`, String(nextRunAt), 'EX', Math.ceil(delayMs / 1000) + 600);
 		}
 	}
 }

@@ -36,10 +36,17 @@ export const paramDef = {
 		limitCount: {
 			type: 'integer',
 			nullable: true,
+			minimum: 1,
+			maximum: 100000000,
 		},
 		intervalMinutes: {
+			// 再開遅延（分）。progress キーの生存時間を超える値を許すと待機中にキーが失効し、
+			// latestid='' から再スタート＝先頭チャンクの無限再インデックスになるため上限を設ける。
+			// 0以下は遅延0での即時再enqueueループになるため下限も設ける。
 			type: 'integer',
 			nullable: true,
+			minimum: 1,
+			maximum: 60,
 		},
 		discardProgress: {
 			type: 'boolean',
