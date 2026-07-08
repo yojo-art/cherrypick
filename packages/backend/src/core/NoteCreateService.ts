@@ -483,6 +483,19 @@ export class NoteCreateService implements OnApplicationShutdown {
 			data.visibility = 'home';
 		}
 
+		if (data.text && data.channel) {
+			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
+			data.channel.actor ??= data.channel.actorId ? await this.cacheService.findUserById(data.channel.actorId) : null;
+			const username = data.channel.actor?.username;
+			if (username) {
+				data.text = data.text.replaceAll('@' + data.channel.actor, '');
+				const host = data.channel.actor?.host;
+				if (host) {
+					data.text = data.text.replaceAll('@' + data.channel.actor + '@' + host, '');
+				}
+			}
+		}
+
 		if (data.renote) {
 			switch (data.renote.visibility) {
 				case 'public':
