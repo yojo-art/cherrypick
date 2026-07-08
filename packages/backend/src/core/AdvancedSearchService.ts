@@ -102,6 +102,8 @@ const FULL_INDEX_PROGRESS_KEYS = [
 	'fullIndexFavorites:progress',
 ];
 
+const FULL_INDEX_RUNNING_CACHE_TTL_MS = 1000;
+
 const retryLimit = 2;
 const noteIndexBody = {
 	mappings: {
@@ -192,6 +194,7 @@ export class AdvancedSearchService {
 	private favoriteIndex: string;
 
 	private logger: Logger;
+	private fullIndexRunningCache: { running: boolean; expiresAt: number } | null = null;
 
 	constructor(
 		@Inject(DI.config)
@@ -351,23 +354,32 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	private async isFullIndexRunning(): Promise<boolean> {
+		const now = Date.now();
+		if (this.fullIndexRunningCache && this.fullIndexRunningCache.expiresAt > now) {
+			return this.fullIndexRunningCache.running;
+		}
+
 		const raws = await this.redisClient.mget(FULL_INDEX_PROGRESS_KEYS);
 		for (const raw of raws) {
 			if (!raw) continue;
 			try {
 				const parsed = JSON.parse(raw) as Record<string, unknown>;
-				if (parsed.status === 'running') return true;
+				if (parsed.status === 'running') {
+					this.fullIndexRunningCache = { running: true, expiresAt: now + FULL_INDEX_RUNNING_CACHE_TTL_MS };
+					return true;
+				}
 			} catch {
 				// 壊れたJSONは無視して他の種別のチェックを続ける
 			}
 		}
+		this.fullIndexRunningCache = { running: false, expiresAt: now + FULL_INDEX_RUNNING_CACHE_TTL_MS };
 		return false;
 	}
 
 	@bindThis
 	public async indexNote(note: MiNote, choices?: string[], skipPauseCheck = false): Promise<void> {
-		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (!this.opensearch) return;
+		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
 
 		if (isRenote(note) && !isQuote(note)) { //リノートであり
@@ -422,8 +434,8 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async updateNoteSensitive(fileId: string) {
-		if (await this.isFullIndexRunning()) return;
 		if (!this.opensearch) return;
+		if (await this.isFullIndexRunning()) return;
 
 		const limit = 100;
 		let latestid = undefined;
@@ -480,6 +492,7 @@ export class AdvancedSearchService {
 		reactionIncrement?: boolean,
 		searchableBy?: string,
 	}, skipPauseCheck = false) {
+		if (!this.opensearch) return;
 		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (!(opts.remote && opts.searchableBy === 'private')) {
 			await this.index(this.reactionIndex, opts.id, {
@@ -525,6 +538,7 @@ export class AdvancedSearchService {
 		},
 		skipPauseCheck = false,
 	) {
+		if (!this.opensearch) return;
 		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
@@ -540,6 +554,7 @@ export class AdvancedSearchService {
 		},
 		skipPauseCheck = false,
 	) {
+		if (!this.opensearch) return;
 		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		await this.index(this.favoriteIndex, id, opts);
 	}
@@ -583,149 +598,47 @@ export class AdvancedSearchService {
 	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
 		if (!this.opensearch) return;
 
-		const clampedMaxMin = Math.max(1, maxDurationMin ?? 120);
-		const maxDurationMs = clampedMaxMin * 60 * 1000;
-		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
-
-		// ワーカー間ロック: 既に実行中ならスキップ
-		const lockKey = 'fullIndexNote:lock';
-		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
-		if (lock !== 'OK') {
-			this.logger.info('fullIndexNote is already running');
-			return;
-		}
-
-		// 前回の progress を復元する。discardProgress=true の場合はここに来る前に
-		// FullIndexProcessorService が既に fullIndexNote:progress を削除済みなので、
-		// 自然に「復元するものがない」状態になる。
-		let accumulatedIndex = 0;
-		let latestid = '';
-		const prevProgressRaw = await this.redisClient.get('fullIndexNote:progress');
-		if (prevProgressRaw) {
-			try {
-				const prev = JSON.parse(prevProgressRaw) as Partial<FullIndexProgress>;
-				if (typeof prev.current === 'number' && Number.isFinite(prev.current)) {
-					accumulatedIndex = prev.current;
+		await this.runFullIndex({
+			prefix: 'fullIndexNote:',
+			label: 'note',
+			maxDurationMin,
+			limitCount,
+			intervalMinutes,
+			batchLimit: 1000,
+			beforeLoop: async () => {
+				if (await this.redisClient.get('indexDeleted') !== null) {
+					this.logger.info('indexDeleted flag is set, skipping');
+					return false;
 				}
-				if (typeof prev.latestid === 'string') {
-					latestid = prev.latestid;
+				return true;
+			},
+			getTotalCount: () => this.estimateRowCount('note'),
+			fetchBatch: (latestid, limit) => this.notesRepository
+				.createQueryBuilder('note')
+				.leftJoin('note.renote', 'renote')
+				.select(['note'])
+				.where('note.id > :latestid', { latestid })
+				.andWhere(new Brackets( qb => {
+					qb.where('note."userHost" IS NULL')
+						.orWhere(new Brackets(qb2 => {
+							qb2
+								.where('note."userHost" IS NOT NULL')
+								.andWhere('note."searchableBy" != \'private\'')
+								.orWhere('note."searchableBy" IS NULL');
+						}));
+				}))
+				.orderBy('note.id', 'ASC')
+				.limit(limit)
+				.getMany(),
+			indexItem: async (note) => {
+				if (note.hasPoll) {
+					const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
+					await this.indexNote(note, poll ? poll.choices : undefined, true);
+				} else {
+					await this.indexNote(note, undefined, true);
 				}
-			} catch {}
-		}
-		const limit = 1000; // 1回あたりのDBからのノート取得数を指定
-
-		let index = 0;
-		let notesCount = 0;
-		let loopStart = 0;
-		let latestNoteCount = 0;
-		let status: FullIndexStatus = 'completed';
-
-		try {
-			loopStart = Date.now();
-
-			notesCount = await this.estimateRowCount('note');
-			this.logger.info('Total notes count: ' + notesCount);
-
-			// 開始したことを即座に示す（累計件数・latestidを引き継ぐ）
-			const startProgress: FullIndexProgress = {
-				status: 'running',
-				current: accumulatedIndex,
-				total: notesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-			};
-			await this.redisClient.set('fullIndexNote:progress', JSON.stringify(startProgress), 'EX', maxDurationSec);
-
-			if (await this.redisClient.get('indexDeleted') !== null) {
-				this.logger.info('indexDeleted flag is set, skipping');
-				return;
-			}
-
-			while (true) {
-				this.logger.info('note indexing ' + accumulatedIndex + index + '/' + notesCount);
-
-				// max duration チェック
-				if (Date.now() - loopStart > maxDurationMs) {
-					this.logger.info('Max duration reached, stopping fullIndexNote');
-					status = 'paused';
-					break;
-				}
-
-				// abort チェック
-				if (await this.redisClient.get('fullIndexNote:abort') !== null) {
-					this.logger.info('fullIndexNote aborted by user');
-					await this.redisClient.del('fullIndexNote:abort');
-					status = 'aborted';
-					break;
-				}
-
-				const notes = await this.notesRepository
-					.createQueryBuilder('note')
-					.leftJoin('note.renote', 'renote')
-					.select(['note'])
-					.where('note.id > :latestid', { latestid })
-					.andWhere(new Brackets( qb => {
-						qb.where('note."userHost" IS NULL')
-							.orWhere(new Brackets(qb2 => {
-								qb2
-									.where('note."userHost" IS NOT NULL')
-									.andWhere('note."searchableBy" != \'private\'')
-									.orWhere('note."searchableBy" IS NULL');
-							}));
-					}))
-					.orderBy('note.id', 'ASC')
-					.limit(limit)
-					.getMany();
-
-				latestNoteCount = notes.length;
-				if (latestNoteCount === 0) break;
-				index += latestNoteCount;
-
-				for (const note of notes) {
-					if (note.hasPoll) {
-						const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
-						await this.indexNote(note, poll ? poll.choices : undefined, true);
-					} else {
-						await this.indexNote(note, undefined, true);
-					}
-					latestid = note.id;
-				}
-
-				// 進捗保存
-				const progress: FullIndexProgress = {
-					status: 'running',
-					current: accumulatedIndex + index,
-					total: notesCount,
-					latestid: latestid,
-					startedAt: loopStart,
-				};
-				await this.redisClient.set('fullIndexNote:progress', JSON.stringify(progress), 'EX', maxDurationSec);
-
-				// limitCount 件数に達したら一時停止
-				if (limitCount != null && index >= limitCount) {
-					status = 'paused';
-					this.logger.info(`fullIndexNote paused at ${index} records (limitCount=${limitCount}), latestid=${latestid}`);
-					break;
-				}
-			}
-			const loopTime = Date.now() - loopStart;
-			this.logger.info(`notes has been indexed. done in ${loopTime}ms (${accumulatedIndex + index} / ${notesCount}`);
-		} finally {
-			const finalProgress: FullIndexProgress = {
-				status: latestNoteCount === 0 ? 'completed' : status,
-				current: accumulatedIndex + index,
-				total: notesCount,
-				latestid: latestid,
-				startedAt: loopStart,
-				limitCount: limitCount ?? undefined,
-				intervalMinutes: intervalMinutes ?? undefined,
-			};
-			if (latestNoteCount === 0) {
-				finalProgress.completedAt = Date.now();
-			}
-			await this.redisClient.set('fullIndexNote:progress', JSON.stringify(finalProgress), 'EX', 3600);
-			await this.redisClient.del(lockKey);
-		}
+			},
+		});
 	}
 
 	/**
@@ -762,6 +675,8 @@ export class AdvancedSearchService {
 		maxDurationMin?: number;
 		limitCount?: number;
 		intervalMinutes?: number;
+		batchLimit?: number;
+		beforeLoop?: () => Promise<boolean>;
 		getTotalCount: () => Promise<number>;
 		fetchBatch: (latestid: string, limit: number) => Promise<T[]>;
 		indexItem: (item: T) => Promise<void>;
@@ -770,6 +685,7 @@ export class AdvancedSearchService {
 		const clampedMaxMin = Math.max(1, opts.maxDurationMin ?? 120);
 		const maxDurationMs = clampedMaxMin * 60 * 1000;
 		const maxDurationSec = Math.ceil(maxDurationMs / 1000);
+		const limit = opts.batchLimit ?? 100;
 
 		const lockKey = `${prefix}lock`;
 		const lock = await this.redisClient.set(lockKey, 'locked', 'EX', maxDurationSec + 60, 'NX');
@@ -793,7 +709,6 @@ export class AdvancedSearchService {
 			} catch {}
 		}
 
-		const limit = 100;
 		let index = 0;
 		let totalCount = 0;
 		let latestCount = 0;
@@ -803,6 +718,7 @@ export class AdvancedSearchService {
 		try {
 			loopStart = Date.now();
 			totalCount = await getTotalCount();
+			this.logger.info(`Total ${label} count: ${totalCount}`);
 
 			const startProgress: FullIndexProgress = {
 				status: 'running',
@@ -812,6 +728,10 @@ export class AdvancedSearchService {
 				startedAt: loopStart,
 			};
 			await this.redisClient.set(`${prefix}progress`, JSON.stringify(startProgress), 'EX', maxDurationSec);
+
+			if (opts.beforeLoop && !await opts.beforeLoop()) {
+				return;
+			}
 
 			while (true) {
 				this.logger.info(`${label} indexing ` + (accumulatedIndex + index) + '/' + totalCount);
@@ -1054,6 +974,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async unindexNote(note: MiNote): Promise<void> {
+		if (!this.opensearch) return;
 		if (await this.isFullIndexRunning()) return;
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
@@ -1100,6 +1021,7 @@ export class AdvancedSearchService {
 
 	@bindThis
 	public async unindexReaction(id: string, remote: boolean, noteId: string, emoji:string): Promise<void> {
+		if (!this.opensearch) return;
 		if (await this.isFullIndexRunning()) return;
 		if (!remote) this.unindexById(this.reactionIndex, id);
 		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && remote && emoji.includes('@')) return;
@@ -1129,6 +1051,7 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	public async unindexFavorite(id?: string, noteId?: string, clipId?: string, userId?: string) {
+		if (!this.opensearch) return;
 		if (await this.isFullIndexRunning()) return;
 		if (clipId) {
 			this.unindexByQuery(this.favoriteIndex, {
@@ -1160,6 +1083,7 @@ export class AdvancedSearchService {
 	 */
 	@bindThis
 	public async unindexUserClip(id: string) {
+		if (!this.opensearch) return;
 		if (await this.isFullIndexRunning()) return;
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {

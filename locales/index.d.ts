@@ -15286,10 +15286,6 @@ export interface Locale extends ILocale {
          */
         "title": string;
         /**
-         * 再インデックス対象
-         */
-        "quesion": string;
-        /**
          * 続きを実行
          */
         "resume": string;

@@ -58,11 +58,21 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			};
 			const { redisPrefix, jobName } = prefixMap[ps.index];
 
-			await this.redisClient.set(`${redisPrefix}abort`, '1', 'EX', 300);
+			const raw = await this.redisClient.get(`${redisPrefix}progress`);
+			let wasRunning = false;
+			if (raw) {
+				try {
+					const parsed = JSON.parse(raw) as Partial<FullIndexProgress>;
+					wasRunning = parsed.status === 'running';
+				} catch {}
+			}
+
+			if (wasRunning) {
+				await this.redisClient.set(`${redisPrefix}abort`, '1', 'EX', 300);
+			}
 			await this.queueService.removeDelayedFullIndexJobs(jobName);
 			await this.redisClient.del(`${redisPrefix}nextDelay`);
 
-			const raw = await this.redisClient.get(`${redisPrefix}progress`);
 			if (raw) {
 				try {
 					const parsed = JSON.parse(raw) as Partial<FullIndexProgress>;

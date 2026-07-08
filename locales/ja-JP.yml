@@ -4089,7 +4089,6 @@ _searchOrApShow:
 
 _reIndexOpenSearch:
   title: "再インデックスする"
-  quesion: "再インデックス対象"
   resume: "続きを実行"
   stop: "停止"
   indexLabel: "対象"

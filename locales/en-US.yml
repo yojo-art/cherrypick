@@ -3854,7 +3854,6 @@ _searchOrApShow:
 
 _reIndexOpenSearch:
   title: "Reindex"
-  quesion: "Reindex target"
   resume: "Resume"
   stop: "Stop"
   indexLabel: "Target"
