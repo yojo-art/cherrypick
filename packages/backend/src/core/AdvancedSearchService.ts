@@ -347,8 +347,12 @@ export class AdvancedSearchService {
 
 	/**
 	 * notes/reaction/pollVote/clipNotes/Favorites のいずれかのフルインデックスが実行中かを判定する。
-	 * フルインデックス中に対応するライブの index/unindex 系メソッドが同時に走ると、
-	 * 同じドキュメントへの更新が競合する恐れがあるため、実行中は全種別のライブ更新を止める。
+	 * フルインデックス中にライブの index 系（新規作成）が同じドキュメントへ同時に書き込むと
+	 * 競合する恐れがあるため、実行中はライブの index 系のみ止める。
+	 * 一方 unindex 系（削除）は止めない。止めてしまうと実行中に削除された対象が
+	 * OpenSearch 側に残留（orphan）してしまい、フルインデックスは既存行の再投入しか行わないため
+	 * 自動では拾い直せないからである。削除は冪等で、フルインデックスは DB に存在する行を
+	 * id 昇順カーソルで処理するため、削除を通しても競合で不整合になる方向のリスクは小さい。
 	 * なお、各フルインデックス処理自身がバッチ内で呼ぶ index* メソッドは skipPauseCheck で
 	 * このチェックを迂回する（自分自身の running 状態で自分を止めてしまわないようにするため）。
 	 */
@@ -975,7 +979,6 @@ export class AdvancedSearchService {
 	@bindThis
 	public async unindexNote(note: MiNote): Promise<void> {
 		if (!this.opensearch) return;
-		if (await this.isFullIndexRunning()) return;
 		if (await this.redisClient.get('indexDeleted') !== null) {
 			return;
 		}
@@ -1022,7 +1025,6 @@ export class AdvancedSearchService {
 	@bindThis
 	public async unindexReaction(id: string, remote: boolean, noteId: string, emoji:string): Promise<void> {
 		if (!this.opensearch) return;
-		if (await this.isFullIndexRunning()) return;
 		if (!remote) this.unindexById(this.reactionIndex, id);
 		if ((this.config.opensearch?.reactionSearchLocalOnly ?? false) && remote && emoji.includes('@')) return;
 		await this.opensearch?.update({
@@ -1052,7 +1054,6 @@ export class AdvancedSearchService {
 	@bindThis
 	public async unindexFavorite(id?: string, noteId?: string, clipId?: string, userId?: string) {
 		if (!this.opensearch) return;
-		if (await this.isFullIndexRunning()) return;
 		if (clipId) {
 			this.unindexByQuery(this.favoriteIndex, {
 				bool: {
@@ -1084,7 +1085,6 @@ export class AdvancedSearchService {
 	@bindThis
 	public async unindexUserClip(id: string) {
 		if (!this.opensearch) return;
-		if (await this.isFullIndexRunning()) return;
 		this.unindexByQuery(this.favoriteIndex, {
 			term: {
 				clipId: {
