@@ -6,7 +6,8 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, post, signup } from '../utils.js';
+import type { INestApplicationContext } from '@nestjs/common';
+import { api, post, signup, startJobQueue } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 import { loadConfig } from '../../src/config.js';
@@ -14,46 +15,58 @@ import { loadConfig } from '../../src/config.js';
 const config = loadConfig();
 const isOpenSearchEnabled = !!config.opensearch;
 
+// note の batchLimit は 1000 のため、limitCount より大きい単位で処理される。
+// チャンク分割の検証には batchLimit を超える件数が必要。
+const NOTE_COUNT = 2200;
+const BATCH_LIMIT = 1000;
+const LIMIT_COUNT = 50;
+
 (isOpenSearchEnabled ? describe : describe.skip)('fullIndexNote 一時停止・再開・完了のE2Eテスト', () => {
+	let queue: INestApplicationContext;
 	let root: misskey.entities.SignupResponse;
-	const notes: misskey.entities.Note[] = [];
-	const NOTE_COUNT = 300;
-	const LIMIT_COUNT = 50;
 
 	beforeAll(async () => {
+		queue = await startJobQueue();
 		root = await signup({ username: 'root' });
 
-		// 300件のノートを作成
 		for (let i = 0; i < NOTE_COUNT; i++) {
-			const note = await post(root, { text: `fullIndexNote_test_${i}` });
-			notes.push(note);
+			await post(root, { text: `fullIndexNote_test_${i}` });
 		}
-		// OpenSearchへの反映を待つ
 		await new Promise(resolve => setTimeout(resolve, 5000));
-	}, 1000 * 60 * 2);
+	}, 1000 * 60 * 5);
+
+	afterAll(async () => {
+		await queue?.close();
+	});
 
 	async function getProgress(): Promise<{
 		status: string | null;
 		current: number | null;
 		total: number | null;
 	}> {
-		const res = await api('admin/full-index-progress', {}, root);
+		const res = await api('admin/full-index-progress', { index: 'notes' }, root);
 		assert.strictEqual(res.status, 200);
 		return res.body;
 	}
 
-	async function waitForStatus(expected: string, timeoutMs = 60000): Promise<void> {
+	function isPausedLike(status: string | null): boolean {
+		// limitCount 到達後に自動再開が予約されると、API 上は queued と表示される
+		return status === 'paused' || status === 'queued';
+	}
+
+	async function waitForStatus(expected: string | string[], timeoutMs = 180000): Promise<void> {
+		const expectedList = Array.isArray(expected) ? expected : [expected];
 		const start = Date.now();
 		while (Date.now() - start < timeoutMs) {
 			const progress = await getProgress();
-			if (progress.status === expected) return;
+			if (progress.status != null && expectedList.includes(progress.status)) return;
 			await new Promise(resolve => setTimeout(resolve, 1000));
 		}
-		throw new Error(`Timeout waiting for status: ${expected}`);
+		const last = await getProgress();
+		throw new Error(`Timeout waiting for status: ${expectedList.join('|')} (last: ${last.status}, current: ${last.current})`);
 	}
 
-	test('50件ずつ処理して一時停止する', async () => {
-		// 既存の progress を破棄して最初から開始
+	test('1チャンク処理して一時停止する', async () => {
 		const res = await api('admin/full-index', {
 			index: 'notes',
 			limitCount: LIMIT_COUNT,
@@ -62,16 +75,15 @@ const isOpenSearchEnabled = !!config.opensearch;
 		}, root);
 		assert.strictEqual(res.status, 200);
 
-		// paused になるまで待つ
-		await waitForStatus('paused');
+		await waitForStatus(['paused', 'queued']);
 
 		const progress = await getProgress();
-		assert.strictEqual(progress.status, 'paused');
-		assert.strictEqual(progress.current, LIMIT_COUNT);
+		assert.ok(isPausedLike(progress.status));
+		assert.strictEqual(progress.current, BATCH_LIMIT);
 		assert.ok(progress.total && progress.total >= NOTE_COUNT);
 	});
 
-	test('続きを実行して100件になる', async () => {
+	test('続きを実行して2チャンク目で一時停止する', async () => {
 		const res = await api('admin/full-index', {
 			index: 'notes',
 			limitCount: LIMIT_COUNT,
@@ -79,15 +91,14 @@ const isOpenSearchEnabled = !!config.opensearch;
 		}, root);
 		assert.strictEqual(res.status, 200);
 
-		await waitForStatus('paused');
+		await waitForStatus(['paused', 'queued']);
 
 		const progress = await getProgress();
-		assert.strictEqual(progress.status, 'paused');
-		assert.strictEqual(progress.current, LIMIT_COUNT * 2);
+		assert.ok(isPausedLike(progress.status));
+		assert.strictEqual(progress.current, BATCH_LIMIT * 2);
 	});
 
 	test('残りを全件実行して完了する', async () => {
-		// limitCountなしで実行（残りすべてを一度に処理）
 		const res = await api('admin/full-index', {
 			index: 'notes',
 			intervalMinutes: 1,
