@@ -13,6 +13,17 @@ export const meta = {
 	requireCredential: true,
 	requireAdmin: true,
 	kind: 'write:admin:reindex',
+
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		properties: {
+			success: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+		},
+	},
 } as const;
 
 export const paramDef = {
@@ -62,6 +73,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 					this.advancedSearchService.fullIndexFavoritesQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
 					break;
 			}
+
+			return { success: true };
 		});
 	}
 }
