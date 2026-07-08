@@ -48,6 +48,8 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
 
+type IndexKind = 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+
 type ProgressData = {
 	status: string | null;
 	current: number | null;
@@ -66,7 +68,7 @@ const defaultProgress = (): ProgressData => ({
 	intervalMinutes: null,
 });
 
-const indexOptions: { value: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites", label: string }[] = [
+const indexOptions: { value: IndexKind, label: string }[] = [
 	{ value: 'notes', label: i18n.ts.note },
 	{ value: 'reaction', label: i18n.ts.reaction },
 	{ value: 'pollVote', label: i18n.ts.poll },
@@ -74,7 +76,7 @@ const indexOptions: { value: "notes" | "reaction" | "pollVote" | "clipNotes" | "
 	{ value: 'Favorites', label: i18n.ts.favorite },
 ];
 
-const progressMap = ref<Record<string, ProgressData>>({
+const progressMap = ref<Record<IndexKind, ProgressData>>({
 	notes: defaultProgress(),
 	reaction: defaultProgress(),
 	pollVote: defaultProgress(),
@@ -82,10 +84,10 @@ const progressMap = ref<Record<string, ProgressData>>({
 	Favorites: defaultProgress(),
 });
 
-const activeIndex = ref<"notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites">('notes');
+const activeIndex = ref<IndexKind>('notes');
 const currentProgress = computed(() => progressMap.value[activeIndex.value]);
 
-function progressPercentOf(index: string): number {
+function progressPercentOf(index: IndexKind): number {
 	const p = progressMap.value[index];
 	const c = p.current;
 	const t = p.total;
@@ -94,7 +96,7 @@ function progressPercentOf(index: string): number {
 
 let pollingInterval: number | null = null;
 
-async function fetchProgress(index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites") {
+async function fetchProgress(index: IndexKind) {
 	const res = await misskeyApi('admin/full-index-progress', { index });
 	if (res) {
 		progressMap.value[index] = {
@@ -144,7 +146,7 @@ onUnmounted(() => {
 	stopPolling();
 });
 
-function statusTextOf(index: string): string {
+function statusTextOf(index: IndexKind): string {
 	const p = progressMap.value[index];
 	switch (p.status) {
 		case 'running': return i18n.ts._reIndexOpenSearch.statusRunning;
@@ -156,7 +158,7 @@ function statusTextOf(index: string): string {
 	}
 }
 
-function statusColorOf(index: string): string {
+function statusColorOf(index: IndexKind): string {
 	switch (progressMap.value[index].status) {
 		case 'running': return 'var(--MI_THEME-fgTransparentWeak)';
 		case 'paused': return 'var(--MI_THEME-warn)';
@@ -228,12 +230,12 @@ async function fullIndexResume() {
 	window.setTimeout(() => startPolling(), 500);
 }
 
-function isAbortable(index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites"): boolean {
+function isAbortable(index: IndexKind): boolean {
 	const status = progressMap.value[index].status;
 	return status === 'running' || status === 'queued' || status === 'paused';
 }
 
-async function abortIndex(index: "notes" | "reaction" | "pollVote" | "clipNotes" | "Favorites") {
+async function abortIndex(index: IndexKind) {
 	await os.apiWithDialog('admin/abort-full-index', { index });
 	await fetchAllProgress();
 	if (!isAnyRunning()) stopPolling();
