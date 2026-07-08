@@ -94,16 +94,6 @@ function compileQuery(q: Q): string {
 	}
 }
 
-const FULL_INDEX_PROGRESS_KEYS = [
-	'fullIndexNote:progress',
-	'fullIndexReaction:progress',
-	'fullIndexPollVote:progress',
-	'fullIndexClipNotes:progress',
-	'fullIndexFavorites:progress',
-];
-
-const FULL_INDEX_RUNNING_CACHE_TTL_MS = 1000;
-
 const retryLimit = 2;
 const noteIndexBody = {
 	mappings: {
@@ -194,7 +184,6 @@ export class AdvancedSearchService {
 	private favoriteIndex: string;
 
 	private logger: Logger;
-	private fullIndexRunningCache: { running: boolean; expiresAt: number } | null = null;
 
 	constructor(
 		@Inject(DI.config)
@@ -345,45 +334,9 @@ export class AdvancedSearchService {
 		}
 	}
 
-	/**
-	 * notes/reaction/pollVote/clipNotes/Favorites のいずれかのフルインデックスが実行中かを判定する。
-	 * フルインデックス中にライブの index 系（新規作成）が同じドキュメントへ同時に書き込むと
-	 * 競合する恐れがあるため、実行中はライブの index 系のみ止める。
-	 * 一方 unindex 系（削除）は止めない。止めてしまうと実行中に削除された対象が
-	 * OpenSearch 側に残留（orphan）してしまい、フルインデックスは既存行の再投入しか行わないため
-	 * 自動では拾い直せないからである。削除は冪等で、フルインデックスは DB に存在する行を
-	 * id 昇順カーソルで処理するため、削除を通しても競合で不整合になる方向のリスクは小さい。
-	 * なお、各フルインデックス処理自身がバッチ内で呼ぶ index* メソッドは skipPauseCheck で
-	 * このチェックを迂回する（自分自身の running 状態で自分を止めてしまわないようにするため）。
-	 */
 	@bindThis
-	private async isFullIndexRunning(): Promise<boolean> {
-		const now = Date.now();
-		if (this.fullIndexRunningCache && this.fullIndexRunningCache.expiresAt > now) {
-			return this.fullIndexRunningCache.running;
-		}
-
-		const raws = await this.redisClient.mget(FULL_INDEX_PROGRESS_KEYS);
-		for (const raw of raws) {
-			if (!raw) continue;
-			try {
-				const parsed = JSON.parse(raw) as Record<string, unknown>;
-				if (parsed.status === 'running') {
-					this.fullIndexRunningCache = { running: true, expiresAt: now + FULL_INDEX_RUNNING_CACHE_TTL_MS };
-					return true;
-				}
-			} catch {
-				// 壊れたJSONは無視して他の種別のチェックを続ける
-			}
-		}
-		this.fullIndexRunningCache = { running: false, expiresAt: now + FULL_INDEX_RUNNING_CACHE_TTL_MS };
-		return false;
-	}
-
-	@bindThis
-	public async indexNote(note: MiNote, choices?: string[], skipPauseCheck = false): Promise<void> {
+	public async indexNote(note: MiNote, choices?: string[]): Promise<void> {
 		if (!this.opensearch) return;
-		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (note.searchableBy === 'private' && note.userHost !== null) return;//リモートユーザーのprivateはインデックスしない
 
 		if (isRenote(note) && !isQuote(note)) { //リノートであり
@@ -439,7 +392,6 @@ export class AdvancedSearchService {
 	@bindThis
 	public async updateNoteSensitive(fileId: string) {
 		if (!this.opensearch) return;
-		if (await this.isFullIndexRunning()) return;
 
 		const limit = 100;
 		let latestid = undefined;
@@ -495,9 +447,8 @@ export class AdvancedSearchService {
 		remote: boolean,
 		reactionIncrement?: boolean,
 		searchableBy?: string,
-	}, skipPauseCheck = false) {
+	}) {
 		if (!this.opensearch) return;
-		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		if (!(opts.remote && opts.searchableBy === 'private')) {
 			await this.index(this.reactionIndex, opts.id, {
 				noteId: opts.noteId,
@@ -540,10 +491,8 @@ export class AdvancedSearchService {
 			noteId: string;
 			userId: string;
 		},
-		skipPauseCheck = false,
 	) {
 		if (!this.opensearch) return;
-		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		await this.index(this.pollVoteIndex, id, {
 			noteId: opts.noteId,
 			userId: opts.userId,
@@ -556,10 +505,8 @@ export class AdvancedSearchService {
 			userId: string,
 			clipId?: string,
 		},
-		skipPauseCheck = false,
 	) {
 		if (!this.opensearch) return;
-		if (!skipPauseCheck && await this.isFullIndexRunning()) return;
 		await this.index(this.favoriteIndex, id, opts);
 	}
 	@bindThis
@@ -637,9 +584,9 @@ export class AdvancedSearchService {
 			indexItem: async (note) => {
 				if (note.hasPoll) {
 					const poll = await this.pollsRepository.findOneBy({ noteId: note.id });
-					await this.indexNote(note, poll ? poll.choices : undefined, true);
+					await this.indexNote(note, poll ? poll.choices : undefined);
 				} else {
-					await this.indexNote(note, undefined, true);
+					await this.indexNote(note, undefined);
 				}
 			},
 		});
@@ -854,7 +801,7 @@ export class AdvancedSearchService {
 				remote: false,
 				reactionIncrement: false,
 				searchableBy: reac.note?.searchableBy === null ? undefined : reac.note?.searchableBy,
-			}, true),
+			}),
 		});
 	}
 
@@ -891,7 +838,7 @@ export class AdvancedSearchService {
 			indexItem: (pollVote) => this.indexVote(pollVote.id, {
 				noteId: pollVote.noteId,
 				userId: pollVote.userId,
-			}, true),
+			}),
 		});
 	}
 
@@ -927,7 +874,7 @@ export class AdvancedSearchService {
 				noteId: clipNote.noteId,
 				userId: clipNote.clip?.userId as string,
 				clipId: clipNote.clipId,
-			}, true),
+			}),
 		});
 	}
 
@@ -961,7 +908,7 @@ export class AdvancedSearchService {
 			indexItem: (favorite) => this.indexFavorite(favorite.id, {
 				noteId: favorite.noteId,
 				userId: favorite.userId,
-			}, true),
+			}),
 		});
 	}
 	@bindThis
