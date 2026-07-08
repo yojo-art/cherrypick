@@ -40,13 +40,13 @@ export class FullIndexProcessorService {
 	) {}
 
 	@bindThis
-	private async run(jobName: FullIndexJobName, maxDurationMin: number, limitCount: number | undefined, intervalMinutes: number | undefined): Promise<void> {
+	private async run(jobName: FullIndexJobName, maxDurationMin: number, limitCount: number | undefined, intervalMinutes: number | undefined, discardProgress: boolean): Promise<void> {
 		switch (jobName) {
-			case 'fullIndexNote': return this.advancedSearchService.fullIndexNote(maxDurationMin, limitCount, intervalMinutes);
-			case 'fullIndexReaction': return this.advancedSearchService.fullIndexReaction(maxDurationMin, limitCount, intervalMinutes);
-			case 'fullIndexPollVote': return this.advancedSearchService.fullIndexPollVote(maxDurationMin, limitCount, intervalMinutes);
-			case 'fullIndexClipNotes': return this.advancedSearchService.fullIndexClipNotes(maxDurationMin, limitCount, intervalMinutes);
-			case 'fullIndexFavorites': return this.advancedSearchService.fullIndexFavorites(maxDurationMin, limitCount, intervalMinutes);
+			case 'fullIndexNote': return this.advancedSearchService.fullIndexNote(maxDurationMin, limitCount, intervalMinutes, discardProgress);
+			case 'fullIndexReaction': return this.advancedSearchService.fullIndexReaction(maxDurationMin, limitCount, intervalMinutes, discardProgress);
+			case 'fullIndexPollVote': return this.advancedSearchService.fullIndexPollVote(maxDurationMin, limitCount, intervalMinutes, discardProgress);
+			case 'fullIndexClipNotes': return this.advancedSearchService.fullIndexClipNotes(maxDurationMin, limitCount, intervalMinutes, discardProgress);
+			case 'fullIndexFavorites': return this.advancedSearchService.fullIndexFavorites(maxDurationMin, limitCount, intervalMinutes, discardProgress);
 		}
 	}
 
@@ -60,13 +60,9 @@ export class FullIndexProcessorService {
 		const intervalMinutes = typeof job.data.intervalMinutes === 'number'
 			? job.data.intervalMinutes
 			: undefined;
+		const discardProgress = job.data.discardProgress === true;
 
-		if (job.data.discardProgress === true) {
-			await this.redisClient.del(`${prefix}progress`);
-			await this.redisClient.del(`${prefix}nextDelay`);
-		}
-
-		await this.run(jobName, FULL_INDEX_MAX_DURATION_MIN, limitCount, intervalMinutes);
+		await this.run(jobName, FULL_INDEX_MAX_DURATION_MIN, limitCount, intervalMinutes, discardProgress);
 
 		const raw = await this.redisClient.get(`${prefix}progress`);
 		if (!raw) return;

@@ -5,14 +5,27 @@
 
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { ApiError } from '@/server/api/error.js';
 import { AdvancedSearchService } from '@/core/AdvancedSearchService.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 export const meta = {
 	tags: ['admin'],
 
 	requireCredential: true,
 	requireAdmin: true,
+	secure: true,
 	kind: 'write:admin:reindex',
+
+	errors: {
+		alreadyRunning: {
+			message: 'Full index is already running or in progress.',
+			code: 'FULL_INDEX_ALREADY_RUNNING',
+			id: 'f4a8b1c2-3d5e-4f6a-9b0c-1d2e3f4a5b6c',
+			kind: 'client',
+			httpStatusCode: 409,
+		},
+	},
 
 	res: {
 		type: 'object',
@@ -63,21 +76,34 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private advancedSearchService: AdvancedSearchService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
+			const limitCount = ps.limitCount ?? undefined;
+			const intervalMinutes = ps.intervalMinutes ?? undefined;
+			const discardProgress = ps.discardProgress ?? false;
+
+			try {
+				await this.advancedSearchService.assertCanEnqueueFullIndex(ps.index, discardProgress);
+			} catch (err) {
+				if (err instanceof IdentifiableError && err.id === meta.errors.alreadyRunning.id) {
+					throw new ApiError(meta.errors.alreadyRunning);
+				}
+				throw err;
+			}
+
 			switch (ps.index) {
 				case 'notes':
-					this.advancedSearchService.fullIndexNoteQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					await this.advancedSearchService.fullIndexNoteQueue(limitCount, intervalMinutes, discardProgress);
 					break;
 				case 'reaction':
-					this.advancedSearchService.fullIndexReactionQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					await this.advancedSearchService.fullIndexReactionQueue(limitCount, intervalMinutes, discardProgress);
 					break;
 				case 'pollVote':
-					this.advancedSearchService.fullIndexPollVoteQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					await this.advancedSearchService.fullIndexPollVoteQueue(limitCount, intervalMinutes, discardProgress);
 					break;
 				case 'clipNotes':
-					this.advancedSearchService.fullIndexClipNotesQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					await this.advancedSearchService.fullIndexClipNotesQueue(limitCount, intervalMinutes, discardProgress);
 					break;
 				case 'Favorites':
-					this.advancedSearchService.fullIndexFavoritesQueue(ps.limitCount ?? undefined, ps.intervalMinutes ?? undefined, ps.discardProgress ?? false);
+					await this.advancedSearchService.fullIndexFavoritesQueue(limitCount, intervalMinutes, discardProgress);
 					break;
 			}
 

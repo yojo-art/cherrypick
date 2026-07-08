@@ -26,6 +26,16 @@ import type Logger from '@/logger.js';
 
 export type FullIndexStatus = 'running' | 'paused' | 'queued' | 'completed' | 'aborted';
 
+export type FullIndexKind = 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+
+export const FULL_INDEX_PREFIX_BY_KIND: Record<FullIndexKind, string> = {
+	notes: 'fullIndexNote:',
+	reaction: 'fullIndexReaction:',
+	pollVote: 'fullIndexPollVote:',
+	clipNotes: 'fullIndexClipNotes:',
+	Favorites: 'fullIndexFavorites:',
+};
+
 export type FullIndexProgress = {
 	status: FullIndexStatus;
 	current: number;
@@ -537,6 +547,42 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
+	public async assertCanEnqueueFullIndex(index: FullIndexKind, discardProgress: boolean): Promise<void> {
+		const prefix = FULL_INDEX_PREFIX_BY_KIND[index];
+
+		if (await this.redisClient.get(`${prefix}lock`) !== null) {
+			throw new IdentifiableError('f4a8b1c2-3d5e-4f6a-9b0c-1d2e3f4a5b6c', 'Full index is already running.');
+		}
+
+		const raw = await this.redisClient.get(`${prefix}progress`);
+		if (!raw) return;
+
+		let parsed: Partial<FullIndexProgress>;
+		try {
+			parsed = JSON.parse(raw) as Partial<FullIndexProgress>;
+		} catch {
+			return;
+		}
+
+		let status = parsed.status;
+		if (status === 'paused') {
+			const nextDelayRaw = await this.redisClient.get(`${prefix}nextDelay`);
+			const nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
+			if (nextRunAt && Date.now() < nextRunAt) {
+				status = 'queued';
+			}
+		}
+
+		if (status === 'running') {
+			throw new IdentifiableError('f4a8b1c2-3d5e-4f6a-9b0c-1d2e3f4a5b6c', 'Full index is already running.');
+		}
+
+		if (discardProgress && (status === 'paused' || status === 'queued')) {
+			throw new IdentifiableError('f4a8b1c2-3d5e-4f6a-9b0c-1d2e3f4a5b6c', 'Full index is already in progress.');
+		}
+	}
+
+	@bindThis
 	public async fullIndexNoteQueue(limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		await this.queueService.dbQueue.add('fullIndexNote', {
 			limitCount: limitCount ?? undefined,
@@ -546,7 +592,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
+	public async fullIndexNote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -555,6 +601,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
+			discardProgress,
 			batchLimit: 1000,
 			beforeLoop: async () => {
 				if (await this.redisClient.get('indexDeleted') !== null) {
@@ -626,6 +673,7 @@ export class AdvancedSearchService {
 		maxDurationMin?: number;
 		limitCount?: number;
 		intervalMinutes?: number;
+		discardProgress?: boolean;
 		batchLimit?: number;
 		beforeLoop?: () => Promise<boolean>;
 		getTotalCount: () => Promise<number>;
@@ -643,6 +691,17 @@ export class AdvancedSearchService {
 		if (lock !== 'OK') {
 			this.logger.info(`${label} is already running`);
 			return;
+		}
+
+		// 前回の run で消費されず残った abort フラグをここで掃除する。
+		// （直前に paused へ遷移した直後の abort など、ループの abort チェックに拾われなかったもの。
+		// 残しておくと discardProgress 再実行時に即 aborted になってしまう）。
+		// これ以降にユーザーが abort した場合はループ内のチェックで正しく検知される。
+		await this.redisClient.del(`${prefix}abort`);
+
+		if (opts.discardProgress) {
+			await this.redisClient.del(`${prefix}progress`);
+			await this.redisClient.del(`${prefix}nextDelay`);
 		}
 
 		let accumulatedIndex = 0;
@@ -779,7 +838,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexReaction(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
+	public async fullIndexReaction(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -788,6 +847,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
+			discardProgress,
 			getTotalCount: () => this.estimateRowCount('note_reaction'),
 			fetchBatch: (latestid, limit) => this.noteReactionsRepository
 				.createQueryBuilder('reac')
@@ -821,7 +881,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexPollVote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
+	public async fullIndexPollVote(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -830,6 +890,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
+			discardProgress,
 			getTotalCount: () => this.estimateRowCount('poll_vote'),
 			fetchBatch: (latestid, limit) => this.pollVotesRepository
 				.createQueryBuilder('pv')
@@ -858,7 +919,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexClipNotes(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
+	public async fullIndexClipNotes(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -867,6 +928,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
+			discardProgress,
 			getTotalCount: () => this.estimateRowCount('clip_note'),
 			fetchBatch: (latestid, limit) => this.clipNotesRepository
 				.createQueryBuilder('clipnote')
@@ -894,7 +956,7 @@ export class AdvancedSearchService {
 	}
 
 	@bindThis
-	public async fullIndexFavorites(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number): Promise<void> {
+	public async fullIndexFavorites(maxDurationMin?: number, limitCount?: number, intervalMinutes?: number, discardProgress = false): Promise<void> {
 		if (!this.opensearch) return;
 
 		await this.runFullIndex({
@@ -903,6 +965,7 @@ export class AdvancedSearchService {
 			maxDurationMin,
 			limitCount,
 			intervalMinutes,
+			discardProgress,
 			getTotalCount: () => this.estimateRowCount('note_favorite'),
 			fetchBatch: (latestid, limit) => this.noteFavoritesRepository
 				.createQueryBuilder('fv')

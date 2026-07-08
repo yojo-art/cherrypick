@@ -15,6 +15,7 @@ export const meta = {
 
 	requireCredential: true,
 	requireAdmin: true,
+	secure: true,
 	kind: 'write:admin:reindex',
 
 	res: {
@@ -58,27 +59,25 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			};
 			const { redisPrefix, jobName } = prefixMap[ps.index];
 
-			const raw = await this.redisClient.get(`${redisPrefix}progress`);
-			let wasRunning = false;
-			if (raw) {
-				try {
-					const parsed = JSON.parse(raw) as Partial<FullIndexProgress>;
-					wasRunning = parsed.status === 'running';
-				} catch {}
-			}
-
-			if (wasRunning) {
-				await this.redisClient.set(`${redisPrefix}abort`, '1', 'EX', 300);
-			}
 			await this.queueService.removeDelayedFullIndexJobs(jobName);
 			await this.redisClient.del(`${redisPrefix}nextDelay`);
 
-			if (raw) {
-				try {
-					const parsed = JSON.parse(raw) as Partial<FullIndexProgress>;
-					parsed.status = 'aborted';
-					await this.redisClient.set(`${redisPrefix}progress`, JSON.stringify(parsed), 'EX', 3600);
-				} catch {}
+			const lockHeld = await this.redisClient.get(`${redisPrefix}lock`) !== null;
+			if (lockHeld) {
+				// 実行中ジョブはループ内で abort を検知し、finally で最新の current/latestid 付きで書き戻す。
+				// ここで古い progress を書くと、ジョブの最終書き込みと競合して巻き戻る恐れがある。
+				await this.redisClient.set(`${redisPrefix}abort`, '1', 'EX', 300);
+			} else {
+				const raw = await this.redisClient.get(`${redisPrefix}progress`);
+				if (raw) {
+					try {
+						const parsed = JSON.parse(raw) as Partial<FullIndexProgress>;
+						if (parsed.status !== 'completed' && parsed.status !== 'aborted') {
+							parsed.status = 'aborted';
+							await this.redisClient.set(`${redisPrefix}progress`, JSON.stringify(parsed), 'EX', 3600);
+						}
+					} catch {}
+				}
 			}
 
 			return { success: true };
