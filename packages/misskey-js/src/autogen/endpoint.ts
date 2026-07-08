@@ -80,6 +80,7 @@ import type {
 	AdminFederationUpdateInstanceRequest,
 	AdminForwardAbuseUserReportRequest,
 	AdminFullIndexRequest,
+	AdminFullIndexResponse,
 	AdminFullIndexProgressRequest,
 	AdminFullIndexProgressResponse,
 	AdminGetIndexStatsResponse,
@@ -781,7 +782,7 @@ export type Endpoints = {
 	'admin/federation/remove-all-following': { req: AdminFederationRemoveAllFollowingRequest; res: EmptyResponse };
 	'admin/federation/update-instance': { req: AdminFederationUpdateInstanceRequest; res: EmptyResponse };
 	'admin/forward-abuse-user-report': { req: AdminForwardAbuseUserReportRequest; res: EmptyResponse };
-	'admin/full-index': { req: AdminFullIndexRequest; res: EmptyResponse };
+	'admin/full-index': { req: AdminFullIndexRequest; res: AdminFullIndexResponse };
 	'admin/full-index-progress': { req: AdminFullIndexProgressRequest; res: AdminFullIndexProgressResponse };
 	'admin/get-index-stats': { req: EmptyRequest; res: AdminGetIndexStatsResponse };
 	'admin/get-table-stats': { req: EmptyRequest; res: AdminGetTableStatsResponse };
