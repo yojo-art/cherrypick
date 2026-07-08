@@ -914,7 +914,7 @@ export class QueueService implements OnModuleInit {
 
 	@bindThis
 	public async removeDelayedFullIndexJobs(jobName: string): Promise<number> {
-		const delayedJobs = await this.systemQueue.getJobs(['delayed']);
+		const delayedJobs = await this.dbQueue.getJobs(['delayed']);
 		let removedCount = 0;
 		for (const job of delayedJobs) {
 			if (job.name === jobName) {

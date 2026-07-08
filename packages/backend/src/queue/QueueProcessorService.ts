@@ -185,11 +185,6 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'checkModeratorsActivity': return this.checkModeratorsActivityProcessorService.process();
 					case 'clean': return this.cleanProcessorService.process();
 					case 'cleanRemoteNotes': return this.cleanRemoteNotesProcessorService.process(job);
-					case 'fullIndexNote': return this.fullIndexProcessorService.process('fullIndexNote', job);
-					case 'fullIndexReaction': return this.fullIndexProcessorService.process('fullIndexReaction', job);
-					case 'fullIndexPollVote': return this.fullIndexProcessorService.process('fullIndexPollVote', job);
-					case 'fullIndexClipNotes': return this.fullIndexProcessorService.process('fullIndexClipNotes', job);
-					case 'fullIndexFavorites': return this.fullIndexProcessorService.process('fullIndexFavorites', job);
 					case 'autoDeleteNotes': return this.autoDeleteNotesProcessorService.process(job);
 					default: throw new Error(`unrecognized job type ${job.name} for system`);
 				}
@@ -250,6 +245,11 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'deleteAccount': return this.deleteAccountProcessorService.process(job);
 					case 'truncateAccount': return this.truncateAccountProcessorService.process(job);
 					case 'reportAbuse': return this.reportAbuseProcessorService.process(job);
+					case 'fullIndexNote': return this.fullIndexProcessorService.process('fullIndexNote', job);
+					case 'fullIndexReaction': return this.fullIndexProcessorService.process('fullIndexReaction', job);
+					case 'fullIndexPollVote': return this.fullIndexProcessorService.process('fullIndexPollVote', job);
+					case 'fullIndexClipNotes': return this.fullIndexProcessorService.process('fullIndexClipNotes', job);
+					case 'fullIndexFavorites': return this.fullIndexProcessorService.process('fullIndexFavorites', job);
 					default: throw new Error(`unrecognized job type ${job.name} for db`);
 				}
 			};
