@@ -8,12 +8,14 @@ import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type {
 	ChannelFavoritesRepository,
-	FollowingsRepository, ChannelMutingRepository,
+	ChannelMutingRepository,
 	ChannelsRepository,
 	DriveFilesRepository,
+	FollowingsRepository,
 	MiDriveFile,
 	MiNote,
-	NotesRepository, UserProfilesRepository,
+	NotesRepository,
+	UserProfilesRepository,
 } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { MiUser } from '@/models/User.js';
