@@ -69,7 +69,6 @@ export class ApRendererService {
 
 		private customEmojiService: CustomEmojiService,
 		private userEntityService: UserEntityService,
-		private channelEntityService: ChannelEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private jsonLdService: JsonLdService,
 		private userKeypairService: UserKeypairService,
@@ -540,11 +539,25 @@ export class ApRendererService {
 		if (note.hasPoll) {
 			poll = await this.pollsRepository.findOneBy({ noteId: note.id });
 		}
-		if (note.channel?.actorId) {
-			note.channel.actor = await this.usersRepository.findOneBy({ id: note.channel.actorId });
-			const host = note.channel.actor?.host;
-			const mention = '@' + note.channel.actor?.username + (host ? '@' + host : '');
-			text += mention;
+
+		const originalMentionedRemoteUsers = note.mentionedRemoteUsers;
+		const originalText = note.text;
+		if (note.channel?.actorId)note.channel.actor = await this.usersRepository.findOneBy({ id: note.channel.actorId });
+		if (note.channel?.actor) {
+			if (note.channel.actor.uri && note.channel.actor.host) {
+				const mentionedRemoteUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
+				mentionedRemoteUsers.push({
+					uri: note.channel.actor.uri,
+					url: undefined,
+					username: note.channel.actor.username,
+					host: note.channel.actor.host,
+				});
+				note.mentionedRemoteUsers = JSON.stringify(mentionedRemoteUsers);
+			}
+			const host = note.channel.actor.host;
+			const mention = '@' + note.channel.actor.username + (host ? '@' + host : '');
+			note.text = text + mention;
+			text = note.text;
 		}
 
 		const apAppend: Appender[] = [];
@@ -570,6 +583,9 @@ export class ApRendererService {
 		const summary = note.cw === '' ? String.fromCharCode(0x200B) : note.cw;
 
 		const { content, noMisskeyContent } = this.apMfmService.getNoteHtml(note, apAppend);
+
+		note.text = originalText;
+		note.mentionedRemoteUsers = originalMentionedRemoteUsers;
 
 		const emojis = await this.getEmojis(note.emojis);
 		const apemojis = emojis.filter(emoji => !emoji.localOnly).map(emoji => this.renderEmoji(emoji));

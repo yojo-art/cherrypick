@@ -95,10 +95,10 @@ export class NoteUpdateService implements OnApplicationShutdown {
 				note.channel.actor ??= note.channel.actorId ? await this.cacheService.findUserById(note.channel.actorId) : null;
 				const username = note.channel.actor?.username;
 				if (username) {
-					data.text = data.text.replaceAll('@' + note.channel.actor, '');
+					data.text = data.text.replaceAll('@' + username, '');
 					const host = note.channel.actor?.host;
 					if (host) {
-						data.text = data.text?.replaceAll('@' + note.channel.actor + '@' + host, '');
+						data.text = data.text.replaceAll('@' + username + '@' + host, '');
 					}
 				}
 			}

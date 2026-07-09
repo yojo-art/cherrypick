@@ -488,10 +488,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 			data.channel.actor ??= data.channel.actorId ? await this.cacheService.findUserById(data.channel.actorId) : null;
 			const username = data.channel.actor?.username;
 			if (username) {
-				data.text = data.text.replaceAll('@' + data.channel.actor, '');
+				data.text = data.text.replaceAll('@' + username, '');
 				const host = data.channel.actor?.host;
 				if (host) {
-					data.text = data.text.replaceAll('@' + data.channel.actor + '@' + host, '');
+					data.text = data.text.replaceAll('@' + username + '@' + host, '');
 				}
 			}
 		}
