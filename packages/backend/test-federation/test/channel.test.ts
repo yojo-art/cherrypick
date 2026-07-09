@@ -259,6 +259,35 @@ describe('Channel', () => {
 		});
 	});
 
+	describe('Mention', () => {
+		test('ローカルのチャンネルアカウントへのメンションが削除される', async () => {
+			assert(aliceCh.actorId);
+
+			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			const note = (await alice.client.request('notes/create', {
+				text: '@' + channelActorInA.username + 'I am Alice!',
+				channelId: aliceCh.id,
+				visibility: 'public',
+			})).createdNote;
+
+			assert(!note.text?.includes(channelActorInA.username), 'ローカルで見て削除される');
+			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
+			assert(!resolvedNote.text?.includes(channelActorInA.username), 'リモートで見て削除される');
+		});
+
+		test('リモートのチャンネルアカウントへのメンションが削除される', async () => {
+			const note = (await bob.client.request('notes/create', {
+				text: '@' + aliceChActorInB.username + '@a.test I am Bob!',
+				channelId: aliceChInB.id,
+				visibility: 'public',
+			})).createdNote;
+
+			assert(!note.text?.includes(aliceChActorInB.username), 'ローカルで見て削除される');
+			const resolvedNote = await resolveRemoteNote('b.test', note.id, alice);
+			assert(!resolvedNote.text?.includes(aliceChActorInB.username), 'リモートで見て削除される');
+		});
+	});
+
 	describe('Timelines', () => {
 		beforeAll(async () => {
 			assert(aliceCh.actorId);

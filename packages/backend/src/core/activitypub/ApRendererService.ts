@@ -556,7 +556,7 @@ export class ApRendererService {
 			}
 			const host = note.channel.actor.host;
 			const mention = '@' + note.channel.actor.username + (host ? '@' + host : '');
-			note.text = text + mention;
+			note.text = (mention + ' ' + text).trim();
 			text = note.text;
 		}
 
