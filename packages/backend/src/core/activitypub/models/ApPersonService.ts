@@ -591,6 +591,7 @@ export class ApPersonService implements OnModuleInit {
 			const updates = await this.resolveAvatarAndBanner(user, person.icon, person.image, role_policy);
 			await this.usersRepository.update(user.id, updates);
 			user = { ...user, ...updates };
+
 			if (updates.bannerId !== undefined) {
 				await this.channelsRepository.update({ actorId: user.id }, {
 					bannerId: updates.bannerId,
