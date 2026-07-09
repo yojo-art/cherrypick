@@ -29,7 +29,6 @@ import { MetaService } from '@/core/MetaService.js';
 import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
 import { extractHashtags } from '@/misc/extract-hashtags.js';
 import { normalizeForSearch } from '@/misc/normalize-for-search.js';
-import { HashtagService } from './HashtagService.js';
 
 @Injectable()
 export class SignupService {
@@ -55,7 +54,6 @@ export class SignupService {
 		private systemAccountService: SystemAccountService,
 		private metaService: MetaService,
 		private usersChart: UsersChart,
-		private hashtagService: HashtagService,
 	) {
 	}
 
