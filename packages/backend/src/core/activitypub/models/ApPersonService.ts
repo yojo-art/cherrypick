@@ -439,13 +439,6 @@ export class ApPersonService implements OnModuleInit {
 		try {
 			// Start transaction
 			await this.db.transaction(async transactionalEntityManager => {
-				let _description: string | null = null;
-
-				if (person._misskey_summary) {
-					_description = truncate(person._misskey_summary, summaryLength);
-				} else if (person.summary) {
-					_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
-				}
 				user = await transactionalEntityManager.save(new MiUser({
 					id: this.idService.gen(),
 					avatarId: null,
@@ -507,6 +500,13 @@ export class ApPersonService implements OnModuleInit {
 					clipsUri: person._yojoart_clips ? getApId(person._yojoart_clips) : person.playlists ? getApId(person.playlists) : undefined,
 				})) as MiRemoteUser;
 
+				let _description: string | null = null;
+
+				if (person._misskey_summary) {
+					_description = truncate(person._misskey_summary, summaryLength);
+				} else if (person.summary) {
+					_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
+				}
 				if (isChannel) {
 					const channel = await transactionalEntityManager.save(new MiChannel({
 						id: this.idService.gen(),
