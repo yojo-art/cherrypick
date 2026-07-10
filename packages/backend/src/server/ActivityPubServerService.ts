@@ -1021,7 +1021,7 @@ export class ActivityPubServerService {
 				isSuspended: false,
 			});
 			if (user) reply.redirect(`/users/${user.id}`);
-			reply.code(404);
+			else reply.code(404);
 		});
 
 		fastify.get<{ Params: { user: string; } }>('/users/:user', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
@@ -1053,7 +1053,7 @@ export class ActivityPubServerService {
 				isSuspended: false,
 			});
 			if (user) reply.redirect(`/@${user.username}`);
-			reply.code(404);
+			else reply.code(404);
 		});
 
 		fastify.get<{ Params: { acct: string; } }>('/@:acct', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
