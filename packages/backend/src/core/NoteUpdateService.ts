@@ -32,6 +32,7 @@ import { MiPoll, IPoll } from '@/models/Poll.js';
 import { concat } from '@/misc/prelude/array.js';
 import { extractHashtags } from '@/misc/extract-hashtags.js';
 import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
+import { removeChannelMention } from '@/misc/escape-reg-exp.js';
 import { NoteHistorySerivce } from './NoteHistoryService.js';
 import { CacheService } from './CacheService.js';
 
@@ -94,11 +95,7 @@ export class NoteUpdateService implements OnApplicationShutdown {
 			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
 				note.channel.actor ??= note.channel.actorId ? await this.cacheService.findUserById(note.channel.actorId) : null;
 				const username = note.channel.actor?.username;
-				if (username) {
-					const host = note.channel.actor?.host;
-					if (host) data.text = data.text.replaceAll('@' + username + '@' + host, '');
-					data.text = data.text.replaceAll('@' + username, '');
-				}
+				if (username) data.text = removeChannelMention(data.text, username, note.channel.actor?.host ?? null);
 			}
 			if (data.text.length > DB_MAX_NOTE_TEXT_LENGTH) {
 				data.text = data.text.slice(0, DB_MAX_NOTE_TEXT_LENGTH);

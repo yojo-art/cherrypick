@@ -60,6 +60,7 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { removeChannelMention } from '@/misc/escape-reg-exp.js';
 import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
@@ -487,11 +488,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
 			data.channel.actor ??= data.channel.actorId ? await this.cacheService.findUserById(data.channel.actorId) : null;
 			const username = data.channel.actor?.username;
-			if (username) {
-				const host = data.channel.actor?.host;
-				if (host) data.text = data.text.replaceAll('@' + username + '@' + host, '');
-				data.text = data.text.replaceAll('@' + username, '');
-			}
+			if (username) data.text = removeChannelMention(data.text, username, data.channel.actor?.host ?? null);
 		}
 
 		if (data.renote) {
