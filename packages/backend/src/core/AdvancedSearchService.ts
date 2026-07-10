@@ -892,21 +892,14 @@ export class AdvancedSearchService {
 			intervalMinutes,
 			discardProgress,
 			getTotalCount: () => this.estimateRowCount('poll_vote'),
-			fetchBatch: async (latestid, limit) => {
-				const raw = await this.pollVotesRepository
-					.createQueryBuilder('pv')
-					.where('pv.id > :latestid', { latestid })
-					.innerJoin('pv.user', 'user')
-					.andWhere('user.host IS NULL')
-					.orderBy('pv.id', 'ASC')
-					.limit(limit)
-					.getRawMany();
-				return raw.map(r => ({
-					id: r.pv_id,
-					noteId: r.pv_noteId,
-					userId: r.pv_userId,
-				}));
-			},
+			fetchBatch: async (latestid, limit) =>  await this.pollVotesRepository
+				.createQueryBuilder('pv')
+				.where('pv.id > :latestid', { latestid })
+				.innerJoin('pv.user', 'user')
+				.andWhere('user.host IS NULL')
+				.orderBy('pv.id', 'ASC')
+				.limit(limit)
+				.getMany(),
 			indexItem: (pollVote) => this.indexVote(pollVote.id, {
 				noteId: pollVote.noteId,
 				userId: pollVote.userId,
