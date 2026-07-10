@@ -8,13 +8,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
 			<div class="_panel" style="padding: 16px;">
-
-				<!-- 一時停止中 → 続きを実行ボタン -->
-				<MkButton v-if="currentProgress.status === 'paused'" class="button" inline primary @click="fullIndexResume()"> {{ i18n.ts._reIndexOpenSearch.resume }} </MkButton>
-
-				<!-- 完了/停止/idle → 再インデックスボタン -->
 				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
-
 				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 
 				<div class="_gaps_s" style="margin-top: 12px;">
@@ -26,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkButton v-if="isAbortable(opt.value)" class="button" inline danger small @click="abortIndex(opt.value)"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
 							</div>
 							<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
-								{{ progressMap[opt.value].current?.toLocaleString() }} / {{ progressMap[opt.value].total?.toLocaleString() }} ({{ progressPercentOf(opt.value) }}%)
+								{{ progressDisplayText(opt.value) }}
 							</p>
 							<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColorOf(opt.value) }">
 								{{ statusTextOf(opt.value) }}
@@ -91,7 +85,23 @@ function progressPercentOf(index: IndexKind): number {
 	const p = progressMap.value[index];
 	const c = p.current;
 	const t = p.total;
-	return (c != null && t != null && t > 0) ? Math.floor((c / t) * 100) : 0;
+
+	// completed で current > 0 なら常に 100%
+	if (p.status === 'completed' && c != null && c > 0) {
+		return 100;
+	}
+
+	const percent = (c != null && t != null && t > 0) ? Math.floor((c / t) * 100) : 0;
+	return Math.min(100, percent);
+}
+
+function progressDisplayText(index: IndexKind): string {
+	const p = progressMap.value[index];
+	const c = p.current ?? 0;
+	// completed で current > 0 なら概算値(total)ではなく current を分母にして 1/1 感覚にする
+	const t = (p.status === 'completed' && c > 0) ? c : (p.total ?? 0);
+	const percent = progressPercentOf(index);
+	return `${c.toLocaleString()} / ${t.toLocaleString()} (${percent}%)`;
 }
 
 let pollingInterval: number | null = null;
