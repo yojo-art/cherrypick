@@ -222,11 +222,12 @@ export class UserFollowingService implements OnModuleInit {
 
 		await this.insertFollowingDoc(followee, follower, silent, withReplies);
 
-		if (this.userEntityService.isLocalUser(followee)) {
-			const targetChannel = follower.channelId ? await this.channelsRepository.findOneBy({ id: follower.channelId }) : null;
+		if (this.userEntityService.isLocalUser(follower)) {
+			//followeeがチャンネルでfollowerがユーザー
+			const targetChannel = followee.channelId ? await this.channelsRepository.findOneBy({ id: followee.channelId }) : null;
 			if (targetChannel) {
 				this.globalEventService.publishInternalEvent('followChannel', {
-					userId: followee.id,
+					userId: follower.id,
 					channelId: targetChannel.id,
 				});
 			}
@@ -395,11 +396,12 @@ export class UserFollowingService implements OnModuleInit {
 
 		this.decrementFollowing(following.follower, following.followee);
 
-		if (this.userEntityService.isLocalUser(following.followee)) {
-			const targetChannel = following.follower.channelId ? await this.channelsRepository.findOneBy({ id: following.follower.channelId }) : null;
+		if (this.userEntityService.isLocalUser(following.follower)) {
+			//followeeがチャンネルでfollowerがユーザー
+			const targetChannel = following.followee.channelId ? await this.channelsRepository.findOneBy({ id: following.followee.channelId }) : null;
 			if (targetChannel) {
 				this.globalEventService.publishInternalEvent('unfollowChannel', {
-					userId: following.followee.id,
+					userId: following.follower.id,
 					channelId: targetChannel.id,
 				});
 			}
