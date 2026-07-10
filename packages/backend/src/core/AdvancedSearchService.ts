@@ -898,7 +898,7 @@ export class AdvancedSearchService {
 			intervalMinutes,
 			discardProgress,
 			getTotalCount: () => this.estimateRowCount('poll_vote'),
-			fetchBatch: async (latestid, limit) =>  await this.pollVotesRepository
+			fetchBatch: async (latestid, limit) => await this.pollVotesRepository
 				.createQueryBuilder('pv')
 				.where('pv.id > :latestid', { latestid })
 				.innerJoin('pv.user', 'user')
