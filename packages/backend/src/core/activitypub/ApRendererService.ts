@@ -538,25 +538,25 @@ export class ApRendererService {
 		if (note.hasPoll) {
 			poll = await this.pollsRepository.findOneBy({ noteId: note.id });
 		}
-
-		const originalMentionedRemoteUsers = note.mentionedRemoteUsers;
-		const originalText = note.text;
-		if (note.channel?.actorId)note.channel.actor = await this.usersRepository.findOneBy({ id: note.channel.actorId });
-		if (note.channel?.actor) {
-			if (note.channel.actor.uri && note.channel.actor.host) {
+		// AP描画用にmentionedRemoteUsersを差し替えるためのローカルコピー(note本体は不変に保つ)
+		let mentionedRemoteUsersJson = note.mentionedRemoteUsers;
+		const channelActor = note.channel?.actorId
+			? await this.usersRepository.findOneBy({ id: note.channel.actorId })
+			: null;
+		if (channelActor) {
+			if (channelActor.uri && channelActor.host) {
 				const mentionedRemoteUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
 				mentionedRemoteUsers.push({
-					uri: note.channel.actor.uri,
+					uri: channelActor.uri,
 					url: undefined,
-					username: note.channel.actor.username,
-					host: note.channel.actor.host,
+					username: channelActor.username,
+					host: channelActor.host,
 				});
-				note.mentionedRemoteUsers = JSON.stringify(mentionedRemoteUsers);
+				mentionedRemoteUsersJson = JSON.stringify(mentionedRemoteUsers);
 			}
-			const host = note.channel.actor.host;
-			const mention = '@' + note.channel.actor.username + (host ? '@' + host : '');
-			note.text = (mention + ' ' + text).trim();
-			text = note.text;
+			const host = channelActor.host;
+			const mention = '@' + channelActor.username + (host ? '@' + host : '');
+			text = (mention + ' ' + text).trim(); // ローカル変数だけを更新
 		}
 
 		const apAppend: Appender[] = [];
@@ -581,10 +581,11 @@ export class ApRendererService {
 
 		const summary = note.cw === '' ? String.fromCharCode(0x200B) : note.cw;
 
-		const { content, noMisskeyContent } = this.apMfmService.getNoteHtml(note, apAppend);
-
-		note.text = originalText;
-		note.mentionedRemoteUsers = originalMentionedRemoteUsers;
+		// yojo-art: note本体は書き換えず、描画に必要なフィールドだけ差し替えたビューを渡す
+		const { content, noMisskeyContent } = this.apMfmService.getNoteHtml(
+			{ text, mentionedRemoteUsers: mentionedRemoteUsersJson },
+			apAppend,
+		);
 
 		const emojis = await this.getEmojis(note.emojis);
 		const apemojis = emojis.filter(emoji => !emoji.localOnly).map(emoji => this.renderEmoji(emoji));
