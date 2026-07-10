@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import * as Redis from 'ioredis';
 import { FullIndexStatus } from '@/core/AdvancedSearchService.js';
+import { QueueService } from '@/core/QueueService.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -80,6 +81,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 	constructor(
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
+		private queueService: QueueService,
 	) {
 		super(meta, paramDef, async (ps, _me) => {
 			const prefixMap: Record<string, string> = {
@@ -88,6 +90,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				pollVote: 'fullIndexPollVote:',
 				clipNotes: 'fullIndexClipNotes:',
 				Favorites: 'fullIndexFavorites:',
+			};
+			const jobNameMap: Record<string, string> = {
+				notes: 'fullIndexNote',
+				reaction: 'fullIndexReaction',
+				pollVote: 'fullIndexPollVote',
+				clipNotes: 'fullIndexClipNotes',
+				Favorites: 'fullIndexFavorites',
 			};
 			const prefix = prefixMap[ps.index];
 			const raw = await this.redisClient.get(`${prefix}progress`);
@@ -129,15 +138,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				? (parsed.status as FullIndexStatus)
 				: null;
 
-			// paused の場合のみ、自動再開待ちかどうかを nextDelay で判定する（1回読めば十分なので使い回す）
+			// paused の場合、BullMQ の delayed ジョブを検索して自動再開待ちか判定する
 			let nextRunAt: number | null = null;
 			if (status === 'paused') {
-				const nextDelayRaw = await this.redisClient.get(`${prefix}nextDelay`);
-				nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
-				if (nextRunAt && Date.now() < nextRunAt) {
+				const delayedJobs = await this.queueService.dbQueue.getJobs(['delayed']);
+				const targetJob = delayedJobs.find(job => job.name === jobNameMap[ps.index]);
+				if (targetJob) {
+					nextRunAt = targetJob.timestamp + targetJob.delay;
 					status = 'queued';
-				} else {
-					nextRunAt = null;
 				}
 			}
 

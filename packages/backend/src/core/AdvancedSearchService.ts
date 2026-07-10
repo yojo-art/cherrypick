@@ -566,9 +566,16 @@ export class AdvancedSearchService {
 
 		let status = parsed.status;
 		if (status === 'paused') {
-			const nextDelayRaw = await this.redisClient.get(`${prefix}nextDelay`);
-			const nextRunAt = nextDelayRaw ? Number(nextDelayRaw) : null;
-			if (nextRunAt && Date.now() < nextRunAt) {
+			const jobNameMap: Record<FullIndexKind, string> = {
+				notes: 'fullIndexNote',
+				reaction: 'fullIndexReaction',
+				pollVote: 'fullIndexPollVote',
+				clipNotes: 'fullIndexClipNotes',
+				Favorites: 'fullIndexFavorites',
+			};
+			const delayedJobs = await this.queueService.dbQueue.getJobs(['delayed']);
+			const targetJob = delayedJobs.find(job => job.name === jobNameMap[index]);
+			if (targetJob) {
 				status = 'queued';
 			}
 		}
@@ -701,7 +708,6 @@ export class AdvancedSearchService {
 
 		if (opts.discardProgress) {
 			await this.redisClient.del(`${prefix}progress`);
-			await this.redisClient.del(`${prefix}nextDelay`);
 		}
 
 		let accumulatedIndex = 0;

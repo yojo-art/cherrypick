@@ -71,7 +71,6 @@ export class FullIndexProcessorService {
 
 		if (parsed.status === 'paused') {
 			const delayMs = (intervalMinutes ?? DEFAULT_RESUME_INTERVAL_MINUTES) * 60 * 1000;
-			const nextRunAt = Date.now() + delayMs;
 			await this.queueService.dbQueue.add(jobName, {
 				limitCount,
 				intervalMinutes,
@@ -79,8 +78,6 @@ export class FullIndexProcessorService {
 				delay: delayMs,
 				jobId: `${jobName}-${Date.now()}`,
 			});
-			// 再開予定時刻の表示用キー。実際の再開までは生存させたいので、遅延ぶん＋余裕を持たせる。
-			await this.redisClient.set(`${prefix}nextDelay`, String(nextRunAt), 'EX', Math.ceil(delayMs / 1000) + 600);
 		}
 	}
 }

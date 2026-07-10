@@ -60,7 +60,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 			const { redisPrefix, jobName } = prefixMap[ps.index];
 
 			await this.queueService.removeDelayedFullIndexJobs(jobName);
-			await this.redisClient.del(`${redisPrefix}nextDelay`);
 
 			const lockHeld = await this.redisClient.get(`${redisPrefix}lock`) !== null;
 			if (lockHeld) {
