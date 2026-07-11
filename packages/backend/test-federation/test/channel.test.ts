@@ -358,16 +358,16 @@ describe('Channel', () => {
 				channelId: aliceCh.id,
 				visibility: 'followers',
 			})).createdNote;
-			await bob.client.request('notes/create', {
-				text: 'I am Bob!',
-				channelId: aliceChInB.id,
+			await carol.client.request('notes/create', {
+				text: 'I am Carol!',
+				channelId: aliceChInC.id,
 				visibility: 'followers',
 			});
 			const notes = (await alice.client.request('channels/timeline', {
 				channelId: aliceCh.id,
 			}));
 
-			strictEqual(notes.filter(note => note.isHidden), []);
+			strictEqual(JSON.stringify(notes.filter(note => note.isHidden === true)), JSON.stringify([]));
 			strictEqual(notes.filter(note => note.id === homeNote.id || note.id === followersNote.id).length, 2);
 		});
 	});
