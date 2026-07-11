@@ -59,8 +59,11 @@ export async function mainBoot() {
 			case 'default':
 				rootComponent = await import('@/ui/universal.vue').then(x => x.default);
 				break;
-			default:
+			case 'friendly':
 				rootComponent = await import('@/ui/friendly.vue').then(x => x.default);
+				break;
+			default:
+				rootComponent = await import('@/ui/universal.vue').then(x => x.default);
 				break;
 		}
 
