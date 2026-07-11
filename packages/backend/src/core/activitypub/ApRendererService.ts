@@ -30,6 +30,7 @@ import { IdService } from '@/core/IdService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { searchableTypes } from '@/types.js';
+import { isPureRenote } from '../entities/NoteEntityService.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
@@ -522,7 +523,7 @@ export class ApRendererService {
 			searchableBy = ['as:Limited', 'kmyblue:Limited'];
 		}
 		const mentionUserIds = note.mentions.concat();
-		if (note.channel?.actorId)mentionUserIds.push(note.channel.actorId);
+		if (!isPureRenote(note) && note.channel?.actorId)mentionUserIds.push(note.channel.actorId);
 		const mentionedUsers = mentionUserIds.length > 0 ? await this.usersRepository.findBy({
 			id: In(mentionUserIds),
 		}) : [];
@@ -540,23 +541,23 @@ export class ApRendererService {
 		}
 		// AP描画用にmentionedRemoteUsersを差し替えるためのローカルコピー(note本体は不変に保つ)
 		let mentionedRemoteUsersJson = note.mentionedRemoteUsers;
-		const channelActor = note.channel?.actorId
-			? await this.usersRepository.findOneBy({ id: note.channel.actorId })
-			: null;
-		if (channelActor) {
-			if (channelActor.uri && channelActor.host) {
-				const mentionedRemoteUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
-				mentionedRemoteUsers.push({
-					uri: channelActor.uri,
-					url: undefined,
-					username: channelActor.username,
-					host: channelActor.host,
-				});
-				mentionedRemoteUsersJson = JSON.stringify(mentionedRemoteUsers);
+		if (!isPureRenote(note)) {
+			const channelActor = note.channel?.actorId ? await this.usersRepository.findOneBy({ id: note.channel.actorId }) : null;
+			if (channelActor) {
+				if (channelActor.uri && channelActor.host) {
+					const mentionedRemoteUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
+					mentionedRemoteUsers.push({
+						uri: channelActor.uri,
+						url: undefined,
+						username: channelActor.username,
+						host: channelActor.host,
+					});
+					mentionedRemoteUsersJson = JSON.stringify(mentionedRemoteUsers);
+				}
+				const host = channelActor.host;
+				const mention = '@' + channelActor.username + (host ? '@' + host : '');
+				text = (mention + ' ' + text).trim(); // ローカル変数だけを更新
 			}
-			const host = channelActor.host;
-			const mention = '@' + channelActor.username + (host ? '@' + host : '');
-			text = (mention + ' ' + text).trim(); // ローカル変数だけを更新
 		}
 
 		const apAppend: Appender[] = [];

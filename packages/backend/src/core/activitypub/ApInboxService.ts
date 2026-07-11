@@ -464,6 +464,21 @@ export class ApInboxService {
 			if (createdAt && createdAt < this.idService.parse(renote.id).date) {
 				return 'skip: malformed createdAt';
 			}
+			let channel = null as MiChannel | null;
+			if (actor.channelId) {
+				//チャンネルアカウントによる投稿はすべてチャンネル投稿
+				channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
+				if (channel)channel.actor = actor;
+			} else {
+				for (const user of activityAudience.mentionedUsers) {
+					const channelId = user.channelId;
+					if (channelId) {
+						channel = await this.channelsRepository.findOneBy({ id: channelId });
+						if (channel)channel.actor = user;
+					}
+					if (channel) break;//最初に発見されたチャンネルに投稿
+				}
+			}
 
 			await this.noteCreateService.create(actor, {
 				createdAt,
@@ -472,6 +487,7 @@ export class ApInboxService {
 				searchableBy: null,
 				visibleUsers: activityAudience.visibleUsers,
 				uri,
+				channel,
 			});
 		} finally {
 			unlock();

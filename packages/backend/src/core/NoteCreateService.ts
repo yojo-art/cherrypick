@@ -936,7 +936,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 					trackPromise(dm.execute());
 				})();
 			}
-			if (note.channel?.actorId != null && note.channel.host == null && !user.channelId && ['public', 'home'].includes(note.visibility)) {
+			if (note.channel?.actorId != null && note.channel.host == null && !user.channelId && ['public', 'home'].includes(note.visibility) && !isPureRenote) {
 				//ローカルのチャンネルに投稿が作成された時リノートする
 				note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
 				if (note.channel.actor) {

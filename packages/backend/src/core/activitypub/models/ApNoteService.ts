@@ -238,11 +238,13 @@ export class ApNoteService {
 		if (actor.channelId) {
 			//チャンネルアカウントによる投稿はすべてチャンネル投稿
 			channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
+			if (channel)channel.actor = actor;
 		} else {
 			for (const user of noteAudience.mentionedUsers) {
 				const channelId = user.channelId;
 				if (channelId) {
 					channel = await this.channelsRepository.findOneBy({ id: channelId });
+					if (channel)channel.actor = user;
 				}
 				if (channel) break;//最初に発見されたチャンネルに投稿
 			}

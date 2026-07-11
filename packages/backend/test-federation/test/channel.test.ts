@@ -228,6 +228,44 @@ describe('Channel', () => {
 			strictEqual(resolvedNote.visibility, 'home');
 		});
 
+		test('フォロワー限定なチャンネル投稿が投稿先インスタンスでフォロワー限定なチャンネル投稿として照会できる', async () => {
+			const note = (await bob.client.request('notes/create', {
+				text: 'I am Bob!',
+				channelId: aliceChInB.id,
+				visibility: 'followers',
+			})).createdNote;
+
+			strictEqual(note.visibility, 'followers');
+			const resolvedNote = await resolveRemoteNote('b.test', note.id, alice);
+			strictEqual(bobInA.id, resolvedNote.userId);
+			strictEqual(resolvedNote.channelId, aliceCh.id);
+			strictEqual(resolvedNote.visibility, 'followers');
+		});
+
+		test('フォロワー限定なチャンネル投稿が無関係なインスタンスでフォロワー限定なチャンネル投稿として照会できない', async () => {
+			const note = (await alice.client.request('notes/create', {
+				text: 'I am Alice!',
+				channelId: aliceCh.id,
+				visibility: 'followers',
+			})).createdNote;
+
+			strictEqual(note.visibility, 'followers');
+
+			let errored = false;
+			try {
+				await resolveRemoteNote('a.test', note.id, carol);
+			} catch (err) {
+				errored = true;
+				const e = err as { code?: string; status?: number };
+				strictEqual(
+					e.status === 400 || e.code === 'REQUEST_FAILED',
+					true,
+					`unexpected error: ${JSON.stringify(err)}`,
+				);
+			}
+			strictEqual(errored, true, 'request should have been rejected');
+		});
+
 		test('チャンネル管理、閲覧、投稿がすべて別インスタンスでも動く', async () => {
 			const note = (await carol.client.request('notes/create', {
 				text: 'I am Carol!',
@@ -246,6 +284,40 @@ describe('Channel', () => {
 			strictEqual(carolInB.id, resolvedNoteInB.userId);
 			strictEqual(resolvedNoteInB.channelId, aliceChInB.id);
 			strictEqual(resolvedNoteInB.visibility, 'public');
+		});
+
+		test('パブリックなチャンネル内リノートがパブリックなチャンネル投稿として照会できる', async () => {
+			const note = (await alice.client.request('notes/create', {
+				text: 'I am Alice!',
+				channelId: aliceCh.id,
+				visibility: 'public',
+			})).createdNote;
+			const renote = (await alice.client.request('notes/create', {
+				renoteId: note.id,
+				channelId: aliceCh.id,
+			})).createdNote;
+
+			const resolvedNote = await resolveRemoteNote('a.test', renote.id, bob);
+			strictEqual(aliceInB.id, resolvedNote.userId);
+			strictEqual(resolvedNote.channelId, aliceChInB.id);
+			strictEqual(resolvedNote.visibility, 'public');
+		});
+
+		test('ホームなチャンネル内リノートがパブリックなチャンネル投稿として照会できる', async () => {
+			const note = (await alice.client.request('notes/create', {
+				text: 'I am Alice!',
+				channelId: aliceCh.id,
+				visibility: 'home',
+			})).createdNote;
+			const renote = (await alice.client.request('notes/create', {
+				renoteId: note.id,
+				channelId: aliceCh.id,
+			})).createdNote;
+
+			const resolvedNote = await resolveRemoteNote('a.test', renote.id, bob);
+			strictEqual(aliceInB.id, resolvedNote.userId);
+			strictEqual(resolvedNote.channelId, aliceChInB.id);
+			strictEqual(resolvedNote.visibility, 'home');
 		});
 
 		test('チャンネルアカウントのTLにはチャンネル投稿しか無い', async () => {

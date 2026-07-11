@@ -171,11 +171,13 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (user.channelId) {
 							//チャンネルアカウントによる投稿はすべてチャンネル投稿
 							channel = await this.channelsRepository.findOneBy({ id: user.channelId });
+							if (channel)channel.actor = user;
 						} else {
 							for (const user of activityAudience.mentionedUsers) {
 								const channelId = user.channelId;
 								if (channelId) {
 									channel = await this.channelsRepository.findOneBy({ id: channelId });
+									if (channel)channel.actor = user;
 								}
 								if (channel) break;//最初に発見されたチャンネルに投稿
 							}
