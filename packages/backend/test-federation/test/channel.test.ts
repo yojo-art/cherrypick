@@ -299,7 +299,7 @@ describe('Channel', () => {
 
 			strictEqual(note.text, expectedText, 'ローカルで見て削除されない');
 			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
-			strictEqual(resolvedNote.text, expectedText, 'リモートで見て削除されない');
+			strictEqual(resolvedNote.text, '@' + alice.username + '@a.test I am Alice!', 'リモートで見て削除されない');
 		});
 
 		test('リモートの一般ユーザーへのメンションが削除されない', async () => {
@@ -328,7 +328,7 @@ describe('Channel', () => {
 
 			strictEqual(note.text, expectedText, 'ローカルで見て削除されない');
 			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
-			strictEqual(resolvedNote.text, expectedText, 'リモートで見て削除されない');
+			strictEqual(resolvedNote.text, '@' + channelActorInA.username + 'foo@a.test I am Alice!', 'リモートで見て削除されない');
 		});
 
 		test('リモートのチャンネルアカウント名に部分一致しても削除されない', async () => {
