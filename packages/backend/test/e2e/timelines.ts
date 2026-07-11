@@ -3327,7 +3327,7 @@ describe('Timelines', () => {
 			const [alice, bob] = await Promise.all([signup(), signup()]);
 
 			const channel = await createChannel('channel', bob);
-			await api('following/create', { userId: alice.id }, bob);
+			await api('following/create', { userId: bob.id }, alice);
 
 			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'followers' });
 
@@ -3339,16 +3339,15 @@ describe('Timelines', () => {
 		});
 
 		test('閲覧中チャンネルのフォロワー限定投稿が非フォロワーには含まれない', async () => {
-			const [alice, bob, carol] = await Promise.all([signup(), signup(), signup()]);
+			const [alice, bob] = await Promise.all([signup(), signup()]);
 
 			const channel = await createChannel('channel', bob);
-			await api('following/create', { userId: alice.id }, bob);
 
 			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'followers' });
 
 			await waitForPushToTl();
 
-			const res = await api('channels/timeline', { channelId: channel.id }, carol);
+			const res = await api('channels/timeline', { channelId: channel.id }, alice);
 
 			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), false);
 		});
