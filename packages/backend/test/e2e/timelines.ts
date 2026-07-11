@@ -3322,6 +3322,64 @@ describe('Timelines', () => {
 				assert.strictEqual(res.body.some((note: any) => note.id === bobRenote.id), false);
 			});
 		});
+
+		test('閲覧中チャンネルにフォロワー限定投稿が含まれる', async () => {
+			const [alice, bob] = await Promise.all([signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+			await api('following/create', { userId: alice.id }, bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'followers' });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, alice);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
+		});
+
+		test('閲覧中チャンネルのフォロワー限定投稿が非フォロワーには含まれない', async () => {
+			const [alice, bob, carol] = await Promise.all([signup(), signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+			await api('following/create', { userId: alice.id }, bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'followers' });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, carol);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), false);
+		});
+
+		test('閲覧中チャンネルに指定ユーザー限定投稿が含まれる', async () => {
+			const [alice, bob] = await Promise.all([signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'specified', visibleUserIds: [alice.id] });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, alice);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
+		});
+
+		test('閲覧中チャンネルの指定ユーザー限定投稿が指定されていないユーザーには含まれない', async () => {
+			const [alice, bob, carol] = await Promise.all([signup(), signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'specified', visibleUserIds: [alice.id] });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, carol);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), false);
+		});
 		// TODO: リノートミュート済みユーザーのテスト
 		// TODO: ページネーションのテスト
 	});
