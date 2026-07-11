@@ -1,4 +1,5 @@
 import assert, { strictEqual } from 'node:assert';
+import { notStrictEqual } from 'node:assert/strict';
 import * as Misskey from 'misskey-js';
 import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
 
@@ -304,9 +305,11 @@ describe('Channel', () => {
 			strictEqual(aliceInB.id, resolvedNote.userId);
 			strictEqual(resolvedNote.channelId, aliceChInB.id);
 			strictEqual(resolvedNote.visibility, 'public');
+			strictEqual(resolvedNote.text, null);
+			notStrictEqual(resolvedNote.renoteId, null);
 		});
 
-		test('ホームなチャンネル内リノートがパブリックなチャンネル投稿として照会できる', async () => {
+		test('ホームなチャンネル内リノートがホームなチャンネル投稿として照会できる', async () => {
 			const note = (await alice.client.request('notes/create', {
 				text: 'I am Alice!',
 				channelId: aliceCh.id,
@@ -321,6 +324,8 @@ describe('Channel', () => {
 			strictEqual(aliceInB.id, resolvedNote.userId);
 			strictEqual(resolvedNote.channelId, aliceChInB.id);
 			strictEqual(resolvedNote.visibility, 'home');
+			strictEqual(resolvedNote.text, null);
+			notStrictEqual(resolvedNote.renoteId, null);
 		});
 
 		test('チャンネルアカウントのTLにはチャンネル投稿しか無い', async () => {
@@ -359,7 +364,7 @@ describe('Channel', () => {
 				visibility: 'followers',
 			});
 			const notes = (await alice.client.request('channels/timeline', {
-				channelId: aliceChActorInB.id,
+				channelId: aliceCh.id,
 			}));
 
 			strictEqual(notes.filter(note => note.isHidden), []);
