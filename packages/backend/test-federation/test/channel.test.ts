@@ -288,6 +288,61 @@ describe('Channel', () => {
 			const resolvedNote = await resolveRemoteNote('b.test', note.id, alice);
 			strictEqual(resolvedNote.text, text, 'リモートで見て削除される');
 		});
+
+		test('ローカルの一般ユーザーへのメンションが削除されない', async () => {
+			const expectedText = '@' + alice.username + ' I am Alice!';
+			const note = (await alice.client.request('notes/create', {
+				text: expectedText,
+				channelId: aliceCh.id,
+				visibility: 'public',
+			})).createdNote;
+
+			strictEqual(note.text, expectedText, 'ローカルで見て削除されない');
+			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
+			strictEqual(resolvedNote.text, expectedText, 'リモートで見て削除されない');
+		});
+
+		test('リモートの一般ユーザーへのメンションが削除されない', async () => {
+			const expectedText = '@' + alice.username + '@a.test I am Bob!';
+			const note = (await bob.client.request('notes/create', {
+				text: expectedText,
+				channelId: aliceChInB.id,
+				visibility: 'public',
+			})).createdNote;
+
+			strictEqual(note.text, expectedText, 'ローカルで見て削除されない');
+			const resolvedNote = await resolveRemoteNote('b.test', note.id, alice);
+			strictEqual(resolvedNote.text, expectedText, 'リモートで見て削除されない');
+		});
+
+		test('ローカルのチャンネルアカウント名に部分一致しても削除されない', async () => {
+			assert(aliceCh.actorId);
+
+			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			const expectedText = '@' + channelActorInA.username + 'foo I am Alice!';
+			const note = (await alice.client.request('notes/create', {
+				text: expectedText,
+				channelId: aliceCh.id,
+				visibility: 'public',
+			})).createdNote;
+
+			strictEqual(note.text, expectedText, 'ローカルで見て削除されない');
+			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
+			strictEqual(resolvedNote.text, expectedText, 'リモートで見て削除されない');
+		});
+
+		test('リモートのチャンネルアカウント名に部分一致しても削除されない', async () => {
+			const expectedText = '@' + aliceChActorInB.username + '@a.testfoo I am Bob!';
+			const note = (await bob.client.request('notes/create', {
+				text: expectedText,
+				channelId: aliceChInB.id,
+				visibility: 'public',
+			})).createdNote;
+
+			strictEqual(note.text, expectedText, 'ローカルで見て削除されない');
+			const resolvedNote = await resolveRemoteNote('b.test', note.id, alice);
+			strictEqual(resolvedNote.text, expectedText, 'リモートで見て削除されない');
+		});
 	});
 
 	describe('Timelines', () => {
