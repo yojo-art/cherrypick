@@ -307,6 +307,7 @@ describe('Channel', () => {
 			strictEqual(resolvedNote.visibility, 'public');
 			strictEqual(resolvedNote.text, null);
 			notStrictEqual(resolvedNote.renoteId, null);
+			strictEqual(resolvedNote.renote?.text, note.text);
 		});
 
 		test('ホームなチャンネル内リノートがホームなチャンネル投稿として照会できる', async () => {
@@ -326,6 +327,7 @@ describe('Channel', () => {
 			strictEqual(resolvedNote.visibility, 'home');
 			strictEqual(resolvedNote.text, null);
 			notStrictEqual(resolvedNote.renoteId, null);
+			strictEqual(resolvedNote.renote?.text, note.text);
 		});
 
 		test('チャンネルアカウントのTLにはチャンネル投稿しか無い', async () => {
@@ -368,7 +370,7 @@ describe('Channel', () => {
 			}));
 
 			strictEqual(JSON.stringify(notes.filter(note => note.isHidden === true)), JSON.stringify([]));
-			strictEqual(notes.filter(note => note.id === homeNote.id || note.id === followersNote.id).length, 2);
+			strictEqual(notes.length, 2);
 		});
 	});
 

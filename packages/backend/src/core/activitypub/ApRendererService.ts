@@ -541,7 +541,8 @@ export class ApRendererService {
 		}
 		// AP描画用にmentionedRemoteUsersを差し替えるためのローカルコピー(note本体は不変に保つ)
 		let mentionedRemoteUsersJson = note.mentionedRemoteUsers;
-		if (!isPureRenote(note)) {
+		if (!isPureRenote(note) && note.channel?.actorId !== note.userId) {
+			//純リノートでなくチャンネルアカウントによる投稿でもない
 			const channelActor = note.channel?.actorId ? await this.usersRepository.findOneBy({ id: note.channel.actorId }) : null;
 			if (channelActor) {
 				if (channelActor.uri && channelActor.host) {
