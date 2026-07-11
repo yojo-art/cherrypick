@@ -264,27 +264,29 @@ describe('Channel', () => {
 			assert(aliceCh.actorId);
 
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
+			const text = 'I am Alice!';
 			const note = (await alice.client.request('notes/create', {
-				text: '@' + channelActorInA.username + 'I am Alice!',
+				text: '@' + channelActorInA.username + ' ' + text,
 				channelId: aliceCh.id,
 				visibility: 'public',
 			})).createdNote;
 
-			assert(!note.text?.includes(channelActorInA.username), 'ローカルで見て削除される');
+			strictEqual(note.text, text, 'ローカルで見て削除される');
 			const resolvedNote = await resolveRemoteNote('a.test', note.id, bob);
-			assert(!resolvedNote.text?.includes(channelActorInA.username), 'リモートで見て削除される');
+			strictEqual(resolvedNote.text, text, 'リモートで見て削除される');
 		});
 
 		test('リモートのチャンネルアカウントへのメンションが削除される', async () => {
+			const text = 'I am Bob!';
 			const note = (await bob.client.request('notes/create', {
-				text: '@' + aliceChActorInB.username + '@a.test I am Bob!',
+				text: '@' + aliceChActorInB.username + '@a.test ' + text,
 				channelId: aliceChInB.id,
 				visibility: 'public',
 			})).createdNote;
 
-			assert(!note.text?.includes(aliceChActorInB.username), 'ローカルで見て削除される');
+			strictEqual(note.text, text, 'ローカルで見て削除される');
 			const resolvedNote = await resolveRemoteNote('b.test', note.id, alice);
-			assert(!resolvedNote.text?.includes(aliceChActorInB.username), 'リモートで見て削除される');
+			strictEqual(resolvedNote.text, text, 'リモートで見て削除される');
 		});
 	});
 
