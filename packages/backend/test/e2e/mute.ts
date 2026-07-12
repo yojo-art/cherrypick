@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { api, post, react, signup, waitFire } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('Mute', () => {
 	// alice mutes carol

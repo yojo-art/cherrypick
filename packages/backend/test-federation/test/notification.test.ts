@@ -1,4 +1,4 @@
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { assertNotificationReceived, createAccount, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
 describe('Notification', () => {

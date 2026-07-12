@@ -49,6 +49,7 @@ import { CleanProcessorService } from './processors/CleanProcessorService.js';
 import { AggregateRetentionProcessorService } from './processors/AggregateRetentionProcessorService.js';
 import { CleanRemoteNotesProcessorService } from './processors/CleanRemoteNotesProcessorService.js';
 import { ScheduledNoteDeleteProcessorService } from './processors/ScheduledNoteDeleteProcessorService.js';
+import { FullIndexProcessorService } from './processors/FullIndexProcessorService.js';
 import { QueueLoggerService } from './QueueLoggerService.js';
 import { AutoDeleteNotesProcessorService } from './processors/AutoDeleteNotesProcessorService.js';
 import { QUEUE, baseWorkerOptions } from './const.js';
@@ -140,6 +141,7 @@ export class QueueProcessorService implements OnApplicationShutdown {
 		private cleanProcessorService: CleanProcessorService,
 		private autoDeleteNotesProcessorService: AutoDeleteNotesProcessorService,
 		private cleanRemoteNotesProcessorService: CleanRemoteNotesProcessorService,
+		private fullIndexProcessorService: FullIndexProcessorService,
 		private scheduledNoteDeleteProcessorService: ScheduledNoteDeleteProcessorService,
 	) {
 		this.logger = this.queueLoggerService.logger;
@@ -243,6 +245,11 @@ export class QueueProcessorService implements OnApplicationShutdown {
 					case 'deleteAccount': return this.deleteAccountProcessorService.process(job);
 					case 'truncateAccount': return this.truncateAccountProcessorService.process(job);
 					case 'reportAbuse': return this.reportAbuseProcessorService.process(job);
+					case 'fullIndexNote': return this.fullIndexProcessorService.process('fullIndexNote', job);
+					case 'fullIndexReaction': return this.fullIndexProcessorService.process('fullIndexReaction', job);
+					case 'fullIndexPollVote': return this.fullIndexProcessorService.process('fullIndexPollVote', job);
+					case 'fullIndexClipNotes': return this.fullIndexProcessorService.process('fullIndexClipNotes', job);
+					case 'fullIndexFavorites': return this.fullIndexProcessorService.process('fullIndexFavorites', job);
 					default: throw new Error(`unrecognized job type ${job.name} for db`);
 				}
 			};

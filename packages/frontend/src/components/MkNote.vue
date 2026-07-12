@@ -99,11 +99,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 								class="_selectable"
 							/>
 							<div v-if="prefer.s.showTranslateButtonInNote && $i && (!prefer.s.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (prefer.s.useAutoTranslate && (isLong || appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i.policies.canUseTranslator && appearNote.text && isForeignLanguage" style="padding: 5px 0; color: var(--MI_THEME-accent);">
-								<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click.stop="translate()">{{ i18n.ts.translateNote }}</button>
-								<button v-else class="_button" @click.stop="translation = null">{{ i18n.ts.close }}</button>
+								<button v-if="translateStatus === 'none'" ref="translateButton" class="_button" @click.stop="translate(false)">{{ i18n.ts.translateNote }}</button>
+								<button v-else class="_button" @click.stop="translateStatus = 'none'; translation = null">{{ i18n.ts.close }}</button>
 							</div>
-							<div v-if="translating || translation" :class="$style.translation">
-								<MkLoading v-if="translating" mini/>
+							<div v-if="translateStatus !== 'none'" :class="$style.translation">
+								<MkLoading v-if="translateStatus === 'running'" mini/>
+								<MkResult v-else-if="translateStatus === 'error'" type="error" :text="i18n.ts.translateError">
+									<MkButton :class="$style.button" rounded @click.stop="() => translate(false)">
+										{{ i18n.ts.retry }}
+									</MkButton>
+								</MkResult>
 								<div v-else-if="translation">
 									<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
 									<Mfm
@@ -141,7 +146,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</div>
 						<div v-if="appearNote.files && appearNote.files.length > 0" style="margin-top: 8px;">
-							<MkMediaList ref="galleryEl" :mediaList="appearNote.files" :disableRightClick="appearNote.disableRightClick" @click.stop @contextmenu="disableRightClickHandler"/>
+							<MkMediaList ref="galleryEl" :mediaList="appearNote.files" @click.stop/>
 						</div>
 						<MkPoll
 							v-if="appearNote.poll"
@@ -212,11 +217,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 						:enableAnimatedMfm="enableAnimatedMfm"
 					/>
 					<div v-if="prefer.s.showTranslateButtonInNote && $i && (!prefer.s.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (prefer.s.useAutoTranslate && (isLong || appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i.policies.canUseTranslator && (appearNote.text || appearNote.poll) && isForeignLanguage" style="padding: 5px 0; color: var(--MI_THEME-accent);">
-						<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click.stop="translate()">{{ i18n.ts.translateNote }}</button>
-						<button v-else class="_button" @click.stop="translation = null">{{ i18n.ts.close }}</button>
+						<button v-if="translateStatus === 'none'" ref="translateButton" class="_button" @click.stop="translate(false)">{{ i18n.ts.translateNote }}</button>
+						<button v-else class="_button" @click.stop="translateStatus = 'none'; translation = null">{{ i18n.ts.close }}</button>
 					</div>
-					<div v-if="translating || translation" :class="$style.translation">
-						<MkLoading v-if="translating" mini/>
+					<div v-if="translateStatus !== 'none'" :class="$style.translation">
+						<MkLoading v-if="translateStatus === 'running'" mini/>
+						<MkResult v-else-if="translateStatus === 'error'" type="error" :text="i18n.ts.translateError">
+							<MkButton :class="$style.button" rounded @click.stop="() => translate(false)">{{ i18n.ts.retry }}</MkButton>
+						</MkResult>
 						<div v-else-if="translation">
 							<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
 							<Mfm
@@ -255,7 +263,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 				<div v-if="appearNote.files && appearNote.files.length > 0">
-					<MkMediaList ref="galleryEl" :mediaList="appearNote.files" :disableRightClick="appearNote.disableRightClick" @click.stop @contextmenu="disableRightClickHandler"/>
+					<MkMediaList ref="galleryEl" :mediaList="appearNote.files" @click.stop/>
 				</div>
 				<MkPoll
 					v-if="appearNote.poll"
@@ -281,6 +289,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 				</button>
 			</div>
+			<MkA v-if="appearNote.channel && !inChannel" :class="$style.channel" :to="`/channels/${appearNote.channel.id}`"><i class="ti ti-device-tv"></i> {{ appearNote.channel.name }}</MkA>
 		</div>
 		<div v-if="appearNote.renoteId" :class="$style.quote"><MkNoteSimple :note="appearNote?.renote ?? null" :class="$style.quoteNote"/></div>
 		<div v-if="!$i && isAnimatedMfm" :class="$style.play_mfm_action">
@@ -395,7 +404,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, inject, onMounted, ref, useTemplateRef, watch, provide } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { isLink } from '@@/js/is-link.js';
 import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@@/js/collapsed.js';
 import { host } from '@@/js/config.js';
@@ -405,6 +414,7 @@ import type { Ref } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
 import type { Keymap } from '@/utility/hotkey.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import { parseMfmCached } from '@/utility/mfm-cache.js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkNoteSub from '@/components/MkNoteSub.vue';
@@ -448,12 +458,13 @@ import { globalEvents } from '@/events.js';
 import { instance } from '@/instance.js';
 import { mainRouter, useRouter } from '@/router.js';
 import { miLocalStorage } from '@/local-storage.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import { store } from '@/store.js';
 import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import detectLanguage from '@/utility/detect-language.js';
 import MkInfo from '@/components/MkInfo.vue';
 import { notesReactionsCreate } from '@/utility/check-reaction-create';
+import MkButton from '@/components/MkButton.vue';
 
 const { showEl } = scrollToVisibility();
 
@@ -528,7 +539,7 @@ const muted = ref(checkMute(appearNote, $i?.mutedWords));
 const hardMuted = ref(props.withHardMute && checkMute(appearNote, $i?.hardMutedWords, true));
 const showSoftWordMutedWord = computed(() => prefer.s.showSoftWordMutedWord);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
-const translating = ref(false);
+const translateStatus = ref<TranslateStatus>('none');
 const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibility) || (appearNote.visibility === 'followers' && appearNote.userId === $i?.id));
 const renoteCollapsed = ref(
 	isRenote && (
@@ -558,10 +569,6 @@ const collapseLabel = computed(() => {
 		appearNote.files && appearNote.files.length !== 0 ? [i18n.tsx._cw.files({ count: appearNote.files.length })] : [],
 	] as string[][]).join(' / ');
 });
-
-const disableRightClickHandler = (event: Event) => {
-	if (appearNote.disableRightClick) event.preventDefault();
-};
 
 /* eslint-disable no-redeclare */
 /** checkOnlyでは純粋なワードミュート結果をbooleanで返却する */
@@ -835,15 +842,6 @@ function react(): void {
 	} else {
 		blur();
 		reactionPicker.show(reactButton.value ?? null, note, async (reaction) => {
-			if (prefer.s.confirmOnReact) {
-				const confirm = await os.confirm({
-					type: 'question',
-					text: i18n.tsx.reactAreYouSure({ emoji: reaction.replace('@.', '') }),
-				});
-
-				if (confirm.canceled) return;
-			}
-
 			if (props.mock) {
 				emit('reaction', reaction);
 				$appearNote.reactions[reaction] = 1;
@@ -985,7 +983,7 @@ function onContextmenu(ev: MouseEvent): void {
 		ev.preventDefault();
 		react();
 	} else {
-		const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translating, viewTextSource, noNyaize, currentClip: currentClip?.value });
+		const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value });
 		os.contextMenu(menu, ev).then(focus).finally(cleanup);
 	}
 }
@@ -997,7 +995,7 @@ function showMenu(): void {
 
 	haptic();
 
-	const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translating, viewTextSource, noNyaize, currentClip: currentClip?.value });
+	const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value });
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 
@@ -1026,45 +1024,45 @@ const isForeignLanguage: boolean = (appearNote.text != null || appearNote.poll !
 	return false;
 })();
 
-if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && !isLong && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate();
+if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && !isLong && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate(true);
 
-async function translate(): Promise<void> {
+async function translate(isAuto: boolean): Promise<void> {
 	if (translation.value != null) return;
+	translateStatus.value = 'running';
 	collapsed.value = false;
-	translating.value = true;
 
 	if (appearNote.text == null) {
-		translating.value = false;
-		translation.value = {
-			sourceLang: '',
-			text: '',
-		};
+		translateStatus.value = 'success';
+		translation.value = null;
 		return;
 	}
 
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
 	if (props.mock) {
 		return;
 	}
 
-	const res = await misskeyApi('notes/translate', {
+	await misskeyApi('notes/translate', {
 		noteId: appearNote.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).then((r) => {
+		translateStatus.value = 'success';
+		translation.value = r;
 	}).catch((err) => {
-		translating.value = false;
-		os.alert(
-			{
-				type: 'error',
-				title: err.message,
-				text: err.id,
-			});
-		return null;
+		translateStatus.value = 'error';
+		translation.value = null;
+		if (!isAuto) {
+			os.alert(
+				{
+					type: 'error',
+					title: i18n.ts.translateError,
+					text: err.id,
+				});
+		}
 	});
-	translating.value = false;
-	translation.value = res;
-
-	hapticConfirm();
 }
 
 function showRenoteMenu(): void {
@@ -1671,5 +1669,9 @@ function emitUpdReaction(emoji: string, delta: number) {
 	gap: 6px;
 	flex-wrap: wrap;
 	margin-top: 6px;
+}
+
+.button {
+	margin: 0 auto;
 }
 </style>

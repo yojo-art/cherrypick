@@ -130,7 +130,6 @@ performanceWarning: "리소스를 많이 사용하므로, 디바이스의 온도
 photosensitiveSeizuresWarning: "광과민성 발작을 일으킬 수 있어요"
 useBoldFont: "볼드체 텍스트"
 newNoteReceivedNotification: "새 노트 알림을 표시할 때"
-disableRightClick: "우클릭 방지"
 cherrypickUpdatedCacheClearTitle: "캐시를 지울까요?"
 cherrypickUpdatedCacheClear: "테마 및 색상, 로케일 등의 변경 사항이 제대로 반영되지 않을 수 있기 때문에, 클라이언트가 업데이트되면 <b>캐시를 지울 것을 권장</b>해요.\n계정 로그인 상태는 그대로 유지돼요!"
 cherrypickUpdatedCacheClearLater: "나중에 캐시를 지우려면 <b>설정</b> → <b>캐시 지우기</b>에서 할 수 있어요!"

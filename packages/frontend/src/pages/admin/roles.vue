@@ -174,6 +174,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkSwitch>
 					</MkFolder>
 
+					<MkFolder v-if="matchQuery([i18n.ts._role._options.canCreateChannel, 'canCreateChannel'])">
+						<template #label>{{ i18n.ts._role._options.canCreateChannel }}</template>
+						<template #suffix>{{ policies.canCreateChannel ? i18n.ts.yes : i18n.ts.no }}</template>
+						<MkSwitch v-model="policies.canCreateChannel">
+							<template #label>{{ i18n.ts.enable }}</template>
+						</MkSwitch>
+					</MkFolder>
+
 					<MkFolder v-if="matchQuery([i18n.ts._role._options.canUseAutoTranslate, 'canUseAutoTranslate'])">
 						<template #label>{{ i18n.ts._role._options.canUseAutoTranslate }}</template>
 						<template #suffix>{{ policies.canUseAutoTranslate ? i18n.ts.yes : i18n.ts.no }}</template>
@@ -406,7 +414,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, reactive, ref, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkInput from '@/components/MkInput.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -451,7 +459,7 @@ function matchQuery(keywords: string[]): boolean {
 
 async function updateBaseRole() {
 	await os.apiWithDialog('admin/roles/update-default-policies', {
-		//@ts-expect-error cherrypick-js側の型定義が不十分
+		//@ts-expect-error misskey-js側の型定義が不十分
 		policies,
 	});
 	fetchInstance(true);

@@ -1,5 +1,5 @@
 import assert, { rejects, strictEqual } from 'node:assert';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { createAccount, deepStrictEqualWithExcludedFields, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
 const [aAdmin, bAdmin] = await Promise.all([
@@ -555,6 +555,39 @@ describe('User', () => {
 						return true;
 					},
 				);
+			});
+		});
+
+		describe('Remote user', () => {
+			let alice: LoginUser, bob: LoginUser;
+			let aliceInB: Misskey.entities.UserDetailedNotMe;
+
+			beforeAll(async () => {
+				[alice, bob] = await Promise.all([
+					createAccount('a.test'),
+					createAccount('b.test'),
+				]);
+
+				aliceInB = await resolveRemoteUser('a.test', alice.id, bob);
+			});
+
+			test('Bob can retrieve Alice\'s username change even though Bob does not follow Alice.', async () => {
+				const aliceFollowers = await alice.client.request('users/followers', { userId: alice.id });
+				strictEqual(aliceFollowers.length, 0);
+
+				const bobFollowers = await bob.client.request('users/followers', { userId: bob.id });
+				strictEqual(bobFollowers.length, 0);
+
+				const renewedAlice = await alice.client.request('i/update', { name: 'alice-test' });
+				strictEqual(renewedAlice.name, 'alice-test');
+				await sleep();
+
+				await bob.client.request('federation/update-remote-user', { userId: aliceInB.id });
+				await sleep();
+
+				// キャッシュされている場合、nameがnullで返ってきてnameの変更が反映されていないように見える
+				const newAliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+				strictEqual(newAliceInB.name, 'alice-test');
 			});
 		});
 	});

@@ -66,7 +66,7 @@ export type PwResponse = {
 
 <script setup lang="ts">
 import { ref, computed, useTemplateRef, defineAsyncComponent, onMounted, onUnmounted } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 
 import { instance } from '@/instance.js';
 import { i18n } from '@/i18n.js';

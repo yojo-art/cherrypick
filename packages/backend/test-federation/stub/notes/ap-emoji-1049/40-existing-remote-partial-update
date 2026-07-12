@@ -1,0 +1,25 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/ap-emoji-1049/40-existing-remote-partial-update",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>:existing_remote: again</p>",
+	"published": "2026-06-01T00:00:03.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"tag": [
+		{
+			"type": "Emoji",
+			"id": "https://z.test/emojis/existing_remote",
+			"name": ":existing_remote:",
+			"updated": "2026-06-01T00:00:03.000Z",
+			"icon": {
+				"type": "Image",
+				"mediaType": "image/png",
+				"url": "https://z.test/emoji/hello_world.png?rev=partial"
+			},
+			"copyPermission": "deny"
+		}
+	]
+}

@@ -51,7 +51,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<template #label><SearchLabel>Translator type</SearchLabel></template>
 									<option :value="null">{{ i18n.ts.none }}</option>
 									<option value="deepl">DeepL</option>
-									<option value="google_no_api">Google Translate(without API)</option>
 									<option value="ctav3">Cloud Translation - Advanced(v3)</option>
 									<option value="libretranslate">LibreTranslate</option>
 								</MkRadios>
@@ -148,9 +147,19 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
 
+const translateServices = [
+	'deepl',
+	'libretranslate',
+	'ctav3',
+] as const;
+
 const meta = await misskeyApi('admin/meta');
 
-const provider = ref(meta.translatorType);
+const provider = ref<string | null>(
+	meta.translatorType != null && (translateServices as readonly string[]).includes(meta.translatorType)
+		? meta.translatorType
+		: null,
+);
 const deeplAuthKey = ref(meta.deeplAuthKey ?? '');
 const deeplIsPro = ref(meta.deeplIsPro);
 const ctav3SaKey = ref(meta.ctav3SaKey ?? '');

@@ -104,7 +104,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { markRaw, ref, shallowRef, toRef } from 'vue';
-import type { UserDetailed } from 'cherrypick-js/entities.js';
+import type { UserDetailed } from 'misskey-js/entities.js';
 import MkRadios from '@/components/MkRadios.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { notificationTypes } from 'cherrypick-js';
+import { notificationTypes } from 'misskey-js';
 import { ref } from 'vue';
 import { i18n } from './i18n.js';
 import type { BasicTimelineType } from '@/timelines.js';
@@ -62,6 +62,7 @@ export type Column = {
 	withSensitive?: boolean;
 	onlyFiles?: boolean;
 	onlyCats?: boolean;
+	withBots?: boolean;
 	soundSetting?: SoundStore;
 	// The cache for the name of the antenna, channel, list, or role
 	timelineNameCache?: string;

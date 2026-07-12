@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { MediaProxy } from '@@/js/media-proxy.js';
 import type { InjectionKey } from 'vue';
 import type { ParsedEmbedParams } from '@@/js/embed-page.js';

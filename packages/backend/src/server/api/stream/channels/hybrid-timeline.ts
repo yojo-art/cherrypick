@@ -4,16 +4,16 @@
  */
 
 import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { MetaService } from '@/core/MetaService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import { bindThis } from '@/decorators.js';
 import { RoleService } from '@/core/RoleService.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
+import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import Channel, { type ChannelRequest } from '../channel.js';
-import { REQUEST } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class HybridTimelineChannel extends Channel {
@@ -25,6 +25,7 @@ export class HybridTimelineChannel extends Channel {
 	private withReplies: boolean;
 	private withFiles: boolean;
 	private withCats: boolean;
+	private withBots: boolean;
 
 	constructor(
 		@Inject(REQUEST)
@@ -48,6 +49,7 @@ export class HybridTimelineChannel extends Channel {
 		this.withReplies = !!(params.withReplies ?? false);
 		this.withFiles = !!(params.withFiles ?? false);
 		this.withCats = !!(params.withCats ?? false);
+		this.withBots = !!(params.withBots ?? true);
 
 		// Subscribe events
 		this.subscriber.on('notesStream', this.onNote);
@@ -55,21 +57,38 @@ export class HybridTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
+		if (note.user.channelId != null) {
+			// チャンネルアカウントによる純粋なリノートの場合
+			if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
+				//yojo-art その内容部分の投稿を展開してTLに流す
+				note = note.renote;
+			}
+		}
 		const isMe = this.user!.id === note.userId;
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
+		if (!this.withBots && note.user.isBot) return;
 
-		// チャンネルの投稿ではなく、自分自身の投稿 または
-		// チャンネルの投稿ではなく、その投稿のユーザーをフォローしている または
-		// チャンネルの投稿ではなく、全体公開のローカルの投稿 または
-		// フォローしているチャンネルの投稿 の場合だけ
-		if (!(
-			(note.channelId == null && isMe) ||
-			(note.channelId == null && Object.hasOwn(this.following, note.userId)) ||
-			(note.channelId == null && (note.user.host == null && note.visibility === 'public')) ||
-			(note.channelId != null && this.followingChannels.has(note.channelId))
-		)) return;
+		if (!note.channelId) {
+			// 以下の条件に該当するノートのみ後続処理に通す（ので、以下のif文は該当しないノートをすべて弾くようにする）
+			// - 自分自身の投稿
+			// - その投稿のユーザーをフォローしている
+			// - 全体公開のローカルの投稿
+			if (!(
+				isMe ||
+				Object.hasOwn(this.following, note.userId) ||
+				(note.user.host == null && note.visibility === 'public')
+			)) {
+				return;
+			}
+		} else {
+			// 以下の条件に該当するノートのみ後続処理に通す（ので、以下のif文は該当しないノートをすべて弾くようにする）
+			// - フォローしているチャンネルの投稿
+			if (!this.followingChannels.has(note.channelId)) {
+				return;
+			}
+		}
 
 		if (!this.isNoteVisibleForMe(note)) return;
 		if (this.isNoteMutedOrBlocked(note)) return;

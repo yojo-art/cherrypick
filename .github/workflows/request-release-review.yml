@@ -17,7 +17,7 @@ jobs:
         uses: actions/github-script@v7.1.0
         with:
           script: |
-            const body = `To dev team (@kokonect-link/dev):
+            const body = `To dev team (@yojo-art/dev):
 
             リリースが提案されています :rocket:
 
@@ -26,7 +26,7 @@ jobs:
             判断にあたって考慮すべき観点は、
 
             - やり残したことはないか？
-            - CHANGELOG_CHERRYPICKは過不足ないか？
+            - CHANGELOG_YOJOは過不足ないか？
             - バージョンに問題はないか？(月跨いでいるのに更新忘れているなど)
             - 再考すべき仕様・実装はないか？
             - ベータ版を検証したサーバーから不具合の報告等は上がってないか？

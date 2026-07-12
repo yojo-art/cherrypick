@@ -5,7 +5,7 @@
 
 import { Brackets } from 'typeorm';
 import { Inject, Injectable } from '@nestjs/common';
-import type { NotesRepository, ChannelFollowingsRepository, MiMeta } from '@/models/_.js';
+import type { NotesRepository, MiMeta, UsersRepository, FollowingsRepository } from '@/models/_.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { QueryService } from '@/core/QueryService.js';
 import ActiveUsersChart from '@/core/chart/charts/active-users.js';
@@ -16,6 +16,8 @@ import { CacheService } from '@/core/CacheService.js';
 import { UserFollowingService } from '@/core/UserFollowingService.js';
 import { MiLocalUser } from '@/models/User.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
+import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
 
 export const meta = {
 	tags: ['notes'],
@@ -49,6 +51,7 @@ export const paramDef = {
 		withFiles: { type: 'boolean', default: false },
 		withRenotes: { type: 'boolean', default: true },
 		withCats: { type: 'boolean', default: false },
+		withBots: { type: 'boolean', default: true },
 	},
 	required: [],
 } as const;
@@ -62,8 +65,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
 
 		private noteEntityService: NoteEntityService,
 		private activeUsersChart: ActiveUsersChart,
@@ -71,6 +74,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private cacheService: CacheService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
 		private userFollowingService: UserFollowingService,
+		private channelMutingService: ChannelMutingService,
+		private channelFollowingService: ChannelFollowingService,
 		private queryService: QueryService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -88,6 +93,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withFiles: ps.withFiles,
 					withRenotes: ps.withRenotes,
 					withCats: ps.withCats,
+					withBots: ps.withBots,
 				}, me);
 
 				process.nextTick(() => {
@@ -114,6 +120,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				alwaysIncludeMyNotes: true,
 				excludePureRenotes: !ps.withRenotes,
 				withCats: ps.withCats,
+				withBots: ps.withBots,
 				noteFilter: note => {
 					if (note.reply && note.reply.visibility === 'followers') {
 						if (!Object.hasOwn(followings, note.reply.userId) && note.reply.userId !== me.id) return false;
@@ -131,6 +138,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					withFiles: ps.withFiles,
 					withRenotes: ps.withRenotes,
 					withCats: ps.withCats,
+					withBots: ps.withBots,
 				}, me),
 			});
 
@@ -142,13 +150,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		});
 	}
 
-	private async getFromDb(ps: { untilId: string | null; sinceId: string | null; limit: number; includeMyRenotes: boolean; includeRenotedMyNotes: boolean; includeLocalRenotes: boolean; withFiles: boolean; withRenotes: boolean; withCats: boolean; }, me: MiLocalUser) {
-		const followees = await this.userFollowingService.getFollowees(me.id);
-		const followingChannels = await this.channelFollowingsRepository.find({
-			where: {
-				followerId: me.id,
-			},
-		});
+	private async getFromDb(ps: { untilId: string | null; sinceId: string | null; limit: number; includeMyRenotes: boolean; includeRenotedMyNotes: boolean; includeLocalRenotes: boolean; withFiles: boolean; withRenotes: boolean; withCats: boolean; withBots: boolean; }, me: MiLocalUser) {
+		const mutingChannelIds = await this.channelMutingService
+			.list({ requestUserId: me.id }, { idOnly: true })
+			.then(x => x.map(x => x.id));
+		const followeesHasChannels = await this.followingsRepository.createQueryBuilder('following')
+			.innerJoinAndSelect('following.followee', 'followee')
+			.select(['followee.channelId', 'following.followeeId'])
+			.where('following.followerId = :followerId', { followerId: me.id })
+			.getMany();
+		const followeeIds = followeesHasChannels.filter(x => x.followee?.channelId == null).map(f => f.followeeId);
+		const followingChannelIds = followeesHasChannels.map(x => x.followee?.channelId).filter(x => x != null).filter(x => !mutingChannelIds.includes(x));
 
 		//#region Construct query
 		const query = this.queryService.makePaginationQuery(this.notesRepository.createQueryBuilder('note'), ps.sinceId, ps.untilId)
@@ -156,40 +168,53 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			.leftJoinAndSelect('note.reply', 'reply')
 			.leftJoinAndSelect('note.renote', 'renote')
 			.leftJoinAndSelect('reply.user', 'replyUser')
-			.leftJoinAndSelect('renote.user', 'renoteUser');
+			.leftJoinAndSelect('renote.user', 'renoteUser')
+			.andWhere('user.channelId IS NULL');
 
-		if (followees.length > 0 && followingChannels.length > 0) {
+		if (followeeIds.length > 0 && followingChannelIds.length > 0) {
 			// ユーザー・チャンネルともにフォローあり
-			const meOrFolloweeIds = [me.id, ...followees.map(f => f.followeeId)];
-			const followingChannelIds = followingChannels.map(x => x.followeeId);
+			const meOrFolloweeIds = [me.id, ...followeeIds];
 			query.andWhere(new Brackets(qb => {
 				qb
 					.where(new Brackets(qb2 => {
 						qb2
-							.where('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds })
+							.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds })
 							.andWhere('note.channelId IS NULL');
 					}))
 					.orWhere('note.channelId IN (:...followingChannelIds)', { followingChannelIds });
 			}));
-		} else if (followees.length > 0) {
+		} else if (followeeIds.length > 0) {
 			// ユーザーフォローのみ（チャンネルフォローなし）
-			const meOrFolloweeIds = [me.id, ...followees.map(f => f.followeeId)];
-			query
-				.andWhere('note.channelId IS NULL')
-				.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
-		} else if (followingChannels.length > 0) {
-			// チャンネルフォローのみ（ユーザーフォローなし）
-			const followingChannelIds = followingChannels.map(x => x.followeeId);
+			const meOrFolloweeIds = [me.id, ...followeeIds];
 			query.andWhere(new Brackets(qb => {
 				qb
+					.andWhere('note.channelId IS NULL')
+					.andWhere('note.userId IN (:...meOrFolloweeIds)', { meOrFolloweeIds: meOrFolloweeIds });
+				if (mutingChannelIds.length > 0) {
+					qb.andWhere(new Brackets(qb2 => {
+						qb2.orWhere('note.renoteChannelId IS NULL');
+						qb2.orWhere('note.renoteChannelId NOT IN (:...mutingChannelIds)', { mutingChannelIds });
+					}));
+				}
+			}));
+		} else if (followingChannelIds.length > 0) {
+			// チャンネルフォローのみ（ユーザーフォローなし）
+			query.andWhere(new Brackets(qb => {
+				qb
+					// renoteChannelIdは見る必要が無い
+					// ・HTLに流れてくるチャンネル＝フォローしているチャンネル
+					// ・HTLにフォロー外のチャンネルが流れるのは、フォローしているユーザがそのチャンネル投稿をリノートした場合のみ
+					// つまり、ユーザフォローしてない前提のこのブロックでは見る必要が無い
 					.where('note.channelId IN (:...followingChannelIds)', { followingChannelIds })
 					.orWhere('note.userId = :meId', { meId: me.id });
 			}));
 		} else {
 			// フォローなし
-			query
-				.andWhere('note.channelId IS NULL')
-				.andWhere('note.userId = :meId', { meId: me.id });
+			query.andWhere(new Brackets(qb => {
+				qb
+					.andWhere('note.channelId IS NULL')
+					.andWhere('note.userId = :meId', { meId: me.id });
+			}));
 		}
 
 		query.andWhere(new Brackets(qb => {
@@ -253,6 +278,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		if (ps.withCats) {
 			query.andWhere('(select "isCat" from "user" where id = note."userId")');
+		}
+
+		if (!ps.withBots) {
+			query.andWhere('user.isBot = FALSE');
 		}
 		//#endregion
 

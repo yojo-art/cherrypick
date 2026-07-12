@@ -124,6 +124,11 @@ export const navbarItemDef = reactive({
 		show: computed(() => $i != null),
 		to: '/my/clips',
 	},
+	channels: {
+		title: i18n.ts.channel,
+		icon: 'ti ti-device-tv',
+		to: '/channels',
+	},
 	chat: {
 		title: i18n.ts.directMessage_short,
 		icon: 'ti ti-messages',
@@ -153,14 +158,14 @@ export const navbarItemDef = reactive({
 		action: (ev: MouseEvent) => {
 			os.popupMenu([{
 				text: 'Friendly',
-				active: ui === 'friendly' || ui === null,
+				active: ui === 'friendly',
 				action: () => {
 					miLocalStorage.setItem('ui', 'friendly');
 					unisonReload();
 				},
 			}, {
 				text: 'Misskey',
-				active: ui === 'default',
+				active: ui === 'default' || ui === null,
 				action: () => {
 					miLocalStorage.setItem('ui', 'default');
 					unisonReload();

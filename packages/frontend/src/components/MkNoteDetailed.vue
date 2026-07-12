@@ -136,11 +136,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				/>
 				<a v-if="appearNote.renote != null" :class="$style.rn">RN:</a>
 				<div v-if="prefer.s.showTranslateButtonInNote && (!prefer.s.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (prefer.s.useAutoTranslate && (appearNote.cw != null || !showContent)))) && instance.translatorAvailable && $i && $i.policies.canUseTranslator && (appearNote.text || appearNote.poll) && isForeignLanguage" style="padding: 5px 0; color: var(--MI_THEME-accent);">
-					<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click="translate()">{{ i18n.ts.translateNote }}</button>
-					<button v-else class="_button" @click="translation = null">{{ i18n.ts.close }}</button>
+					<button v-if="translateStatus === 'none'" ref="translateButton" class="_button" @click="translate(false)">{{ i18n.ts.translateNote }}</button>
+					<button v-else class="_button" @click="translateStatus = 'none'; translation = null">{{ i18n.ts.close }}</button>
 				</div>
-				<div v-if="translating || translation" :class="$style.translation">
-					<MkLoading v-if="translating" mini/>
+				<div v-if="translateStatus !== 'none'" :class="$style.translation">
+					<MkLoading v-if="translateStatus === 'running'" mini/>
+					<MkResult v-else-if="translateStatus === 'error'" type="error" :text="i18n.ts.translateError">
+						<MkButton :class="$style.button" rounded @click.stop="() => translate(false)">{{ i18n.ts.retry }}</MkButton>
+					</MkResult>
 					<div v-else-if="translation">
 						<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
 						<Mfm
@@ -176,7 +179,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<button class="_button" style="padding: 5px 0; color: var(--MI_THEME-accent);" @click="viewTextSource = false"><small>{{ i18n.ts.close }}</small></button>
 				</div>
 				<div v-if="appearNote.files && appearNote.files.length > 0">
-					<MkMediaList ref="galleryEl" :mediaList="appearNote.files" :disableRightClick="appearNote.disableRightClick" @contextmenu="disableRightClickHandler"/>
+					<MkMediaList ref="galleryEl" :mediaList="appearNote.files"/>
 				</div>
 				<MkPoll
 					v-if="appearNote.poll"
@@ -321,33 +324,44 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div v-else-if="tab === 'history'">
-			<div v-if="!historiesLoaded" style="padding: 16px">
-				<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
+			<div v-if="historiesLoading" style="padding: 16px; text-align: center;">
+				<MkLoading/>
 			</div>
-			<MkSwitch v-if="historiesLoaded" v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
-			<MkNoteHistory
-				v-for="(history, index) in histories"
-				:key="history.id"
-				:oldNote="histories[index+1] ? histories[index+1] : null"
-				:newNote="history"
-				:originalNote="appearNote"
-				:class="$style.reply"
-				:detail="true"
-				:raw="history_raw"
-				:index="index"
-			/>
-			<div v-if="historiesLoaded && !history_list_end" style="padding: 16px">
-				<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
-			</div>
+			<template v-if="historiesLoadError">
+				<MkError type="error" @retry="loadHistories"/>
+			</template>
+			<template v-else-if="historiesLoaded && histories.length == 0">
+				<MkResult type="empty" :text="i18n.ts.noHistory"/>
+			</template>
+			<template v-else-if="historiesLoaded && histories.length > 0">
+				<MkSwitch v-model="history_raw" style="padding: 16px;">{{ i18n.ts.compareContent }}</MkSwitch>
+				<MkNoteHistory
+					v-for="(history, index) in histories"
+					:key="history.id"
+					:oldNote="histories[index+1] ? histories[index+1] : null"
+					:newNote="history"
+					:originalNote="appearNote"
+					:class="$style.reply"
+					:detail="true"
+					:raw="history_raw"
+					:index="index"
+				/>
+				<div v-if="!history_list_end" style="padding: 16px">
+					<MkButton style="margin: 0 auto;" primary rounded @click="loadHistories">{{ i18n.ts.loadMore }}</MkButton>
+				</div>
+			</template>
 		</div>
 		<div v-else-if="tab === 'tag'">
-			<MkA
-				v-for="tag in appearNote.tags" :key="'tag:' + tag"
-				:to="`/tags/${tag}`"
-				style="margin-left: 6px;margin-right: 16px; color: #FF9900 "
-			>
-				#{{ tag }}
-			</MkA>
+			<template v-if="appearNote.tags && appearNote.tags.length > 0">
+				<div :class="$style.tags">
+					<MkA v-for="tag in appearNote.tags" :key="'tag:' + tag" :to="`/tags/${tag}`">
+						<div :class="$style.tag">
+							<span>#{{ tag }}</span>
+						</div>
+					</MkA>
+				</div>
+			</template>
+			<MkResult v-else type="empty" :text="i18n.ts.nothing"/>
 		</div>
 	</div>
 </div>
@@ -363,14 +377,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, inject, markRaw, onMounted, provide, ref, useTemplateRef } from 'vue';
+import { computed, inject, markRaw, onMounted, provide, ref, useTemplateRef, watch } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { isLink } from '@@/js/is-link.js';
 import { host } from '@@/js/config.js';
 import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
 import type { Keymap } from '@/utility/hotkey.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import { parseMfmCached } from '@/utility/mfm-cache.js';
 import MkNoteSub from '@/components/MkNoteSub.vue';
 import MkNoteSimple from '@/components/MkNoteSimple.vue';
@@ -416,7 +431,7 @@ import { globalEvents, useGlobalEvent } from '@/events.js';
 import { Paginator } from '@/utility/paginator.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { deviceKind } from '@/utility/device-kind.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
+import { haptic } from '@/utility/haptic.js';
 import { store } from '@/store.js';
 import detectLanguage from '@/utility/detect-language.js';
 import MkInfo from '@/components/MkInfo.vue';
@@ -476,7 +491,7 @@ const isDeleted = ref(false);
 const isAnimatedMfm = $i ? true : shouldAnimatedMfm(appearNote);
 const muted = ref($i ? checkWordMute(appearNote, $i, $i.mutedWords) : false);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
-const translating = ref(false);
+const translateStatus = ref<TranslateStatus>('none');
 const parsed = appearNote.text ? parseMfmCached(appearNote.text) : null;
 const urls = parsed ? extractUrlFromMfm(parsed).filter((url) => appearNote.renote?.url !== url && appearNote.renote?.uri !== url) : null;
 const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
@@ -486,7 +501,9 @@ const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibili
 const viewTextSource = ref(false);
 const noNyaize = ref(false);
 const histories = ref<Misskey.entities.NoteHistory[]>([]);
+const historiesLoading = ref(false);
 const historiesLoaded = ref(false);
+const historiesLoadError = ref(false);
 const histories_untilId = ref<Misskey.entities.NoteHistory['id']>();
 const history_list_end = ref(false);
 const history_raw = ref(false);
@@ -501,10 +518,6 @@ const pleaseLoginContext = computed<OpenOnRemoteOptions>(() => ({
 	type: 'lookup',
 	url: `https://${host}/notes/${appearNote.id}`,
 }));
-
-const disableRightClickHandler = (event: Event) => {
-	if (appearNote.disableRightClick) event.preventDefault();
-};
 
 const keymap = {
 	'r': () => reply(),
@@ -692,15 +705,6 @@ function react(): void {
 	} else {
 		blur();
 		reactionPicker.show(reactButton.value ?? null, note, async (reaction) => {
-			if (prefer.s.confirmOnReact) {
-				const confirm = await os.confirm({
-					type: 'question',
-					text: i18n.tsx.reactAreYouSure({ emoji: reaction.replace('@.', '') }),
-				});
-
-				if (confirm.canceled) return;
-			}
-
 			await toggleReaction(reaction);
 		}, () => {
 			focus();
@@ -810,7 +814,7 @@ function onContextmenu(ev: MouseEvent): void {
 		ev.preventDefault();
 		react();
 	} else {
-		const { menu, cleanup } = getNoteMenu({ note: note, translation, translating, viewTextSource, noNyaize });
+		const { menu, cleanup } = getNoteMenu({ note: note, translation, translateStatus, viewTextSource, noNyaize });
 		os.contextMenu(menu, ev).then(focus).finally(cleanup);
 	}
 }
@@ -818,7 +822,7 @@ function onContextmenu(ev: MouseEvent): void {
 function showMenu(): void {
 	haptic();
 
-	const { menu, cleanup } = getNoteMenu({ note: note, translation, translating, viewTextSource, noNyaize });
+	const { menu, cleanup } = getNoteMenu({ note: note, translation, translateStatus, viewTextSource, noNyaize });
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 
@@ -837,39 +841,39 @@ const isForeignLanguage: boolean = (appearNote.text != null || appearNote.poll !
 	return false;
 })();
 
-if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate();
+if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate(true);
 
-async function translate(): Promise<void> {
+async function translate(isAuto: boolean): Promise<void> {
 	if (translation.value != null) return;
-	translating.value = true;
-
-	haptic();
+	translateStatus.value = 'running';
 
 	if (appearNote.text == null) {
-		translating.value = false;
-		translation.value = {
-			sourceLang: '',
-			text: '',
-		};
+		translateStatus.value = 'success';
+		translation.value = null;
 		return;
+	}
+	if (!isAuto) {
+		haptic();
 	}
 
 	const res = await misskeyApi('notes/translate', {
 		noteId: appearNote.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).then((r) => {
+		translateStatus.value = 'success';
+		translation.value = r;
 	}).catch((err) => {
-		translating.value = false;
-		os.alert(
-			{
-				type: 'error',
-				title: err.message,
-				text: err.id,
-			});
+		translateStatus.value = 'error';
+		translation.value = null;
+		if (!isAuto) {
+			os.alert(
+				{
+					type: 'error',
+					title: i18n.ts.translateError,
+					text: err.id,
+				});
+		}
 	});
-	translating.value = false;
-	translation.value = res;
-
-	hapticConfirm();
 }
 
 async function clip(): Promise<void> {
@@ -950,48 +954,64 @@ function showOnRemote() {
 	if (props.note.user.instance !== undefined) window.open(props.note.url ?? props.note.uri, '_blank', 'noopener');
 }
 
-function loadHistories() {
-	historiesLoaded.value = true;
+async function loadHistories() {
+	if (historiesLoading.value) return;
+	historiesLoading.value = true;
+	historiesLoadError.value = false;
+
 	misskeyApi('notes/history', {
 		...(histories_untilId.value ? { untilId: histories_untilId.value } : {} ),
 		noteId: appearNote.id,
 		limit: 5,
 	}).then(res => {
-		if (histories.value.length === 0) {
-			const current_version: Misskey.entities.NoteHistory = {
-				id: appearNote.id,
-				noteId: appearNote.id,
-				createdAt: appearNote.createdAt,
-				updatedAt: appearNote.createdAt,
-				userId: appearNote.userId,
-				text: appearNote.text,
-				cw: appearNote.cw,
-				poll: appearNote.poll ? {
-					choices: appearNote.poll.choices.map(c => c.text),
-					multiple: appearNote.poll.multiple,
-					expiresAt: appearNote.poll.expiresAt ?? null,
-				} : null,
-				event: appearNote.event ? {
-					title: appearNote.event.title,
-					start: appearNote.event.start,
-					end: appearNote.event.end,
-					metadata: appearNote.event.metadata,
-				} : null,
-				fileIds: appearNote.fileIds,
-				files: appearNote.files,
-				visibility: appearNote.visibility,
-				visibleUserIds: appearNote.visibleUserIds,
-				emojis: appearNote.emojis,
-			};
-			histories.value.push(current_version);
+		if (res.length > 0) {
+			if (histories.value.length === 0) {
+				const current_version: Misskey.entities.NoteHistory = {
+					id: appearNote.id,
+					noteId: appearNote.id,
+					createdAt: appearNote.createdAt,
+					updatedAt: appearNote.createdAt,
+					userId: appearNote.userId,
+					text: appearNote.text,
+					cw: appearNote.cw,
+					poll: appearNote.poll ? {
+						choices: appearNote.poll.choices.map(c => c.text),
+						multiple: appearNote.poll.multiple,
+						expiresAt: appearNote.poll.expiresAt ?? null,
+					} : null,
+					event: appearNote.event ? {
+						title: appearNote.event.title,
+						start: appearNote.event.start,
+						end: appearNote.event.end,
+						metadata: appearNote.event.metadata,
+					} : null,
+					fileIds: appearNote.fileIds,
+					files: appearNote.files,
+					visibility: appearNote.visibility,
+					visibleUserIds: appearNote.visibleUserIds,
+					emojis: appearNote.emojis,
+				};
+				histories.value.push(current_version);
+			}
+			histories_untilId.value = res[res.length - 1].id;
+			histories.value = histories.value.concat(res);
 		}
 		if (res.length < 5) {
 			history_list_end.value = true;
 		}
-		histories_untilId.value = res[ res.length - 1 ].id;
-		histories.value = histories.value.concat(res);
+	}).catch(() => {
+		historiesLoadError.value = true;
+	}).finally(() => {
+		historiesLoaded.value = true;
+		historiesLoading.value = false;
 	});
 }
+
+watch(() => tab.value, async (newTab) => {
+	if (newTab === 'history' && !historiesLoaded.value) {
+		await loadHistories();
+	}
+});
 </script>
 
 <style lang="scss" module>
@@ -1447,5 +1467,25 @@ function loadHistories() {
 	gap: 6px;
 	flex-wrap: wrap;
 	margin-top: 6px;
+}
+
+.tags {
+	display: grid;
+	grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+	grid-gap: 12px;
+	padding: 16px;
+}
+
+.tag {
+	display: flex;
+	align-items: center;
+	padding: 16px;
+	background: var(--MI_THEME-buttonBg);
+	border-radius: 6px;
+	cursor: pointer;
+}
+
+.button {
+	margin: 0 auto;
 }
 </style>

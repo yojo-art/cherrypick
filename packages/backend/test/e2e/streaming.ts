@@ -7,8 +7,8 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { WebSocket } from 'ws';
-import { api, createAppToken, initTestDb, port, post, signup, waitFire } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import { api, createAppToken, initTestDb, port, post, randomString, signup, waitFire } from '../utils.js';
+import type * as misskey from 'misskey-js';
 import { MiFollowing } from '@/models/Following.js';
 
 describe('Streaming', () => {
@@ -333,6 +333,35 @@ describe('Streaming', () => {
 
 				assert.strictEqual(fired, false);
 			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'homeTimeline',	// ayano:home
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
+			});
+
+			test('withBots: false のとき通常ユーザーのノートが流れる', async () => {
+				const fired = await waitFire(
+					ayano, 'homeTimeline',	// ayano:home
+					() => api('notes/create', { text: 'human test' }, kyoko),	// kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, true);
+			});
+
 			test('withReplies: true のとき自分のfollowers投稿に対するリプライが流れる', async () => {
 				const erinNote = await post(erin, { text: 'hi', visibility: 'followers' });
 				const fired = await waitFire(
@@ -455,6 +484,23 @@ describe('Streaming', () => {
 				);
 
 				assert.strictEqual(fired, false);
+			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'localTimeline',	// ayano:local
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
 			});
 		});
 
@@ -620,6 +666,23 @@ describe('Streaming', () => {
 
 				assert.strictEqual(fired, false);
 			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'hybridTimeline',	// ayano:hybrid
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
+			});
 		});
 
 		describe('Global Timeline', () => {
@@ -692,6 +755,23 @@ describe('Streaming', () => {
 
 				assert.strictEqual(fired, false);
 			});
+
+			test('withBots: false のときBOTのノートが流れない', async () => {
+				await api('i/update', {
+					isBot: true,
+				}, kyoko);
+				const fired = await waitFire(
+					ayano, 'globalTimeline',	// ayano:global
+					() => api('notes/create', { text: 'bot test' }, kyoko),	// bot kyoko note
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,	// wait kyoko
+					{ withBots: false },
+				);
+
+				assert.strictEqual(fired, false);
+				await api('i/update', {
+					isBot: false,
+				}, kyoko);
+			});
 		});
 
 		describe('UserList Timeline', () => {
@@ -734,6 +814,19 @@ describe('Streaming', () => {
 				const fired = await waitFire(
 					chitose, 'userList',
 					() => api('notes/create', { text: 'foo', visibility: 'followers' }, kyoko),
+					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
+					{ listId: list.id },
+				);
+
+				assert.strictEqual(fired, false);
+			});
+
+			// #10443
+			test('チャンネル投稿は流れない', async () => {
+				// リスインしている kyoko が 任意のチャンネルに投降した時の動きを見たい
+				const fired = await waitFire(
+					chitose, 'userList',
+					() => api('notes/create', { text: 'foo', channelId: 'dummy' }, kyoko),
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
 					{ listId: list.id },
 				);
@@ -813,6 +906,49 @@ describe('Streaming', () => {
 					() => api('notes/create', { renoteId: takumiNote.id }, kyoko),
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
 					{ listId: list.id },
+				);
+
+				assert.strictEqual(fired, false);
+			});
+		});
+
+		describe('Channel Timeline', () => {
+			let testChannel: misskey.entities.Channel;
+			let otherChannel: misskey.entities.Channel;
+
+			beforeAll(async () => {
+				testChannel = await api('channels/create', { name: 'test-channel', username: randomString() }, kyoko).then(x => x.body);
+				otherChannel = await api('channels/create', { name: 'other-channel', username: randomString() }, ayano).then(x => x.body);
+			});
+
+			test('自分のチャンネル投稿が流れる', async () => {
+				const fired = await waitFire(
+					kyoko, 'channel',
+					() => api('notes/create', { text: 'channel post', channelId: testChannel.id }, kyoko),
+					msg => msg.type === 'note' && msg.body.text === 'channel post',
+					{ channelId: testChannel.id },
+				);
+
+				assert.strictEqual(fired, true);
+			});
+
+			test('フォローしていないユーザーのチャンネル投稿が流れる', async () => {
+				const fired = await waitFire(
+					kyoko, 'channel',
+					() => api('notes/create', { text: 'channel post by ayano', channelId: testChannel.id }, ayano),
+					msg => msg.type === 'note' && msg.body.text === 'channel post by ayano',
+					{ channelId: testChannel.id },
+				);
+
+				assert.strictEqual(fired, true);
+			});
+
+			test('別のチャンネルの投稿は流れない', async () => {
+				const fired = await waitFire(
+					kyoko, 'channel',
+					() => api('notes/create', { text: 'other channel post', channelId: otherChannel.id }, ayano),
+					msg => msg.type === 'note' && msg.body.text === 'other channel post',
+					{ channelId: testChannel.id },
 				);
 
 				assert.strictEqual(fired, false);

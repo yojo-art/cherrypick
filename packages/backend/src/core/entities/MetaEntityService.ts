@@ -133,7 +133,7 @@ export class MetaEntityService {
 			enableServiceWorker: instance.enableServiceWorker,
 			customRobotsTxt: instance.customRobotsTxt,
 
-			translatorAvailable: instance.translatorType != null,
+			translatorAvailable: instance.translatorType != null && ['deepl', 'libretranslate', 'ctav3'].includes(instance.translatorType),
 
 			serverRules: instance.serverRules,
 

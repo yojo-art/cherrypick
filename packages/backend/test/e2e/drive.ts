@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { api, makeStreamCatcher, post, signup, uploadFile } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('Drive', () => {
 	let alice: misskey.entities.SignupResponse;
@@ -23,7 +23,7 @@ describe('Drive', () => {
 
 		const marker = Math.random().toString();
 
-		const url = 'https://raw.githubusercontent.com/kokonect-link/cherrypick/develop/packages/backend/test/resources/192.jpg';
+		const url = 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.jpg';
 
 		const catcher = makeStreamCatcher(
 			alice,

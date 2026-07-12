@@ -581,14 +581,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkPreferenceContainer>
 								</SearchMarker>
 
-								<SearchMarker :keywords="['reaction', 'confirm']">
-									<MkPreferenceContainer k="confirmOnReact">
-										<MkSwitch v-model="confirmOnReact">
-											<template #label><SearchLabel>{{ i18n.ts.confirmOnReact }}</SearchLabel></template>
-										</MkSwitch>
-									</MkPreferenceContainer>
-								</SearchMarker>
-
 								<SearchMarker :keywords="['image', 'photo', 'picture', 'media', 'thumbnail', 'quality', 'raw', 'attachment']">
 									<MkPreferenceContainer k="loadRawImages">
 										<MkSwitch v-model="loadRawImages">
@@ -840,6 +832,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkPreferenceContainer k="useGroupedNotifications">
 									<MkSwitch v-model="useGroupedNotifications">
 										<template #label><SearchLabel>{{ i18n.ts.useGroupedNotifications }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
+							<SearchMarker :keywords="['group']">
+								<MkPreferenceContainer k="useGroupedNoteNotifications">
+									<MkSwitch v-model="useGroupedNoteNotifications" :disabled="!useGroupedNotifications">
+										<template #label>
+											<SearchLabel>{{ i18n.ts.useGroupedNoteNotifications }}</SearchLabel> <span
+												class="_beta"
+											>yojo-art</span>
+										</template>
 									</MkSwitch>
 								</MkPreferenceContainer>
 							</SearchMarker>
@@ -1427,7 +1431,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { langs } from '@@/js/config.js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkRadios from '@/components/MkRadios.vue';
@@ -1493,9 +1497,9 @@ const enableInfiniteScroll = prefer.model('enableInfiniteScroll');
 const useReactionPickerForContextMenu = prefer.model('useReactionPickerForContextMenu');
 const showAvailableReactionsFirstInNote = prefer.model('showAvailableReactionsFirstInNote');
 const useGroupedNotifications = prefer.model('useGroupedNotifications');
+const useGroupedNoteNotifications = prefer.model('useGroupedNoteNotifications');
 const alwaysConfirmFollow = prefer.model('alwaysConfirmFollow');
 const confirmWhenRevealingSensitiveMedia = prefer.model('confirmWhenRevealingSensitiveMedia');
-const confirmOnReact = prefer.model('confirmOnReact');
 const defaultNoteVisibility = prefer.model('defaultNoteVisibility');
 const defaultNoteSearchbility = prefer.model('defaultNoteSearchbility');
 const defaultNoteLocalOnly = prefer.model('defaultNoteLocalOnly');

@@ -4,7 +4,7 @@
  */
 
 import { onUnmounted, reactive } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { EventEmitter } from 'eventemitter3';
 import type { Reactive } from 'vue';
 import { useStream } from '@/stream.js';

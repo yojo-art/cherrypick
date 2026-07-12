@@ -165,7 +165,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onActivated, onDeactivated, onMounted, onUnmounted, ref, shallowRef, triggerRef, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import * as Reversi from 'misskey-reversi';
 import { useInterval } from '@@/js/use-interval.js';
 import { url } from '@@/js/config.js';

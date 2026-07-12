@@ -486,7 +486,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.avatarDecorations) {
 				policies ??= await this.roleService.getUserPolicies(user.id);
-				const decorations = await this.avatarDecorationService.getAll(true);
+				const decorations = await this.avatarDecorationService.getAll('local', false);
 				const myRoles = await this.roleService.getUserRoles(user.id);
 				const allRoles = await this.roleService.getRoles();
 				const decorationIds = decorations

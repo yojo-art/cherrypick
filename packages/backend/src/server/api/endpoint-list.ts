@@ -10,6 +10,7 @@
  * This file is used to generate API documentation and EndpointsModule.
  */
 
+export * as 'admin/abort-full-index' from './endpoints/admin/abort-full-index.js';
 export * as 'admin/abuse-report/notification-recipient/create' from './endpoints/admin/abuse-report/notification-recipient/create.js';
 export * as 'admin/abuse-report/notification-recipient/delete' from './endpoints/admin/abuse-report/notification-recipient/delete.js';
 export * as 'admin/abuse-report/notification-recipient/list' from './endpoints/admin/abuse-report/notification-recipient/list.js';
@@ -140,6 +141,22 @@ export * as 'blocking/delete' from './endpoints/blocking/delete.js';
 export * as 'blocking/list' from './endpoints/blocking/list.js';
 export * as 'bubble-game/ranking' from './endpoints/bubble-game/ranking.js';
 export * as 'bubble-game/register' from './endpoints/bubble-game/register.js';
+export * as 'channels/create' from './endpoints/channels/create.js';
+export * as 'channels/favorite' from './endpoints/channels/favorite.js';
+export * as 'channels/featured' from './endpoints/channels/featured.js';
+export * as 'channels/follow' from './endpoints/channels/follow.js';
+export * as 'channels/followed' from './endpoints/channels/followed.js';
+export * as 'channels/my-favorites' from './endpoints/channels/my-favorites.js';
+export * as 'channels/owned' from './endpoints/channels/owned.js';
+export * as 'channels/search' from './endpoints/channels/search.js';
+export * as 'channels/show' from './endpoints/channels/show.js';
+export * as 'channels/timeline' from './endpoints/channels/timeline.js';
+export * as 'channels/unfavorite' from './endpoints/channels/unfavorite.js';
+export * as 'channels/unfollow' from './endpoints/channels/unfollow.js';
+export * as 'channels/update' from './endpoints/channels/update.js';
+export * as 'channels/mute/create' from './endpoints/channels/mute/create.js';
+export * as 'channels/mute/delete' from './endpoints/channels/mute/delete.js';
+export * as 'channels/mute/list' from './endpoints/channels/mute/list.js';
 export * as 'charts/active-users' from './endpoints/charts/active-users.js';
 export * as 'charts/ap-request' from './endpoints/charts/ap-request.js';
 export * as 'charts/drive' from './endpoints/charts/drive.js';
@@ -395,6 +412,7 @@ export * as 'users/featured-notes' from './endpoints/users/featured-notes.js';
 export * as 'users/flashs' from './endpoints/users/flashs.js';
 export * as 'users/followers' from './endpoints/users/followers.js';
 export * as 'users/following' from './endpoints/users/following.js';
+export * as 'users/notify/list' from './endpoints/users/notify/list.js';
 export * as 'users/gallery/posts' from './endpoints/users/gallery/posts.js';
 export * as 'users/get-frequently-replied-users' from './endpoints/users/get-frequently-replied-users.js';
 export * as 'users/groups/create' from './endpoints/users/groups/create.js';
@@ -465,6 +483,7 @@ export * as 'v2/admin/emoji/list' from './endpoints/v2/admin/emoji/list.js';
 
 export * as 'admin/unset-user-mutual-link' from './endpoints/admin/unset-user-mutual-link.js';
 export * as 'admin/full-index' from './endpoints/admin/full-index.js';
+export * as 'admin/full-index-progress' from './endpoints/admin/full-index-progress.js';
 export * as 'admin/recreate-index' from './endpoints/admin/recreate-index.js';
 export * as 'ap/fetch-outbox' from './endpoints/ap/fetch-outbox.js';
 export * as 'notes/advanced-search' from './endpoints/notes/advanced-search.js';

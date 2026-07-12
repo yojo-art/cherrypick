@@ -49,7 +49,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script setup lang="ts">
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { reactive } from 'vue';
 import { i18n } from '@/i18n.js';
 import MkNote from '@/components/MkNote.vue';

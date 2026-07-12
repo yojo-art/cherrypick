@@ -36,7 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onMounted, ref, useTemplateRef, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkReactionIcon from '@/components/MkReactionIcon.vue';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
@@ -50,6 +50,7 @@ const emit = defineEmits<{
 
 const props = defineProps<{
 	noteId: Misskey.entities.Note['id'];
+	initialReaction?: string;
 }>();
 
 const dialog = useTemplateRef('dialog');
@@ -74,7 +75,9 @@ onMounted(() => {
 		noteId: props.noteId,
 	}).then((res) => {
 		reactions.value = Object.keys(res.reactions);
-		tab.value = reactions.value[0];
+		tab.value = (props.initialReaction && reactions.value.includes(props.initialReaction))
+			? props.initialReaction
+			: reactions.value[0];
 		note.value = res;
 	});
 });

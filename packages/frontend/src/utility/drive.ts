@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { apiUrl } from '@@/js/config.js';
 import type { UploaderFeatures } from '@/composables/use-uploader.js';
 import * as os from '@/os.js';

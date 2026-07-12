@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { hemisphere } from '@@/js/intl-const.js';
 import { prefersReducedMotion } from '@@/js/config.js';
 import { definePreferences } from './manager.js';
@@ -345,6 +345,9 @@ export const PREF_DEF = definePreferences({
 	useGroupedNotifications: {
 		default: true,
 	},
+	useGroupedNoteNotifications: {
+		default: false,
+	},
 	dataSaver: {
 		default: {
 			media: false,
@@ -451,8 +454,17 @@ export const PREF_DEF = definePreferences({
 	defaultImageCompressionLevel: {
 		default: 2 as 0 | 1 | 2 | 3,
 	},
-	defaultVideoCompressionLevel: {
-		default: 2 as 0 | 1 | 2 | 3,
+	instantUploadInPostForm: {
+		default: false,
+	},
+	defaultVideoQualityLevel: {
+		default: 'medium' as 'low' | 'medium' | 'high' | 'manual',
+	},
+	defaultVideoCodec: {
+		default: 'copy' as 'h264' | 'vp9' | 'copy',
+	},
+	defaultVideoBitrateValue: {
+		default: null as number | null,
 	},
 
 	'sound.masterVolume': {
@@ -795,5 +807,8 @@ export const PREF_DEF = definePreferences({
 	},
 	'experimental.enableWebTranslatorApi': {
 		default: false,
+	},
+	'searchbility': {
+		default: 'public' as (typeof Misskey.noteSearchbility)[number],
 	},
 });

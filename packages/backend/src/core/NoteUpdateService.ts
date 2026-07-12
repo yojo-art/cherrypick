@@ -12,7 +12,7 @@ import type { IMentionedRemoteUsers } from '@/models/Note.js';
 import { MiNote } from '@/models/Note.js';
 import { MiEvent } from '@/models/Event.js';
 import type { IEvent } from '@/models/Event.js';
-import type { NotesRepository, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, NotesRepository, UsersRepository } from '@/models/_.js';
 import type { MiUser, MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import { RelayService } from '@/core/RelayService.js';
 import { DI } from '@/di-symbols.js';
@@ -32,7 +32,10 @@ import { MiPoll, IPoll } from '@/models/Poll.js';
 import { concat } from '@/misc/prelude/array.js';
 import { extractHashtags } from '@/misc/extract-hashtags.js';
 import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
+import { removeChannelMention } from '@/misc/escape-reg-exp.js';
+import type { Config } from '@/config.js';
 import { NoteHistorySerivce } from './NoteHistoryService.js';
+import { CacheService } from './CacheService.js';
 
 type Option = {
 	updatedAt?: Date | null;
@@ -40,7 +43,6 @@ type Option = {
 	name?: string | null;
 	text?: string | null;
 	tagText?: string | null;
-	disableRightClick?: boolean | null;
 	cw?: string | null;
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
@@ -54,6 +56,8 @@ export class NoteUpdateService implements OnApplicationShutdown {
 	#shutdownController = new AbortController();
 
 	constructor(
+		@Inject(DI.config)
+		private config: Config,
 		@Inject(DI.db)
 		private db: DataSource,
 
@@ -62,6 +66,9 @@ export class NoteUpdateService implements OnApplicationShutdown {
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private userEntityService: UserEntityService,
 		private globalEventService: GlobalEventService,
@@ -73,6 +80,7 @@ export class NoteUpdateService implements OnApplicationShutdown {
 		private advancedSearchService: AdvancedSearchService,
 		private activeUsersChart: ActiveUsersChart,
 		private noteHistoryService: NoteHistorySerivce,
+		private cacheService: CacheService,
 	) { }
 
 	@bindThis
@@ -85,6 +93,17 @@ export class NoteUpdateService implements OnApplicationShutdown {
 		if (data.updatedAt == null) data.updatedAt = new Date();
 
 		if (data.text) {
+			note.channel ??= note.channelId ? await this.channelsRepository.findOneBy({ id: note.channelId }) : null;
+			if (note.channel) {
+			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
+				note.channel.actor ??= note.channel.actorId ? await this.cacheService.findUserById(note.channel.actorId) : null;
+				const username = note.channel.actor?.username;
+				if (username) {
+					const host = note.channel.actor?.host ?? null;
+					if (host === null)data.text = removeChannelMention(data.text, username, this.config.host);
+					data.text = removeChannelMention(data.text, username, host);
+				}
+			}
 			if (data.text.length > DB_MAX_NOTE_TEXT_LENGTH) {
 				data.text = data.text.slice(0, DB_MAX_NOTE_TEXT_LENGTH);
 			}
@@ -142,7 +161,6 @@ export class NoteUpdateService implements OnApplicationShutdown {
 			cw: data.cw ?? null,
 			tags: tags.map(tag => normalizeForSearch(tag)),
 			emojis,
-			disableRightClick: data.disableRightClick!,
 			attachedFileTypes: data.files ? data.files.map(file => file.type) : [],
 			updatedAtHistory: [...updatedAtHistory, new Date()],
 			deleteAt: data.deleteAt!,
@@ -284,7 +302,7 @@ export class NoteUpdateService implements OnApplicationShutdown {
 				});
 			}
 
-			this.globalEventService.publishNoteStream(note, 'updated', { cw: note.cw, text: note.text, disableRightClick: note.disableRightClick, deleteAt: note.deleteAt });
+			this.globalEventService.publishNoteStream(note, 'updated', { cw: note.cw, text: note.text, deleteAt: note.deleteAt });
 
 			//#region AP deliver
 			if (this.userEntityService.isLocalUser(user) && !note.localOnly) {

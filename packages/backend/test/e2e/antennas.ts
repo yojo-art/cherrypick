@@ -10,6 +10,7 @@ import {
 	api,
 	failedApiCall,
 	post,
+	randomString,
 	role,
 	signup,
 	successfulApiCall,
@@ -17,7 +18,7 @@ import {
 	uploadFile,
 	userList,
 } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 
 const compareBy = <T extends { id: string }>(selector: (s: T) => string = (s: T): string => s.id) => (a: T, b: T): number => {
@@ -71,6 +72,9 @@ describe('アンテナ', () => {
 	let userMutingAlice: User;
 	let userMutedByAlice: User;
 
+	let testChannel: misskey.entities.Channel;
+	let testMutedChannel: misskey.entities.Channel;
+
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
 		alice = await signup({ username: 'alice' });
@@ -122,6 +126,10 @@ describe('アンテナ', () => {
 		userMutedByAlice = await signup({ username: 'userMutedByAlice' });
 		await post(userMutedByAlice, { text: 'test' });
 		await api('mute/create', { userId: userMutedByAlice.id }, alice);
+
+		testChannel = (await api('channels/create', { name: 'test', username: randomString() }, root)).body;
+		testMutedChannel = (await api('channels/create', { name: 'test-muted', username: randomString() }, root)).body;
+		await api('channels/mute/create', { channelId: testMutedChannel.id }, alice);
 	}, 1000 * 60 * 10);
 
 	beforeEach(async () => {
@@ -611,6 +619,20 @@ describe('アンテナ', () => {
 					{ note: (): Promise<Note> => post(bob, { text: `${keyword}` }), included: true },
 				],
 			},
+			{
+				label: 'チャンネルノートも含む',
+				parameters: () => ({ src: 'all' }),
+				posts: [
+					{ note: (): Promise<Note> => post(bob, { text: `test ${keyword}`, channelId: testChannel.id }), included: true },
+				],
+			},
+			{
+				label: 'ミュートしてるチャンネルは含まない',
+				parameters: () => ({ src: 'all' }),
+				posts: [
+					{ note: (): Promise<Note> => post(bob, { text: `test ${keyword}`, channelId: testMutedChannel.id }) },
+				],
+			},
 		])('が取得できること（$label）', async ({ parameters, posts }) => {
 			const antenna = await successfulApiCall({
 				endpoint: 'antennas/create',
@@ -641,6 +663,41 @@ describe('アンテナ', () => {
 			assert.deepStrictEqual(
 				response.map(({ userId, id, text }) => ({ userId, id, text })),
 				expected.map(({ userId, id, text }) => ({ userId, id, text })));
+			assert.deepStrictEqual(response, expected);
+		});
+
+		test('が取得できること（センシティブチャンネルのノートを除く）', async () => {
+			const keyword = 'キーワード';
+			const antenna = await successfulApiCall({
+				endpoint: 'antennas/create',
+				parameters: { ...defaultParam, keywords: [[keyword]], excludeNotesInSensitiveChannel: true },
+				user: alice,
+			});
+			const nonSensitiveChannel = await successfulApiCall({
+				endpoint: 'channels/create',
+				parameters: { username: randomString(), isSensitive: false },
+				user: alice,
+			});
+			const sensitiveChannel = await successfulApiCall({
+				endpoint: 'channels/create',
+				parameters: { username: randomString(), isSensitive: true },
+				user: alice,
+			});
+
+			const noteInLocal = await post(bob, { text: `test ${keyword}` });
+			const noteInNonSensitiveChannel = await post(bob, { text: `test ${keyword}`, channelId: nonSensitiveChannel.id });
+			await post(bob, { text: `test ${keyword}`, channelId: sensitiveChannel.id });
+
+			const response = await successfulApiCall({
+				endpoint: 'antennas/notes',
+				parameters: { antennaId: antenna.id },
+				user: alice,
+			});
+			// 最後に投稿したものが先頭に来る。
+			const expected = [
+				noteInNonSensitiveChannel,
+				noteInLocal,
+			];
 			assert.deepStrictEqual(response, expected);
 		});
 

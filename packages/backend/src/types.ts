@@ -142,6 +142,12 @@ export const moderationLogTypes = [
 	'unquarantineRemoteInstance',
 ] as const;
 
+export const translateServices = [
+	'deepl',
+	'libretranslate',
+	'ctav3',
+] as const;
+
 export type ModerationLogPayloads = {
 	updateServerSettings: {
 		before: any | null;

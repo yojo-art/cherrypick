@@ -49,9 +49,9 @@
 			rebaseWhen: 'never',
 		},
 		{
-			groupName: '[cherrypick-js] Update dependencies',
+			groupName: '[misskey-js] Update dependencies',
 			matchFileNames: [
-				'packages/cherrypick-js/**/package.json',
+				'packages/misskey-js/**/package.json',
 			],
 		},
 		{

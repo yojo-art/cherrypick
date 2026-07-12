@@ -10,7 +10,7 @@ process.env.NODE_ENV = 'test';
 import { setTimeout } from 'node:timers/promises';
 import * as assert from 'assert';
 import { api, castAsError, initTestDb, signup, successfulApiCall, uploadFile } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 import { loadConfig } from '@/config.js';
 import { MiRepository, MiUser, UsersRepository, miRepository } from '@/models/_.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
@@ -384,6 +384,11 @@ describe('Account Move', () => {
 
 		test.each([
 			'antennas/create',
+			'channels/create',
+			'channels/favorite',
+			'channels/follow',
+			'channels/unfavorite',
+			'channels/unfollow',
 			'clips/add-note',
 			'clips/create',
 			'clips/favorite',

@@ -6,7 +6,6 @@
 import { URLSearchParams } from 'node:url';
 import fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
-import { translate } from '@vitalets/google-translate-api';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -29,6 +28,7 @@ export const meta = {
 		properties: {
 			sourceLang: { type: 'string' },
 			text: { type: 'string' },
+			translator: { type: 'string', enum: ['deepl', 'ctav3', 'libretranslate'] },
 		},
 	},
 
@@ -86,59 +86,64 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				return;
 			}
 
-			const translatorServices = [
-				'deepl',
-				'google_no_api',
-				'ctav3',
-				'Libretranslate',
-			];
-
-			if (this.serverSettings.translatorType == null || !translatorServices.includes(this.serverSettings.translatorType)) {
-				return Promise.resolve(204); // Promise.resolveで204をラップする
-			}
-
 			let targetLang = ps.targetLang;
 			if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
 
 			let translationResult;
-			if (this.serverSettings.translatorType === 'deepl') {
-				if (this.serverSettings.deeplAuthKey == null) {
-					throw new ApiError(meta.errors.unavailable);
+			const translatorType = this.serverSettings.translatorType?.toLowerCase() ?? null;
+			switch (translatorType) {
+				case 'deepl': {
+					if (this.serverSettings.deeplAuthKey == null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+					translationResult = await this.translateDeepL(
+						target.description,
+						targetLang,
+						this.serverSettings.deeplAuthKey,
+						this.serverSettings.deeplIsPro);
+					break;
 				}
-				translationResult = await this.translateDeepL(target.description, targetLang, this.serverSettings.deeplAuthKey, this.serverSettings.deeplIsPro, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'google_no_api') {
-				let targetLang = ps.targetLang;
-				if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
 
-				const { text, raw } = await translate(target.description, { to: targetLang });
-
-				return {
-					sourceLang: raw.src,
-					text: text,
-					translator: this.serverSettings.translatorType, // 修正点: 配列ではなく単一の文字列
-				};
-			} else if (this.serverSettings.translatorType === 'ctav3') {
-				if (this.serverSettings.ctav3SaKey == null) return Promise.resolve(204);
-				else if (this.serverSettings.ctav3ProjectId == null) return Promise.resolve(204);
-				else if (this.serverSettings.ctav3Location == null) return Promise.resolve(204);
-				translationResult = await this.apiCloudTranslationAdvanced(target.description, targetLang, this.serverSettings.ctav3SaKey, this.serverSettings.ctav3ProjectId, this.serverSettings.ctav3Location, this.serverSettings.ctav3Model, this.serverSettings.ctav3Glossary, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'Libretranslate') {
-				const endPoint = this.serverSettings.libreTranslateEndPoint;
-				if (endPoint === null) throw new Error('libreTranslateEndPoint is null');
-				translationResult = await this.translateLibretranslate(target.description, targetLang, endPoint, this.serverSettings.libreTranslateApiKey);
-			} else {
-				throw new Error('Unsupported translator type');
+				case 'ctav3': {
+					if (this.serverSettings.ctav3SaKey == null || this.serverSettings.ctav3ProjectId == null || this.serverSettings.ctav3Location == null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+					translationResult = await this.apiCloudTranslationAdvanced(
+						target.description,
+						targetLang,
+						this.serverSettings.ctav3SaKey,
+						this.serverSettings.ctav3ProjectId,
+						this.serverSettings.ctav3Location,
+						this.serverSettings.ctav3Model,
+						this.serverSettings.ctav3Glossary);
+					break;
+				}
+				case 'libretranslate':
+				{
+					const endPoint = this.serverSettings.libreTranslateEndPoint;
+					if (endPoint === null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+					translationResult = await this.translateLibretranslate(
+						target.description,
+						targetLang,
+						endPoint,
+						this.serverSettings.libreTranslateApiKey);
+					break;
+				}
+				default:
+					throw new ApiError(meta.errors.noTranslateService);
 			}
 
 			return Promise.resolve({
 				sourceLang: translationResult.sourceLang || '',
 				text: translationResult.text || '',
-				translator: translationResult.translator || [],
+				translator: translatorType,
 			});
 		});
 	}
 
-	private async translateDeepL(text: string, targetLang: string, authKey: string, isPro: boolean, provider: string) {
+	private async translateDeepL(text: string, targetLang: string, authKey: string, isPro: boolean) {
 		const params = new URLSearchParams();
 		params.append('auth_key', authKey);
 		params.append('text', text);
@@ -165,11 +170,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: json.translations[0].detected_source_language,
 			text: json.translations[0].text,
-			translator: provider,
 		};
 	}
 
-	private async apiCloudTranslationAdvanced(text: string, targetLang: string, saKey: string, projectId: string, location: string, model: string | null, glossary: string | null, provider: string) {
+	private async apiCloudTranslationAdvanced(text: string, targetLang: string, saKey: string, projectId: string, location: string, model: string | null, glossary: string | null) {
 		const [path, cleanup] = await createTemp();
 		fs.writeFileSync(path, saKey);
 
@@ -213,7 +217,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: detectedLanguage !== null ? detectedLanguage : detectedLanguageCode,
 			text: translatedText,
-			translator: provider,
 		};
 	}
 
@@ -242,7 +245,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: json.detectedLanguage.language,
 			text: json.translatedText,
-			translator: 'Libretranslate',
 		};
 	}
 }

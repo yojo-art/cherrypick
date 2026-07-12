@@ -15,7 +15,7 @@ import type { IMentionedRemoteUsers } from '@/models/Note.js';
 import { MiNote } from '@/models/Note.js';
 import { MiEvent } from '@/models/Event.js';
 import type { IEvent } from '@/models/Event.js';
-import type { BlockingsRepository, ChannelFollowingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { BlockingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiApp } from '@/models/App.js';
 import { concat } from '@/misc/prelude/array.js';
@@ -60,6 +60,7 @@ import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { removeChannelMention } from '@/misc/escape-reg-exp.js';
 import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
@@ -165,7 +166,6 @@ type Option = {
 	event?: IEvent | null;
 	localOnly?: boolean | null;
 	reactionAcceptance?: MiNote['reactionAcceptance'];
-	disableRightClick?: boolean | null;
 	cw?: string | null;
 	visibility?: string | null;
 	searchableBy: string | null,
@@ -227,9 +227,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
 
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
-
 		@Inject(DI.blockingsRepository)
 		private blockingsRepository: BlockingsRepository,
 
@@ -273,6 +270,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
+		channelId: MiUser['channelId'];
 	}, data: {
 		createdAt: Date;
 		updatedAt?: Date | null;
@@ -287,7 +285,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		channelId: MiChannel['id'] | null;
 		localOnly: boolean;
 		reactionAcceptance: MiNote['reactionAcceptance'];
-		disableRightClick: boolean | null;
 		poll: IPoll | null;
 		event: IEvent | null;
 		tagText?: string;
@@ -435,7 +432,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			cw: data.cw,
 			localOnly: data.localOnly,
 			reactionAcceptance: data.reactionAcceptance,
-			disableRightClick: data.disableRightClick,
 			visibility: data.visibility,
 			searchableBy: data.searchableBy,
 			visibleUsers,
@@ -454,16 +450,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
+		channelId: MiUser['channelId'];
 	}, data: Option, silent = false): Promise<MiNote> {
-		//このフォークではチャンネルの存在を認めない
-		data.channel = undefined;
 		//このフォークではローカルのみを認めない
 		data.localOnly = undefined;
 
 		if (data.createdAt == null) data.createdAt = new Date();
 		if (data.visibility == null) data.visibility = 'public';
 		if (data.localOnly == null) data.localOnly = false;
-		if (data.disableRightClick == null) data.disableRightClick = false;
 
 		if (data.visibility === 'public') {
 			const sensitiveWords = this.meta.sensitiveWords;
@@ -488,6 +482,17 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (data.visibility === 'public' && inSilencedInstance && user.host !== null) {
 			data.visibility = 'home';
+		}
+
+		if (data.text && data.channel) {
+			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
+			data.channel.actor ??= data.channel.actorId ? await this.cacheService.findUserById(data.channel.actorId) : null;
+			const username = data.channel.actor?.username;
+			if (username) {
+				const host = data.channel.actor?.host ?? null;
+				if (host === null)data.text = removeChannelMention(data.text, username, this.config.host);
+				data.text = removeChannelMention(data.text, username, host);
+			}
 		}
 
 		if (data.renote) {
@@ -600,6 +605,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 				data.visibleUsers.push(await this.usersRepository.findOneByOrFail({ id: data.reply!.userId }));
 			}
 		}
+		if (data.channel) {
+			//チャンネル投稿のチャンネルへのメンションは表示しない
+			mentionedUsers = mentionedUsers.filter(x => x.id !== data.channel?.actorId);
+		}
 
 		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
@@ -637,7 +646,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			userId: user.id,
 			localOnly: data.localOnly!,
 			reactionAcceptance: data.reactionAcceptance ?? null,
-			disableRightClick: data.disableRightClick!,
 			deleteAt: data.deleteAt,
 			visibility: data.visibility as any,
 			searchableBy: data.searchableBy as any,
@@ -653,6 +661,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			replyUserHost: data.reply ? data.reply.userHost : null,
 			renoteUserId: data.renote ? data.renote.userId : null,
 			renoteUserHost: data.renote ? data.renote.userHost : null,
+			renoteChannelId: data.renote ? data.renote.channelId : null,
 			userHost: user.host,
 		});
 
@@ -742,7 +751,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 		username: MiUser['username'];
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
+		channelId: MiUser['channelId'];
 	}, data: Option, silent: boolean, tags: string[], mentionedUsers: MinimumUser[]) {
+		if (user.channelId != null) {
+			//チャンネルアカウントによる投稿はすべてチャンネル投稿にする
+			note.channelId = user.channelId;
+		}
 		this.notesChart.update(note, true);
 		if (note.visibility !== 'specified' && (this.meta.enableChartsForRemoteUser || (user.host == null))) {
 			this.perUserNotesChart.update(user, note, true);
@@ -779,14 +793,16 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.saveReply(data.reply, note);
 		}
 
-		if (data.reply == null && !silent) {
+		const isPureRenote = this.isRenote(data) && !this.isQuote(data) ? true : false;
+		if (user.channelId != null && isPureRenote) {
+			//チャンネルによる純粋リノートは通知しない
+		} else if (data.reply == null && !silent) {
 			// TODO: キャッシュ
 			this.followingsRepository.findBy({
 				followeeId: user.id,
 				notify: 'normal',
 			}).then(async followings => {
 				if (note.visibility !== 'specified') {
-					const isPureRenote = this.isRenote(data) && !this.isQuote(data) ? true : false;
 					for (const following of followings) {
 						// TODO: ワードミュート考慮
 						let isRenoteMuted = false;
@@ -865,7 +881,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				const type = this.isQuote(data) ? 'quote' : 'renote';
 
 				// Notify
-				if (data.renote.userHost === null) {
+				if (data.renote.userHost === null && !(user.channelId != null && type === 'renote')) {
 					nm.push(data.renote.userId, type);
 				}
 
@@ -878,6 +894,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			nm.notify();
 
+			if (note.channelId != null && note.channel == null) {
+				note.channel = await this.channelsRepository.findOneBy({ id: note.channelId });
+			}
 			//#region AP deliver
 			if (!data.localOnly && this.userEntityService.isLocalUser(user)) {
 				await (async () => {
@@ -887,6 +906,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 					// メンションされたリモートユーザーに配送
 					for (const u of mentionedUsers.filter(u => this.userEntityService.isRemoteUser(u))) {
 						dm.addDirectRecipe(u as MiRemoteUser);
+					}
+
+					if (note.channel != null && note.channel.host != null && note.channel.actorId) {
+						//リモートのチャンネルに投稿する時はそのホストに配送
+						note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+						if (note.channel.actor?.host && note.channel.actor.uri) {
+							dm.addDirectRecipe(note.channel.actor as MiRemoteUser);
+						}
 					}
 
 					// 投稿がリプライかつ投稿者がローカルユーザーかつリプライ先の投稿の投稿者がリモートユーザーなら配送
@@ -912,6 +939,22 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 					trackPromise(dm.execute());
 				})();
+			}
+			if (note.channel?.actorId != null && note.channel.host == null && !user.channelId && ['public', 'home'].includes(note.visibility) && !isPureRenote) {
+				//ローカルのチャンネルに投稿が作成された時リノートする
+				note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+				if (note.channel.actor) {
+					//awaitせず非同期でやる
+					this.create(note.channel.actor, {
+						createdAt: this.idService.parse(note.id).date,
+						renote: note,
+						visibility: note.visibility,
+						searchableBy: note.searchableBy,
+						channel: note.channel,
+					});
+				} else {
+					console.log('チャンネルに連動したアカウントが見つからない');
+				}
 			}
 			//#endregion
 		}
@@ -1026,8 +1069,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.localOnly) return null;
 
 		const content = this.isRenote(data) && !this.isQuote(data)
-			? this.apRendererService.renderAnnounce(data.renote.uri ? data.renote.uri : `${this.config.url}/notes/${data.renote.id}`, note)
-			: this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
+			? await this.apRendererService.renderAnnounce(data.renote.uri ? data.renote.uri : `${this.config.url}/notes/${data.renote.id}`, note)
+			: await this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 
 		return this.apRendererService.addContext(content);
 	}
@@ -1066,17 +1109,25 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		const r = this.redisForTimelines.pipeline();
 
-		if (note.channelId) {
-			this.fanoutTimelineService.push(`channelTimeline:${note.channelId}`, note.id, this.config.perChannelMaxNoteCacheCount, r);
-
-			this.fanoutTimelineService.push(`userTimelineWithChannel:${user.id}`, note.id, note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax, r);
-
-			const channelFollowings = await this.channelFollowingsRepository.find({
+		if (note.channelId && note.channel == null) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId === user.id) {
+			//チャンネルユーザーが作成したチャンネル投稿
+			if (isRenote(note) && !isQuote(note)) {
+				note.renote = await this.notesRepository.findOneBy({ id: note.renoteId });
+			}
+			if (note.renote) {
+				note.renote.channel = note.channel;
+				//TLにはリノートの中身を投入する
+				note = note.renote;
+			}
+		}
+		if (note.channelId && note.channel) {
+			const channelFollowings = note.channel.actorId ? await this.followingsRepository.find({
 				where: {
-					followeeId: note.channelId,
+					followeeId: note.channel.actorId,
 				},
 				select: ['followerId'],
-			});
+			}) : [];
 
 			for (const channelFollowing of channelFollowings) {
 				this.fanoutTimelineService.push(`homeTimeline:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax, r);
@@ -1084,6 +1135,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 					this.fanoutTimelineService.push(`homeTimelineWithFiles:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax / 2, r);
 				}
 			}
+			this.fanoutTimelineService.push(`channelTimeline:${note.channelId}`, note.id, this.config.perChannelMaxNoteCacheCount, r);
+
+			this.fanoutTimelineService.push(`userTimelineWithChannel:${user.id}`, note.id, note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax, r);
 		} else {
 			// TODO: キャッシュ？
 			// eslint-disable-next-line prefer-const

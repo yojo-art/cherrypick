@@ -4,14 +4,14 @@
  */
 
 import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import { bindThis } from '@/decorators.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
+import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import Channel, { type ChannelRequest } from '../channel.js';
-import { REQUEST } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class HomeTimelineChannel extends Channel {
@@ -22,6 +22,7 @@ export class HomeTimelineChannel extends Channel {
 	private withRenotes: boolean;
 	private withFiles: boolean;
 	private withCats: boolean;
+	private withBots: boolean;
 
 	constructor(
 		@Inject(REQUEST)
@@ -39,26 +40,40 @@ export class HomeTimelineChannel extends Channel {
 		this.withRenotes = !!(params.withRenotes ?? true);
 		this.withFiles = !!(params.withFiles ?? false);
 		this.withCats = !!(params.withCats ?? false);
+		this.withBots = !!(params.withBots ?? true);
 
 		this.subscriber.on('notesStream', this.onNote);
 	}
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
+		if (note.channelId) {
+			// そのチャンネルをフォローしていない
+			if (!this.followingChannels.has(note.channelId)) {
+				return;
+			}
+			if (note.user.channelId != null) {
+				// チャンネルアカウントによる純粋なリノートの場合
+				if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
+					//yojo-art その内容部分の投稿を展開してTLに流す
+					note = note.renote;
+				}
+			}
+		}
+
 		const isMe = this.user!.id === note.userId;
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;
 		if (this.withCats && (note.user.isCat == null || note.user.isCat === false)) return;
-
-		if (note.channelId) {
-			if (!this.followingChannels.has(note.channelId)) return;
-		} else {
-			// その投稿のユーザーをフォローしていなかったら弾く
-			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
-		}
+		if (!this.withBots && note.user.isBot) return;
 
 		if (!this.isNoteVisibleForMe(note)) return;
 
+		if (!note.channelId) {
+			// チャンネル投稿ではない場合
+			// その投稿のユーザーをフォローしていなかったら弾く
+			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
+		}
 		if (note.reply) {
 			const reply = note.reply;
 			if (this.following[note.userId]?.withReplies) {

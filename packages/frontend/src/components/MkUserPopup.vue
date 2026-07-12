@@ -26,10 +26,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div :class="$style.title">
 				<MkA :class="$style.name" :to="userPage(user)"><MkUserName :user="user" :nowrap="false"/></MkA>
 				<div :class="$style.username"><MkAcct :user="user"/></div>
-				<div v-if="('isAdmin' in user && user.isAdmin) || user.isLocked || user.isBot" style="margin-top: 4px;">
+				<div v-if="('isAdmin' in user && user.isAdmin) || user.isLocked || user.isBot || user.channelId" style="margin-top: 4px;">
 					<span v-if="'isAdmin' in user && user.isAdmin" v-tooltip="i18n.ts.administrator" style="color: var(--MI_THEME-badge);"><i class="ti ti-shield"></i></span>
 					<span v-if="user.isLocked" v-tooltip="i18n.ts.makeFollowManuallyApprove"><i class="ti ti-lock"></i></span>
 					<span v-if="user.isBot"><i class="ti ti-robot"></i></span>
+					<span v-if="user.channelId != null"><i class="ti ti-device-tv"></i></span>
 				</div>
 			</div>
 			<div :class="$style.description">
@@ -63,7 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import { userPage } from '@/filters/user.js';
 import * as os from '@/os.js';

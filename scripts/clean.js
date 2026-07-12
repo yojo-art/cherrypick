@@ -12,7 +12,7 @@ const fs = require('fs');
 	fs.rmSync(__dirname + '/../packages/frontend-embed/built', { recursive: true, force: true });
 	fs.rmSync(__dirname + '/../packages/icons-subsetter/built', { recursive: true, force: true });
 	fs.rmSync(__dirname + '/../packages/sw/built', { recursive: true, force: true });
-	fs.rmSync(__dirname + '/../packages/cherrypick-js/built', { recursive: true, force: true });
+	fs.rmSync(__dirname + '/../packages/misskey-js/built', { recursive: true, force: true });
 	fs.rmSync(__dirname + '/../packages/misskey-reversi/built', { recursive: true, force: true });
 	fs.rmSync(__dirname + '/../packages/misskey-bubble-game/built', { recursive: true, force: true });
 	fs.rmSync(__dirname + '/../built', { recursive: true, force: true });

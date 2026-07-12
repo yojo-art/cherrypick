@@ -5,7 +5,7 @@
 
 import { createApp, defineAsyncComponent, markRaw } from 'vue';
 import { ui } from '@@/js/config.js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { compareVersions } from 'compare-versions';
 import { common } from './common.js';
 import type { Component } from 'vue';
@@ -59,8 +59,11 @@ export async function mainBoot() {
 			case 'default':
 				rootComponent = await import('@/ui/universal.vue').then(x => x.default);
 				break;
-			default:
+			case 'friendly':
 				rootComponent = await import('@/ui/friendly.vue').then(x => x.default);
+				break;
+			default:
+				rootComponent = await import('@/ui/universal.vue').then(x => x.default);
 				break;
 		}
 

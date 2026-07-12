@@ -2,7 +2,7 @@ import { deepStrictEqual, strictEqual } from 'assert';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { WebSocket } from 'ws';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,10 +34,100 @@ export type Request = <
 	credential?: string | null,
 ) => Promise<Misskey.api.SwitchCaseResponseType<E, P>>;
 
-type Host = 'a.test' | 'b.test';
+type Host = 'a.test' | 'b.test' | 'c.test' | 'z.test';
+type FederationTestTargetHost = 'a.test' | 'b.test' | 'c.test';
+export const FEDERATION_STUB_HOST: Host = 'z.test';
+
+export function federationTestStubUri(path: string): string {
+	return `https://${FEDERATION_STUB_HOST}/${path}`;
+}
+
+type DeliverFederationTestNoteResponse = {
+	activityId: string;
+	inboxUrl: string;
+	inboxStatus: number;
+};
+
+/**
+ * z.test に stub Note の署名付き inbox 配送を依頼する。
+ * `notePath` は `stub/notes/` からの相対パス（例: `ap-emoji-1049/10-copy-permission-none`）。
+ */
+export async function deliverFederationTestNote(
+	targetHost: FederationTestTargetHost,
+	notePath: string,
+): Promise<DeliverFederationTestNoteResponse> {
+	const response = await fetch(federationTestStubUri('deliver'), {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ targetHost, notePath }),
+	});
+	const body = await response.json() as DeliverFederationTestNoteResponse & { error?: string };
+	strictEqual(
+		response.status,
+		200,
+		`z.test deliver API failed for ${notePath} -> ${targetHost}: ${response.status} ${JSON.stringify(body)}`,
+	);
+	strictEqual(
+		body.inboxStatus,
+		202,
+		`z.test signed inbox delivery failed for ${notePath} -> ${targetHost}: inbox returned ${body.inboxStatus}`,
+	);
+	return body;
+}
+
+/**
+ * `viewer` のインスタンスが stub Note を連合受信するまで待つ。
+ * z.test の zack の `users/notes` で最新ノートが対象 URI になることを確認する。
+ */
+export async function waitForFederationTestNote(
+	viewer: LoginUser,
+	notePath: string,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.Note> {
+	let note: Misskey.entities.Note | undefined;
+	const targetUri = federationTestStubUri(`notes/${notePath}`);
+	const zack = await resolveRemoteUser(FEDERATION_STUB_HOST, 'zack', viewer);
+
+	await waitFor(async () => {
+		try {
+			const notes = await viewer.client.request('users/notes', {
+				userId: zack.id,
+				limit: 1,
+			});
+			if (notes[0].uri !== targetUri) return false;
+			note = notes[0];
+			return true;
+		} catch {
+			return false;
+		}
+	}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
+	if (note == null) throw new Error(`federation test note not ingested: ${targetUri}`);
+	return note;
+}
 
 export async function sleep(ms = 250): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+/**
+ * Polls `predicate` until it resolves to `true`, or throws once `timeout` (ms) elapses.
+ * Prefer this over a fixed `sleep` when waiting for eventual federation propagation,
+ * so the test does not depend on a hard-coded delay being long enough.
+ */
+export async function waitFor(
+	predicate: () => Promise<boolean> | boolean,
+	{ timeout = 10_000, interval = 500 }: { timeout?: number; interval?: number } = {},
+): Promise<void> {
+	const start = Date.now();
+	for (;;) {
+		if (await predicate()) return;
+		if (Date.now() - start >= timeout) {
+			throw new Error(`waitFor: condition was not met within ${timeout}ms`);
+		}
+		await sleep(interval);
+	}
 }
 
 async function signin(
@@ -155,6 +245,10 @@ export async function createRole(
 	});
 }
 
+export function randomUsername() {
+	return crypto.randomUUID().replaceAll('-', '').substring(0, 20);
+}
+
 export async function resolveRemoteUser(
 	host: Host,
 	id: string,
@@ -181,6 +275,48 @@ export async function resolveRemoteNote(
 			strictEqual(res.object.uri, uri);
 			return res.object;
 		});
+}
+
+/**
+ * z.test の stub Note を `targetHost` に連合配送し、取り込み完了まで待つ。
+ * `resolveRemoteNote` と違い inbox 配送を行う（静的スタブを Misskey に届けるため）。
+ */
+export async function requestFederationTestNote(
+	viewer: LoginUser,
+	notePath: string,
+	targetHost: FederationTestTargetHost = 'b.test',
+): Promise<Misskey.entities.Note> {
+	await deliverFederationTestNote(targetHost, notePath);
+	return await waitForFederationTestNote(viewer, notePath);
+}
+
+export async function fetchRemoteEmojiByName(
+	viewer: LoginUser,
+	name: string,
+	host: Host = FEDERATION_STUB_HOST,
+): Promise<Misskey.entities.EmojiDetailed> {
+	return await viewer.client.request('emoji', { name, host });
+}
+
+export async function waitForRemoteEmoji(
+	viewer: LoginUser,
+	name: string,
+	host: Host = FEDERATION_STUB_HOST,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.EmojiDetailed> {
+	let emoji: Misskey.entities.EmojiDetailed | undefined;
+	await waitFor(async () => {
+		try {
+			emoji = await fetchRemoteEmojiByName(viewer, name, host);
+			return true;
+		} catch {
+			return false;
+		}
+	}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
+	if (emoji == null) {
+		throw new Error(`remote emoji not found: ${name}@${host} (note may be ingested but emoji was not registered)`);
+	}
+	return emoji;
 }
 
 export async function uploadFile(

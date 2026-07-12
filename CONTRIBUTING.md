@@ -206,7 +206,7 @@ command.
 You can run non-backend tests by executing following commands:
 ```sh
 pnpm --filter frontend test
-pnpm --filter cherrypick-js test
+pnpm --filter misskey-js test
 ```
 
 Backend tests require manual preparation of servers. See the next section for more on this.
@@ -242,6 +242,26 @@ pnpm --filter backend test:e2e -- packages/backend/test/e2e/nodeinfo.ts
 
 #### Running Multiple-server E2E Tests
 See [`/packages/backend/test-federation/README.md`](/packages/backend/test-federation/README.md).
+
+### Frontend E2E Tests (Cypress)
+Frontend end-to-end tests are written with [Cypress](https://www.cypress.io/) and located in [`/cypress`](/cypress).
+They start a backend server in test mode and run Cypress against it.
+
+#### Running on Your Host
+```sh
+pnpm run e2e
+```
+This uses `.github/cherrypick/test.yml` as the config, so the test DB and Redis must be reachable on `localhost` (for example, by running `docker compose -f packages/backend/test/compose.yml up` beforehand).
+
+#### Running in the Dev Container
+Inside the [Dev Container](#use-devcontainer), the required services are already provided, so you can run:
+```sh
+pnpm run e2e-dev-container
+```
+To keep the test data isolated from your development environment, the E2E setup uses a dedicated `redis-test` service and a separate `cherrypick_test` database on the shared `db` server. This script copies `.config/cypress-devcontainer.yml` to `.config/test.yml`, migrates the test database, then starts the test server and runs Cypress.
+
+> [!NOTE]
+> The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
 
 ## Environment Variable
 
@@ -300,7 +320,7 @@ CherryPick uses [Storybook](https://storybook.js.org/) for UI development.
 #### Setup
 
 ```bash
-pnpm --filter cherrypick-js build
+pnpm --filter misskey-js build
 ```
 
 #### Run
@@ -483,7 +503,7 @@ describe('test', () => {
 
 ### CherryPick.jsの型生成
 ```bash
-pnpm build-cherrypick-js-with-types
+pnpm build-misskey-js-with-types
 ```
 
 ### How to resolve conflictions occurred at pnpm-lock.yaml?

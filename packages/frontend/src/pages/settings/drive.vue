@@ -65,6 +65,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkPreferenceContainer>
 					</SearchMarker>
 
+					<SearchMarker :keywords="['instant', 'upload', 'post', 'form']">
+						<MkPreferenceContainer k="instantUploadInPostForm">
+							<MkSwitch v-model="instantUploadInPostForm">
+								<template #label><SearchLabel>{{ i18n.ts.instantUploadInPostForm }}</SearchLabel></template>
+								<template #caption><SearchText>{{ i18n.ts.instantUploadInPostForm_description }}</SearchText></template>
+							</MkSwitch>
+						</MkPreferenceContainer>
+					</SearchMarker>
+
 					<SearchMarker :keywords="['always', 'default', 'mark', 'nsfw', 'sensitive', 'media', 'file']">
 						<MkSwitch v-model="alwaysMarkNsfw" @update:modelValue="saveProfile()">
 							<template #label><SearchLabel>{{ i18n.ts.alwaysMarkSensitive }}</SearchLabel></template>
@@ -149,22 +158,48 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label><SearchLabel>{{ i18n.ts.video }}</SearchLabel></template>
 
 				<div class="_gaps_m">
-					<SearchMarker :keywords="['default', 'video', 'compression']">
-						<MkPreferenceContainer k="defaultVideoCompressionLevel">
+					<SearchMarker :keywords="['default', 'video', 'codec']">
+						<MkPreferenceContainer k="defaultVideoCodec">
 							<MkSelect
-								v-model="defaultVideoCompressionLevel" :items="[
-									{ label: i18n.ts.none, value: 0 },
-									{ label: i18n.ts._compression._quality.webpcompress, value: 10 },
-									{ label: `${i18n.ts.low} (${i18n.ts._compression._quality.high}; ${i18n.ts._compression._size.large})`, value: 1 },
-									{ label: `${i18n.ts.medium} (${i18n.ts._compression._quality.medium}; ${i18n.ts._compression._size.medium})`, value: 2 },
-									{ label: `${i18n.ts.high} (${i18n.ts._compression._quality.low}; ${i18n.ts._compression._size.small})`, value: 3 },
+								v-model="defaultVideoCodec" :items="[
+									{ label: i18n.ts._videoCodec.h264, value: 'h264' },
+									{ label: i18n.ts._videoCodec.vp9, value: 'vp9' },
+									{ label: i18n.ts._videoCodec.copy, value: 'copy' },
 								]"
 							>
-								<template #label><SearchLabel>{{ i18n.ts.defaultCompressionLevel }}</SearchLabel></template>
-								<template #caption><div v-html="i18n.ts.defaultCompressionLevel_description"></div></template>
+								<template #label><SearchLabel>{{ i18n.ts.videoCodec }}</SearchLabel></template>
+								<template #caption><SearchText>{{ i18n.ts.videoCodec_description }}</SearchText></template>
 							</MkSelect>
 						</MkPreferenceContainer>
 					</SearchMarker>
+
+					<template v-if="defaultVideoCodec !== 'copy'">
+						<SearchMarker :keywords="['default', 'video', 'compression']">
+							<MkPreferenceContainer k="defaultVideoQualityLevel">
+								<MkSelect
+									v-model="defaultVideoQualityLevel" :items="[
+										{ label: `${i18n.ts._compression._quality.low} (${i18n.ts._compression._size.small})`, value: 'low' },
+										{ label: `${i18n.ts._compression._quality.medium} (${i18n.ts._compression._size.medium})`, value: 'medium' },
+										{ label: `${i18n.ts._compression._quality.high} (${i18n.ts._compression._size.large})`, value: 'high' },
+										{ label: i18n.ts.bitrateSpecify, value: 'manual' },
+									]"
+								>
+									<template #label><SearchLabel>{{ i18n.ts.defaultVideoQualityLevel }}</SearchLabel></template>
+									<template #caption>{{ i18n.ts.defaultVideoQualityLevel_description }}</template>
+								</MkSelect>
+							</MkPreferenceContainer>
+						</SearchMarker>
+
+						<SearchMarker v-if="defaultVideoQualityLevel === 'manual'" :keywords="['default', 'video', 'bitrate', 'value']">
+							<MkPreferenceContainer k="defaultVideoBitrateValue">
+								<MkInput v-model="defaultVideoBitrateValueMbps" type="number">
+									<template #label><SearchLabel>{{ i18n.ts.videoBitrate }}</SearchLabel></template>
+									<template #caption><SearchText>{{ i18n.ts.videoBitrate_description }}</SearchText></template>
+									<template #suffix>Mbps</template>
+								</MkInput>
+							</MkPreferenceContainer>
+						</SearchMarker>
+					</template>
 				</div>
 			</FormSection>
 		</SearchMarker>
@@ -174,7 +209,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import tinycolor from 'tinycolor2';
 import XWatermarkItem from './drive.WatermarkItem.vue';
 import type { WatermarkPreset } from '@/utility/watermark.js';
@@ -182,6 +217,7 @@ import type { MkSelectItem } from '@/components/MkSelect.vue';
 import FormLink from '@/components/form/link.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
+import MkInput from '@/components/MkInput.vue';
 import FormSection from '@/components/form/section.vue';
 import MkKeyValue from '@/components/MkKeyValue.vue';
 import FormSplit from '@/components/form/split.vue';
@@ -221,9 +257,19 @@ const meterStyle = computed(() => {
 });
 
 const keepOriginalFilename = prefer.model('keepOriginalFilename');
+const instantUploadInPostForm = prefer.model('instantUploadInPostForm');
 const defaultWatermarkPresetId = prefer.model('defaultWatermarkPresetId');
 const defaultImageCompressionLevel = prefer.model('defaultImageCompressionLevel');
-const defaultVideoCompressionLevel = prefer.model('defaultVideoCompressionLevel');
+const defaultVideoQualityLevel = prefer.model('defaultVideoQualityLevel');
+const defaultVideoCodec = prefer.model('defaultVideoCodec');
+const defaultVideoBitrateValue = prefer.model('defaultVideoBitrateValue');
+
+const defaultVideoBitrateValueMbps = computed({
+	get: () => defaultVideoBitrateValue.value != null ? defaultVideoBitrateValue.value / 1_000_000 : null,
+	set: (val) => {
+		defaultVideoBitrateValue.value = val != null ? val * 1_000_000 : null;
+	},
+});
 
 const watermarkPresetsSyncEnabled = ref(prefer.isSyncEnabled('watermarkPresets'));
 

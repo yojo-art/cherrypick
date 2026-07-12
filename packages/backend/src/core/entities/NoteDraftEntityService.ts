@@ -116,7 +116,6 @@ export class NoteDraftEntityService implements OnModuleInit {
 			localOnly: noteDraft.localOnly,
 			reactionAcceptance: noteDraft.reactionAcceptance,
 			visibleUserIds: noteDraft.visibleUserIds,
-			disableRightClick: noteDraft.disableRightClick || undefined,
 			hashtag: noteDraft.hashtag,
 			fileIds: noteDraft.fileIds,
 			files: packedFiles != null ? this.packAttachedFiles(noteDraft.fileIds, packedFiles) : this.driveFileEntityService.packManyByIds(noteDraft.fileIds),

@@ -23,13 +23,14 @@ import { MfmService, type Appender } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { MiUserKeypair } from '@/models/UserKeypair.js';
-import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip } from '@/models/_.js';
+import type { UsersRepository, UserProfilesRepository, NotesRepository, DriveFilesRepository, PollsRepository, EventsRepository, MiMeta, MiClip, ChannelsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { searchableTypes } from '@/types.js';
+import { isPureRenote } from '../entities/NoteEntityService.js';
 import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
@@ -62,6 +63,9 @@ export class ApRendererService {
 
 		@Inject(DI.eventsRepository)
 		private eventsRepository: EventsRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private customEmojiService: CustomEmojiService,
 		private userEntityService: UserEntityService,
@@ -106,7 +110,22 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public renderAnnounce(object: string | IObject, note: MiNote): IAnnounce {
+	public async getChannelUri(note: MiNote & { channelId: string }): Promise<string | null> {
+		note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId == null) {
+			//チャンネルアカウントが作成されてない
+			return null;
+		}
+		if (note.channel.host === null) {
+			return this.userEntityService.genLocalUserUri(note.channel.actorId);
+		} else {
+			note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+			return note.channel.actor?.uri ?? null;
+		}
+	}
+
+	@bindThis
+	public async renderAnnounce(object: string | IObject, note: MiNote): Promise<IAnnounce> {
 		const attributedTo = this.userEntityService.genLocalUserUri(note.userId);
 
 		let to: string[] = [];
@@ -124,7 +143,13 @@ export class ApRendererService {
 		} else {
 			throw new Error('renderAnnounce: cannot render non-public note');
 		}
-
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
+		}
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
@@ -134,6 +159,7 @@ export class ApRendererService {
 			to,
 			cc,
 			object,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 	}
 
@@ -157,18 +183,25 @@ export class ApRendererService {
 	}
 
 	@bindThis
-	public renderCreate(object: IObject, note: MiNote): ICreate {
+	public async renderCreate(object: IObject, note: MiNote): Promise<ICreate> {
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		const activity: ICreate = {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
 			type: 'Create',
 			published: this.idService.parse(note.id).date.toISOString(),
 			object,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
-
+		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
+			if (!activity.cc.includes(channelActorUri)) {
+				activity.cc.push(channelActorUri);
+			}
+		}
 		return activity;
 	}
 
@@ -448,6 +481,7 @@ export class ApRendererService {
 
 			if (renote) {
 				quote = renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`;
+				note.renote = renote;
 			}
 		}
 
@@ -470,6 +504,13 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
+		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
+		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
 			searchableBy = undefined;
@@ -482,8 +523,10 @@ export class ApRendererService {
 		} else { // if (note.searchableBy === searchableTypes[3])
 			searchableBy = ['as:Limited', 'kmyblue:Limited'];
 		}
-		const mentionedUsers = note.mentions.length > 0 ? await this.usersRepository.findBy({
-			id: In(note.mentions),
+		const mentionUserIds = note.mentions.concat();
+		if (!isPureRenote(note) && note.channel?.actorId)mentionUserIds.push(note.channel.actorId);
+		const mentionedUsers = mentionUserIds.length > 0 ? await this.usersRepository.findBy({
+			id: In(mentionUserIds),
 		}) : [];
 
 		const hashtagTags = note.tags.map(tag => this.renderHashtag(tag));
@@ -491,11 +534,32 @@ export class ApRendererService {
 
 		const files = await getPromisedFiles(note.fileIds);
 
-		const text = note.text ?? '';
+		let text = note.text ?? '';
 		let poll: MiPoll | null = null;
 
 		if (note.hasPoll) {
 			poll = await this.pollsRepository.findOneBy({ noteId: note.id });
+		}
+		// AP描画用にmentionedRemoteUsersを差し替えるためのローカルコピー(note本体は不変に保つ)
+		let mentionedRemoteUsersJson = note.mentionedRemoteUsers;
+		if (!isPureRenote(note) && note.channel?.actorId !== note.userId) {
+			//純リノートでなくチャンネルアカウントによる投稿でもない
+			const channelActor = note.channel?.actorId ? await this.usersRepository.findOneBy({ id: note.channel.actorId }) : null;
+			if (channelActor) {
+				if (channelActor.uri && channelActor.host) {
+					const mentionedRemoteUsers = JSON.parse(note.mentionedRemoteUsers) as IMentionedRemoteUsers;
+					mentionedRemoteUsers.push({
+						uri: channelActor.uri,
+						url: undefined,
+						username: channelActor.username,
+						host: channelActor.host,
+					});
+					mentionedRemoteUsersJson = JSON.stringify(mentionedRemoteUsers);
+				}
+				const host = channelActor.host;
+				const mention = '@' + channelActor.username + (host ? '@' + host : '');
+				text = (mention + ' ' + text).trim(); // ローカル変数だけを更新
+			}
 		}
 
 		const apAppend: Appender[] = [];
@@ -520,7 +584,11 @@ export class ApRendererService {
 
 		const summary = note.cw === '' ? String.fromCharCode(0x200B) : note.cw;
 
-		const { content, noMisskeyContent } = this.apMfmService.getNoteHtml(note, apAppend);
+		// yojo-art: note本体は書き換えず、描画に必要なフィールドだけ差し替えたビューを渡す
+		const { content, noMisskeyContent } = this.apMfmService.getNoteHtml(
+			{ text, mentionedRemoteUsers: mentionedRemoteUsersJson },
+			apAppend,
+		);
 
 		const emojis = await this.getEmojis(note.emojis);
 		const apemojis = emojis.filter(emoji => !emoji.localOnly).map(emoji => this.renderEmoji(emoji));
@@ -587,10 +655,10 @@ export class ApRendererService {
 			attachment: files.map(x => this.renderDocument(x)),
 			sensitive: note.cw != null || files.some(file => file.isSensitive),
 			tag,
-			disableRightClick: note.disableRightClick,
 			...asDeleteAt,
 			...asEvent,
 			...asPoll,
+			...(channelActorUri ? { audience: channelActorUri } : {}),
 		};
 	}
 
@@ -660,8 +728,10 @@ export class ApRendererService {
 		const keypair = await this.userKeypairService.getUserKeypair(user.id);
 		const searchableByData = toSerchableByProperty(this.config.url, user.id, user.searchableBy);
 
+		const channel = user.channelId ? await this.channelsRepository.findOneBy({ id: user.channelId }) : null;
+
 		const person: any = {
-			type: isSystem ? 'Application' : user.isBot ? 'Service' : 'Person',
+			type: isSystem ? 'Application' : user.channelId ? 'Group' : user.isBot ? 'Service' : 'Person',
 			id,
 			inbox: `${id}/inbox`,
 			outbox: `${id}/outbox`,
@@ -693,6 +763,7 @@ export class ApRendererService {
 			setFederationAvatarShape: user.setFederationAvatarShape ?? undefined,
 			isSquareAvatars: user.isSquareAvatars ?? undefined,
 			_yojoart_clips: `${id}/collections/clips`,
+			...(channel?.userId ? { attributedTo: this.userEntityService.genLocalUserUri(channel.userId) } : {} ),
 		};
 
 		if (user.movedToUri) {
@@ -876,7 +947,7 @@ export class ApRendererService {
 	 * @param orderedItems attached objects (optional)
 	 */
 	@bindThis
-	public renderOrderedCollection(id: string | null, totalItems: number, first?: string, last?: string, orderedItems?: IObject[]) {
+	public renderOrderedCollection(id: string | null, totalItems: number, first?: string, last?: string, orderedItems?: IObject[] | string[]) {
 		const page: any = {
 			id,
 			type: 'OrderedCollection',

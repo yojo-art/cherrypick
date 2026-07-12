@@ -198,7 +198,7 @@ export function getConfig(): UserConfig {
 
 			// https://vitejs.dev/guide/dep-pre-bundling.html#monorepos-and-linked-dependencies
 			commonjsOptions: {
-				include: [/cherrypick-js/, /node_modules/],
+				include: [/misskey-js/, /node_modules/],
 			},
 		},
 

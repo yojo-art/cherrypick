@@ -26,7 +26,7 @@ import type { UserEntityService } from './UserEntityService.js';
 import type { DriveFileEntityService } from './DriveFileEntityService.js';
 
 // is-renote.tsとよしなにリンク
-function isPureRenote(note: MiNote): note is MiNote & { renoteId: MiNote['id']; renote: MiNote } {
+export function isPureRenote(note: MiNote): note is MiNote & { renoteId: MiNote['id']; renote: MiNote } {
 	return (
 		note.renote != null &&
 		note.reply == null &&
@@ -423,7 +423,6 @@ export class NoteEntityService implements OnModuleInit {
 			localOnly: note.localOnly,
 			reactionAcceptance: note.reactionAcceptance,
 			visibleUserIds: note.visibility === 'specified' ? note.visibleUserIds : undefined,
-			disableRightClick: note.disableRightClick || undefined,
 			renoteCount: note.renoteCount,
 			repliesCount: note.repliesCount,
 			reactionCount: Object.values(reactions).reduce((a, b) => a + b, 0),

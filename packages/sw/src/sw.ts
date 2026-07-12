@@ -4,7 +4,7 @@
  */
 
 import { get } from 'idb-keyval';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { PushNotificationDataMap } from '@/types.js';
 import type { I18n } from '@@/js/i18n.js';
 import type { Locale } from '../../../locales/index.js';

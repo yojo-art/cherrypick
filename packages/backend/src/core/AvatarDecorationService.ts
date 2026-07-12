@@ -30,7 +30,7 @@ import type { Config } from '@/config.js';
 @Injectable()
 export class AvatarDecorationService implements OnApplicationShutdown {
 	public cache: MemorySingleCache<MiAvatarDecoration[]>;
-	public cacheWithRemote: MemorySingleCache<MiAvatarDecoration[]>;
+	public cacheRemote: MemorySingleCache<MiAvatarDecoration[]>;
 
 	constructor(
 		@Inject(DI.config)
@@ -53,8 +53,8 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		private globalEventService: GlobalEventService,
 		private httpRequestService: HttpRequestService,
 	) {
-		this.cache = new MemorySingleCache<MiAvatarDecoration[]>(1000 * 60 * 30); // 30s
-		this.cacheWithRemote = new MemorySingleCache<MiAvatarDecoration[]>(1000 * 60 * 30); // 30s
+		this.cache = new MemorySingleCache<MiAvatarDecoration[]>(1000 * 60 * 30); // 30min
+		this.cacheRemote = new MemorySingleCache<MiAvatarDecoration[]>(1000 * 60 * 30); // 30min
 
 		this.redisForSub.on('message', this.onMessage);
 	}
@@ -202,10 +202,10 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 
 			if (existingDecoration == null) {
 				await this.create(decorationData);
-				this.cacheWithRemote.delete();
+				this.cacheRemote.delete();
 			} else {
 				await this.update(existingDecoration.id, decorationData);
-				this.cacheWithRemote.delete();
+				this.cacheRemote.delete();
 			}
 
 			const findDecoration = await this.avatarDecorationsRepository.findOneBy({
@@ -245,26 +245,34 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 	}
 
 	@bindThis
-	public async getAll(noCache = false, withRemote = false, remoteOnly = false): Promise<MiAvatarDecoration[]> {
-		if (noCache) {
-			this.cache.delete();
-			this.cacheWithRemote.delete();
+	public async getAll(scope: 'local' | 'withRemote' | 'remoteOnly', flushCache = false): Promise<MiAvatarDecoration[]> {
+		if (flushCache) {
+			if (scope === 'local' || scope === 'withRemote') {
+				this.cache.delete();
+			}
+			if (scope === 'withRemote' || scope === 'remoteOnly') {
+				this.cacheRemote.delete();
+			}
 		}
 
-		if (remoteOnly) {
-			return this.cacheWithRemote.fetch(() => this.avatarDecorationsRepository.find({
-				where: {
-					host: Not(IsNull()),
-				},
-			}));
-		} else if (withRemote) {
-			return this.cacheWithRemote.fetch(() => this.avatarDecorationsRepository.find());
-		} else {
-			return this.cache.fetch(() => this.avatarDecorationsRepository.find({
-				where: {
-					host: IsNull(),
-				},
-			}));
+		switch (scope) {
+			case 'local':
+				return this.cache.fetch(() => this.avatarDecorationsRepository.find({
+					where: {
+						host: IsNull(),
+					},
+				}));
+
+			case 'withRemote':
+				return [
+					...await this.cache.fetch(() => this.avatarDecorationsRepository.find({ where: { host: IsNull() } })),
+					...await this.cacheRemote.fetch(() => this.avatarDecorationsRepository.find({ where: { host: Not(IsNull()) } })),
+				];
+
+			case 'remoteOnly':
+				return this.cacheRemote.fetch(() => this.avatarDecorationsRepository.find({
+					where: { host: Not(IsNull()) },
+				}));
 		}
 	}
 
@@ -277,7 +285,7 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		const instance = await this.instancesRepository.findOneBy({ host: decoration.host });
 		if (!instance) return null;
 
-		if (!['misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) {
+		if (!['yojo-art', 'misskey', 'cherrypick', 'sharkey'].includes(<string>instance.softwareName)) {
 			return null;
 		}
 

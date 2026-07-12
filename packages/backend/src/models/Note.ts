@@ -123,7 +123,6 @@ export class MiNote {
 	@Column('boolean', {
 		default: false,
 	})
-	public disableRightClick: boolean;
 
 	@Column('smallint', {
 		default: 0,
@@ -286,6 +285,14 @@ export class MiNote {
 		comment: '[Denormalized]',
 	})
 	public renoteUserHost: string | null;
+
+	@Column({
+		...id(),
+		nullable: true,
+		comment: '[Denormalized]',
+	})
+	public renoteChannelId: MiChannel['id'] | null;
+	//#endregion
 
 	constructor(data: Partial<MiNote>) {
 		if (data == null) return;

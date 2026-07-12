@@ -561,10 +561,6 @@ export interface Locale extends ILocale {
      */
     "newNoteReceivedNotification": string;
     /**
-     * 右クリックを禁止
-     */
-    "disableRightClick": string;
-    /**
      * キャッシュをクリアしましょうか？
      */
     "cherrypickUpdatedCacheClearTitle": string;
@@ -1146,6 +1142,10 @@ export interface Locale extends ILocale {
      * リアクション
      */
     "reactions": string;
+    /**
+     * リアクションしたユーザー
+     */
+    "reactionUsers": string;
     /**
      * 絵文字ピッカー
      */
@@ -4361,6 +4361,10 @@ export interface Locale extends ILocale {
      */
     "translatedFrom": ParameterizedString<"x">;
     /**
+     * 翻訳に失敗しました
+     */
+    "translateError": string;
+    /**
      * アカウントの削除が進行中です
      */
     "accountDeletionInProgress": string;
@@ -5629,6 +5633,10 @@ export interface Locale extends ILocale {
      */
     "unnotifyNotes": string;
     /**
+     * 投稿通知を設定したユーザー
+     */
+    "notifyUsers": string;
+    /**
      * 認証
      */
     "authentication": string;
@@ -5800,6 +5808,10 @@ export interface Locale extends ILocale {
      * 通知をグルーピング
      */
     "useGroupedNotifications": string;
+    /**
+     * 新規投稿通知もグルーピング
+     */
+    "useGroupedNoteNotifications": string;
     /**
      * メールアドレスの確認中に問題が発生しました。リンクの有効期限が切れている可能性があります。
      */
@@ -6217,6 +6229,14 @@ export interface Locale extends ILocale {
      */
     "compress": string;
     /**
+     * 品質
+     */
+    "quality": string;
+    /**
+     * ビットレート指定
+     */
+    "bitrateSpecify": string;
+    /**
      * 右
      */
     "right": string;
@@ -6316,6 +6336,14 @@ export interface Locale extends ILocale {
      */
     "defaultImageCompressionLevel_description": string;
     /**
+     * 投稿フォームで即時アップロード
+     */
+    "instantUploadInPostForm": string;
+    /**
+     * ONにすると、ファイルを選択した時点で裏でアップロード処理が開始されます。
+     */
+    "instantUploadInPostForm_description": string;
+    /**
      * デフォルトの圧縮度
      */
     "defaultCompressionLevel": string;
@@ -6323,6 +6351,44 @@ export interface Locale extends ILocale {
      * 低くすると品質を保てますが、ファイルサイズは増加します。<br>高くするとファイルサイズを減らせますが、品質は低下します。
      */
     "defaultCompressionLevel_description": string;
+    /**
+     * デフォルトの品質
+     */
+    "defaultVideoQualityLevel": string;
+    /**
+     * 品質が高ければ高いほど高画質になりますが、ファイルサイズは増加します。
+     */
+    "defaultVideoQualityLevel_description": string;
+    /**
+     * エンコード形式
+     */
+    "videoCodec": string;
+    /**
+     * 動画アップロード時のデフォルトのエンコード形式
+     */
+    "videoCodec_description": string;
+    "_videoCodec": {
+        /**
+         * H.264 (高互換性)
+         */
+        "h264": string;
+        /**
+         * VP9 (推奨)
+         */
+        "vp9": string;
+        /**
+         * そのまま
+         */
+        "copy": string;
+    };
+    /**
+     * ビットレート
+     */
+    "videoBitrate": string;
+    /**
+     * ビットレートが高ければ高いほど高画質になりますが、ファイルサイズは増加します。
+     */
+    "videoBitrate_description": string;
     /**
      * 分
      */
@@ -6388,6 +6454,10 @@ export interface Locale extends ILocale {
      */
     "deviceInfoDescription": string;
     /**
+     * あなたは管理者です
+     */
+    "youAreAdmin": string;
+    /**
      * 下書き一覧
      */
     "draftNoteList": string;
@@ -6411,6 +6481,10 @@ export interface Locale extends ILocale {
      * ネコミミ付きのみ
      */
     "showCatOnly": string;
+    /**
+     * BOTユーザーを含める
+     */
+    "includeBots": string;
     /**
      * Playへの追加許可
      */
@@ -9380,6 +9454,10 @@ export interface Locale extends ILocale {
              * <b>それでも続けましょうか？</b>
              */
             "canUseAutoTranslateDescription": string;
+            /**
+             * チャンネルの作成
+             */
+            "canCreateChannel": string;
             /**
              * アイコンデコレーションの最大取付個数
              */
@@ -15216,17 +15294,57 @@ export interface Locale extends ILocale {
          */
         "title": string;
         /**
-         * 再インデックス対象
+         * 続きを実行
          */
-        "quesion": string;
+        "resume": string;
+        /**
+         * 停止
+         */
+        "stop": string;
+        /**
+         * 対象
+         */
+        "indexLabel": string;
+        /**
+         * 1回あたりの処理件数
+         */
+        "limitCountLabel": string;
+        /**
+         * 実行間隔（分）
+         */
+        "intervalMinutesLabel": string;
+        /**
+         * 実行中...
+         */
+        "statusRunning": string;
+        /**
+         * 一時停止中です。「続きを実行」で再開できます
+         */
+        "statusPaused": string;
+        /**
+         * 待機中: 次回実行 {time}
+         */
+        "statusQueued": ParameterizedString<"time">;
+        /**
+         * 完了しました
+         */
+        "statusCompleted": string;
+        /**
+         * 中止しました
+         */
+        "statusAborted": string;
+        /**
+         * 「{target}」は既に再インデックス中です。先に停止してから再度実行してください。
+         */
+        "alreadyRunning": ParameterizedString<"target">;
     };
     "_reCreateOpenSearchIndex": {
         /**
-         * ノートインデックスを破棄して再作成する
+         * インデックスを初期化する
          */
         "title": string;
         /**
-         * 再作成しますか？、現時点のノートインデックスは破棄されます。
+         * インデックスを初期化しますか？既存のデータは破棄されます。
          */
         "quesion": string;
     };

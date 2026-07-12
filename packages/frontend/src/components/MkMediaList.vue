@@ -29,7 +29,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import PhotoSwipe from 'photoswipe';
 import 'photoswipe/style.css';
@@ -44,7 +44,6 @@ import { prefer } from '@/preferences.js';
 const props = defineProps<{
 	mediaList: Misskey.entities.DriveFile[];
 	raw?: boolean;
-	disableRightClick?: boolean;
 }>();
 
 const gallery = useTemplateRef('gallery');
@@ -215,8 +214,6 @@ onMounted(() => {
 			preventScroll: true,
 		});
 		window.history.pushState(null, '', '#pswp');
-
-		if (props.disableRightClick) window.document.addEventListener('contextmenu', preventRightClick);
 	});
 
 	lightbox.on('destroy', () => {
@@ -225,8 +222,6 @@ onMounted(() => {
 		if (window.location.hash === '#pswp') {
 			window.history.back();
 		}
-
-		if (props.disableRightClick) window.document.removeEventListener('contextmenu', preventRightClick);
 	});
 
 	window.addEventListener('popstate', popstateHandler);
@@ -252,10 +247,6 @@ const openGallery = () => {
 		lightbox?.loadAndOpen(0);
 	}
 };
-
-function preventRightClick(event: MouseEvent) {
-	event.preventDefault();
-}
 
 defineExpose({
 	openGallery,

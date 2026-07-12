@@ -70,7 +70,7 @@ export type EmojiSearchQuery = {
 
 <script setup lang="ts">
 import { computed, defineAsyncComponent, onMounted, ref, nextTick, useCssModule } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { RequestLogItem } from '@/pages/admin/custom-emojis-manager.impl.js';
 import type { GridCellValidationEvent, GridCellValueChangeEvent, GridEvent } from '@/components/grid/grid-event.js';
 import type { GridSetting } from '@/components/grid/grid.js';

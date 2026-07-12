@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import XColumn from './column.vue';
-import type { entities as MisskeyEntities } from 'cherrypick-js';
+import type { entities as MisskeyEntities } from 'misskey-js';
 import type { Column } from '@/deck.js';
 import type { MenuItem } from '@/types/menu.js';
 import type { SoundStore } from '@/preferences/def.js';

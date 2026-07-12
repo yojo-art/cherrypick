@@ -64,7 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onMounted, ref, useTemplateRef, toRefs } from 'vue';
-import { entities } from 'cherrypick-js';
+import { entities } from 'misskey-js';
 import type { MkSystemWebhookResult } from '@/components/MkSystemWebhookEditor.impl.js';
 import MkButton from '@/components/MkButton.vue';
 import MkModalWindow from '@/components/MkModalWindow.vue';

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { entities } from 'cherrypick-js';
+import { entities } from 'misskey-js';
 import { beforeEach, describe, test } from '@jest/globals';
 import {
 	api,

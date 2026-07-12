@@ -23,12 +23,12 @@
   - changed-files:
     - any-glob-to-any-file: ['packages/sw/**/*']
 
-'packages/cherrypick-js':
+'packages/misskey-js':
 - any:
   - changed-files:
-    - any-glob-to-any-file: ['packages/cherrypick-js/**/*']
+    - any-glob-to-any-file: ['packages/misskey-js/**/*']
 
-'packages/cherrypick-js:test':
+'packages/misskey-js:test':
 - any:
   - changed-files:
-    - any-glob-to-any-file: ['packages/cherrypick-js/test/**/*', 'packages/cherrypick-js/test-d/**/*']
+    - any-glob-to-any-file: ['packages/misskey-js/test/**/*', 'packages/misskey-js/test-d/**/*']

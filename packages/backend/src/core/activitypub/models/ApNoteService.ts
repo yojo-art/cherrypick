@@ -6,7 +6,7 @@
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { PollsRepository, EmojisRepository, MiMeta, NotesRepository } from '@/models/_.js';
+import type { PollsRepository, EmojisRepository, MiMeta, NotesRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
@@ -31,6 +31,7 @@ import { ApDbResolverService } from '../ApDbResolverService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import { parseSearchableByFromProperty } from '../misc/searchableBy.js';
+import { normalizeApEmojiTag } from '../misc/normalize-ap-emoji-tag.js';
 import { ApPersonService } from './ApPersonService.js';
 import { extractApHashtags } from './tag.js';
 import { ApMentionService } from './ApMentionService.js';
@@ -59,6 +60,9 @@ export class ApNoteService {
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private idService: IdService,
 		private apMfmService: ApMfmService,
@@ -230,6 +234,22 @@ export class ApNoteService {
 				visibility = 'public';
 			}
 		}
+		let channel = null as MiChannel | null;
+		if (actor.channelId) {
+			//チャンネルアカウントによる投稿はすべてチャンネル投稿
+			channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
+			if (channel)channel.actor = actor;
+		} else {
+			for (const user of noteAudience.mentionedUsers) {
+				const channelId = user.channelId;
+				if (channelId) {
+					channel = await this.channelsRepository.findOneBy({ id: channelId });
+					if (channel)channel.actor = user;
+				}
+				if (channel) break;//最初に発見されたチャンネルに投稿
+			}
+			//TODO: チャンネル連合 チャンネルアカウントがユーザーをブロックしていた場合投稿を拒否する？
+		}
 
 		// 添付ファイル
 		const files: MiDriveFile[] = [];
@@ -330,7 +350,6 @@ export class ApNoteService {
 				cw,
 				text,
 				localOnly: false,
-				disableRightClick: note.disableRightClick,
 				visibility,
 				visibleUsers,
 				searchableBy: searchableBy,
@@ -342,6 +361,7 @@ export class ApNoteService {
 				uri: note.id,
 				url: url,
 				deleteAt: note.deleteAt ? new Date(note.deleteAt) : null,
+				channel,
 			}, silent);
 		} catch (err: any) {
 			if (err.name !== 'duplicated') {
@@ -427,7 +447,6 @@ export class ApNoteService {
 				name: note.name,
 				cw,
 				text,
-				disableRightClick: note.disableRightClick,
 				apHashtags,
 				apEmojis,
 				poll,
@@ -491,6 +510,7 @@ export class ApNoteService {
 		return await Promise.all(eomjiTags.map(async tag => {
 			const name = tag.name.replaceAll(':', '');
 			tag.icon = toSingle(tag.icon);
+			const normalized = normalizeApEmojiTag(tag);
 
 			const exists = existingEmojis.find(x => x.name === name);
 
@@ -509,15 +529,15 @@ export class ApNoteService {
 						publicUrl: tag.icon.url,
 						updatedAt: new Date(),
 						// _misskey_license が存在しなければ `null`
-						license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-						isSensitive: tag.isSensitive ?? false,
-						copyPermission: tag.copyPermission,
-						category: tag.category,
-						aliases: tag.keywords,
-						usageInfo: tag.usageInfo,
-						author: tag.author ?? tag.crator,
-						description: tag.description,
-						isBasedOn: tag.isBasedOn,
+						license: normalized.license,
+						isSensitive: normalized.isSensitive,
+						copyPermission: normalized.copyPermission,
+						category: normalized.category,
+						aliases: normalized.aliases,
+						usageInfo: normalized.usageInfo,
+						author: normalized.author,
+						description: normalized.description,
+						isBasedOn: normalized.isBasedOn,
 					});
 
 					const emoji = await this.emojisRepository.findOneBy({ host, name });
@@ -539,15 +559,15 @@ export class ApNoteService {
 				publicUrl: tag.icon.url,
 				updatedAt: new Date(),
 				// _misskey_license が存在しなければ `null`
-				license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-				isSensitive: tag.isSensitive ?? false,
-				copyPermission: tag.copyPermission,
-				category: tag.category,
-				aliases: tag.keywords,
-				usageInfo: tag.usageInfo,
-				author: tag.author ?? tag.crator,
-				description: tag.description,
-				isBasedOn: tag.isBasedOn,
+				license: normalized.license,
+				isSensitive: normalized.isSensitive,
+				copyPermission: normalized.copyPermission,
+				category: normalized.category,
+				aliases: normalized.aliases,
+				usageInfo: normalized.usageInfo,
+				author: normalized.author,
+				description: normalized.description,
+				isBasedOn: normalized.isBasedOn,
 			});
 		}));
 	}

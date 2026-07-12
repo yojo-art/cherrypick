@@ -1,6 +1,8 @@
 include:
   - ./compose.a.yml
   - ./compose.b.yml
+  - ./compose.c.yml
+  - ./compose.z.yml
 
 services:
   setup:
@@ -11,7 +13,7 @@ services:
       bash -c "
         npm install -g pnpm
         pnpm -F backend i
-        pnpm -F cherrypick-js i
+        pnpm -F misskey-js i
         pnpm -F misskey-reversi i
       "
 
@@ -25,6 +27,14 @@ services:
       b.test:
         condition: service_healthy
       cherrypick.b.test:
+        condition: service_healthy
+      c.test:
+        condition: service_healthy
+      cherrypick.c.test:
+        condition: service_healthy
+      z.test:
+        condition: service_healthy
+      z.test.deliver:
         condition: service_healthy
     environment:
       - NODE_ENV=development
@@ -55,12 +65,12 @@ services:
         target: /cherrypick/packages/backend/jest.js
         read_only: true
       - type: bind
-        source: ../../cherrypick-js/built
-        target: /cherrypick/packages/cherrypick-js/built
+        source: ../../misskey-js/built
+        target: /cherrypick/packages/misskey-js/built
         read_only: true
       - type: bind
-        source: ../../cherrypick-js/package.json
-        target: /cherrypick/packages/cherrypick-js/package.json
+        source: ../../misskey-js/package.json
+        target: /cherrypick/packages/misskey-js/package.json
         read_only: true
       - type: bind
         source: ../../../package.json
@@ -86,7 +96,7 @@ services:
     entrypoint: >
       bash -c '
         npm install -g pnpm
-        pnpm -F cherrypick-js i --frozen-lockfile
+        pnpm -F misskey-js i --frozen-lockfile
         pnpm -F backend i --frozen-lockfile
         exec "$0" "$@"
       '

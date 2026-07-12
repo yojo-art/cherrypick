@@ -8,7 +8,7 @@ process.env.NODE_ENV = 'test';
 import * as assert from 'assert';
 import { text } from 'body-parser';
 import { api, post, signup, uploadUrl } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
 
 describe('検索', () => {

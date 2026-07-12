@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { api, post, signup, uploadUrl } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('users/notes', () => {
 	let alice: misskey.entities.SignupResponse;
@@ -17,8 +17,8 @@ describe('users/notes', () => {
 
 	beforeAll(async () => {
 		alice = await signup({ username: 'alice' });
-		const jpg = await uploadUrl(alice, 'https://raw.githubusercontent.com/kokonect-link/cherrypick/develop/packages/backend/test/resources/192.jpg');
-		const png = await uploadUrl(alice, 'https://raw.githubusercontent.com/kokonect-link/cherrypick/develop/packages/backend/test/resources/192.png');
+		const jpg = await uploadUrl(alice, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.jpg');
+		const png = await uploadUrl(alice, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.png');
 		jpgNote = await post(alice, {
 			fileIds: [jpg.id],
 		});
