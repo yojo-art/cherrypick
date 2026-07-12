@@ -42,12 +42,22 @@ BASE=$(git merge-base origin/develop HEAD)
 
 ```
 /*
+ * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+```
+
+もしくは
+
+```
+/*
  * SPDX-FileCopyrightText: syuilo and misskey-project
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 ```
 
 欠落すると CI の `spdx` ジョブが落ちる。
+このプロジェクト(yojo-art)では「syuilo and misskey-project, yojo-art team」を優先して使用するが、「syuilo and misskey-project」でも問題ない。
 
 ### 2. `meta` の必須・推奨フィールド (Major)
 
