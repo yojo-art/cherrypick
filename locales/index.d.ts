@@ -6340,7 +6340,7 @@ export interface Locale extends ILocale {
      */
     "instantUploadInPostForm": string;
     /**
-     * ONにすると、ファイルを選択した時点で裏でアップロード処理が開始されます。低速ネットワーク環境で快適になります。
+     * ONにすると、ファイルを選択した時点で裏でアップロード処理が開始されます。
      */
     "instantUploadInPostForm_description": string;
     /**
