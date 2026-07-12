@@ -1,3 +1,51 @@
+## 1.8.0
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-07-13
+
+### General
+- Feat: チャンネルを復活させる [#838](https://github.com/yojo-art/cherrypick/pull/838)
+- Feat: チャンネル連合 [#1036](https://github.com/yojo-art/cherrypick/pull/1036)
+  - GroupActorが生成されGroupによって投稿を配送します
+	- リモートユーザーはGroupActorにメンションする事でそのチャンネルに投稿できます
+- Feat: チャンネルミュートの実装 (misskey-dev/misskey#14105) [#1123](https://github.com/yojo-art/cherrypick/pull/1123)
+- Remove: 右クリック禁止の削除 [#1051](https://github.com/yojo-art/cherrypick/pull/1051)
+
+### Client
+- Change: デフォルトのUIをMisskey UIに変更 [#1136](https://github.com/yojo-art/cherrypick/pull/1136)
+- Feat: タイムラインにBOTユーザーを含めるのオプションを追加 [#1106](https://github.com/yojo-art/cherrypick/pull/1106)
+- Feat: 動画を添付した時にエンコード形式を選択できるダイアログを追加 [#1108](https://github.com/yojo-art/cherrypick/pull/1108)
+- Feat: 投稿通知を設定したユーザーをリストで見ることができるように [#987](https://github.com/yojo-art/cherrypick/pull/987)
+- Feat: 投稿フォームでデバイスからファイルを選択した時即時アップロード [#1139](https://github.com/yojo-art/cherrypick/pull/1139)
+- Enhance: アバターデコレーションのページネーション対応 [#990](https://github.com/yojo-art/cherrypick/pull/990)
+- Enhance: ドライブ上の画像ファイルのメニューにプレビューの追加 [#1006](https://github.com/yojo-art/cherrypick/pull/1006)
+- Enhance: ノート詳細画面のハッシュタグタブのレイアウト調整 [#977](https://github.com/yojo-art/cherrypick/pull/977)
+- Enhance: ファイルのアップロードのファイル選択を従来のものに変更 [#1050](https://github.com/yojo-art/cherrypick/pull/1050)
+- Enhance: リアクションの右クリックメニューに"リアクションしたユーザーリスト"のメニュー追加 [#1062](https://github.com/yojo-art/cherrypick/pull/1062)
+- Enhance: 修正履歴タブの自動ロードとローディング表示を改善 [#979](https://github.com/yojo-art/cherrypick/pull/979)
+- Enhance: 投稿フォームのレイアウトを調整 [#1057](https://github.com/yojo-art/cherrypick/pull/1057)
+- Fix: リノート時の公開範囲を記憶する設定が間違っていた問題を修正 [#1013](https://github.com/yojo-art/cherrypick/pull/1013)
+- Fix: ファイル更新が即座に反映されない問題の修正 [#1010](https://github.com/yojo-art/cherrypick/pull/1010)
+- Fix: リアクション時に確認を出す機能をひとつに [#972](https://github.com/yojo-art/cherrypick/pull/972)
+- Fix: 動画のアップロードでも圧縮時に"WebP圧縮のみ"が選べてしまう問題の修正 [#1004](https://github.com/yojo-art/cherrypick/pull/1004)
+- Fix: 新規投稿通知がグループ化されない問題の修正 [#1005](https://github.com/yojo-art/cherrypick/pull/1005)
+- Fix: 絵文字クリック時にprops.menuがある場合には親要素に伝播しないように修正 [#1002](https://github.com/yojo-art/cherrypick/pull/1002)
+- Fix: 自動翻訳の場合は翻訳失敗ダイアログを表示しないように [#1011](https://github.com/yojo-art/cherrypick/pull/1011)
+- Fix: 一部のUnicode絵文字がリアクションボタンにならない問題を修正 [#1067](https://github.com/yojo-art/cherrypick/pull/1067)
+- Fix: リアクションメニューのインポート表示条件とラベル表示の修正 [#1045](https://github.com/yojo-art/cherrypick/pull/1045)
+- Fix: ローカル投稿者のノートでリアクション絵文字をインポートできない問題の修正 [#1043](https://github.com/yojo-art/cherrypick/pull/1043)
+- Remove: "Google Translate(without API)"廃止 [#993](https://github.com/yojo-art/cherrypick/pull/993)
+	- Google翻訳を使用する場合、Cloud Translation Advanced v3を使用してください
+
+### Server
+- Enhance: canCreateChannelロールポリシーを追加 [#1044](https://github.com/yojo-art/cherrypick/pull/1044)
+- Fix: yojo-art同士ではデコレーションのfetchが出来ない可能性がある問題の修正 [#1003](https://github.com/yojo-art/cherrypick/pull/1003)
+- Fix: 連合絵文字タグの拡張プロパティを正規化してDB登録する [#1073](https://github.com/yojo-art/cherrypick/pull/1073)
+- Fix: opensearchの再インデックスを動作するように [#1127](https://github.com/yojo-art/cherrypick/pull/1127)
+- Fix: 投稿通知ユーザーリストのページネーション不備の修正 [#1018](https://github.com/yojo-art/cherrypick/pull/1018)
+
 ## 1.7.6
 Cherrypick 4.17.0  
 Misskey 2025.10.2
