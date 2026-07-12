@@ -340,6 +340,9 @@ describe('Channel', () => {
 				text: 'I am Alice!',
 				visibility: 'public',
 			});
+
+			await sleep(500);//配送待ち
+
 			const notes = (await alice.client.request('users/notes', {
 				userId: aliceChActorInB.id,
 				withChannelNotes: true,
@@ -366,6 +369,8 @@ describe('Channel', () => {
 				visibility: 'specified',
 				visibleUserIds: [bobInA.id],
 			})).createdNote;
+
+			await sleep(500);//配送待ち
 
 			const notesForBob = (await bob.client.request('channels/timeline', {
 				channelId: aliceChInB.id,
