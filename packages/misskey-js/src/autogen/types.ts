@@ -4406,6 +4406,8 @@ export type components = {
             isLocked: boolean;
             isBot?: boolean;
             isCat?: boolean;
+            /** Format: id */
+            channelId?: string;
             requireSigninToViewContents?: boolean;
             makeNotesFollowersOnlyBefore?: number | null;
             makeNotesHiddenBefore?: number | null;
@@ -5464,6 +5466,8 @@ export type components = {
             isFavorited?: boolean;
             isMuting?: boolean;
             pinnedNotes?: components['schemas']['Note'][];
+            host: string | null;
+            actorId?: string;
         };
         QueueCount: {
             waiting: number;
@@ -16060,13 +16064,14 @@ export interface operations {
         requestBody: {
             content: {
                 'application/json': {
-                    name: string;
+                    name?: string;
                     description?: string | null;
                     /** Format: misskey:id */
                     bannerId?: string | null;
                     color?: string;
                     isSensitive?: boolean | null;
                     allowRenoteToExternal?: boolean | null;
+                    username: string;
                 };
             };
         };

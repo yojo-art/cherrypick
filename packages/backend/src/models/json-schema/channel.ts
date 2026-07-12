@@ -93,5 +93,13 @@ export const packedChannelSchema = {
 				ref: 'Note',
 			},
 		},
+		host: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
+		actorId: {
+			type: 'string',
+			optional: true, nullable: false,
+		},
 	},
 } as const;

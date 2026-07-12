@@ -6,13 +6,14 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
-import type { ChannelFollowingsRepository, ChannelsRepository, MiUser } from '@/models/_.js';
+import type { UsersRepository, FollowingsRepository, ChannelsRepository, MiUser } from '@/models/_.js';
 import { MiChannel } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { GlobalEvents, GlobalEventService } from '@/core/GlobalEventService.js';
 import { bindThis } from '@/decorators.js';
-import type { MiLocalUser } from '@/models/User.js';
 import { RedisKVCache } from '@/misc/cache.js';
+import { UserEntityService } from './entities/UserEntityService.js';
+import { UserFollowingService } from './UserFollowingService.js';
 
 @Injectable()
 export class ChannelFollowingService implements OnModuleInit {
@@ -25,18 +26,24 @@ export class ChannelFollowingService implements OnModuleInit {
 		private redisForSub: Redis.Redis,
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
-		private idService: IdService,
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
+
 		private globalEventService: GlobalEventService,
+		private userEntityService: UserEntityService,
+		private userFollowingService: UserFollowingService,
 	) {
 		this.userFollowingChannelsCache = new RedisKVCache<Set<string>>(this.redisClient, 'userFollowingChannels', {
 			lifetime: 1000 * 60 * 30, // 30m
 			memoryCacheLifetime: 1000 * 60, // 1m
-			fetcher: (key) => this.channelFollowingsRepository.find({
-				where: { followerId: key },
-				select: ['followeeId'],
-			}).then(xs => new Set(xs.map(x => x.followeeId))),
+			fetcher: (key) => this.followingsRepository.createQueryBuilder('following')
+				.innerJoinAndSelect('following.followee', 'followee')
+				.select(['followee.channelId', 'following.followeeId'])
+				.where('following.followerId = :followerId', { followerId: key })
+				.andWhere('followee.channelId IS NOT NULL')
+				.getMany().then(xs => new Set(xs.map(x => x.followee?.channelId).filter(x => x != null))),
 			toRedisConverter: (value) => JSON.stringify(Array.from(value)),
 			fromRedisConverter: (value) => new Set(JSON.parse(value)),
 		});
@@ -67,17 +74,13 @@ export class ChannelFollowingService implements OnModuleInit {
 		},
 	): Promise<MiChannel[]> {
 		if (opts?.idOnly) {
-			const q = this.channelFollowingsRepository.createQueryBuilder('channel_following')
-				.select('channel_following.followeeId')
-				.where('channel_following.followerId = :userId', { userId: params.requestUserId });
-
-			return q
-				.getRawMany<{ channel_following_followeeId: string }>()
-				.then(xs => xs.map(x => ({ id: x.channel_following_followeeId } as MiChannel)));
+			return this.userFollowingChannelsCache.get(params.requestUserId).then(xs => {
+				return xs ? xs.values().toArray().map(x => ({ id: x } as MiChannel)) : [];
+			});
 		} else {
 			const q = this.channelsRepository.createQueryBuilder('channel')
-				.innerJoin('channel_following', 'channel_following', 'channel_following.followeeId = channel.id')
-				.where('channel_following.followerId = :userId', { userId: params.requestUserId });
+				.innerJoin('following', 'following', 'following.followeeId = channel.id')
+				.where('following.followerId = :userId', { userId: params.requestUserId });
 
 			if (opts?.joinUser) {
 				q.innerJoinAndSelect('channel.user', 'user');
@@ -93,35 +96,32 @@ export class ChannelFollowingService implements OnModuleInit {
 
 	@bindThis
 	public async follow(
-		requestUser: MiLocalUser,
+		requestUser: MiUser,
 		targetChannel: MiChannel,
 	): Promise<void> {
-		await this.channelFollowingsRepository.insert({
-			id: this.idService.gen(),
-			followerId: requestUser.id,
-			followeeId: targetChannel.id,
-		});
-
-		this.globalEventService.publishInternalEvent('followChannel', {
-			userId: requestUser.id,
-			channelId: targetChannel.id,
-		});
+		if (!targetChannel.actorId) {
+			return;
+		}
+		targetChannel.actor ??= await this.usersRepository.findOneBy({ id: targetChannel.actorId });
+		if (targetChannel.actor == null) {
+			return;
+		}
+		await this.userFollowingService.follow(requestUser, targetChannel.actor);
 	}
 
 	@bindThis
 	public async unfollow(
-		requestUser: MiLocalUser,
+		requestUser: MiUser,
 		targetChannel: MiChannel,
 	): Promise<void> {
-		await this.channelFollowingsRepository.delete({
-			followerId: requestUser.id,
-			followeeId: targetChannel.id,
-		});
-
-		this.globalEventService.publishInternalEvent('unfollowChannel', {
-			userId: requestUser.id,
-			channelId: targetChannel.id,
-		});
+		if (!targetChannel.actorId) {
+			return;
+		}
+		targetChannel.actor ??= await this.usersRepository.findOneBy({ id: targetChannel.actorId });
+		if (targetChannel.actor == null) {
+			return;
+		}
+		await this.userFollowingService.unfollow(requestUser, targetChannel.actor);
 	}
 
 	@bindThis

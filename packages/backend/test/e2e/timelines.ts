@@ -28,7 +28,7 @@ async function renote(noteId: string, user: UserToken): Promise<entities.Note> {
 }
 
 async function createChannel(name: string, user: UserToken): Promise<entities.ChannelsCreateResponse> {
-	return (await api('channels/create', { name }, user)).body;
+	return (await api('channels/create', { name, username: randomString() }, user)).body;
 }
 
 async function followChannel(channelId: string, user: UserToken) {
@@ -566,7 +566,7 @@ describe('Timelines', () => {
 			test('フォローしているユーザーのチャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel('channel', bob);
 				await api('following/create', { userId: bob.id }, alice);
 				await setTimeout(250);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
@@ -1160,7 +1160,7 @@ describe('Timelines', () => {
 			test('チャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel('channel', bob);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -2396,7 +2396,7 @@ describe('Timelines', () => {
 			test('リスインしているユーザーのチャンネルノートが含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel('channel', bob);
 				const list = await api('users/lists/create', { name: 'list' }, alice).then(res => res.body);
 				await api('users/lists/push', { listId: list.id, userId: bob.id }, alice);
 				await setTimeout(250);
@@ -2821,7 +2821,7 @@ describe('Timelines', () => {
 			test('チャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel('channel', bob);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -2896,7 +2896,7 @@ describe('Timelines', () => {
 			test('[withChannelNotes: true] チャンネル投稿が含まれる', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel' }, bob).then(x => x.body);
+				const channel = await createChannel('channel', bob);
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -2909,7 +2909,7 @@ describe('Timelines', () => {
 			test('[withChannelNotes: true] 他人が取得した場合センシティブチャンネル投稿が含まれない', async () => {
 				const [alice, bob] = await Promise.all([signup(), signup()]);
 
-				const channel = await api('channels/create', { name: 'channel', isSensitive: true }, bob).then(x => x.body);
+				const channel = (await api('channels/create', { name: 'channel', username: randomString(), isSensitive: true }, bob)).body;
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -2922,7 +2922,7 @@ describe('Timelines', () => {
 			test('[withChannelNotes: true] 自分が取得した場合センシティブチャンネル投稿が含まれる', async () => {
 				const [bob] = await Promise.all([signup()]);
 
-				const channel = await api('channels/create', { name: 'channel', isSensitive: true }, bob).then(x => x.body);
+				const channel = (await api('channels/create', { name: 'channel', username: randomString(), isSensitive: true }, bob)).body;
 				const bobNote = await post(bob, { text: 'hi', channelId: channel.id });
 
 				await waitForPushToTl();
@@ -3321,6 +3321,63 @@ describe('Timelines', () => {
 
 				assert.strictEqual(res.body.some((note: any) => note.id === bobRenote.id), false);
 			});
+		});
+
+		test('閲覧中チャンネルにフォロワー限定投稿が含まれる', async () => {
+			const [alice, bob] = await Promise.all([signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+			await api('following/create', { userId: bob.id }, alice);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'followers' });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, alice);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
+		});
+
+		test('閲覧中チャンネルのフォロワー限定投稿が非フォロワーには含まれない', async () => {
+			const [alice, bob] = await Promise.all([signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'followers' });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, alice);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), false);
+		});
+
+		test('閲覧中チャンネルに指定ユーザー限定投稿が含まれる', async () => {
+			const [alice, bob] = await Promise.all([signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'specified', visibleUserIds: [alice.id] });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, alice);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
+		});
+
+		test('閲覧中チャンネルの指定ユーザー限定投稿が指定されていないユーザーには含まれない', async () => {
+			const [alice, bob, carol] = await Promise.all([signup(), signup(), signup()]);
+
+			const channel = await createChannel('channel', bob);
+
+			const bobNote = await post(bob, { text: 'ok', channelId: channel.id, visibility: 'specified', visibleUserIds: [alice.id] });
+
+			await waitForPushToTl();
+
+			const res = await api('channels/timeline', { channelId: channel.id }, carol);
+
+			assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), false);
 		});
 		// TODO: リノートミュート済みユーザーのテスト
 		// TODO: ページネーションのテスト

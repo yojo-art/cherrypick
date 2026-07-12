@@ -8,12 +8,14 @@ import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type {
 	ChannelFavoritesRepository,
-	ChannelFollowingsRepository, ChannelMutingRepository,
+	ChannelMutingRepository,
 	ChannelsRepository,
 	DriveFilesRepository,
+	FollowingsRepository,
 	MiDriveFile,
 	MiNote,
 	NotesRepository,
+	UserProfilesRepository,
 } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { MiUser } from '@/models/User.js';
@@ -28,8 +30,8 @@ export class ChannelEntityService {
 	constructor(
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
+		@Inject(DI.followingsRepository)
+		private followingsRepository: FollowingsRepository,
 		@Inject(DI.channelFavoritesRepository)
 		private channelFavoritesRepository: ChannelFavoritesRepository,
 		@Inject(DI.channelMutingRepository)
@@ -38,6 +40,8 @@ export class ChannelEntityService {
 		private notesRepository: NotesRepository,
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 		private noteEntityService: NoteEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private idService: IdService,
@@ -62,19 +66,19 @@ export class ChannelEntityService {
 		let bannerFile: MiDriveFile | null = null;
 		if (channel.bannerId) {
 			bannerFile = opts?.bannerFiles?.get(channel.bannerId)
-				?? await this.driveFilesRepository.findOneByOrFail({ id: channel.bannerId });
+				?? await this.driveFilesRepository.findOneBy({ id: channel.bannerId });
 		}
 
 		let isFollowing = false;
 		let isFavorited = false;
 		let isMuting = false;
 		if (me) {
-			isFollowing = opts?.followings?.has(channel.id) ?? await this.channelFollowingsRepository.exists({
+			isFollowing = opts?.followings?.has(channel.id) ?? (channel.actorId == null ? false : await this.followingsRepository.exists({
 				where: {
 					followerId: me.id,
-					followeeId: channel.id,
+					followeeId: channel.actorId,
 				},
-			});
+			}));
 
 			isFavorited = opts?.favorites?.has(channel.id) ?? await this.channelFavoritesRepository.exists({
 				where: {
@@ -118,6 +122,8 @@ export class ChannelEntityService {
 			notesCount: channel.notesCount,
 			isSensitive: channel.isSensitive,
 			allowRenoteToExternal: channel.allowRenoteToExternal,
+			host: channel.host, //ローカルユーザーはnullリモートユーザーはstring
+			actorId: channel.actorId ?? undefined, //マイグレすると無い事がある
 
 			...(me ? {
 				isFollowing,
@@ -156,12 +162,17 @@ export class ChannelEntityService {
 			.then(it => new Map(it.map(it => [it.id, it])));
 
 		const followings = me
-			? await this.channelFollowingsRepository
+			? await this.followingsRepository
 				.findBy({
 					followerId: me.id,
-					followeeId: In(channels.map(it => it.id)),
+					followeeId: In(channels.map(it => it.actorId)),
 				})
-				.then(it => new Set(it.map(it => it.followeeId)))
+				.then(it => {
+					//itはフォローユーザー(MiUser同士の関係性)
+					//mapでMiChannelのMiUser.idをキーにMiChannel.idを得る
+					const map = new Map(channels.map(it => it.actorId ? [it.actorId, it.id] as [string, string] : null).filter(x => x != null));
+					return new Set(it.map(it => map.get(it.followeeId)).filter(x => x != null));
+				})
 			: new Set<MiChannel['id']>();
 
 		const favorites = me
