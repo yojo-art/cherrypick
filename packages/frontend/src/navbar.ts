@@ -158,14 +158,14 @@ export const navbarItemDef = reactive({
 		action: (ev: MouseEvent) => {
 			os.popupMenu([{
 				text: 'Friendly',
-				active: ui === 'friendly' || ui === null,
+				active: ui === 'friendly',
 				action: () => {
 					miLocalStorage.setItem('ui', 'friendly');
 					unisonReload();
 				},
 			}, {
 				text: 'Misskey',
-				active: ui === 'default',
+				active: ui === 'default' || ui === null,
 				action: () => {
 					miLocalStorage.setItem('ui', 'default');
 					unisonReload();
