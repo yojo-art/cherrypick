@@ -80,6 +80,10 @@ export const packedChannelSchema = {
 			type: 'boolean',
 			optional: true, nullable: false,
 		},
+		isMuting: {
+			type: 'boolean',
+			optional: true, nullable: false,
+		},
 		pinnedNotes: {
 			type: 'array',
 			optional: true, nullable: false,
@@ -88,6 +92,14 @@ export const packedChannelSchema = {
 				optional: false, nullable: false,
 				ref: 'Note',
 			},
+		},
+		host: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
+		actorId: {
+			type: 'string',
+			optional: true, nullable: false,
 		},
 	},
 } as const;

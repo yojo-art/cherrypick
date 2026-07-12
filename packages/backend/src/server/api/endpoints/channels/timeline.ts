@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { Brackets } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { ChannelsRepository, MiMeta, NotesRepository } from '@/models/_.js';
 import { QueryService } from '@/core/QueryService.js';
@@ -13,6 +14,7 @@ import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
 import { MiLocalUser } from '@/models/User.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -70,6 +72,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private queryService: QueryService,
 		private fanoutTimelineEndpointService: FanoutTimelineEndpointService,
 		private activeUsersChart: ActiveUsersChart,
+		private channelMutingService: ChannelMutingService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const untilId = ps.untilId ?? (ps.untilDate ? this.idService.gen(ps.untilDate!) : null);
@@ -86,10 +89,17 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (me) this.activeUsersChart.read(me);
 
 			if (!this.serverSettings.enableFanoutTimeline) {
-				return await this.noteEntityService.packMany(await this.getFromDb({ untilId, sinceId, limit: ps.limit, channelId: channel.id }, me), me);
+				const notes = await this.getFromDb({ untilId, sinceId, limit: ps.limit, channelId: channel.id }, me);
+				const visibleNotes = [];
+				for (const note of notes) {
+					if (await this.noteEntityService.isVisibleForMe(note, me ? me.id : null)) {
+						visibleNotes.push(note);
+					}
+				}
+				return await this.noteEntityService.packMany(visibleNotes, me);
 			}
 
-			return await this.fanoutTimelineEndpointService.timeline({
+			const notes = await this.fanoutTimelineEndpointService.getMiNotes({
 				untilId,
 				sinceId,
 				limit: ps.limit,
@@ -99,10 +109,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				redisTimelines: [`channelTimeline:${channel.id}`],
 				excludePureRenotes: false,
 				withCats: false,
+				ignoreAuthorChannelFromMute: true,
 				dbFallback: async (untilId, sinceId, limit) => {
 					return await this.getFromDb({ untilId, sinceId, limit, channelId: channel.id }, me);
 				},
 			});
+			const visibleNotes = [];
+			for (const note of notes) {
+				if (await this.noteEntityService.isVisibleForMe(note, me ? me.id : null)) {
+					visibleNotes.push(note);
+				}
+			}
+			return await this.noteEntityService.packMany(visibleNotes, me);
 		});
 	}
 
@@ -120,9 +138,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			.leftJoinAndSelect('note.renote', 'renote')
 			.leftJoinAndSelect('reply.user', 'replyUser')
 			.leftJoinAndSelect('renote.user', 'renoteUser')
-			.leftJoinAndSelect('note.channel', 'channel');
+			.leftJoinAndSelect('note.channel', 'channel')
+			.andWhere('user.channelId IS NULL');
 
 		this.queryService.generateBaseNoteFilteringQuery(query, me);
+		this.queryService.generateVisibilityQuery(query, me);
+
+		if (me) {
+			const mutingChannelIds = await this.channelMutingService
+				.list({ requestUserId: me.id }, { idOnly: true })
+				.then(x => x.map(x => x.id).filter(x => x !== ps.channelId));
+			if (mutingChannelIds.length > 0) {
+				query.andWhere('note.channelId NOT IN (:...mutingChannelIds)', { mutingChannelIds });
+				query.andWhere(new Brackets(qb => {
+					qb.orWhere('note.renoteChannelId IS NULL');
+					qb.orWhere('note.renoteChannelId NOT IN (:...mutingChannelIds)', { mutingChannelIds });
+				}));
+			}
+		}
 		//#endregion
 
 		return await query.limit(ps.limit).getMany();

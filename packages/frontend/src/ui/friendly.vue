@@ -88,8 +88,6 @@ const XNotifications = defineAsyncComponent(() => import('@/pages/notifications.
 const XStatusBars = defineAsyncComponent(() => import('@/ui/_common_/statusbars.vue'));
 const XAnnouncements = defineAsyncComponent(() => import('@/ui/_common_/announcements.vue'));
 
-miLocalStorage.setItem('ui', 'friendly');
-
 const isRoot = computed(() => mainRouter.currentRoute.value.name === 'index');
 
 const DESKTOP_THRESHOLD = 1100;

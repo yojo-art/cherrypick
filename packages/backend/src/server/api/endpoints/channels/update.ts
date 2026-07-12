@@ -4,11 +4,20 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import * as mfm from 'mfc-js';
+import { In } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository, ChannelsRepository } from '@/models/_.js';
+import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository, MiUser } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
+import { NotePiningService } from '@/core/NotePiningService.js';
+import { extractCustomEmojisFromMfm } from '@/misc/extract-custom-emojis-from-mfm.js';
+import { extractHashtags } from '@/misc/extract-hashtags.js';
+import { normalizeForSearch } from '@/misc/normalize-for-search.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { HashtagService } from '@/core/HashtagService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -74,8 +83,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
+		@Inject(DI.notesRepository)
+		private notesRepository: NotesRepository,
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
+		@Inject(DI.userNotePiningsRepository)
+		private userNotePiningsRepository: UserNotePiningsRepository,
+		@Inject(DI.userProfilesRepository)
+		private userProfilesRepository: UserProfilesRepository,
 
 		private channelEntityService: ChannelEntityService,
+		private notePiningService: NotePiningService,
+		private globalEventService: GlobalEventService,
+		private hashtagService: HashtagService,
+		private driveFileEntityService: DriveFileEntityService,
 
 		private roleService: RoleService,
 	) {
@@ -92,29 +113,101 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (channel.userId !== me.id && !iAmModerator) {
 				throw new ApiError(meta.errors.accessDenied);
 			}
+			if (channel.host !== null) {
+				throw new ApiError(meta.errors.accessDenied);
+			}
+			const updates = {} as Partial<MiUser>;
 
 			// eslint:disable-next-line:no-unnecessary-initializer
 			let banner = undefined;
 			if (ps.bannerId != null) {
-				banner = await this.driveFilesRepository.findOneBy({
-					id: ps.bannerId,
-					userId: me.id,
-				});
+				banner = await this.driveFilesRepository.findOneBy({ id: ps.bannerId });
 
-				if (banner == null) {
-					throw new ApiError(meta.errors.noSuchFile);
+				if (banner == null || banner.userId !== me.id) throw new ApiError(meta.errors.noSuchFile);
+
+				if (!banner.type.startsWith('image/')) {
+					banner = undefined;//画像以外が指定された時は変更なし
 				}
 			} else if (ps.bannerId === null) {
 				banner = null;
 			}
+			if (channel.actorId) {
+				if (ps.description !== undefined) {
+					await this.userProfilesRepository.update({ userId: channel.actorId }, {
+						description: ps.description,
+					});
+				}
+				if (ps.pinnedNoteIds) {
+					const old_notes = (await this.userNotePiningsRepository.find({
+						where: { userId: channel.actorId },
+						select: ['noteId'],
+					})).map(x => x.noteId);
+					const new_notes = (await this.notesRepository.find({
+						where: { id: In(ps.pinnedNoteIds) },
+						select: ['id'],
+					})).map(x => x.id);
+					const add = new_notes.filter(x => !old_notes.includes(x));
+					const remove = old_notes.filter(x => !new_notes.includes(x));
+					for (const pin of remove) {
+						console.log('remove pin note ' + pin);
+						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin, channel);
+					}
+					for (const pin of add) {
+						console.log('add pin note ' + pin);
+						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
+					}
+				}
+				if (banner) {
+					updates.bannerId = banner.id;
+					updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+					updates.bannerBlurhash = banner.blurhash;
+				} else if (ps.bannerId === null) {
+					updates.bannerId = null;
+					updates.bannerUrl = null;
+					updates.bannerBlurhash = null;
+				}
+				if (ps.name !== undefined || ps.description !== undefined) {
+					const user = await this.usersRepository.findOneBy({ id: channel.actorId });
+					if (ps.name !== undefined) {
+						if (ps.name === user?.username) {
+							updates.name = null;
+						} else {
+							const trimmedName = ps.name.trim();
+							updates.name = trimmedName === '' ? null : trimmedName;
+						}
+					}
+					let emojis = [] as string[];
+					if (ps.name != null) {
+						const tokens = mfm.parseSimple(ps.name);
+						emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+					}
+					let tags = [] as string[];
+					if (ps.description != null) {
+						const tokens = mfm.parse(ps.description);
+						emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+						tags = extractHashtags(tokens).map(tag => normalizeForSearch(tag)).splice(0, 32);
+					}
 
+					updates.emojis = emojis;
+					updates.tags = tags;
+
+					// ハッシュタグ更新
+					if (user) {
+						this.hashtagService.updateUsertags(user, tags);
+					}
+				}
+				if (Object.keys(updates).length > 0) {
+					await this.usersRepository.update(channel.actorId, updates);
+					this.globalEventService.publishInternalEvent('localUserUpdated', { id: channel.actorId });
+				}
+			}
 			await this.channelsRepository.update(channel.id, {
 				...(ps.name !== undefined ? { name: ps.name } : {}),
 				...(ps.description !== undefined ? { description: ps.description } : {}),
 				...(ps.pinnedNoteIds !== undefined ? { pinnedNoteIds: ps.pinnedNoteIds } : {}),
 				...(ps.color !== undefined ? { color: ps.color } : {}),
 				...(typeof ps.isArchived === 'boolean' ? { isArchived: ps.isArchived } : {}),
-				...(banner ? { bannerId: banner.id } : {}),
+				...(banner !== undefined ? { bannerId: banner?.id ?? null } : {}),
 				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
 				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			});

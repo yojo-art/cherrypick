@@ -36,6 +36,7 @@ export interface IObject {
 	tag?: IObject | IObject[];
 	sensitive?: boolean;
 	deleteAt?: Date;
+	audience?: string;
 }
 
 /**

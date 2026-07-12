@@ -27,7 +27,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
-import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository } from '@/models/_.js';
+import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
@@ -82,6 +82,9 @@ export class ApInboxService {
 
 		@Inject(DI.chatRoomMembershipsRepository)
 		private chatRoomMembershipsRepository: ChatRoomMembershipsRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
@@ -371,7 +374,10 @@ export class ApInboxService {
 		if (activity.target === actor.featured) {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
-			await this.notePiningService.addPinned(actor, note.id);
+			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
+				id: actor.channelId,
+			}) ?? undefined : undefined;
+			await this.notePiningService.addPinned(actor, note.id, channel);
 			return;
 		}
 
@@ -458,6 +464,21 @@ export class ApInboxService {
 			if (createdAt && createdAt < this.idService.parse(renote.id).date) {
 				return 'skip: malformed createdAt';
 			}
+			let channel = null as MiChannel | null;
+			if (actor.channelId) {
+				//チャンネルアカウントによる投稿はすべてチャンネル投稿
+				channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
+				if (channel)channel.actor = actor;
+			} else {
+				for (const user of activityAudience.mentionedUsers) {
+					const channelId = user.channelId;
+					if (channelId) {
+						channel = await this.channelsRepository.findOneBy({ id: channelId });
+						if (channel)channel.actor = user;
+					}
+					if (channel) break;//最初に発見されたチャンネルに投稿
+				}
+			}
 
 			await this.noteCreateService.create(actor, {
 				createdAt,
@@ -466,6 +487,7 @@ export class ApInboxService {
 				searchableBy: null,
 				visibleUsers: activityAudience.visibleUsers,
 				uri,
+				channel,
 			});
 		} finally {
 			unlock();
@@ -989,7 +1011,10 @@ export class ApInboxService {
 		if (activity.target === actor.featured) {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
-			await this.notePiningService.removePinned(actor, note.id);
+			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
+				id: actor.channelId,
+			}) ?? undefined : undefined;
+			await this.notePiningService.removePinned(actor, note.id, channel);
 			return;
 		}
 

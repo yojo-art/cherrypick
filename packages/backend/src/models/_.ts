@@ -32,7 +32,7 @@ import { MiBlocking } from '@/models/Blocking.js';
 import { MiBubbleGameRecord } from '@/models/BubbleGameRecord.js';
 import { MiChannel } from '@/models/Channel.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
-import { MiChannelFollowing } from '@/models/ChannelFollowing.js';
+import { MiChannelMuting } from "@/models/ChannelMuting.js";
 import { MiChatApproval } from '@/models/ChatApproval.js';
 import { MiChatMessage } from '@/models/ChatMessage.js';
 import { MiChatRoom } from '@/models/ChatRoom.js';
@@ -181,8 +181,8 @@ export {
 	MiAvatarDecoration,
 	MiAuthSession,
 	MiBlocking,
-	MiChannelFollowing,
 	MiChannelFavorite,
+	MiChannelMuting,
 	MiClip,
 	MiClipNote,
 	MiClipFavorite,
@@ -269,8 +269,8 @@ export type AppsRepository = Repository<MiApp> & MiRepository<MiApp>;
 export type AvatarDecorationsRepository = Repository<MiAvatarDecoration> & MiRepository<MiAvatarDecoration>;
 export type AuthSessionsRepository = Repository<MiAuthSession> & MiRepository<MiAuthSession>;
 export type BlockingsRepository = Repository<MiBlocking> & MiRepository<MiBlocking>;
-export type ChannelFollowingsRepository = Repository<MiChannelFollowing> & MiRepository<MiChannelFollowing>;
 export type ChannelFavoritesRepository = Repository<MiChannelFavorite> & MiRepository<MiChannelFavorite>;
+export type ChannelMutingRepository = Repository<MiChannelMuting> & MiRepository<MiChannelMuting>;
 export type ClipsRepository = Repository<MiClip> & MiRepository<MiClip>;
 export type ClipNotesRepository = Repository<MiClipNote> & MiRepository<MiClipNote>;
 export type ClipFavoritesRepository = Repository<MiClipFavorite> & MiRepository<MiClipFavorite>;

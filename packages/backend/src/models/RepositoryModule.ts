@@ -21,7 +21,7 @@ import {
 	MiBubbleGameRecord,
 	MiChannel,
 	MiChannelFavorite,
-	MiChannelFollowing,
+	MiChannelMuting,
 	MiClip,
 	MiClipFavorite,
 	MiClipFavoriteRemote,
@@ -463,15 +463,15 @@ const $channelsRepository: Provider = {
 	inject: [DI.db],
 };
 
-const $channelFollowingsRepository: Provider = {
-	provide: DI.channelFollowingsRepository,
-	useFactory: (db: DataSource) => db.getRepository(MiChannelFollowing).extend(miRepository as MiRepository<MiChannelFollowing>),
-	inject: [DI.db],
-};
-
 const $channelFavoritesRepository: Provider = {
 	provide: DI.channelFavoritesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiChannelFavorite).extend(miRepository as MiRepository<MiChannelFavorite>),
+	inject: [DI.db],
+};
+
+const $channelMutingRepository: Provider = {
+	provide: DI.channelMutingRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiChannelMuting).extend(miRepository as MiRepository<MiChannelMuting>),
 	inject: [DI.db],
 };
 
@@ -671,8 +671,8 @@ const $officialTagRepository: Provider = {
 		$promoReadsRepository,
 		$relaysRepository,
 		$channelsRepository,
-		$channelFollowingsRepository,
 		$channelFavoritesRepository,
+		$channelMutingRepository,
 		$registryItemsRepository,
 		$webhooksRepository,
 		$systemWebhooksRepository,
@@ -758,8 +758,8 @@ const $officialTagRepository: Provider = {
 		$promoReadsRepository,
 		$relaysRepository,
 		$channelsRepository,
-		$channelFollowingsRepository,
 		$channelFavoritesRepository,
+		$channelMutingRepository,
 		$registryItemsRepository,
 		$webhooksRepository,
 		$systemWebhooksRepository,
