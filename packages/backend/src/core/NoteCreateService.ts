@@ -488,7 +488,11 @@ export class NoteCreateService implements OnApplicationShutdown {
 			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
 			data.channel.actor ??= data.channel.actorId ? await this.cacheService.findUserById(data.channel.actorId) : null;
 			const username = data.channel.actor?.username;
-			if (username) data.text = removeChannelMention(data.text, username, data.channel.actor?.host ?? null);
+			if (username) {
+				const host = data.channel.actor?.host ?? null;
+				if (host === null)data.text = removeChannelMention(data.text, username, this.config.host);
+				data.text = removeChannelMention(data.text, username, host);
+			}
 		}
 
 		if (data.renote) {
