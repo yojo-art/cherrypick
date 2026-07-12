@@ -2,6 +2,16 @@
 /* eslint @typescript-eslint/no-explicit-any: 0 */
 
 export type paths = {
+    '/admin/abort-full-index': {
+        /**
+         * admin/abort-full-index
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
+         */
+        post: operations['admin___abort-full-index'];
+    };
     '/admin/abuse-report-resolver/create': {
         /**
          * admin/abuse-report-resolver/create
@@ -503,9 +513,20 @@ export type paths = {
          * admin/full-index
          * @description No description provided.
          *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
          *     **Credential required**: *Yes* / **Permission**: *write:admin:reindex*
          */
         post: operations['admin___full-index'];
+    };
+    '/admin/full-index-progress': {
+        /**
+         * admin/full-index-progress
+         * @description No description provided.
+         *
+         *     **Internal Endpoint**: This endpoint is an API for the misskey mainframe and is not intended for use by third parties.
+         *     **Credential required**: *Yes* / **Permission**: *read:admin:reindex*
+         */
+        post: operations['admin___full-index-progress'];
     };
     '/admin/get-index-stats': {
         /**
@@ -6233,6 +6254,74 @@ export type components = {
 };
 export type $defs = Record<string, never>;
 export interface operations {
+    'admin___abort-full-index': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @enum {string} */
+                    index: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        success: boolean;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
     'admin___abuse-report-resolver___create': {
         requestBody: {
             content: {
@@ -10181,14 +10270,103 @@ export interface operations {
                 'application/json': {
                     /** @enum {string} */
                     index: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+                    limitCount?: number | null;
+                    intervalMinutes?: number | null;
+                    discardProgress?: boolean | null;
                 };
             };
         };
         responses: {
-            /** @description OK (without any results) */
-            204: {
+            /** @description OK (with results) */
+            200: {
                 headers: {
                     [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        success: boolean;
+                    };
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___full-index-progress': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /**
+                     * @default notes
+                     * @enum {string}
+                     */
+                    index?: 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': {
+                        /** @enum {string|null} */
+                        status: 'running' | 'paused' | 'queued' | 'completed' | 'aborted' | null;
+                        current: number | null;
+                        total: number | null;
+                        /** Format: misskey:id */
+                        latestid: string | null;
+                        startedAt: number | null;
+                        completedAt: number | null;
+                        nextRunAt: number | null;
+                        limitCount: number | null;
+                        intervalMinutes: number | null;
+                    };
                 };
             };
             /** @description Client error */
