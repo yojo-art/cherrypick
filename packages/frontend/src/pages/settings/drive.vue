@@ -65,6 +65,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkPreferenceContainer>
 					</SearchMarker>
 
+					<SearchMarker :keywords="['instant', 'upload', 'post', 'form']">
+						<MkPreferenceContainer k="instantUploadInPostForm">
+							<MkSwitch v-model="instantUploadInPostForm">
+								<template #label><SearchLabel>{{ i18n.ts.instantUploadInPostForm }}</SearchLabel></template>
+								<template #caption><SearchText>{{ i18n.ts.instantUploadInPostForm_description }}</SearchText></template>
+							</MkSwitch>
+						</MkPreferenceContainer>
+					</SearchMarker>
+
 					<SearchMarker :keywords="['always', 'default', 'mark', 'nsfw', 'sensitive', 'media', 'file']">
 						<MkSwitch v-model="alwaysMarkNsfw" @update:modelValue="saveProfile()">
 							<template #label><SearchLabel>{{ i18n.ts.alwaysMarkSensitive }}</SearchLabel></template>
@@ -248,6 +257,7 @@ const meterStyle = computed(() => {
 });
 
 const keepOriginalFilename = prefer.model('keepOriginalFilename');
+const instantUploadInPostForm = prefer.model('instantUploadInPostForm');
 const defaultWatermarkPresetId = prefer.model('defaultWatermarkPresetId');
 const defaultImageCompressionLevel = prefer.model('defaultImageCompressionLevel');
 const defaultVideoQualityLevel = prefer.model('defaultVideoQualityLevel');

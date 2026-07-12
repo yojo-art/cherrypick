@@ -6336,6 +6336,14 @@ export interface Locale extends ILocale {
      */
     "defaultImageCompressionLevel_description": string;
     /**
+     * 投稿フォームで即時アップロード
+     */
+    "instantUploadInPostForm": string;
+    /**
+     * ONにすると、ファイルを選択した時点で裏でアップロード処理が開始されます。
+     */
+    "instantUploadInPostForm_description": string;
+    /**
      * デフォルトの圧縮度
      */
     "defaultCompressionLevel": string;

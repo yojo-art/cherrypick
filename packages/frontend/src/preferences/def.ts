@@ -454,6 +454,9 @@ export const PREF_DEF = definePreferences({
 	defaultImageCompressionLevel: {
 		default: 2 as 0 | 1 | 2 | 3,
 	},
+	instantUploadInPostForm: {
+		default: false,
+	},
 	defaultVideoQualityLevel: {
 		default: 'medium' as 'low' | 'medium' | 'high' | 'manual',
 	},

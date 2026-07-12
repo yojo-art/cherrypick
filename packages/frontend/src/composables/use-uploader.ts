@@ -127,6 +127,7 @@ export function useUploader(options: {
 	folderId?: string | null;
 	multiple?: boolean;
 	features?: UploaderFeatures;
+	autoUpload?: boolean;
 } = {}) {
 	const $i = ensureSignin();
 
@@ -142,6 +143,28 @@ export function useUploader(options: {
 	});
 
 	const items = ref<UploaderItem[]>([]);
+	let queueRunning = false;
+
+	async function tryAutoUpload() {
+		if (!options.autoUpload) return;
+		if (queueRunning) return;
+		queueRunning = true;
+		try {
+			while (true) {
+				const item = items.value.find(x =>
+					x.uploaded == null &&
+					!x.uploading &&
+					!x.uploadFailed &&
+					!x.aborted &&
+					!x.preprocessing,
+				);
+				if (!item) break;
+				await uploadOne(item);
+			}
+		} finally {
+			queueRunning = false;
+		}
+	}
 
 	function initializeFile(file: File) {
 		const id = genId();
@@ -617,6 +640,10 @@ export function useUploader(options: {
 
 		item.preprocessing = false;
 		item.preprocessProgress = null;
+
+		if (options.autoUpload) {
+			tryAutoUpload();
+		}
 	}
 
 	async function preprocessForImage(item: UploaderItem): Promise<void> {
@@ -688,6 +715,8 @@ export function useUploader(options: {
 	async function preprocessForVideo(item: UploaderItem): Promise<void> {
 		if (item.skipVideoDialog) {
 			item.skipVideoDialog = false;
+		} else if (options.autoUpload) {
+			// autoUpload 時はダイアログを出さずデフォルト値を使用
 		} else {
 			const settings = await new Promise<VideoEncodeDialogResult | null>((resolve) => {
 				os.popupAsyncWithDialog(
