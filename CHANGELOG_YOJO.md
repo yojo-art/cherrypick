@@ -27,7 +27,6 @@ Misskey 2025.10.2
 - Enhance: 修正履歴タブの自動ロードとローディング表示を改善 [#979](https://github.com/yojo-art/cherrypick/pull/979)
 - Enhance: 投稿フォームのレイアウトを調整 [#1057](https://github.com/yojo-art/cherrypick/pull/1057)
 - Fix: リノート時の公開範囲を記憶する設定が間違っていた問題を修正 [#1013](https://github.com/yojo-art/cherrypick/pull/1013)
-- Fix: アバターデコレーションが存在しない場合にノートはありませんになっていたのを修正 [#995](https://github.com/yojo-art/cherrypick/pull/995)
 - Fix: ファイル更新が即座に反映されない問題の修正 [#1010](https://github.com/yojo-art/cherrypick/pull/1010)
 - Fix: リアクション時に確認を出す機能をひとつに [#972](https://github.com/yojo-art/cherrypick/pull/972)
 - Fix: 動画のアップロードでも圧縮時に"WebP圧縮のみ"が選べてしまう問題の修正 [#1004](https://github.com/yojo-art/cherrypick/pull/1004)
