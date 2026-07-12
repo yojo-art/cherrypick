@@ -262,6 +262,7 @@ const scheduledDeleteAt = computed(() => {
 
 const uploader = useUploader({
 	multiple: true,
+	autoUpload: prefer.s.instantUploadInPostForm,
 });
 
 onUnmounted(() => {
