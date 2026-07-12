@@ -481,6 +481,7 @@ export class ApRendererService {
 
 			if (renote) {
 				quote = renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`;
+				note.renote = renote;
 			}
 		}
 
