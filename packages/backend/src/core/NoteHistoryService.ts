@@ -5,6 +5,7 @@
 
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { LessThan, MoreThan } from 'typeorm';
+import * as Redis from 'ioredis';
 import { MiNote } from '@/models/Note.js';
 import Logger from '@/logger.js';
 import { IdService } from '@/core/IdService.js';
@@ -14,7 +15,7 @@ import type { NoteHistoryRepository, PollsRepository, EventsRepository } from '@
 import { bindThis } from '@/decorators.js';
 import { NoteHistory } from '@/models/NoteHistory.js';
 import { LoggerService } from './LoggerService.js';
-import { AppLockService } from './AppLockService.js';
+import { acquireApObjectLock } from '@/misc/distributed-lock.js';
 
 type Option = {
 	updatedAt?: Date | null;
@@ -34,11 +35,12 @@ export class NoteHistorySerivce implements OnApplicationShutdown {
 		@Inject(DI.eventsRepository)
 		private eventsRepository: EventsRepository,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private idService: IdService,
 
 		private loggerService: LoggerService,
-		private appLockService: AppLockService,
-
 	) {
 		this.logger = this.loggerService.getLogger('NoteHistorySerivce');
 	}
@@ -59,7 +61,7 @@ export class NoteHistorySerivce implements OnApplicationShutdown {
 		originalEvent: NoteHistory['event'] | null,
 		options: Option,
 	) {
-		const unlock = await this.appLockService.getApLock(`record-note-history:${originalNote.id}`);
+		const unlock = await acquireApObjectLock(this.redisClient, `record-note-history:${originalNote.id}`);
 
 		try {
 			// 이전에 이미 기록된 히스토리가 있는 경우 가장 최근의 히스토리를 가져오기
@@ -122,7 +124,7 @@ export class NoteHistorySerivce implements OnApplicationShutdown {
 		} catch (e) {
 			this.logger.error(`Note History record Error! ${e}`);
 		} finally {
-			unlock();
+			await unlock();
 		}
 	}
 

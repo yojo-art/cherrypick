@@ -130,6 +130,7 @@ async function setType() {
 		}, {
 			value: 'media', label: i18n.ts._timelines.media,
 		}],
+		default: props.column.tl,
 	});
 	if (canceled) {
 		if (props.column.tl == null) {

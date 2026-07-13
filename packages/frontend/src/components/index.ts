@@ -81,7 +81,7 @@ export const components = {
 	MkOfficialTag: MkOfficialTag,
 };
 
-declare module '@vue/runtime-core' {
+declare module 'vue' {
 	export interface GlobalComponents {
 		I18n: typeof I18n;
 		RouterView: typeof RouterView;

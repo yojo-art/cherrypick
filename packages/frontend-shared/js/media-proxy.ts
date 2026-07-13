@@ -35,9 +35,9 @@ export class MediaProxy {
 		})}`;
 	}
 
-	public getProxiedImageUrlNullable(imageUrl: string | null | undefined, type?: 'preview'): string | null {
+	public getProxiedImageUrlNullable(imageUrl: string | null | undefined, type?: 'preview' | 'emoji' | 'avatar', mustOrigin = false): string | null {
 		if (imageUrl == null) return null;
-		return this.getProxiedImageUrl(imageUrl, type);
+		return this.getProxiedImageUrl(imageUrl, type, mustOrigin);
 	}
 
 	public getStaticImageUrl(baseUrl: string): string {

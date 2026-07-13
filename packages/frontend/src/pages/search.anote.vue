@@ -234,7 +234,7 @@ async function search() {
 			});
 			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 			const res = await promise;
-			if (typeof res.error === 'undefined') {
+			if (res) {
 				router.pushByPath(`/@${res.username}@${res.host}`);
 			}
 		}
@@ -279,7 +279,7 @@ const customEmoji = /^:[a-zA-Z0-9_]+:$/;
 
 async function updateEmoji(ev: MouseEvent) {
 	emojiPicker.show(
-		ev.currentTarget ?? ev.target,
+		(ev.currentTarget ?? ev.target) as HTMLElement,
 		emoji => {
 			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
 			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;
@@ -290,7 +290,7 @@ async function updateEmoji(ev: MouseEvent) {
 
 async function updateEmojiExclude(ev: MouseEvent) {
 	emojiPicker.show(
-		ev.currentTarget ?? ev.target,
+		(ev.currentTarget ?? ev.target) as HTMLElement,
 		emoji => {
 			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
 			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;

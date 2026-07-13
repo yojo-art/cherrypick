@@ -1470,7 +1470,7 @@ export class AdvancedSearchService {
 		const FilterdNotes = [] as OpenSearchHit[];
 		while ( FilterdNotes.length < OpenSearchOption.size) {
 			const res = await this.opensearch.search(OpenSearchOption);
-			notes = res.body.hits.hits as OpenSearchHit[];
+			notes = res.body.hits.hits as any as OpenSearchHit[];
 			if (notes.length === 0) break;//これ以上探してもない
 
 			const resultPromises = notes.map(x => this.filter(x, Filter, Followings, followingFilter, meUserId));

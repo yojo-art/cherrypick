@@ -45,10 +45,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, nextTick, ref, shallowRef, watch, computed, toRefs } from 'vue';
 import { debounce } from 'throttle-debounce';
+import { useInterval } from '@@/js/use-interval';
+import type { SuggestionType } from '@/utility/autocomplete.js';
 import MkButton from '@/components/MkButton.vue';
-import { useInterval } from '@/utility/use-interval.js';
 import { i18n } from '@/i18n.js';
-import { Autocomplete, SuggestionType } from '@/utility/autocomplete.js';
+import { Autocomplete } from '@/utility/autocomplete.js';
 
 const props = defineProps<{
 	modelValue: string | number | null;

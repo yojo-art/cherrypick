@@ -28,7 +28,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-    - uses: actions/checkout@v4.3.0
+    - uses: actions/checkout@v6.0.1
       with:
         submodules: true
     - name: Setup pnpm
@@ -64,7 +64,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:18
         ports:
           - 54312:5432
         env:
@@ -76,7 +76,7 @@ jobs:
           - 56312:6379
 
     steps:
-    - uses: actions/checkout@v4.3.0
+    - uses: actions/checkout@v6.0.1
       with:
         submodules: true
     # https://github.com/cypress-io/cypress-docker-images/issues/150
@@ -113,12 +113,12 @@ jobs:
         wait-on: 'http://localhost:61812'
         headed: true
         browser: ${{ matrix.browser }}
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       if: failure()
       with:
         name: ${{ matrix.browser }}-cypress-screenshots
         path: cypress/screenshots
-    - uses: actions/upload-artifact@v5
+    - uses: actions/upload-artifact@v6
       if: always()
       with:
         name: ${{ matrix.browser }}-cypress-videos

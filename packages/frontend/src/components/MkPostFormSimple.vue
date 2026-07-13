@@ -1607,7 +1607,7 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
-			searchableBy.value = init.searchableBy;
+			searchableBy.value = init.searchableBy ?? searchableBy.value;
 			files.value = init.files ?? [];
 			if (init.poll) {
 				poll.value = {

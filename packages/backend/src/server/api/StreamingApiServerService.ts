@@ -7,6 +7,7 @@ import { EventEmitter } from 'events';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import * as WebSocket from 'ws';
+import { ContextIdFactory, ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
 import type { MiAccessToken } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
@@ -17,7 +18,6 @@ import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { AuthenticateService, AuthenticationError } from './AuthenticateService.js';
 import MainStreamConnection, { ConnectionRequest } from './stream/Connection.js';
 import type * as http from 'node:http';
-import { ContextIdFactory, ModuleRef } from '@nestjs/core';
 
 @Injectable()
 export class StreamingApiServerService {
