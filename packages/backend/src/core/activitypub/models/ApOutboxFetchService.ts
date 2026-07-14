@@ -17,7 +17,7 @@ import { StatusError } from '@/misc/status-error.js';
 import type { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import { MetaService } from '@/core/MetaService.js';
-import { AppLockService } from '@/core/AppLockService.js';
+import { acquireApObjectLock } from '@/misc/distributed-lock.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
@@ -54,7 +54,6 @@ export class ApOutboxFetchService implements OnModuleInit {
 
 		private apAudienceService: ApAudienceService,
 		private apDbResolverService: ApDbResolverService,
-		private appLockService: AppLockService,
 		private noteCreateService: NoteCreateService,
 		private noteEntityService: NoteEntityService,
 	) {
@@ -143,7 +142,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (this.utilityService.isBlockedHost(blockedHosts, this.utilityService.toPuny(new URL(activity.object.id).hostname))) continue;
 					}
 
-					const unlock = await this.appLockService.getApLock(activity.id);
+					const unlock = await acquireApObjectLock(this.redisClient, activity.id);
 					try {
 						if (!activity.id) continue;
 						let renote = await this.apNoteService.fetchNote(activity.object);
@@ -202,7 +201,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 							throw err;
 						}
 					} finally {
-						unlock();
+						await unlock();
 					}
 				} else if (isCreate(activity)) {
 					if (typeof(activity.object) !== 'string') {

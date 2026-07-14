@@ -58,7 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 <div v-else>
 	<component :is="self ? 'MkA' : 'a'" :class="[$style.link, { [$style.compact]: compact }]" :[attr]="self ? url_string.substring(local.length) : url_string" rel="nofollow noopener" :target="target" :title="url_string" @click.stop="(ev: MouseEvent) => warningExternalWebsite(ev, url_string)">
-		<div v-if="thumbnail && !sensitive" :class="[$style.thumbnail, { [$style.thumbnailBlur]: sensitive }]" :style="prefer.r.dataSaver.urlPreviewThumbnail ? '' : `background-image: url('${thumbnail}')`">
+		<div v-if="thumbnail && !sensitive" :class="[$style.thumbnail, { [$style.thumbnailBlur]: sensitive }]" :style="prefer.r.dataSaver.value.urlPreviewThumbnail ? '' : `background-image: url('${thumbnail}')`">
 		</div>
 		<article :class="$style.body">
 			<header :class="$style.header">

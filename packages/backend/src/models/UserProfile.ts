@@ -392,4 +392,8 @@ export const ACHIEVEMENT_TYPES = [
 	'tutorialCompleted',
 	'bubbleGameExplodingHead',
 	'bubbleGameDoubleExplodingHead',
+	'ohayoujo1',
+	'ohayoujo7',
+	'ohayoujo30',
+	'ohayoujo365',
 ] as const;

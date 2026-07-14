@@ -19,7 +19,7 @@ import type { MiEmoji } from '@/models/Emoji.js';
 import type { MiPoll } from '@/models/Poll.js';
 import type { MiPollVote } from '@/models/PollVote.js';
 import { UserKeypairService } from '@/core/UserKeypairService.js';
-import { MfmService, type Appender } from '@/core/MfmService.js';
+import { MfmService } from '@/core/MfmService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import type { MiUserKeypair } from '@/models/UserKeypair.js';
@@ -28,6 +28,7 @@ import { bindThis } from '@/decorators.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { IdService } from '@/core/IdService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { escapeHtml } from '@/misc/escape-html.js';
 import { RoleService } from '@/core/RoleService.js';
 import { searchableTypes } from '@/types.js';
 import { isPureRenote } from '../entities/NoteEntityService.js';
@@ -474,7 +475,7 @@ export class ApRendererService {
 			inReplyTo = null;
 		}
 
-		let quote;
+		let quote: string | undefined;
 
 		if (note.renoteId) {
 			const renote = await this.notesRepository.findOneBy({ id: note.renoteId });
@@ -540,6 +541,7 @@ export class ApRendererService {
 		if (note.hasPoll) {
 			poll = await this.pollsRepository.findOneBy({ noteId: note.id });
 		}
+
 		// AP描画用にmentionedRemoteUsersを差し替えるためのローカルコピー(note本体は不変に保つ)
 		let mentionedRemoteUsersJson = note.mentionedRemoteUsers;
 		if (!isPureRenote(note) && note.channel?.actorId !== note.userId) {
@@ -562,24 +564,13 @@ export class ApRendererService {
 			}
 		}
 
-		const apAppend: Appender[] = [];
+		let extraHtml: string | null = null;
 
-		if (quote) {
+		if (quote != null) {
 			// Append quote link as `<br><br><span class="quote-inline">RE: <a href="...">...</a></span>`
-			// the claas name `quote-inline` is used in non-misskey clients for styling quote notes.
+			// the class name `quote-inline` is used in non-misskey clients for styling quote notes.
 			// For compatibility, the span part should be kept as possible.
-			apAppend.push((doc, body) => {
-				body.appendChild(doc.createElement('br'));
-				body.appendChild(doc.createElement('br'));
-				const span = doc.createElement('span');
-				span.className = 'quote-inline';
-				span.appendChild(doc.createTextNode('RE: '));
-				const link = doc.createElement('a');
-				link.setAttribute('href', quote);
-				link.textContent = quote;
-				span.appendChild(link);
-				body.appendChild(span);
-			});
+			extraHtml = `<br><br><span class="quote-inline">RE: <a href="${escapeHtml(quote)}">${escapeHtml(quote)}</a></span>`;
 		}
 
 		const summary = note.cw === '' ? String.fromCharCode(0x200B) : note.cw;
@@ -587,7 +578,7 @@ export class ApRendererService {
 		// yojo-art: note本体は書き換えず、描画に必要なフィールドだけ差し替えたビューを渡す
 		const { content, noMisskeyContent } = this.apMfmService.getNoteHtml(
 			{ text, mentionedRemoteUsers: mentionedRemoteUsersJson },
-			apAppend,
+			extraHtml,
 		);
 
 		const emojis = await this.getEmojis(note.emojis);
