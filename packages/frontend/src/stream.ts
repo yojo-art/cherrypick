@@ -5,6 +5,7 @@
 
 import * as Misskey from 'misskey-js';
 import { markRaw } from 'vue';
+import { wsOrigin } from '@@/js/config.js';
 import { $i } from '@/i.js';
 
 // heart beat interval in ms
