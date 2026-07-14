@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			>
 				<button class="_buttonPrimary" :class="$style.newButton2" @click="releaseQueue()">
 					<i class="ti ti-arrow-up"></i>
-					<I18n v-if="prefer.s.newNoteReceivedNotificationBehavior === 'count'" :src="i18n.ts.newNoteRecivedCount" textTag="span">
+					<I18n v-if="prefer.s.newNoteReceivedNotificationBehavior === 'count'" :src="paginator.queuedAheadItemsCount.value >= MAX_QUEUE_ITEMS ? i18n.ts.newNoteRecivedCountCapped : i18n.ts.newNoteRecivedCount" textTag="span">
 						<template #n>{{ paginator.queuedAheadItemsCount.value }}</template>
 					</I18n>
 					<span v-else-if="prefer.s.newNoteReceivedNotificationBehavior === 'default'">{{ i18n.ts.newNoteRecived }}</span>
@@ -101,7 +101,7 @@ import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
 import { globalEvents, useGlobalEvent } from '@/events.js';
 import { isSeparatorNeeded, getSeparatorInfo } from '@/utility/timeline-date-separate.js';
-import { Paginator } from '@/utility/paginator.js';
+import { MAX_QUEUE_ITEMS, Paginator } from '@/utility/paginator.js';
 import { deviceKind } from '@/utility/device-kind.js';
 import { isFriendly } from '@/utility/is-friendly.js';
 import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
