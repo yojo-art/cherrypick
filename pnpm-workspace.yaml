@@ -39,5 +39,3 @@ minimumReleaseAge: 10080 # delay 7days to mitigate supply-chain attack
 minimumReleaseAgeExclude:
   - '@syuilo/aiscript'
   - systeminformation # 脆弱性対応。そのうち消すこと
-  # Renovate security update: storybook@10.2.10
-  - storybook@10.2.10
