@@ -262,6 +262,7 @@ To keep the test data isolated from your development environment, the E2E setup 
 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
+> With OpenSearch available and `.github/cherrypick/test-opensearch.yml` copied to `.config/test.yml`, run `pnpm --filter backend test-and-coverage:e2e:opensearch` to execute only `search-notes` and `advanced-search`.
 
 ## Environment Variable
 
