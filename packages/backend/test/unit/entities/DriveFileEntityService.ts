@@ -50,13 +50,13 @@ function driveFile(overrides: Partial<MiDriveFile> = {}): MiDriveFile {
 
 describe('DriveFileEntityService', () => {
 	describe('getPublicUrl', () => {
-		describe('allowProxiedUrl: false (default)', () => {
+		describe('allowProxiedUrl: false（デフォルト）', () => {
 			const service = createService({
 				externalMediaProxyEnabled: true,
 				remoteProxy: 'https://remote-proxy.example.com',
 			});
 
-			test('returns webpublicUrl when present', () => {
+			test('webpublicUrlがある場合はそれを返す', () => {
 				const file = driveFile();
 				assert.strictEqual(
 					service.getPublicUrl({ file }),
@@ -64,7 +64,7 @@ describe('DriveFileEntityService', () => {
 				);
 			});
 
-			test('returns url when webpublicUrl is null', () => {
+			test('webpublicUrlがnullの場合はurlを返す', () => {
 				const file = driveFile({ webpublicUrl: null });
 				assert.strictEqual(
 					service.getPublicUrl({ file }),
@@ -72,7 +72,7 @@ describe('DriveFileEntityService', () => {
 				);
 			});
 
-			test('does not proxy remote files even when proxies are enabled', () => {
+			test('プロキシが有効でもリモートファイルはプロキシしない', () => {
 				const file = driveFile({
 					uri: 'https://remote.example/media/a.png',
 					userHost: 'remote.example',
@@ -85,8 +85,8 @@ describe('DriveFileEntityService', () => {
 			});
 		});
 
-		describe('allowProxiedUrl: true, mode unset (regression: must not default to avatar)', () => {
-			test('local file returns webpublicUrl without avatar mode', () => {
+		describe('allowProxiedUrl: true、mode未指定（リグレッション: avatarにデフォルトしない）', () => {
+			test('ローカルファイルはavatarモードなしでwebpublicUrlを返す', () => {
 				const service = createService();
 				const result = service.getPublicUrl({
 					file: driveFile(),
@@ -96,7 +96,7 @@ describe('DriveFileEntityService', () => {
 				assert.ok(!result.includes('avatar'));
 			});
 
-			test('remote with externalMediaProxyEnabled uses image.webp without avatar=1', () => {
+			test('remoteでexternalMediaProxyEnabled時はavatar=1なしのimage.webpを使う', () => {
 				const service = createService({
 					externalMediaProxyEnabled: true,
 				});
@@ -116,8 +116,8 @@ describe('DriveFileEntityService', () => {
 			});
 		});
 
-		describe("allowProxiedUrl: true, mode: 'avatar'", () => {
-			test('local file is proxied as avatar.webp with avatar=1', () => {
+		describe("allowProxiedUrl: true、mode: 'avatar'", () => {
+			test('ローカルファイルはavatar=1付きのavatar.webpでプロキシされる', () => {
 				const service = createService();
 				const result = service.getPublicUrl({
 					file: driveFile(),
@@ -129,7 +129,7 @@ describe('DriveFileEntityService', () => {
 				assert.ok(result.includes(`url=${encodeURIComponent('https://example.com/files/public')}`));
 			});
 
-			test('remote with remoteProxy skips remoteProxy branch when mode is avatar', () => {
+			test('remoteでremoteProxyがあってもmodeがavatarならremoteProxy分岐をスキップする', () => {
 				const service = createService({
 					remoteProxy: 'https://remote-proxy.example.com',
 					externalMediaProxyEnabled: true,
@@ -150,8 +150,8 @@ describe('DriveFileEntityService', () => {
 			});
 		});
 
-		describe('allowProxiedUrl: true with remoteProxy (non-avatar mode)', () => {
-			test('absolute remoteProxy returns remoteProxy/key', () => {
+		describe('allowProxiedUrl: trueでremoteProxyあり（avatar以外）', () => {
+			test('絶対URLのremoteProxyはremoteProxy/keyを返す', () => {
 				const service = createService({
 					remoteProxy: 'https://remote-proxy.example.com',
 				});
@@ -166,7 +166,7 @@ describe('DriveFileEntityService', () => {
 				assert.strictEqual(result, 'https://remote-proxy.example.com/accesskey1');
 			});
 
-			test('relative remoteProxy is prefixed with config.url', () => {
+			test('相対パスのremoteProxyはconfig.urlを前置する', () => {
 				const service = createService({
 					remoteProxy: '/remote-proxy',
 				});
@@ -182,8 +182,8 @@ describe('DriveFileEntityService', () => {
 			});
 		});
 
-		describe('ap: true with apFileBaseUrl', () => {
-			test('replaces origin when allowProxiedUrl is true and mode is unset', () => {
+		describe('ap: trueでapFileBaseUrlあり', () => {
+			test('allowProxiedUrlがtrueかつmode未指定ならオリジンを置換する', () => {
 				const service = createService({
 					apFileBaseUrl: 'https://ap-files.example.com',
 				});
