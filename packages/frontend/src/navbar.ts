@@ -230,12 +230,6 @@ export const navbarItemDef = reactive({
 		show: computed(() => $i != null),
 		to: `/@${$i?.username}`,
 	},
-	support: {
-		// title: i18n.tsx.supportThisInstance({ name: instance.name ?? host }),
-		title: i18n.tsx.supportThisInstance({ name: 'CherryPick' }),
-		icon: 'ti ti-pig-money',
-		action: (ev) => donateCherryPick(ev),
-	},
 	cacheClear: {
 		title: i18n.ts.clearCache,
 		icon: 'ti ti-trash',
