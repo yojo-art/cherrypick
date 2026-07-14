@@ -81,13 +81,13 @@ const isIndexable = ref(true);
 const hideOnlineStatus = ref(false);
 const noCrawle = ref(false);
 const preventAiLearning = ref(true);
-const searchableBy = ref('public');
+const searchableBy = ref<'public' | 'followersAndReacted' | 'reactedOnly' | 'private'>('public');
 
 watch([isLocked, hideOnlineStatus, noCrawle, preventAiLearning], () => {
 	misskeyApi('i/update', {
 		isLocked: !!isLocked.value,
 		isIndexable: !!isIndexable.value,
-		searchableBy: !!searchableBy.value,
+		searchableBy: searchableBy.value,
 		hideOnlineStatus: !!hideOnlineStatus.value,
 		noCrawle: !!noCrawle.value,
 		preventAiLearning: !!preventAiLearning.value,

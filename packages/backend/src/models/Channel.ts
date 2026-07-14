@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne } from 'typeorm';
+import { PrimaryColumn, Entity, Index, JoinColumn, Column, ManyToOne, OneToOne } from 'typeorm';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 import { MiDriveFile } from './DriveFile.js';
@@ -98,4 +98,32 @@ export class MiChannel {
 		default: true,
 	})
 	public allowRenoteToExternal: boolean;
+
+	@Column('varchar', {
+		length: 128,
+		nullable: true,
+	})
+	public host: string | null;
+
+	@Index({ unique: true })
+	@Column({
+		...id(),
+		nullable: true,
+		comment: 'Ap Actor ID.',
+	})
+	public actorId: MiUser['id'] | null;
+
+	@OneToOne(type => MiUser, {
+		onDelete: 'CASCADE',
+	})
+	@JoinColumn()
+	public actor: MiUser | null;
+
+	constructor(data: Partial<MiChannel>) {
+		if (data == null) return;
+
+		for (const [k, v] of Object.entries(data)) {
+			(this as any)[k] = v;
+		}
+	}
 }

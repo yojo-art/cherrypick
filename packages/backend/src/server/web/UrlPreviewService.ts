@@ -4,8 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { summaly } from '@misskey-dev/summaly';
-import { SummalyResult } from '@misskey-dev/summaly/built/summary.js';
+import type { SummalyResult } from '@misskey-dev/summaly/built/summary.js';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -113,18 +112,16 @@ export class UrlPreviewService {
 		}
 	}
 
-	private fetchSummary(url: string, meta: MiMeta, lang?: string): Promise<SummalyResult> {
-		const agent = this.config.proxy
-			? {
-				http: this.httpRequestService.httpAgent,
-				https: this.httpRequestService.httpsAgent,
-			}
-			: undefined;
+	private async fetchSummary(url: string, meta: MiMeta, lang?: string): Promise<SummalyResult> {
+		const { summaly } = await import('@misskey-dev/summaly');
 
 		return summaly(url, {
 			followRedirects: this.meta.urlPreviewAllowRedirect,
 			lang: lang ?? 'ja-JP',
-			agent: agent,
+			agent: {
+				http: this.httpRequestService.httpAgent,
+				https: this.httpRequestService.httpsAgent,
+			},
 			userAgent: meta.urlPreviewUserAgent ?? undefined,
 			operationTimeout: meta.urlPreviewTimeout,
 			contentLengthLimit: meta.urlPreviewMaximumContentLength,

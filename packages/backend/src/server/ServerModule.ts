@@ -25,6 +25,7 @@ import { SignupApiService } from './api/SignupApiService.js';
 import { StreamingApiServerService } from './api/StreamingApiServerService.js';
 import { OpenApiServerService } from './api/openapi/OpenApiServerService.js';
 import { ClientServerService } from './web/ClientServerService.js';
+import { HtmlTemplateService } from './web/HtmlTemplateService.js';
 import { FeedService } from './web/FeedService.js';
 import { UrlPreviewService } from './web/UrlPreviewService.js';
 import { ClientLoggerService } from './web/ClientLoggerService.js';
@@ -60,6 +61,7 @@ import { BubbleTimelineChannel } from './api/stream/channels/bubble-timeline.js'
 	providers: [
 		ClientServerService,
 		ClientLoggerService,
+		HtmlTemplateService,
 		FeedService,
 		HealthServerService,
 		UrlPreviewService,

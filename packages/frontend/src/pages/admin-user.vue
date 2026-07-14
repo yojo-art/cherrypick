@@ -96,9 +96,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 					<div>
 						<MkButton v-if="user.host == null" inline style="margin-right: 8px;" @click="resetPassword"><i class="ti ti-key"></i> {{ i18n.ts.resetPassword }}</MkButton>
-							<MkButton inline danger @click="unsetUserAvatar"><i class="ti ti-user-circle"></i> {{ i18n.ts.unsetUserAvatar }}</MkButton>
-							<MkButton inline danger @click="unsetUserBanner"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserBanner }}</MkButton>
-							<MkButton inline danger @click="unsetUserMutualLink"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserMutualLink }}</MkButton>
+						<MkButton inline danger @click="unsetUserAvatar"><i class="ti ti-user-circle"></i> {{ i18n.ts.unsetUserAvatar }}</MkButton>
+						<MkButton inline danger @click="unsetUserBanner"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserBanner }}</MkButton>
+						<MkButton inline danger @click="unsetUserMutualLink"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserMutualLink }}</MkButton>
 					</div>
 
 					<MkFolder>
@@ -260,7 +260,7 @@ const user = ref(result.user);
 const info = ref(result.info);
 const ips = ref(result.ips);
 const showIpToolTip = ref(false);
-const ap = ref<any>(null);
+const ap = ref<Misskey.entities.ApGetResponse | null>(null);
 const moderator = ref(info.value.isModerator);
 const silenced = ref(info.value.isSilenced);
 const suspended = ref(info.value.isSuspended);
@@ -405,7 +405,7 @@ async function unsetUserMutualLink() {
 	});
 	if (confirm.canceled) return;
 
-	await os.apiWithDialog('admin/unset-user-mutual-banner', {
+	await os.apiWithDialog('admin/unset-user-mutual-banner' as any, {
 		userId: user.value.id,
 	}).then(refreshUser);
 }

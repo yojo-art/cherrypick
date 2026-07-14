@@ -30,6 +30,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 									<span v-if="'isAdmin' in user && user.isAdmin" v-tooltip="i18n.ts.administrator" style="color: var(--MI_THEME-badge);"><i class="ti ti-shield"></i></span>
 									<span v-if="user.isLocked" v-tooltip="i18n.ts.makeFollowManuallyApprove"><i class="ti ti-lock"></i></span>
 									<span v-if="user.isBot"><i class="ti ti-robot"></i></span>
+									<span v-if="user.channelId != null" v-tooltip="i18n.ts.channel"><i class="ti ti-device-tv"></i></span>
 									<button v-if="$i && !isEditingMemo && !memoDraft" class="_button add-note-button" @click="showMemoTextarea">
 										<i class="ti ti-edit"/> {{ i18n.ts.addMemo }}
 									</button>
@@ -119,7 +120,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<div :class="$style.mutualLinks">
 									<div v-for="mutualLink in section.mutualLinks" :key="mutualLink.id">
 										<MkLink :hideIcon="true" :url="mutualLink.url">
-											<img :class="$style.mutualLinkImg" :src="getProxiedImageUrl(mutualLink.imgSrc)" :alt="mutualLink.description"/>
+											<img :class="$style.mutualLinkImg" :src="getProxiedImageUrlNullable(mutualLink.imgSrc) ?? ''" :alt="mutualLink.description ?? ''"/>
 										</MkLink>
 									</div>
 								</div>
@@ -151,7 +152,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</dl>
 						</div>
 						<div class="status">
-							<MkA :to="userPage(user)">
+							<MkA :to="userPage(user, 'notes')">
 								<b>{{ number(user.notesCount) }}</b>
 								<span>{{ i18n.ts.notes }}</span>
 							</MkA>
@@ -222,7 +223,7 @@ import { confetti } from '@/utility/confetti.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { isFollowingVisibleForMe, isFollowersVisibleForMe } from '@/utility/isFfVisibleForMe.js';
 import { useRouter } from '@/router.js';
-import { getStaticImageUrl, getProxiedImageUrl } from '@/utility/media-proxy.js';
+import { getStaticImageUrl, getProxiedImageUrl, getProxiedImageUrlNullable } from '@/utility/media-proxy.js';
 import MkSparkle from '@/components/MkSparkle.vue';
 import { prefer } from '@/preferences.js';
 import MkPullToRefresh from '@/components/MkPullToRefresh.vue';

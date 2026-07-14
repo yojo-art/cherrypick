@@ -8,7 +8,7 @@ import promiseLimit from 'promise-limit';
 import { DataSource } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
-import { type FollowingsRepository, type InstancesRepository, type MiMeta, type MiDriveFile, type UserProfilesRepository, type UserPublickeysRepository, type UsersRepository, MiClip } from '@/models/_.js';
+import { type FollowingsRepository, type InstancesRepository, type MiMeta, type MiDriveFile, type UserProfilesRepository, type UserPublickeysRepository, type UsersRepository, type ChannelsRepository, MiChannel } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiLocalUser, MiRemoteUser } from '@/models/User.js';
 import { MiUser } from '@/models/User.js';
@@ -39,7 +39,7 @@ import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.j
 import type { AccountMoveService } from '@/core/AccountMoveService.js';
 import { checkHttps } from '@/misc/check-https.js';
 import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
-import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPropertyValue } from '../type.js';
+import { getApId, getApType, getOneApHrefNullable, isActor, isCollection, isCollectionOrOrderedCollection, isPost, isPropertyValue } from '../type.js';
 import { parseSearchableByFromTags, parseSearchableByFromProperty } from '../misc/searchableBy.js';
 import { extractApHashtags } from './tag.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -106,6 +106,9 @@ export class ApPersonService implements OnModuleInit {
 
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private roleService: RoleService,
 
@@ -336,7 +339,9 @@ export class ApPersonService implements OnModuleInit {
 
 		const tags = extractApHashtags(person.tag).map(normalizeForSearch).splice(0, 32);
 
-		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application';
+		const isChannel = getApType(object) === 'Group';
+
+		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application' || isChannel;
 
 		const [followingVisibility, followersVisibility] = await Promise.all(
 			[
@@ -407,6 +412,15 @@ export class ApPersonService implements OnModuleInit {
 				notesCount = jsonData.totalItems;
 			} catch (e) {
 				notesCount = undefined;
+			}
+		}
+
+		let channelModerator = null as MiUser | null;
+		if (isChannel) {
+			try {
+				channelModerator = await this.analyzeChannelModerator(person, resolver);
+			} catch(e) {
+				this.logger.warn(`Failed Resolve ChannelModerator: ${person.id}`);
 			}
 		}
 
@@ -493,6 +507,23 @@ export class ApPersonService implements OnModuleInit {
 				} else if (person.summary) {
 					_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
 				}
+				if (isChannel) {
+					const channel = await transactionalEntityManager.save(new MiChannel({
+						id: this.idService.gen(),
+						name: person.name ? truncate(person.name, nameLength) : person.preferredUsername,
+						description: _description,
+						host,
+						userId: channelModerator?.id ?? user.id,
+						actorId: user.id,
+					}));
+					await transactionalEntityManager.update(MiUser, {
+						id: user.id,
+					}, {
+						isBot: true,
+						channelId: channel.id,
+					});
+					user.channelId = channel.id;
+				}
 
 				await transactionalEntityManager.save(new MiUserProfile({
 					userId: user.id,
@@ -561,6 +592,11 @@ export class ApPersonService implements OnModuleInit {
 			await this.usersRepository.update(user.id, updates);
 			user = { ...user, ...updates };
 
+			if (updates.bannerId !== undefined) {
+				await this.channelsRepository.update({ actorId: user.id }, {
+					bannerId: updates.bannerId,
+				});
+			}
 			// Register to the cache
 			this.cacheService.uriPersonCache.set(user.uri, user);
 		} catch (err) {
@@ -701,7 +737,52 @@ export class ApPersonService implements OnModuleInit {
 				notesCount = undefined;
 			}
 		}
+
+		const displayName = truncate(person.name, nameLength) ?? exist.name ?? exist.username;
+		let _description: string | null = null;
+
+		if (person._misskey_summary) {
+			_description = truncate(person._misskey_summary, summaryLength);
+		} else if (person.summary) {
+			_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
+		}
+		let channelId = null as MiChannel['id'] | null;
+		if (getApType(object) === 'Group') {
+			//チャンネルアカウント
+			const _channel = await this.channelsRepository.findOneBy({
+				actorId: exist.id,
+			});
+			let channelModerator = null as MiUser | null;
+			try {
+				channelModerator = await this.analyzeChannelModerator(person, resolver);
+			} catch(e) {
+				this.logger.warn(`Failed Resolve ChannelModerator: ${person.id}`);
+			}
+			if (_channel) {
+				channelId = _channel.id;
+				if (_channel.description !== _description || _channel.name !== displayName || channelModerator?.id !== _channel.userId) {
+					await this.channelsRepository.update({ actorId: exist.id }, {
+						name: displayName,
+						description: _description,
+						userId: channelModerator?.id ?? undefined,
+					});
+				}
+			} else {
+				//チャンネルアカウントなのにチャンネルが無い時は作る
+				const channel = await this.channelsRepository.insertOne({
+					id: this.idService.gen(),
+					name: displayName,
+					userId: channelModerator?.id ?? exist.id,
+					actorId: exist.id,
+					host: exist.host,
+					description: _description,
+				});
+				channelId = channel.id;
+			}
+		}
 		const role_policy = await this.roleService.getUserPolicies(exist.id);
+
+		const isBot = getApType(object) === 'Service' || getApType(object) === 'Application' || channelId != null;
 		const updates = {
 			lastFetchedAt: new Date(),
 			searchableBy: person.searchableBy ?
@@ -737,9 +818,9 @@ export class ApPersonService implements OnModuleInit {
 						: undefined,
 			featured: person.featured ? getApId(person.featured) : undefined,
 			emojis: emojiNames,
-			name: truncate(person.name, nameLength),
+			name: displayName,
 			tags,
-			isBot: getApType(object) === 'Service' || getApType(object) === 'Application',
+			isBot,
 			isCat: (person as any).isCat === true,
 			isLocked: person.manuallyApprovesFollowers,
 			movedToUri: person.movedTo ?? null,
@@ -750,6 +831,7 @@ export class ApPersonService implements OnModuleInit {
 			canChat: (person as any)._misskey_canChat ?? true,
 			clipsUri: person._yojoart_clips ?? person.playlists,
 			...(await this.resolveAvatarAndBanner(exist, person.icon, person.image, role_policy).catch(() => ({}))),
+			...(channelId ? { channelId } : {}),
 		} as Partial<MiRemoteUser> & Pick<MiRemoteUser, 'isBot' | 'isCat' | 'isLocked' | 'movedToUri' | 'alsoKnownAs' | 'isExplorable'>;
 
 		const moving = ((): boolean => {
@@ -787,13 +869,6 @@ export class ApPersonService implements OnModuleInit {
 			});
 		}
 
-		let _description: string | null = null;
-
-		if (person._misskey_summary) {
-			_description = truncate(person._misskey_summary, summaryLength);
-		} else if (person.summary) {
-			_description = this.apMfmService.htmlToMfm(truncate(person.summary, summaryLength), person.tag);
-		}
 		const mutualLinkSections = await this.mutualLinkSections(person, exist, role_policy);
 
 		let filter_fields = fields;
@@ -828,6 +903,11 @@ export class ApPersonService implements OnModuleInit {
 			location: person['vcard:Address'] ?? null,
 			mutualLinkSections,
 		});
+		if (updates.bannerId !== undefined) {
+			await this.channelsRepository.update({ actorId: exist.id }, {
+				bannerId: updates.bannerId,
+			});
+		}
 
 		this.globalEventService.publishInternalEvent('remoteUserUpdated', { id: exist.id });
 
@@ -959,6 +1039,29 @@ export class ApPersonService implements OnModuleInit {
 
 		return fields;
 	}
+	@bindThis
+	public async analyzeChannelModerator(person: IActor, resolver:Resolver): Promise<MiUser | null> {
+		if (getApType(person) !== 'Group') {
+			return null;
+		}
+		let moderators = [] as (IObject | string)[];
+		if (Array.isArray(person.attributedTo)) {
+			moderators = person.attributedTo;
+		} else if (person.attributedTo) {
+			const object = await resolver.resolve(person.attributedTo);
+			if (isCollectionOrOrderedCollection(object)) {
+				const items = isCollection(object) ? object.items : object.orderedItems;
+				moderators = toArray(items);
+			} else {
+				moderators = [object];
+			}
+		}
+		if (moderators.length > 0) {
+			const uri = getApId(moderators[0]);
+			return await this.resolvePerson(uri);
+		}
+		return null;
+	}
 
 	@bindThis
 	public async updateFeatured(userId: MiUser['id'], resolver?: Resolver): Promise<void> {
@@ -975,18 +1078,50 @@ export class ApPersonService implements OnModuleInit {
 		if (!isCollectionOrOrderedCollection(collection)) throw new Error('Object is not Collection or OrderedCollection');
 
 		// Resolve to Object(may be Note) arrays
+		const userUri = new URL(user.uri);
 		const unresolvedItems = isCollection(collection) ? collection.items : collection.orderedItems;
-		const items = await Promise.all(toArray(unresolvedItems).map(x => _resolver.resolve(x)));
+		const items = await Promise.all(toArray(unresolvedItems).map(async(item) => {
+			const id = getApId(item);
+			//const isRemote = new URL(id).origin !== userUri.origin;
+			//if (isRemote && !user.channelId) {
+			//	//リモート投稿はチャンネルアカウントのみ許可される
+			//	return null;
+			//}
+			//resolveはPromise.allで並列化される
+			//ここで得られるobjectはUserが勝手に言ってるだけで信頼できないのでsentFromを見る必要がある
+			//ただしidはUserが決めるもので信頼して良い
+			const object = await _resolver.resolve(item);
+			//resolveした時はidのホストからfetchしてるのでidのホストにする。してない時は送ってきたUserのホスト
+			const sentFrom = typeof item === 'string' ? new URL(id) : userUri;
+			return {
+				id,
+				object,
+				sentFrom,
+			};
+		}));
 
+		const rolePolicies = await this.roleService.getUserPolicies(user.id);
 		// Resolve and regist Notes
 		const limit = promiseLimit<MiNote | null>(2);
 		const featuredNotes = await Promise.all(items
-			.filter(item => getApType(item) === 'Note')	// TODO: Noteでなくてもいいかも
-			.slice(0, 5)
-			.map(item => limit(() => this.apNoteService.resolveNote(item, {
-				resolver: _resolver,
-				sentFrom: new URL(user.uri),
-			}))));
+			//.filter(item => item != null)
+			//item.objectの内容は信頼できないが、UserにはisPostしか許可されないのにUserが変なの付けてたら拒否
+			.filter(item => isPost(item.object))// yojo-art: Note限定からisPostに判定を変更。
+			.slice(0, rolePolicies.pinLimit)// yojo-art: ピン留め上限をロール基準に
+			.map(item => limit(async () => {
+				//item.objectは信頼できる取得不要な場合とそうでない場合がある
+				//item.sentFromのホストを見て判断
+				const note = await this.apNoteService.resolveNote(item.object, {
+					resolver: _resolver,
+					sentFrom: item.sentFrom,
+				});
+				if (user.channelId) {
+					//実際にピン留めできるのはそのチャンネルに投稿された投稿のみ
+					return note?.channelId === user.channelId ? note : null;
+				} else {
+					return note;
+				}
+			})));
 
 		await this.db.transaction(async transactionalEntityManager => {
 			await transactionalEntityManager.delete(MiUserNotePining, { userId: user.id });
@@ -995,10 +1130,18 @@ export class ApPersonService implements OnModuleInit {
 			let td = 0;
 			for (const note of featuredNotes.filter(x => x != null)) {
 				td -= 1000;
-				transactionalEntityManager.insert(MiUserNotePining, {
+				await transactionalEntityManager.insert(MiUserNotePining, {
 					id: this.idService.gen(Date.now() + td),
 					userId: user.id,
 					noteId: note.id,
+				});
+			}
+			if (user.channelId) {
+				const pinnedNoteIds = featuredNotes.filter(x => x != null).map(x => x.id);
+				await transactionalEntityManager.update(MiChannel, {
+					id: user.channelId,
+				}, {
+					pinnedNoteIds,
 				});
 			}
 		});

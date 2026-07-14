@@ -40,6 +40,11 @@ export const packedChannelSchema = {
 			format: 'url',
 			nullable: true, optional: false,
 		},
+		bannerId: {
+			type: 'string',
+			nullable: true, optional: false,
+			format: 'id',
+		},
 		pinnedNoteIds: {
 			type: 'array',
 			nullable: false, optional: false,
@@ -92,6 +97,14 @@ export const packedChannelSchema = {
 				optional: false, nullable: false,
 				ref: 'Note',
 			},
+		},
+		host: {
+			type: 'string',
+			optional: false, nullable: true,
+		},
+		actorId: {
+			type: 'string',
+			optional: true, nullable: false,
 		},
 	},
 } as const;

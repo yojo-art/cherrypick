@@ -514,6 +514,7 @@ export class UserEntityService implements OnModuleInit {
 			isLocked: user.isLocked,
 			isBot: user.isBot,
 			isCat: user.isCat,
+			channelId: user.channelId || undefined,
 			requireSigninToViewContents: user.requireSigninToViewContents === false ? undefined : true,
 			makeNotesFollowersOnlyBefore: user.makeNotesFollowersOnlyBefore ?? undefined,
 			makeNotesHiddenBefore: user.makeNotesHiddenBefore ?? undefined,

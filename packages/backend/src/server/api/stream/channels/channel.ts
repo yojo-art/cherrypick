@@ -4,16 +4,16 @@
  */
 
 import { Inject, Injectable, Scope } from '@nestjs/common';
+import { REQUEST } from '@nestjs/core';
 import type { Packed } from '@/misc/json-schema.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
-import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import { bindThis } from '@/decorators.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import { isInstanceMuted } from '@/misc/is-instance-muted.js';
 import { isUserRelated } from '@/misc/is-user-related.js';
 import type { JsonObject } from '@/misc/json-value.js';
+import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import Channel, { type ChannelRequest } from '../channel.js';
-import { REQUEST } from '@nestjs/core';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class ChannelChannel extends Channel {
@@ -52,6 +52,8 @@ export class ChannelChannel extends Channel {
 
 		if (!this.isNoteVisibleForMe(note)) return;
 		if (this.isNoteMutedOrBlocked(note)) return;
+
+		if (note.user.channelId != null) return;//yojo-art チャンネルアカウントによる投稿はTLに流さない
 
 		const { shouldSkip } = await this.noteStreamingHidingService.processHiding(note, this.user?.id ?? null);
 		if (shouldSkip) return;
