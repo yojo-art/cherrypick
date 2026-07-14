@@ -36,7 +36,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -88,7 +88,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -136,7 +136,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
 
     steps:
@@ -180,7 +180,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
