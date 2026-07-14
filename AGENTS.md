@@ -97,6 +97,7 @@
 | Backend unit test | `pnpm --filter backend test` |
 | Backend e2e test | `pnpm --filter backend test:e2e` |
 | Backend federation test | `pnpm --filter backend test:fed` |
+| Backend federation test (local Docker) | `packages/backend/test-federation/run-local-docker.sh` |
 | Frontend unit test | `pnpm --filter frontend test` |
 | Migration 差分検査 (pending DDL) | `pnpm --filter backend check-migrations` |
 | `misskey-js` 再生成 (API 変更後必須) | `pnpm build-misskey-js-with-types` |

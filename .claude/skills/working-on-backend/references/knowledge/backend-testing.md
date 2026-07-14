@@ -41,6 +41,28 @@ cp .github/misskey/test.yml .config/test.yml
 - 配置: `packages/backend/test/` 配下
 - カバレッジ: `pnpm --filter backend test-and-coverage`
 
+### 連合テストのローカル実行 (Docker)
+
+`pnpm --filter backend test:fed` は既存のテスト用 DB / Redis (`packages/backend/test/compose.yml`) が起動している前提で動作する。クリーンな Docker 環境で一括して連合テストを実行したい場合は、以下のスクリプトを使う:
+
+```bash
+# 全連合テストをクリーンな Docker 環境で実行
+packages/backend/test-federation/run-local-docker.sh
+
+# 特定ファイルのみ実行
+packages/backend/test-federation/run-local-docker.sh timeline.test.ts
+
+# ビルドをスキップ (既に backend / misskey-js / misskey-reversi をビルド済みの場合)
+SKIP_BUILD=1 packages/backend/test-federation/run-local-docker.sh
+```
+
+このスクリプトは以下を自動で行う:
+1. 設定・証明書の生成 (`setup.sh`)
+2. backend 依存パッケージのビルド (`SKIP_BUILD=1` でスキップ可)
+3. DB ボリュームのクリーンアップ
+4. Docker Compose でのサービス起動 (DB / Redis / Misskey バックエンド / nginx)
+5. テスト実行 (`pnpm --filter backend test:fed`)
+
 ## e2e テストの配置
 
 `packages/backend/test/e2e/` の現状ファイル例:
