@@ -212,7 +212,7 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Test
-        run: pnpm --filter backend test-and-coverage:e2e
+        run: pnpm --filter backend test-and-coverage:e2e:opensearch
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:
