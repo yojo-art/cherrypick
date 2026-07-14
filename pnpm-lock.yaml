@@ -875,9 +875,6 @@ importers:
       vue:
         specifier: 3.5.22
         version: 3.5.22(typescript@5.9.3)
-      vue-prism-editor:
-        specifier: 2.0.0-alpha.2
-        version: 2.0.0-alpha.2(vue@3.5.22(typescript@5.9.3))
       vuedraggable:
         specifier: next
         version: 4.1.0(vue@3.5.22(typescript@5.9.3))
@@ -12254,12 +12251,6 @@ packages:
     resolution: {integrity: sha512-K3wt3iVmNGaFEOUR4JIThQRWfqokxLfnPslD41FDZB2ajXp789+wCqJyGYlIFsvEQ2P61PInw6/ph5iiqg51gg==}
     peerDependencies:
       vue: '>=2'
-
-  vue-prism-editor@2.0.0-alpha.2:
-    resolution: {integrity: sha512-Gu42ba9nosrE+gJpnAEuEkDMqG9zSUysIR8SdXUw8MQKDjBnnNR9lHC18uOr/ICz7yrA/5c7jHJr9lpElODC7w==}
-    engines: {node: '>=10'}
-    peerDependencies:
-      vue: ^3.0.0
 
   vue-tsc@3.1.8:
     resolution: {integrity: sha512-deKgwx6exIHeZwF601P1ktZKNF0bepaSN4jBU3AsbldPx9gylUc1JDxYppl82yxgkAgaz0Y0LCLOi+cXe9HMYA==}
@@ -25116,10 +25107,6 @@ snapshots:
       - supports-color
 
   vue-inbrowser-compiler-independent-utils@4.71.1(vue@3.5.22(typescript@5.9.3)):
-    dependencies:
-      vue: 3.5.22(typescript@5.9.3)
-
-  vue-prism-editor@2.0.0-alpha.2(vue@3.5.22(typescript@5.9.3)):
     dependencies:
       vue: 3.5.22(typescript@5.9.3)
 
