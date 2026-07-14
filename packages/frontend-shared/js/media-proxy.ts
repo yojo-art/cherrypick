@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import type * as Misskey from 'cherrypick-js';
 import { query } from './url.js';
 
 export class MediaProxy {
