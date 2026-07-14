@@ -64,11 +64,16 @@ export class MediaProxy {
 			return this.resolveAbsoluteUrl(avatarUrl);
 		}
 
+		// /files/... など相対パスはプロキシ前に絶対URL化する
+		const resolved = avatarUrl.startsWith('/')
+			? this.resolveAbsoluteUrl(avatarUrl)
+			: avatarUrl;
+
 		if (isStatic) {
-			return this.getStaticImageUrl(avatarUrl);
+			return this.getStaticImageUrl(resolved);
 		}
 
-		return this.getProxiedImageUrl(avatarUrl, 'avatar');
+		return this.getProxiedImageUrl(resolved, 'avatar');
 	}
 
 	public getAvatarUrlNullable(avatarUrl: string | null | undefined, isStatic = false): string | null {

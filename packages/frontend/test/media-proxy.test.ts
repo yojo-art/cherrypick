@@ -38,6 +38,22 @@ describe('MediaProxy', () => {
 			);
 		});
 
+		test('same-origin /files/ avatar is proxied with avatar=1', () => {
+			const fileUrl = `${baseUrl}/files/abc123`;
+			const result = mp.getAvatarUrl(fileUrl);
+			assert.ok(result.startsWith(`${mediaProxy}/image.webp?`));
+			assert.ok(result.includes('avatar=1'));
+			assert.ok(result.includes(`url=${encodeURIComponent(fileUrl)}`));
+			assert.ok(result.includes('fallback=1'));
+		});
+
+		test('relative /files/ path is absolutized then proxied with avatar=1', () => {
+			const result = mp.getAvatarUrl('/files/abc123');
+			assert.ok(result.startsWith(`${mediaProxy}/image.webp?`));
+			assert.ok(result.includes('avatar=1'));
+			assert.ok(result.includes(`url=${encodeURIComponent(`${baseUrl}/files/abc123`)}`));
+		});
+
 		test('other-origin identicon is proxied with avatar=1', () => {
 			const result = mp.getAvatarUrl('https://other.example/identicon/x');
 			assert.ok(result.startsWith(`${mediaProxy}/image.webp?`));
@@ -66,11 +82,28 @@ describe('MediaProxy', () => {
 				mp.getAvatarUrl('/identicon/abc', true),
 				'https://example.com/identicon/abc',
 			);
+			assert.strictEqual(
+				mp.getAvatarUrl(`${baseUrl}/avatar/@user@host`, true),
+				`${baseUrl}/avatar/@user@host`,
+			);
+			assert.strictEqual(
+				mp.getAvatarUrl('/static-assets/dummy.png', true),
+				'https://example.com/static-assets/dummy.png',
+			);
 		});
 
 		test('already-proxied URL is unwrapped and rebuilt', () => {
 			const original = 'https://cdn.example/a.png';
 			const alreadyProxied = `${mediaProxy}/image.webp?url=${encodeURIComponent(original)}&avatar=1&fallback=1`;
+			const result = mp.getAvatarUrl(alreadyProxied);
+			assert.ok(result.startsWith(`${mediaProxy}/image.webp?`));
+			assert.ok(result.includes('avatar=1'));
+			assert.ok(result.includes(`url=${encodeURIComponent(original)}`));
+		});
+
+		test('already-proxied URL without avatar=1 is rebuilt with avatar=1', () => {
+			const original = 'https://cdn.example/a.png';
+			const alreadyProxied = `${mediaProxy}/image.webp?url=${encodeURIComponent(original)}&fallback=1`;
 			const result = mp.getAvatarUrl(alreadyProxied);
 			assert.ok(result.startsWith(`${mediaProxy}/image.webp?`));
 			assert.ok(result.includes('avatar=1'));

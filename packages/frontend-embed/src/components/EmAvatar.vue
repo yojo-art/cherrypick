@@ -39,11 +39,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed } from 'vue';
+import { computed, inject } from 'vue';
 import * as Misskey from 'cherrypick-js';
 import EmImgWithBlurhash from './EmImgWithBlurhash.vue';
 import EmA from './EmA.vue';
 import { userPage } from '@/utils.js';
+import { DI } from '@/di.js';
+
+const mediaProxy = inject(DI.mediaProxy)!;
 
 const props = withDefaults(defineProps<{
 	user: Misskey.entities.User;
@@ -68,7 +71,7 @@ const bound = computed(() => props.link
 
 const url = computed(() => {
 	if (props.user.avatarUrl == null) return null;
-	return props.user.avatarUrl;
+	return mediaProxy.getAvatarUrl(props.user.avatarUrl);
 });
 
 function getDecorationUrl(decoration: Omit<Misskey.entities.UserDetailed['avatarDecorations'][number], 'id'>) {
