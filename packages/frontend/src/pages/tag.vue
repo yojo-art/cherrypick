@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<PageWithHeader :key="headerActions" :actions="headerActions" :tabs="headerTabs">
+<PageWithHeader :key="props.tag" :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 800px;">
 		<MkNotesTimeline :paginator="paginator"/>
 	</div>
@@ -32,7 +32,7 @@ import * as os from '@/os.js';
 import { genEmbedCode } from '@/utility/get-embed-code.js';
 import { Paginator } from '@/utility/paginator.js';
 import { misskeyApi } from '@/utility/misskey-api';
-import { MenuItem } from '@/types/menu';
+import type { MenuItem } from '@/types/menu';
 
 const props = defineProps<{
 	tag: string;
@@ -126,8 +126,8 @@ onUnmounted(() => {
 function openStream() {
 	connection = stream.useChannel('hashtag', {
 		q: [[props.tag]],
-	});
-	connection.on('note', note => {
+	}) as Misskey.ChannelConnection;
+	connection!.on('note', note => {
 		note.value?.pagingComponent?.prepend(note);
 	});
 }

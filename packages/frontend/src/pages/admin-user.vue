@@ -260,7 +260,7 @@ const user = ref(result.user);
 const info = ref(result.info);
 const ips = ref(result.ips);
 const showIpToolTip = ref(false);
-const ap = ref<any>(null);
+const ap = ref<Misskey.entities.ApGetResponse | null>(null);
 const moderator = ref(info.value.isModerator);
 const silenced = ref(info.value.isSilenced);
 const suspended = ref(info.value.isSuspended);
@@ -405,7 +405,7 @@ async function unsetUserMutualLink() {
 	});
 	if (confirm.canceled) return;
 
-	await os.apiWithDialog('admin/unset-user-mutual-banner', {
+	await os.apiWithDialog('admin/unset-user-mutual-banner' as any, {
 		userId: user.value.id,
 	}).then(refreshUser);
 }

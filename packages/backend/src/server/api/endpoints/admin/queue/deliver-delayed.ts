@@ -55,8 +55,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async (ps, me) => {
 			const jobs = await this.deliverQueue.getJobs(['delayed']);
 
-			const res = [] as [string, number][];
-
+			const counts = new Map<string, number>();
 			for (const job of jobs) {
 				let host: string;
 				try {
@@ -66,16 +65,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					this.apiLoggerService.logger.warn(`id: ${job.id}, data: ${JSON.stringify(job.data)}`);
 					continue;
 				}
-
-				const found = res.find(x => x[0] === host);
-				if (found) {
-					found[1]++;
-				} else {
-					res.push([host, 1]);
-				}
+				counts.set(host, (counts.get(host) ?? 0) + 1);
 			}
 
-			res.sort((a, b) => b[1] - a[1]);
+			const res = [...counts.entries()].sort((a, b) => b[1] - a[1]);
 
 			return res;
 		});

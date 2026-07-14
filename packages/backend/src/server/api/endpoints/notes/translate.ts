@@ -29,7 +29,7 @@ export const meta = {
 		properties: {
 			sourceLang: { type: 'string' },
 			text: { type: 'string' },
-			translator: { type: 'string', enum: ['deepl', 'ctav3', 'libretranslate'] },
+			translator: { type: 'string', enum: ['deepl', 'ctav3', 'libretranslate', 'web'] },
 		},
 	},
 
@@ -163,7 +163,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 	private async translateDeepL(text: string, targetLang: string, authKey: string, isPro: boolean) {
 		const params = new URLSearchParams();
-		params.append('auth_key', authKey);
 		params.append('text', text);
 		params.append('target_lang', targetLang);
 
@@ -172,6 +171,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		const res = await this.httpRequestService.send(endpoint, {
 			method: 'POST',
 			headers: {
+				'Authorization': `DeepL-Auth-Key ${authKey}`,
 				'Content-Type': 'application/x-www-form-urlencoded',
 				Accept: 'application/json, */*',
 			},

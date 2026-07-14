@@ -183,7 +183,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<SearchMarker :keywords="['follow', 'message']">
 			<MkInput v-model="profile.followedMessage" :max="200" manualSave :mfmPreview="false">
-				<template #label><SearchLabel>{{ i18n.ts._profile.followedMessage }}</SearchLabel><span class="_beta" style="vertical-align: middle;">{{ i18n.ts.beta }}</span></template>
+				<template #label><SearchLabel>{{ i18n.ts._profile.followedMessage }}</SearchLabel></template>
 				<template #caption>
 					<div><SearchText>{{ i18n.ts._profile.followedMessageDescription }}</SearchText></div>
 					<div>{{ i18n.ts._profile.followedMessageDescriptionForLockedAccount }}</div>
@@ -399,7 +399,7 @@ function save() {
 }
 
 function changeMutualLinkFile(ev: MouseEvent, sectionIndex: number, linkIndex: number) {
-	selectFile(ev.currentTarget ?? ev.target, i18n.ts.mutualLink).then(async (file) => {
+	selectFile({ anchorElement: ev.currentTarget ?? ev.target, label: i18n.ts.mutualLink }).then(async (file) => {
 		mutualLinkSections.value[sectionIndex].mutualLinks[linkIndex].imgSrc = file.url;
 		mutualLinkSections.value[sectionIndex].mutualLinks[linkIndex].fileId = file.id;
 	});
