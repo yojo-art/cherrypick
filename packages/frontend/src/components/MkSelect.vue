@@ -74,7 +74,7 @@ import type { MenuItem } from '@/types/menu.js';
 import * as os from '@/os.js';
 
 const props = defineProps<{
-	items: ITEMS;
+	items?: ITEMS;
 	required?: boolean;
 	readonly?: boolean;
 	disabled?: boolean;
@@ -138,7 +138,7 @@ onMounted(() => {
 
 watch([model, () => props.items], () => {
 	let found: ItemOption | null = null;
-	for (const item of props.items) {
+	for (const item of props.items ?? []) {
 		if (item.type === 'group') {
 			for (const option of item.items) {
 				if (option.value === model.value) {
@@ -166,7 +166,7 @@ function show() {
 
 	const menu: MenuItem[] = [];
 
-	for (const item of props.items) {
+	for (const item of props.items ?? []) {
 		if (item.type === 'group') {
 			if (item.label != null) {
 				menu.push({

@@ -378,7 +378,7 @@ async function menu(ev) {
 			text: i18n.ts.searchThisReaction,
 			icon: 'ti ti-search',
 			action: () => {
-				router.push(`/search?type=anote&reactions=${encodeURIComponent(isCustomEmoji ? props.reaction.endsWith('@.:') ? props.reaction.replace('@.', '') : props.reaction : props.reaction)}`);
+				router.pushByPath(`/search?type=anote&reactions=${encodeURIComponent(isCustomEmoji ? props.reaction.endsWith('@.:') ? props.reaction.replace('@.', '') : props.reaction : props.reaction)}`);
 			},
 		});
 		if (isCustomEmoji) {
@@ -386,7 +386,7 @@ async function menu(ev) {
 				text: `${i18n.ts.searchThisReaction}(${i18n.ts.partialMatch})`,
 				icon: 'ti ti-search',
 				action: () => {
-					router.push(`/search?type=anote&reactions=${encodeURIComponent(`${ props.reaction.endsWith('@.:') ? props.reaction.replace('@.:', '') : props.reaction.split('@')[0]}*`)}`);
+					router.pushByPath(`/search?type=anote&reactions=${encodeURIComponent(`${ props.reaction.endsWith('@.:') ? props.reaction.replace('@.:', '') : props.reaction.split('@')[0]}*`)}`);
 				},
 			});
 		}

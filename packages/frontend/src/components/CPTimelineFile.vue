@@ -87,7 +87,7 @@ import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { confirmR18, wasConfirmR18 } from '@/utility/check-r18.js';
 
 const props = defineProps<{
-	note: Misskey.entities.Note & { files: Misskey.entities.DriveFile[] };
+	note: Misskey.entities.Note & { files?: Misskey.entities.DriveFile[] };
 }>();
 
 const showingFiles = ref<string[]>([]);
