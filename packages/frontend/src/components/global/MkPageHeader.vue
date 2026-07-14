@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-if="!thin_ && narrow && props.displayMyAvatar && $i && !isFriendly().value && !notification" class="_button" :class="$style.buttonsLeft" @click="openAccountMenu">
 			<MkAvatar :class="$style.avatar" :user="$i"/>
 		</div>
-		<div v-else-if="!thin_ && narrow && !hideTitle && canBack" :class="$style.buttonsLeft"/>
+		<div v-else-if="!thin_ && narrow && !hideTitle && canBack" :class="[$style.buttons, $style.buttonsLeft]"></div>
 		<div v-if="leftSpacing" :class="leftSpacing.class ? $style.buttonsLeft : undefined" :style="leftSpacing.style">
 			<div v-for="(width, index) in leftSpacing.children" :key="index" :style="width"/>
 		</div>
@@ -34,9 +34,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 				<i v-else-if="pageMetadata.icon" :class="[$style.titleIcon, pageMetadata.icon]"></i>
 
-				<div :class="$style.title">
+				<div class="_nowrap" :class="$style.title">
 					<MkUserName v-if="pageMetadata.userName" :user="pageMetadata.userName" :nowrap="true"/>
-					<div v-else-if="pageMetadata.title">{{ pageMetadata.title }}</div>
+					<div v-else-if="pageMetadata.title" class="_nowrap">{{ pageMetadata.title }}</div>
 					<div v-if="pageMetadata.subtitle" :class="$style.subtitle">
 						{{ pageMetadata.subtitle }}
 					</div>
@@ -45,14 +45,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<XTabs v-if="(!narrow || hideTitle) && !isFriendly().value" :class="[$style.tabs, { [$style.tabs_canBack]: !canBack }]" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 		</template>
 		<div v-if="!thin_ && !narrow && (actions && actions.length > 0) && hideTitle && ['index'].includes(<string>mainRouter.currentRoute.value.name)" :class="$style.buttonsRight"/>
-		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="$style.buttonsRight">
+		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="[$style.buttons, $style.buttonsRight]">
 			<template v-for="action in actions">
 				<button v-tooltip.noDelay="action.text" class="_button" :class="[$style.button, { [$style.highlighted]: action.highlighted }]" @click.stop="action.handler" @touchstart="preventDrag"><i :class="action.icon"></i></button>
 			</template>
 		</div>
 		<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"/>
-		<div v-if="pageMetadata && pageMetadata.avatar && ($i && $i.id !== pageMetadata.userName?.id) && mainRouter.currentRoute.value.name === 'user' && !disableFollowButton && !notification" :class="$style.followButton">
-			<MkFollowButton :user="pageMetadata.avatar" :transparent="false" :full="!narrow"/>
+		<div v-if="pageMetadata && avatarUser && ($i && $i.id !== pageMetadata.userName?.id) && mainRouter.currentRoute.value.name === 'user' && !disableFollowButton && !notification" :class="$style.followButton">
+			<MkFollowButton :user="avatarUser" :transparent="false" :full="!narrow"/>
 		</div>
 	</div>
 	<div v-if="((narrow && !hideTitle) || isFriendly().value) && hasTabs" :class="[$style.lower, { [$style.slim]: narrow && !isFriendly().value, [$style.thin]: thin_, [$style.lowerFriendly]: isFriendly().value}]">
@@ -86,6 +86,7 @@ export type PageHeaderProps = {
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, inject, useTemplateRef, computed } from 'vue';
+import * as Misskey from 'misskey-js';
 import { getScrollPosition, scrollToTop } from '@@/js/scroll.js';
 import XTabs from './MkPageHeader.tabs.vue';
 import { globalEvents } from '@/events.js';
@@ -116,6 +117,13 @@ const emit = defineEmits<{
 //const viewId = inject(DI.viewId);
 const injectedPageMetadata = inject(DI.pageMetadata, ref(null));
 const pageMetadata = computed(() => props.overridePageMetadata ?? injectedPageMetadata.value);
+
+const avatarUser = computed(() => {
+	if (pageMetadata.value?.avatar && 'bannerUrl' in pageMetadata.value.avatar) {
+		return pageMetadata.value.avatar as Misskey.entities.UserDetailed;
+	}
+	return null;
+});
 
 const hideTitle = computed(() => inject('shouldOmitHeaderTitle', false) || props.hideTitle || (props.canOmitTitle && props.tabs.length > 0));
 const thin_ = props.thin || inject('shouldHeaderThin', false);
@@ -260,8 +268,10 @@ onUnmounted(() => {
 
 .upper {
 	--height: 50px;
+	--margin: var(--MI-margin);
 	display: flex;
-	gap: var(--MI-margin);
+	gap: var(--margin);
+	align-items: center;
 	height: var(--height);
 
 	.tabs:first-child {
@@ -278,6 +288,7 @@ onUnmounted(() => {
 
 	&.thin {
 		--height: 40px;
+		--margin: 8px;
 
 		> .buttons {
 			> .button {
@@ -288,12 +299,8 @@ onUnmounted(() => {
 
 	&.slim {
 		text-align: center;
-		gap: 0;
 
-		.tabs:first-child {
-			margin-left: 0;
-		}
-		> .titleContainer {
+		.titleContainer {
 			margin: 0 auto;
 			max-width: 100%;
 		}
@@ -314,6 +321,7 @@ onUnmounted(() => {
 }
 
 .buttons {
+	flex-shrink: 0;
 	--MI-margin: 8px;
 	display: flex;
 	align-items: center;
@@ -362,7 +370,7 @@ onUnmounted(() => {
 	align-items: center;
 	justify-content: center;
 	height: var(--height);
-	width: calc(var(--height) - (var(--MI-margin)));
+	width: calc(var(--height) - 8px - (var(--MI-margin)));
 	box-sizing: border-box;
 	position: relative;
 	border-radius: 5px;
@@ -385,6 +393,7 @@ onUnmounted(() => {
 .titleContainer {
 	display: flex;
 	align-items: center;
+	min-width: 0;
 	max-width: min(30vw, 400px);
 	overflow: clip;
 	white-space: nowrap;
@@ -423,9 +432,6 @@ onUnmounted(() => {
 
 .title {
 	min-width: 0;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	white-space: nowrap;
 	line-height: 1.1;
 }
 

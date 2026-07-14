@@ -72,6 +72,8 @@ function generateDummyUser(override?: Partial<MiUser>): MiUser {
 		autoDeleteKeepFavorites: true,
 		canChat: null,
 		clipsUri: null,
+		channelId: null,
+		channel: null,
 		...override,
 	};
 }
@@ -120,6 +122,7 @@ function generateDummyNote(override?: Partial<MiNote>): MiNote {
 		updatedAtHistory: null,
 		hasEvent: false,
 		deleteAt: null,
+		renoteChannelId: null,
 		...override,
 	};
 }

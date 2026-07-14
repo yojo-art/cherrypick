@@ -8,7 +8,7 @@ import { ModuleRef } from '@nestjs/core';
 import * as Redis from 'ioredis';
 import { AbortError } from 'got';
 import { DI } from '@/di-symbols.js';
-import type { UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, MiChannel, UsersRepository } from '@/models/_.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import { MiUser } from '@/models/User.js';
 import type Logger from '@/logger.js';
@@ -17,7 +17,7 @@ import { StatusError } from '@/misc/status-error.js';
 import type { UtilityService } from '@/core/UtilityService.js';
 import { bindThis } from '@/decorators.js';
 import { MetaService } from '@/core/MetaService.js';
-import { AppLockService } from '@/core/AppLockService.js';
+import { acquireApObjectLock } from '@/misc/distributed-lock.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
@@ -46,12 +46,14 @@ export class ApOutboxFetchService implements OnModuleInit {
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
+
 		@Inject(DI.redis)
 		private redisClient: Redis.Redis,
 
 		private apAudienceService: ApAudienceService,
 		private apDbResolverService: ApDbResolverService,
-		private appLockService: AppLockService,
 		private noteCreateService: NoteCreateService,
 		private noteEntityService: NoteEntityService,
 	) {
@@ -140,7 +142,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						if (this.utilityService.isBlockedHost(blockedHosts, this.utilityService.toPuny(new URL(activity.object.id).hostname))) continue;
 					}
 
-					const unlock = await this.appLockService.getApLock(activity.id);
+					const unlock = await acquireApObjectLock(this.redisClient, activity.id);
 					try {
 						if (!activity.id) continue;
 						let renote = await this.apNoteService.fetchNote(activity.object);
@@ -164,6 +166,21 @@ export class ApOutboxFetchService implements OnModuleInit {
 							this.logger.info('skip: invalid actor for this activity');
 							continue;
 						}
+						let channel = null as MiChannel | null;
+						if (user.channelId) {
+							//チャンネルアカウントによる投稿はすべてチャンネル投稿
+							channel = await this.channelsRepository.findOneBy({ id: user.channelId });
+							if (channel)channel.actor = user;
+						} else {
+							for (const user of activityAudience.mentionedUsers) {
+								const channelId = user.channelId;
+								if (channelId) {
+									channel = await this.channelsRepository.findOneBy({ id: channelId });
+									if (channel)channel.actor = user;
+								}
+								if (channel) break;//最初に発見されたチャンネルに投稿
+							}
+						}
 						await this.noteCreateService.create(user, {
 							createdAt,
 							renote,
@@ -171,6 +188,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 							visibility: activityAudience.visibility,
 							visibleUsers: activityAudience.visibleUsers,
 							uri: activity.id,
+							channel,
 						}, true );
 					} catch (err) {
 					// 対象が4xxならスキップ
@@ -183,7 +201,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 							throw err;
 						}
 					} finally {
-						unlock();
+						await unlock();
 					}
 				} else if (isCreate(activity)) {
 					if (typeof(activity.object) !== 'string') {

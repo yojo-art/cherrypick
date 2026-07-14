@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { WebSocket } from 'ws';
-import { api, createAppToken, initTestDb, port, post, signup, waitFire } from '../utils.js';
+import { api, createAppToken, initTestDb, port, post, randomString, signup, waitFire } from '../utils.js';
 import type * as misskey from 'misskey-js';
 import { MiFollowing } from '@/models/Following.js';
 
@@ -906,6 +906,49 @@ describe('Streaming', () => {
 					() => api('notes/create', { renoteId: takumiNote.id }, kyoko),
 					msg => msg.type === 'note' && msg.body.userId === kyoko.id,
 					{ listId: list.id },
+				);
+
+				assert.strictEqual(fired, false);
+			});
+		});
+
+		describe('Channel Timeline', () => {
+			let testChannel: misskey.entities.Channel;
+			let otherChannel: misskey.entities.Channel;
+
+			beforeAll(async () => {
+				testChannel = await api('channels/create', { name: 'test-channel', username: randomString() }, kyoko).then(x => x.body);
+				otherChannel = await api('channels/create', { name: 'other-channel', username: randomString() }, ayano).then(x => x.body);
+			});
+
+			test('自分のチャンネル投稿が流れる', async () => {
+				const fired = await waitFire(
+					kyoko, 'channel',
+					() => api('notes/create', { text: 'channel post', channelId: testChannel.id }, kyoko),
+					msg => msg.type === 'note' && msg.body.text === 'channel post',
+					{ channelId: testChannel.id },
+				);
+
+				assert.strictEqual(fired, true);
+			});
+
+			test('フォローしていないユーザーのチャンネル投稿が流れる', async () => {
+				const fired = await waitFire(
+					kyoko, 'channel',
+					() => api('notes/create', { text: 'channel post by ayano', channelId: testChannel.id }, ayano),
+					msg => msg.type === 'note' && msg.body.text === 'channel post by ayano',
+					{ channelId: testChannel.id },
+				);
+
+				assert.strictEqual(fired, true);
+			});
+
+			test('別のチャンネルの投稿は流れない', async () => {
+				const fired = await waitFire(
+					kyoko, 'channel',
+					() => api('notes/create', { text: 'other channel post', channelId: otherChannel.id }, ayano),
+					msg => msg.type === 'note' && msg.body.text === 'other channel post',
+					{ channelId: testChannel.id },
 				);
 
 				assert.strictEqual(fired, false);

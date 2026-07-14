@@ -48,8 +48,6 @@ const props = defineProps<{
 	emojiUrls?: Record<string, string>;
 	author?: Misskey.entities.UserLite;
 	isTranslation?: boolean;
-	emojiUrls?: Record<string, string>;
-	author?: Misskey.entities.UserLite;
 }>();
 
 const translation = ref<Misskey.entities.NotesPollsTranslateResponse | null>(null);

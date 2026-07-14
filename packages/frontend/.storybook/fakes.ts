@@ -26,21 +26,23 @@ export function abuseUserReport() {
 
 export function channel(id = 'somechannelid', name = 'Some Channel', bannerUrl: string | null = 'https://github.com/yojo-art/cherrypick/blob/master/packages/frontend/assets/fedi.jpg?raw=true'): entities.Channel {
 	return {
-		id,
-		createdAt: '2016-12-28T22:49:51.000Z',
-		lastNotedAt: '2016-12-28T22:49:51.000Z',
-		name,
-		description: null,
-		userId: null,
-		bannerUrl,
-		pinnedNoteIds: [],
-		color: '#000',
-		isArchived: false,
-		usersCount: 1,
-		notesCount: 1,
-		isSensitive: false,
-		allowRenoteToExternal: false,
-	};
+	id,
+	createdAt: '2016-12-28T22:49:51.000Z',
+	lastNotedAt: '2016-12-28T22:49:51.000Z',
+	name,
+	description: null,
+	userId: null,
+	bannerUrl,
+	bannerId: null,
+	pinnedNoteIds: [],
+	color: '#000',
+	isArchived: false,
+	usersCount: 1,
+	notesCount: 1,
+	isSensitive: false,
+	allowRenoteToExternal: false,
+	host: null,
+};
 }
 
 export function chatMessage(room = false, id = 'somechatmessageid', text = 'Hello!'): entities.ChatMessage {
@@ -90,22 +92,29 @@ export function clip(id = 'someclipid', name = 'Some Clip'): entities.Clip {
 		description: 'Some clip description',
 		isPublic: false,
 		favoritedCount: 0,
+		uri: null,
 	};
 }
 
 export function emojiDetailed(id = 'someemojiid', name = 'some_emoji'): entities.EmojiDetailed {
 	return {
-		id,
-		aliases: ['alias1', 'alias2'],
-		name,
-		category: 'emojiCategory',
-		host: null,
-		url: '/client-assets/about-icon.png',
-		license: null,
-		isSensitive: false,
-		localOnly: false,
-		roleIdsThatCanBeUsedThisEmojiAsReaction: ['roleId1', 'roleId2'],
-	};
+	id,
+	aliases: ['alias1', 'alias2'],
+	name,
+	category: 'emojiCategory',
+	host: null,
+	url: '/client-assets/about-icon.png',
+	license: null,
+	isSensitive: false,
+	localOnly: false,
+	roleIdsThatCanBeUsedThisEmojiAsReaction: ['roleId1', 'roleId2'],
+	copyPermission: null,
+	usageInfo: null,
+	author: null,
+	description: null,
+	isBasedOn: null,
+	importFrom: null
+};
 }
 
 export function galleryPost(isSensitive = false) {
@@ -221,7 +230,7 @@ export function federationInstance(): entities.FederationInstance {
 		themeColor: '',
 		infoUpdatedAt: '',
 		latestRequestReceivedAt: '',
-		isMediaSilenced: false,
+		isQuarantineLimited: false,
 	};
 }
 
@@ -242,6 +251,7 @@ export function note(id = 'somenoteid'): entities.Note {
 		reactionCount: 0,
 		renoteCount: 0,
 		repliesCount: 0,
+		searchableBy: 'public',
 	};
 }
 
@@ -288,11 +298,10 @@ export function userDetailed(id = 'someuserid', username = 'cherrypikist', host:
 		isAdmin: false,
 		isBlocked: false,
 		isBlocking: false,
-		isBot: false,
-		isCat: false,
 		isFollowed: false,
 		isFollowing: false,
 		isLocked: false,
+		channelId: undefined,
 		isModerator: false,
 		isMuted: false,
 		isSilenced: false,
@@ -320,6 +329,8 @@ export function userDetailed(id = 'someuserid', username = 'cherrypikist', host:
 		canChat: true,
 		chatScope: 'everyone',
 		mutualLinkSections: [],
+		isIndexable: true,
+		searchableBy: 'public',
 	};
 }
 

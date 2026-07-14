@@ -13,5 +13,5 @@ export async function flushNotification() {
 		cancelText: i18n.ts.cancel,
 	});
 	if (canceled) return;
-	os.apiWithDialog('notifications/flush');
+	os.apiWithDialog('notifications/flush', {});
 }

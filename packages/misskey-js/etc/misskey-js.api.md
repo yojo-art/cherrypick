@@ -42,6 +42,12 @@ type Ad = components['schemas']['Ad'];
 // Warning: (ae-forgotten-export) The symbol "operations" needs to be exported by the entry point index.d.ts
 //
 // @public (undocumented)
+type AdminAbortFullIndexRequest = operations['admin___abort-full-index']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminAbortFullIndexResponse = operations['admin___abort-full-index']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminAbuseReportNotificationRecipientCreateRequest = operations['admin___abuse-report___notification-recipient___create']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -270,7 +276,16 @@ type AdminFederationUpdateInstanceRequest = operations['admin___federation___upd
 type AdminForwardAbuseUserReportRequest = operations['admin___forward-abuse-user-report']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type AdminFullIndexProgressRequest = operations['admin___full-index-progress']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminFullIndexProgressResponse = operations['admin___full-index-progress']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AdminFullIndexRequest = operations['admin___full-index']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminFullIndexResponse = operations['admin___full-index']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
 type AdminGetIndexStatsResponse = operations['admin___get-index-stats']['responses']['200']['content']['application/json'];
@@ -1018,6 +1033,15 @@ type ChannelsFollowedResponse = operations['channels___followed']['responses']['
 type ChannelsFollowRequest = operations['channels___follow']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
+type ChannelsMuteCreateRequest = operations['channels___mute___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsMuteDeleteRequest = operations['channels___mute___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type ChannelsMuteListResponse = operations['channels___mute___list']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type ChannelsMyFavoritesResponse = operations['channels___my-favorites']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
@@ -1585,6 +1609,8 @@ declare namespace entities {
         PartialRolePolicyOverride,
         EmptyRequest,
         EmptyResponse,
+        AdminAbortFullIndexRequest,
+        AdminAbortFullIndexResponse,
         AdminAbuseReportResolverCreateRequest,
         AdminAbuseReportResolverCreateResponse,
         AdminAbuseReportResolverDeleteRequest,
@@ -1662,6 +1688,9 @@ declare namespace entities {
         AdminFederationUpdateInstanceRequest,
         AdminForwardAbuseUserReportRequest,
         AdminFullIndexRequest,
+        AdminFullIndexResponse,
+        AdminFullIndexProgressRequest,
+        AdminFullIndexProgressResponse,
         AdminGetIndexStatsResponse,
         AdminGetTableStatsResponse,
         AdminGetUserIpsRequest,
@@ -1781,6 +1810,9 @@ declare namespace entities {
         ChannelsFollowRequest,
         ChannelsFollowedRequest,
         ChannelsFollowedResponse,
+        ChannelsMuteCreateRequest,
+        ChannelsMuteDeleteRequest,
+        ChannelsMuteListResponse,
         ChannelsMyFavoritesResponse,
         ChannelsOwnedRequest,
         ChannelsOwnedResponse,
@@ -3736,6 +3768,7 @@ type SigninFlowRequest = {
     'g-recaptcha-response'?: string | null;
     'turnstile-response'?: string | null;
     'm-captcha-response'?: string | null;
+    'testcaptcha-response'?: string | null;
 };
 
 // @public (undocumented)

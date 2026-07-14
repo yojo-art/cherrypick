@@ -9,7 +9,6 @@ import { Test } from '@nestjs/testing';
 import { CoreModule } from '@/core/CoreModule.js';
 import { ApMfmService } from '@/core/activitypub/ApMfmService.js';
 import { GlobalModule } from '@/GlobalModule.js';
-import { MiNote } from '@/models/Note.js';
 
 describe('ApMfmService', () => {
 	let apMfmService: ApMfmService;
@@ -43,7 +42,7 @@ describe('ApMfmService', () => {
 			const { content, noMisskeyContent } = apMfmService.getNoteHtml(note);
 
 			assert.equal(noMisskeyContent, false, 'noMisskeyContent');
-			assert.equal(content, '<p><i>foo</i></p>', 'content');
+			assert.equal(content, '<i>foo</i>', 'content');
 		});
 	});
 });

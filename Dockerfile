@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.25
 
-ARG NODE_VERSION=24.16.0-bookworm
+ARG NODE_VERSION=24.17.0-bookworm
 
 # build assets & compile TypeScript
 
@@ -24,6 +24,7 @@ COPY --link ["packages/frontend-shared/package.json", "./packages/frontend-share
 COPY --link ["packages/frontend/package.json", "./packages/frontend/"]
 COPY --link ["packages/frontend-embed/package.json", "./packages/frontend-embed/"]
 COPY --link ["packages/frontend-builder/package.json", "./packages/frontend-builder/"]
+COPY --link ["packages/i18n/package.json", "./packages/i18n/"]
 COPY --link ["packages/icons-subsetter/package.json", "./packages/icons-subsetter/"]
 COPY --link ["packages/sw/package.json", "./packages/sw/"]
 COPY --link ["packages/misskey-js/package.json", "./packages/misskey-js/"]
@@ -48,7 +49,7 @@ RUN rm -rf .git/
 FROM --platform=$TARGETPLATFORM node:${NODE_VERSION} AS target-builder
 
 RUN apt-get update \
-	&& apt-get install -yqq --no-install-recommends \         
+	&& apt-get install -yqq --no-install-recommends \
 	build-essential
 
 WORKDIR /cherrypick

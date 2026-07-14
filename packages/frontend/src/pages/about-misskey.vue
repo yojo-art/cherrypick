@@ -282,7 +282,7 @@ import { prefer } from '@/preferences.js';
 import { donateCherryPick } from '@/utility/donate-cherrypick.js';
 import { openCommitPage } from '@/utility/fetch-releases.js';
 
-const patronsWithIconWithYojoArt = [];
+const patronsWithIconWithYojoArt: { name: string; icon: string }[] = [];
 
 const patronsWithIconWithCherryPick = [{
 	name: 'Etone Sabasappugawa',

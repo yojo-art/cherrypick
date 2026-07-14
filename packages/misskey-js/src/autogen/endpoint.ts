@@ -1,6 +1,8 @@
 import type {
 	EmptyRequest,
 	EmptyResponse,
+	AdminAbortFullIndexRequest,
+	AdminAbortFullIndexResponse,
 	AdminAbuseReportResolverCreateRequest,
 	AdminAbuseReportResolverCreateResponse,
 	AdminAbuseReportResolverDeleteRequest,
@@ -78,6 +80,9 @@ import type {
 	AdminFederationUpdateInstanceRequest,
 	AdminForwardAbuseUserReportRequest,
 	AdminFullIndexRequest,
+	AdminFullIndexResponse,
+	AdminFullIndexProgressRequest,
+	AdminFullIndexProgressResponse,
 	AdminGetIndexStatsResponse,
 	AdminGetTableStatsResponse,
 	AdminGetUserIpsRequest,
@@ -197,6 +202,9 @@ import type {
 	ChannelsFollowRequest,
 	ChannelsFollowedRequest,
 	ChannelsFollowedResponse,
+	ChannelsMuteCreateRequest,
+	ChannelsMuteDeleteRequest,
+	ChannelsMuteListResponse,
 	ChannelsMyFavoritesResponse,
 	ChannelsOwnedRequest,
 	ChannelsOwnedResponse,
@@ -722,6 +730,7 @@ import type {
 } from './entities.js';
 
 export type Endpoints = {
+	'admin/abort-full-index': { req: AdminAbortFullIndexRequest; res: AdminAbortFullIndexResponse };
 	'admin/abuse-report-resolver/create': { req: AdminAbuseReportResolverCreateRequest; res: AdminAbuseReportResolverCreateResponse };
 	'admin/abuse-report-resolver/delete': { req: AdminAbuseReportResolverDeleteRequest; res: EmptyResponse };
 	'admin/abuse-report-resolver/list': { req: AdminAbuseReportResolverListRequest; res: AdminAbuseReportResolverListResponse };
@@ -776,7 +785,8 @@ export type Endpoints = {
 	'admin/federation/remove-all-following': { req: AdminFederationRemoveAllFollowingRequest; res: EmptyResponse };
 	'admin/federation/update-instance': { req: AdminFederationUpdateInstanceRequest; res: EmptyResponse };
 	'admin/forward-abuse-user-report': { req: AdminForwardAbuseUserReportRequest; res: EmptyResponse };
-	'admin/full-index': { req: AdminFullIndexRequest; res: EmptyResponse };
+	'admin/full-index': { req: AdminFullIndexRequest; res: AdminFullIndexResponse };
+	'admin/full-index-progress': { req: AdminFullIndexProgressRequest; res: AdminFullIndexProgressResponse };
 	'admin/get-index-stats': { req: EmptyRequest; res: AdminGetIndexStatsResponse };
 	'admin/get-table-stats': { req: EmptyRequest; res: AdminGetTableStatsResponse };
 	'admin/get-user-ips': { req: AdminGetUserIpsRequest; res: AdminGetUserIpsResponse };
@@ -859,6 +869,9 @@ export type Endpoints = {
 	'channels/featured': { req: EmptyRequest; res: ChannelsFeaturedResponse };
 	'channels/follow': { req: ChannelsFollowRequest; res: EmptyResponse };
 	'channels/followed': { req: ChannelsFollowedRequest; res: ChannelsFollowedResponse };
+	'channels/mute/create': { req: ChannelsMuteCreateRequest; res: EmptyResponse };
+	'channels/mute/delete': { req: ChannelsMuteDeleteRequest; res: EmptyResponse };
+	'channels/mute/list': { req: EmptyRequest; res: ChannelsMuteListResponse };
 	'channels/my-favorites': { req: EmptyRequest; res: ChannelsMyFavoritesResponse };
 	'channels/owned': { req: ChannelsOwnedRequest; res: ChannelsOwnedResponse };
 	'channels/search': { req: ChannelsSearchRequest; res: ChannelsSearchResponse };

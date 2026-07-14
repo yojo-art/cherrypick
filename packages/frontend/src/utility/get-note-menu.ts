@@ -385,6 +385,7 @@ export function getNoteMenu(props: {
 					props.translation.value = {
 						sourceLang: langResult[0]?.detectedLanguage ?? 'unknown',
 						text: appearNote.text,
+						translator: 'web',
 					};
 					return;
 				}
@@ -398,6 +399,7 @@ export function getNoteMenu(props: {
 				props.translation.value = {
 					sourceLang: langResult[0]?.detectedLanguage ?? 'unknown',
 					text: translated,
+					translator: 'web',
 				};
 			} finally {
 				props.translateStatus.value = 'success';
