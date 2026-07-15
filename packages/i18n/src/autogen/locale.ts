@@ -7348,6 +7348,14 @@ export interface Locale extends ILocale {
          */
         "forwardDescription": string;
         /**
+         * リモートサーバーに通報を転送する
+         */
+        "forwardReport": string;
+        /**
+         * リモートサーバーからはあなたの情報は見れず、匿名のシステムアカウントとして表示されます。
+         */
+        "forwardReportIsAnonymous": string;
+        /**
          * 解決
          */
         "resolve": string;

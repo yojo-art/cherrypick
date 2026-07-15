@@ -20,17 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.reportContentPattern }}</div>
 		<MkCodeEditor v-model="value.reportContentPattern" lang="js" placeholder=".*" :readonly="!editable"/>
 	</div>
-	<MkSelect v-model="value.expiresAt" :disabled="!props.editable">
-		<template #label>{{ i18n.ts._abuse._resolver.expiresAt }}<span v-if="expirationDate" style="float: right;"><MkDate :time="expirationDate" mode="absolute">{{ expirationDate }}</MkDate></span></template>
-		<option value="1hour">{{ i18n.ts._abuse._resolver['1hour'] }}</option>
-		<option value="12hours">{{ i18n.ts._abuse._resolver['12hours'] }}</option>
-		<option value="1day">{{ i18n.ts._abuse._resolver['1day'] }}</option>
-		<option value="1week">{{ i18n.ts._abuse._resolver['1week'] }}</option>
-		<option value="1month">{{ i18n.ts._abuse._resolver['1month'] }}</option>
-		<option value="3months">{{ i18n.ts._abuse._resolver['3months'] }}</option>
-		<option value="6months">{{ i18n.ts._abuse._resolver['6months'] }}</option>
-		<option value="1year">{{ i18n.ts._abuse._resolver['1year'] }}</option>
-		<option value="indefinitely">{{ i18n.ts._abuse._resolver.indefinitely }}</option>
+	<MkSelect v-model="value.expiresAt" :disabled="!props.editable" :items="expiresAtDef">
 	</MkSelect>
 	<MkSwitch v-model="value.forward" :disabled="!props.editable">
 		{{ i18n.ts._abuseUserReport.forwardReport }}
@@ -41,6 +31,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 <script lang="ts" setup>
 import { computed, watch, ref } from 'vue';
+import type { MkSelectItem } from '@/components/MkSelect.vue';
 import MkCodeEditor from '@/components/MkCodeEditor.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkSelect from '@/components/MkSelect.vue';
@@ -64,13 +55,13 @@ const props = defineProps<{
 		targetUserPattern: string | null;
 		reporterPattern: string | null;
 		reportContentPattern: string | null;
-		expirationDate?: string | null;
+		expirationDate: string | null;
 		expiresAt: string;
 		forward: boolean;
 		previousExpiresAt?: string;
 	}
 }>();
-let expirationDate = ref<Date | null>(null);
+const expirationDate = ref<Date | null>(null);
 
 type NonNullType<T> = {
 	[P in keyof T]: NonNullable<T[P]>
@@ -105,6 +96,21 @@ const value = computed({
 			emit('update:modelValue', updateValue);
 		}
 	},
+});
+
+const expiresAtDef = computed(() => {
+	const items = [
+		{ label: i18n.ts._abuse._resolver['1hour'], value: '1hour' },
+		{ label: i18n.ts._abuse._resolver['12hours'], value: '12hours' },
+		{ label: i18n.ts._abuse._resolver['1day'], value: '1day' },
+		{ label: i18n.ts._abuse._resolver['1week'], value: '1week' },
+		{ label: i18n.ts._abuse._resolver['1month'], value: '1month' },
+		{ label: i18n.ts._abuse._resolver['3months'], value: '3months' },
+		{ label: i18n.ts._abuse._resolver['6months'], value: '6months' },
+		{ label: i18n.ts._abuse._resolver['1year'], value: '1year' },
+		{ label: i18n.ts._abuse._resolver.indefinitely, value: 'indefinitely' },
+	] satisfies MkSelectItem[];
+	return items;
 });
 
 function renderExpirationDate(empty = false) {
