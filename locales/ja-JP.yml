@@ -1855,6 +1855,8 @@ _accountSettings:
 _abuseUserReport:
   forward: "転送"
   forwardDescription: "匿名のシステムアカウントとして、リモートサーバーに通報を転送します。"
+  forwardReport: "リモートサーバーに通報を転送する"
+  forwardReportIsAnonymous: "リモートサーバーからはあなたの情報は見れず、匿名のシステムアカウントとして表示されます。"
   resolve: "解決"
   accept: "是認"
   reject: "否認"

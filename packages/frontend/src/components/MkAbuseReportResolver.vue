@@ -33,8 +33,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<option value="indefinitely">{{ i18n.ts._abuse._resolver.indefinitely }}</option>
 	</MkSelect>
 	<MkSwitch v-model="value.forward" :disabled="!props.editable">
-		{{ i18n.ts.forwardReport }}
-		<template #caption>{{ i18n.ts.forwardReportIsAnonymous }}</template>
+		{{ i18n.ts._abuseUserReport.forwardReport }}
+		<template #caption>{{ i18n.ts._abuseUserReport.forwardReportIsAnonymous }}</template>
 	</MkSwitch>
 	<slot name="button"></slot>
 </div>
