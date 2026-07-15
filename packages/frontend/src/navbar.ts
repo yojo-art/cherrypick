@@ -13,7 +13,6 @@ import { lookup } from '@/utility/lookup.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { unisonReload } from '@/utility/unison-reload.js';
-import { donateCherryPick } from '@/utility/donate-cherrypick.js';
 
 export const navbarItemDef = reactive({
 	notifications: {
