@@ -470,6 +470,7 @@ export class ApInboxService {
 				channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
 				if (channel)channel.actor = actor;
 			} else {
+				//リノートは本文情報が無いのでccにチャンネルアカウントが入ってるかだけ見る
 				for (const user of activityAudience.mentionedUsers) {
 					const channelId = user.channelId;
 					if (channelId) {
