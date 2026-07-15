@@ -13,6 +13,9 @@ importers:
 
   .:
     dependencies:
+      esbuild:
+        specifier: 0.28.1
+        version: 0.28.1
       execa:
         specifier: 9.6.1
         version: 9.6.1
