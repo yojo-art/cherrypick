@@ -1,0 +1,21 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/channel-mention/02-note",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>mention channel test</p>",
+	"published": "2026-06-01T00:01:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"cc": [
+		"https://a.test/users/{{channelActor}}"
+	],
+	"tag": [
+		{
+			"type": "Mention",
+			"href": "https://a.test/users/{{channelActor}}",
+			"name": "@{{channelActor}}@a.test"
+		}
+	]
+}
