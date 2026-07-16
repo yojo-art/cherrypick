@@ -98,7 +98,8 @@ export async function waitForFederationTestNote(
 		try {
 			const notes = await viewer.client.request('users/notes', {
 				userId: zack.id,
-				limit: 1,
+				limit: 10,
+				withChannelNotes: true,
 			});
 			console.log(JSON.stringify(notes));
 			if (notes[0].uri !== targetUri) return false;
