@@ -32,7 +32,7 @@ describe('Channel Mention', () => {
 
 		// リノート元を配送
 		await deliverFederationTestNote('a.test', 'channel-mention/03-original');
-		const originalNote = await waitForFederationTestNote(alice, 'channel-mention/03-original');
+		await waitForFederationTestNote(alice, 'channel-mention/03-original');
 
 		// Announce を配送
 		await deliverFederationTestNote('a.test', 'channel-mention/04-announce', {
@@ -42,5 +42,16 @@ describe('Channel Mention', () => {
 		const renote = await waitForFederationTestNote(alice, 'channel-mention/04-announce');
 		strictEqual(renote.channelId, aliceCh.id, 'ccに含まれたチャンネルアカウントにリノートされる');
 		notStrictEqual(renote.renoteId, null);
+	});
+
+	test('通常ノートでccが指定されていないノートがチャンネルアカウントに投稿される', async () => {
+		const alice = await createAccount('a.test');
+		const aliceCh = await alice.client.request('channels/create', { username: randomUsername() });
+		assert(aliceCh.actorId);
+		await deliverFederationTestNote('a.test', 'channel-mention/05-note-without-cc', {
+			placeholders: { channelActor: aliceCh.actorId },
+		});
+		const note = await waitForFederationTestNote(alice, 'channel-mention/05-note-without-cc');
+		strictEqual(note.channelId, aliceCh.id, '通常ノートでccが指定されていないノートがチャンネルアカウントに投稿される');
 	});
 });
