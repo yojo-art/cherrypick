@@ -54,8 +54,9 @@ async function loadNoteRaw(notePath) {
 }
 
 function resolvePlaceholders(text, placeholders) {
-	if (!placeholders || typeof placeholders !== 'object') return text;
+	if (placeholders == null || typeof placeholders !== 'object' || Array.isArray(placeholders)) return text;
 	for (const [key, value] of Object.entries(placeholders)) {
+		if (value == null) continue;
 		const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 		text = text.replaceAll(new RegExp(`\\{\\{${escapedKey}\\}\\}`, 'g'), String(value));
 	}
