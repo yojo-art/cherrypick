@@ -1,5 +1,4 @@
-import assert, { strictEqual } from 'node:assert';
-import { notStrictEqual } from 'node:assert/strict';
+import assert, { strictEqual, notStrictEqual } from 'node:assert';
 import { createAccount, randomUsername, waitForFederationTestNote, deliverFederationTestNote } from './utils.js';
 
 describe('Channel Mention', () => {
