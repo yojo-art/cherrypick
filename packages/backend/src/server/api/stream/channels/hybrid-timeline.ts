@@ -57,13 +57,10 @@ export class HybridTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
-		if (note.user.channelId != null) {
-			// チャンネルアカウントによる純粋なリノートの場合
-			if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
-				//yojo-art その内容部分の投稿を展開してTLに流す
-				note = note.renote;
-			}
-		}
+		// yojo-art: チャンネルアカウントのノートはソーシャル TL に流さない（純粋リノートの展開もしない）。
+		// docs/adr/0001-htl-drops-channel-actor-notes.md
+		if (note.user.channelId != null) return;
+
 		const isMe = this.user!.id === note.userId;
 
 		if (this.withFiles && (note.fileIds == null || note.fileIds.length === 0)) return;

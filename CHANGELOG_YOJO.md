@@ -1,3 +1,8 @@
+## 1.8.1
+
+### Server
+- Fix: チャンネル投稿が streaming / HTL で増殖する問題を修正 [#1181](https://github.com/yojo-art/cherrypick/issues/1181)
+
 ## 1.8.0
 Cherrypick 4.17.0  
 Misskey 2025.10.2

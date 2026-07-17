@@ -706,6 +706,24 @@ describe('Timelines', () => {
 					assert.strictEqual(res.body.some((note: any) => note.id === bobNote.id), true);
 				});
 
+				test('チャンネル投稿は自動リノート後も HTL で同一 ID が一度だけ (#1181)', async () => {
+					const [alice, bob] = await Promise.all([signup(), signup()]);
+
+					const channel = await createChannel('channel', bob);
+					await followChannel(channel.id, alice);
+
+					const bobNote = await post(bob, { text: 'ok', channelId: channel.id });
+					await post(alice, { text: 'intervening' });
+					// チャンネルアカウントの自動リノート（非同期）を待つ
+					await setTimeout(1500);
+					await waitForPushToTl();
+
+					const res = await api('notes/timeline', { limit: 100 }, alice);
+					const matches = res.body.filter((note: any) => note.id === bobNote.id);
+					assert.strictEqual(matches.length, 1);
+					assert.strictEqual(res.body.filter((note: any) => note.user?.channelId != null).length, 0);
+				});
+
 				test('チャンネル未フォロー　＋　ユーザフォロー　＝　TLに流れない', async () => {
 					const [alice, bob] = await Promise.all([signup(), signup()]);
 					await api('following/create', { userId: bob.id }, alice);

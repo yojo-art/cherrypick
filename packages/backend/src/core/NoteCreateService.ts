@@ -1111,15 +1111,25 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		if (note.channelId && note.channel == null) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
 		if (note.channel?.actorId === user.id) {
-			//チャンネルユーザーが作成したチャンネル投稿
+			// yojo-art: チャンネルアカウントのノートはフォロワー HTL / channelTimeline に載せない。
+			// 純粋リノートを中身に展開して push すると同一 ID の二重投入になる。
+			// アカウントのプロフィール用キャッシュだけ、従来どおり中身（または本体）の ID を残す。
+			// docs/adr/0001-htl-drops-channel-actor-notes.md
+			let idForActorTimeline = note.id;
 			if (isRenote(note) && !isQuote(note)) {
-				note.renote = await this.notesRepository.findOneBy({ id: note.renoteId });
+				note.renote ??= note.renoteId != null ? await this.notesRepository.findOneBy({ id: note.renoteId }) : null;
+				if (note.renote) {
+					idForActorTimeline = note.renote.id;
+				}
 			}
-			if (note.renote) {
-				note.renote.channel = note.channel;
-				//TLにはリノートの中身を投入する
-				note = note.renote;
-			}
+			this.fanoutTimelineService.push(
+				`userTimelineWithChannel:${user.id}`,
+				idForActorTimeline,
+				note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax,
+				r,
+			);
+			r.exec();
+			return;
 		}
 		if (note.channelId && note.channel) {
 			const channelFollowings = note.channel.actorId ? await this.followingsRepository.find({

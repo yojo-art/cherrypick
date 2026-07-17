@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { WebSocket } from 'ws';
-import { api, createAppToken, initTestDb, port, post, randomString, signup, waitFire } from '../utils.js';
+import { api, createAppToken, initTestDb, port, post, randomString, signup, waitFire, connectStream, sleep } from '../utils.js';
 import type * as misskey from 'misskey-js';
 import { MiFollowing } from '@/models/Following.js';
 
@@ -1136,5 +1136,45 @@ describe('Streaming', () => {
 			}));
 		});
 		*/
+	});
+
+	describe('Channel notes on homeTimeline (#1181)', () => {
+		test('チャンネル投稿はチャンネルアカウントの自動リノート後も同一 ID が一度だけ届く', async () => {
+			const alice = await signup({ username: 'ch1181alice' });
+			const bob = await signup({ username: 'ch1181bob' });
+
+			const channel = await api('channels/create', {
+				name: 'ch1181',
+				username: randomString(),
+			}, bob).then(x => x.body);
+			await api('channels/follow', { channelId: channel.id }, alice);
+			await sleep(250);
+
+			const noteIds: string[] = [];
+			const ws = await connectStream(alice, 'homeTimeline', msg => {
+				if (msg.type === 'note') {
+					noteIds.push(msg.body.id);
+				}
+			});
+
+			const channelNote = await post(bob, { text: 'channel-post-1181', channelId: channel.id });
+			// 間に通常投稿を挟む（issue 再現手順）
+			const intervening = await post(alice, { text: 'intervening-1181' });
+			// チャンネルアカウントの自動リノート（await しない非同期）を待つ
+			await sleep(1500);
+			ws.close();
+
+			assert.strictEqual(
+				noteIds.filter(id => id === channelNote.id).length,
+				1,
+				`channel note should arrive once, got ids=${JSON.stringify(noteIds)}`,
+			);
+			assert.ok(noteIds.includes(intervening.id), 'intervening note should arrive');
+			assert.strictEqual(
+				noteIds.filter(id => noteIds.indexOf(id) !== noteIds.lastIndexOf(id)).length,
+				0,
+				'duplicate note ids in stream',
+			);
+		});
 	});
 });

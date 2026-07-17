@@ -47,17 +47,14 @@ export class HomeTimelineChannel extends Channel {
 
 	@bindThis
 	private async onNote(note: Packed<'Note'>) {
+		// yojo-art: チャンネルアカウントのノートは HTL に流さない（純粋リノートの展開もしない）。
+		// 展開すると投稿本体と同一 ID が二度送られ Streaming 重複になる。docs/adr/0001-htl-drops-channel-actor-notes.md
+		if (note.user.channelId != null) return;
+
 		if (note.channelId) {
 			// そのチャンネルをフォローしていない
 			if (!this.followingChannels.has(note.channelId)) {
 				return;
-			}
-			if (note.user.channelId != null) {
-				// チャンネルアカウントによる純粋なリノートの場合
-				if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
-					//yojo-art その内容部分の投稿を展開してTLに流す
-					note = note.renote;
-				}
 			}
 		}
 
