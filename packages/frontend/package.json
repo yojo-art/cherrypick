@@ -50,7 +50,7 @@
 		"date-fns": "4.1.0",
 		"eventemitter3": "5.0.1",
 		"execa": "9.6.1",
-		"exifreader": "4.39.0",
+		"exifreader": "4.40.1",
 		"frontend-shared": "workspace:*",
 		"icons-subsetter": "workspace:*",
 		"idb-keyval": "6.2.2",
