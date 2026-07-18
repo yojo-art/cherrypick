@@ -750,8 +750,8 @@ importers:
         specifier: 9.6.1
         version: 9.6.1
       exifreader:
-        specifier: 4.39.0
-        version: 4.39.0
+        specifier: 4.40.1
+        version: 4.40.1
       frontend-shared:
         specifier: workspace:*
         version: link:../frontend-shared
@@ -7445,8 +7445,8 @@ packages:
     resolution: {integrity: sha512-8iA79xD3uAch729dUG8xaaBBFGaEa0wdD2VkYLFHwlqosEj/jT66AzcreRDSgV7ehnNLBW2WR5jIXwGKjVdTLg==}
     engines: {node: '>=4'}
 
-  exifreader@4.39.0:
-    resolution: {integrity: sha512-lP/BslNNbT3zZDtNyVli8XaPCxKE8f0OXb5hGhPVqaoIGCvOVanICwM3FXO45MkDjI3KHgFBk0KKVAw/W4xP2A==}
+  exifreader@4.40.1:
+    resolution: {integrity: sha512-Xavsts17ZYZoxUsUn+HCvGf8LB2ry7/pLSk2bYhXPGNLKciQDOxsY2EoytnKWfGmBRm4yvHVkw8RWsG5J8s3pA==}
 
   exit@0.1.2:
     resolution: {integrity: sha512-Zk/eNKV2zbjpKzrsQ+n1G6poVbErQxJ0LBOJXaKZ1EViLzH+hrLu9cdXI4zw9dBQJslwBEpbQ2P1oS7nDxs6jQ==}
@@ -19202,7 +19202,7 @@ snapshots:
     dependencies:
       pify: 2.3.0
 
-  exifreader@4.39.0:
+  exifreader@4.40.1:
     optionalDependencies:
       '@xmldom/xmldom': 0.9.10
 
