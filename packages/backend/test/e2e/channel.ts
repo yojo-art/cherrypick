@@ -97,4 +97,13 @@ describe('channels/create with canCreateChannel policy', () => {
 		const res2 = await api('channels/create', { name: 'channel-ng', username: randomString() }, alice);
 		assert.strictEqual(res2.status, 403, 'チャンネル作成が拒否されること');
 	});
+
+	test('チャンネル作成時にユーザーの名前が設定される', async () => {
+		const username = randomString();
+		const name = randomString() + ' Channel';
+		const ch = await api('channels/create', { username: username, name: name }, alice);
+		assert.strictEqual(ch.status, 200);
+		const channelActor = await api('users/show', { userId: ch.body.actorId! }, alice);
+		assert.strictEqual(channelActor.body.name!, name, 'チャンネル作成時に指定した名前がユーザーとして正しく設定される');
+	});
 });
