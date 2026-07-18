@@ -52,24 +52,9 @@ export class HomeTimelineChannel extends Channel {
 			if (!this.followingChannels.has(note.channelId)) {
 				return;
 			}
-			const isRenote = isRenotePacked(note) && !isQuotePacked(note);
 			if (note.user.channelId != null) {
-				// チャンネルアカウントによる純粋なリノートの場合
-				if (isRenote && note.renote) {
-					//yojo-art: その内容部分の投稿を展開してTLに流す
-					note = note.renote;
-				}
-			} else if (note.visibility === 'public' || note.visibility === 'home') {
-				//一般ユーザーのチャンネル投稿
-				if (isRenotePacked(note)) {
-					if (isQuotePacked(note)) {
-						//引用はチャンネルアカウントがリノートするのでTLに含めない
-						return;
-					} else {
-						//純粋リノートはチャンネルがリノートしないのでTLに含める
-					}
-				} else {
-					//通常ノートはチャンネルがリノートするのでTLに含めない
+				// yojo-art: チャンネルアカウントによる純粋なリノートの場合
+				if ( isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
 					return;
 				}
 			}

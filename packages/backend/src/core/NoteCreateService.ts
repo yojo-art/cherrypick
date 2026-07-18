@@ -1113,24 +1113,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (note.channel?.actorId === user.id) {
 			//チャンネルユーザーが作成したチャンネル投稿
 			if (isRenote(note) && !isQuote(note)) {
-				note.renote ??= await this.notesRepository.findOneBy({ id: note.renoteId });
-			}
-			if (note.renote) {
-				note.renote.channel = note.channel;
-				//TLにはリノートの中身を投入する
-				note = note.renote;
-			}
-		} else if (note.channelId) {
-			//一般ユーザーのチャンネル投稿
-			if (isRenote(note)) {
-				if (isQuote(note)) {
-					//引用はチャンネルアカウントがリノートするのでTLに含めない
-					return;
-				} else {
-					//純粋リノートはチャンネルがリノートしないのでTLに含める
-				}
-			} else {
-				//通常ノートはチャンネルがリノートするのでTLに含めない
+				//純粋リノートはTLに含めない
 				return;
 			}
 		}
