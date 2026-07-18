@@ -59,7 +59,7 @@ export class HomeTimelineChannel extends Channel {
 					//yojo-art: その内容部分の投稿を展開してTLに流す
 					note = note.renote;
 				}
-			} else {
+			} else if (note.visibility === 'public' || note.visibility === 'home') {
 				//一般ユーザーのチャンネル投稿
 				if (isRenotePacked(note)) {
 					if (isQuotePacked(note)) {
