@@ -10,10 +10,12 @@ import type { ChannelsRepository, DriveFilesRepository, MiUser, UsersRepository 
 import type { MiChannel } from '@/models/Channel.js';
 import { IdService } from '@/core/IdService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { RoleService } from '@/core/RoleService.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { ApiError } from '../../error.js';
 
@@ -46,6 +48,12 @@ export const meta = {
 			id: 'cd1e9f3e-5a12-4ab4-96f6-5d0a2cc32050',
 		},
 
+		iconNotAnImage: {
+			message: 'The icon file is not an image.',
+			code: 'ICON_NOT_AN_IMAGE',
+			id: '9b3f8c2a-4d71-4e6b-9a5f-1c8e2b7d4f90',
+		},
+
 		invalidUsername: {
 			message: 'Invalid Username',
 			code: 'INVALID_USERNAME',
@@ -60,6 +68,7 @@ export const paramDef = {
 		name: { type: 'string', minLength: 1, maxLength: 128 },
 		description: { type: 'string', nullable: true, maxLength: 2048 },
 		bannerId: { type: 'string', format: 'misskey:id', nullable: true },
+		iconId: { type: 'string', format: 'misskey:id', nullable: true },
 		color: { type: 'string', minLength: 1, maxLength: 16 },
 		isSensitive: { type: 'boolean', nullable: true },
 		allowRenoteToExternal: { type: 'boolean', nullable: true },
@@ -81,9 +90,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private idService: IdService,
 		private channelEntityService: ChannelEntityService,
+		private driveFileEntityService: DriveFileEntityService,
 		private userEntityService: UserEntityService,
 		private signupService: SignupService,
 		private roleService: RoleService,
+		private globalEventService: GlobalEventService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			let banner = null;
@@ -97,12 +108,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					throw new ApiError(meta.errors.noSuchFile);
 				}
 			}
+
+			let icon = null;
+			if (ps.iconId != null) {
+				icon = await this.driveFilesRepository.findOneBy({
+					id: ps.iconId,
+					userId: me.id,
+				});
+
+				if (icon == null) {
+					throw new ApiError(meta.errors.noSuchFile);
+				}
+				if (!icon.type.startsWith('image/')) {
+					throw new ApiError(meta.errors.iconNotAnImage);
+				}
+			}
+
 			// Validate username
 			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
 				throw new ApiError(meta.errors.invalidUsername);
 			}
-			let actor:MiUser;
-			let _channel:MiChannel;
+			let actor: MiUser;
+			let _channel: MiChannel;
 			//チャンネルアカウントを作成
 			try {
 				const { account, channel } = await this.signupService.signupChannel({
@@ -118,6 +145,14 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
 			}
 			const channel = _channel;
+			if (icon != null) {
+				await this.usersRepository.update(actor.id, {
+					avatarId: icon.id,
+					avatarUrl: this.driveFileEntityService.getPublicUrl(icon, 'avatar'),
+					avatarBlurhash: icon.blurhash,
+				});
+				this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
+			}
 			if (ps.name !== undefined || ps.color !== undefined || typeof ps.isSensitive === 'boolean' || typeof ps.allowRenoteToExternal === 'boolean') {
 				await this.channelsRepository.update(channel.id, {
 					...(ps.name !== undefined ? { name: ps.name } : {}),

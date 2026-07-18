@@ -10600,6 +10600,14 @@ export interface Locale extends ILocale {
          */
         "removeBanner": string;
         /**
+         * アイコンを設定
+         */
+        "setIcon": string;
+        /**
+         * アイコンを削除
+         */
+        "removeIcon": string;
+        /**
          * トレンド
          */
         "featured": string;

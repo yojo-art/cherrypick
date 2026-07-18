@@ -16,6 +16,7 @@ import type {
 	MiNote,
 	NotesRepository,
 	UserProfilesRepository,
+	UsersRepository,
 } from '@/models/_.js';
 import type { Packed } from '@/misc/json-schema.js';
 import type { MiUser } from '@/models/User.js';
@@ -42,6 +43,8 @@ export class ChannelEntityService {
 		private driveFilesRepository: DriveFilesRepository,
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
 		private noteEntityService: NoteEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private idService: IdService,
@@ -55,6 +58,7 @@ export class ChannelEntityService {
 		detailed?: boolean,
 		opts?: {
 			bannerFiles?: Map<MiDriveFile['id'], MiDriveFile>;
+			actors?: Map<MiUser['id'], MiUser>;
 			followings?: Set<MiChannel['id']>;
 			favorites?: Set<MiChannel['id']>;
 			muting?: Set<MiChannel['id']>;
@@ -67,6 +71,13 @@ export class ChannelEntityService {
 		if (channel.bannerId) {
 			bannerFile = opts?.bannerFiles?.get(channel.bannerId)
 				?? await this.driveFilesRepository.findOneBy({ id: channel.bannerId });
+		}
+
+		let iconUrl: string | null = null;
+		if (channel.actorId) {
+			const actor = opts?.actors?.get(channel.actorId)
+				?? await this.usersRepository.findOneBy({ id: channel.actorId });
+			iconUrl = actor?.avatarUrl ?? null;
 		}
 
 		let isFollowing = false;
@@ -116,6 +127,7 @@ export class ChannelEntityService {
 			userId: channel.userId,
 			bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl(bannerFile) : null,
 			bannerId: channel.bannerId,
+			iconUrl: iconUrl,
 			pinnedNoteIds: channel.pinnedNoteIds,
 			color: channel.color,
 			isArchived: channel.isArchived,
@@ -162,6 +174,12 @@ export class ChannelEntityService {
 			})
 			.then(it => new Map(it.map(it => [it.id, it])));
 
+		const actors = await this.usersRepository
+			.findBy({
+				id: In(channels.map(it => it.actorId).filter(it => it != null)),
+			})
+			.then(it => new Map(it.map(it => [it.id, it])));
+
 		const followings = me
 			? await this.followingsRepository
 				.findBy({
@@ -204,6 +222,7 @@ export class ChannelEntityService {
 
 		return Promise.all(channels.map(it => this.pack(it, me, detailed, {
 			bannerFiles,
+			actors,
 			followings,
 			favorites,
 			muting,

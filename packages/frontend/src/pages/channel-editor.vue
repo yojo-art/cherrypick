@@ -43,6 +43,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkSwitch>
 
 			<div>
+				<MkButton v-if="iconId == null && iconUrl == null" @click="setIconImage"><i class="ti ti-plus"></i> {{ i18n.ts._channel.setIcon }}</MkButton>
+				<div v-else-if="iconUrl" :class="$style.iconPreview">
+					<img :src="iconUrl" :class="$style.iconImage"/>
+					<MkButton @click="removeIconImage()"><i class="ti ti-trash"></i> {{ i18n.ts._channel.removeIcon }}</MkButton>
+				</div>
+			</div>
+
+			<div>
 				<MkButton v-if="bannerId == null" @click="setBannerImage"><i class="ti ti-plus"></i> {{ i18n.ts._channel.setBanner }}</MkButton>
 				<div v-else-if="bannerUrl">
 					<img :src="bannerUrl" style="width: 100%;"/>
@@ -113,6 +121,8 @@ const name = ref<string>('');
 const description = ref<string | null>(null);
 const bannerUrl = ref<string | null>(null);
 const bannerId = ref<string | null>(null);
+const iconUrl = ref<string | null>(null);
+const iconId = ref<string | null | undefined>(undefined);
 const color = ref('#000');
 const isSensitive = ref(false);
 const allowRenoteToExternal = ref(true);
@@ -129,6 +139,18 @@ watch(() => bannerId.value, async () => {
 	} else {
 		bannerUrl.value = (await misskeyApi('drive/files/show', {
 			fileId: bannerId.value,
+		})).url;
+	}
+});
+
+watch(() => iconId.value, async () => {
+	if (iconId.value == null) {
+		if (iconId.value === null) {
+			iconUrl.value = null;
+		}
+	} else {
+		iconUrl.value = (await misskeyApi('drive/files/show', {
+			fileId: iconId.value,
 		})).url;
 	}
 });
@@ -184,6 +206,8 @@ async function fetchChannel() {
 	description.value = result.description;
 	bannerId.value = result.bannerId;
 	bannerUrl.value = result.bannerUrl;
+	iconId.value = undefined;
+	iconUrl.value = result.iconUrl;
 	isSensitive.value = result.isSensitive;
 	pinnedNotes.value = result.pinnedNoteIds.map(id => ({
 		id,
@@ -220,6 +244,7 @@ function save() {
 		username: username.value,
 		description: description.value,
 		bannerId: bannerId.value,
+		...(iconId.value !== undefined ? { iconId: iconId.value } : {}),
 		color: color.value,
 		isSensitive: isSensitive.value,
 		allowRenoteToExternal: allowRenoteToExternal.value,
@@ -273,6 +298,20 @@ function removeBannerImage() {
 	bannerId.value = null;
 }
 
+function setIconImage(evt) {
+	selectFile({
+		anchorElement: evt.currentTarget ?? evt.target,
+		multiple: false,
+	}).then(file => {
+		iconId.value = file.id;
+	});
+}
+
+function removeIconImage() {
+	iconId.value = null;
+	iconUrl.value = null;
+}
+
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
@@ -284,6 +323,20 @@ definePage(() => ({
 </script>
 
 <style lang="scss" module>
+.iconPreview {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.iconImage {
+	width: 96px;
+	height: 96px;
+	object-fit: cover;
+	border-radius: 8px;
+}
+
 .pinnedNote {
 	position: relative;
 	display: block;

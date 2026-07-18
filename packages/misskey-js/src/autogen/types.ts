@@ -5479,6 +5479,8 @@ export type components = {
             bannerUrl: string | null;
             /** Format: id */
             bannerId: string | null;
+            /** Format: url */
+            iconUrl: string | null;
             pinnedNoteIds: string[];
             color: string;
             isArchived: boolean;
@@ -16249,6 +16251,8 @@ export interface operations {
                     description?: string | null;
                     /** Format: misskey:id */
                     bannerId?: string | null;
+                    /** Format: misskey:id */
+                    iconId?: string | null;
                     color?: string;
                     isSensitive?: boolean | null;
                     allowRenoteToExternal?: boolean | null;
@@ -17250,6 +17254,8 @@ export interface operations {
                     description?: string | null;
                     /** Format: misskey:id */
                     bannerId?: string | null;
+                    /** Format: misskey:id */
+                    iconId?: string | null;
                     isArchived?: boolean | null;
                     pinnedNoteIds?: string[];
                     color?: string;

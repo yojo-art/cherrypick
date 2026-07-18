@@ -51,6 +51,12 @@ export const meta = {
 			code: 'NO_SUCH_FILE',
 			id: 'e86c14a4-0da2-4032-8df3-e737a04c7f3b',
 		},
+
+		iconNotAnImage: {
+			message: 'The icon file is not an image.',
+			code: 'ICON_NOT_AN_IMAGE',
+			id: 'a1d4e7b2-8c35-4f9a-b6e1-2d7f9c0a5e84',
+		},
 	},
 } as const;
 
@@ -61,6 +67,7 @@ export const paramDef = {
 		name: { type: 'string', minLength: 1, maxLength: 128 },
 		description: { type: 'string', nullable: true, maxLength: 2048 },
 		bannerId: { type: 'string', format: 'misskey:id', nullable: true },
+		iconId: { type: 'string', format: 'misskey:id', nullable: true },
 		isArchived: { type: 'boolean', nullable: true },
 		pinnedNoteIds: {
 			type: 'array',
@@ -131,6 +138,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			} else if (ps.bannerId === null) {
 				banner = null;
 			}
+
+			// eslint:disable-next-line:no-unnecessary-initializer
+			let icon = undefined;
+			if (ps.iconId != null) {
+				icon = await this.driveFilesRepository.findOneBy({ id: ps.iconId });
+
+				if (icon == null || icon.userId !== me.id) throw new ApiError(meta.errors.noSuchFile);
+				if (!icon.type.startsWith('image/')) throw new ApiError(meta.errors.iconNotAnImage);
+			} else if (ps.iconId === null) {
+				icon = null;
+			}
+
 			if (channel.actorId) {
 				if (ps.description !== undefined) {
 					await this.userProfilesRepository.update({ userId: channel.actorId }, {
@@ -165,6 +184,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					updates.bannerId = null;
 					updates.bannerUrl = null;
 					updates.bannerBlurhash = null;
+				}
+				if (icon) {
+					updates.avatarId = icon.id;
+					updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
+					updates.avatarBlurhash = icon.blurhash;
+				} else if (ps.iconId === null) {
+					updates.avatarId = null;
+					updates.avatarUrl = null;
+					updates.avatarBlurhash = null;
 				}
 				if (ps.name !== undefined || ps.description !== undefined) {
 					const user = await this.usersRepository.findOneBy({ id: channel.actorId });
