@@ -132,14 +132,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</span>
 							</span>
 						</a>
-						<a href="https://github.com/penginn-net" target="_blank" :class="$style.contributor">
-							<img src="https://avatars.githubusercontent.com/u/121443048?v=4" :class="$style.contributorAvatar">
-							<span :class="$style.contributorUsername">@penginn-net
-								<span :class="$style.contributorClient">
-									<span :class="$style.cherry">yojo</span><span :class="$style.pick">-art</span>
-								</span>
-							</span>
-						</a>
 						<a href="https://github.com/noridev" target="_blank" :class="$style.contributor">
 							<img src="https://avatars.githubusercontent.com/u/11006910?v=4" :class="$style.contributorAvatar">
 							<span :class="$style.contributorUsername">@noridev
