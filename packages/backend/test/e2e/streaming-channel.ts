@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, initTestDb, post, randomString, signup, collectFire } from '../utils.js';
+import { api, initTestDb, post, randomString, signup, collectFire, waitFire } from '../utils.js';
 import type * as misskey from 'misskey-js';
 import { MiFollowing } from '@/models/Following.js';
 
@@ -62,8 +62,18 @@ describe('Channel Streaming', () => {
 		});
 
 		test('通常投稿を引用してチャンネル投稿してもstreamingで増殖しないこと', async () => {
-			const note = await post(aino, { text: 'bar' });
+			const fired = await waitFire(
+				aino, 'homeTimeline',
+				() => post(aino, { text: 'bar' }),
+				msg => msg.type === 'note' && msg.body.userId === aino.id,
+			);
 
+			assert.strictEqual(fired, true);
+
+			const res = await api('notes/timeline', { limit: 1 }, aino);
+			assert.strictEqual(res.body.length === 1, true);
+
+			const note = res.body[0];
 			const notes = await collectFire(
 				barbara,
 				'homeTimeline',
@@ -76,8 +86,18 @@ describe('Channel Streaming', () => {
 		});
 
 		test('チャンネル投稿を引用してチャンネル投稿してもstreamingで増殖しないこと', async () => {
-			const note = await post(aino, { text: 'in channel', channelId: channel.id });
+			const fired = await waitFire(
+				aino, 'homeTimeline',
+				() => post(aino, { text: 'in channel', channelId: channel.id }),
+				msg => msg.type === 'note' && msg.body.userId === aino.id,
+			);
 
+			assert.strictEqual(fired, true);
+
+			const res = await api('notes/timeline', { limit: 1 }, aino);
+			assert.strictEqual(res.body.length === 1, true);
+
+			const note = res.body[0];
 			const notes = await collectFire(
 				barbara,
 				'homeTimeline',
