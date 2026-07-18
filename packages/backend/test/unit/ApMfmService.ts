@@ -30,7 +30,7 @@ describe('ApMfmService', () => {
 			const { content, noMisskeyContent } = apMfmService.getNoteHtml(note);
 
 			assert.equal(noMisskeyContent, true, 'noMisskeyContent');
-			assert.equal(content, 'テキスト <a href="http://cherrypick.local/tags/%E3%82%BF%E3%82%B0" rel="tag">#タグ</a> <a href="http://cherrypick.local/@mention" class="u-url mention">@mention</a> 🍊 ​:emoji:​ <a href="https://example.com/">https://example.com</a>', 'content');
+			assert.equal(content, 'テキスト <a href="http://misskey.local/tags/%E3%82%BF%E3%82%B0" rel="tag">#タグ</a> <a href="http://misskey.local/@mention" class="u-url mention">@mention</a> 🍊 ​:emoji:​ <a href="https://example.com/">https://example.com</a>', 'content');
 		});
 
 		test('Provide _misskey_content for MFM', () => {
