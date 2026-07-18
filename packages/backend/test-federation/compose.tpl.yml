@@ -11,7 +11,7 @@ services:
       interval: 5s
       retries: 20
 
-  cherrypick:
+  misskey:
     image: node:${NODE_VERSION}
     env_file:
       - ./.config/docker.env
