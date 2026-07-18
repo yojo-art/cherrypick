@@ -1,6 +1,7 @@
 import assert, { strictEqual } from 'node:assert';
 import { notStrictEqual } from 'node:assert/strict';
 import * as Misskey from 'misskey-js';
+import { isPureRenote } from 'misskey-js/note.js';
 import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
 
 describe('Channel', () => {
@@ -508,6 +509,12 @@ describe('Channel', () => {
 			//フォロー処理待ち
 			await sleep(800);
 		});
+
+		afterAll(async () => {
+			// お片付け
+			await bob.client.request('following/delete', { userId: aliceInB.id });
+		});
+
 		describe.each([
 			{ enableFanoutTimeline: true },
 			{ enableFanoutTimeline: false },
@@ -565,6 +572,63 @@ describe('Channel', () => {
 				assert(bobHTL.map(note => note.text).includes(channelNoteInC.text), 'carolChをフォローしているのでHTLに流れてくる');
 				assert(!bobHTL.map(note => note.text).includes(normalNoteInC.text), 'carolをフォローしていないのでHTLに流れてこない');
 				strictEqual(bobHTL.filter(note => note.user.channelId != null).length, 0, 'チャンネルアカウントの投稿はHTLに流れてこない');
+			});
+		});
+	});
+
+	describe('Timelines when following a channel', () => {
+		beforeAll(async () => {
+			assert(aliceCh.actorId);
+			await bob.client.request('channels/follow', { channelId: aliceChInB.id });
+			//フォロー処理待ち
+			await sleep(800);
+		});
+		describe.each([
+			{ enableFanoutTimeline: true },
+			{ enableFanoutTimeline: false },
+		])('enableFanoutTimeline: $enableFanoutTimeline', ({ enableFanoutTimeline }) => {
+			beforeAll(async () => {
+				await Promise.all([
+					(await fetchAdmin('a.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+					(await fetchAdmin('b.test')).client.request('admin/update-meta', { enableFanoutTimeline } ),
+				]);
+			}, 1000 * 60 * 2);
+
+			test('チャンネルをフォロー時にリノートがチャンネルに配送される', async () => {
+				// aliceのホストで通常ノートを作成
+				const normalNoteInA = (await alice.client.request('notes/create', {
+					text: randomUsername(),
+					visibility: 'public',
+				})).createdNote;
+
+				// aliceのホストでチャンネルノートを作成
+				const channelNoteInA = (await alice.client.request('notes/create', {
+					text: randomUsername(),
+					channelId: aliceCh.id,
+					visibility: 'public',
+				})).createdNote;
+
+				const normalNoteInB = await resolveRemoteNote('a.test', normalNoteInA.id, bob);
+				const channelNoteInB = await resolveRemoteNote('a.test', channelNoteInA.id, bob);
+
+				// aliceのホストで通常ノートをチャンネルにリノート（チャンネル内リノート）
+				await alice.client.request('notes/create', {
+					renoteId: normalNoteInA.id,
+					channelId: aliceCh.id,
+				});
+
+				// aliceのホストでチャンネルノートをチャンネル内リノート
+				await alice.client.request('notes/create', {
+					renoteId: channelNoteInA.id,
+					channelId: aliceCh.id,
+				});
+
+				await sleep(1000);
+
+				const aliceChTlInB = await bob.client.request('channels/timeline', { channelId: aliceChInB.id, limit: 100 });
+
+				assert(aliceChTlInB.some(note => isPureRenote(note) && note.renoteId === normalNoteInB.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがbobのチャンネルTLに流れてくる');
+				assert(aliceChTlInB.some(note => isPureRenote(note) && note.renoteId === channelNoteInB.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがbobのチャンネルTLに流れてくる');
 			});
 		});
 	});
