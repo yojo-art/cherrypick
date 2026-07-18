@@ -53,14 +53,39 @@ describe('Channel Streaming', () => {
 			const notes = await collectFire(
 				barbara,
 				'homeTimeline',
-				() => post(aino, { text: 'foo bar', channelId: channel.id }),	// チャンネルに投稿を作成する
+				() => post(aino, { text: 'foo', channelId: channel.id }),	// チャンネルに投稿を作成する
 				msg => msg.type === 'note', // ノート・リノートとも type は 'note'
 				1000,
 			);
 
-			console.log(JSON.stringify(notes, null, 2));
+			assert.strictEqual(notes.length, 1);
+		});
 
-			// ノートが増殖しないこと
+		test('通常投稿を引用してチャンネル投稿してもstreamingで増殖しないこと', async () => {
+			const note = await post(aino, { text: 'bar' });
+
+			const notes = await collectFire(
+				barbara,
+				'homeTimeline',
+				() => post(aino, { text: 'quote', channelId: channel.id, renoteId: note.id }),	// チャンネルに投稿を作成する
+				msg => msg.type === 'note', // ノート・リノートとも type は 'note'
+				1000,
+			);
+
+			assert.strictEqual(notes.length, 1);
+		});
+
+		test('チャンネル投稿を引用してチャンネル投稿してもstreamingで増殖しないこと', async () => {
+			const note = await post(aino, { text: 'in channel', channelId: channel.id });
+
+			const notes = await collectFire(
+				barbara,
+				'homeTimeline',
+				() => post(aino, { text: 'quote', channelId: channel.id, renoteId: note.id }),	// チャンネルに投稿を作成する
+				msg => msg.type === 'note', // ノート・リノートとも type は 'note'
+				1000,
+			);
+
 			assert.strictEqual(notes.length, 1);
 		});
 	});
