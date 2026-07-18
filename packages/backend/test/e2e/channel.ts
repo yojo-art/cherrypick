@@ -101,9 +101,9 @@ describe('channels/create with canCreateChannel policy', () => {
 	test('チャンネル作成時にユーザーの名前が設定される', async () => {
 		const username = randomString();
 		const name = randomString() + ' Channel';
-		const ch = await api('channels/create', { username: username, name: name }, alice);
+		const ch = await api('channels/create', { username: username, name: name }, root);
 		assert.strictEqual(ch.status, 200);
-		const channelActor = await api('users/show', { userId: ch.body.actorId! }, alice);
+		const channelActor = await api('users/show', { userId: ch.body.actorId! }, root);
 		assert.strictEqual(channelActor.body.name!, name, 'チャンネル作成時に指定した名前がユーザーとして正しく設定される');
 	});
 });
