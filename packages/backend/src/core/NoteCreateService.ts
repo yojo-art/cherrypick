@@ -1113,12 +1113,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (note.channel?.actorId === user.id) {
 			//チャンネルユーザーが作成したチャンネル投稿
 			if (isRenote(note) && !isQuote(note)) {
-				note.renote = await this.notesRepository.findOneBy({ id: note.renoteId });
-			}
-			if (note.renote) {
-				note.renote.channel = note.channel;
-				//TLにはリノートの中身を投入する
-				note = note.renote;
+				//純粋リノートはTLに含めない
+				return;
 			}
 		}
 		if (note.channelId && note.channel) {
