@@ -1,5 +1,5 @@
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-# CherryPick configuration
+# Misskey configuration
 #━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 #   ┌──────────────────────────────┐
@@ -9,14 +9,14 @@
 # First of all, let me tell you a story that may possibly be
 # boring to you and possibly important to you.
 #
-# CherryPick is licensed under the AGPLv3 license. This license is
+# Misskey is licensed under the AGPLv3 license. This license is
 # known to be often misunderstood.  Please read the following
 # instructions carefully and select the appropriate option so
 # that you do not negligently cause a license violation.
 #
 
 # --------
-# Option 1: If you host CherryPick AS-IS (without any changes to
+# Option 1: If you host Misskey AS-IS (without any changes to
 #           the source code. forks are not included).
 #
 # Step 1: Congratulations! You don't need to do anything.
@@ -28,8 +28,8 @@
 #           this repository.  Strictly speaking, it doesn't have
 #           to be a Git repository, but you'll probably use Git!
 #
-# Step 1: Build and run the CherryPick server first.
-# Step 2: Open <https://your.cherrypick.example/admin/settings> in
+# Step 1: Build and run the Misskey server first.
+# Step 2: Open <https://your.misskey.example/admin/settings> in
 #         your browser with the administrator account.
 # Step 3: Enter the URL of your Git repository in the
 #         "Repository URL" field.
@@ -37,7 +37,7 @@
 # --------
 # Option 3: If neither of the above applies to you.
 #           (In this case, the source code should be published
-#           on the CherryPick interface.  IT IS NOT ENOUGH TO
+#           on the Misskey interface.  IT IS NOT ENOUGH TO
 #           DISCLOSE THE SOURCE CODE WHEN A USER REQUESTS IT BY
 #           E-MAIL OR OTHER MEANS.  If you are not satisfied
 #           with this, it is recommended that you read the
@@ -65,10 +65,10 @@
 # Password to initiate setting up admin account.
 # It will not be used after the initial setup is complete.
 #
-# Be sure to change this when you set up CherryPick via the Internet.
+# Be sure to change this when you set up Misskey via the Internet.
 #
-# The provider of the service who sets up CherryPick on behalf of the customer should
-# set this value to something unique when generating the CherryPick config file,
+# The provider of the service who sets up Misskey on behalf of the customer should
+# set this value to something unique when generating the Misskey config file,
 # and provide it to the customer.
 #
 # setupPassword: example_password_please_change_this_or_you_will_get_hacked
@@ -86,72 +86,34 @@ url: https://example.tld/
 #───┘ Port and TLS settings └───────────────────────────────────
 
 #
-# CherryPick requires a reverse proxy to support HTTPS connections.
+# Misskey requires a reverse proxy to support HTTPS connections.
 #
-#                 +-------- https://example.tld/ ------------+
-#   +------+      |+-------------+      +-------------------+|
-#   | User | ---> || Proxy (443) | ---> | CherryPick (3000) ||
-#   +------+      |+-------------+      +-------------------+|
-#                 +------------------------------------------+
+#                 +----- https://example.tld/ ------------+
+#   +------+      |+-------------+      +----------------+|
+#   | User | ---> || Proxy (443) | ---> | Misskey (3000) ||
+#   +------+      |+-------------+      +----------------+|
+#                 +---------------------------------------+
 #
 #   You need to set up a reverse proxy. (e.g. nginx)
 #   An encrypted connection with HTTPS is highly recommended
 #   because tokens may be transferred in GET requests.
 
-# The port that your CherryPick server should listen on.
+# The port that your Misskey server should listen on.
 port: 3000
 
 # You can also use UNIX domain socket.
-# socket: /path/to/cherrypick.sock
+# socket: /path/to/misskey.sock
 # chmodSocket: '777'
 
 # Proxy trust settings
 #
-# Specifies the IP addresses that Misskey will use as trusted
-# reverse proxies (e.g., nginx, Cloudflare). This affects how
-# Misskey determines the source IP for each request and is used
-# for important rate limiting and security features. If the value
-# is not set correctly, Misskey may use the IP address of the
-# reverse proxy instead of the actual source IP, which may lead to
-# unintended rate limiting or security vulnerabilities.
-# By default, the loopback network and private network address
-# ranges shown below are trusted.
-# If you are using a single reverse proxy and it is on the same
-# machine or the same private network as Misskey, it is unlikely you
-# need to change this setting, and the default setting is fine.
-# Also, if you are using multiple reverse proxy servers and they are
-# all on the same private network as Misskey, the default setting
-# is fine.
-# However, if you are using a reverse proxy server that accesses
-# Misskey web servers and streaming servers via public IP addresses
-# (for example, Cloudflare), you must set this variable.
-# When changing this setting, you can use one of the following values:
+# Changes how the server interpret the origin IP of the request.
 #
-# - true: Trust all proxies
-# - false: Do not trust any proxies
-# - IP address, IP address range, or array of them: Trust hops that
-#   match the specified criteria.
-# - Integer: Trust the nth hop from the front-facing proxy server as
-#   the client.
-# For more information on how to configure this setting, please refer
-# to the Fastify documentation:
-# https://fastify.dev/docs/latest/Reference/Server/#trustproxy
+# Any format supported by Fastify is accepted.
+# Default: trust all proxies (i.e. trustProxy: true)
+# See: https://fastify.dev/docs/latest/reference/server/#trustproxy
 #
-# Note that if this variable is set, it overrides the default range,
-# so if you have both an external reverse proxy and a proxy on the
-# local host, you must include both IPs (or IP ranges).
-#
-#trustProxy:
-#  - '10.0.0.0/8'
-#  - '172.16.0.0/12'
-#  - '192.168.0.0/16'
-#  - '127.0.0.1/32'
-#  - '::1/128'
-#  - 'fc00::/7'
-#  # Example: If you are using some external reverse proxies like CDNs,
-#  # you may need to add the CDN IP ranges here.
-#  # If you're using Cloudflare, you can find IP Ranges at:
-#  # https://www.cloudflare.com/ips/
+# trustProxy: 1
 
 #   ┌──────────────────────────┐
 #───┘ PostgreSQL configuration └────────────────────────────────
@@ -161,11 +123,11 @@ db:
   port: 5432
 
   # Database name
-  db: cherrypick
+  db: misskey
 
   # Auth
-  user: example-cherrypick-user
-  pass: example-cherrypick-pass
+  user: example-misskey-user
+  pass: example-misskey-pass
 
   # Whether disable Caching queries
   #disableCache: true
@@ -350,10 +312,6 @@ id: 'aidx'
 # Whether disable HSTS
 #disableHsts: true
 
-# Enable internal IP-based rate limiting (default: true)
-# To configure them in reverse proxy instead, set this to false.
-#enableIpRateLimit: true
-
 # Number of worker processes
 #clusterLimit: 1
 
@@ -415,7 +373,7 @@ proxyBypassHosts:
 
 # Movie Thumbnail Generation URL
 # There is no reference implementation.
-# For example, CherryPick will point to the following URL:
+# For example, Misskey will point to the following URL:
 #   https://example.com/thumbnail.webp?thumbnail=1&url=https%3A%2F%2Fstorage.example.com%2Fpath%2Fto%2Fvideo.mp4
 #videoThumbnailGenerator: https://example.com
 
@@ -430,7 +388,7 @@ proxyBypassHosts:
 #maxFileSize: 262144000
 
 # PID File of master process
-#pidFile: /tmp/cherrypick.pid
+#pidFile: /tmp/misskey.pid
 
 # Exclude bot users from hashtag trends
 #hashtagTrendExcludeBotUsers: true

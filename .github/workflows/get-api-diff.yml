@@ -1,5 +1,5 @@
 # this name is used in report-api-diff.yml so be careful when change name
-name: Get api.json from CherryPick
+name: Get api.json from Misskey
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
       - packages/backend/**
       - .github/workflows/get-api-diff.yml
 jobs:
-  get-from-cherrypick:
+  get-from-misskey:
     runs-on: ubuntu-latest
     permissions:
       contents: read
