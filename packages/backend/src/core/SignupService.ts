@@ -263,6 +263,7 @@ export class SignupService {
 				username: username,
 				usernameLower: username.toLowerCase(),
 				host: null,
+				name: name ?? null,
 				emojis,
 				tags,
 				token: secret,
