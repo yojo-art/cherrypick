@@ -58,11 +58,11 @@ export class ChannelEntityService {
 		detailed?: boolean,
 		opts?: {
 			bannerFiles?: Map<MiDriveFile['id'], MiDriveFile>;
-			actors?: Map<MiUser['id'], MiUser>;
 			followings?: Set<MiChannel['id']>;
 			favorites?: Set<MiChannel['id']>;
 			muting?: Set<MiChannel['id']>;
 			pinnedNotes?: Map<MiNote['id'], MiNote>;
+			actors?: Map<MiUser['id'], MiUser>;
 		},
 	): Promise<Packed<'Channel'>> {
 		const channel = typeof src === 'object' ? src : await this.channelsRepository.findOneByOrFail({ id: src });
@@ -77,6 +77,7 @@ export class ChannelEntityService {
 		if (channel.actorId) {
 			const actor = opts?.actors?.get(channel.actorId)
 				?? await this.usersRepository.findOneBy({ id: channel.actorId });
+			channel.actor = actor;
 			iconUrl = actor?.avatarUrl ?? null;
 		}
 
