@@ -6,16 +6,14 @@
 import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { ChannelsRepository, DriveFilesRepository, MiUser, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, DriveFilesRepository } from '@/models/_.js';
 import type { MiChannel } from '@/models/Channel.js';
-import { IdService } from '@/core/IdService.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { RoleService } from '@/core/RoleService.js';
-import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { ApiError } from '../../error.js';
 
@@ -85,16 +83,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
-		@Inject(DI.usersRepository)
-		private usersRepository: UsersRepository,
 
-		private idService: IdService,
 		private channelEntityService: ChannelEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private userEntityService: UserEntityService,
 		private signupService: SignupService,
 		private roleService: RoleService,
-		private globalEventService: GlobalEventService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			let banner = null;
@@ -128,31 +122,24 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
 				throw new ApiError(meta.errors.invalidUsername);
 			}
-			let actor: MiUser;
 			let _channel: MiChannel;
 			//チャンネルアカウントを作成
 			try {
-				const { account, channel } = await this.signupService.signupChannel({
+				const { channel } = await this.signupService.signupChannel({
 					bannerId: banner?.id,
+					avatarId: icon?.id,
+					avatarUrl: icon ? this.driveFileEntityService.getPublicUrl(icon, 'avatar') : undefined,
+					avatarBlurhash: icon?.blurhash ?? undefined,
 					username: ps.username,
 					ownerId: me.id,
 					description: ps.description,
 					ignorePreservedUsernames: await this.roleService.isModerator(me),
 				});
-				actor = account;
 				_channel = channel;
 			} catch (err) {
 				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
 			}
 			const channel = _channel;
-			if (icon != null) {
-				await this.usersRepository.update(actor.id, {
-					avatarId: icon.id,
-					avatarUrl: this.driveFileEntityService.getPublicUrl(icon, 'avatar'),
-					avatarBlurhash: icon.blurhash,
-				});
-				this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
-			}
 			if (ps.name !== undefined || ps.color !== undefined || typeof ps.isSensitive === 'boolean' || typeof ps.allowRenoteToExternal === 'boolean') {
 				await this.channelsRepository.update(channel.id, {
 					...(ps.name !== undefined ? { name: ps.name } : {}),
