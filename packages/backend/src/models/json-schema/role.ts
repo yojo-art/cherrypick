@@ -66,7 +66,7 @@ export const packedRoleCondFormulaValueUserSettingBooleanSchema = {
 		type: {
 			type: 'string',
 			nullable: false, optional: false,
-			enum: ['isSuspended', 'isLocked', 'isBot', 'isCat', 'isExplorable'],
+			enum: ['isSuspended', 'isLocked', 'isBot', 'isChannel', 'isCat', 'isExplorable'],
 		},
 	},
 } as const;

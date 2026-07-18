@@ -9761,6 +9761,10 @@ export interface Locale extends ILocale {
              */
             "isBot": string;
             /**
+             * チャンネルユーザーである
+             */
+            "isChannel": string;
+            /**
              * サスペンド済みユーザー
              */
             "isSuspended": string;

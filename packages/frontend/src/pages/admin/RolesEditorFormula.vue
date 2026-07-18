@@ -84,6 +84,7 @@ const typeDef = [
 	{ label: i18n.ts._role._condition.isSuspended, value: 'isSuspended' },
 	{ label: i18n.ts._role._condition.isLocked, value: 'isLocked' },
 	{ label: i18n.ts._role._condition.isBot, value: 'isBot' },
+	{ label: i18n.ts._role._condition.isChannel, value: 'isChannel' },
 	{ label: i18n.ts._role._condition.isCat, value: 'isCat' },
 	{ label: i18n.ts._role._condition.isExplorable, value: 'isExplorable' },
 	{ label: i18n.ts._role._condition.roleAssignedTo, value: 'roleAssignedTo' },
