@@ -98,7 +98,7 @@ import * as config from '@@/js/config.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkColorInput from '@/components/MkColorInput.vue';
-import { selectFile } from '@/utility/drive.js';
+import { selectFile, chooseDriveFile } from '@/utility/drive.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
@@ -298,13 +298,49 @@ function removeBannerImage() {
 	bannerId.value = null;
 }
 
-function setIconImage(evt) {
-	selectFile({
-		anchorElement: evt.currentTarget ?? evt.target,
-		multiple: false,
-	}).then(file => {
-		iconId.value = file.id;
-	});
+function setIconImage(ev) {
+	async function done(driveFile: Misskey.entities.DriveFile) {
+		iconId.value = driveFile.id;
+		iconUrl.value = driveFile.url;
+	}
+
+	os.popupMenu([{
+		text: i18n.ts._channel.setIcon,
+		type: 'label',
+	}, {
+		text: i18n.ts.upload,
+		icon: 'ti ti-upload',
+		action: async () => {
+			const files = await os.chooseFileFromPc({ multiple: false });
+			const file = files[0];
+
+			let originalOrCropped = file;
+
+			const { canceled } = await os.confirm({
+				type: 'question',
+				text: i18n.ts.cropImageAsk,
+				okText: i18n.ts.cropYes,
+				cancelText: i18n.ts.cropNo,
+			});
+
+			if (!canceled) {
+				originalOrCropped = await os.cropImageFile(file, {
+					aspectRatio: 1,
+				});
+			}
+
+			const driveFile = (await os.launchUploader([originalOrCropped], { multiple: false }))[0];
+			done(driveFile);
+		},
+	}, {
+		text: i18n.ts.fromDrive,
+		icon: 'ti ti-cloud',
+		action: () => {
+			chooseDriveFile({ multiple: false }).then(files => {
+				done(files[0]);
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
 }
 
 function removeIconImage() {
