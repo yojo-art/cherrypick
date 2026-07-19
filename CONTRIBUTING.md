@@ -1,5 +1,5 @@
 # Contribution guide
-We're glad you're interested in contributing CherryPick! In this document you will find the information you need to contribute to the project.
+We're glad you're interested in contributing Misskey! In this document you will find the information you need to contribute to the project.
 
 > [!NOTE]
 > This project uses Japanese as its major language, **but you do not need to translate and write the Issues/PRs in Japanese.**
@@ -65,13 +65,13 @@ Thank you for your PR! Before creating a PR, please check the following:
 Thanks for your cooperation 🤗
 
 ### Additional things for ActivityPub payload changes
-*This section is specific to kokonect-link implementation. Other fork or implementation may take different way. A significant difference is that non-"kokonect-link" extension is not described in the misskey-hub's document.*
+*This section is specific to misskey-dev implementation. Other fork or implementation may take different way. A significant difference is that non-"misskey-dev" extension is not described in the misskey-hub's document.*
 
 If PR includes changes to ActivityPub payload, please reflect it in [misskey-hub's document](https://github.com/misskey-dev/misskey-hub-next/blob/master/content/ns.md) by sending PR.
 
 The name of purporsed extension property (referred as "extended property" in later) to ActivityPub shall be prefixed by `_misskey_`. (i.e. `_misskey_quote`)
 
-The extended property in `packages/backend/src/core/activitypub/type.ts` **must** be declared as optional because ActivityPub payloads that comes from older CherryPick or other implementation may not contain it.
+The extended property in `packages/backend/src/core/activitypub/type.ts` **must** be declared as optional because ActivityPub payloads that comes from older Misskey or other implementation may not contain it.
 
 The extended property must be included in the context definition. Context is defined in `packages/backend/src/core/activitypub/misc/contexts.ts`.
 The key shall be same as the name of extended property, and the value shall be same as "short IRI".
@@ -159,7 +159,7 @@ For newly added languages, once the translation progress per language exceeds 70
 
 ## Development
 ### Setup
-Before developing, you have to set up environment. CherryPick requires Redis, PostgreSQL, and FFmpeg.
+Before developing, you have to set up environment. Misskey requires Redis, PostgreSQL, and FFmpeg.
 
 You would want to install Meilisearch to experiment related features. Technically, meilisearch is not strict requirement, but some features and tests require it.
 
@@ -200,7 +200,7 @@ command.
 - Service Worker is watched by esbuild.
 - Vite HMR (just the `vite` command) is available. The behavior may be different from production.
 - Vite runs behind the backend (the backend will proxy Vite at /vite and /embed_vite except for websocket used for HMR).
-- You can see CherryPick by accessing `http://localhost:3000` (Replace `3000` with the port configured with `port` in .config/default.yml).
+- You can see Misskey by accessing `http://localhost:3000` (Replace `3000` with the port configured with `port` in .config/default.yml).
 
 ## Testing
 You can run non-backend tests by executing following commands:
@@ -220,7 +220,7 @@ There are three types of test codes for the backend:
 #### Running Unit Tests or Single-server E2E Tests
 1. Create a config file:
 ```sh
-cp .github/cherrypick/test.yml .config/
+cp .github/misskey/test.yml .config/
 ```
 
 2. Start DB and Redis servers for testing:
@@ -258,7 +258,7 @@ Inside the [Dev Container](#use-devcontainer), the required services are already
 ```sh
 pnpm run e2e-dev-container
 ```
-To keep the test data isolated from your development environment, the E2E setup uses a dedicated `redis-test` service and a separate `cherrypick_test` database on the shared `db` server. This script copies `.config/cypress-devcontainer.yml` to `.config/test.yml`, migrates the test database, then starts the test server and runs Cypress.
+To keep the test data isolated from your development environment, the E2E setup uses a dedicated `redis-test` service and a separate `misskey_test` database on the shared `db` server. This script copies `.config/cypress-devcontainer.yml` to `.config/test.yml`, migrates the test database, then starts the test server and runs Cypress.
 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
@@ -272,11 +272,11 @@ To keep the test data isolated from your development environment, the E2E setup 
 - `OPENSEARCH_E2E`: When set to `1`, backend E2E skips top-level suites that are not wrapped in `describeOpenSearchE2E` (used by the `opensearch-e2e` CI job).
 
 ## Continuous integration
-CherryPick uses GitHub Actions for executing automated tests.
+Misskey uses GitHub Actions for executing automated tests.
 Configuration files are located in [`/.github/workflows`](/.github/workflows).
 
 ## Vue
-CherryPick uses Vue(v3) as its front-end framework.
+Misskey uses Vue(v3) as its front-end framework.
 - Use TypeScript.
 - **When creating a new component, please use the Composition API (with [setup sugar](https://v3.vuejs.org/api/sfc-script-setup.html) and [ref sugar](https://github.com/vuejs/rfcs/discussions/369)) instead of the Options API.**
 	- Some of the existing components are implemented in the Options API, but it is an old implementation. Refactors that migrate those components to the Composition API are also welcome.
@@ -288,7 +288,7 @@ CherryPick uses Vue(v3) as its front-end framework.
 必ず `ti-xxx` のような完全なクラス名を含めるようにしてください。
 
 ## nirax
-niraxは、CherryPickで使用しているオリジナルのフロントエンドルーティングシステムです。
+niraxは、Misskeyで使用しているオリジナルのフロントエンドルーティングシステムです。
 **vue-routerから影響を多大に受けているので、まずはvue-routerについて学ぶことをお勧めします。**
 
 ### ルート定義
@@ -316,7 +316,7 @@ vue-routerとの最大の違いは、niraxは複数のルーターが存在す�
 
 ## Storybook
 
-CherryPick uses [Storybook](https://storybook.js.org/) for UI development.
+Misskey uses [Storybook](https://storybook.js.org/) for UI development.
 
 ### Setup & Run
 
@@ -504,7 +504,7 @@ describe('test', () => {
 コード上でMisskeyのドメイン固有の概念には`Mi`をprefixすることで、他のドメインの同様の概念と区別できるほか、名前の衝突を防ぐ。
 ただし、文脈上Misskeyのものを指すことが明らかであり、名前の衝突の恐れがない場合は、一時的なローカル変数に限って`Mi`を省略してもよい。
 
-### CherryPick.jsの型生成
+### Misskey.jsの型生成
 ```bash
 pnpm build-misskey-js-with-types
 ```
@@ -606,7 +606,7 @@ pnpm dlx typeorm migration:generate -d ormconfig.js -o --esm <migration name>
 - `-o` (`--outputJs`) で JS 形式、`--esm` で ESM 形式に生成する。Misskey の既存 migration はすべて ESM JS なので両方のオプションが必要
 
 ### コネクションには`markRaw`せよ
-**Vueのコンポーネントのdataオプションとして**cherrypick.jsのコネクションを設定するとき、必ず`markRaw`でラップしてください。インスタンスが不必要にリアクティブ化されることで、cherrypick.js内の処理で不具合が発生するとともに、パフォーマンス上の問題にも繋がる。なお、Composition APIを使う場合はこの限りではない(リアクティブ化はマニュアルなため)。
+**Vueのコンポーネントのdataオプションとして**misskey.jsのコネクションを設定するとき、必ず`markRaw`でラップしてください。インスタンスが不必要にリアクティブ化されることで、misskey.js内の処理で不具合が発生するとともに、パフォーマンス上の問題にも繋がる。なお、Composition APIを使う場合はこの限りではない(リアクティブ化はマニュアルなため)。
 
 ### JSONのimportに気を付けよう
 TypeScriptでjsonをimportすると、tscでコンパイルするときにそのjsonファイルも一緒にdistディレクトリに吐き出されてしまう。この挙動により、意図せずファイルの書き換えが発生することがあるので、jsonをimportするときは書き換えられても良いものかどうか確認すること。書き換えされて欲しくない場合は、importで読み込むのではなく、`fs.readFileSync`などの関数を使って読み込むようにすればよい。
@@ -643,7 +643,7 @@ color: color(from var(--MI_THEME-accent) srgb r g b / 0.5);
 ```
 
 ## 考え方
-この内容はMisskeyに限定されたもので、CherryPickの意思を代表しません。
+この内容はMisskeyに限定されたもので、yojo-artの意思を代表しません。
 
 ### DRYに囚われるな
 必要なのは一般化ではなく抽象化と考えます。
