@@ -15,6 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:disabled="disabled"
 				:required="required"
 				:readonly="readonly"
+				:placeholder="placeholder"
 				autocomplete="off"
 				wrap="off"
 				spellcheck="false"
@@ -46,6 +47,7 @@ const props = withDefaults(defineProps<{
 	disabled?: boolean;
 	debounce?: boolean;
 	manualSave?: boolean;
+	placeholder?: string;
 }>(), {
 	lang: 'js',
 });

@@ -10,8 +10,9 @@ import { text } from 'body-parser';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
+import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 
-describe('検索', () => {
+describeOpenSearchE2E('検索', () => {
 	let alice: misskey.entities.SignupResponse;
 	let bob: misskey.entities.SignupResponse;
 	let carol: misskey.entities.SignupResponse;
