@@ -12,12 +12,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkButton v-if="favorited" v-tooltip="i18n.ts.unfavorite" asLike class="button" rounded primary :class="$style.favorite" @click="unfavorite()"><i class="ti ti-star"></i></MkButton>
 				<MkButton v-else v-tooltip="i18n.ts.favorite" asLike class="button" rounded :class="$style.favorite" @click="favorite()"><i class="ti ti-star"></i></MkButton>
 				<div :style="{ backgroundImage: channel.bannerUrl ? `url(${channel.bannerUrl})` : undefined }" :class="$style.banner">
+					<div v-if="channel.iconUrl" :class="$style.bannerIcon">
+						<img :src="channel.iconUrl" alt=""/>
+					</div>
 					<div :class="$style.bannerStatus">
 						<div><i class="ti ti-users ti-fw"></i><I18n :src="i18n.ts._channel.usersCount" tag="span" style="margin-left: 4px;"><template #n><b>{{ channel.usersCount }}</b></template></I18n></div>
 						<div><i class="ti ti-pencil ti-fw"></i><I18n :src="i18n.ts._channel.notesCount" tag="span" style="margin-left: 4px;"><template #n><b>{{ channel.notesCount }}</b></template></I18n></div>
 						<div v-if="$i != null && channel != null && $i.id === channel.userId" style="color: var(--MI_THEME-warn)"><i class="ti ti-user-star ti-fw"></i><span style="margin-left: 4px;">{{ i18n.ts.youAreAdmin }}</span></div>
 					</div>
-					<div v-if="channel.isSensitive" :class="$style.sensitiveIndicator">{{ i18n.ts.sensitive }}</div>
+					<div v-if="channel.isSensitive" :class="[$style.sensitiveIndicator, { [$style.sensitiveIndicatorWithIcon]: channel.iconUrl }]">{{ i18n.ts.sensitive }}</div>
 					<div :class="$style.bannerFade"></div>
 				</div>
 				<div v-if="channel.description" :class="$style.description">
@@ -380,6 +383,26 @@ definePage(() => ({
 	background-size: cover;
 }
 
+.bannerIcon {
+	position: absolute;
+	z-index: 1;
+	bottom: 16px;
+	left: 16px;
+	width: 72px;
+	height: 72px;
+	border-radius: 12px;
+	overflow: hidden;
+	border: solid 3px var(--MI_THEME-panel);
+	background: var(--MI_THEME-panel);
+	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+
+	> img {
+		width: 100%;
+		height: 100%;
+		object-fit: cover;
+	}
+}
+
 .bannerFade {
 	position: absolute;
 	bottom: 0;
@@ -416,5 +439,9 @@ definePage(() => ({
 	font-weight: bold;
 	font-size: 1em;
 	padding: 4px 7px;
+}
+
+.sensitiveIndicatorWithIcon {
+	left: 104px;
 }
 </style>

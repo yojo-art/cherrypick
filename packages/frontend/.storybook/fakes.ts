@@ -33,6 +33,7 @@ export function channel(id = 'somechannelid', name = 'Some Channel', bannerUrl: 
 	description: null,
 	userId: null,
 	bannerUrl,
+	iconUrl: null,
 	bannerId: null,
 	pinnedNoteIds: [],
 	color: '#000',

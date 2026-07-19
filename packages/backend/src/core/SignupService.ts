@@ -179,9 +179,12 @@ export class SignupService {
 		ownerId: MiUser['id'],
 		description?: MiChannel['description'];
 		bannerId?: DriveFile['id'];
+		avatarId?: MiUser['avatarId'];
+		avatarUrl?: MiUser['avatarUrl'];
+		avatarBlurhash?: MiUser['avatarBlurhash'];
 		ignorePreservedUsernames?: boolean;
 	}) {
-		const { username, name, bannerId, description, ownerId } = opts;
+		const { username, name, bannerId, avatarId, avatarUrl, avatarBlurhash, description, ownerId } = opts;
 
 		// Validate username
 		if (!this.userEntityService.validateLocalUsername(username)) {
@@ -267,6 +270,9 @@ export class SignupService {
 				tags,
 				token: secret,
 				bannerId: bannerId ?? null,
+				avatarId: avatarId ?? null,
+				avatarUrl: avatarUrl ?? null,
+				avatarBlurhash: avatarBlurhash ?? null,
 			}));
 
 			await transactionalEntityManager.save(new MiUserKeypair({
