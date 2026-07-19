@@ -294,6 +294,7 @@ export class SignupService {
 				actor: account,
 				actorId: account.id,
 				description,
+				bannerId: bannerId ?? null,
 			}));
 			await transactionalEntityManager.update(MiUser, {
 				id: account.id,

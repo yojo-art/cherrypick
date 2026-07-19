@@ -6,16 +6,18 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, randomString, signup } from '../utils.js';
+import { api, randomString, signup, uploadUrl } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('channels/create', () => {
 	let root: misskey.entities.SignupResponse;
 	let alice: misskey.entities.SignupResponse;
+	let bob: misskey.entities.SignupResponse;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
 		alice = await signup({ username: 'alice' });
+		bob = await signup({ username: 'bob' });
 	});
 
 	describe('canCreateChannel policy', () => {
@@ -104,6 +106,15 @@ describe('channels/create', () => {
 	});
 
 	describe('チャンネル作成時の基本設定', () => {
+		test('チャンネル作成時にバナーが設定される', async () => {
+			const file = await uploadUrl(bob, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.jpg');
+			const username = randomString();
+			const name = randomString() + ' Channel';
+			const ch = await api('channels/create', { username: username, name: name, bannerId: file.id }, bob);
+			assert.strictEqual(ch.status, 200);
+			assert.strictEqual(ch.body.bannerId, file.id, 'チャンネル作成時に指定したバナーが正しく設定される');
+		});
+
 		test('チャンネル作成時にユーザーの名前が設定される', async () => {
 			const username = randomString();
 			const name = randomString() + ' Channel';
