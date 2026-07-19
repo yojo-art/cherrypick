@@ -21,6 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkCodeEditor v-model="value.reportContentPattern" lang="js" placeholder=".*" :readonly="!editable"/>
 	</div>
 	<MkSelect v-model="value.expiresAt" :disabled="!props.editable" :items="expiresAtDef">
+		<template #label>{{ i18n.ts._abuse._resolver.expiresAt }}<span v-if="expirationDate" style="float: right;"><MkDate :time="expirationDate" mode="absolute">{{ expirationDate }}</MkDate></span></template>
 	</MkSelect>
 	<MkSwitch v-model="value.forward" :disabled="!props.editable">
 		{{ i18n.ts._abuseUserReport.forwardReport }}
