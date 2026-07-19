@@ -10,15 +10,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</MkInput>
 	<div>
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.targetUserPattern }}</div>
-		<MkCodeEditor v-model="value.targetUserPattern" lang="js" placeholder="^(LocalUser|RemoteUser@RemoteHost)$" :readonly="!editable"/>
+		<MkCodeEditor v-model="value.targetUserPattern" lang="js" placeholder="^(LocalUser|RemoteUser@RemoteHost)$" :readonly="!props.editable"/>
 	</div>
 	<div>
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.reporterPattern }}</div>
-		<MkCodeEditor v-model="value.reporterPattern" lang="js" placeholder="^(LocalUser|.*@RemoteHost)$" :readonly="!editable"/>
+		<MkCodeEditor v-model="value.reporterPattern" lang="js" placeholder="^(LocalUser|.*@RemoteHost)$" :readonly="!props.editable"/>
 	</div>
 	<div>
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.reportContentPattern }}</div>
-		<MkCodeEditor v-model="value.reportContentPattern" lang="js" placeholder=".*" :readonly="!editable"/>
+		<MkCodeEditor v-model="value.reportContentPattern" lang="js" placeholder=".*" :readonly="!props.editable"/>
 	</div>
 	<MkSelect v-model="value.expiresAt" :disabled="!props.editable" :items="expiresAtDef">
 		<template #label>{{ i18n.ts._abuse._resolver.expiresAt }}<span v-if="expirationDate" style="float: right;"><MkDate :time="expirationDate" mode="absolute">{{ expirationDate }}</MkDate></span></template>
