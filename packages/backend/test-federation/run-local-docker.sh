@@ -73,14 +73,14 @@ echo "==> Starting Misskey backends (migration may take a while)…"
 # misskey being healthy, but misskey won't be healthy while
 # migrations are running. We start misskey without deps and
 # poll until all three are ready, then start nginx.
-docker compose up -d --no-deps cherrypick.a.test cherrypick.b.test cherrypick.c.test
+docker compose up -d --no-deps misskey.a.test misskey.b.test misskey.c.test
 
 # Poll until all three misskey containers are healthy
 MAX_WAIT=180  # seconds
 WAITED=0
 echo -n "==> Waiting for Misskey containers to become healthy"
 while [[ ${WAITED} -lt ${MAX_WAIT} ]]; do
-    HEALTHY_COUNT=$(docker compose ps cherrypick.a.test cherrypick.b.test cherrypick.c.test --format json 2>/dev/null \
+    HEALTHY_COUNT=$(docker compose ps misskey.a.test misskey.b.test misskey.c.test --format json 2>/dev/null \
         | grep -c '"Health":"healthy"' || true)
     if [[ "${HEALTHY_COUNT}" == "3" ]]; then
         echo " OK"
@@ -94,9 +94,9 @@ done
 if [[ ${WAITED} -ge ${MAX_WAIT} ]]; then
     echo " TIMEOUT"
     echo "==> Misskey container status:"
-    docker compose ps cherrypick.a.test cherrypick.b.test cherrypick.c.test
+    docker compose ps misskey.a.test misskey.b.test misskey.c.test
     echo "==> Misskey logs (last 30 lines):"
-    docker compose logs --tail 30 cherrypick.a.test
+    docker compose logs --tail 30 misskey.a.test
     exit 1
 fi
 

@@ -54,7 +54,7 @@ services:
     networks:
       - internal_network
 
-  cherrypick.a.test:
+  misskey.a.test:
     networks:
       - external_network
       - internal_network
@@ -76,7 +76,7 @@ services:
     networks:
       - internal_network
 
-  cherrypick.b.test:
+  misskey.b.test:
     networks:
       - external_network
       - internal_network
@@ -98,7 +98,7 @@ services:
     networks:
       - internal_network
 
-  cherrypick.c.test:
+  misskey.c.test:
     networks:
       - external_network
       - internal_network

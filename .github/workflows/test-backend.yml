@@ -10,14 +10,14 @@ on:
       # for permissions
       - packages/misskey-js/**
       - .github/workflows/test-backend.yml
-      - .github/cherrypick/test.yml
+      - .github/misskey/test.yml
   pull_request:
     paths:
       - packages/backend/**
       # for permissions
       - packages/misskey-js/**
       - .github/workflows/test-backend.yml
-      - .github/cherrypick/test.yml
+      - .github/misskey/test.yml
   workflow_dispatch:
 
 jobs:
@@ -61,7 +61,7 @@ jobs:
     - name: Check pnpm-lock.yaml
       run: git diff --exit-code pnpm-lock.yaml
     - name: Copy Configure
-      run: cp .github/cherrypick/test.yml .config
+      run: cp .github/misskey/test.yml .config
     - name: Build
       run: pnpm build
     - name: Test
@@ -110,7 +110,7 @@ jobs:
       - name: Check pnpm-lock.yaml
         run: git diff --exit-code pnpm-lock.yaml
       - name: Copy Configure
-        run: cp .github/cherrypick/test.yml .config
+        run: cp .github/misskey/test.yml .config
       - name: Build
         run: pnpm build
       - name: Test
@@ -157,7 +157,7 @@ jobs:
       - name: Check pnpm-lock.yaml
         run: git diff --exit-code pnpm-lock.yaml
       - name: Copy Configure
-        run: cp .github/cherrypick/test.yml .config
+        run: cp .github/misskey/test.yml .config
       - name: Build
         run: pnpm build
       - name: Run migrations
@@ -176,7 +176,7 @@ jobs:
 
     services:
       postgres:
-        image: postgres:15
+        image: postgres:18
         ports:
           - 54312:5432
         env:
@@ -208,7 +208,7 @@ jobs:
       - name: Check pnpm-lock.yaml
         run: git diff --exit-code pnpm-lock.yaml
       - name: Copy Configure
-        run: cp .github/cherrypick/test-opensearch.yml .config/test.yml
+        run: cp .github/misskey/test-opensearch.yml .config/test.yml
       - name: Build
         run: pnpm build
       - name: Test

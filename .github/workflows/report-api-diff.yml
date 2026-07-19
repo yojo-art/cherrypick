@@ -4,7 +4,7 @@ on:
   workflow_run:
     types: [completed]
     workflows:
-      - Get api.json from CherryPick # get-api-diff.yml
+      - Get api.json from Misskey # get-api-diff.yml
 
 jobs:
   compare-diff:
@@ -93,7 +93,7 @@ jobs:
         with:
           pr-number: ${{ steps.load-pr-num.outputs.pr-number }}
           comment-tag: show_diff
-          file-path: ./output.md
+          filePath: ./output.md
       - name: Tell error to PR
         uses: thollander/actions-comment-pull-request@v3
         if: failure() && steps.load-pr-num.outputs.pr-number
