@@ -32,7 +32,7 @@ export function channel(id = 'somechannelid', name = 'Some Channel', bannerUrl: 
 	name,
 	description: null,
 	userId: null,
-	bannerUrl: null,
+	bannerUrl,
 	iconUrl: null,
 	bannerId: null,
 	pinnedNoteIds: [],
