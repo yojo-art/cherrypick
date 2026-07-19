@@ -9,13 +9,9 @@ import * as assert from 'assert';
 import type { INestApplicationContext } from '@nestjs/common';
 import { api, post, role, signup, startJobQueue, sleep } from '../utils.js';
 import type * as misskey from 'misskey-js';
+import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 
-import { loadConfig } from '../../src/config.js';
-
-const config = loadConfig();
-const isOpenSearchEnabled = !!config.opensearch;
-
-(isOpenSearchEnabled ? describe : describe.skip)('advanced-search E2Eテスト', () => {
+describeOpenSearchE2E('advanced-search E2Eテスト', { requireOpenSearch: true }, () => {
 	let queue: INestApplicationContext;
 	let root: misskey.entities.SignupResponse;
 
