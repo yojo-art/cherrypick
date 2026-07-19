@@ -5749,7 +5749,7 @@ export type components = {
         RoleCondFormulaValueUserSettingBooleanSchema: {
             id: string;
             /** @enum {string} */
-            type: 'isSuspended' | 'isLocked' | 'isBot' | 'isCat' | 'isExplorable';
+            type: 'isSuspended' | 'isLocked' | 'isBot' | 'isChannel' | 'isCat' | 'isExplorable';
         };
         RoleCondFormulaValueAssignedRole: {
             id: string;

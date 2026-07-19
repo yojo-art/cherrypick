@@ -2531,6 +2531,7 @@ _role:
     isRemote: "リモートユーザー"
     isCat: "猫ユーザー"
     isBot: "botユーザー"
+    isChannel: "チャンネルユーザーである"
     isSuspended: "サスペンド済みユーザー"
     isLocked: "鍵アカウントユーザー"
     isExplorable: "「アカウントを見つけやすくする」が有効なユーザー"

@@ -77,6 +77,13 @@ type CondFormulaValueIsBot = {
 };
 
 /**
+ * チャンネルアカウントの場合のみ成立とする
+ */
+type CondFormulaValueIsChannel = {
+	type: 'isChannel';
+};
+
+/**
  * 猫アカウントの場合のみ成立とする
  */
 type CondFormulaValueIsCat = {
@@ -163,6 +170,7 @@ export type RoleCondFormulaValue = { id: string } & (
 	CondFormulaValueIsSuspended |
 	CondFormulaValueIsLocked |
 	CondFormulaValueIsBot |
+	CondFormulaValueIsChannel |
 	CondFormulaValueIsCat |
 	CondFormulaValueIsExplorable |
 	CondFormulaValueRoleAssignedTo |
