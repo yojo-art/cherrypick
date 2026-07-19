@@ -262,11 +262,14 @@ To keep the test data isolated from your development environment, the E2E setup 
 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
+> Suites that should run in that job must use `describeOpenSearchE2E` (see `packages/backend/test/helpers/describe-opensearch-e2e.ts`).
+> With OpenSearch available and `.github/cherrypick/test-opensearch.yml` copied to `.config/test.yml`, run `pnpm --filter backend test-and-coverage:e2e:opensearch` (`OPENSEARCH_E2E=1`).
 
 ## Environment Variable
 
 - `MISSKEY_CONFIG_YML`: Specify the file path of config.yml instead of default.yml (e.g. `2nd.yml`).
 - `CHERRYPICK_WEBFINGER_USE_HTTP`: If it's set true, WebFinger requests will be http instead of https, useful for testing federation between servers in localhost. NEVER USE IN PRODUCTION.
+- `OPENSEARCH_E2E`: When set to `1`, backend E2E skips top-level suites that are not wrapped in `describeOpenSearchE2E` (used by the `opensearch-e2e` CI job).
 
 ## Continuous integration
 CherryPick uses GitHub Actions for executing automated tests.
@@ -595,11 +598,12 @@ enumの列挙の内容の削除は、その値をもつレコードを全て削�
 ### Migration作成方法
 packages/backendで:
 ```sh
-pnpm dlx typeorm migration:generate -d ormconfig.js -o <migration name>
+pnpm dlx typeorm migration:generate -d ormconfig.js -o --esm <migration name>
 ```
 
 - 生成後、ファイルをmigration下に移してください
 - 作成されたスクリプトは不必要な変更を含むため除去してください
+- `-o` (`--outputJs`) で JS 形式、`--esm` で ESM 形式に生成する。Misskey の既存 migration はすべて ESM JS なので両方のオプションが必要
 
 ### コネクションには`markRaw`せよ
 **Vueのコンポーネントのdataオプションとして**cherrypick.jsのコネクションを設定するとき、必ず`markRaw`でラップしてください。インスタンスが不必要にリアクティブ化されることで、cherrypick.js内の処理で不具合が発生するとともに、パフォーマンス上の問題にも繋がる。なお、Composition APIを使う場合はこの限りではない(リアクティブ化はマニュアルなため)。

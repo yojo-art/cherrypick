@@ -8,7 +8,7 @@ port: 61812
 db:
   host: 127.0.0.1
   port: 54312
-  db: test-cherrypick
+  db: test-misskey
   user: postgres
   pass: ''
 redis:

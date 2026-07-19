@@ -36,7 +36,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -88,7 +88,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -136,7 +136,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
 
     steps:
@@ -180,7 +180,7 @@ jobs:
         ports:
           - 54312:5432
         env:
-          POSTGRES_DB: test-cherrypick
+          POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
         image: redis:7
@@ -212,7 +212,7 @@ jobs:
       - name: Build
         run: pnpm build
       - name: Test
-        run: pnpm --filter backend test-and-coverage:e2e
+        run: pnpm --filter backend test-and-coverage:e2e:opensearch
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
         with:

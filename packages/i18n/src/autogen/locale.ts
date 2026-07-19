@@ -3013,6 +3013,10 @@ export interface Locale extends ILocale {
      */
     "newNoteRecivedCount": ParameterizedString<"n">;
     /**
+     * {n}個以上の新しいノートがあります
+     */
+    "newNoteRecivedCountCapped": ParameterizedString<"n">;
+    /**
      * 新しいノート
      */
     "newNote": string;

@@ -738,6 +738,7 @@ showFixedPostFormInChannel: "Display the posting form at the top of the timeline
 withRepliesByDefaultForNewlyFollowed: "Include replies by newly followed users in the timeline by default"
 newNoteRecived: "There are new notes"
 newNoteRecivedCount: "There are {n} new notes"
+newNoteRecivedCountCapped: "There are {n} or more new notes"
 newNote: "New Note"
 sounds: "Sounds"
 sound: "Sounds"
