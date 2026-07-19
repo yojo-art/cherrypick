@@ -1806,6 +1806,8 @@ _accountSettings:
 _abuseUserReport:
   forward: "Forward"
   forwardDescription: "Forward the report to a remote server as an anonymous system account."
+  forwardReport: "Forward the report to a remote server"
+  forwardReportIsAnonymous: "Your information will not be visible to the remote server and will be displayed as an anonymous system account."
   resolve: "Resolve"
   accept: "Accept"
   reject: "Reject"
