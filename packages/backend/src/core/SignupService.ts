@@ -11,7 +11,8 @@ import * as argon2 from 'argon2';
 import { DataSource, IsNull } from 'typeorm';
 import { DriveFile } from 'misskey-js/entities.js';
 import { DI } from '@/di-symbols.js';
-import type { ChannelsRepository, MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
+import type { ChannelsRepository, DriveFilesRepository, MiMeta, UsedUsernamesRepository, UsersRepository } from '@/models/_.js';
 import { MiUser } from '@/models/User.js';
 import { MiChannel } from '@/models/Channel.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
@@ -44,6 +45,9 @@ export class SignupService {
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
+		@Inject(DI.driveFilesRepository)
+		private driveFilesRepository: DriveFilesRepository,
+
 		@Inject(DI.usedUsernamesRepository)
 		private usedUsernamesRepository: UsedUsernamesRepository,
 
@@ -54,6 +58,7 @@ export class SignupService {
 		private systemAccountService: SystemAccountService,
 		private metaService: MetaService,
 		private usersChart: UsersChart,
+		private driveFileEntityService: DriveFileEntityService,
 	) {
 	}
 
@@ -248,6 +253,10 @@ export class SignupService {
 		}
 		let account!: MiUser;
 		let channel!:MiChannel;
+		let bannerFile = null;
+		if (bannerId != null) {
+			bannerFile = await this.driveFilesRepository.findOneBy({ id: bannerId });
+		}
 
 		// Start transaction
 		await this.db.transaction(async transactionalEntityManager => {
@@ -268,6 +277,8 @@ export class SignupService {
 				tags,
 				token: secret,
 				bannerId: bannerId ?? null,
+				bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl(bannerFile) : null,
+				bannerBlurhash: bannerFile ? bannerFile.blurhash : null,
 			}));
 
 			await transactionalEntityManager.save(new MiUserKeypair({
@@ -294,6 +305,7 @@ export class SignupService {
 				actor: account,
 				actorId: account.id,
 				description,
+				bannerId: bannerId ?? null,
 			}));
 			await transactionalEntityManager.update(MiUser, {
 				id: account.id,

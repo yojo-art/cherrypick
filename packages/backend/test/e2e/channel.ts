@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, randomString, signup } from '../utils.js';
+import { api, randomString, signup, uploadUrl } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('channels/create', () => {
@@ -104,6 +104,18 @@ describe('channels/create', () => {
 	});
 
 	describe('チャンネル作成時の基本設定', () => {
+		test('チャンネル作成時にバナーが設定される', async () => {
+			const file = await uploadUrl(root, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.jpg');
+			const username = randomString();
+			const name = randomString() + ' Channel';
+			const ch = await api('channels/create', { username: username, name: name, bannerId: file.id }, root);
+			assert.strictEqual(ch.status, 200);
+			assert.notStrictEqual(ch.body.bannerUrl, null, 'チャンネルのbannerUrlが設定される');
+			const channelActor = await api('users/show', { userId: ch.body.actorId! }, root);
+			assert.notStrictEqual(channelActor.body.bannerUrl, null, 'チャンネルアカウントのbannerUrlが設定される');
+			assert.notStrictEqual(channelActor.body.bannerBlurhash, null, 'チャンネルアカウントのbannerBlurhashが設定される');
+		});
+
 		test('チャンネル作成時にユーザーの名前が設定される', async () => {
 			const username = randomString();
 			const name = randomString() + ' Channel';
