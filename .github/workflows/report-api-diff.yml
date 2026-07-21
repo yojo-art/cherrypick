@@ -93,7 +93,7 @@ jobs:
         with:
           pr-number: ${{ steps.load-pr-num.outputs.pr-number }}
           comment-tag: show_diff
-          filePath: ./output.md
+          file-path: ./output.md
       - name: Tell error to PR
         uses: thollander/actions-comment-pull-request@v3
         if: failure() && steps.load-pr-num.outputs.pr-number
