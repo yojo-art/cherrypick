@@ -51,6 +51,10 @@ describe('Channel', () => {
 		assert(channelActorInB.isFollowing, 'チャンネルをフォローするとチャンネルアカウントがフォローされる');
 	});
 
+	afterAll(async () => {
+		await bob.client.request('following/delete', { userId: carolChActorInB.id });
+	});
+
 	describe('Actor', () => {
 		test('管理者が連合する', async () => {
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
@@ -749,7 +753,7 @@ describe('Channel', () => {
 
 	describe('Timelines when remote user follows remote channel', () => {
 		beforeAll(async () => {
-			await bob.client.request('channels/follow', { channelId: carolChInB.id });
+			const channelActorInB = await bob.client.request('users/show', { userId: carolChActorInB.id });
 			await sleep(800);
 		});
 
