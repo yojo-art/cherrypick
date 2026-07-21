@@ -174,7 +174,7 @@ class DeliverManager {
 				const signed = await this.apRendererService.attachLdSignature(copy, { id: this.actor.id, host: null });
 				await this.queueService.deliver(this.actor, signed, inbox, channelActor.sharedInbox != null);
 			} else {
-				//ローカルのチャンネル宛にローカルユーザーが投稿
+				//ローカルのチャンネル宛にローカルorリモートのユーザーが投稿
 				//ローカルのチャンネルはフォロワーの完全なリストがあるので直接配送する
 				const followers = await this.followingsRepository.find({
 					where: {
