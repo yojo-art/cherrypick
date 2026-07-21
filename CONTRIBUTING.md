@@ -251,7 +251,7 @@ They start a backend server in test mode and run Cypress against it.
 ```sh
 pnpm run e2e
 ```
-This uses `.github/cherrypick/test.yml` as the config, so the test DB and Redis must be reachable on `localhost` (for example, by running `docker compose -f packages/backend/test/compose.yml up` beforehand).
+This uses `.github/misskey/test.yml` as the config, so the test DB and Redis must be reachable on `localhost` (for example, by running `docker compose -f packages/backend/test/compose.yml up` beforehand).
 
 #### Running in the Dev Container
 Inside the [Dev Container](#use-devcontainer), the required services are already provided, so you can run:
@@ -263,7 +263,7 @@ To keep the test data isolated from your development environment, the E2E setup 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
 > Suites that should run in that job must use `describeOpenSearchE2E` (see `packages/backend/test/helpers/describe-opensearch-e2e.ts`).
-> With OpenSearch available and `.github/cherrypick/test-opensearch.yml` copied to `.config/test.yml`, run `pnpm --filter backend test-and-coverage:e2e:opensearch` (`OPENSEARCH_E2E=1`).
+> With OpenSearch available and `.github/misskey/test-opensearch.yml` copied to `.config/test.yml`, run `pnpm --filter backend test-and-coverage:e2e:opensearch` (`OPENSEARCH_E2E=1`).
 
 ## Environment Variable
 
