@@ -603,41 +603,46 @@ describe('Channel', () => {
 				]);
 			}, 1000 * 60 * 2);
 
-			test('チャンネルをフォロー時にリノートがチャンネルに配送される', async () => {
-				// aliceのホストで通常ノートを作成
-				const normalNoteInA = (await alice.client.request('notes/create', {
-					text: randomUsername(),
-					visibility: 'public',
-				})).createdNote;
+			describe.each([
+				{ noteVisibility: 'public' },
+				{ noteVisibility: 'home' },
+			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+				test('チャンネルをフォロー時にリノートがチャンネルに配送される', async () => {
+					// aliceのホストで通常ノートを作成
+					const normalNoteInA = (await alice.client.request('notes/create', {
+						text: randomUsername(),
+						visibility: noteVisibility,
+					})).createdNote;
 
-				// aliceのホストでチャンネルノートを作成
-				const channelNoteInA = (await alice.client.request('notes/create', {
-					text: randomUsername(),
-					channelId: aliceCh.id,
-					visibility: 'public',
-				})).createdNote;
+					// aliceのホストでチャンネルノートを作成
+					const channelNoteInA = (await alice.client.request('notes/create', {
+						text: randomUsername(),
+						channelId: aliceCh.id,
+						visibility: noteVisibility,
+					})).createdNote;
 
-				const normalNoteInB = await resolveRemoteNote('a.test', normalNoteInA.id, bob);
-				const channelNoteInB = await resolveRemoteNote('a.test', channelNoteInA.id, bob);
+					const normalNoteInB = await resolveRemoteNote('a.test', normalNoteInA.id, bob);
+					const channelNoteInB = await resolveRemoteNote('a.test', channelNoteInA.id, bob);
 
-				// aliceのホストで通常ノートをチャンネルにリノート（チャンネル内リノート）
-				await alice.client.request('notes/create', {
-					renoteId: normalNoteInA.id,
-					channelId: aliceCh.id,
+					// aliceのホストで通常ノートをチャンネルにリノート（チャンネル内リノート）
+					await alice.client.request('notes/create', {
+						renoteId: normalNoteInA.id,
+						channelId: aliceCh.id,
+					});
+
+					// aliceのホストでチャンネルノートをチャンネル内リノート
+					await alice.client.request('notes/create', {
+						renoteId: channelNoteInA.id,
+						channelId: aliceCh.id,
+					});
+
+					await sleep(1000);
+
+					const aliceChTlInB = await bob.client.request('channels/timeline', { channelId: aliceChInB.id, limit: 100 });
+
+					assert(aliceChTlInB.some(note => isPureRenote(note) && note.renoteId === normalNoteInB.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがbobのチャンネルTLに流れてくる');
+					assert(aliceChTlInB.some(note => isPureRenote(note) && note.renoteId === channelNoteInB.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがbobのチャンネルTLに流れてくる');
 				});
-
-				// aliceのホストでチャンネルノートをチャンネル内リノート
-				await alice.client.request('notes/create', {
-					renoteId: channelNoteInA.id,
-					channelId: aliceCh.id,
-				});
-
-				await sleep(1000);
-
-				const aliceChTlInB = await bob.client.request('channels/timeline', { channelId: aliceChInB.id, limit: 100 });
-
-				assert(aliceChTlInB.some(note => isPureRenote(note) && note.renoteId === normalNoteInB.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがbobのチャンネルTLに流れてくる');
-				assert(aliceChTlInB.some(note => isPureRenote(note) && note.renoteId === channelNoteInB.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがbobのチャンネルTLに流れてくる');
 			});
 		});
 	});
@@ -663,37 +668,42 @@ describe('Channel', () => {
 				]);
 			}, 1000 * 60 * 2);
 
-			test('チャンネルをフォロー時にリノートがチャンネルに配送される (ローカルユーザー -> リモートチャンネル)', async () => {
-				const normalNoteInC = (await carol.client.request('notes/create', {
-					text: randomUsername(),
-					visibility: 'public',
-				})).createdNote;
+			describe.each([
+				{ noteVisibility: 'public' },
+				{ noteVisibility: 'home' },
+			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+				test('チャンネルをフォロー時にリノートがチャンネルに配送される (ローカルユーザー -> リモートチャンネル)', async () => {
+					const normalNoteInC = (await carol.client.request('notes/create', {
+						text: randomUsername(),
+						visibility: noteVisibility,
+					})).createdNote;
 
-				const channelNoteInC = (await carol.client.request('notes/create', {
-					text: randomUsername(),
-					channelId: carolCh.id,
-					visibility: 'public',
-				})).createdNote;
+					const channelNoteInC = (await carol.client.request('notes/create', {
+						text: randomUsername(),
+						channelId: carolCh.id,
+						visibility: noteVisibility,
+					})).createdNote;
 
-				const normalNoteInA = await resolveRemoteNote('c.test', normalNoteInC.id, alice);
-				const channelNoteInA = await resolveRemoteNote('c.test', channelNoteInC.id, alice);
+					const normalNoteInA = await resolveRemoteNote('c.test', normalNoteInC.id, alice);
+					const channelNoteInA = await resolveRemoteNote('c.test', channelNoteInC.id, alice);
 
-				await carol.client.request('notes/create', {
-					renoteId: normalNoteInC.id,
-					channelId: carolCh.id,
+					await carol.client.request('notes/create', {
+						renoteId: normalNoteInC.id,
+						channelId: carolCh.id,
+					});
+
+					await carol.client.request('notes/create', {
+						renoteId: channelNoteInC.id,
+						channelId: carolCh.id,
+					});
+
+					await sleep(1000);
+
+					const carolChTlInA = await alice.client.request('channels/timeline', { channelId: carolChInA.id, limit: 100 });
+
+					assert(carolChTlInA.some(note => isPureRenote(note) && note.renoteId === normalNoteInA.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがaliceのチャンネルTLに流れてくる');
+					assert(carolChTlInA.some(note => isPureRenote(note) && note.renoteId === channelNoteInA.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがaliceのチャンネルTLに流れてくる');
 				});
-
-				await carol.client.request('notes/create', {
-					renoteId: channelNoteInC.id,
-					channelId: carolCh.id,
-				});
-
-				await sleep(1000);
-
-				const carolChTlInA = await alice.client.request('channels/timeline', { channelId: carolChInA.id, limit: 100 });
-
-				assert(carolChTlInA.some(note => isPureRenote(note) && note.renoteId === normalNoteInA.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがaliceのチャンネルTLに流れてくる');
-				assert(carolChTlInA.some(note => isPureRenote(note) && note.renoteId === channelNoteInA.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがaliceのチャンネルTLに流れてくる');
 			});
 		});
 	});
@@ -719,34 +729,39 @@ describe('Channel', () => {
 				]);
 			}, 1000 * 60 * 2);
 
-			test('チャンネルをフォロー時にリノートがチャンネルに配送される (ローカルユーザー -> ローカルチャンネル)', async () => {
-				const normalNoteInA = (await alice.client.request('notes/create', {
-					text: randomUsername(),
-					visibility: 'public',
-				})).createdNote;
+			describe.each([
+				{ noteVisibility: 'public' },
+				{ noteVisibility: 'home' },
+			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+				test('チャンネルをフォロー時にリノートがチャンネルに配送される (ローカルユーザー -> ローカルチャンネル)', async () => {
+					const normalNoteInA = (await alice.client.request('notes/create', {
+						text: randomUsername(),
+						visibility: noteVisibility,
+					})).createdNote;
 
-				const channelNoteInA = (await alice.client.request('notes/create', {
-					text: randomUsername(),
-					channelId: aliceCh.id,
-					visibility: 'public',
-				})).createdNote;
+					const channelNoteInA = (await alice.client.request('notes/create', {
+						text: randomUsername(),
+						channelId: aliceCh.id,
+						visibility: noteVisibility,
+					})).createdNote;
 
-				await alice.client.request('notes/create', {
-					renoteId: normalNoteInA.id,
-					channelId: aliceCh.id,
+					await alice.client.request('notes/create', {
+						renoteId: normalNoteInA.id,
+						channelId: aliceCh.id,
+					});
+
+					await alice.client.request('notes/create', {
+						renoteId: channelNoteInA.id,
+						channelId: aliceCh.id,
+					});
+
+					await sleep(1000);
+
+					const aliceChTl = await alice.client.request('channels/timeline', { channelId: aliceCh.id, limit: 100 });
+
+					assert(aliceChTl.some(note => isPureRenote(note) && note.renoteId === normalNoteInA.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがaliceのチャンネルTLに流れてくる');
+					assert(aliceChTl.some(note => isPureRenote(note) && note.renoteId === channelNoteInA.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがaliceのチャンネルTLに流れてくる');
 				});
-
-				await alice.client.request('notes/create', {
-					renoteId: channelNoteInA.id,
-					channelId: aliceCh.id,
-				});
-
-				await sleep(1000);
-
-				const aliceChTl = await alice.client.request('channels/timeline', { channelId: aliceCh.id, limit: 100 });
-
-				assert(aliceChTl.some(note => isPureRenote(note) && note.renoteId === normalNoteInA.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがaliceのチャンネルTLに流れてくる');
-				assert(aliceChTl.some(note => isPureRenote(note) && note.renoteId === channelNoteInA.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがaliceのチャンネルTLに流れてくる');
 			});
 		});
 	});
@@ -768,37 +783,42 @@ describe('Channel', () => {
 				]);
 			}, 1000 * 60 * 2);
 
-			test('チャンネルをフォロー時にリノートがチャンネルに配送される (リモートユーザー -> リモートチャンネル)', async () => {
-				const normalNoteInC = (await carol.client.request('notes/create', {
-					text: randomUsername(),
-					visibility: 'public',
-				})).createdNote;
+			describe.each([
+				{ noteVisibility: 'public' },
+				{ noteVisibility: 'home' },
+			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+				test('チャンネルをフォロー時にリノートがチャンネルに配送される (リモートユーザー -> リモートチャンネル)', async () => {
+					const normalNoteInC = (await carol.client.request('notes/create', {
+						text: randomUsername(),
+						visibility: noteVisibility,
+					})).createdNote;
 
-				const channelNoteInC = (await carol.client.request('notes/create', {
-					text: randomUsername(),
-					channelId: carolCh.id,
-					visibility: 'public',
-				})).createdNote;
+					const channelNoteInC = (await carol.client.request('notes/create', {
+						text: randomUsername(),
+						channelId: carolCh.id,
+						visibility: noteVisibility,
+					})).createdNote;
 
-				const normalNoteInB = await resolveRemoteNote('c.test', normalNoteInC.id, bob);
-				const channelNoteInB = await resolveRemoteNote('c.test', channelNoteInC.id, bob);
+					const normalNoteInB = await resolveRemoteNote('c.test', normalNoteInC.id, bob);
+					const channelNoteInB = await resolveRemoteNote('c.test', channelNoteInC.id, bob);
 
-				await carol.client.request('notes/create', {
-					renoteId: normalNoteInC.id,
-					channelId: carolCh.id,
+					await carol.client.request('notes/create', {
+						renoteId: normalNoteInC.id,
+						channelId: carolCh.id,
+					});
+
+					await carol.client.request('notes/create', {
+						renoteId: channelNoteInC.id,
+						channelId: carolCh.id,
+					});
+
+					await sleep(1000);
+
+					const carolChTlInB = await bob.client.request('channels/timeline', { channelId: carolChInB.id, limit: 100 });
+
+					assert(carolChTlInB.some(note => isPureRenote(note) && note.renoteId === normalNoteInB.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがbobのチャンネルTLに流れてくる');
+					assert(carolChTlInB.some(note => isPureRenote(note) && note.renoteId === channelNoteInB.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがbobのチャンネルTLに流れてくる');
 				});
-
-				await carol.client.request('notes/create', {
-					renoteId: channelNoteInC.id,
-					channelId: carolCh.id,
-				});
-
-				await sleep(1000);
-
-				const carolChTlInB = await bob.client.request('channels/timeline', { channelId: carolChInB.id, limit: 100 });
-
-				assert(carolChTlInB.some(note => isPureRenote(note) && note.renoteId === normalNoteInB.id && note.renote != null && note.renote.channelId === undefined), '通常ノートのチャンネルリノートがbobのチャンネルTLに流れてくる');
-				assert(carolChTlInB.some(note => isPureRenote(note) && note.renoteId === channelNoteInB.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがbobのチャンネルTLに流れてくる');
 			});
 		});
 	});
