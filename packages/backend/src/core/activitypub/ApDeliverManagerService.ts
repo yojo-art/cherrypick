@@ -105,8 +105,8 @@ class DeliverManager {
 	}
 
 	/**
-	 * Add recipe for direct deliver
-	 * @param to To
+	 * Add recipe for channel followers deliver
+	 * @param channelActorId Channel actor ID
 	 */
 	@bindThis
 	public addChannelFollowersRecipe(channelActorId: MiUser['id']): void {
