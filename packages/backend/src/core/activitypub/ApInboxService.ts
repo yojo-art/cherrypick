@@ -33,6 +33,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { trackPromise } from '@/misc/promise-tracker.js';
 import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isInvite, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isJoin, isReversi, isLeave, isClip, isGame } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
@@ -45,6 +46,7 @@ import { ApImageService } from './models/ApImageService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { ApGameService } from './models/ApGameService.js';
 import { ApClipService } from './models/ApClipService.js';
+import { ApDeliverManagerService } from './ApDeliverManagerService.js';
 import type { Resolver } from './ApResolverService.js';
 import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IApGame, IJoin, ILeave } from './type.js';
 
@@ -116,6 +118,7 @@ export class ApInboxService {
 		private globalEventService: GlobalEventService,
 		private apgameService: ApGameService,
 		private apClipService: ApClipService,
+		private apDeliverManagerService: ApDeliverManagerService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -470,6 +473,7 @@ export class ApInboxService {
 				channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
 				if (channel)channel.actor = actor;
 			} else {
+				//リノートは本文情報が無いのでccにチャンネルアカウントが入ってるかだけ見る
 				for (const user of activityAudience.mentionedUsers) {
 					const channelId = user.channelId;
 					if (channelId) {
@@ -477,6 +481,16 @@ export class ApInboxService {
 						if (channel)channel.actor = user;
 					}
 					if (channel) break;//最初に発見されたチャンネルに投稿
+				}
+				if (channel?.actor && channel.actor.host === null) {
+					//リモートユーザーによるローカルのチャンネルへの投稿
+					const user = { id: channel.actor.id, host: null };
+					if (activity.signature) {
+						//内容に署名されていれば転送する
+						const dm = this.apDeliverManagerService.createDeliverManager(user, activity);
+						dm.addChannelFollowersRecipe(user.id);
+						trackPromise(dm.execute());
+					}
 				}
 			}
 
