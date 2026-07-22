@@ -606,7 +606,7 @@ describe('Channel', () => {
 			describe.each([
 				{ noteVisibility: 'public' },
 				{ noteVisibility: 'home' },
-			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+			] as const)('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
 				test('チャンネルをフォロー時にリノートがチャンネルに配送される', async () => {
 					// aliceのホストで通常ノートを作成
 					const normalNoteInA = (await alice.client.request('notes/create', {
@@ -671,7 +671,7 @@ describe('Channel', () => {
 			describe.each([
 				{ noteVisibility: 'public' },
 				{ noteVisibility: 'home' },
-			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+			] as const)('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
 				test('チャンネルをフォロー時にリノートがチャンネルに配送される (ローカルユーザー -> リモートチャンネル)', async () => {
 					const normalNoteInC = (await carol.client.request('notes/create', {
 						text: randomUsername(),
@@ -732,7 +732,7 @@ describe('Channel', () => {
 			describe.each([
 				{ noteVisibility: 'public' },
 				{ noteVisibility: 'home' },
-			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+			] as const)('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
 				test('チャンネルをフォロー時にリノートがチャンネルに配送される (ローカルユーザー -> ローカルチャンネル)', async () => {
 					const normalNoteInA = (await alice.client.request('notes/create', {
 						text: randomUsername(),
@@ -786,7 +786,7 @@ describe('Channel', () => {
 			describe.each([
 				{ noteVisibility: 'public' },
 				{ noteVisibility: 'home' },
-			])('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
+			] as const)('noteVisibility: $noteVisibility', ({ noteVisibility }) => {
 				test('チャンネルをフォロー時にリノートがチャンネルに配送される (リモートユーザー -> リモートチャンネル)', async () => {
 					const normalNoteInC = (await carol.client.request('notes/create', {
 						text: randomUsername(),
