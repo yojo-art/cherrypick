@@ -132,6 +132,7 @@ class DeliverManager {
 	 */
 	@bindThis
 	public async execute(): Promise<void> {
+		if (this.activity === null) return;
 		// The value flags whether it is shared or not.
 		// key: inbox URL, value: whether it is sharedInbox
 		const inboxes = new Map<string, boolean>();
