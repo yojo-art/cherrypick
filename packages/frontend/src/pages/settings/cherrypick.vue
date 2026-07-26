@@ -73,22 +73,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkDisableSection>
 					</SearchMarker>
 				</div>
-
-				<SearchMarker :keywords="['display', 'header', 'navbar', 'scroll']">
-					<div>
-						<MkPreferenceContainer k="displayHeaderNavBarWhenScroll">
-							<MkRadios v-model="displayHeaderNavBarWhenScroll">
-								<template #label><SearchLabel>{{ i18n.ts._cherrypick.displayHeaderNavBarWhenScroll }}</SearchLabel></template>
-								<option value="all">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.all }}</option>
-								<option value="hideHeaderOnly">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideHeaderOnly }}</option>
-								<option value="hideHeaderFloatBtn">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideHeaderFloatBtn }}</option>
-								<option value="hideFloatBtnOnly">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideFloatBtnOnly }}</option>
-								<option value="hideFloatBtnNavBar">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideFloatBtnNavBar }}</option>
-								<option value="hide">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hide }}</option>
-							</MkRadios>
-						</MkPreferenceContainer>
-					</div>
-				</SearchMarker>
 			</div>
 		</FormSection>
 
@@ -186,7 +170,6 @@ const postFormVisibilityHotkey = prefer.model('postFormVisibilityHotkey');
 const showRenoteConfirmPopup = prefer.model('showRenoteConfirmPopup');
 const expandOnNoteClick = prefer.model('expandOnNoteClick');
 const expandOnNoteClickBehavior = prefer.model('expandOnNoteClickBehavior');
-const displayHeaderNavBarWhenScroll = prefer.model('displayHeaderNavBarWhenScroll');
 const reactableRemoteReactionEnabled = prefer.model('reactableRemoteReactionEnabled');
 const showFollowingMessageInsteadOfButtonEnabled = prefer.model('showFollowingMessageInsteadOfButtonEnabled');
 const renameTheButtonInPostFormToNya = prefer.model('renameTheButtonInPostFormToNya');

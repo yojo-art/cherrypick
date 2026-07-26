@@ -784,9 +784,6 @@ export const PREF_DEF = definePreferences({
 	expandOnNoteClickBehavior: {
 		default: 'click' as 'click' | 'doubleClick',
 	},
-	displayHeaderNavBarWhenScroll: {
-		default: 'hideHeaderFloatBtn' as 'all' | 'hideHeaderOnly' | 'hideHeaderFloatBtn' | 'hideFloatBtnOnly' | 'hideFloatBtnNavBar' | 'hide',
-	},
 	reactableRemoteReactionEnabled: {
 		default: true,
 	},

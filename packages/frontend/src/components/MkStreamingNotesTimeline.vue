@@ -18,10 +18,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:enterActiveClass="prefer.s.animation ? $style.transition_new_enterActive : ''"
 			:leaveActiveClass="prefer.s.animation ? $style.transition_new_leaveActive : ''"
 		>
-				<div
-					v-if="paginator.queuedAheadItemsCount.value > 0 && ['default', 'count'].includes(prefer.s.newNoteReceivedNotificationBehavior)"
-					:class="[$style.new2, { [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile, [$style.reduceAnimation]: !prefer.s.animation }]"
-						>
+			<div
+				v-if="paginator.queuedAheadItemsCount.value > 0 && ['default', 'count'].includes(prefer.s.newNoteReceivedNotificationBehavior)"
+				:class="[$style.new2, { [$style.reduceAnimation]: !prefer.s.animation }]"
+			>
 				<button class="_buttonPrimary" :class="$style.newButton2" @click="releaseQueue()">
 					<i class="ti ti-arrow-up"></i>
 					<I18n v-if="prefer.s.newNoteReceivedNotificationBehavior === 'count'" :src="paginator.queuedAheadItemsCount.value >= MAX_QUEUE_ITEMS ? i18n.ts.newNoteRecivedCountCapped : i18n.ts.newNoteRecivedCount" textTag="span">

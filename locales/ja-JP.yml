@@ -1929,14 +1929,6 @@ _cherrypick:
   _expandOnNoteClickBehavior:
     click: "クリックして開く"
     doubleClick: "ダブルクリックで開く"
-  displayHeaderNavBarWhenScroll: "スクロール時の要素表示（ヘッダー、フローティングボタン、ナビゲーションバー）"
-  _displayHeaderNavBarWhenScroll:
-    all: "全て表示"
-    hideHeaderOnly: "ヘッダーだけを隠す"
-    hideHeaderFloatBtn: "ヘッダーとフローティングボタンを隠す"
-    hideFloatBtnOnly: "フローティングボタンだけを隠す"
-    hideFloatBtnNavBar: "フローティングボタンとナビゲーションバーを隠す"
-    hide: "全て隠す"
   patch: "パッチ"
   patchDescription: "Misskeyの機能に変更を加えます。"
   reactableRemoteReaction: "リモートのカスタム絵文字リアクションでも、このサーバーに同じ名前の絵文字があればリアクションできるようにする"

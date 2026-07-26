@@ -7608,36 +7608,6 @@ export interface Locale extends ILocale {
             "doubleClick": string;
         };
         /**
-         * スクロール時の要素表示（ヘッダー、フローティングボタン、ナビゲーションバー）
-         */
-        "displayHeaderNavBarWhenScroll": string;
-        "_displayHeaderNavBarWhenScroll": {
-            /**
-             * 全て表示
-             */
-            "all": string;
-            /**
-             * ヘッダーだけを隠す
-             */
-            "hideHeaderOnly": string;
-            /**
-             * ヘッダーとフローティングボタンを隠す
-             */
-            "hideHeaderFloatBtn": string;
-            /**
-             * フローティングボタンだけを隠す
-             */
-            "hideFloatBtnOnly": string;
-            /**
-             * フローティングボタンとナビゲーションバーを隠す
-             */
-            "hideFloatBtnNavBar": string;
-            /**
-             * 全て隠す
-             */
-            "hide": string;
-        };
-        /**
          * パッチ
          */
         "patch": string;

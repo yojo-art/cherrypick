@@ -1846,14 +1846,6 @@ _cherrypick:
   _expandOnNoteClickBehavior:
     click: "클릭해서 열기"
     doubleClick: "두 번 클릭해서 열기"
-  displayHeaderNavBarWhenScroll: "스크롤 시 요소 표시 (헤더, 플로팅 버튼, 탐색 모음)"
-  _displayHeaderNavBarWhenScroll:
-    all: "모두 표시"
-    hideHeaderOnly: "헤더만 숨기기"
-    hideHeaderFloatBtn: "헤더와 플로팅 버튼 숨기기"
-    hideFloatBtnOnly: "플로팅 버튼만 숨기기"
-    hideFloatBtnNavBar: "플로팅 버튼과 탐색 모음 숨기기"
-    hide: "모두 숨기기"
   patch: "패치"
   patchDescription: "Misskey의 기능을 변경해요."
   reactableRemoteReaction: "서버에 리모트 서버의 이모지와 이름이 같은 이모지가 있으면 리모트 서버의 이모지에도 리액션할 수 있음"

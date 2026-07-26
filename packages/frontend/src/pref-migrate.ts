@@ -242,7 +242,6 @@ export function migrateOldSettings() {
 		prefer.commit('showRenoteConfirmPopup', store.s.showRenoteConfirmPopup);
 		prefer.commit('expandOnNoteClick', store.s.expandOnNoteClick);
 		prefer.commit('expandOnNoteClickBehavior', store.s.expandOnNoteClickBehavior);
-		prefer.commit('displayHeaderNavBarWhenScroll', store.s.displayHeaderNavBarWhenScroll);
 		prefer.commit('reactableRemoteReactionEnabled', store.s.reactableRemoteReactionEnabled);
 		prefer.commit('showFollowingMessageInsteadOfButtonEnabled', store.s.showFollowingMessageInsteadOfButtonEnabled);
 		prefer.commit('renameTheButtonInPostFormToNya', store.s.renameTheButtonInPostFormToNya);

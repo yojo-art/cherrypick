@@ -1871,14 +1871,6 @@ _cherrypick:
   _expandOnNoteClickBehavior:
     click: "Click to open"
     doubleClick: "Double-click to open"
-  displayHeaderNavBarWhenScroll: "Show elements when scrolling (header, floating buttons, navigation bar)"
-  _displayHeaderNavBarWhenScroll:
-    all: "Display all"
-    hideHeaderOnly: "Hide header only"
-    hideHeaderFloatBtn: "Hide header and floating buttons"
-    hideFloatBtnOnly: "Hide floating buttons only"
-    hideFloatBtnNavBar: "Hide floating buttons and navigation bar"
-    hide: "Hide All"
   patch: "Patch"
   patchDescription: "Make changes to Misskey's functionality"
   reactableRemoteReaction: "Allow remote custom emoji reactions to react if there is an emoji with the same name on this server."

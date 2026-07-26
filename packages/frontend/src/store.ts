@@ -832,10 +832,6 @@ export const store = markRaw(new Pizzax('base', {
 		where: 'device',
 		default: 'click' as 'click' | 'doubleClick',
 	},
-	displayHeaderNavBarWhenScroll: {
-		where: 'device',
-		default: 'hideHeaderFloatBtn' as 'all' | 'hideHeaderOnly' | 'hideHeaderFloatBtn' | 'hideFloatBtnOnly' | 'hideFloatBtnNavBar' | 'hide',
-	},
 	reactableRemoteReactionEnabled: {
 		where: 'account',
 		default: true,
