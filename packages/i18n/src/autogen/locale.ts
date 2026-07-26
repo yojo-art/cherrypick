@@ -7639,14 +7639,6 @@ export interface Locale extends ILocale {
          * ウィジェット領域を無効化
          */
         "disableWidgetsArea": string;
-        /**
-         * 長押しでアカウントメニューを開く
-         */
-        "enableLongPressOpenAccountMenu": string;
-        /**
-         * 画面下部のタイムラインタブを長押しして開くことができます。
-         */
-        "enableLongPressOpenAccountMenuDescription": string;
     };
     "_bannerDisplay": {
         /**

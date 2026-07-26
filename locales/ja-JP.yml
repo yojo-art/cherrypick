@@ -1937,8 +1937,6 @@ _cherrypick:
   renameTheButtonInPostFormToNyaDescription: "にゃあにゃんにゃんにゃんにゃにゃん？"
   enableWidgetsArea: "ウィジェット領域を有効化"
   disableWidgetsArea: "ウィジェット領域を無効化"
-  enableLongPressOpenAccountMenu: "長押しでアカウントメニューを開く"
-  enableLongPressOpenAccountMenuDescription: "画面下部のタイムラインタブを長押しして開くことができます。"
 
 _bannerDisplay:
   all: "全て"

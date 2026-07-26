@@ -852,10 +852,6 @@ export const store = markRaw(new Pizzax('base', {
 		where: 'device',
 		default: true,
 	},
-	enableLongPressOpenAccountMenu: {
-		where: 'device',
-		default: true,
-	},
 	// #endregion
 }));
 

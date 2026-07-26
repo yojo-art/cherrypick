@@ -799,9 +799,6 @@ export const PREF_DEF = definePreferences({
 	enableWidgetsArea: {
 		default: true,
 	},
-	enableLongPressOpenAccountMenu: {
-		default: true,
-	},
 	checkReactionDialog: {
 		default: false,
 	},

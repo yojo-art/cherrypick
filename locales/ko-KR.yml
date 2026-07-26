@@ -1854,8 +1854,6 @@ _cherrypick:
   renameTheButtonInPostFormToNyaDescription: "냐앙냥냥냥냐냥?"
   enableWidgetsArea: "위젯 영역 활성화"
   disableWidgetsArea: "위젯 영역 비활성화"
-  enableLongPressOpenAccountMenu: "길게 눌러 계정 메뉴 열기"
-  enableLongPressOpenAccountMenuDescription: "화면 아래쪽의 타임라인 탭을 길게 눌러 열 수 있어요."
 _bannerDisplay:
   all: "전부"
   topBottom: "상단 및 하단"

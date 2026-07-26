@@ -120,21 +120,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkSwitch>
 						</MkPreferenceContainer>
 					</SearchMarker>
-
-					<SearchMarker :keywords="['friendly']">
-						<div class="_gaps_s" style="margin: 0 10px;">
-							<div style="font-weight: bold; padding: 0.5em 0 0 0; margin: 0 0 8px 0;"><SearchLabel>Friendly UI</SearchLabel></div>
-
-							<SearchMarker :keywords="['enable', 'long', 'press', 'open', 'account', 'menu']">
-								<MkPreferenceContainer k="enableLongPressOpenAccountMenu">
-									<MkSwitch v-model="enableLongPressOpenAccountMenu">
-										<template #label><SearchLabel>{{ i18n.ts._cherrypick.enableLongPressOpenAccountMenu }}</SearchLabel></template>
-										<template #caption><SearchText>{{ i18n.ts._cherrypick.enableLongPressOpenAccountMenuDescription }}</SearchText></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-						</div>
-					</SearchMarker>
 				</div>
 			</FormSection>
 		</SearchMarker>
@@ -174,7 +159,6 @@ const reactableRemoteReactionEnabled = prefer.model('reactableRemoteReactionEnab
 const showFollowingMessageInsteadOfButtonEnabled = prefer.model('showFollowingMessageInsteadOfButtonEnabled');
 const renameTheButtonInPostFormToNya = prefer.model('renameTheButtonInPostFormToNya');
 const enableWidgetsArea = prefer.model('enableWidgetsArea');
-const enableLongPressOpenAccountMenu = prefer.model('enableLongPressOpenAccountMenu');
 
 watch([
 	renameTheButtonInPostFormToNya,

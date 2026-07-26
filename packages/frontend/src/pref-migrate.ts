@@ -247,7 +247,6 @@ export function migrateOldSettings() {
 		prefer.commit('renameTheButtonInPostFormToNya', store.s.renameTheButtonInPostFormToNya);
 		prefer.commit('renameTheButtonInPostFormToNyaManualSet', store.s.renameTheButtonInPostFormToNyaManualSet);
 		prefer.commit('enableWidgetsArea', store.s.enableWidgetsArea);
-		prefer.commit('enableLongPressOpenAccountMenu', store.s.enableLongPressOpenAccountMenu);
 		// #endregion
 
 		window.setTimeout(() => {
