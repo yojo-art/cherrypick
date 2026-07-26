@@ -1,0 +1,102 @@
+name: Docker Build and Startup Test
+
+on:
+  push:
+    branches:
+      - master
+      - develop
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: write
+
+env:
+  COMPOSE_FILE: .github/docker-compose.test.yml
+
+jobs:
+  docker-build-test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout PR branch
+        uses: actions/checkout@v6.0.1
+        with:
+          submodules: true
+
+      - name: Setup Misskey config
+        run: |
+          cp .config/docker_example.yml .config/default.yml
+          cp .config/docker_example.env .config/docker.env
+          chmod 644 .config/default.yml .config/docker.env
+
+      - name: Build containers
+        run: docker compose -f ${{ env.COMPOSE_FILE }} build
+
+      - name: Start containers
+        run: docker compose -f ${{ env.COMPOSE_FILE }} up -d
+
+      - name: Wait for Misskey to be ready
+        run: |
+          for i in $(seq 1 30); do
+            STATUS=$(docker compose -f ${{ env.COMPOSE_FILE }} ps --format '{{.Service}} {{.Health}}')
+            echo "$STATUS"
+
+            if echo "$STATUS" | grep -q 'unhealthy'; then
+              echo "Container reported unhealthy. Aborting."
+              exit 1
+            fi
+
+            WEB_STATUS=$(echo "$STATUS" | awk '$1=="web"{print $2}')
+
+            if [ "$WEB_STATUS" == "healthy" ]; then
+              echo "Misskey is up!"
+              exit 0
+            fi
+
+            echo "Waiting for Misskey... ($i/30)"
+            sleep 5
+          done
+          echo "Misskey did not start in time"
+          exit 1
+
+      - name: Save full logs
+        if: always()
+        run: docker compose -f ${{ env.COMPOSE_FILE }} logs --no-log-prefix > /tmp/docker-compose-logs.txt
+
+      - name: Run verification script
+        id: verify
+        run: bash .github/scripts/verify-setup.sh
+
+      - name: Comment PR
+        if: failure() && github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const logsPath = '/tmp/docker-compose-logs.txt';
+            const logs = fs.existsSync(logsPath) ? fs.readFileSync(logsPath, 'utf8') : '';
+            const maxLogLength = 6000;
+            const truncatedLogs = logs.length > maxLogLength
+              ? '…（省略）\n' + logs.slice(-maxLogLength)
+              : logs;
+            const body = `❌ **Docker 起動・検証に失敗しました**\n<details><summary>エラーログ</summary>\n\n\`\`\`\n${truncatedLogs}\n\`\`\`\n</details>`;
+
+            await github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: body,
+            });
+
+      - name: Upload logs artifact
+        if: failure()
+        uses: actions/upload-artifact@v6
+        with:
+          name: docker-compose-logs
+          path: /tmp/docker-compose-logs.txt
+          retention-days: 7
+
+      - name: Tear down
+        if: always()
+        run: docker compose -f ${{ env.COMPOSE_FILE }} down -v
