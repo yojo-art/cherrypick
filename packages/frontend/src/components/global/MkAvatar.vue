@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <component :is="link ? MkA : 'span'" v-user-preview="preview ? user.id : undefined" v-bind="bound" class="_noSelect" :class="[$style.root, { [$style.animation]: animation && (!isToastAvatar && !isFloatingBtn), [$style.cat]: user.isCat && (!isToastAvatar && !isFloatingBtn), [$style.square]: squareAvatars && !isFloatingBtn, [$style.isFloatingBtn]: isFloatingBtn }]" :style="{ color }" :title="acct(user)" @click="onClick">
 	<MkImgWithBlurhash
 		v-if="prefer.s.enableHighQualityImagePlaceholders"
-		:class="[$style.inner, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.reduceAnimation]: !prefer.s.animation, [$style.scrollToTransparent]: showEl && !forceOpacity, [$style.isFloatingBtn]: isFloatingBtn }]"
+		:class="[$style.inner, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.reduceAnimation]: !prefer.s.animation, [$style.isFloatingBtn]: isFloatingBtn }]"
 		:src="url"
 		:hash="user.avatarBlurhash"
 		:cover="true"
@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	/>
 	<img
 		v-else
-		:class="[$style.inner, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.reduceAnimation]: !prefer.s.animation, [$style.scrollToTransparent]: showEl && !forceOpacity, [$style.isFloatingBtn]: isFloatingBtn }]"
+		:class="[$style.inner, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.reduceAnimation]: !prefer.s.animation, [$style.isFloatingBtn]: isFloatingBtn }]"
 		:src="url"
 		alt=""
 		decoding="async"
