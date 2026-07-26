@@ -103,11 +103,8 @@ import { globalEvents, useGlobalEvent } from '@/events.js';
 import { isSeparatorNeeded, getSeparatorInfo } from '@/utility/timeline-date-separate.js';
 import { MAX_QUEUE_ITEMS, Paginator } from '@/utility/paginator.js';
 import { deviceKind } from '@/utility/device-kind.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import MkNoteMediaGrid from '@/components/MkNoteMediaGrid.vue';
 import { haptic, hapticConfirm } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
 
 const DESKTOP_THRESHOLD = 1100;
 const MOBILE_THRESHOLD = 500;

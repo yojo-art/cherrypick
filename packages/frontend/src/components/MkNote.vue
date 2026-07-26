@@ -463,13 +463,10 @@ import { mainRouter, useRouter } from '@/router.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { haptic } from '@/utility/haptic.js';
 import { store } from '@/store.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import detectLanguage from '@/utility/detect-language.js';
 import MkInfo from '@/components/MkInfo.vue';
 import { notesReactionsCreate } from '@/utility/check-reaction-create';
 import MkButton from '@/components/MkButton.vue';
-
-const { showEl } = scrollToVisibility();
 
 const props = withDefaults(defineProps<{
 	note: Misskey.entities.Note;

@@ -76,9 +76,6 @@ import { getStaticImageUrl } from '@/utility/media-proxy.js';
 import { acct, userPage } from '@/filters/user.js';
 import MkUserOnlineIndicator from '@/components/MkUserOnlineIndicator.vue';
 import { prefer } from '@/preferences.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const animation = ref(prefer.s.animation);
 

@@ -32,9 +32,6 @@ import MkTab from '@/components/MkTab.vue';
 import { i18n } from '@/i18n.js';
 import { Paginator } from '@/utility/paginator.js';
 import { prefer } from '@/preferences.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;

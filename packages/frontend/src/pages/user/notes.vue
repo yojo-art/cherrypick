@@ -44,9 +44,6 @@ import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 import XReactions from '@/pages/user/reactions.vue';
 import XFiles from '@/pages/user/index.timeline.files.vue';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;

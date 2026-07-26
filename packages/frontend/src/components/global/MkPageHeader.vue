@@ -95,11 +95,8 @@ import * as os from '@/os.js';
 import { mainRouter } from '@/router.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import { haptic } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
 
 const canBack = ref(['index', 'explore', 'my-notifications', 'chat'].includes(<string>mainRouter.currentRoute.value.name));
 

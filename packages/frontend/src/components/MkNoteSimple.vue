@@ -63,7 +63,6 @@ import MkEvent from '@/components/MkEvent.vue';
 import { mainRouter } from '@/router.js';
 import { useRouter } from '@/router.js';
 import { notePage } from '@/filters/note.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import MkInfo from '@/components/MkInfo.vue';
 
 const props = withDefaults(defineProps<{
@@ -72,8 +71,6 @@ const props = withDefaults(defineProps<{
 }>(), {
 	enableNoteClick: true,
 });
-
-const { showEl } = scrollToVisibility();
 
 const showContent = ref(false);
 const expandOnNoteClick = prefer.s.expandOnNoteClick;

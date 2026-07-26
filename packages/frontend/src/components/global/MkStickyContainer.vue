@@ -28,7 +28,6 @@ import { deviceKind } from '@/utility/device-kind.js';
 import { mainRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
 import { detectScrolling } from '@/utility/detect-scrolling.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 
 const isAllowHideHeader = ref(['index', 'explore', 'my-notifications', 'my-favorites'].includes(<string>mainRouter.currentRoute.value.name));
 const MOBILE_THRESHOLD = 500;
@@ -39,8 +38,6 @@ const handleResize = () => {
 };
 
 window.addEventListener('resize', handleResize);
-
-const { showEl } = scrollToVisibility();
 
 const rootEl = useTemplateRef('rootEl');
 const headerEl = useTemplateRef('headerEl');

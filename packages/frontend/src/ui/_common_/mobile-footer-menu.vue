@@ -70,10 +70,7 @@ import { mainRouter } from '@/router.js';
 import { navbarItemDef } from '@/navbar.js';
 import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import { haptic } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
 
 const drawerMenuShowing = defineModel<boolean>('drawerMenuShowing');
 const widgetsShowing = defineModel<boolean>('widgetsShowing');
