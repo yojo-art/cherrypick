@@ -249,9 +249,7 @@ export function migrateOldSettings() {
 		prefer.commit('renameTheButtonInPostFormToNya', store.s.renameTheButtonInPostFormToNya);
 		prefer.commit('renameTheButtonInPostFormToNyaManualSet', store.s.renameTheButtonInPostFormToNyaManualSet);
 		prefer.commit('enableWidgetsArea', store.s.enableWidgetsArea);
-		prefer.commit('friendlyUiEnableNotificationsArea', store.s.friendlyUiEnableNotificationsArea);
 		prefer.commit('enableLongPressOpenAccountMenu', store.s.enableLongPressOpenAccountMenu);
-		prefer.commit('friendlyUiShowAvatarDecorationsInNavBtn', store.s.friendlyUiShowAvatarDecorationsInNavBtn);
 		// #endregion
 
 		window.setTimeout(() => {

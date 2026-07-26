@@ -71,11 +71,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<template #label><SearchLabel>{{ i18n.ts.bottomNavbar }}</SearchLabel> <span class="_beta" style="vertical-align: middle;">CherryPick</span></template>
 				<template v-if="!isMobile" #description>{{ i18n.ts.cannotBeUsedFunc }} <a class="_link" @click="learnMoreBottomNavbar">{{ i18n.ts.learnMore }}</a></template>
 				<div class="_gaps_m">
-					<MkDisableSection :disabled="isFriendly().value">
-						<MkSwitch v-model="showMenuButtonInNavbar" :disabled="!isMobile">
-							<template #label><i class="ti ti-menu-2"></i> <SearchLabel>{{ i18n.ts.menu }}</SearchLabel></template>
-						</MkSwitch>
-					</MkDisableSection>
+					<MkSwitch v-model="showMenuButtonInNavbar" :disabled="!isMobile">
+						<template #label><i class="ti ti-menu-2"></i> <SearchLabel>{{ i18n.ts.menu }}</SearchLabel></template>
+					</MkSwitch>
 
 					<MkSwitch v-model="showHomeButtonInNavbar" :disabled="!isMobile">
 						<template #label><i class="ti ti-home"></i> <SearchLabel>{{ i18n.ts.home }}</SearchLabel></template>
@@ -103,11 +101,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkSwitch>
 					</MkDisableSection>
 
-					<MkDisableSection :disabled="isFriendly().value">
-						<MkSwitch v-model="showPostButtonInNavbar" :disabled="!isMobile">
-							<template #label><i class="ti ti-pencil"></i> <SearchLabel>{{ i18n.ts.postNote }}</SearchLabel></template>
-						</MkSwitch>
-					</MkDisableSection>
+					<MkSwitch v-model="showPostButtonInNavbar" :disabled="!isMobile">
+						<template #label><i class="ti ti-pencil"></i> <SearchLabel>{{ i18n.ts.postNote }}</SearchLabel></template>
+					</MkSwitch>
 				</div>
 				<div class="_buttons" style="margin-top: 20px;">
 					<MkButton :disabled="!isMobile" danger @click="resetButtomNavbar"><i class="ti ti-reload"></i> {{ i18n.ts.default }}</MkButton>
@@ -139,7 +135,6 @@ import { getInitialPrefValue } from '@/preferences/manager.js';
 import { genId } from '@/utility/id.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { deviceKind } from '@/utility/device-kind.js';
-import { isFriendly } from '@/utility/is-friendly.js';
 import { suggestReload } from '@/utility/reload-suggest.js';
 
 const MOBILE_THRESHOLD = 500;
@@ -218,14 +213,14 @@ function reset() {
 }
 
 function resetButtomNavbar() {
-	store.set('showMenuButtonInNavbar', !isFriendly().value);
+	store.set('showMenuButtonInNavbar', true);
 	store.set('showHomeButtonInNavbar', true);
-	store.set('showExploreButtonInNavbar', isFriendly().value);
+	store.set('showExploreButtonInNavbar', false);
 	store.set('showSearchButtonInNavbar', false);
 	store.set('showNotificationButtonInNavbar', true);
-	store.set('showChatButtonInNavbar', isFriendly().value);
+	store.set('showChatButtonInNavbar', false);
 	store.set('showWidgetButtonInNavbar', true);
-	store.set('showPostButtonInNavbar', !isFriendly().value);
+	store.set('showPostButtonInNavbar', true);
 }
 
 function learnMoreBottomNavbar() {

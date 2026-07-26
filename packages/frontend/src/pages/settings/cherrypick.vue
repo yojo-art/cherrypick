@@ -149,27 +149,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div class="_gaps_s" style="margin: 0 10px;">
 							<div style="font-weight: bold; padding: 0.5em 0 0 0; margin: 0 0 8px 0;"><SearchLabel>Friendly UI</SearchLabel></div>
 
-							<SearchMarker :keywords="['enable', 'notification']">
-								<MkPreferenceContainer k="friendlyUiEnableNotificationsArea">
-									<MkSwitch v-model="friendlyUiEnableNotificationsArea">
-										<template #label><SearchLabel>{{ i18n.ts._cherrypick.friendlyUiEnableNotificationsArea }}</SearchLabel></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-
 							<SearchMarker :keywords="['enable', 'long', 'press', 'open', 'account', 'menu']">
 								<MkPreferenceContainer k="enableLongPressOpenAccountMenu">
 									<MkSwitch v-model="enableLongPressOpenAccountMenu">
 										<template #label><SearchLabel>{{ i18n.ts._cherrypick.enableLongPressOpenAccountMenu }}</SearchLabel></template>
 										<template #caption><SearchText>{{ i18n.ts._cherrypick.enableLongPressOpenAccountMenuDescription }}</SearchText></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-
-							<SearchMarker :keywords="['show', 'avatar', 'decoration', 'navbtn']">
-								<MkPreferenceContainer k="friendlyUiShowAvatarDecorationsInNavBtn">
-									<MkSwitch v-model="friendlyUiShowAvatarDecorationsInNavBtn">
-										<template #label><SearchLabel>{{ i18n.ts._cherrypick.friendlyUiShowAvatarDecorationsInNavBtn }}</SearchLabel></template>
 									</MkSwitch>
 								</MkPreferenceContainer>
 							</SearchMarker>
@@ -216,9 +200,7 @@ const showFollowingMessageInsteadOfButtonEnabled = prefer.model('showFollowingMe
 const mobileHeaderChange = prefer.model('mobileHeaderChange');
 const renameTheButtonInPostFormToNya = prefer.model('renameTheButtonInPostFormToNya');
 const enableWidgetsArea = prefer.model('enableWidgetsArea');
-const friendlyUiEnableNotificationsArea = prefer.model('friendlyUiEnableNotificationsArea');
 const enableLongPressOpenAccountMenu = prefer.model('enableLongPressOpenAccountMenu');
-const friendlyUiShowAvatarDecorationsInNavBtn = prefer.model('friendlyUiShowAvatarDecorationsInNavBtn');
 
 watch([
 	renameTheButtonInPostFormToNya,
@@ -232,7 +214,6 @@ watch([
 	mobileHeaderChange,
 	renameTheButtonInPostFormToNya,
 	enableWidgetsArea,
-	friendlyUiEnableNotificationsArea,
 ], () => {
 	suggestReload();
 });

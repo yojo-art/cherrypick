@@ -71,7 +71,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 
 	<template #footer>
-		<div v-if="tab === 'chat'" :class="[$style.footer, {[$style.isFriendly]: isMobile && isFriendly().value }]">
+		<div v-if="tab === 'chat'" :class="[$style.footer]">
 			<div class="_gaps">
 				<Transition name="fade">
 					<div v-show="showIndicator" :class="$style.new">
@@ -112,7 +112,6 @@ import { useMutationObserver } from '@/composables/use-mutation-observer.js';
 import MkInfo from '@/components/MkInfo.vue';
 import { makeDateSeparatedTimelineComputedRef } from '@/utility/timeline-date-separate.js';
 import { acct as getAcct } from '@/filters/user.js';
-import { isFriendly } from '@/utility/is-friendly.js';
 import { deviceKind } from '@/utility/device-kind.js';
 
 const MOBILE_THRESHOLD = 500;
@@ -525,10 +524,6 @@ definePage(computed(() => {
 .footer {
 	width: 100%;
 	padding-top: 8px;
-
-	&.isFriendly {
-		padding-bottom: calc(50px + env(safe-area-inset-bottom));
-	}
 }
 
 .new {

@@ -156,14 +156,7 @@ export const navbarItemDef = reactive({
 		icon: 'ti ti-devices',
 		action: (ev: MouseEvent) => {
 			os.popupMenu([{
-				text: 'Friendly',
-				active: ui === 'friendly',
-				action: () => {
-					miLocalStorage.setItem('ui', 'friendly');
-					unisonReload();
-				},
-			}, {
-				text: 'Misskey',
+				text: i18n.ts.default,
 				active: ui === 'default' || ui === null,
 				action: () => {
 					miLocalStorage.setItem('ui', 'default');

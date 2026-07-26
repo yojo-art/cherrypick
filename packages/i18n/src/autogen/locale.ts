@@ -7674,14 +7674,6 @@ export interface Locale extends ILocale {
          */
         "disableWidgetsArea": string;
         /**
-         * 通知領域を有効化
-         */
-        "friendlyUiEnableNotificationsArea": string;
-        /**
-         * 通知領域を無効化
-         */
-        "friendlyUiDisableNotificationsArea": string;
-        /**
          * 長押しでアカウントメニューを開く
          */
         "enableLongPressOpenAccountMenu": string;
@@ -7689,10 +7681,6 @@ export interface Locale extends ILocale {
          * 画面下部のタイムラインタブを長押しして開くことができます。
          */
         "enableLongPressOpenAccountMenuDescription": string;
-        /**
-         * フローティングボタンにアイコンのデコレーションを表示
-         */
-        "friendlyUiShowAvatarDecorationsInNavBtn": string;
     };
     "_bannerDisplay": {
         /**

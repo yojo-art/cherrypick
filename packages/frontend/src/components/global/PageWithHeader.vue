@@ -8,7 +8,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkStickyContainer>
 		<template #header>
 			<MkPageHeader v-if="notification" v-model:tab="tab" v-bind="pageHeaderProps" :actions="actions" :tabs="props.tabs ?? []" :displayMyAvatar="displayMyAvatar" :title="i18n.ts.notifications" :icon="'ti ti-bell'" notification/>
-			<CPPageHeader v-else-if="isMobile && prefer.s.mobileHeaderChange && !popup" v-model:tab="tab" v-bind="pageHeaderProps" :actions="actions" :tabs="props.tabs ?? []" :displayMyAvatar="displayMyAvatar" :disableFollowButton="(user && (user.isBlocked || user.isBlocking)) == true"/>
 			<MkPageHeader v-else-if="prefer.s.showPageTabBarBottom && (props.tabs?.length ?? 0) > 0" v-bind="pageHeaderPropsWithoutTabs" :actions="actions" :displayMyAvatar="displayMyAvatar" :disableFollowButton="(user && (user.isBlocked || user.isBlocking)) == true"/>
 			<MkPageHeader v-else-if="!popup" v-model:tab="tab" v-bind="pageHeaderProps" :actions="actions" :tabs="props.tabs ?? []" :displayMyAvatar="displayMyAvatar" :disableFollowButton="(user && (user.isBlocked || user.isBlocking)) == true"/>
 		</template>

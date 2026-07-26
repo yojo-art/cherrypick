@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div ref="rootEl">
-	<div ref="headerEl" :class="[$style.header, {[$style.reduceAnimation]: !prefer.s.animation, [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isAllowHideHeader && (mainRouter.currentRoute.value.name !== 'index' || !isFriendly().value), [$style.showElTl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isAllowHideHeader && mainRouter.currentRoute.value.name === 'index' && isFriendly().value }]">
+	<div ref="headerEl" :class="[$style.header, {[$style.reduceAnimation]: !prefer.s.animation, [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isAllowHideHeader }]">
 		<slot name="header"></slot>
 	</div>
 	<div
@@ -27,7 +27,6 @@ import { DI } from '@/di.js';
 import { deviceKind } from '@/utility/device-kind.js';
 import { mainRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
-import { isFriendly } from '@/utility/is-friendly.js';
 import { detectScrolling } from '@/utility/detect-scrolling.js';
 import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 

@@ -805,14 +805,8 @@ export const PREF_DEF = definePreferences({
 	enableWidgetsArea: {
 		default: true,
 	},
-	friendlyUiEnableNotificationsArea: {
-		default: true,
-	},
 	enableLongPressOpenAccountMenu: {
 		default: true,
-	},
-	friendlyUiShowAvatarDecorationsInNavBtn: {
-		default: false,
 	},
 	checkReactionDialog: {
 		default: false,
