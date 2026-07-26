@@ -62,7 +62,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				await this.channelFollowingService.follow(me, channel);
 			} catch (e) {
 				if (e instanceof IdentifiableError) {
-					// yojo-artではChannelFollowingServiceが削除されているため、uuidがmisskeyのものと異なる
+					// yojo-art: ChannelFollowingServiceが削除されているため、uuidがmisskeyのものと異なる
 					if (e.id === 'ec3f65c0-a9d1-47d9-8791-b2e7b9dcdced') throw new ApiError(meta.errors.alreadyFollowing);
 				}
 				throw e;
