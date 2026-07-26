@@ -113,14 +113,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkPreferenceContainer>
 					</SearchMarker>
 
-					<SearchMarker :keywords="['mobile', 'header', 'change']">
-						<MkPreferenceContainer k="mobileHeaderChange">
-							<MkSwitch v-model="mobileHeaderChange">
-								<template #label><SearchLabel>{{ i18n.ts._cherrypick.mobileHeaderChange }}</SearchLabel></template>
-							</MkSwitch>
-						</MkPreferenceContainer>
-					</SearchMarker>
-
 					<SearchMarker :keywords="['rename', 'post', 'form', 'nya']">
 						<MkPreferenceContainer k="renameTheButtonInPostFormToNya">
 							<MkSwitch v-model="renameTheButtonInPostFormToNya">
@@ -197,7 +189,6 @@ const expandOnNoteClickBehavior = prefer.model('expandOnNoteClickBehavior');
 const displayHeaderNavBarWhenScroll = prefer.model('displayHeaderNavBarWhenScroll');
 const reactableRemoteReactionEnabled = prefer.model('reactableRemoteReactionEnabled');
 const showFollowingMessageInsteadOfButtonEnabled = prefer.model('showFollowingMessageInsteadOfButtonEnabled');
-const mobileHeaderChange = prefer.model('mobileHeaderChange');
 const renameTheButtonInPostFormToNya = prefer.model('renameTheButtonInPostFormToNya');
 const enableWidgetsArea = prefer.model('enableWidgetsArea');
 const enableLongPressOpenAccountMenu = prefer.model('enableLongPressOpenAccountMenu');
@@ -211,7 +202,6 @@ watch([
 watch([
 	expandOnNoteClick,
 	reactableRemoteReactionEnabled,
-	mobileHeaderChange,
 	renameTheButtonInPostFormToNya,
 	enableWidgetsArea,
 ], () => {

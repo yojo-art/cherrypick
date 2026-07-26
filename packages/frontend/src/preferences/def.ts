@@ -793,9 +793,6 @@ export const PREF_DEF = definePreferences({
 	showFollowingMessageInsteadOfButtonEnabled: {
 		default: true,
 	},
-	mobileHeaderChange: {
-		default: false,
-	},
 	renameTheButtonInPostFormToNya: {
 		default: false,
 	},

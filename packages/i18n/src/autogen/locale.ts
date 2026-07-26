@@ -7654,10 +7654,6 @@ export interface Locale extends ILocale {
          */
         "showFollowingMessageInsteadOfButton": string;
         /**
-         * モバイル環境でヘッダーのデザインを変更
-         */
-        "mobileHeaderChange": string;
-        /**
          * ノート作成画面の「ノート」ボタンを「にゃ！」に変更する
          */
         "renameTheButtonInPostFormToNya": string;

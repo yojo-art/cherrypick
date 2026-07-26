@@ -245,7 +245,6 @@ export function migrateOldSettings() {
 		prefer.commit('displayHeaderNavBarWhenScroll', store.s.displayHeaderNavBarWhenScroll);
 		prefer.commit('reactableRemoteReactionEnabled', store.s.reactableRemoteReactionEnabled);
 		prefer.commit('showFollowingMessageInsteadOfButtonEnabled', store.s.showFollowingMessageInsteadOfButtonEnabled);
-		prefer.commit('mobileHeaderChange', store.s.mobileHeaderChange);
 		prefer.commit('renameTheButtonInPostFormToNya', store.s.renameTheButtonInPostFormToNya);
 		prefer.commit('renameTheButtonInPostFormToNyaManualSet', store.s.renameTheButtonInPostFormToNyaManualSet);
 		prefer.commit('enableWidgetsArea', store.s.enableWidgetsArea);

@@ -844,10 +844,6 @@ export const store = markRaw(new Pizzax('base', {
 		where: 'account',
 		default: true,
 	},
-	mobileHeaderChange: {
-		where: 'device',
-		default: false,
-	},
 	renameTheButtonInPostFormToNya: {
 		where: 'account',
 		default: false,
