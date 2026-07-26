@@ -27,7 +27,6 @@ import { DI } from '@/di.js';
 import { deviceKind } from '@/utility/device-kind.js';
 import { mainRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
-import { detectScrolling } from '@/utility/detect-scrolling.js';
 
 const isAllowHideHeader = ref(['index', 'explore', 'my-notifications', 'my-favorites'].includes(<string>mainRouter.currentRoute.value.name));
 const MOBILE_THRESHOLD = 500;
@@ -72,8 +71,6 @@ const observer = new ResizeObserver(() => {
 		calc();
 	}, 100);
 });
-
-detectScrolling(rootEl);
 
 onMounted(() => {
 	calc();

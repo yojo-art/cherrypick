@@ -39,7 +39,6 @@ import { prefer } from '@/preferences.js';
 import MkTabs from '@/components/MkTabs.vue';
 import { deviceKind } from '@/utility/device-kind.js';
 import { i18n } from '@/i18n.js';
-import { detectScrolling } from '@/utility/detect-scrolling.js';
 
 const MOBILE_THRESHOLD = 500;
 
@@ -75,8 +74,6 @@ const tab = defineModel<string>('tab');
 const rootEl = useTemplateRef('rootEl');
 
 useScrollPositionKeeper(rootEl);
-
-detectScrolling(rootEl);
 
 const router = useRouter();
 
