@@ -31,7 +31,8 @@ jobs:
           chmod 644 .config/default.yml .config/docker.env
 
       - name: Build containers
-        run: docker compose -f ${{ env.COMPOSE_FILE }} build
+        run: |
+          docker compose -f ${{ env.COMPOSE_FILE }} build 2>&1 | tee /tmp/docker-build-logs.txt
 
       - name: Start containers
         run: docker compose -f ${{ env.COMPOSE_FILE }} up -d
@@ -62,7 +63,8 @@ jobs:
 
       - name: Save full logs
         if: always()
-        run: docker compose -f ${{ env.COMPOSE_FILE }} logs --no-log-prefix > /tmp/docker-compose-logs.txt
+        run: |
+          docker compose -f ${{ env.COMPOSE_FILE }} logs --no-log-prefix > /tmp/docker-compose-logs.txt 2>&1 || true
 
       - name: Run verification script
         id: verify
@@ -74,8 +76,22 @@ jobs:
         with:
           script: |
             const fs = require('fs');
-            const logsPath = '/tmp/docker-compose-logs.txt';
-            const logs = fs.existsSync(logsPath) ? fs.readFileSync(logsPath, 'utf8') : '';
+
+            const buildLogsPath = '/tmp/docker-build-logs.txt';
+            const composeLogsPath = '/tmp/docker-compose-logs.txt';
+
+            const buildLogs = fs.existsSync(buildLogsPath) ? fs.readFileSync(buildLogsPath, 'utf8') : '';
+            const composeLogs = fs.existsSync(composeLogsPath) ? fs.readFileSync(composeLogsPath, 'utf8') : '';
+
+            let logs = '';
+            if (composeLogs.trim().length > 0) {
+              logs = composeLogs;
+            } else if (buildLogs.trim().length > 0) {
+              logs = '（ビルド段階で失敗したため、ビルドログを表示しています）\n\n' + buildLogs;
+            } else {
+              logs = 'ログが見つかりませんでした。';
+            }
+
             const maxLogLength = 6000;
             const truncatedLogs = logs.length > maxLogLength
               ? '…（省略）\n' + logs.slice(-maxLogLength)
@@ -94,9 +110,11 @@ jobs:
         uses: actions/upload-artifact@v6
         with:
           name: docker-compose-logs
-          path: /tmp/docker-compose-logs.txt
+          path: |
+            /tmp/docker-build-logs.txt
+            /tmp/docker-compose-logs.txt
           retention-days: 7
 
       - name: Tear down
         if: always()
-        run: docker compose -f ${{ env.COMPOSE_FILE }} down -v
+        run: docker compose -f ${{ env.COMPOSE_FILE }} down -v || true
