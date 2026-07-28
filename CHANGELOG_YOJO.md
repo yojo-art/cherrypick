@@ -1,3 +1,25 @@
+## 1.8.1
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-07-28
+
+### General
+
+### Client
+- Fix: チャンネルミュート期間が空な問題の修正 [#1176](https://github.com/yojo-art/cherrypick/pull/1176)
+
+### Server
+- Fix: チャンネルメンションの挙動修正 [#1170](https://github.com/yojo-art/cherrypick/pull/1170)
+  - yojo-art以外の実装で作成された投稿者とGroupが同じインスタンスの投稿が正しく処理されるようになります
+- Fix: チャンネル作成時にユーザーアカウントに名前が設定されない問題を修正 [#1187](https://github.com/yojo-art/cherrypick/pull/1187)
+- Fix: チャンネル作成時にバナーが設定されない問題を修正 [#1197](https://github.com/yojo-art/cherrypick/pull/1197)
+- Fix: チャンネル内リノートが配送されない問題の修正 [#1200](https://github.com/yojo-art/cherrypick/pull/1200)
+  - チャンネルアカウント、投稿者双方が修正されたバージョンである必要があります。
+	- yojo-art以外の実装では無視される可能性があります。
+- Fix: セキュリティに関する修正 (Cherry-picked from misskey)
+
 ## 1.8.0
 Cherrypick 4.17.0  
 Misskey 2025.10.2
