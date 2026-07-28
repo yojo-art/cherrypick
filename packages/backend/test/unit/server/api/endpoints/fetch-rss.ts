@@ -1,0 +1,200 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+import { beforeEach, describe, expect, test, jest } from '@jest/globals';
+import type { Mocked } from 'jest-mock';
+import type { Response } from 'node-fetch';
+
+// --- rss-parser のモック登録は、テスト対象を import するより前に行う必要がある ---
+// (ESM環境では jest.mock の自動 hoisting が効かないため、
+//  jest.unstable_mockModule + 動的 import を使う)
+const mockRssParserConstructor = jest.fn<(options: unknown) => void>();
+const mockRssParserParseString = jest.fn<(input: string) => Promise<{ items: unknown[] }>>();
+
+jest.unstable_mockModule('rss-parser', () => {
+	class MockRssParser {
+		constructor(options: unknown) {
+			mockRssParserConstructor(options);
+		}
+
+		public parseString(input: string) {
+			return mockRssParserParseString(input);
+		}
+	}
+
+	return {
+		__esModule: true,
+		default: MockRssParser,
+	};
+});
+
+// モック登録後に、モック対象を動的importする
+const { default: FetchRssEndpoint, meta } = await import('@/server/api/endpoints/fetch-rss.js');
+const { HttpRequestService } = await import('@/core/HttpRequestService.js');
+const { ApiError } = await import('@/server/api/error.js');
+
+const RSS = '<?xml version="1.0"?><rss version="2.0"><channel><title>Test</title></channel></rss>';
+
+function deferred<T>() {
+	let resolve!: (value: T) => void;
+	let reject!: (reason?: unknown) => void;
+	const promise = new Promise<T>((res, rej) => {
+		resolve = res;
+		reject = rej;
+	});
+	return { promise, resolve, reject };
+}
+
+function response(url: string, text = RSS): Response {
+	return {
+		url,
+		text: jest.fn<() => Promise<string>>().mockResolvedValue(text),
+	} as unknown as Response;
+}
+
+describe('fetch-rss endpoint', () => {
+	let httpRequestService: Mocked<InstanceType<typeof HttpRequestService>>;
+	let endpoint: InstanceType<typeof FetchRssEndpoint>;
+
+	beforeEach(() => {
+		mockRssParserConstructor.mockReset();
+		mockRssParserParseString.mockReset();
+		mockRssParserParseString.mockResolvedValue({ items: [] });
+		httpRequestService = {
+			send: jest.fn(),
+		} as unknown as Mocked<InstanceType<typeof HttpRequestService>>;
+		endpoint = new FetchRssEndpoint(httpRequestService);
+	});
+
+	async function exec(url: string) {
+		return await endpoint.exec({ url }, null, null, null);
+	}
+
+	async function expectApiError(promise: Promise<unknown>, code: string, status: number) {
+		await expect(promise).rejects.toMatchObject({
+			code,
+			httpStatusCode: status,
+			info: undefined,
+		});
+	}
+
+	test.each([
+		'',
+		'not a URL',
+		'ftp://example.com/feed.xml',
+		`https://example.com/${'a'.repeat(8192)}`,
+	])('rejects invalid URL: %s', async (url) => {
+		await expectApiError(exec(url), 'INVALID_URL', 400);
+		expect(httpRequestService.send).not.toHaveBeenCalled();
+	});
+
+	test.each([
+		'https://user@example.com/feed.xml',
+		'https://user:password@example.com/feed.xml',
+	])('rejects URL containing credentials: %s', async (url) => {
+		await expectApiError(exec(url), 'INVALID_URL', 400);
+		expect(httpRequestService.send).not.toHaveBeenCalled();
+	});
+
+	test('does not expose details from internal errors', async () => {
+		httpRequestService.send.mockRejectedValue(new Error('secret upstream details'));
+
+		const promise = exec('https://example.com/feed.xml');
+		await expectApiError(promise, 'FETCH_RSS_FAILED', 422);
+		await expect(promise).rejects.not.toMatchObject({
+			message: expect.stringContaining('secret upstream details'),
+		});
+	});
+
+	test('passes the 1 MiB response limit to HttpRequestService', async () => {
+		httpRequestService.send.mockResolvedValue(response('https://example.com/feed.xml'));
+
+		await exec('https://example.com/feed.xml');
+
+		expect(httpRequestService.send).toHaveBeenCalledWith('https://example.com/feed.xml', expect.objectContaining({
+			size: 1024 * 1024,
+		}));
+	});
+
+	test('creates an asynchronous RSS parser for every request', async () => {
+		httpRequestService.send
+			.mockResolvedValueOnce(response('https://example.com/first.xml'))
+			.mockResolvedValueOnce(response('https://example.com/second.xml'));
+
+		await exec('https://example.com/first.xml');
+		await exec('https://example.com/second.xml');
+
+		expect(mockRssParserConstructor).toHaveBeenCalledTimes(2);
+		expect(mockRssParserConstructor).toHaveBeenNthCalledWith(1, { xml2js: { async: true } });
+		expect(mockRssParserConstructor).toHaveBeenNthCalledWith(2, { xml2js: { async: true } });
+	});
+
+	test('rejects a non-HTTP final URL without exposing it', async () => {
+		httpRequestService.send.mockResolvedValue(response('file:///secret/feed.xml'));
+
+		await expectApiError(exec('https://example.com/feed.xml'), 'FETCH_RSS_FAILED', 422);
+	});
+
+	test('shares an in-flight request for the same normalized URL', async () => {
+		const pending = deferred<Response>();
+		httpRequestService.send.mockReturnValue(pending.promise);
+
+		const first = exec('HTTPS://EXAMPLE.COM:443/feed.xml#first');
+		const second = exec('https://example.com/feed.xml#second');
+		expect(httpRequestService.send).toHaveBeenCalledTimes(1);
+
+		pending.resolve(response('https://example.com/feed.xml'));
+		await expect(Promise.all([first, second])).resolves.toHaveLength(2);
+		expect(httpRequestService.send).toHaveBeenCalledTimes(1);
+	});
+
+	test('limits concurrent requests for different URLs to 32', async () => {
+		const pending = deferred<Response>();
+		httpRequestService.send.mockReturnValue(pending.promise);
+
+		const requests = Array.from({ length: 32 }, (_, i) => exec(`https://example.com/${i}.xml`));
+		expect(httpRequestService.send).toHaveBeenCalledTimes(32);
+		await expectApiError(exec('https://example.com/overflow.xml'), 'FETCH_RSS_UNAVAILABLE', 503);
+		expect(httpRequestService.send).toHaveBeenCalledTimes(32);
+
+		pending.resolve(response('https://example.com/feed.xml'));
+		await Promise.all(requests);
+
+		httpRequestService.send.mockResolvedValue(response('https://example.com/after.xml'));
+		await expect(exec('https://example.com/after.xml')).resolves.toBeDefined();
+	});
+
+	test('cleans up the in-flight request and concurrency slot after success', async () => {
+		httpRequestService.send.mockResolvedValue(response('https://example.com/feed.xml'));
+
+		await exec('https://example.com/feed.xml');
+		await exec('https://example.com/feed.xml');
+
+		expect(httpRequestService.send).toHaveBeenCalledTimes(2);
+	});
+
+	test('cleans up the in-flight request and concurrency slot after failure', async () => {
+		httpRequestService.send.mockRejectedValue(new Error('upstream failed'));
+		const requests = Array.from({ length: 32 }, (_, i) => exec(`https://example.com/${i}.xml`));
+		await Promise.allSettled(requests);
+
+		httpRequestService.send.mockResolvedValue(response('https://example.com/0.xml'));
+		await expect(exec('https://example.com/0.xml')).resolves.toBeDefined();
+		expect(httpRequestService.send).toHaveBeenCalledTimes(33);
+	});
+
+	test('has the expected rate limit metadata', () => {
+		expect(meta.limit).toEqual({
+			duration: 60 * 1000,
+			max: 300,
+		});
+	});
+
+	test('uses only the declared structured API errors', () => {
+		expect(new ApiError(meta.errors.invalidUrl)).toMatchObject({ code: 'INVALID_URL', httpStatusCode: 400 });
+		expect(new ApiError(meta.errors.fetchRssFailed)).toMatchObject({ code: 'FETCH_RSS_FAILED', httpStatusCode: 422 });
+		expect(new ApiError(meta.errors.fetchRssUnavailable)).toMatchObject({ code: 'FETCH_RSS_UNAVAILABLE', httpStatusCode: 503 });
+	});
+});

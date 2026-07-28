@@ -42,7 +42,7 @@ function createSignedActivityPost({ url, body, privateKeyPem: keyPem, keyId }) {
 	};
 }
 
-async function loadNote(notePath) {
+async function loadNoteRaw(notePath) {
 	if (!/^[a-z0-9-]+(?:\/[a-z0-9-]+)*$/.test(notePath)) {
 		throw new Error(`invalid notePath: ${notePath}`);
 	}
@@ -50,23 +50,50 @@ async function loadNote(notePath) {
 	if (!noteFile.startsWith(resolve(STUB_ROOT, 'notes'))) {
 		throw new Error(`invalid notePath: ${notePath}`);
 	}
-	return JSON.parse(await readFile(noteFile, 'utf8'));
+	return readFile(noteFile, 'utf8');
 }
 
-async function deliverNote(targetHost, notePath) {
+function resolvePlaceholders(text, placeholders) {
+	if (placeholders == null || typeof placeholders !== 'object' || Array.isArray(placeholders)) return text;
+	for (const [key, value] of Object.entries(placeholders)) {
+		if (value == null) continue;
+		const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+		text = text.replaceAll(new RegExp(`\\{\\{${escapedKey}\\}\\}`, 'g'), String(value));
+	}
+	return text;
+}
+
+async function deliverActivity(targetHost, notePath, placeholders = {}) {
 	if (!ALLOWED_TARGETS.has(targetHost)) {
 		throw new Error(`invalid targetHost: ${targetHost}`);
 	}
 
-	const note = await loadNote(notePath);
-	const body = JSON.stringify({
-		'@context': 'https://www.w3.org/ns/activitystreams',
-		type: 'Create',
-		id: `https://${STUB_HOST}/activities/create/${notePath}#${randomUUID()}`,
-		actor: ACTOR_URI,
-		object: note,
-		to: ['https://www.w3.org/ns/activitystreams#Public'],
-	});
+	const raw = await loadNoteRaw(notePath);
+	const resolved = resolvePlaceholders(raw, placeholders);
+	const note = JSON.parse(resolved);
+
+	let activity;
+	if (note.type === 'Announce') {
+		activity = {
+			'@context': 'https://www.w3.org/ns/activitystreams',
+			...note,
+		};
+		if (!activity.id) {
+			activity.id = `https://${STUB_HOST}/activities/announce/${notePath}#${randomUUID()}`;
+		}
+	} else {
+		activity = {
+			'@context': 'https://www.w3.org/ns/activitystreams',
+			type: 'Create',
+			id: `https://${STUB_HOST}/activities/create/${notePath}#${randomUUID()}`,
+			actor: ACTOR_URI,
+			object: note,
+			to: note.to ?? ['https://www.w3.org/ns/activitystreams#Public'],
+			cc: note.cc ?? [],
+		};
+	}
+
+	const body = JSON.stringify(activity);
 	const inboxUrl = `https://${targetHost}/inbox`;
 	const headers = createSignedActivityPost({
 		url: inboxUrl,
@@ -115,14 +142,14 @@ async function main() {
 			}
 
 			if (req.method === 'POST' && req.url === '/deliver') {
-				const { targetHost, notePath } = await readJsonBody(req);
+				const { targetHost, notePath, placeholders } = await readJsonBody(req);
 				if (typeof targetHost !== 'string' || typeof notePath !== 'string') {
 					res.writeHead(400, { 'Content-Type': 'application/json' });
 					res.end(JSON.stringify({ error: 'targetHost and notePath are required' }));
 					return;
 				}
 
-				const result = await deliverNote(targetHost, notePath);
+				const result = await deliverActivity(targetHost, notePath, placeholders);
 				res.writeHead(200, { 'Content-Type': 'application/json' });
 				res.end(JSON.stringify(result));
 				return;

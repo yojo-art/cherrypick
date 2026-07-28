@@ -236,11 +236,13 @@ export class ApNoteService {
 		}
 		let channel = null as MiChannel | null;
 		if (actor.channelId) {
-			//チャンネルアカウントによる投稿はすべてチャンネル投稿
+			//yojo-art: チャンネルアカウントによる投稿はすべてチャンネル投稿
 			channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
 			if (channel)channel.actor = actor;
 		} else {
-			for (const user of noteAudience.mentionedUsers) {
+			//通常ノートはローカルユーザーにメンションされていることがあるのでccとメンション両方見る
+			const users = new Map(apMentions.concat(noteAudience.mentionedUsers).map(user => [user.id, user])).values();
+			for (const user of users) {
 				const channelId = user.channelId;
 				if (channelId) {
 					channel = await this.channelsRepository.findOneBy({ id: channelId });

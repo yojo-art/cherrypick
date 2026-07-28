@@ -443,6 +443,50 @@ export const waitFire = async <C extends keyof misskey.Channels>(user: UserToken
 };
 
 /**
+ * 指定タイムアウトまでストリームを購読し、条件に合うメッセージを収集して返す。
+ * waitFire と異なり、最初の一致では終わらず timeout まで待つ。
+ */
+export const collectFire = async <C extends keyof misskey.Channels>(
+	user: UserToken,
+	channel: C,
+	trgr: () => any,
+	cond: (msg: Record<string, any>) => boolean,
+	timeout = 3000,
+	params?: misskey.Channels[C]['params'],
+): Promise<Record<string, any>[]> => {
+	return new Promise<Record<string, any>[]>(async (res, rej) => {
+		const collected: Record<string, any>[] = [];
+		let timer: NodeJS.Timeout | null = null;
+
+		let ws: WebSocket;
+		try {
+			ws = await connectStream(user, channel, msg => {
+				if (cond(msg)) {
+					collected.push(msg);
+				}
+			}, params);
+		} catch (e) {
+			rej(e);
+		}
+
+		if (!ws!) return;
+
+		timer = setTimeout(() => {
+			ws.close();
+			res(collected);
+		}, timeout);
+
+		try {
+			await trgr();
+		} catch (e) {
+			ws.close();
+			if (timer) clearTimeout(timer);
+			rej(e);
+		}
+	});
+};
+
+/**
  * @brief WebSocketストリームから特定条件の通知を拾うプロミスを生成
  * @param user ユーザー認証情報
  * @param channel チャンネル
