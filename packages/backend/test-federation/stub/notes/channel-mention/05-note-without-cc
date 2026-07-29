@@ -1,0 +1,18 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/channel-mention/05-note-without-cc",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>mention channel test without cc</p>",
+	"published": "2026-06-01T00:04:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"tag": [
+		{
+			"type": "Mention",
+			"href": "https://a.test/users/{{channelActor}}",
+			"name": "@{{channelActor}}@a.test"
+		}
+	]
+}

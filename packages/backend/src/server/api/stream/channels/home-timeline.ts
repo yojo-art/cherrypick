@@ -53,10 +53,9 @@ export class HomeTimelineChannel extends Channel {
 				return;
 			}
 			if (note.user.channelId != null) {
-				// チャンネルアカウントによる純粋なリノートの場合
-				if (isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
-					//yojo-art その内容部分の投稿を展開してTLに流す
-					note = note.renote;
+				// yojo-art: チャンネルアカウントによる純粋なリノートの場合
+				if ( isRenotePacked(note) && !isQuotePacked(note) && note.renote) {
+					return;
 				}
 			}
 		}

@@ -13,6 +13,9 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import type { IActivity } from '@/core/activitypub/type.js';
 import { ThinUser } from '@/queue/types.js';
+import { deepClone } from '@/misc/clone.js';
+import { CacheService } from '../CacheService.js';
+import { ApRendererService } from './ApRendererService.js';
 
 interface IRecipe {
 	type: string;
@@ -27,11 +30,19 @@ interface IDirectRecipe extends IRecipe {
 	to: MiRemoteUser;
 }
 
+interface IChannelFollowersRecipe extends IRecipe {
+	type: 'ChannelFollowers';
+	to: MiUser['id'];
+}
+
 const isFollowers = (recipe: IRecipe): recipe is IFollowersRecipe =>
 	recipe.type === 'Followers';
 
 const isDirect = (recipe: IRecipe): recipe is IDirectRecipe =>
 	recipe.type === 'Direct';
+
+const isChannelFollowers = (recipe: IRecipe): recipe is IChannelFollowersRecipe =>
+	recipe.type === 'ChannelFollowers';
 
 class DeliverManager {
 	private actor: ThinUser;
@@ -50,6 +61,8 @@ class DeliverManager {
 		private userEntityService: UserEntityService,
 		private followingsRepository: FollowingsRepository,
 		private queueService: QueueService,
+		private apRendererService: ApRendererService,
+		private cacheService: CacheService,
 
 		actor: { id: MiUser['id']; host: null; },
 		activity: IActivity | null,
@@ -92,6 +105,20 @@ class DeliverManager {
 	}
 
 	/**
+	 * Add recipe for channel followers deliver
+	 * @param channelActorId Channel actor ID
+	 */
+	@bindThis
+	public addChannelFollowersRecipe(channelActorId: MiUser['id']): void {
+		const recipe: IChannelFollowersRecipe = {
+			type: 'ChannelFollowers',
+			to: channelActorId,
+		};
+
+		this.addRecipe(recipe);
+	}
+
+	/**
 	 * Add recipe
 	 * @param recipe Recipe
 	 */
@@ -105,6 +132,7 @@ class DeliverManager {
 	 */
 	@bindThis
 	public async execute(): Promise<void> {
+		if (this.activity === null) return;
 		// The value flags whether it is shared or not.
 		// key: inbox URL, value: whether it is sharedInbox
 		const inboxes = new Map<string, boolean>();
@@ -132,6 +160,40 @@ class DeliverManager {
 				inboxes.set(inbox, following.followerSharedInbox != null);
 			}
 		}
+		const channelUserIds = [];
+		for (const channel of this.recipes.filter(isChannelFollowers)) {
+			channelUserIds.push(channel.to);
+		}
+		if (channelUserIds.length > 0) {
+			// yojo-art: チャンネル連合 複数のチャンネルに同時に投稿する操作は非対応
+			const channelActor = await this.cacheService.findUserById(channelUserIds[0]);
+			if (channelActor.host) {
+				//リモートのチャンネル宛にローカルユーザーが投稿
+				//リモートのチャンネルに投稿した時はすべての配送先を特定できないのでLD-Signatureで署名して転送できるようにする
+				const inbox = channelActor.sharedInbox ?? channelActor.inbox;
+				const copy = deepClone(this.activity as any);
+				const signed = await this.apRendererService.attachLdSignature(copy, { id: this.actor.id, host: null });
+				await this.queueService.deliver(this.actor, signed, inbox, channelActor.sharedInbox != null);
+			} else {
+				//ローカルのチャンネル宛にローカルorリモートのユーザーが投稿
+				//ローカルのチャンネルはフォロワーの完全なリストがあるので直接配送する
+				const followers = await this.followingsRepository.find({
+					where: {
+						followeeId: channelActor.id,
+						followerHost: Not(IsNull()),
+					},
+					select: {
+						followerSharedInbox: true,
+						followerInbox: true,
+					},
+				});
+				for (const following of followers) {
+					const inbox = following.followerSharedInbox ?? following.followerInbox;
+					if (inbox === null) throw new Error('inbox is null');
+					inboxes.set(inbox, following.followerSharedInbox != null);
+				}
+			}
+		}
 
 		for (const recipe of this.recipes.filter(isDirect)) {
 			// check that shared inbox has not been added yet
@@ -156,6 +218,8 @@ export class ApDeliverManagerService {
 
 		private userEntityService: UserEntityService,
 		private queueService: QueueService,
+		private apRendererService: ApRendererService,
+		private cacheService: CacheService,
 	) {
 	}
 
@@ -170,6 +234,8 @@ export class ApDeliverManagerService {
 			this.userEntityService,
 			this.followingsRepository,
 			this.queueService,
+			this.apRendererService,
+			this.cacheService,
 			actor,
 			activity,
 		);
@@ -189,6 +255,8 @@ export class ApDeliverManagerService {
 			this.userEntityService,
 			this.followingsRepository,
 			this.queueService,
+			this.apRendererService,
+			this.cacheService,
 			actor,
 			activity,
 		);
@@ -208,6 +276,8 @@ export class ApDeliverManagerService {
 			this.userEntityService,
 			this.followingsRepository,
 			this.queueService,
+			this.apRendererService,
+			this.cacheService,
 			actor,
 			activity,
 		);
@@ -221,7 +291,8 @@ export class ApDeliverManagerService {
 			this.userEntityService,
 			this.followingsRepository,
 			this.queueService,
-
+			this.apRendererService,
+			this.cacheService,
 			actor,
 			activity,
 		);
