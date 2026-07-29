@@ -908,11 +908,17 @@ export class NoteCreateService implements OnApplicationShutdown {
 						dm.addDirectRecipe(u as MiRemoteUser);
 					}
 
-					if (note.channel != null && note.channel.host != null && note.channel.actorId) {
-						//リモートのチャンネルに投稿する時はそのホストに配送
-						note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
-						if (note.channel.actor?.host && note.channel.actor.uri) {
-							dm.addDirectRecipe(note.channel.actor as MiRemoteUser);
+					if (note.channel != null && user.channelId === null && note.channel.actorId) {
+						// yojo-art: チャンネルのフォロワーに配送
+						if (isPureRenote) {
+							//チャンネル内リノート
+							dm.addChannelFollowersRecipe(note.channel.actorId);
+						} else if (note.channel.host != null) {
+							//リモートのチャンネルに投稿する時はそのホストに配送
+							note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+							if (note.channel.actor?.host && note.channel.actor.uri) {
+								dm.addDirectRecipe(note.channel.actor as MiRemoteUser);
+							}
 						}
 					}
 
@@ -945,13 +951,13 @@ export class NoteCreateService implements OnApplicationShutdown {
 				note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
 				if (note.channel.actor) {
 					//awaitせず非同期でやる
-					this.create(note.channel.actor, {
+					trackPromise(this.create(note.channel.actor, {
 						createdAt: this.idService.parse(note.id).date,
 						renote: note,
 						visibility: note.visibility,
 						searchableBy: note.searchableBy,
 						channel: note.channel,
-					});
+					}));
 				} else {
 					console.log('チャンネルに連動したアカウントが見つからない');
 				}
@@ -1113,12 +1119,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (note.channel?.actorId === user.id) {
 			//チャンネルユーザーが作成したチャンネル投稿
 			if (isRenote(note) && !isQuote(note)) {
-				note.renote = await this.notesRepository.findOneBy({ id: note.renoteId });
-			}
-			if (note.renote) {
-				note.renote.channel = note.channel;
-				//TLにはリノートの中身を投入する
-				note = note.renote;
+				//純粋リノートはTLに含めない
+				return;
 			}
 		}
 		if (note.channelId && note.channel) {
