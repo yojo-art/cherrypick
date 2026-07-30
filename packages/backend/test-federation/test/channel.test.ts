@@ -2,7 +2,7 @@ import assert, { strictEqual } from 'node:assert';
 import { notStrictEqual } from 'node:assert/strict';
 import * as Misskey from 'misskey-js';
 import { isPureRenote } from 'misskey-js/note.js';
-import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile, waitFor } from './utils.js';
 
 describe('Channel', () => {
 	let alice: LoginUser, bob: LoginUser, carol: LoginUser;
@@ -827,7 +827,11 @@ describe('Channel', () => {
 		test('リモート->ローカル: リモートユーザーがローカルチャンネルに投稿すると、両方のcountsが更新される', async () => {
 			//alice管理者/bob投稿者
 			await bob.client.request('channels/follow', { channelId: aliceChInB.id });
-			await sleep(1000);
+
+			await waitFor(async () => {
+				const channel = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+				return channel.isFollowing ?? false;
+			}, { interval: 200 });
 
 			const before = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			const beforeInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
@@ -838,7 +842,11 @@ describe('Channel', () => {
 				visibility: 'public',
 			});
 
-			await sleep(1000);
+			await waitFor(async () => {
+				const after = await alice.client.request('channels/show', { channelId: aliceCh.id });
+				const afterInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+				return afterInB.usersCount >= beforeInB.usersCount && after.usersCount >= before.usersCount;
+			});
 
 			const after = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			const afterInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
@@ -855,7 +863,11 @@ describe('Channel', () => {
 		test('リモート->リモート: リモートユーザーがリモートチャンネルに投稿すると、チャンネルフォロワーのcountsが更新される', async () => {
 			//alice観測者/bob投稿者/carol管理者
 			await alice.client.request('channels/follow', { channelId: carolChInA.id });
-			await sleep(1000);
+
+			await waitFor(async () => {
+				const channel = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+				return channel.isFollowing ?? false;
+			}, { interval: 200 });
 
 			const before = await alice.client.request('channels/show', { channelId: carolChInA.id });
 			const notesCountBefore = before.notesCount;
@@ -867,7 +879,10 @@ describe('Channel', () => {
 				visibility: 'public',
 			});
 
-			await sleep(3000);
+			await waitFor(async () => {
+				const after = await alice.client.request('channels/show', { channelId: carolChInA.id });
+				return after.usersCount >= before.usersCount;
+			});
 
 			const after = await alice.client.request('channels/show', { channelId: carolChInA.id });
 			try {
