@@ -848,7 +848,7 @@ describe('Channel', () => {
 				strictEqual(after.notesCount, before.notesCount + 1, '投稿先(ローカルチャンネル)notesCountが1増える');
 				strictEqual(after.usersCount >= before.usersCount, true, '投稿先(ローカルチャンネル)usersCountが減らない');
 			} finally {
-				await bob.client.request('channels/unfollow', { channelId: aliceChInC.id });
+				await bob.client.request('channels/unfollow', { channelId: aliceChInB.id });
 			}
 		});
 
