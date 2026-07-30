@@ -60,7 +60,6 @@ import MkCwButton from '@/components/MkCwButton.vue';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
 import MkEvent from '@/components/MkEvent.vue';
-import { mainRouter } from '@/router.js';
 import { useRouter } from '@/router.js';
 import { notePage } from '@/filters/note.js';
 import MkInfo from '@/components/MkInfo.vue';
@@ -144,18 +143,6 @@ function noteDblClick(ev: MouseEvent) {
 	// cursor: default;
 	margin: 0;
 	padding: 0;
-}
-
-@container (max-width: 500px) {
-	.avatar {
-		&.showEl {
-			top: 14px;
-		}
-
-		&.showElTab {
-			top: 54px;
-		}
-	}
 }
 
 @container (min-width: 250px) {

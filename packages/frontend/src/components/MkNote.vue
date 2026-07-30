@@ -459,7 +459,7 @@ import { getPluginHandlers } from '@/plugin.js';
 import { DI } from '@/di.js';
 import { globalEvents } from '@/events.js';
 import { instance } from '@/instance.js';
-import { mainRouter, useRouter } from '@/router.js';
+import { useRouter } from '@/router.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { haptic } from '@/utility/haptic.js';
 import { store } from '@/store.js';
@@ -1560,16 +1560,6 @@ function emitUpdReaction(emoji: string, delta: number) {
 
 	.article {
 		padding: 23px 25px;
-	}
-
-	.avatar {
-		&.showEl {
-			top: 14px;
-		}
-
-		&.showElTab {
-			top: 54px;
-		}
 	}
 
 	.footer {

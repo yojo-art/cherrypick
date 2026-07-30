@@ -106,18 +106,6 @@ import { deviceKind } from '@/utility/device-kind.js';
 import MkNoteMediaGrid from '@/components/MkNoteMediaGrid.vue';
 import { haptic, hapticConfirm } from '@/utility/haptic.js';
 
-const DESKTOP_THRESHOLD = 1100;
-const MOBILE_THRESHOLD = 500;
-
-// デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
-const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
-
 const noGap = !prefer.s.showGapBetweenNotesInTimeline;
 
 const props = withDefaults(defineProps<{
@@ -300,7 +288,6 @@ onUnmounted(() => {
 	if (scrollContainer) {
 		scrollContainer.removeEventListener('scroll', onScrollContainerScroll);
 	}
-	window.removeEventListener('resize', handleResize);
 });
 
 const visibility = useDocumentVisibility();
@@ -625,10 +612,6 @@ defineExpose({
 
 	&:first-child {
 		margin-top: calc(-0.675em - 8px - var(--MI-margin));
-	}
-
-	&.showEl {
-		transform: translateY(calc(var(--MI-stickyTop, 0px) - 101px))
 	}
 
 	&.reduceAnimation {

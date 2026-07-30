@@ -152,10 +152,6 @@ watch(rootEl, () => {
 	&.reduceAnimation {
 		transition: opacity 0s, transform 0s;
 	}
-
-	&.showEl {
-		transform: translateY(84.55px);
-	}
 }
 
 .item {

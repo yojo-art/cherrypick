@@ -25,18 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { onMounted, onUnmounted, provide, inject, ref, watch, useTemplateRef } from 'vue';
 import { DI } from '@/di.js';
 import { deviceKind } from '@/utility/device-kind.js';
-import { mainRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
-
-const isAllowHideHeader = ref(['index', 'explore', 'my-notifications', 'my-favorites'].includes(<string>mainRouter.currentRoute.value.name));
-const MOBILE_THRESHOLD = 500;
-
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
 
 const rootEl = useTemplateRef('rootEl');
 const headerEl = useTemplateRef('headerEl');
@@ -86,11 +75,6 @@ onMounted(() => {
 	}
 });
 
-onUnmounted(() => {
-	observer.disconnect();
-	window.removeEventListener('resize', handleResize);
-});
-
 defineExpose({
 	rootEl,
 });
@@ -112,14 +96,6 @@ defineExpose({
 
 	&.reduceAnimation {
 		transition: opacity 0s, transform 0s;
-	}
-
-	&.showEl {
-		transform: translateY(-50.55px);
-	}
-
-	&.showElTl {
-		transform: translateY(-90.55px);
 	}
 }
 

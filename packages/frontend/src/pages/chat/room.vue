@@ -114,15 +114,6 @@ import { makeDateSeparatedTimelineComputedRef } from '@/utility/timeline-date-se
 import { acct as getAcct } from '@/filters/user.js';
 import { deviceKind } from '@/utility/device-kind.js';
 
-const MOBILE_THRESHOLD = 500;
-
-const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
-
 const $i = ensureSignin();
 const router = useRouter();
 
@@ -370,10 +361,6 @@ function onVisibilitychange() {
 
 onMounted(() => {
 	initialize();
-});
-
-onUnmounted(() => {
-	window.removeEventListener('resize', handleResize);
 });
 
 onActivated(() => {

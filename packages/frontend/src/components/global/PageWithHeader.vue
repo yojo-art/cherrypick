@@ -40,15 +40,6 @@ import MkTabs from '@/components/MkTabs.vue';
 import { deviceKind } from '@/utility/device-kind.js';
 import { i18n } from '@/i18n.js';
 
-const MOBILE_THRESHOLD = 500;
-
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
-
 const props = withDefaults(defineProps<PageHeaderProps & {
 	reversed?: boolean;
 	swipable?: boolean;
@@ -84,10 +75,6 @@ router.useListener('same', () => {
 function scrollToTop() {
 	if (rootEl.value) scrollInContainer(rootEl.value, { top: 0, behavior: 'smooth' });
 }
-
-onUnmounted(() => {
-	window.removeEventListener('resize', handleResize);
-});
 
 defineExpose({
 	scrollToTop,

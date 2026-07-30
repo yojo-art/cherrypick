@@ -39,15 +39,6 @@ import { getBgColor } from '@/utility/get-bg-color.js';
 import { mainRouter } from '@/router.js';
 import { deviceKind } from '@/utility/device-kind.js';
 
-const MOBILE_THRESHOLD = 500;
-
-const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
-
 const miLocalStoragePrefix = 'ui:folder:' as const;
 
 const props = withDefaults(defineProps<{
@@ -104,10 +95,6 @@ function updateBgColor() {
 onMounted(() => {
 	updateBgColor();
 	globalEvents.on('themeChanging', updateBgColor);
-});
-
-onUnmounted(() => {
-	window.removeEventListener('resize', handleResize);
 });
 
 onBeforeUnmount(() => {

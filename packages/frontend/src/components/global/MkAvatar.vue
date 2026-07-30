@@ -267,10 +267,6 @@ onUnmounted(() => {
 	&.reduceAnimation {
 		transition: opacity 0s;
 	}
-
-	&.scrollToTransparent {
-		opacity: .7;
-	}
 }
 
 .indicator {
