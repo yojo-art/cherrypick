@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, castAsError, signup, randomString, uploadUrl } from '../utils.js';
+import { api, castAsError, signup, randomString, uploadUrl, post } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('Channel', () => {
@@ -141,6 +141,52 @@ describe('Channel', () => {
 			assert.strictEqual(ch.status, 200);
 			const channelActor = await api('users/show', { userId: ch.body.actorId! }, root);
 			assert.strictEqual(channelActor.body.name!, name, 'チャンネル作成時に指定した名前がユーザーとして正しく設定される');
+		});
+	});
+
+	describe('usersCount', () => {
+		test('チャンネルへの投稿でチャンネルアカウントのリノートがusersCountに含まれない', async () => {
+			const ch = await api('channels/create', { name: 'usersCount-test', username: randomString() }, root);
+			assert.strictEqual(ch.status, 200);
+			const channelId = ch.body.id;
+
+			// 投稿前は0
+			const beforeRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(beforeRes.status, 200);
+			assert.strictEqual(beforeRes.body.usersCount, 0, '投稿前のusersCountは0');
+
+			// Aliceがチャンネルに投稿
+			await post(alice, { text: 'hello channel', channelId });
+
+			// 自動リノートとusersCountインクリメントが完了するまで待つ
+			await new Promise(resolve => setTimeout(resolve, 3000));
+
+			const afterRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(afterRes.status, 200);
+			assert.strictEqual(afterRes.body.usersCount, 1, 'チャンネルアカウントのリノートを除きusersCountは1のはず');
+		});
+	});
+
+	describe('notesCount', () => {
+		test('チャンネルへの投稿でチャンネルアカウントのリノートがnotesCountに含まれない', async () => {
+			const ch = await api('channels/create', { name: 'notesCount-test', username: randomString() }, root);
+			assert.strictEqual(ch.status, 200);
+			const channelId = ch.body.id;
+
+			// 投稿前は0
+			const beforeRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(beforeRes.status, 200);
+			assert.strictEqual(beforeRes.body.notesCount, 0, '投稿前のnotesCountは0');
+
+			// Aliceがチャンネルに投稿
+			await post(alice, { text: 'hello channel notes', channelId });
+
+			// 自動リノートが完了するまで待つ
+			await new Promise(resolve => setTimeout(resolve, 1000));
+
+			const afterRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(afterRes.status, 200);
+			assert.strictEqual(afterRes.body.notesCount, 1, 'チャンネルアカウントのリノートを除きnotesCountは1');
 		});
 	});
 });
