@@ -1,3 +1,19 @@
+## 1.8.2
+Cherrypick 4.17.0  
+Misskey 2025.10.2
+
+### Release Date
+2026-07-30
+
+### General
+
+### Client
+
+### Server
+
+### Others
+- 1.8.1でバージョン番号の変更を忘れたため作成されたリリースです
+
 ## 1.8.1
 Cherrypick 4.17.0  
 Misskey 2025.10.2
