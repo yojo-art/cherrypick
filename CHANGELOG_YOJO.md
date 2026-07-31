@@ -3,52 +3,23 @@ Cherrypick 4.17.0
 Misskey 2025.12.2
 
 ### Release Date
-2026-07-31
+2026-08-01
 
 ### General
 - Feat: チャンネルにアイコンを設定・表示できるように [#1189](https://github.com/yojo-art/cherrypick/pull/1189)
 - Feat: コンディショナルロールにチャンネルユーザー条件を追加 [#1188](https://github.com/yojo-art/cherrypick/pull/1188)
-- Remove: Cherrypickを支援のボタンをサイドバーから削除 [#1147](https://github.com/yojo-art/cherrypick/pull/1147)
-- Misskey 2025.12.2をマージ [#1145](https://github.com/yojo-art/cherrypick/pull/1145)
 
 ### Client
 - Enhance: 新しいノート件数が上限に達したとき「100個以上」と表示する [#1150](https://github.com/yojo-art/cherrypick/pull/1150)
 - Change: ナビゲーションバーのデフォルト値をmisskeyと同じに変更 [#1125](https://github.com/yojo-art/cherrypick/pull/1125)
-- Fix: MkAbuseReportResolver内のをMkCodeEditorに変更 [#1148](https://github.com/yojo-art/cherrypick/pull/1148)
-- Fix: コントリビュートしていないメンバーの削除 [#1190](https://github.com/yojo-art/cherrypick/pull/1190)
-- Enhance: MkCodeEditorにplaceholderを追加 [#1195](https://github.com/yojo-art/cherrypick/pull/1195)
+- Remove: Cherrypickを支援のボタンをサイドバーから削除 [#1147](https://github.com/yojo-art/cherrypick/pull/1147)
 
 ### Server
 - Fix: チャンネルの参加人数が間違って表示される問題の修正 [#1180](https://github.com/yojo-art/cherrypick/pull/1180)
-- Fix: 起動に失敗する問題の修正 [#1202](https://github.com/yojo-art/cherrypick/pull/1202)
-- Feat: 連合テストのローカル実行 (Docker)を行うためのシェルスクリプト追加 [#1138](https://github.com/yojo-art/cherrypick/pull/1138)
-- Enhance: test-federationのローカルビルドをDocker化、--clean/--skip-buildフラグ追加 [#1240](https://github.com/yojo-art/cherrypick/pull/1240)
-- Fix: get-memory-usage (memory-base.json)に失敗する問題の修正 [#1165](https://github.com/yojo-art/cherrypick/pull/1165)
-- Fix: setup.sh で config.json の生成条件が default.yml を参照していたのを修正 [#1241](https://github.com/yojo-art/cherrypick/pull/1241)
-- Fix: opensearch-e2e で検索関連テストのみ実行するように [#1149](https://github.com/yojo-art/cherrypick/pull/1149)
-- Enhance: dockerのビルドエラーで停止した場合にもエラー内容を出力できるように [#1229](https://github.com/yojo-art/cherrypick/pull/1229)
 
 ### Others
-- docs: AIコーディング向けドキュメントの追加 [#1137](https://github.com/yojo-art/cherrypick/pull/1137)
-- chore(docs): LLM向けドキュメントの調整 [#1242](https://github.com/yojo-art/cherrypick/pull/1242)
-- ドキュメントファイルの内容をmisskeyに変更 [#1186](https://github.com/yojo-art/cherrypick/pull/1186)
-- workflowとドキュメントの変更漏れの修正 [#1206](https://github.com/yojo-art/cherrypick/pull/1206)
 - ciとtestの各種ファイルをmisskeyに変更 [#1185](https://github.com/yojo-art/cherrypick/pull/1185)
-- Merge 1.8.1 [#1234](https://github.com/yojo-art/cherrypick/pull/1234)
 - Fix: devcontainer用dbコンテナのvolumeのマウントパスを変更 [#1199](https://github.com/yojo-art/cherrypick/pull/1199)
-- chore(deps): 未使用の依存パッケージを削除 [#1166](https://github.com/yojo-art/cherrypick/pull/1166)
-- chore(deps): update node.js to v24.17.0 [#1134](https://github.com/yojo-art/cherrypick/pull/1134)
-- fix(deps): update dependency nodemailer to v9 [security] [#1158](https://github.com/yojo-art/cherrypick/pull/1158)
-- chore(deps): update dependency vite to v7.3.5 [security] [#1154](https://github.com/yojo-art/cherrypick/pull/1154)
-- chore(deps): update dependency storybook to v10.2.10 [security] [#1153](https://github.com/yojo-art/cherrypick/pull/1153)
-- chore(deps): bump exifreader from 4.33.1 to 4.39.0 [#1162](https://github.com/yojo-art/cherrypick/pull/1162)
-- chore(deps): bump exifreader from 4.39.0 to 4.40.1 [#1184](https://github.com/yojo-art/cherrypick/pull/1184)
-- chore(deps): bump systeminformation from 5.31.6 to 5.31.7 [#1171](https://github.com/yojo-art/cherrypick/pull/1171)
-- chore(deps): bump @fastify/static from 9.1.1 to 10.1.2 [#1226](https://github.com/yojo-art/cherrypick/pull/1226)
-- chore(deps): bump js-yaml from 4.1.1 to 4.2.0 [#1152](https://github.com/yojo-art/cherrypick/pull/1152)
-- chore(deps): bump js-yaml from 4.2.0 to 4.3.0 [#1210](https://github.com/yojo-art/cherrypick/pull/1210)
-- chore(deps): bump body-parser from 2.2.1 to 2.3.0 [#1209](https://github.com/yojo-art/cherrypick/pull/1209)
-- chore(deps): bump tar from 6.2.1 to 7.5.20 [#1205](https://github.com/yojo-art/cherrypick/pull/1205)
 
 ## 1.8.2
 Cherrypick 4.17.0  
