@@ -24,7 +24,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, provide, inject, ref, watch, useTemplateRef } from 'vue';
 import { DI } from '@/di.js';
-import { deviceKind } from '@/utility/device-kind.js';
 import { prefer } from '@/preferences.js';
 
 const rootEl = useTemplateRef('rootEl');
@@ -73,6 +72,10 @@ onMounted(() => {
 	if (footerEl.value != null) {
 		observer.observe(footerEl.value);
 	}
+});
+
+onUnmounted(() => {
+	observer.disconnect();
 });
 
 defineExpose({

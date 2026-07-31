@@ -102,7 +102,6 @@ import { i18n } from '@/i18n.js';
 import { globalEvents, useGlobalEvent } from '@/events.js';
 import { isSeparatorNeeded, getSeparatorInfo } from '@/utility/timeline-date-separate.js';
 import { MAX_QUEUE_ITEMS, Paginator } from '@/utility/paginator.js';
-import { deviceKind } from '@/utility/device-kind.js';
 import MkNoteMediaGrid from '@/components/MkNoteMediaGrid.vue';
 import { haptic, hapticConfirm } from '@/utility/haptic.js';
 

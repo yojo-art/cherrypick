@@ -28,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onUnmounted, ref, useTemplateRef } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import { scrollInContainer } from '@@/js/scroll.js';
 import type { PageHeaderProps } from './MkPageHeader.vue';
@@ -37,7 +37,6 @@ import MkSwiper from '@/components/MkSwiper.vue';
 import { useRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
 import MkTabs from '@/components/MkTabs.vue';
-import { deviceKind } from '@/utility/device-kind.js';
 import { i18n } from '@/i18n.js';
 
 const props = withDefaults(defineProps<PageHeaderProps & {

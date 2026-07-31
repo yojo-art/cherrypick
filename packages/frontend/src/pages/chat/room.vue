@@ -112,7 +112,6 @@ import { useMutationObserver } from '@/composables/use-mutation-observer.js';
 import MkInfo from '@/components/MkInfo.vue';
 import { makeDateSeparatedTimelineComputedRef } from '@/utility/timeline-date-separate.js';
 import { acct as getAcct } from '@/filters/user.js';
-import { deviceKind } from '@/utility/device-kind.js';
 
 const $i = ensureSignin();
 const router = useRouter();

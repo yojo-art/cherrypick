@@ -31,13 +31,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onBeforeUnmount, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import { onBeforeUnmount, onMounted, ref, useTemplateRef, watch } from 'vue';
 import { miLocalStorage } from '@/local-storage.js';
 import { prefer } from '@/preferences.js';
 import { globalEvents } from '@/events.js';
 import { getBgColor } from '@/utility/get-bg-color.js';
-import { mainRouter } from '@/router.js';
-import { deviceKind } from '@/utility/device-kind.js';
 
 const miLocalStoragePrefix = 'ui:folder:' as const;
 
