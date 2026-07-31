@@ -1,7 +1,7 @@
 {
 	"type": "module",
 	"name": "misskey-js",
-	"version": "1.8.0",
+	"version": "1.8.2",
 	"basedCherrypickVersion": "4.17.0",
 	"basedMisskeyVersion": "2025.12.2",
 	"description": "yojo-art SDK for JavaScript",

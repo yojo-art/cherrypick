@@ -131,6 +131,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					avatarUrl: icon ? this.driveFileEntityService.getPublicUrl(icon, 'avatar') : undefined,
 					avatarBlurhash: icon?.blurhash ?? undefined,
 					username: ps.username,
+					name: ps.name,
 					ownerId: me.id,
 					description: ps.description,
 					ignorePreservedUsernames: await this.roleService.isModerator(me),
