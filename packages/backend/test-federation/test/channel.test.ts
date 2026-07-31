@@ -845,7 +845,7 @@ describe('Channel', () => {
 			await waitFor(async () => {
 				const after = await alice.client.request('channels/show', { channelId: aliceCh.id });
 				const afterInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
-				return afterInB.usersCount >= beforeInB.usersCount && after.usersCount >= before.usersCount;
+				return afterInB.notesCount === beforeInB.notesCount + 1 && after.notesCount === before.notesCount + 1;
 			});
 
 			const after = await alice.client.request('channels/show', { channelId: aliceCh.id });
@@ -870,8 +870,6 @@ describe('Channel', () => {
 			}, { interval: 200 });
 
 			const before = await alice.client.request('channels/show', { channelId: carolChInA.id });
-			const notesCountBefore = before.notesCount;
-			const usersCountBefore = before.usersCount;
 
 			await bob.client.request('notes/create', {
 				text: 'remote to remote channel ' + randomUsername(),
@@ -881,13 +879,13 @@ describe('Channel', () => {
 
 			await waitFor(async () => {
 				const after = await alice.client.request('channels/show', { channelId: carolChInA.id });
-				return after.usersCount >= before.usersCount;
+				return after.notesCount === before.notesCount + 1;
 			});
 
 			const after = await alice.client.request('channels/show', { channelId: carolChInA.id });
 			try {
-				strictEqual(after.notesCount, notesCountBefore + 1, 'notesCountが1増える');
-				strictEqual(after.usersCount >= usersCountBefore, true, 'usersCountが減らない');
+				strictEqual(after.notesCount, before.notesCount + 1, 'notesCountが1増える');
+				strictEqual(after.usersCount >= before.usersCount, true, 'usersCountが減らない');
 			} finally {
 				await alice.client.request('channels/unfollow', { channelId: carolChInA.id });
 			}
