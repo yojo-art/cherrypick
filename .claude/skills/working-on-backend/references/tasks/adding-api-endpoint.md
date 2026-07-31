@@ -15,7 +15,6 @@
 2. 実装    : meta / paramDef / クラス本体を書く (SPDX ヘッダー付き)
 3. 配線    : endpoint-list.ts に登録 (★ 忘れると 404)
 4. 検証    : e2e テスト + lint + misskey-js 再生成
-5. 仕上げ  : CHANGELOG エントリ (shipping-misskey-change で確認)
 ```
 
 ---

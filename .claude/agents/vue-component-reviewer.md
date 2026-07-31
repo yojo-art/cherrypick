@@ -135,17 +135,6 @@ git diff --name-only --diff-filter=A "$BASE"...HEAD -- \
 - アイコンは Tabler icons クラス (`<i class="ti ti-info-circle">` 等) を使う。
 - インライン SVG や別アイコンセットは原則使わない (既存パターンに合わせる)。
 
-### 10. CHANGELOG エントリ (Minor)
-
-ユーザー影響がある変更なら、`CHANGELOG.md` の `## Unreleased` → `### Client` に 1 行追加されているか確認する。
-
-```
-- Enhance: <component> の <挙動> を改善
-- Fix: <component> の <不具合> を修正
-```
-
-純粋な内部リファクタなら不要。
-
 ## 出力形式
 
 優先度別に以下のフォーマットで出力する。
