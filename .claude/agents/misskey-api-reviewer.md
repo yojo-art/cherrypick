@@ -137,16 +137,6 @@ git diff --name-only "$BASE"...HEAD -- packages/misskey-js/src/autogen/
 
 **describe ラベルの形式は問わない**: 既存テストは `describe('Note', () => { test('投稿できる', ...) })` のように人間可読ラベルで構造化されており、`<category>/<name>` 形式の describe は使われていない。describe 名の規約違反としては指摘しない。
 
-### 9. CHANGELOG エントリ (Minor)
-
-ユーザー影響がある (新エンドポイント / 既存挙動変更) 場合、`CHANGELOG.md` の `## Unreleased` → `### Server` に 1 行追加されているか確認する。
-
-```
-- Feat: /api/<category>/<name> を追加
-```
-
-純粋な内部リファクタなら不要。
-
 ## 出力形式
 
 優先度別に以下のフォーマットで出力する。
