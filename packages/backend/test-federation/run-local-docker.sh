@@ -6,20 +6,62 @@
 # Usage:
 #   ./run-local-docker.sh                    # run all tests
 #   ./run-local-docker.sh timeline.test.ts   # run a specific test file
-#   SKIP_BUILD=1 ./run-local-docker.sh       # skip pnpm build
+#   ./run-local-docker.sh --skip-build       # skip pnpm build
+#   ./run-local-docker.sh --clean            # remove node_modules & built/, then exit
 
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "${SCRIPT_DIR}"
 
-# Set NODE_VERSION from .node-version if not already set
-if [[ -z "${NODE_VERSION:-}" ]]; then
-    NODE_VERSION="$(cat "${SCRIPT_DIR}/../../../.node-version")"
-    export NODE_VERSION
-fi
+NODE_VERSION="$(cat "${SCRIPT_DIR}/../../../.node-version")"
+export NODE_VERSION
 
-TEST_FILTER="${1:-}"
+CLEAN=0
+TEST_FILTER=""
+ARG_COUNT=0
+for arg in "$@"; do
+    ARG_COUNT=$((ARG_COUNT + 1))
+    case "${arg}" in
+        --clean)
+            CLEAN=1
+            ;;
+				--skip-build)
+						SKIP_BUILD=1
+						;;
+        *)
+            TEST_FILTER="${arg}"
+            ;;
+    esac
+done
+
+if [[ "${CLEAN}" == "1" ]]; then
+    REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+    echo "==> --clean: removing node_modules, built/, and generated test configs …"
+
+    # Glob expansion for the .config/* patterns: if nothing matches, expand
+    # to nothing instead of the literal pattern string.
+    shopt -s nullglob
+    CONFIG_FILES=(
+        "${SCRIPT_DIR}/.config/"*.test.conf
+        "${SCRIPT_DIR}/.config/"*.test.config.json
+        "${SCRIPT_DIR}/.config/docker.env"
+    )
+    shopt -u nullglob
+
+    rm -rf \
+        "${REPO_ROOT}/node_modules" \
+        "${REPO_ROOT}/built" \
+        "${REPO_ROOT}/packages/backend/node_modules" \
+        "${REPO_ROOT}/packages/backend/built" \
+        "${REPO_ROOT}/packages/misskey-js/node_modules" \
+        "${REPO_ROOT}/packages/misskey-js/built" \
+        "${REPO_ROOT}/packages/misskey-reversi/node_modules" \
+        "${REPO_ROOT}/packages/misskey-reversi/built" \
+        "${CONFIG_FILES[@]}"
+    echo "==> Clean done."
+    exit 0
+fi
 
 # ──────────────────────────────────────────────
 # 1. Generate configs / certificates if missing
@@ -32,12 +74,50 @@ fi
 # ──────────────────────────────────────────────
 # 2. Build backend & deps (backend / misskey-js / misskey-reversi)
 #    Skips frontend which requires submodules.
+#
+#    Runs inside a throwaway Docker container so the host Node
+#    toolchain is never touched. Output (node_modules/built) is
+#    bind-mounted, so files land on the host with whatever UID/GID
+#    we run the container as — we use the host user's, to avoid
+#    root-owned files.
 # ──────────────────────────────────────────────
 if [[ "${SKIP_BUILD:-}" != "1" ]]; then
-    echo "==> Building backend & deps…"
-    cd "${SCRIPT_DIR}/../../.."
-    pnpm --filter backend --filter misskey-js --filter misskey-reversi build
-    cd "${SCRIPT_DIR}"
+    HOST_UID="$(id -u)"
+    HOST_GID="$(id -g)"
+    echo "==> Building backend & deps (in Docker, as uid=${HOST_UID} gid=${HOST_GID})…"
+    REPO_ROOT="$(cd "${SCRIPT_DIR}/../../.." && pwd)"
+    BUILD_IMAGE_TAG="misskey-build-env:${NODE_VERSION}"
+
+    BUILD_DOCKERFILE="$(mktemp)"
+    trap 'rm -f "${BUILD_DOCKERFILE}"' EXIT
+    cat > "${BUILD_DOCKERFILE}" <<EOF
+ARG NODE_VERSION=${NODE_VERSION}
+FROM node:\${NODE_VERSION}-bookworm
+RUN apt-get update \\
+    && apt-get install -y --no-install-recommends ffmpeg \\
+    && rm -rf /var/lib/apt/lists/*
+RUN corepack enable
+WORKDIR /misskey
+EOF
+
+    docker build \
+        --build-arg NODE_VERSION="${NODE_VERSION}" \
+        -t "${BUILD_IMAGE_TAG}" \
+        -f "${BUILD_DOCKERFILE}" \
+        "${SCRIPT_DIR}"
+
+    docker run --rm \
+        --user "$(id -u):$(id -g)" \
+        -v "${REPO_ROOT}:/misskey" \
+        -w /misskey \
+        -e HOME=/tmp \
+        -e PNPM_HOME=/tmp/pnpm \
+        -e CI=true \
+        "${BUILD_IMAGE_TAG}" \
+        bash -c 'pnpm i --frozen-lockfile && pnpm --filter backend --filter misskey-js --filter misskey-reversi build'
+
+    rm -f "${BUILD_DOCKERFILE}"
+    trap - EXIT
 else
     echo "==> Skipping build (SKIP_BUILD=1)"
 fi
