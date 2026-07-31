@@ -865,7 +865,7 @@ describe('Channel', () => {
 			await alice.client.request('channels/follow', { channelId: carolChInA.id });
 
 			await waitFor(async () => {
-				const channel = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+				const channel = await alice.client.request('channels/show', { channelId: carolChInA.id });
 				return channel.isFollowing ?? false;
 			}, { interval: 200 });
 
