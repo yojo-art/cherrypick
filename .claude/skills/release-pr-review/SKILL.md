@@ -5,7 +5,7 @@ description: yojo-art のリリース用PRをレビューするときなどに�
 
 # release-pr
 
-yojo-art/cherrypick のリリース用 PR をレビューするときに使うスキル。  
+yojo-art/cherrypick のリリース用 PR をレビュー・作成するときに使うスキル。  
 過去のリリース PR (#988, #1031, #1112, #1121, #1235) の実績と現在のリポジトリ状態に基づく。
 
 ## リポジトリ状態（参考）
