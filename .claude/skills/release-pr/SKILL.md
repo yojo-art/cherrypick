@@ -22,7 +22,7 @@ yojo-art/cherrypick のリリース用 PR を作成・レビューするとき�
 - 更新対象の CHANGELOG: **`CHANGELOG_YOJO.md`**（`CHANGELOG.md` や `CHANGELOG_CHERRYPICK.md` は触らない）
 
 ## このスキルの役割
-1. **/release-pr-reviewだけで実行されたときは、どのPR番号をレビューするのかユーザーに質問すること。**
+1. **/release-prで実行されたときは、どのPR番号をレビューするのかユーザーに質問すること。**
 
 2. **「リリースPRを作成してください」という指示が行われない限りはリリースPRを作成しないでください**
 
