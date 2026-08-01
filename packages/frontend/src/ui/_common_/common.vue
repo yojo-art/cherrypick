@@ -26,8 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:leaveToClass="prefer.s.animation ? $style.transition_menuDrawer_leaveTo : ''"
 >
 	<div v-if="drawerMenuShowing" :class="$style.menuDrawer">
-		<XNavbarFriendly v-if="isFriendly().value" style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
-		<XNavbar v-else style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
+		<XNavbar style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
 	</div>
 </Transition>
 
@@ -124,9 +123,7 @@ import { prefer } from '@/preferences.js';
 import { globalEvents } from '@/events.js';
 import { store } from '@/store.js';
 import XNavbar from '@/ui/_common_/navbar.vue';
-import XNavbarFriendly from '@/ui/friendly/navbar.vue';
 import { haptic } from '@/utility/haptic.js';
-import { isFriendly } from '@/utility/is-friendly.js';
 
 const XStreamIndicator = defineAsyncComponent(() => import('./stream-indicator.vue'));
 const XWidgets = defineAsyncComponent(() => import('./widgets.vue'));

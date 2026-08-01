@@ -784,17 +784,11 @@ export const PREF_DEF = definePreferences({
 	expandOnNoteClickBehavior: {
 		default: 'click' as 'click' | 'doubleClick',
 	},
-	displayHeaderNavBarWhenScroll: {
-		default: 'hideHeaderFloatBtn' as 'all' | 'hideHeaderOnly' | 'hideHeaderFloatBtn' | 'hideFloatBtnOnly' | 'hideFloatBtnNavBar' | 'hide',
-	},
 	reactableRemoteReactionEnabled: {
 		default: true,
 	},
 	showFollowingMessageInsteadOfButtonEnabled: {
 		default: true,
-	},
-	mobileHeaderChange: {
-		default: false,
 	},
 	renameTheButtonInPostFormToNya: {
 		default: false,
@@ -804,15 +798,6 @@ export const PREF_DEF = definePreferences({
 	},
 	enableWidgetsArea: {
 		default: true,
-	},
-	friendlyUiEnableNotificationsArea: {
-		default: true,
-	},
-	enableLongPressOpenAccountMenu: {
-		default: true,
-	},
-	friendlyUiShowAvatarDecorationsInNavBtn: {
-		default: false,
 	},
 	checkReactionDialog: {
 		default: false,

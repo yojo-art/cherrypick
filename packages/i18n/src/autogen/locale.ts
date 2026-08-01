@@ -7608,36 +7608,6 @@ export interface Locale extends ILocale {
             "doubleClick": string;
         };
         /**
-         * スクロール時の要素表示（ヘッダー、フローティングボタン、ナビゲーションバー）
-         */
-        "displayHeaderNavBarWhenScroll": string;
-        "_displayHeaderNavBarWhenScroll": {
-            /**
-             * 全て表示
-             */
-            "all": string;
-            /**
-             * ヘッダーだけを隠す
-             */
-            "hideHeaderOnly": string;
-            /**
-             * ヘッダーとフローティングボタンを隠す
-             */
-            "hideHeaderFloatBtn": string;
-            /**
-             * フローティングボタンだけを隠す
-             */
-            "hideFloatBtnOnly": string;
-            /**
-             * フローティングボタンとナビゲーションバーを隠す
-             */
-            "hideFloatBtnNavBar": string;
-            /**
-             * 全て隠す
-             */
-            "hide": string;
-        };
-        /**
          * パッチ
          */
         "patch": string;
@@ -7654,10 +7624,6 @@ export interface Locale extends ILocale {
          */
         "showFollowingMessageInsteadOfButton": string;
         /**
-         * モバイル環境でヘッダーのデザインを変更
-         */
-        "mobileHeaderChange": string;
-        /**
          * ノート作成画面の「ノート」ボタンを「にゃ！」に変更する
          */
         "renameTheButtonInPostFormToNya": string;
@@ -7673,26 +7639,6 @@ export interface Locale extends ILocale {
          * ウィジェット領域を無効化
          */
         "disableWidgetsArea": string;
-        /**
-         * 通知領域を有効化
-         */
-        "friendlyUiEnableNotificationsArea": string;
-        /**
-         * 通知領域を無効化
-         */
-        "friendlyUiDisableNotificationsArea": string;
-        /**
-         * 長押しでアカウントメニューを開く
-         */
-        "enableLongPressOpenAccountMenu": string;
-        /**
-         * 画面下部のタイムラインタブを長押しして開くことができます。
-         */
-        "enableLongPressOpenAccountMenuDescription": string;
-        /**
-         * フローティングボタンにアイコンのデコレーションを表示
-         */
-        "friendlyUiShowAvatarDecorationsInNavBtn": string;
     };
     "_bannerDisplay": {
         /**

@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div ref="rootEl" :class="[$style.root, { [$style.reduceAnimation]: !prefer.s.animation, [$style.showEl]: (showEl && ['hideFloatBtnNavBar', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) }]">
+<div ref="rootEl" :class="[$style.root, { [$style.reduceAnimation]: !prefer.s.animation }]">
 	<button v-if="store.s.showMenuButtonInNavbar" :class="$style.item" class="_button" @click="drawerMenuShowing = true">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-menu-2"></i><span v-if="menuIndicated" :class="$style.itemIndicator" class="_blink"><i class="_indicatorCircle"></i></span>
@@ -70,10 +70,7 @@ import { mainRouter } from '@/router.js';
 import { navbarItemDef } from '@/navbar.js';
 import { prefer } from '@/preferences.js';
 import { store } from '@/store.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import { haptic } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
 
 const drawerMenuShowing = defineModel<boolean>('drawerMenuShowing');
 const widgetsShowing = defineModel<boolean>('widgetsShowing');
@@ -154,10 +151,6 @@ watch(rootEl, () => {
 
 	&.reduceAnimation {
 		transition: opacity 0s, transform 0s;
-	}
-
-	&.showEl {
-		transform: translateY(84.55px);
 	}
 }
 
