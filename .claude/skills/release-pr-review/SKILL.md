@@ -1,11 +1,11 @@
 ---
 name: release-pr-review
-description: yojo-art のリリース用PRをレビューするときに使用する。
+description: yojo-art のリリース用PRをレビューするときなどに使用する。
 ---
 
 # release-pr
 
-yojo-art/cherrypick のリリース用 PR を作成するときに使うスキル。  
+yojo-art/cherrypick のリリース用 PR をレビューするときに使うスキル。  
 過去のリリース PR (#988, #1031, #1112, #1121, #1235) の実績と現在のリポジトリ状態に基づく。
 
 ## リポジトリ状態（参考）
@@ -20,7 +20,11 @@ yojo-art/cherrypick のリリース用 PR を作成するときに使うスキ�
   - 現在: `packages/misskey-js/package.json`（`name: misskey-js`, `version: 1.8.2`）
   - 1.7.x 系では `packages/cherrypick-js/package.json`（`name: cherrypick-js`）を更新していた
 - 更新対象の CHANGELOG: **`CHANGELOG_YOJO.md`**（`CHANGELOG.md` や `CHANGELOG_CHERRYPICK.md` は触らない）
-- 進行中マイルストーン（参考）: `1.9.0`（#1250 あり）, `1.10.0`, `2.0.0`
+
+## このスキルの役割
+1. **/release-pr-reviewだけで実行されたときは、どのPR番号をレビューするのかユーザーに質問すること。**
+
+2. **「リリースPRを作成してください」という指示が行われない限りはリリースPRを作成しないでください**
 
 ## リリース PR の作り方
 
