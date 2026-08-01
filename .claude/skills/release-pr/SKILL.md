@@ -1,11 +1,11 @@
 ---
-name: release-pr-review
-description: yojo-art のリリース用PRをレビューするときなどに使用する。
+name: release-pr
+description: yojo-art のリリース用PRを作成・レビューするときなどに使用する。
 ---
 
 # release-pr
 
-yojo-art/cherrypick のリリース用 PR をレビュー・作成するときに使うスキル。  
+yojo-art/cherrypick のリリース用 PR を作成・レビューするときに使うスキル。  
 過去のリリース PR (#988, #1031, #1112, #1121, #1235) の実績と現在のリポジトリ状態に基づく。
 
 ## リポジトリ状態（参考）

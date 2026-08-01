@@ -1,6 +1,6 @@
 ---
-name: release-pr-review
-description: yojo-art のリリース用PRをレビューするときなどに使用する。
+name: release-pr
+description: yojo-art のリリース用PRを作成・レビューするときなどに使用する。
 ---
 
 # release-pr
