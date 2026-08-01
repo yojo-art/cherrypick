@@ -15,7 +15,7 @@ Misskey 2025.12.2
 - Remove: Cherrypickを支援のボタンをサイドバーから削除 [#1147](https://github.com/yojo-art/cherrypick/pull/1147)
 
 ### Server
-- Fix: チャンネルの参加人数が間違って表示される問題の修正 [#1180](https://github.com/yojo-art/cherrypick/pull/1180)
+- Fix: チャンネルの参加人数が間違って表示される問題の修正 [#1238](https://github.com/yojo-art/cherrypick/pull/1238)
 
 ### Others
 - ciとtestの各種ファイルをmisskeyに変更 [#1185](https://github.com/yojo-art/cherrypick/pull/1185)
