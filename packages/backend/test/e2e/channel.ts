@@ -6,10 +6,10 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, randomString, signup, uploadUrl } from '../utils.js';
+import { api, castAsError, signup, randomString, uploadUrl, post } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
-describe('channels/create', () => {
+describe('Channel', () => {
 	let root: misskey.entities.SignupResponse;
 	let alice: misskey.entities.SignupResponse;
 
@@ -18,7 +18,7 @@ describe('channels/create', () => {
 		alice = await signup({ username: 'alice' });
 	});
 
-	describe('canCreateChannel policy', () => {
+	describe('Create with canCreateChannel policy', () => {
 		let roleId: string;
 		const defaultCanCreateChannel = true;
 
@@ -29,7 +29,7 @@ describe('channels/create', () => {
 				color: null,
 				iconUrl: null,
 				target: 'manual',
-				condFormula: { },
+				condFormula: {},
 				displayOrder: 0,
 				canEditMembersByModerator: false,
 				asBadge: false,
@@ -103,6 +103,24 @@ describe('channels/create', () => {
 		});
 	});
 
+	describe('Follow', () => {
+		let channel: misskey.entities.ChannelsCreateResponse;
+
+		beforeAll(async () => {
+			const res = await api('channels/create', { name: 'follow-test-channel', username: randomString() }, root);
+			channel = res.body;
+		});
+
+		test('フォローしているチャンネルを再度フォローするとALREADY_FOLLOWINGエラーになる', async () => {
+			const res1 = await api('channels/follow', { channelId: channel.id }, alice);
+			assert.strictEqual(res1.status, 204);
+
+			const res2 = await api('channels/follow', { channelId: channel.id }, alice);
+			assert.strictEqual(res2.status, 400);
+			assert.strictEqual(castAsError(res2.body as any).error.code, 'ALREADY_FOLLOWING');
+		});
+	});
+
 	describe('チャンネル作成時の基本設定', () => {
 		test('チャンネル作成時にバナーが設定される', async () => {
 			const file = await uploadUrl(root, 'https://raw.githubusercontent.com/yojo-art/cherrypick/develop/packages/backend/test/resources/192.jpg');
@@ -123,6 +141,52 @@ describe('channels/create', () => {
 			assert.strictEqual(ch.status, 200);
 			const channelActor = await api('users/show', { userId: ch.body.actorId! }, root);
 			assert.strictEqual(channelActor.body.name!, name, 'チャンネル作成時に指定した名前がユーザーとして正しく設定される');
+		});
+	});
+
+	describe('usersCount', () => {
+		test('チャンネルへの投稿でチャンネルアカウントのリノートがusersCountに含まれない', async () => {
+			const ch = await api('channels/create', { name: 'usersCount-test', username: randomString() }, root);
+			assert.strictEqual(ch.status, 200);
+			const channelId = ch.body.id;
+
+			// 投稿前は0
+			const beforeRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(beforeRes.status, 200);
+			assert.strictEqual(beforeRes.body.usersCount, 0, '投稿前のusersCountは0');
+
+			// Aliceがチャンネルに投稿
+			await post(alice, { text: 'hello channel', channelId });
+
+			// 自動リノートとusersCountインクリメントが完了するまで待つ
+			await new Promise(resolve => setTimeout(resolve, 3000));
+
+			const afterRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(afterRes.status, 200);
+			assert.strictEqual(afterRes.body.usersCount, 1, 'チャンネルアカウントのリノートを除きusersCountは1のはず');
+		});
+	});
+
+	describe('notesCount', () => {
+		test('チャンネルへの投稿でチャンネルアカウントのリノートがnotesCountに含まれない', async () => {
+			const ch = await api('channels/create', { name: 'notesCount-test', username: randomString() }, root);
+			assert.strictEqual(ch.status, 200);
+			const channelId = ch.body.id;
+
+			// 投稿前は0
+			const beforeRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(beforeRes.status, 200);
+			assert.strictEqual(beforeRes.body.notesCount, 0, '投稿前のnotesCountは0');
+
+			// Aliceがチャンネルに投稿
+			await post(alice, { text: 'hello channel notes', channelId });
+
+			// 自動リノートが完了するまで待つ
+			await new Promise(resolve => setTimeout(resolve, 1000));
+
+			const afterRes = await api('channels/show', { channelId }, root);
+			assert.strictEqual(afterRes.status, 200);
+			assert.strictEqual(afterRes.body.notesCount, 1, 'チャンネルアカウントのリノートを除きnotesCountは1');
 		});
 	});
 });

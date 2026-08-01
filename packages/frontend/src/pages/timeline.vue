@@ -330,7 +330,7 @@ async function chooseHashTag(ev: MouseEvent): Promise<void> {
 			key: 'hashTag',
 		});
 	} catch (err) {
-		if (err.code === 'NO_SUCH_KEY') {
+		if ((err as any)?.code === 'NO_SUCH_KEY') {
 			tags = [];
 			await misskeyApi('i/registry/set', {
 				scope: ['client', 'base'],
@@ -382,7 +382,7 @@ async function chooseChannel(ev: MouseEvent): Promise<void> {
 			type: 'link',
 			icon: 'ti ti-plus',
 			text: i18n.ts.createNew,
-			to: '/channels',
+			to: '/channels/new',
 		},
 	];
 	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);

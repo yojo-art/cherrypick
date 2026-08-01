@@ -1,5 +1,5 @@
 # this name is used in report-api-diff.yml so be careful when change name
-name: Get api.json from CherryPick
+name: Get api.json from Misskey
 
 on:
   pull_request:
@@ -10,7 +10,7 @@ on:
       - packages/backend/**
       - .github/workflows/get-api-diff.yml
 jobs:
-  get-from-cherrypick:
+  get-from-misskey:
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -25,7 +25,7 @@ jobs:
             ref: refs/pull/${{ github.event.number }}/merge
 
     steps:
-    - uses: actions/checkout@v4.3.0
+    - uses: actions/checkout@v6.0.1
       with:
         ref: ${{ matrix.ref }}
         submodules: true
@@ -48,7 +48,7 @@ jobs:
     - name: Copy API.json
       run: cp packages/backend/built/api.json ${{ matrix.api-json-name }}
     - name: Upload Artifact
-      uses: actions/upload-artifact@v5
+      uses: actions/upload-artifact@v6
       with:
         name: api-artifact-${{ matrix.api-json-name }}
         path: ${{ matrix.api-json-name }}
@@ -61,7 +61,7 @@ jobs:
           PR_NUMBER: ${{ github.event.number }}
         run: |
           echo "$PR_NUMBER" > ./pr_number
-      - uses: actions/upload-artifact@v5
+      - uses: actions/upload-artifact@v6
         with:
           name: api-artifact-pr-number
           path: pr_number

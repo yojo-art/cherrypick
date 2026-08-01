@@ -184,9 +184,12 @@ export class SignupService {
 		ownerId: MiUser['id'],
 		description?: MiChannel['description'];
 		bannerId?: DriveFile['id'];
+		avatarId?: MiUser['avatarId'];
+		avatarUrl?: MiUser['avatarUrl'];
+		avatarBlurhash?: MiUser['avatarBlurhash'];
 		ignorePreservedUsernames?: boolean;
 	}) {
-		const { username, name, bannerId, description, ownerId } = opts;
+		const { username, name, bannerId, avatarId, avatarUrl, avatarBlurhash, description, ownerId } = opts;
 
 		// Validate username
 		if (!this.userEntityService.validateLocalUsername(username)) {
@@ -257,6 +260,10 @@ export class SignupService {
 		if (bannerId != null) {
 			bannerFile = await this.driveFilesRepository.findOneBy({ id: bannerId });
 		}
+		let avatarFile = null;
+		if (avatarId != null) {
+			avatarFile = await this.driveFilesRepository.findOneBy({ id: avatarId });
+		}
 
 		// Start transaction
 		await this.db.transaction(async transactionalEntityManager => {
@@ -279,6 +286,9 @@ export class SignupService {
 				bannerId: bannerId ?? null,
 				bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl(bannerFile) : null,
 				bannerBlurhash: bannerFile ? bannerFile.blurhash : null,
+				avatarId: avatarId ?? null,
+				avatarUrl: avatarFile ? this.driveFileEntityService.getPublicUrl(avatarFile) : null,
+				avatarBlurhash: avatarFile ? avatarFile.blurhash : null,
 			}));
 
 			await transactionalEntityManager.save(new MiUserKeypair({

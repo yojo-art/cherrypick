@@ -2,7 +2,7 @@ import assert, { strictEqual } from 'node:assert';
 import { notStrictEqual } from 'node:assert/strict';
 import * as Misskey from 'misskey-js';
 import { isPureRenote } from 'misskey-js/note.js';
-import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
+import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile, waitFor } from './utils.js';
 
 describe('Channel', () => {
 	let alice: LoginUser, bob: LoginUser, carol: LoginUser;
@@ -820,6 +820,75 @@ describe('Channel', () => {
 					assert(carolChTlInB.some(note => isPureRenote(note) && note.renoteId === channelNoteInB.id && note.renote != null && note.renote.channelId != null), 'チャンネルノートのチャンネル内リノートがbobのチャンネルTLに流れてくる');
 				});
 			});
+		});
+	});
+
+	describe('usersCount and notesCount federated posts', () => {
+		test('リモート->ローカル: リモートユーザーがローカルチャンネルに投稿すると、両方のcountsが更新される', async () => {
+			//alice管理者/bob投稿者
+			await bob.client.request('channels/follow', { channelId: aliceChInB.id });
+
+			await waitFor(async () => {
+				const channel = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+				return channel.isFollowing ?? false;
+			}, { interval: 200 });
+
+			const before = await alice.client.request('channels/show', { channelId: aliceCh.id });
+			const beforeInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+
+			await bob.client.request('notes/create', {
+				text: 'local to remote channel ' + randomUsername(),
+				channelId: aliceChInB.id,
+				visibility: 'public',
+			});
+
+			await waitFor(async () => {
+				const after = await alice.client.request('channels/show', { channelId: aliceCh.id });
+				const afterInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+				return afterInB.notesCount === beforeInB.notesCount + 1 && after.notesCount === before.notesCount + 1;
+			});
+
+			const after = await alice.client.request('channels/show', { channelId: aliceCh.id });
+			const afterInB = await bob.client.request('channels/show', { channelId: aliceChInB.id });
+			try {
+				strictEqual(afterInB.notesCount, beforeInB.notesCount + 1, '投稿元(リモートチャンネル)notesCountが1増える');
+				strictEqual(afterInB.usersCount >= beforeInB.usersCount, true, '投稿元(リモートチャンネル)usersCountが減らない');
+				strictEqual(after.notesCount, before.notesCount + 1, '投稿先(ローカルチャンネル)notesCountが1増える');
+				strictEqual(after.usersCount >= before.usersCount, true, '投稿先(ローカルチャンネル)usersCountが減らない');
+			} finally {
+				await bob.client.request('channels/unfollow', { channelId: aliceChInB.id });
+			}
+		});
+
+		test('リモート->リモート: リモートユーザーがリモートチャンネルに投稿すると、チャンネルフォロワーのcountsが更新される', async () => {
+			//alice観測者/bob投稿者/carol管理者
+			await alice.client.request('channels/follow', { channelId: carolChInA.id });
+
+			await waitFor(async () => {
+				const channel = await alice.client.request('channels/show', { channelId: carolChInA.id });
+				return channel.isFollowing ?? false;
+			}, { interval: 200 });
+
+			const before = await alice.client.request('channels/show', { channelId: carolChInA.id });
+
+			await bob.client.request('notes/create', {
+				text: 'remote to remote channel ' + randomUsername(),
+				channelId: carolChInB.id,
+				visibility: 'public',
+			});
+
+			await waitFor(async () => {
+				const after = await alice.client.request('channels/show', { channelId: carolChInA.id });
+				return after.notesCount === before.notesCount + 1;
+			});
+
+			const after = await alice.client.request('channels/show', { channelId: carolChInA.id });
+			try {
+				strictEqual(after.notesCount, before.notesCount + 1, 'notesCountが1増える');
+				strictEqual(after.usersCount >= before.usersCount, true, 'usersCountが減らない');
+			} finally {
+				await alice.client.request('channels/unfollow', { channelId: carolChInA.id });
+			}
 		});
 	});
 });

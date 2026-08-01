@@ -1,3 +1,26 @@
+## 1.9.0
+Cherrypick 4.17.0  
+Misskey 2025.12.2
+
+### Release Date
+2026-08-01
+
+### General
+- Feat: チャンネルにアイコンを設定・表示できるように [#1189](https://github.com/yojo-art/cherrypick/pull/1189)
+- Feat: コンディショナルロールにチャンネルユーザー条件を追加 [#1188](https://github.com/yojo-art/cherrypick/pull/1188)
+
+### Client
+- Enhance: 新しいノート件数が上限に達したとき「100個以上」と表示する [#1150](https://github.com/yojo-art/cherrypick/pull/1150)
+- Change: ナビゲーションバーのデフォルト値をmisskeyと同じに変更 [#1125](https://github.com/yojo-art/cherrypick/pull/1125)
+- Remove: Cherrypickを支援のボタンをサイドバーから削除 [#1147](https://github.com/yojo-art/cherrypick/pull/1147)
+
+### Server
+- Fix: チャンネルの参加人数が間違って表示される問題の修正 [#1238](https://github.com/yojo-art/cherrypick/pull/1238)
+
+### Others
+- ciとtestの各種ファイルをmisskeyに変更 [#1185](https://github.com/yojo-art/cherrypick/pull/1185)
+- Fix: devcontainer用dbコンテナのvolumeのマウントパスを変更 [#1199](https://github.com/yojo-art/cherrypick/pull/1199)
+
 ## 1.8.2
 Cherrypick 4.17.0  
 Misskey 2025.10.2

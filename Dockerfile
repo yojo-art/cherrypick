@@ -1,6 +1,6 @@
 # syntax = docker/dockerfile:1.25
 
-ARG NODE_VERSION=24.16.0-bookworm
+ARG NODE_VERSION=24.18.0-bookworm
 
 # build assets & compile TypeScript
 
@@ -24,6 +24,7 @@ COPY --link ["packages/frontend-shared/package.json", "./packages/frontend-share
 COPY --link ["packages/frontend/package.json", "./packages/frontend/"]
 COPY --link ["packages/frontend-embed/package.json", "./packages/frontend-embed/"]
 COPY --link ["packages/frontend-builder/package.json", "./packages/frontend-builder/"]
+COPY --link ["packages/i18n/package.json", "./packages/i18n/"]
 COPY --link ["packages/icons-subsetter/package.json", "./packages/icons-subsetter/"]
 COPY --link ["packages/sw/package.json", "./packages/sw/"]
 COPY --link ["packages/misskey-js/package.json", "./packages/misskey-js/"]
@@ -77,8 +78,8 @@ RUN apt-get update \
 	&& apt-get install -y --no-install-recommends \
 	ffmpeg tini curl libjemalloc-dev libjemalloc2 \
 	&& ln -s /usr/lib/$(uname -m)-linux-gnu/libjemalloc.so.2 /usr/local/lib/libjemalloc.so \
-	&& groupadd -g "${GID}" cherrypick \
-	&& useradd -l -u "${UID}" -g "${GID}" -m -d /cherrypick cherrypick \
+	&& groupadd -g "${GID}" misskey \
+	&& useradd -l -u "${UID}" -g "${GID}" -m -d /cherrypick misskey \
 	&& find / -type d -path /sys -prune -o -type d -path /proc -prune -o -type f -perm /u+s -ignore_readdir_race -exec chmod u-s {} \; \
 	&& find / -type d -path /sys -prune -o -type d -path /proc -prune -o -type f -perm /g+s -ignore_readdir_race -exec chmod g-s {} \; \
 	&& apt-get clean \
@@ -88,21 +89,22 @@ RUN apt-get update \
 COPY ./package.json ./package.json
 RUN node -e "console.log(JSON.parse(require('node:fs').readFileSync('./package.json')).packageManager)" | xargs npm install -g
 
-USER cherrypick
+USER misskey
 WORKDIR /cherrypick
 
-COPY --chown=cherrypick:cherrypick --from=target-builder /cherrypick/node_modules ./node_modules
-COPY --chown=cherrypick:cherrypick --from=target-builder /cherrypick/packages/backend/node_modules ./packages/backend/node_modules
-COPY --chown=cherrypick:cherrypick --from=target-builder /cherrypick/packages/misskey-js/node_modules ./packages/misskey-js/node_modules
-COPY --chown=cherrypick:cherrypick --from=target-builder /cherrypick/packages/misskey-reversi/node_modules ./packages/misskey-reversi/node_modules
-COPY --chown=cherrypick:cherrypick --from=target-builder /cherrypick/packages/misskey-bubble-game/node_modules ./packages/misskey-bubble-game/node_modules
-COPY --chown=cherrypick:cherrypick --from=native-builder /cherrypick/built ./built
-COPY --chown=cherrypick:cherrypick --from=native-builder /cherrypick/packages/misskey-js/built ./packages/misskey-js/built
-COPY --chown=cherrypick:cherrypick --from=native-builder /cherrypick/packages/misskey-reversi/built ./packages/misskey-reversi/built
-COPY --chown=cherrypick:cherrypick --from=native-builder /cherrypick/packages/misskey-bubble-game/built ./packages/misskey-bubble-game/built
-COPY --chown=cherrypick:cherrypick --from=native-builder /cherrypick/packages/backend/built ./packages/backend/built
-COPY --chown=cherrypick:cherrypick --from=native-builder /cherrypick/fluent-emojis /cherrypick/fluent-emojis
-COPY --chown=cherrypick:cherrypick . ./
+COPY --chown=misskey:misskey --from=target-builder /cherrypick/node_modules ./node_modules
+COPY --chown=misskey:misskey --from=target-builder /cherrypick/packages/backend/node_modules ./packages/backend/node_modules
+COPY --chown=misskey:misskey --from=target-builder /cherrypick/packages/misskey-js/node_modules ./packages/misskey-js/node_modules
+COPY --chown=misskey:misskey --from=target-builder /cherrypick/packages/misskey-reversi/node_modules ./packages/misskey-reversi/node_modules
+COPY --chown=misskey:misskey --from=target-builder /cherrypick/packages/misskey-bubble-game/node_modules ./packages/misskey-bubble-game/node_modules
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/built ./built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/misskey-js/built ./packages/misskey-js/built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/misskey-reversi/built ./packages/misskey-reversi/built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/misskey-bubble-game/built ./packages/misskey-bubble-game/built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/backend/built ./packages/backend/built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/i18n/built ./packages/i18n/built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/fluent-emojis /cherrypick/fluent-emojis
+COPY --chown=misskey:misskey . ./
 
 ENV LD_PRELOAD=/usr/local/lib/libjemalloc.so
 ENV MALLOC_CONF=background_thread:true,metadata_thp:auto,dirty_decay_ms:30000,muzzy_decay_ms:30000

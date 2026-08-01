@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { ChannelsRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -24,6 +25,11 @@ export const meta = {
 			message: 'No such channel.',
 			code: 'NO_SUCH_CHANNEL',
 			id: 'c0031718-d573-4e85-928e-10039f1fbb68',
+		},
+		alreadyFollowing: {
+			message: 'You are already following that channel.',
+			code: 'ALREADY_FOLLOWING',
+			id: '7db31665-651e-40c1-8e6e-28e9ad829a2d',
 		},
 	},
 } as const;
@@ -52,7 +58,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.noSuchChannel);
 			}
 
-			await this.channelFollowingService.follow(me, channel);
+			try {
+				await this.channelFollowingService.follow(me, channel);
+			} catch (e) {
+				if (e instanceof IdentifiableError) {
+					// yojo-art: ChannelFollowingsRepositoryが削除されているため、uuidがmisskeyのものと異なる
+					if (e.id === 'ec3f65c0-a9d1-47d9-8791-b2e7b9dcdced') throw new ApiError(meta.errors.alreadyFollowing);
+				}
+				throw e;
+			}
 		});
 	}
 }

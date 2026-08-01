@@ -289,6 +289,10 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 				case 'isBot': {
 					return user.isBot;
 				}
+				// チャンネルアカウントである
+				case 'isChannel': {
+					return user.channelId != null;
+				}
 				// 猫である
 				case 'isCat': {
 					return user.isCat;

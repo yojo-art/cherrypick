@@ -60,7 +60,7 @@ export const store = markRaw(new Pizzax('base', {
 	tl: {
 		where: 'deviceAccount',
 		default: {
-			src: 'home' as 'home' | 'local' | 'social' | 'global' | 'media' | `list:${string}`,
+			src: 'home' as 'home' | 'local' | 'social' | 'global' | 'media' | 'bubble' | `list:${string}`,
 			userList: null as Misskey.entities.UserList | null,
 			filter: {
 				withReplies: false,
@@ -122,6 +122,10 @@ export const store = markRaw(new Pizzax('base', {
 		default: false,
 	},
 	showPreferencesAutoCloudBackupSuggestion: {
+		where: 'device',
+		default: true,
+	},
+	showStoragePersistenceSuggestion: {
 		where: 'device',
 		default: true,
 	},
@@ -188,16 +192,16 @@ export const store = markRaw(new Pizzax('base', {
 		where: 'deviceAccount',
 		default: [
 			'notifications',
-			'official_tags',
-			'chat',
-			'favorites',
-			'explore',
+			'clips',
+			'drive',
 			'followRequests',
 			'-',
+			'official_tags',
+			'explore',
 			'announcements',
 			'search',
 			'-',
-			'support',
+			'ui',
 		],
 	},
 	statusbars: {
@@ -476,6 +480,10 @@ export const store = markRaw(new Pizzax('base', {
 	sound_reaction: {
 		where: 'device',
 		default: { type: 'syuilo/bubble2', volume: 1 },
+	},
+	sound_chat: {
+		where: 'device',
+		default: { type: 'syuilo/waon', volume: 1 },
 	},
 	dropAndFusion: {
 		where: 'device',
@@ -784,6 +792,10 @@ export const store = markRaw(new Pizzax('base', {
 		default: true,
 	},
 	enableAntennaTimeline: {
+		where: 'device',
+		default: true,
+	},
+	enableChannelTimeline: {
 		where: 'device',
 		default: true,
 	},

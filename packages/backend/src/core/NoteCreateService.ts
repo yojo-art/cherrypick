@@ -965,7 +965,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 			//#endregion
 		}
 
-		if (data.channel) {
+		// yojo-art: チャンネルアカウントの自動リノートは除外する
+		if (data.channel && !user.channelId) {
 			this.channelsRepository.increment({ id: data.channel.id }, 'notesCount', 1);
 			this.channelsRepository.update(data.channel.id, {
 				lastNotedAt: new Date(),

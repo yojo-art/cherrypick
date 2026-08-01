@@ -16,7 +16,7 @@ openssl req -x509 -new -nodes -batch \
 function generate {
   openssl req -new -newkey rsa:2048 -sha256 -nodes \
     -keyout certificates/$1.key \
-    -subj "/CN=$1/emailAddress=admin@$1/C=JP/ST=/L=/O=CherryPick Tester/OU=Some Unit" \
+    -subj "/CN=$1/emailAddress=admin@$1/C=JP/ST=/L=/O=Misskey Tester/OU=Some Unit" \
     -out certificates/$1.csr
   openssl x509 -req -sha256 \
     -in certificates/$1.csr \
@@ -28,7 +28,7 @@ function generate {
     -days 500
   if [ ! -f .config/docker.env ]; then cp .config/example.docker.env .config/docker.env; fi
   if [ ! -f .config/$1.conf ]; then sed "s/\${HOST}/$1/g" .config/example.conf > .config/$1.conf; fi
-  if [ ! -f .config/$1.default.yml ]; then sed "s/\${HOST}/$1/g" .config/example.default.yml > .config/$1.default.yml; fi
+  if [ ! -f .config/$1.config.json ]; then sed "s/\${HOST}/$1/g" .config/example.config.json > .config/$1.config.json; fi
 }
 
 function generate_stub {

@@ -43,6 +43,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkSwitch>
 
 			<div>
+				<MkButton v-if="iconId == null && iconUrl == null" @click="setIconImage"><i class="ti ti-plus"></i> {{ i18n.ts._channel.setIcon }}</MkButton>
+				<div v-else-if="iconUrl" :class="$style.iconPreview">
+					<img :src="iconUrl" :class="$style.iconImage"/>
+					<MkButton @click="removeIconImage()"><i class="ti ti-trash"></i> {{ i18n.ts._channel.removeIcon }}</MkButton>
+				</div>
+			</div>
+
+			<div>
 				<MkButton v-if="bannerId == null" @click="setBannerImage"><i class="ti ti-plus"></i> {{ i18n.ts._channel.setBanner }}</MkButton>
 				<div v-else-if="bannerUrl">
 					<img :src="bannerUrl" style="width: 100%;"/>
@@ -90,7 +98,7 @@ import * as config from '@@/js/config.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkColorInput from '@/components/MkColorInput.vue';
-import { selectFile } from '@/utility/drive.js';
+import { selectFile, chooseDriveFile } from '@/utility/drive.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
@@ -113,6 +121,8 @@ const name = ref<string>('');
 const description = ref<string | null>(null);
 const bannerUrl = ref<string | null>(null);
 const bannerId = ref<string | null>(null);
+const iconUrl = ref<string | null>(null);
+const iconId = ref<string | null | undefined>(undefined);
 const color = ref('#000');
 const isSensitive = ref(false);
 const allowRenoteToExternal = ref(true);
@@ -129,6 +139,18 @@ watch(() => bannerId.value, async () => {
 	} else {
 		bannerUrl.value = (await misskeyApi('drive/files/show', {
 			fileId: bannerId.value,
+		})).url;
+	}
+});
+
+watch(() => iconId.value, async () => {
+	if (iconId.value == null) {
+		if (iconId.value === null) {
+			iconUrl.value = null;
+		}
+	} else {
+		iconUrl.value = (await misskeyApi('drive/files/show', {
+			fileId: iconId.value,
 		})).url;
 	}
 });
@@ -184,6 +206,8 @@ async function fetchChannel() {
 	description.value = result.description;
 	bannerId.value = result.bannerId;
 	bannerUrl.value = result.bannerUrl;
+	iconId.value = undefined;
+	iconUrl.value = result.iconUrl;
 	isSensitive.value = result.isSensitive;
 	pinnedNotes.value = result.pinnedNoteIds.map(id => ({
 		id,
@@ -220,6 +244,7 @@ function save() {
 		username: username.value,
 		description: description.value,
 		bannerId: bannerId.value,
+		...(iconId.value !== undefined ? { iconId: iconId.value } : {}),
 		color: color.value,
 		isSensitive: isSensitive.value,
 		allowRenoteToExternal: allowRenoteToExternal.value,
@@ -273,6 +298,56 @@ function removeBannerImage() {
 	bannerId.value = null;
 }
 
+function setIconImage(ev) {
+	async function done(driveFile: Misskey.entities.DriveFile) {
+		iconId.value = driveFile.id;
+		iconUrl.value = driveFile.url;
+	}
+
+	os.popupMenu([{
+		text: i18n.ts._channel.setIcon,
+		type: 'label',
+	}, {
+		text: i18n.ts.upload,
+		icon: 'ti ti-upload',
+		action: async () => {
+			const files = await os.chooseFileFromPc({ multiple: false });
+			const file = files[0];
+
+			let originalOrCropped = file;
+
+			const { canceled } = await os.confirm({
+				type: 'question',
+				text: i18n.ts.cropImageAsk,
+				okText: i18n.ts.cropYes,
+				cancelText: i18n.ts.cropNo,
+			});
+
+			if (!canceled) {
+				originalOrCropped = await os.cropImageFile(file, {
+					aspectRatio: 1,
+				});
+			}
+
+			const driveFile = (await os.launchUploader([originalOrCropped], { multiple: false }))[0];
+			done(driveFile);
+		},
+	}, {
+		text: i18n.ts.fromDrive,
+		icon: 'ti ti-cloud',
+		action: () => {
+			chooseDriveFile({ multiple: false }).then(files => {
+				done(files[0]);
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
+}
+
+function removeIconImage() {
+	iconId.value = null;
+	iconUrl.value = null;
+}
+
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
@@ -284,6 +359,20 @@ definePage(() => ({
 </script>
 
 <style lang="scss" module>
+.iconPreview {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.iconImage {
+	width: 96px;
+	height: 96px;
+	object-fit: cover;
+	border-radius: 8px;
+}
+
 .pinnedNote {
 	position: relative;
 	display: block;

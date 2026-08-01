@@ -4,52 +4,40 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div class="_gaps dslkjkwejflew" :class="{['_spacer']: !props.noGap }">
+<div class="_gaps">
 	<MkInput v-model="value.name" :readonly="!props.editable">
 		<template #label>{{ i18n.ts.name }}</template>
 	</MkInput>
-
 	<div>
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.targetUserPattern }}</div>
-		<PrismEditor v-model="value.targetUserPattern" placeholder="^(LocalUser|RemoteUser@RemoteHost)$" class="_code code" :class="$style.highlight" :highlight="highlighter" :lineNumbers="false" :ignoreTabKey="true" :readonly="!props.editable"/>
+		<MkCodeEditor v-model="value.targetUserPattern" lang="js" placeholder="^(LocalUser|RemoteUser@RemoteHost)$" :readonly="!props.editable"/>
 	</div>
-
 	<div>
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.reporterPattern }}</div>
-		<PrismEditor v-model="value.reporterPattern" placeholder="^(LocalUser|.*@RemoteHost)$" class="_code code" :class="$style.highlight" :highlight="highlighter" :lineNumbers="false" :ignoreTabKey="true" :readonly="!props.editable"/>
+		<MkCodeEditor v-model="value.reporterPattern" lang="js" placeholder="^(LocalUser|.*@RemoteHost)$" :readonly="!props.editable"/>
 	</div>
-
 	<div>
 		<div :class="$style.label">{{ i18n.ts._abuse._resolver.reportContentPattern }}</div>
-		<PrismEditor v-model="value.reportContentPattern" placeholder=".*" class="_code code" :class="$style.highlight" :highlight="highlighter" :lineNumbers="false" :ignoreTabKey="true" :readonly="!props.editable"/>
+		<MkCodeEditor v-model="value.reportContentPattern" lang="js" placeholder=".*" :readonly="!props.editable"/>
 	</div>
-
 	<MkSelect v-model="value.expiresAt" :disabled="!props.editable" :items="expiresAtDef">
 		<template #label>{{ i18n.ts._abuse._resolver.expiresAt }}<span v-if="expirationDate" style="float: right;"><MkDate :time="expirationDate" mode="absolute">{{ expirationDate }}</MkDate></span></template>
 	</MkSelect>
-
 	<MkSwitch v-model="value.forward" :disabled="!props.editable">
-		{{ i18n.ts.forwardReport }}
-		<template #caption>{{ i18n.ts.forwardReportIsAnonymous }}</template>
+		{{ i18n.ts._abuseUserReport.forwardReport }}
+		<template #caption>{{ i18n.ts._abuseUserReport.forwardReportIsAnonymous }}</template>
 	</MkSwitch>
-
 	<slot name="button"></slot>
 </div>
 </template>
-
 <script lang="ts" setup>
-import { computed, ref, watch } from 'vue';
-import { PrismEditor } from 'vue-prism-editor';
-import { highlight, languages } from 'prismjs/components/prism-core';
+import { computed, watch, ref } from 'vue';
 import type { MkSelectItem } from '@/components/MkSelect.vue';
+import MkCodeEditor from '@/components/MkCodeEditor.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import { i18n } from '@/i18n.js';
-import 'vue-prism-editor/dist/prismeditor.min.css';
-import 'prismjs/components/prism-clike';
-import 'prismjs/components/prism-regex';
-import 'prismjs/themes/prism-okaidia.css';
 
 const props = defineProps<{
 	modelValue?: {
@@ -73,7 +61,6 @@ const props = defineProps<{
 		forward: boolean;
 		previousExpiresAt?: string;
 	}
-	noGap?: boolean;
 }>();
 const expirationDate = ref<Date | null>(null);
 
@@ -127,10 +114,6 @@ const expiresAtDef = computed(() => {
 	return items;
 });
 
-function highlighter(code) {
-	return highlight(code, languages.regex);
-}
-
 function renderExpirationDate(empty = false) {
 	if (value.value.expirationDate && !empty) {
 		expirationDate.value = new Date(value.value.expirationDate);
@@ -146,27 +129,14 @@ watch(() => props.editable, () => {
 		value.value.previousExpiresAt = value.value.expiresAt;
 	}
 });
+
 </script>
-
-<style lang="scss" scoped>
-.dslkjkwejflew .prism-editor__textarea {
-	padding-left: 10px !important;
-	padding-bottom: 10px !important;
-}
-
-.dslkjkwejflew .prism-editor__editor {
-	padding-left: 10px !important;
-	padding-bottom: 10px !important;
-}
-</style>
-
 <style lang="scss" module>
 .label {
 	font-size: 0.85em;
 	padding: 0 0 8px 0;
 	user-select: none;
 }
-
 .highlight {
 	padding: 0;
 	position: relative;

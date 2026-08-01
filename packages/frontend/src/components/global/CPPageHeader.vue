@@ -55,8 +55,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</template>
 	</div>
 	<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"/>
-	<div v-if="pageMetadata && pageMetadata.avatar && ($i && $i.id !== pageMetadata.userName?.id) && !disableFollowButton" :class="$style.followButton">
-		<MkFollowButton v-if="mainRouter.currentRoute.value.name === 'user'" :user="pageMetadata.avatar" :transparent="false" :full="!narrow"/>
+	<div v-if="pageMetadata && avatarUser && ($i && $i.id !== pageMetadata.userName?.id) && !disableFollowButton" :class="$style.followButton">
+		<MkFollowButton v-if="mainRouter.currentRoute.value.name === 'user'" :user="avatarUser" :transparent="false" :full="!narrow"/>
 	</div>
 </div>
 </template>
@@ -88,6 +88,7 @@ export type PageHeaderProps = {
 
 <script lang="ts" setup>
 import { onMounted, onUnmounted, ref, inject, watch, nextTick, useTemplateRef, computed } from 'vue';
+import * as Misskey from 'misskey-js';
 import { getScrollPosition, scrollToTop } from '@@/js/scroll.js';
 import { globalEvents } from '@/events.js';
 import { getAccountMenu } from '@/accounts.js';
@@ -116,6 +117,13 @@ const emit = defineEmits<{
 //const viewId = inject(DI.viewId);
 const injectedPageMetadata = inject(DI.pageMetadata, ref(null));
 const pageMetadata = computed(() => props.overridePageMetadata ?? injectedPageMetadata.value);
+
+const avatarUser = computed(() => {
+	if (pageMetadata.value?.avatar && 'bannerUrl' in pageMetadata.value.avatar) {
+		return pageMetadata.value.avatar as Misskey.entities.UserDetailed;
+	}
+	return null;
+});
 
 const hideTitle = computed(() => false);
 const thin_ = props.thin || inject('shouldHeaderThin', false);
