@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkModal v-if="!showChangelog" ref="modal" preferType="dialog" :zPriority="'middle'" @click="modal?.close()" @closed="$emit('closed')">
+<MkModal v-if="!showChangelog" ref="modal" preferType="dialog" :zPriority="'middle'" @click="modal?.close()" @closed="emit('closed')">
 	<div :class="$style.root">
 		<div style="display: grid;">
 			<Mfm text="$[tada 🎉]"/>
@@ -50,6 +50,10 @@ import * as os from '@/os.js';
 const showChangelog = ref(false);
 
 const modal = useTemplateRef('modal');
+
+const emit = defineEmits<{
+	(ev: 'closed'): void;
+}>();
 
 const isBeta = version.includes('-beta') || version.includes('-alpha') || version.includes('-rc');
 

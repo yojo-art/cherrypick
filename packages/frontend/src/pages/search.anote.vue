@@ -12,12 +12,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkFoldableSection :expanded="true">
 			<template #header>{{ i18n.ts.options }}</template>
 			<div class="_gaps_m">
-				<MkRadios v-model="searchOrigin" @update:modelValue="search()">
+				<MkRadios v-model="searchOrigin" :options="[
+					{ value: 'combined', label: i18n.ts.all },
+					{ value: 'local', label: i18n.ts.local },
+					...noteSearchableScope == 'global' ? [
+						{ value: 'remote', label: i18n.ts.remote },
+						{ value: 'specified', label: i18n.ts.specifyHost },
+					] : [],
+				]" @update:modelValue="search()">
 					<template #label>{{ i18n.ts.host }}</template>
-					<option value="combined" default>{{ i18n.ts.all }}</option>
-					<option value="local">{{ i18n.ts.local }}</option>
-					<option v-if="noteSearchableScope == 'global'" value="remote">{{ i18n.ts.remote }}</option>
-					<option v-if="noteSearchableScope == 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
 				</MkRadios>
 				<MkInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="user != null || searchOrigin == 'combined' || searchOrigin == 'local' || searchOrigin === 'remote'" :large="true" type="search" @enter.prevent="search">
 					<template #prefix><i class="ti ti-server"></i></template>
@@ -36,23 +39,23 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._fileOption.title }}</template>
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
-								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
-								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
-							</MkRadios>
+							<MkRadios v-model="isfileOnly" :options="[
+								{ value: 'combined', label: i18n.ts._advancedSearch._fileOption.combined },
+								{ value: 'file-only', label: i18n.ts._advancedSearch._fileOption.fileAttachedOnly },
+								{ value: 'no-file', label: i18n.ts._advancedSearch._fileOption.noFile },
+							]" @update:modelValue="search()"></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._fileNsfwOption.title }}</template>
 
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="sensitiveFilter" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._fileNsfwOption.combined }}</option>
-								<option value="withOutSensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive }}</option>
-								<option value="includeSensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.includeSensitive }}</option>
-								<option value="sensitiveOnly">{{ i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly }}</option>
-							</MkRadios>
+							<MkRadios v-model="sensitiveFilter" :options="[
+								{ value: 'combined', label: i18n.ts._advancedSearch._fileNsfwOption.combined },
+								{ value: 'withOutSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive },
+								{ value: 'includeSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.includeSensitive },
+								{ value: 'sensitiveOnly', label: i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly },
+							]" @update:modelValue="search()"></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
@@ -69,11 +72,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._followingFilter.title }}</template>
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="followingFilter" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._followingFilter.combined }}</option>
-								<option value="following">{{ i18n.ts._advancedSearch._followingFilter.following }}</option>
-								<option value="notFollowing">{{ i18n.ts._advancedSearch._followingFilter.notFollowing }}</option>
-							</MkRadios>
+							<MkRadios v-model="followingFilter" :options="[
+								{ value: 'combined', label: i18n.ts._advancedSearch._followingFilter.combined },
+								{ value: 'following', label: i18n.ts._advancedSearch._followingFilter.following },
+								{ value: 'notFollowing', label: i18n.ts._advancedSearch._followingFilter.notFollowing },
+							]" @update:modelValue="search()"></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>

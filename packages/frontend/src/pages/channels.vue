@@ -12,9 +12,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #prefix><i class="ti ti-search"></i></template>
 					<template v-if="searchQuery != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="searchQuery = ''; searchQueryEl?.focus();"><i class="ti ti-x"></i></button></template>
 				</MkInput>
-				<MkRadios v-model="searchType" @update:modelValue="search()">
-					<option value="nameAndDescription">{{ i18n.ts._channel.nameAndDescription }}</option>
-					<option value="nameOnly">{{ i18n.ts._channel.nameOnly }}</option>
+				<MkRadios
+					v-model="searchType"
+					:options="[
+						{ value: 'nameAndDescription', label: i18n.ts._channel.nameAndDescription },
+						{ value: 'nameOnly', label: i18n.ts._channel.nameOnly },
+					]"
+					@update:modelValue="search()"
+				>
 				</MkRadios>
 				<MkButton large primary gradate rounded @click="search">{{ i18n.ts.search }}</MkButton>
 			</div>
@@ -74,15 +79,17 @@ import { $i } from '@/i.js';
 
 const router = useRouter();
 
+type SearchType = 'nameAndDescription' | 'nameOnly';
+
 const props = defineProps<{
 	query: string;
-	type?: string;
+	type?: SearchType;
 }>();
 
 const key = ref('');
 const tab = ref('featured');
 const searchQuery = ref('');
-const searchType = ref('nameAndDescription');
+const searchType = ref<SearchType>('nameAndDescription');
 const channelPaginator = shallowRef();
 
 const searchQueryEl = useTemplateRef('searchQueryEl');

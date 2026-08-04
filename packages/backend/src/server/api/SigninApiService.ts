@@ -244,7 +244,7 @@ export class SigninApiService {
 					});
 				}
 				await this.userAuthService.twoFactorAuthenticate(profile, token);
-			} catch (e) {
+			} catch (_) {
 				return await fail(403, {
 					id: 'cdf1235b-ac71-46d4-a3a6-84ccce48df6f',
 				});

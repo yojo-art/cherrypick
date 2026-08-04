@@ -162,7 +162,7 @@ const headerTabs = computed(() => user.value ? [{
 	icon: 'ti ti-code',
 }] : []);
 
-function menu(ev) {
+function menu(ev: MouseEvent) {
 	if (!user.value) return;
 	const { menu, cleanup } = getUserMenu(user.value, mainRouter);
 	os.popupMenu(menu, ev.currentTarget ?? ev.target).finally(cleanup);
