@@ -176,7 +176,7 @@ import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { deepClone } from '@/utility/clone.js';
-import { ensureSignin, $i } from '@/i.js';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { userPage } from '@/filters/user.js';
@@ -188,8 +188,6 @@ import { genId } from '@/utility/id.js';
 import { prefer } from '@/preferences.js';
 import { getStaticImageUrl } from '@/utility/media-proxy.js';
 import { store } from '@/store.js';
-
-//const $i = ensureSignin();
 
 const props = defineProps<{
 	game: Misskey.entities.ReversiGameDetailed;
@@ -357,7 +355,7 @@ if (!props.game.isEnded) {
 	}, TIMER_INTERVAL_SEC * 1000, { immediate: false, afterMounted: true });
 }
 
-async function onStreamLog(log) {
+async function onStreamLog(log: Reversi.Serializer.Log & { id: string | null }) {
 	game.value.logs = Reversi.Serializer.serializeLogs([
 		...Reversi.Serializer.deserializeLogs(game.value.logs),
 		log,
@@ -397,7 +395,10 @@ async function onStreamLog(log) {
 	}
 }
 
-function onStreamEnded(x) {
+function onStreamEnded(x: {
+	winnerId: Misskey.entities.User['id'] | null;
+	game: Misskey.entities.ReversiGameDetailed;
+}) {
 	game.value = deepClone(x.game);
 
 	if (game.value.winnerId === $i?.id) {
@@ -433,7 +434,7 @@ function checkEnd() {
 	}
 }
 
-function restoreGame(_game) {
+function restoreGame(_game: Misskey.entities.ReversiGameDetailed) {
 	game.value = deepClone(_game);
 
 	engine.value = Reversi.Serializer.restoreGame({

@@ -182,7 +182,7 @@ const searchUsernameEl = ref(null);
 const searchHostEl = ref(null);
  */
 
-function resolved(reportId) {
+function resolved(reportId: string) {
 	paginator.removeItem(reportId);
 }
 

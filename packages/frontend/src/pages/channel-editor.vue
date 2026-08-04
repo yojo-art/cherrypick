@@ -64,20 +64,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div class="_gaps">
 					<MkButton primary rounded @click="addPinnedNote()"><i class="ti ti-plus"></i></MkButton>
 
-					<Sortable
-						v-model="pinnedNotes"
-						itemKey="id"
-						:handle="'.' + $style.pinnedNoteHandle"
-						:animation="150"
+					<MkDraggable
+						:modelValue="pinnedNoteIds.map(id => ({ id }))"
+						direction="vertical"
+						@update:modelValue="v => pinnedNoteIds = v.map(x => x.id)"
 					>
-						<template #item="{element,index}">
+						<template #default="{ item }">
 							<div :class="$style.pinnedNote">
 								<button class="_button" :class="$style.pinnedNoteHandle"><i class="ti ti-menu"></i></button>
-								{{ element.id }}
-								<button class="_button" :class="$style.pinnedNoteRemove" @click="removePinnedNote(index)"><i class="ti ti-x"></i></button>
+								{{ item.id }}
+								<button class="_button" :class="$style.pinnedNoteRemove" @click="removePinnedNote(item.id)"><i class="ti ti-x"></i></button>
 							</div>
 						</template>
-					</Sortable>
+					</MkDraggable>
 				</div>
 			</MkFolder>
 
@@ -91,7 +90,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, defineAsyncComponent } from 'vue';
+import { computed, ref, watch } from 'vue';
 import * as Misskey from 'misskey-js';
 import { toUnicode } from 'punycode.js';
 import * as config from '@@/js/config.js';
@@ -106,9 +105,8 @@ import { i18n } from '@/i18n.js';
 import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
+import MkDraggable from '@/components/MkDraggable.vue';
 import { useRouter } from '@/router.js';
-
-const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 
 const router = useRouter();
 
@@ -126,7 +124,7 @@ const iconId = ref<string | null | undefined>(undefined);
 const color = ref('#000');
 const isSensitive = ref(false);
 const allowRenoteToExternal = ref(true);
-const pinnedNotes = ref<{ id: Misskey.entities.Note['id'] }[]>([]);
+const pinnedNoteIds = ref<Misskey.entities.Note['id'][]>([]);
 
 const host = toUnicode(config.host);
 const username = ref<string>('');
@@ -209,9 +207,7 @@ async function fetchChannel() {
 	iconId.value = undefined;
 	iconUrl.value = result.iconUrl;
 	isSensitive.value = result.isSensitive;
-	pinnedNotes.value = result.pinnedNoteIds.map(id => ({
-		id,
-	}));
+	pinnedNoteIds.value = result.pinnedNoteIds;
 	color.value = result.color;
 	allowRenoteToExternal.value = result.allowRenoteToExternal;
 
@@ -229,13 +225,11 @@ async function addPinnedNote() {
 	const note = await os.apiWithDialog('notes/show', {
 		noteId: fromUrl ?? value,
 	});
-	pinnedNotes.value = [{
-		id: note.id,
-	}, ...pinnedNotes.value];
+	pinnedNoteIds.value.unshift(note.id);
 }
 
-function removePinnedNote(index: number) {
-	pinnedNotes.value.splice(index, 1);
+function removePinnedNote(id: string) {
+	pinnedNoteIds.value = pinnedNoteIds.value.filter(x => x !== id);
 }
 
 function save() {
@@ -254,7 +248,7 @@ function save() {
 		os.apiWithDialog('channels/update', {
 			...params,
 			channelId: props.channelId,
-			pinnedNoteIds: pinnedNotes.value.map(x => x.id),
+			pinnedNoteIds: pinnedNoteIds.value,
 		});
 	} else {
 		os.apiWithDialog('channels/create', params).then(created => {
@@ -285,7 +279,7 @@ async function archive() {
 	});
 }
 
-function setBannerImage(evt) {
+function setBannerImage(evt: PointerEvent) {
 	selectFile({
 		anchorElement: evt.currentTarget ?? evt.target,
 		multiple: false,
@@ -298,7 +292,7 @@ function removeBannerImage() {
 	bannerId.value = null;
 }
 
-function setIconImage(ev) {
+function setIconImage(ev: MouseEvent) {
 	async function done(driveFile: Misskey.entities.DriveFile) {
 		iconId.value = driveFile.id;
 		iconUrl.value = driveFile.url;

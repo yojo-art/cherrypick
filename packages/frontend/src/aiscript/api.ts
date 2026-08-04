@@ -198,8 +198,8 @@ export function createAiScriptEnv(opts: { storageKey: string, token?: string }) 
 				return val;
 			}).filter(val => MkPermissions.includes(val as any));
 
-			return await new Promise<values.Value>(async (resolve: (v: values.Value) => void) => {
-				await os.popup(defineAsyncComponent(() => import('@/components/MkFlashRequestTokenDialog.vue')), {
+			return await new Promise<values.Value>((resolve: (v: values.Value) => void) => {
+				os.popup(defineAsyncComponent(() => import('@/components/MkFlashRequestTokenDialog.vue')), {
 					permissions,
 				}, {
 					accept: () => {

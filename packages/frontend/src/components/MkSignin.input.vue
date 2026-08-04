@@ -79,7 +79,7 @@ const props = withDefaults(defineProps<{
 
 const emit = defineEmits<{
 	(ev: 'usernameSubmitted', v: string): void;
-	(ev: 'passkeyClick', v: MouseEvent): void;
+	(ev: 'passkeyClick', v: PointerEvent): void;
 }>();
 
 const host = toUnicode(configHost);

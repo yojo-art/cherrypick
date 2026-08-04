@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :data-is-hidden="hide ? 'true' : 'false'" :class="[hide ? $style.hidden : $style.visible, (image.isSensitive && prefer.s.highlightSensitiveMedia) && $style.sensitive]" @click="reveal($event)" @dblclick="onDblClick">
+<div :data-is-hidden="hide ? 'true' : 'false'" :class="[hide ? $style.hidden : $style.visible, (image.isSensitive && prefer.s.highlightSensitiveMedia) && $style.sensitive]" @click="reveal" @contextmenu.stop="onContextmenu($event)" @dblclick="onDblClick">
 	<component
 		:is="(disableImageLink || hide) ? 'div' : 'a'"
 		v-bind="(disableImageLink || hide) ? {
@@ -82,8 +82,7 @@ import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
 import { $i, iAmModerator } from '@/i.js';
 import { prefer } from '@/preferences.js';
-import MkRippleEffect from '@/components/MkRippleEffect.vue';
-import { confirmR18, wasConfirmR18 } from '@/utility/check-r18.js';
+import { shouldHideFileByDefault, canRevealFile } from '@/utility/sensitive-file.js';
 
 const props = withDefaults(defineProps<{
 	image: Misskey.entities.DriveFile;
@@ -117,35 +116,26 @@ const clickToShowMessage = computed(() => prefer.s.nsfwOpenBehavior === 'click'
 		: '',
 );
 
-async function reveal(ev: MouseEvent) {
+async function reveal(ev: PointerEvent) {
 	if (!props.controls) {
 		return;
 	}
 
 	if (hide.value) {
 		ev.stopPropagation();
-		if (props.image.isSensitive && !await confirmR18()) return;
-		if (props.image.isSensitive && prefer.s.confirmWhenRevealingSensitiveMedia) {
-			const { canceled } = await os.confirm({
-				type: 'question',
-				text: i18n.ts.sensitiveMediaRevealConfirm,
-			});
-			if (canceled) return;
-			hide.value = false;
+		if (!(await canRevealFile(props.image, { ev }))) {
+			return;
 		}
-	}
 
-	if (prefer.s.nsfwOpenBehavior === 'doubleClick') {
-		const { dispose } = os.popup(MkRippleEffect, { x: ev.clientX, y: ev.clientY }, {
-			end: () => dispose(),
-		});
+		hide.value = false;
 	}
-	if (prefer.s.nsfwOpenBehavior === 'click') hide.value = false;
 }
 
 async function onDblClick() {
 	if (!props.controls) return;
-	if (props.image.isSensitive && !await confirmR18()) return;
+	if (!(await canRevealFile(props.image, { isDoubleClick: true }))) {
+		return;
+	}
 	if (hide.value && prefer.s.nsfwOpenBehavior === 'doubleClick') hide.value = false;
 }
 
@@ -156,24 +146,14 @@ function resetTimer() {
 }
 
 // Plugin:register_note_view_interruptor を使って書き換えられる可能性があるためwatchする
-watch(() => props.image, () => {
-	if (prefer.s.nsfw === 'force' || prefer.s.dataSaver.media) {
-		hide.value = true;
-	} else if (props.image.isSensitive) {
-		if (prefer.s.nsfw !== 'ignore') {
-			hide.value = true;
-		} else {
-			hide.value = !wasConfirmR18();
-		}
-	} else {
-		hide.value = false;
-	}
+watch(() => props.image, (newImage) => {
+	hide.value = shouldHideFileByDefault(newImage);
 }, {
 	deep: true,
 	immediate: true,
 });
 
-function showMenu(ev: MouseEvent) {
+function getMenu() {
 	const menuItems: MenuItem[] = [];
 
 	menuItems.push({
@@ -238,7 +218,15 @@ function showMenu(ev: MouseEvent) {
 		});
 	}
 
-	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
+	return menuItems;
+}
+
+function showMenu(ev: PointerEvent) {
+	os.popupMenu(getMenu(), (ev.currentTarget ?? ev.target ?? undefined) as HTMLElement | undefined);
+}
+
+function onContextmenu(ev: PointerEvent) {
+	os.contextMenu(getMenu(), ev);
 }
 
 onMounted(() => {

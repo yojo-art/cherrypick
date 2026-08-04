@@ -48,10 +48,11 @@ async function describe(file: Misskey.entities.DriveFile) {
 }
 
 function move(file: Misskey.entities.DriveFile) {
-	selectDriveFolder(null).then(folder => {
+	selectDriveFolder(null).then(({ canceled, folders }) => {
+		if (canceled) return;
 		misskeyApi('drive/files/update', {
 			fileId: file.id,
-			folderId: folder[0] ? folder[0].id : null,
+			folderId: folders[0] ? folders[0].id : null,
 		}).then(updated => {
 			globalEvents.emit('driveFilesUpdated', [updated]);
 		});
@@ -97,7 +98,7 @@ async function deleteFile(file: Misskey.entities.DriveFile) {
 }
 
 export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Misskey.entities.DriveFolder | null): MenuItem[] {
-	const isImage = file.type.startsWith('image/');
+	const _isImage = file.type.startsWith('image/');
 
 	const menuItems: MenuItem[] = [];
 
@@ -124,7 +125,7 @@ export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Miss
 		action: () => describe(file),
 	});
 
-	if (isImage) {
+	if (_isImage) {
 		menuItems.push({
 			text: i18n.ts.preview,
 			icon: 'ti ti-photo-search',
