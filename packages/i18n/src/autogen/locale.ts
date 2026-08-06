@@ -11989,7 +11989,7 @@ export interface Locale extends ILocale {
              */
             "account_title": string;
             /**
-             * 投稿するアカウントを切り替えたり、アカウントに保存した下書き・予約投稿を一覧できます。
+             * 投稿するアカウントを切り替えられます。
              */
             "account_description": string;
             /**
@@ -12005,7 +12005,7 @@ export interface Locale extends ILocale {
              */
             "menu_title": string;
             /**
-             * 下書きへの保存、投稿の予約、リアクションの設定など、その他のアクションが行えます。
+             * 下書きの保存・一覧、投稿の予約、リアクションの設定など、その他のアクションが行えます。
              */
             "menu_description": string;
             /**
