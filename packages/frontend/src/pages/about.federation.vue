@@ -33,6 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, markRaw, ref, useTemplateRef } from 'vue';
+import * as Misskey from 'misskey-js';
 import MkInput from '@/components/MkInput.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkPagination from '@/components/MkPagination.vue';
@@ -103,7 +104,7 @@ const paginator = markRaw(new Paginator('federation/instances', {
 
 const hostEl = useTemplateRef('hostEl');
 
-function getStatus(instance) {
+function getStatus(instance: Misskey.entities.FederationInstance) {
 	if (instance.isSuspended) return 'Suspended';
 	if (instance.isBlocked) return 'Blocked';
 	if (instance.isSilenced) return 'Silenced';

@@ -259,6 +259,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { nextTick, onBeforeUnmount, onMounted, ref, useTemplateRef, computed } from 'vue';
 import { host, version, basedMisskeyVersion, gitHash, basedCherrypickVersion } from '@@/js/config.js';
+import { DEFAULT_EMOJIS } from '@@/js/const.js';
 import FormLink from '@/components/form/link.vue';
 import FormSection from '@/components/form/section.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -588,7 +589,12 @@ const whatIsNewMisskey = () => {
 
 function iconLoaded() {
 	if (containerEl.value == null) return;
-	const emojis = prefer.s.emojiPalettes[0].emojis;
+	const emojis = prefer.s.emojiPalettes[0]?.emojis ?? [];
+
+	if (emojis.length < DEFAULT_EMOJIS.length) {
+		emojis.push(...DEFAULT_EMOJIS.slice(0, DEFAULT_EMOJIS.length - emojis.length));
+	}
+
 	const containerWidth = containerEl.value.offsetWidth;
 	for (let i = 0; i < 32; i++) {
 		easterEggEmojis.value.push({

@@ -18,6 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref } from 'vue';
 import XColumn from './column.vue';
 import type { Column } from '@/deck.js';
+import type { Widget } from '@/components/MkWidgets.vue';
 import { addColumnWidget, removeColumnWidget, setColumnWidgets, updateColumnWidget } from '@/deck.js';
 import XWidgets from '@/components/MkWidgets.vue';
 import { i18n } from '@/i18n.js';
@@ -29,19 +30,19 @@ const props = defineProps<{
 
 const edit = ref(false);
 
-function addWidget(widget) {
+function addWidget(widget: Widget) {
 	addColumnWidget(props.column.id, widget);
 }
 
-function removeWidget(widget) {
+function removeWidget(widget: Widget) {
 	removeColumnWidget(props.column.id, widget);
 }
 
-function updateWidget({ id, data }) {
-	updateColumnWidget(props.column.id, id, data);
+function updateWidget(widget: { id: Widget['id']; data: Widget['data']; }) {
+	updateColumnWidget(props.column.id, widget.id, widget.data);
 }
 
-function updateWidgets(widgets) {
+function updateWidgets(widgets: Widget[]) {
 	setColumnWidgets(props.column.id, widgets);
 }
 

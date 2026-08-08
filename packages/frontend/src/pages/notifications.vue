@@ -25,6 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, markRaw, ref } from 'vue';
 import { notificationTypes } from 'misskey-js';
+import type { PageHeaderItem } from '@/types/page-header.js';
 import MkStreamingNotificationsTimeline from '@/components/MkStreamingNotificationsTimeline.vue';
 import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 import * as os from '@/os.js';
@@ -56,7 +57,7 @@ const directNotesPaginator = markRaw(new Paginator('notes/mentions', {
 	},
 }));
 
-function setFilter(ev) {
+function setFilter(ev: PointerEvent) {
 	const typeItems = notificationTypes.map(t => ({
 		text: i18n.ts._notification._types[t],
 		active: (includeTypes.value && includeTypes.value.includes(t)) ?? false,
@@ -74,7 +75,7 @@ function setFilter(ev) {
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
-const headerActions = computed(() => [deviceKind === 'desktop' && !props.disableRefreshButton ? {
+const headerActions = computed<PageHeaderItem[]>(() => ([deviceKind === 'desktop' && !props.disableRefreshButton ? {
 	icon: 'ti ti-refresh',
 	text: i18n.ts.reload,
 	handler: (ev: Event) => {
@@ -97,7 +98,7 @@ const headerActions = computed(() => [deviceKind === 'desktop' && !props.disable
 	handler: () => {
 		flushNotification();
 	},
-} : undefined].filter(x => x !== undefined));
+} : undefined] as (PageHeaderItem | undefined)[]).filter(x => x !== undefined));
 
 const headerTabs = computed(() => [{
 	key: 'all',

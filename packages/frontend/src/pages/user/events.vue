@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				>
 				</MkTab>
 			</template>
-			<MkNotesTimeline :noGap="!prefer.s.showGapBetweenNotesInTimeline" :paginator="eventsPaginator" :class="$style.tl" :getDate="include === 'upcoming' ? note => note.event.start : undefined "/>
+			<MkNotesTimeline :noGap="!prefer.s.showGapBetweenNotesInTimeline" :paginator="eventsPaginator" :class="$style.tl" :getDate="include === 'upcoming' ? (note: Misskey.entities.Note) => note.event?.start : undefined "/>
 		</MkStickyContainer>
 	</div>
 </div>

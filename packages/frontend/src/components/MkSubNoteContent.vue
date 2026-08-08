@@ -449,7 +449,7 @@ function react(): void {
 	}
 }
 
-async function toggleReaction(reaction) {
+async function toggleReaction(reaction: string) {
 	const oldReaction = $note.myReaction;
 	if (oldReaction) {
 		const confirm = await os.confirm({

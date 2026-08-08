@@ -44,13 +44,14 @@ import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
 import { userPage } from '@/filters/user.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
+import * as Misskey from 'misskey-js';
 
 const props = defineProps<{
 	groupId: string;
 }>();
 
 const group = ref();
-const users = ref();
+const users = ref<Misskey.entities.UserDetailed[]>();
 
 function fetchGroup() {
 	misskeyApi('users/groups/show', {
@@ -60,7 +61,7 @@ function fetchGroup() {
 		misskeyApi('users/show', {
 			userIds: group.value.userIds,
 		}).then(_users => {
-			users.value = _users;
+			users.value = _users as Misskey.entities.UserDetailed[];
 		});
 	});
 }
@@ -74,7 +75,7 @@ function invite() {
 	});
 }
 
-async function removeUser(user) {
+async function removeUser(user: Misskey.entities.UserDetailed) {
 	const { canceled } = await os.confirm({
 		type: 'warning',
 		text: i18n.tsx._group.banishConfirm({ name: user.name || user.username, group: group.value.name }),
@@ -85,7 +86,7 @@ async function removeUser(user) {
 		groupId: group.value.id,
 		userId: user.id,
 	}).then(() => {
-		users.value = users.value.filter(x => x.id !== user.id);
+		if (users.value) users.value = users.value.filter(x => x.id !== user.id);
 	});
 }
 

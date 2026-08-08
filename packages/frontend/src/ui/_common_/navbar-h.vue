@@ -6,22 +6,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div :class="[$style.root, acrylic ? $style.acrylic : null]">
 	<div :class="$style.body">
-		<div :class="$style.left">
+		<div>
 			<button v-click-anime :class="[$style.item, $style.instance]" class="_button" @click="openInstanceMenu">
 				<img :class="$style.instanceIcon" :src="instance.iconUrl ?? '/favicon.ico'" draggable="false"/>
 			</button>
-			<MkA v-click-anime v-tooltip="i18n.ts.timeline" :class="$style.item" activeClass="active" to="/" exact>
+			<MkA v-click-anime v-tooltip="i18n.ts.timeline" :class="$style.item" :activeClass="$style.active" to="/" exact>
 				<i :class="$style.itemIcon" class="ti ti-home ti-fw"></i>
 			</MkA>
 			<template v-for="item in menu">
 				<div v-if="item === '-'" :class="$style.divider"></div>
-				<component :is="navbarItemDef[item].to ? 'MkA' : 'button'" v-else-if="navbarItemDef[item] && (navbarItemDef[item].show !== false)" v-click-anime v-tooltip="navbarItemDef[item].title" class="_button" :class="$style.item" activeClass="active" :to="navbarItemDef[item].to" v-on="navbarItemDef[item].action ? { click: navbarItemDef[item].action } : {}">
+				<component :is="navbarItemDef[item].to ? 'MkA' : 'button'" v-else-if="navbarItemDef[item] && (navbarItemDef[item].show == null || navbarItemDef[item].show.value !== false)" v-click-anime v-tooltip="navbarItemDef[item].title" class="_button" :class="$style.item" :activeClass="$style.active" :to="navbarItemDef[item].to" v-on="navbarItemDef[item].action ? { click: navbarItemDef[item].action } : {}">
 					<i :class="[$style.itemIcon, navbarItemDef[item].icon]" class="ti-fw"></i>
 					<span v-if="navbarItemDef[item].indicated" :class="$style.indicator" class="_blink"><i class="_indicatorCircle"></i></span>
 				</component>
 			</template>
 			<div :class="$style.divider"></div>
-			<MkA v-if="$i && ($i.isAdmin || $i.isModerator)" v-click-anime v-tooltip="i18n.ts.controlPanel" class="item" activeClass="active" to="/admin" :behavior="settingsWindowed ? 'window' : null">
+			<MkA v-if="$i && ($i.isAdmin || $i.isModerator)" v-click-anime v-tooltip="i18n.ts.controlPanel" class="item" :activeClass="$style.active" to="/admin" :behavior="settingsWindowed ? 'window' : null">
 				<i :class="$style.itemIcon" class="ti ti-dashboard ti-fw"></i>
 				<span v-if="controlPanelIndicated" class="indicator _blink"><i class="_indicatorCircle"></i></span>
 			</MkA>
@@ -31,7 +31,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</button>
 		</div>
 		<div :class="$style.right">
-			<MkA v-click-anime v-tooltip="i18n.ts.settings" :class="$style.item" activeClass="active" to="/settings" :behavior="settingsWindowed ? 'window' : null">
+			<MkA v-click-anime v-tooltip="i18n.ts.settings" :class="$style.item" :activeClass="$style.active" to="/settings" :behavior="settingsWindowed ? 'window' : null">
 				<i :class="$style.itemIcon" class="ti ti-settings ti-fw"></i>
 			</MkA>
 			<button v-if="$i" v-click-anime :class="[$style.item, $style.account]" class="_button" @click="openAccountMenu">
@@ -77,7 +77,7 @@ window.addEventListener('resize', handleResize, { passive: true });
 
 const settingsWindowed = ref(window.innerWidth > WINDOW_THRESHOLD);
 const menu = ref(prefer.s.menu);
-// const menuDisplay = computed(store.makeGetterSetter('menuDisplay'));
+// const menuDisplay = store.model('menuDisplay');
 const otherNavItemIndicated = computed<boolean>(() => {
 	for (const def in navbarItemDef) {
 		if (menu.value.includes(def)) continue;
@@ -101,7 +101,7 @@ if ($i && ($i.isAdmin ?? $i.isModerator)) {
 	});
 }
 
-async function more(ev: MouseEvent) {
+async function more(ev: PointerEvent) {
 	haptic();
 
 	const target = getHTMLElementOrNull(ev.currentTarget ?? ev.target);
@@ -115,7 +115,7 @@ async function more(ev: MouseEvent) {
 	});
 }
 
-async function openAccountMenu(ev: MouseEvent) {
+async function openAccountMenu(ev: PointerEvent) {
 	haptic();
 
 	const menuItems = await getAccountMenu({

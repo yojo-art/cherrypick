@@ -943,7 +943,14 @@ export type Channels = {
                 key: K;
                 value: ReversiGameDetailed[K];
             }) => void;
-            log: (payload: Record<string, unknown>) => void;
+            log: (payload: {
+                time: number;
+                player: boolean;
+                operation: 'put';
+                pos: number;
+            } & {
+                id: string | null;
+            }) => void;
             reacted: (payload: {
                 userId: User['id'];
                 reaction: string;
@@ -2270,6 +2277,8 @@ declare namespace entities {
         UsersFollowingResponse,
         UsersGalleryPostsRequest,
         UsersGalleryPostsResponse,
+        UsersGetFollowingUsersByBirthdayRequest,
+        UsersGetFollowingUsersByBirthdayResponse,
         UsersGetFrequentlyRepliedUsersRequest,
         UsersGetFrequentlyRepliedUsersResponse,
         UsersGroupsCreateRequest,
@@ -2395,6 +2404,7 @@ declare namespace entities {
         MetaLite,
         MetaDetailedOnly,
         MetaDetailed,
+        MetaClientOptions,
         UserWebhook,
         SystemWebhook,
         AbuseReportNotificationRecipient,
@@ -3012,6 +3022,9 @@ type MeDetailed = components['schemas']['MeDetailed'];
 
 // @public (undocumented)
 type MeDetailedOnly = components['schemas']['MeDetailedOnly'];
+
+// @public (undocumented)
+type MetaClientOptions = components['schemas']['MetaClientOptions'];
 
 // @public (undocumented)
 type MetaDetailed = components['schemas']['MetaDetailed'];
@@ -3987,6 +4000,12 @@ type UsersGalleryPostsRequest = operations['users___gallery___posts']['requestBo
 type UsersGalleryPostsResponse = operations['users___gallery___posts']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type UsersGetFollowingUsersByBirthdayRequest = operations['users___get-following-users-by-birthday']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type UsersGetFollowingUsersByBirthdayResponse = operations['users___get-following-users-by-birthday']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type UsersGetFrequentlyRepliedUsersRequest = operations['users___get-frequently-replied-users']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -4195,7 +4214,7 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 // src/entities.ts:55:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
 // src/streaming.types.ts:256:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:267:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:272:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

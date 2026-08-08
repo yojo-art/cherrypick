@@ -93,7 +93,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<div :class="[$style.textOuter, { [$style.withCw]: useCw, [$style.showForm]: !showForm }]">
 		<div v-if="targetChannel" :class="$style.colorBar" :style="{ background: targetChannel.color }"></div>
-		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-cy-post-form-text @click="formClick" @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"/>
+		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-cy-post-form-text @click="formClick" @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"></textarea>
 		<div v-if="maxTextLength - textLength < 100" :class="['_acrylic', $style.textCount, { [$style.textOver]: textLength > maxTextLength }]">{{ maxTextLength - textLength }}</div>
 	</div>
 	<div v-show="withHashtags && showForm" :class="$style.hashtags">
@@ -134,7 +134,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</footer>
 	</Transition>
 	<datalist v-if="showForm" id="hashtags">
-		<option v-for="hashtag in recentHashtags" :key="hashtag" :value="hashtag"/>
+		<option v-for="hashtag in recentHashtags" :key="hashtag" :value="hashtag"></option>
 	</datalist>
 </div>
 </template>
@@ -527,7 +527,7 @@ function toggleEvent() {
 }
 
 function addTag(tag: string) {
-	insertTextAtCursor(textareaEl.value, ` #${tag} `);
+	if (textareaEl.value) insertTextAtCursor(textareaEl.value, ` #${tag} `);
 }
 
 function focus() {
@@ -554,18 +554,18 @@ function chooseFileFromDrive(ev: MouseEvent) {
 	});
 }
 
-function detachFile(id) {
+function detachFile(id: string) {
 	files.value = files.value.filter(x => x.id !== id);
 }
 
-function updateFileSensitive(file, sensitive) {
+function updateFileSensitive(file: Misskey.entities.DriveFile, sensitive: boolean) {
 	if (props.mock) {
 		emit('fileChangeSensitive', file.id, sensitive);
 	}
 	files.value[files.value.findIndex(x => x.id === file.id)].isSensitive = sensitive;
 }
 
-function updateFileName(file, name) {
+function updateFileName(file: Misskey.entities.DriveFile, name: string) {
 	files.value[files.value.findIndex(x => x.id === file.id)].name = name;
 }
 
@@ -744,7 +744,7 @@ function addVisibleUser() {
 	});
 }
 
-function removeVisibleUser(user) {
+function removeVisibleUser(user: Misskey.entities.UserDetailed) {
 	visibleUsers.value = erase(user, visibleUsers.value);
 }
 
@@ -825,7 +825,7 @@ async function onPaste(ev: ClipboardEvent) {
 			text: i18n.ts.quoteQuestion,
 		}).then(({ canceled }) => {
 			if (canceled) {
-				insertTextAtCursor(textareaEl.value, paste);
+				if (textareaEl.value) insertTextAtCursor(textareaEl.value, paste);
 				return;
 			}
 
@@ -840,7 +840,7 @@ async function onPaste(ev: ClipboardEvent) {
 			text: i18n.ts.attachAsFileQuestion,
 		}).then(({ canceled }) => {
 			if (canceled) {
-				insertTextAtCursor(textareaEl.value, paste);
+				if (textareaEl.value) insertTextAtCursor(textareaEl.value, paste);
 				return;
 			}
 
@@ -851,7 +851,8 @@ async function onPaste(ev: ClipboardEvent) {
 	}
 }
 
-function onDragover(ev) {
+function onDragover(ev: DragEvent) {
+	if (ev.dataTransfer == null) return;
 	if (!ev.dataTransfer.items[0]) return;
 	const isFile = ev.dataTransfer.items[0].kind === 'file';
 	if (isFile || checkDragDataType(ev, ['driveFiles'])) {
@@ -1173,7 +1174,7 @@ async function post(ev?: MouseEvent) {
 			clear();
 		}
 
-		globalEvents.emit('notePosted', res.createdNote);
+		if (res && 'createdNote' in res) globalEvents.emit('notePosted', res.createdNote as Misskey.entities.Note);
 
 		nextTick(() => {
 			deleteDraft();
@@ -1269,7 +1270,7 @@ function cancel() {
 
 function insertMention() {
 	os.selectUser({ localOnly: false, includeSelf: true }).then(user => {
-		insertTextAtCursor(textareaEl.value, '@' + Misskey.acct.toString(user) + ' ');
+		if (textareaEl.value) insertTextAtCursor(textareaEl.value, '@' + Misskey.acct.toString(user) + ' ');
 	});
 }
 
@@ -1329,9 +1330,6 @@ function showActions(ev: MouseEvent) {
 
 async function openMfmCheatSheet() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkMfmCheatSheetDialog.vue')), {}, {
-		cancel: () => {
-
-		},
 		closed: () => {
 			dispose();
 		},
@@ -1447,7 +1445,7 @@ function showPerUploadItemMenu(item: UploaderItem, ev: MouseEvent) {
 	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
-function showPerUploadItemMenuViaContextmenu(item: UploaderItem, ev: MouseEvent) {
+function showPerUploadItemMenuViaContextmenu(item: UploaderItem, ev: PointerEvent) {
 	const menu = uploader.getMenu(item);
 	os.contextMenu(menu, ev);
 }
@@ -1573,14 +1571,31 @@ onMounted(() => {
 	nextTick(() => {
 		// 書きかけの投稿を復元
 		if (!props.instant && !props.mention && !props.specified && !props.mock) {
-			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value];
+			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value] as {
+				data: {
+					text: string;
+					useCw: boolean;
+					cw: string | null;
+					saveToDraft: boolean;
+					visibility: 'public' | 'home' | 'followers' | 'specified';
+					searchableBy: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
+					files: Misskey.entities.DriveFile[];
+					poll: PollEditorModelValue | { expiresAt: number | null; expiredAfter: number | null; choices: string[]; multiple: boolean; } | null;
+					event: Misskey.entities.Note['event'] | null;
+					visibleUserIds?: string[];
+					quoteId: string | null;
+					reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
+					scheduledAt: number | null;
+					scheduledNoteDelete: DeleteScheduleEditorModelValue | null;
+				};
+			} | undefined;
 			if (draft) {
 				text.value = draft.data.text;
 				useCw.value = draft.data.useCw;
 				cw.value = draft.data.cw;
 				saveToDraft.value = draft.data.saveToDraft;
 				visibility.value = draft.data.visibility;
-				searchableBy.value = draft.data.searchableBy;
+				if (draft.data.searchableBy != null) searchableBy.value = draft.data.searchableBy;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;

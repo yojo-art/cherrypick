@@ -102,6 +102,7 @@ COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/misskey-
 COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/misskey-reversi/built ./packages/misskey-reversi/built
 COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/misskey-bubble-game/built ./packages/misskey-bubble-game/built
 COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/backend/built ./packages/backend/built
+COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/backend/src-js ./packages/backend/src-js
 COPY --chown=misskey:misskey --from=native-builder /cherrypick/packages/i18n/built ./packages/i18n/built
 COPY --chown=misskey:misskey --from=native-builder /cherrypick/fluent-emojis /cherrypick/fluent-emojis
 COPY --chown=misskey:misskey . ./

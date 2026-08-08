@@ -116,7 +116,7 @@ const filesPagination = {
 
 const meta = await misskeyApi('admin/meta');
 
-function onInstanceClick(i) {
+function onInstanceClick(i: Misskey.entities.FederationInstance) {
 	os.pageWindow(`/instance-info/${i.host}`);
 }
 

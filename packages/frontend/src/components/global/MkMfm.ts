@@ -235,7 +235,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 						if (!useAnim) {
 							return genEl(token.children, scale);
 						}
-						return h(MkSparkle, {}, genEl(token.children, scale));
+						return h(MkSparkle, {}, { default: () => genEl(token.children, scale) });
 					}
 					case 'fade': {
 						if (!useAnim) {
@@ -330,7 +330,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 						]);
 					}
 					case 'clickable': {
-						return h('span', { onClick(ev: MouseEvent): void {
+						return h('span', { onClick(ev: PointerEvent): void {
 							ev.stopPropagation();
 							ev.preventDefault();
 							const clickEv = typeof token.props.args.ev === 'string' ? token.props.args.ev : '';
@@ -376,7 +376,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 					rel: 'nofollow noopener',
 					navigationBehavior: props.linkNavigationBehavior,
 					host: props.author?.host,
-				}, genEl(token.children, scale, true))];
+				}, { default: () => genEl(token.children, scale, true) })];
 			}
 
 			case 'mention': {
@@ -393,7 +393,7 @@ export default function (props: MfmProps, { emit }: { emit: SetupContext<MfmEven
 					to: isNote ? `/tags/${encodeURIComponent(token.props.hashtag)}` : `/user-tags/${encodeURIComponent(token.props.hashtag)}`,
 					style: 'color:var(--MI_THEME-hashtag);',
 					behavior: props.linkNavigationBehavior,
-				}, `#${token.props.hashtag}`)];
+				}, { default: () => `#${token.props.hashtag}` })];
 			}
 
 			case 'blockCode': {

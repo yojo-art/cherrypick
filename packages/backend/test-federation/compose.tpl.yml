@@ -35,6 +35,10 @@ services:
         target: /cherrypick/packages/backend/built
         read_only: true
       - type: bind
+        source: ../src-js
+        target: /cherrypick/packages/backend/src-js
+        read_only: true
+      - type: bind
         source: ../migration
         target: /cherrypick/packages/backend/migration
         read_only: true
