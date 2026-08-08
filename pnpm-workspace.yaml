@@ -41,3 +41,5 @@ minimumReleaseAgeExclude:
   - systeminformation # 脆弱性対応。そのうち消すこと
   # Renovate security update: nodemailer@9.0.1
   - nodemailer@9.0.1
+  # Renovate security update: nanoid@5.1.16
+  - nanoid@5.1.16
