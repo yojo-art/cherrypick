@@ -136,10 +136,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			throw new ApiError(meta.errors.federationNotAllowed);
 		}
 
-		let local = await this.mergePack(me, ...await Promise.all([
+		const [user, note, channelUser] = await Promise.all([
 			this.apDbResolverService.getUserFromApId(uri),
 			this.apDbResolverService.getNoteFromApId(uri),
-		]));
+			this.apDbResolverService.getChannelFromApId(uri),
+		]);
+		let local = await this.mergePack(me, user ?? channelUser, note);
 		if (local != null) return local;
 
 		const host = this.utilityService.extractDbHost(uri);
