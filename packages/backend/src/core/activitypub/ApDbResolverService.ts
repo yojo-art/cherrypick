@@ -130,7 +130,7 @@ export class ApDbResolverService implements OnApplicationShutdown {
 	public async getChannelFromApId(value: string | IObject): Promise<MiUser | null> {
 		const parsed = this.parseUri(value);
 
-		if (!parsed.local || parsed.type !== 'channels') return null;
+		if (!parsed.local || parsed.type !== 'channels' || parsed.id == null) return null;
 
 		const channel = await this.channelsRepository.findOneBy({ id: parsed.id });
 		if (channel == null || channel.actorId == null) return null;

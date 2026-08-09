@@ -214,5 +214,11 @@ describe('Channel', () => {
 			assert.strictEqual(res.body.type, 'User');
 			assert.strictEqual(res.body.object.id, channel.actorId);
 		});
+
+		test('idの無いチャンネルURLを照会するとNO_SUCH_OBJECTになる', async () => {
+			const res = await api('ap/show', { uri: `${origin}/channels` }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body as any).error.code, 'NO_SUCH_OBJECT');
+		});
 	});
 });
