@@ -3190,11 +3190,11 @@ _postForm:
     toolbar_title: "ツールバー"
     toolbar_description: "ファイルやアンケートの添付、注釈やハッシュタグの設定、絵文字やメンションの挿入などが行えます。"
     account_title: "アカウントメニュー"
-    account_description: "投稿するアカウントを切り替えたり、アカウントに保存した下書き・予約投稿を一覧できます。"
+    account_description: "投稿するアカウントを切り替えられます。"
     visibility_title: "公開範囲"
     visibility_description: "ノートを公開する範囲の設定が行えます。"
     menu_title: "メニュー"
-    menu_description: "下書きへの保存、投稿の予約、リアクションの設定など、その他のアクションが行えます。"
+    menu_description: "下書きの保存・一覧、投稿の予約、リアクションの設定など、その他のアクションが行えます。"
     submit_title: "投稿ボタン"
     submit_description: "ノートを投稿します。Ctrl + Enter / Cmd + Enter でも投稿できます。"
   _placeholders:

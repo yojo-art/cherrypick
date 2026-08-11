@@ -2718,11 +2718,11 @@ _postForm:
     toolbar_title: "Barra degli Strumenti"
     toolbar_description: "Puoi allegare file e sondaggi, aggiungere Note, hashtag, inserire emoji e menzioni."
     account_title: "Menu profilo"
-    account_description: "Puoi cambiare il profilo col quale vuoi pubblicare, elencare bozze e pianificare le Note."
+    account_description: "Puoi cambiare l'account con cui pubblicare."
     visibility_title: "Visibilità"
     visibility_description: "Puoi impostare il grado di visibilità delle Note."
     menu_title: "Menù"
-    menu_description: "Puoi svolgere varie azioni, come salvare in bozza, pianificare le annotazioni, regolare le reazioni ricevute e altro."
+    menu_description: "Puoi svolgere varie azioni, come salvare e consultare le bozze, pianificare le Note, regolare le reazioni ricevute e altro."
     submit_title: "Bottone invia"
     submit_description: "Pubblica la Nota. Funziona anche con \"Ctrl + Invio\", oppure \"Cmd + Invio\"."
   _placeholders:
