@@ -38,3 +38,5 @@ ignorePatchFailures: false
 minimumReleaseAge: 10080 # delay 7days to mitigate supply-chain attack
 minimumReleaseAgeExclude:
   - '@syuilo/aiscript'
+  # Renovate security update: pnpm@11.5.3
+  - pnpm@11.5.3
