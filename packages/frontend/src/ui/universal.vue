@@ -105,9 +105,9 @@ if (window.innerWidth > 1024) {
 	}
 }
 
-const onContextmenu = (ev) => {
-	if (isLink(ev.target)) return;
-	if (['INPUT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS'].includes(ev.target.tagName) || ev.target.attributes['contenteditable']) return;
+function onContextmenu(ev: PointerEvent) {
+	if (isLink(ev.target as HTMLElement)) return;
+	if (['INPUT', 'TEXTAREA', 'IMG', 'VIDEO', 'CANVAS'].includes((ev.target as HTMLElement).tagName) || (ev.target as HTMLElement).attributes.getNamedItem('contenteditable') != null) return;
 	if (window.getSelection()?.toString() !== '') return;
 	const path = mainRouter.getCurrentFullPath();
 	os.contextMenu([{
@@ -120,7 +120,7 @@ const onContextmenu = (ev) => {
 			os.pageWindow(path);
 		},
 	}], ev);
-};
+}
 
 function beforeEnter(el: Element) {
 	(el as HTMLElement).style.height = '0';

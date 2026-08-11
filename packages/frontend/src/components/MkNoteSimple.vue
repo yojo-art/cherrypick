@@ -81,12 +81,12 @@ if (prefer.s.alwaysShowCw) showContent.value = true;
 
 function noteClick(ev: MouseEvent) {
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || prefer.s.expandOnNoteClickBehavior === 'doubleClick') ev.stopPropagation();
-	else router.pushByPath(notePage(props.note));
+	else if (props.note) router.pushByPath(notePage(props.note));
 }
 
 function noteDblClick(ev: MouseEvent) {
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || prefer.s.expandOnNoteClickBehavior === 'click') ev.stopPropagation();
-	else router.pushByPath(notePage(props.note));
+	else if (props.note) router.pushByPath(notePage(props.note));
 }
 </script>
 

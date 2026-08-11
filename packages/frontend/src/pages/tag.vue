@@ -21,6 +21,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, markRaw, onUnmounted, ref } from 'vue';
 import * as Misskey from 'misskey-js';
+import type { PageHeaderItem } from '@/types/page-header.js';
+import type { MenuItem } from '@/types/menu';
 import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 import MkButton from '@/components/MkButton.vue';
 import { definePage } from '@/page.js';
@@ -32,7 +34,6 @@ import * as os from '@/os.js';
 import { genEmbedCode } from '@/utility/get-embed-code.js';
 import { Paginator } from '@/utility/paginator.js';
 import { misskeyApi } from '@/utility/misskey-api';
-import type { MenuItem } from '@/types/menu';
 
 const props = defineProps<{
 	tag: string;
@@ -58,7 +59,7 @@ async function post() {
 
 const invalidChars = [' ', '　', '#', ':', '\'', '"', '!'];
 
-const headerActions = computed(() => [{
+const headerActions = computed<PageHeaderItem[]>(() => [{
 	icon: 'ti ti-dots',
 	text: i18n.ts.more,
 	handler: async (ev: MouseEvent) => {
@@ -127,8 +128,8 @@ function openStream() {
 	connection = stream.useChannel('hashtag', {
 		q: [[props.tag]],
 	}) as Misskey.ChannelConnection;
-	connection!.on('note', note => {
-		note.value?.pagingComponent?.prepend(note);
+	connection!.on('note', (note: Misskey.entities.Note) => {
+		paginator.prepend(note);
 	});
 }
 

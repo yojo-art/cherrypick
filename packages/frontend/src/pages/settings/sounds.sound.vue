@@ -100,7 +100,7 @@ const friendlyFileName = computed<string>(() => {
 	return i18n.ts._soundSettings.driveFileWarn;
 });
 
-function selectSound(ev) {
+function selectSound(ev: PointerEvent) {
 	selectFile({
 		anchorElement: ev.currentTarget ?? ev.target,
 		multiple: false,

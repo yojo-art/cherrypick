@@ -18,10 +18,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 			<div class="_gaps_m">
 				<!--
-				<MkRadios v-if="instance.federation !== 'none'" v-model="searchOrigin" @update:modelValue="search()">
-					<option value="combined">{{ i18n.ts.all }}</option>
-					<option value="local">{{ i18n.ts.local }}</option>
-					<option value="remote">{{ i18n.ts.remote }}</option>
+				<MkRadios
+					v-if="instance.federation !== 'none'"
+					v-model="searchOrigin"
+					:options="[
+						{ value: 'combined', label: i18n.ts.all },
+						{ value: 'local', label: i18n.ts.local },
+						{ value: 'remote', label: i18n.ts.remote },
+					]"
+					@update:modelValue="search()"
+				>
 				</MkRadios>
 				-->
 				<MkSelect v-model="searchOrigin" :items="searchOriginDef" small @update:modelValue="search()"></MkSelect>
@@ -149,10 +155,10 @@ async function search() {
 		});
 		if (!confirm.canceled) {
 			router.push('/user-tags/:tag', {
-					params: {
-						tag: query.substring(1),
-					},
-				});
+				params: {
+					tag: query.substring(1),
+				},
+			});
 			return;
 		}
 	}

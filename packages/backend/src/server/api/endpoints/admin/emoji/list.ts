@@ -10,7 +10,6 @@ import type { MiEmoji } from '@/models/Emoji.js';
 import { QueryService } from '@/core/QueryService.js';
 import { DI } from '@/di-symbols.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
-import { emojiCopyPermissions } from "@/types.js";
 //import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
 
 export const meta = {
@@ -25,45 +24,7 @@ export const meta = {
 		optional: false, nullable: false,
 		items: {
 			type: 'object',
-			optional: false, nullable: false,
-			properties: {
-				id: {
-					type: 'string',
-					optional: false, nullable: false,
-					format: 'id',
-				},
-				aliases: {
-					type: 'array',
-					optional: false, nullable: false,
-					items: {
-						type: 'string',
-						optional: false, nullable: false,
-					},
-				},
-				name: {
-					type: 'string',
-					optional: false, nullable: false,
-				},
-				category: {
-					type: 'string',
-					optional: false, nullable: true,
-				},
-				host: {
-					type: 'string',
-					optional: false, nullable: true,
-					description: 'The local host is represented with `null`. The field exists for compatibility with other API endpoints that return files.',
-				},
-				url: {
-					type: 'string',
-					optional: false, nullable: false,
-				},
-
-				copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, description: 'この絵文字を外部サーバーへコピーすることの許可' },
-				usageInfo: { type: 'string', nullable: true, description: '使用する際の説明' },
-				author: { type: 'string', nullable: true, description: '作者情報' },
-				description: { type: 'string', nullable: true, description: '絵文字の説明' },
-				isBasedOn: { type: 'string', nullable: true, description: 'もとになったもののURLなど' },
-			},
+			ref: 'EmojiDetailed',
 		},
 	},
 } as const;

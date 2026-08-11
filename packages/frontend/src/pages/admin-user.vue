@@ -106,7 +106,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #label>{{ i18n.ts._role.policies }}</template>
 						<div class="_gaps">
 							<div v-for="policy in Object.keys(info.policies)" :key="policy">
-								{{ policy }} ... {{ info.policies[policy] }}
+								{{ policy }} ... {{ info.policies[policy as keyof typeof info.policies] }}
 							</div>
 						</div>
 					</MkFolder>
@@ -347,7 +347,7 @@ async function resetPassword() {
 	}
 }
 
-async function toggleSuspend(v) {
+async function toggleSuspend(v: boolean) {
 	const confirm = await os.confirm({
 		type: 'warning',
 		text: v ? i18n.ts.suspendConfirm : i18n.ts.unsuspendConfirm,
@@ -490,7 +490,7 @@ async function assignRole() {
 	refreshUser();
 }
 
-async function unassignRole(role: typeof info.value.roles[number], ev: MouseEvent) {
+async function unassignRole(role: typeof info.value.roles[number], ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts.unassign,
 		icon: 'ti ti-x',
@@ -518,7 +518,7 @@ async function createAnnouncement() {
 	});
 }
 
-async function editAnnouncement(announcement) {
+async function editAnnouncement(announcement: Misskey.entities.AdminAnnouncementsListResponse[number]) {
 	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkUserAnnouncementEditDialog.vue').then(x => x.default), {
 		user: user.value,
 		announcement,

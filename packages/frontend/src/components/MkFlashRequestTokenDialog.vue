@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<p>{{ i18n.ts.thisFlashRequiresTheFollowingPermissions }}</p>
 		<ul>
 			<li v-for="permission in props.permissions" :key="permission">
-				{{ i18n.ts._permissions[permission] }}
+				{{ i18n.ts._permissions[permission as keyof typeof i18n.ts._permissions] }}
 			</li>
 		</ul>
 		<p>{{ i18n.ts.doYouWantToAllowThisPlayToAccessYourAccount }}</p>

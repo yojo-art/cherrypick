@@ -752,7 +752,11 @@ function noteDblClick(ev: MouseEvent) {
 async function renote() {
 	haptic();
 
-	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	if (props.mock) return;
+
+	const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	if (!isLoggedIn) return;
+
 	showMovedDialog();
 
 	const { menu } = await getRenoteMenu({ note: note, renoteButton, mock: props.mock });
@@ -799,14 +803,15 @@ function quote(): void {
 	}
 }
 
-function reply(): void {
+async function reply() {
 	haptic();
 
-	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	if (props.mock) return;
+
+	const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	if (!$i) return;
-	if (props.mock) {
-		return;
-	}
+	if (!isLoggedIn) return;
+
 	os.post({
 		reply: appearNote,
 		channel: appearNote.channel,
@@ -815,10 +820,12 @@ function reply(): void {
 	});
 }
 
-function react(): void {
+async function react() {
 	haptic();
 
-	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	if (!isLoggedIn) return;
+
 	showMovedDialog();
 	if (appearNote.reactionAcceptance === 'likeOnly') {
 		if (props.mock) {
@@ -862,7 +869,7 @@ function react(): void {
 	}
 }
 
-async function toggleReaction(reaction) {
+async function toggleReaction(reaction: string) {
 	const oldReaction = $appearNote.myReaction;
 	if (oldReaction) {
 		const confirm = await os.confirm({
@@ -976,7 +983,7 @@ function toggleReact() {
 	}
 }
 
-function onContextmenu(ev: MouseEvent): void {
+function onContextmenu(ev: PointerEvent): void {
 	if (props.mock) {
 		return;
 	}
@@ -1070,7 +1077,7 @@ async function translate(isAuto: boolean): Promise<void> {
 	});
 }
 
-function showRenoteMenu(): void {
+async function showRenoteMenu() {
 	if (props.mock) {
 		return;
 	}
@@ -1098,7 +1105,6 @@ function showRenoteMenu(): void {
 	};
 
 	if (isMyRenote) {
-		pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 		os.popupMenu([
 			renoteDetailsMenu,
 			getCopyNoteLinkMenu(note, i18n.ts.copyLinkRenote),

@@ -35,7 +35,7 @@ tags.value = await misskeyApi('i/registry/get', {
 	key: 'hashTag',
 }) as string[];
 
-async function removeTag(item, ev) {
+async function removeTag(item: string, ev: MouseEvent) {
 	os.popupMenu([{
 		text: i18n.ts.remove,
 		icon: 'ti ti-x',

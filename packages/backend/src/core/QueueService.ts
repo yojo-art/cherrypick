@@ -6,7 +6,6 @@
 import { randomUUID } from 'node:crypto';
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import { MetricsTime, type JobType } from 'bullmq';
-import { parse as parseRedisInfo } from 'redis-info';
 import { isAnnounce, isBlock, isPost, isRead, isUndo, type IActivity } from '@/core/activitypub/type.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiAbuseUserReport } from '@/models/AbuseUserReport.js';
@@ -88,9 +87,22 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	pattern: '0 4 * * *',
 }, {
 	name: 'autoDeleteNotes',
-	// 매일 오전 3시에 실행
+	// 毎日午前3時に起動
 	pattern: '0 3 * * *',
 }];
+
+function parseRedisInfo(infoText: string): Record<string, string> {
+	const fields = infoText
+		.split('\n')
+		.filter(line => line.length > 0 && !line.startsWith('#'))
+		.map(line => line.trim().split(':'));
+
+	const result: Record<string, string> = {};
+	for (const [key, value] of fields) {
+		result[key] = value;
+	}
+	return result;
+}
 
 @Injectable()
 export class QueueService implements OnModuleInit {
@@ -969,7 +981,7 @@ export class QueueService implements OnModuleInit {
 			},
 			db: {
 				version: db.redis_version,
-				mode: db.redis_mode,
+				mode: db.redis_mode as 'cluster' | 'standalone' | 'sentinel',
 				runId: db.run_id,
 				processId: db.process_id,
 				port: parseInt(db.tcp_port),
