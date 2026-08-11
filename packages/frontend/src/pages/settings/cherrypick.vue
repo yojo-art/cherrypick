@@ -126,7 +126,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<SearchMarker :keywords="['behavior', 'lab']">
 			<FormSection>
-				<template #label><i class="ti ti-flask"/> <SearchLabel>{{ i18n.ts.cherrypickLabs }}</SearchLabel></template>
+				<template #label><i class="ti ti-flask"></i> <SearchLabel>{{ i18n.ts.cherrypickLabs }}</SearchLabel></template>
 				<template #description><SearchText>{{ i18n.ts.cherrypickLabsDescription }}</SearchText></template>
 				<div class="_gaps_m">
 				</div>

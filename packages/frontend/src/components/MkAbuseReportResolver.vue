@@ -82,15 +82,16 @@ const value = computed({
 			forward: false,
 			previousExpiresAt: undefined,
 		};
-		for (const [key, _value] of Object.entries(data)) {
+		const normalized: Record<string, unknown> = { ...data };
+		for (const [key, _value] of Object.entries(normalized)) {
 			if (_value === null) {
-				data[key] = '';
+				normalized[key] = '';
 			}
 		}
 		if (props.modelValue && props.editable) {
-			emit('update:modelValue', data);
+			emit('update:modelValue', normalized);
 		}
-		return data as NonNullType<typeof data>;
+		return normalized as NonNullType<typeof data>;
 	},
 	set(updateValue) {
 		if (props.modelValue && props.editable) {

@@ -12,7 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	@click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"
 	@contextmenu.prevent.stop="menu"
 >
-	<MkReactionIcon style="pointer-events: none;" :class="prefer.s.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction" :emojiUrl="reactionEmojis[reaction.substring(1, reaction.length - 1)]" @click.stop="(ev) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"/>
+	<MkReactionIcon style="pointer-events: none;" :class="prefer.s.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction" :emojiUrl="reactionEmojis[reaction.substring(1, reaction.length - 1)]" @click.stop="(ev: PointerEvent) => { canToggle || alternative ? toggleReaction(ev) : stealReaction(ev) }"/>
 	<span :class="$style.count">{{ count }}</span>
 </button>
 </template>
@@ -105,7 +105,7 @@ async function toggleReaction(ev: MouseEvent) {
 	haptic();
 
 	if (!canToggle.value) {
-		await chooseAlternative(ev);
+		await chooseAlternative(ev as PointerEvent);
 		return;
 	}
 	if ($i == null) return;
@@ -183,7 +183,7 @@ async function toggleReaction(ev: MouseEvent) {
 	}
 }
 
-function stealReaction(ev: MouseEvent) {
+function stealReaction(ev: PointerEvent) {
 	haptic();
 
 	let menuItems: MenuItem[] = [];
@@ -280,7 +280,7 @@ function stealReaction(ev: MouseEvent) {
 	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
-async function menu(ev) {
+async function menu(ev: PointerEvent) {
 	const isCustomEmoji = props.reaction.endsWith(':');
 	let menuItems: MenuItem[] = [];
 
@@ -419,7 +419,7 @@ function anime() {
 	});
 }
 
-async function chooseAlternative(ev) {
+async function chooseAlternative(ev: PointerEvent) {
 	// メニュー表示にして、モデレーター以上の場合は登録もできるように
 	if (!alternative.value) return;
 

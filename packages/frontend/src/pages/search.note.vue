@@ -24,11 +24,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template #header>{{ i18n.ts.options }}</template>
 			<div class="_gaps_m">
 				<!--
-				<MkRadios v-model="searchScope">
-					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="all">{{ i18n.ts._search.searchScopeAll }}</option>
-					<option value="local">{{ instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal }}</option>
-					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="server">{{ i18n.ts._search.searchScopeServer }}</option>
-					<option value="user">{{ i18n.ts._search.searchScopeUser }}</option>
+				<MkRadios
+					v-model="searchScope"
+					:options="searchScopeDef"
+				>
 				</MkRadios>
 				-->
 
@@ -81,7 +80,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkUserCardMini
 									:user="user"
 									:withChart="false"
-									:class="$style.userSelectedCard"
 								/>
 							</div>
 							<div>
@@ -159,19 +157,6 @@ const router = useRouter();
 const key = ref(0);
 const paginator = shallowRef<Paginator<'notes/search'> | null>(null);
 
-const searchScopeDef = computed(() => {
-	const items: MkSelectItem[] = [];
-	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
-		items.push({ label: i18n.ts._search.searchScopeAll, value: 'all' });
-	}
-	items.push({ label: instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal, value: 'local' });
-	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
-		items.push({ label: i18n.ts._search.searchScopeServer, value: 'server' });
-	}
-	items.push({ label: i18n.ts._search.searchScopeUser, value: 'user' });
-	return items;
-});
-
 const searchQuery = ref(toRef(props, 'query').value);
 const hostInput = ref(toRef(props, 'host').value);
 
@@ -211,6 +196,24 @@ const searchScope = ref<'all' | 'local' | 'server' | 'user'>((() => {
 	if (hostInput.value) return 'server';
 	return 'all';
 })());
+
+const searchScopeDef = computed<MkSelectItem[]>(() => {
+	const options: MkSelectItem[] = [];
+
+	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
+		options.push({ value: 'all', label: i18n.ts._search.searchScopeAll });
+	}
+
+	options.push({ value: 'local', label: instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal });
+
+	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
+		options.push({ value: 'server', label: i18n.ts._search.searchScopeServer });
+	}
+
+	options.push({ value: 'user', label: i18n.ts._search.searchScopeUser });
+
+	return options;
+});
 
 type SearchParams = {
 	readonly query: string;

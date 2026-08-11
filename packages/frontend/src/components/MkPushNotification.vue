@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkModal ref="modal" :zPriority="'middle'">
+<MkModal ref="modal" :zPriority="'middle'" @closed="$emit('closed')">
 	<div :class="$style.root">
 		<i class="ti ti-notification" style="display: block; margin: auto; font-size: 3em; color: var(--MI_THEME-accent);"></i>
 		<div :class="$style.title">{{ i18n.ts.pushNotification }}</div>
@@ -26,6 +26,10 @@ import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowB
 import { miLocalStorage } from '@/local-storage.js';
 
 const modal = useTemplateRef('modal');
+
+const emit = defineEmits<{
+	closed: [];
+}>();
 
 const close = async () => {
 	modal.value?.close();

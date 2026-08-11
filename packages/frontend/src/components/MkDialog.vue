@@ -27,8 +27,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<template v-if="input.type === 'password'" #prefix><i class="ti ti-lock"></i></template>
 			<template v-if="inputValue != null && inputValue !== ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="inputValue = ''; inputValueEl?.focus();"><i class="ti ti-x"></i></button></template>
 			<template #caption>
-				<span v-if="okButtonDisabledReason === 'charactersExceeded'" v-text="i18n.tsx._dialog.charactersExceeded({ current: (inputValue as string)?.length ?? 0, max: input.maxLength ?? 'NaN' })"/>
-				<span v-else-if="okButtonDisabledReason === 'charactersBelow'" v-text="i18n.tsx._dialog.charactersBelow({ current: (inputValue as string)?.length ?? 0, min: input.minLength ?? 'NaN' })"/>
+				<span v-if="okButtonDisabledReason === 'charactersExceeded'" v-text="i18n.tsx._dialog.charactersExceeded({ current: (inputValue as string)?.length ?? 0, max: input.maxLength ?? 'NaN' })"></span>
+				<span v-else-if="okButtonDisabledReason === 'charactersBelow'" v-text="i18n.tsx._dialog.charactersBelow({ current: (inputValue as string)?.length ?? 0, min: input.minLength ?? 'NaN' })"></span>
 			</template>
 		</MkInput>
 		<MkSelect v-if="select" v-model="selectedValue" :items="selectDef" autofocus></MkSelect>
@@ -43,9 +43,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 </MkModal>
 </template>
 
+<script lang="ts">
+export type Result = string | number | true | null;
+export type MkDialogReturnType<T = Result> = { canceled: true, result: undefined } | { canceled: false, result: T };
+</script>
+
 <script lang="ts" setup>
 import { ref, useTemplateRef, computed } from 'vue';
-import type { MkSelectItem, OptionValue } from '@/components/MkSelect.vue';
+import type { MkSelectItem } from '@/components/MkSelect.vue';
+import type { OptionValue } from '@/types/option-value.js';
 import MkModal from '@/components/MkModal.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -66,8 +72,6 @@ type Select = {
 	items: MkSelectItem[];
 	default: OptionValue | null;
 };
-
-type Result = string | number | true | null;
 
 const props = withDefaults(defineProps<{
 	type?: 'success' | 'error' | 'warning' | 'info' | 'question' | 'waiting';
@@ -96,7 +100,7 @@ const props = withDefaults(defineProps<{
 });
 
 const emit = defineEmits<{
-	(ev: 'done', v: { canceled: true } | { canceled: false, result: Result }): void;
+	(ev: 'done', v: MkDialogReturnType): void;
 	(ev: 'closed'): void;
 }>();
 
@@ -136,7 +140,7 @@ function done(canceled: true): void;
 function done(canceled: false, result: Result): void; // eslint-disable-line no-redeclare
 
 function done(canceled: boolean, result?: Result): void { // eslint-disable-line no-redeclare
-	emit('done', { canceled, result } as { canceled: true } | { canceled: false, result: Result });
+	emit('done', { canceled, result } as MkDialogReturnType);
 	modal.value?.close();
 }
 

@@ -25,7 +25,7 @@ export class MiAntenna {
 	})
 	public userId: MiUser['id'];
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -46,7 +46,7 @@ export class MiAntenna {
 	})
 	public userListId: MiUserList['id'] | null;
 
-	@ManyToOne(type => MiUserList, {
+	@ManyToOne(() => MiUserList, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()

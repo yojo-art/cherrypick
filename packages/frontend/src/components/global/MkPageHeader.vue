@@ -9,12 +9,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-if="!thin_ && !canBack && !notification" :class="$style.buttonsLeft">
 			<button class="_button" :class="[$style.button, $style.goBack]" @click.stop="goBack" @touchstart="preventDrag"><i class="ti ti-arrow-left"></i></button>
 		</div>
-		<div v-if="!thin_ && narrow && props.displayMyAvatar && $i && !notification" class="_button" :class="$style.buttonsLeft" @click="openAccountMenu">
+		<div v-if="!thin_ && narrow && props.displayMyAvatar && $i && !notification" class="_button" @click="openAccountMenu">
 			<MkAvatar :class="$style.avatar" :user="$i"/>
 		</div>
-		<div v-else-if="!thin_ && narrow && !hideTitle && canBack" :class="[$style.buttons, $style.buttonsLeft]"></div>
+		<div v-else-if="!thin_ && narrow && !hideTitle && canBack" :class="$style.buttons"></div>
 		<div v-if="leftSpacing" :class="leftSpacing.class ? $style.buttonsLeft : undefined" :style="leftSpacing.style">
-			<div v-for="(width, index) in leftSpacing.children" :key="index" :style="width"/>
+			<div v-for="(width, index) in leftSpacing.children" :key="index" :style="width"></div>
 		</div>
 
 		<template v-if="props.title || props.icon">
@@ -44,13 +44,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<XTabs v-if="!narrow || hideTitle" :class="[$style.tabs, { [$style.tabs_canBack]: !canBack }]" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 		</template>
-		<div v-if="!thin_ && !narrow && (actions && actions.length > 0) && hideTitle && ['index'].includes(<string>mainRouter.currentRoute.value.name)" :class="$style.buttonsRight"/>
-		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="[$style.buttons, $style.buttonsRight]">
+		<div v-if="!thin_ && !narrow && (actions && actions.length > 0) && hideTitle && ['index'].includes(<string>mainRouter.currentRoute.value.name)" :class="$style.buttonsRight"></div>
+		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="$style.buttons">
 			<template v-for="action in actions">
 				<button v-tooltip.noDelay="action.text" class="_button" :class="[$style.button, { [$style.highlighted]: action.highlighted }]" @click.stop="action.handler" @touchstart="preventDrag"><i :class="action.icon"></i></button>
 			</template>
 		</div>
-		<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"/>
+		<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"></div>
 		<div v-if="pageMetadata && avatarUser && ($i && $i.id !== pageMetadata.userName?.id) && mainRouter.currentRoute.value.name === 'user' && !disableFollowButton && !notification" :class="$style.followButton">
 			<MkFollowButton :user="avatarUser" :transparent="false" :full="!narrow"/>
 		</div>
@@ -87,7 +87,6 @@ import { onMounted, onUnmounted, ref, inject, useTemplateRef, computed } from 'v
 import * as Misskey from 'misskey-js';
 import { getScrollPosition, scrollToTop } from '@@/js/scroll.js';
 import XTabs from './MkPageHeader.tabs.vue';
-import { globalEvents } from '@/events.js';
 import { getAccountMenu } from '@/accounts.js';
 import { $i } from '@/i.js';
 import { DI } from '@/di.js';
@@ -105,7 +104,7 @@ const props = withDefaults(defineProps<PageHeaderProps>(), {
 });
 
 const emit = defineEmits<{
-	(ev: 'update:tab', key: string);
+	(ev: 'update:tab', key: string): void;
 }>();
 
 //const viewId = inject(DI.viewId);
@@ -176,7 +175,7 @@ const topWithMenu = (ev: MouseEvent) => {
 	}
 };
 
-async function openAccountMenu(ev: MouseEvent) {
+async function openAccountMenu(ev: PointerEvent) {
 	haptic();
 
 	const menuItems = await getAccountMenu({

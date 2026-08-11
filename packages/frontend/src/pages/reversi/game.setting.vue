@@ -35,22 +35,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkFolder :defaultOpen="true">
 						<template #label>{{ i18n.ts._reversi.blackOrWhite }}</template>
 
-						<MkRadios v-model="game.bw" @click="updateSettings('bw')">
-							<option value="random">{{ i18n.ts.random }}</option>
-							<option :value="'1'">
+						<MkRadios
+							v-model="game.bw"
+							:options="[
+								{ value: 'random', label: i18n.ts.random },
+								{ value: '1', slotId: 'user1' },
+								{ value: '2', slotId: 'user2' },
+							]"
+						>
+							<template #option-user1>
 								<I18n :src="i18n.ts._reversi.blackIs" tag="span">
 									<template #name>
 										<b><MkUserName :user="game.user1"/></b>
 									</template>
 								</I18n>
-							</option>
-							<option :value="'2'">
+							</template>
+							<template #option-user2>
 								<I18n :src="i18n.ts._reversi.blackIs" tag="span">
 									<template #name>
 										<b><MkUserName :user="game.user2"/></b>
 									</template>
 								</I18n>
-							</option>
+							</template>
 						</MkRadios>
 					</MkFolder>
 
@@ -58,15 +64,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #label>{{ i18n.ts._reversi.timeLimitForEachTurn }}</template>
 						<template #suffix>{{ game.timeLimitForEachTurn }}{{ i18n.ts._time.second }}</template>
 
-						<MkRadios v-model="game.timeLimitForEachTurn" @click="updateSettings('timeLimitForEachTurn')">
-							<option :value="5">5{{ i18n.ts._time.second }}</option>
-							<option :value="10">10{{ i18n.ts._time.second }}</option>
-							<option :value="30">30{{ i18n.ts._time.second }}</option>
-							<option :value="60">60{{ i18n.ts._time.second }}</option>
-							<option :value="90">90{{ i18n.ts._time.second }}</option>
-							<option :value="120">120{{ i18n.ts._time.second }}</option>
-							<option :value="180">180{{ i18n.ts._time.second }}</option>
-							<option :value="3600">3600{{ i18n.ts._time.second }}</option>
+						<MkRadios
+							v-model="game.timeLimitForEachTurn"
+							:options="gameTurnOptionsDef"
+						>
 						</MkRadios>
 					</MkFolder>
 
@@ -110,10 +111,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, watch, ref, onMounted, shallowRef, onUnmounted } from 'vue';
+import { computed, watch, ref, onUnmounted } from 'vue';
 import * as Misskey from 'misskey-js';
 import * as Reversi from 'misskey-reversi';
 import type { MenuItem } from '@/types/menu.js';
+import type { MkRadiosOption } from '@/components/MkRadios.vue';
 import { i18n } from '@/i18n.js';
 import { $i } from '@/i.js';
 import { deepClone } from '@/utility/clone.js';
@@ -136,6 +138,17 @@ const props = defineProps<{
 const shareWhenStart = defineModel<boolean>('shareWhenStart', { default: false });
 
 const game = ref<Misskey.entities.ReversiGameDetailed>(deepClone(props.game));
+
+const gameTurnOptionsDef = [
+	{ value: 5, label: '5' + i18n.ts._time.second },
+	{ value: 10, label: '10' + i18n.ts._time.second },
+	{ value: 30, label: '30' + i18n.ts._time.second },
+	{ value: 60, label: '60' + i18n.ts._time.second },
+	{ value: 90, label: '90' + i18n.ts._time.second },
+	{ value: 120, label: '120' + i18n.ts._time.second },
+	{ value: 180, label: '180' + i18n.ts._time.second },
+	{ value: 3600, label: '3600' + i18n.ts._time.second },
+] as MkRadiosOption<number>[];
 
 const mapName = computed(() => {
 	if (game.value.map == null) return 'Random';
@@ -160,7 +173,15 @@ const isFederation = computed(() => {
 
 const opponentHasSettingsChanged = ref(false);
 
-function chooseMap(ev: MouseEvent) {
+watch(() => game.value.bw, () => {
+	updateSettings('bw');
+});
+
+watch(() => game.value.timeLimitForEachTurn, () => {
+	updateSettings('timeLimitForEachTurn');
+});
+
+function chooseMap(ev: PointerEvent) {
 	const menu: MenuItem[] = [];
 
 	for (const c of mapCategories) {
@@ -207,7 +228,10 @@ function unready() {
 	props.connection.send('ready', false);
 }
 
-function onChangeReadyStates(states) {
+function onChangeReadyStates(states: {
+	user1: boolean;
+	user2: boolean;
+}) {
 	game.value.user1Ready = states.user1;
 	game.value.user2Ready = states.user2;
 }

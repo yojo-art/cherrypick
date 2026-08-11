@@ -47,7 +47,7 @@ export default function(app: App) {
 export const federationWidgets = [
 	'federation',
 	'instanceCloud',
-];
+] as const;
 
 export const widgets = [
 	'profile',
@@ -84,4 +84,6 @@ export const widgets = [
 	'dataSaver',
 
 	...federationWidgets,
-];
+] as const;
+
+export type WidgetName = typeof widgets[number];

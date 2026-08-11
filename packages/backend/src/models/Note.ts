@@ -51,7 +51,7 @@ export class MiNote {
 	})
 	public replyId: MiNote['id'] | null;
 
-	@ManyToOne(type => MiNote, {
+	@ManyToOne(() => MiNote, {
 		createForeignKeyConstraints: false,
 	})
 	@JoinColumn()
@@ -65,7 +65,7 @@ export class MiNote {
 	})
 	public renoteId: MiNote['id'] | null;
 
-	@ManyToOne(type => MiNote, {
+	@ManyToOne(() => MiNote, {
 		createForeignKeyConstraints: false,
 	})
 	@JoinColumn()
@@ -104,7 +104,7 @@ export class MiNote {
 	})
 	public userId: MiUser['id'];
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -246,7 +246,7 @@ export class MiNote {
 	})
 	public channelId: MiChannel['id'] | null;
 
-	@ManyToOne(type => MiChannel, {
+	@ManyToOne(() => MiChannel, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()

@@ -3,6 +3,7 @@ import pluginVue from '@vitejs/plugin-vue';
 import { defineConfig, type UserConfig } from 'vite';
 import * as yaml from 'js-yaml';
 import { promises as fsp } from 'fs';
+import { execaSync } from 'execa';
 
 import locales from 'i18n';
 import meta from '../../package.json';

@@ -158,7 +158,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(ev: 'update:modelValue', v: Misskey.entities.Note['event'])
+	(ev: 'update:modelValue', v: Misskey.entities.Note['event']): void;
 }>();
 
 const metadata = props.modelValue?.metadata as Record<string, unknown> | undefined;

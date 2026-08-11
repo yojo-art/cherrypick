@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<header :class="$style.header">
 		<div :class="$style.headerLeft">
 			<button v-if="!fixed" :class="$style.cancel" class="_button" @click="cancel"><i class="ti ti-x"></i></button>
-			<button ref="accountMenuEl" v-click-anime v-tooltip="i18n.ts.account" :class="[$style.account, { [$style.fixed]: fixed }]" class="_button" @click="openAccountMenu">
+			<button ref="accountMenuEl" v-click-anime v-tooltip="i18n.ts.account" class="_button" @click="openAccountMenu">
 				<img :class="[$style.avatar, { [$style.square]: prefer.s.squareAvatars }]" :src="(postAccount ?? $i).avatarUrl"/>
 			</button>
 		</div>
@@ -39,16 +39,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<span :class="$style.headerRightButtonText">{{ targetChannel.name }}</span>
 				</button>
 			</template>
-			<div :class="$style.submit">
-				<button ref="submitButtonEl" v-click-anime class="_button" :class="$style.submitButton" :disabled="!canPost" data-cy-open-post-form-submit @click="post">
-					<div :class="$style.submitInner">
-						<template v-if="posted"></template>
-						<template v-else-if="posting"><MkEllipsis/></template>
-						<template v-else>{{ submitText }}</template>
-						<i style="margin-left: 6px;" :class="submitIcon"></i>
-					</div>
-				</button>
-			</div>
+			<button ref="submitButtonEl" v-click-anime class="_button" :class="$style.submitButton" :disabled="!canPost" data-cy-open-post-form-submit @click="post">
+				<div :class="$style.submitInner">
+					<template v-if="posted"></template>
+					<template v-else-if="posting"><MkEllipsis/></template>
+					<template v-else>{{ submitText }}</template>
+					<i style="margin-left: 6px;" :class="submitIcon"></i>
+				</div>
+			</button>
 		</div>
 	</header>
 	<MkNoteSimple v-if="replyTargetNote" :class="$style.targetNote" :note="replyTargetNote" :enableNoteClick="false"/>
@@ -60,7 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.visibleUsers">
 			<span v-for="u in visibleUsers" :key="u.id" :class="$style.visibleUser">
 				<MkAcct :user="u"/>
-				<button class="_button" style="padding: 4px 8px;" @click="removeVisibleUser(u)"><i class="ti ti-x"></i></button>
+				<button class="_button" style="padding: 4px 8px;" @click="removeVisibleUser(u.id)"><i class="ti ti-x"></i></button>
 			</span>
 			<button class="_buttonPrimary" style="padding: 4px; border-radius: 8px;" @click="addVisibleUser"><i class="ti ti-plus ti-fw"></i></button>
 		</div>
@@ -92,7 +90,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<div :class="[$style.textOuter, { [$style.withCw]: useCw }]">
 		<div v-if="targetChannel" :class="$style.colorBar" :style="{ background: targetChannel.color }"></div>
-		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-cy-post-form-text @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"/>
+		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-cy-post-form-text @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"></textarea>
 		<div v-if="maxTextLength - textLength < 100" :class="['_acrylic', $style.textCount, { [$style.textOver]: textLength > maxTextLength }]">{{ maxTextLength - textLength }}</div>
 	</div>
 	<div v-show="withHashtags" :class="$style.hashtags">
@@ -128,13 +126,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</footer>
 	<datalist id="hashtags">
-		<option v-for="hashtag in recentHashtags" :key="hashtag" :value="hashtag"/>
+		<option v-for="hashtag in recentHashtags" :key="hashtag" :value="hashtag"></option>
 	</datalist>
 </div>
 </template>
 
 <script lang="ts" setup>
-import { watch, nextTick, onMounted, defineAsyncComponent, provide, inject, shallowRef, ref, computed, useTemplateRef, onUnmounted } from 'vue';
+import { watch, nextTick, onMounted, defineAsyncComponent, provide, inject, shallowRef, ref, computed, useTemplateRef, onUnmounted, onBeforeUnmount } from 'vue';
 import * as mfm from 'mfc-js';
 import * as Misskey from 'misskey-js';
 import insertTextAtCursor from 'insert-text-at-cursor';
@@ -262,6 +260,10 @@ const targetChannel = shallowRef(props.channel);
 const serverDraftId = ref<string | null>(null);
 const postFormActions = getPluginHandlers('post_form_action');
 
+let textAutocomplete: Autocomplete | null = null;
+let cwAutocomplete: Autocomplete | null = null;
+let hashtagAutocomplete: Autocomplete | null = null;
+
 const scheduledNoteDelete = ref<DeleteScheduleEditorModelValue | null>(null);
 const scheduledDeleteAt = computed(() => {
 	if (scheduledNoteDelete.value?.deleteAt) return scheduledNoteDelete.value.deleteAt;
@@ -382,8 +384,8 @@ const canSaveAsServerDraft = computed((): boolean => {
 	return canPost.value && (textLength.value > 0 || files.value.length > 0 || poll.value != null || event.value != null);
 });
 
-const withHashtags = computed(store.makeGetterSetter('postFormWithHashtags'));
-const hashtags = computed(store.makeGetterSetter('postFormHashtags'));
+const withHashtags = store.model('postFormWithHashtags');
+const hashtags = store.model('postFormHashtags');
 
 watch(text, () => {
 	checkMissingMention();
@@ -549,6 +551,7 @@ function toggleEvent() {
 }
 
 function addTag(tag: string) {
+	if (textareaEl.value == null) return;
 	insertTextAtCursor(textareaEl.value, ` #${tag} `);
 }
 
@@ -559,7 +562,7 @@ function focus() {
 	}
 }
 
-function chooseFileFromPc(ev: MouseEvent) {
+function chooseFileFromPc(ev: PointerEvent) {
 	if (props.mock) return;
 
 	os.chooseFileFromPc({ multiple: true }).then(files => {
@@ -568,7 +571,7 @@ function chooseFileFromPc(ev: MouseEvent) {
 	});
 }
 
-function chooseFileFromDrive(ev: MouseEvent) {
+function chooseFileFromDrive(ev: PointerEvent) {
 	if (props.mock) return;
 
 	chooseDriveFile({ multiple: true }).then(driveFiles => {
@@ -576,18 +579,18 @@ function chooseFileFromDrive(ev: MouseEvent) {
 	});
 }
 
-function detachFile(id) {
+function detachFile(id: Misskey.entities.DriveFile['id']) {
 	files.value = files.value.filter(x => x.id !== id);
 }
 
-function updateFileSensitive(file, sensitive) {
+function updateFileSensitive(file: Misskey.entities.DriveFile, isSensitive: boolean) {
 	if (props.mock) {
-		emit('fileChangeSensitive', file.id, sensitive);
+		emit('fileChangeSensitive', file.id, isSensitive);
 	}
-	files.value[files.value.findIndex(x => x.id === file.id)].isSensitive = sensitive;
+	files.value[files.value.findIndex(x => x.id === file.id)].isSensitive = isSensitive;
 }
 
-function updateFileName(file, name) {
+function updateFileName(file: Misskey.entities.DriveFile, name: Misskey.entities.DriveFile['name']) {
 	files.value[files.value.findIndex(x => x.id === file.id)].name = name;
 }
 
@@ -766,8 +769,8 @@ function addVisibleUser() {
 	});
 }
 
-function removeVisibleUser(user) {
-	visibleUsers.value = erase(user, visibleUsers.value);
+function removeVisibleUser(id: string) {
+	visibleUsers.value = visibleUsers.value.filter(u => u.id !== id);
 }
 
 function clear() {
@@ -818,7 +821,8 @@ const pastedFileName = 'yyyy-MM-dd HH-mm-ss [{{number}}]';
 
 async function onPaste(ev: ClipboardEvent) {
 	if (props.mock) return;
-	if (!ev.clipboardData) return;
+	if (ev.clipboardData == null) return;
+	if (textareaEl.value == null) return;
 
 	let pastedFiles: File[] = [];
 	for (const { item, i } of Array.from(ev.clipboardData.items, (data, x) => ({ item: data, i: x }))) {
@@ -843,39 +847,42 @@ async function onPaste(ev: ClipboardEvent) {
 	if (!renoteTargetNote.value && !quoteId.value && paste.startsWith(url + '/notes/')) {
 		ev.preventDefault();
 
-		os.confirm({
+		const { canceled } = await os.confirm({
 			type: 'info',
 			text: i18n.ts.quoteQuestion,
-		}).then(({ canceled }) => {
-			if (canceled) {
-				insertTextAtCursor(textareaEl.value, paste);
-				return;
-			}
-
-			quoteId.value = paste.substring(url.length).match(/^\/notes\/(.+?)\/?$/)?.[1] ?? null;
 		});
+
+		if (canceled) {
+			insertTextAtCursor(textareaEl.value, paste);
+			return;
+		}
+
+		quoteId.value = paste.substring(url.length).match(/^\/notes\/(.+?)\/?$/)?.[1] ?? null;
 	}
 
 	if (paste.length > 1000) {
 		ev.preventDefault();
-		os.confirm({
+
+		const { canceled } = await os.confirm({
 			type: 'info',
 			text: i18n.ts.attachAsFileQuestion,
-		}).then(({ canceled }) => {
-			if (canceled) {
-				insertTextAtCursor(textareaEl.value, paste);
-				return;
-			}
-
-			const fileName = formatTimeString(new Date(), pastedFileName).replace(/{{number}}/g, '0');
-			const file = new File([paste], `${fileName}.txt`, { type: 'text/plain' });
-			uploader.addFiles([file]);
 		});
+
+		if (canceled) {
+			insertTextAtCursor(textareaEl.value, paste);
+			return;
+		}
+
+		const fileName = formatTimeString(new Date(), pastedFileName).replace(/{{number}}/g, '0');
+		const file = new File([paste], `${fileName}.txt`, { type: 'text/plain' });
+		uploader.addFiles([file]);
 	}
 }
 
-function onDragover(ev) {
-	if (!ev.dataTransfer.items[0]) return;
+function onDragover(ev: DragEvent) {
+	if (ev.dataTransfer == null) return;
+	if (ev.dataTransfer.items[0] == null) return;
+
 	const isFile = ev.dataTransfer.items[0].kind === 'file';
 	if (isFile || checkDragDataType(ev, ['driveFiles'])) {
 		ev.preventDefault();
@@ -928,13 +935,35 @@ function onDrop(ev: DragEvent): void {
 	//#endregion
 }
 
+type StoredDrafts = {
+	[key: string]: {
+		updatedAt: string;
+		data: {
+			text: string;
+			useCw: boolean;
+			cw: string | null;
+			visibility: 'public' | 'home' | 'followers' | 'specified';
+			files: Misskey.entities.DriveFile[];
+			poll: PollEditorModelValue | null;
+			saveToDraft: boolean;
+			searchableBy: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
+			event: Misskey.entities.Note['event'] | null;
+			scheduledNoteDelete: DeleteScheduleEditorModelValue | null;
+			visibleUserIds?: string[];
+			quoteId: string | null;
+			reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
+			scheduledAt: number | null;
+		};
+	};
+};
+
 function saveDraft() {
 	if (props.instant || props.mock) return;
 
-	const draftData = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}');
+	const draftsData = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}') as StoredDrafts;
 
-	draftData[draftKey.value] = {
-		updatedAt: new Date(),
+	draftsData[draftKey.value] = {
+		updatedAt: new Date().toISOString(),
 		data: {
 			text: text.value,
 			useCw: useCw.value,
@@ -953,15 +982,15 @@ function saveDraft() {
 		},
 	};
 
-	miLocalStorage.setItem('drafts', JSON.stringify(draftData));
+	miLocalStorage.setItem('drafts', JSON.stringify(draftsData));
 }
 
 function deleteDraft() {
-	const draftData = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}');
+	const draftsData = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}') as StoredDrafts;
 
-	delete draftData[draftKey.value];
+	delete draftsData[draftKey.value];
 
-	miLocalStorage.setItem('drafts', JSON.stringify(draftData));
+	miLocalStorage.setItem('drafts', JSON.stringify(draftsData));
 }
 
 async function saveServerDraft(options: {
@@ -1009,8 +1038,8 @@ async function uploadFiles() {
 	}
 }
 
-async function post(ev?: MouseEvent) {
-	if (ev) {
+async function post(ev?: PointerEvent) {
+	if (ev != null) {
 		const el = (ev.currentTarget ?? ev.target) as HTMLElement | null;
 
 		if (el && prefer.s.animation) {
@@ -1196,7 +1225,7 @@ async function post(ev?: MouseEvent) {
 			clear();
 		}
 
-		globalEvents.emit('notePosted', res.createdNote);
+		if (res && 'createdNote' in res) globalEvents.emit('notePosted', res.createdNote as Misskey.entities.Note);
 
 		nextTick(() => {
 			deleteDraft();
@@ -1292,11 +1321,12 @@ function cancel() {
 
 function insertMention() {
 	os.selectUser({ localOnly: false, includeSelf: true }).then(user => {
+		if (textareaEl.value == null) return;
 		insertTextAtCursor(textareaEl.value, '@' + Misskey.acct.toString(user) + ' ');
 	});
 }
 
-async function insertEmoji(ev: MouseEvent) {
+async function insertEmoji(ev: PointerEvent) {
 	textAreaReadOnly.value = true;
 	const target = ev.currentTarget ?? ev.target;
 	if (target == null) return;
@@ -1320,12 +1350,17 @@ async function insertEmoji(ev: MouseEvent) {
 		},
 		() => {
 			textAreaReadOnly.value = false;
-			nextTick(() => focus());
+			nextTick(() => {
+				if (textareaEl.value) {
+					textareaEl.value.focus();
+					textareaEl.value.setSelectionRange(pos, posEnd);
+				}
+			});
 		},
 	);
 }
 
-async function insertMfmFunction(ev: MouseEvent) {
+async function insertMfmFunction(ev: PointerEvent) {
 	if (textareaEl.value == null) return;
 	mfmFunctionPicker(
 		ev.currentTarget ?? ev.target,
@@ -1334,7 +1369,7 @@ async function insertMfmFunction(ev: MouseEvent) {
 	);
 }
 
-function showActions(ev: MouseEvent) {
+function showActions(ev: PointerEvent) {
 	os.popupMenu(postFormActions.map(action => ({
 		text: action.title,
 		action: () => {
@@ -1352,9 +1387,6 @@ function showActions(ev: MouseEvent) {
 
 async function openMfmCheatSheet() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkMfmCheatSheetDialog.vue')), {}, {
-		cancel: () => {
-
-		},
 		closed: () => {
 			dispose();
 		},
@@ -1465,12 +1497,12 @@ async function openAccountMenu(ev: MouseEvent) {
 	os.popupMenu(items, (ev.currentTarget ?? ev.target ?? undefined) as HTMLElement | undefined);
 }
 
-function showPerUploadItemMenu(item: UploaderItem, ev: MouseEvent) {
+function showPerUploadItemMenu(item: UploaderItem, ev: PointerEvent) {
 	const menu = uploader.getMenu(item);
 	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
-function showPerUploadItemMenuViaContextmenu(item: UploaderItem, ev: MouseEvent) {
+function showPerUploadItemMenuViaContextmenu(item: UploaderItem, ev: PointerEvent) {
 	const menu = uploader.getMenu(item);
 	os.contextMenu(menu, ev);
 }
@@ -1543,7 +1575,7 @@ function cancelScheduleDelete() {
 	scheduledNoteDelete.value = null;
 }
 
-function showFileAttachmentMenu(ev: MouseEvent) {
+function showFileAttachmentMenu(ev: PointerEvent) {
 	const menuItems: MenuItem[] = [{
 		type: 'label',
 		text: i18n.ts.attachFile,
@@ -1573,22 +1605,21 @@ onMounted(() => {
 		});
 	}
 
-	// TODO: detach when unmount
-	if (textareaEl.value) new Autocomplete(textareaEl.value, text);
-	if (cwInputEl.value) new Autocomplete(cwInputEl.value, cw);
-	if (hashtagsInputEl.value) new Autocomplete(hashtagsInputEl.value, hashtags);
+	if (textareaEl.value) textAutocomplete = new Autocomplete(textareaEl.value, text);
+	if (cwInputEl.value) cwAutocomplete = new Autocomplete(cwInputEl.value, cw);
+	if (hashtagsInputEl.value) hashtagAutocomplete = new Autocomplete(hashtagsInputEl.value, hashtags);
 
 	nextTick(() => {
 		// 書きかけの投稿を復元
 		if (!props.instant && !props.mention && !props.specified && !props.mock) {
-			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value];
-			if (draft) {
+			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value] as StoredDrafts[string] | undefined;
+			if (draft != null) {
 				text.value = draft.data.text;
 				useCw.value = draft.data.useCw;
 				cw.value = draft.data.cw;
 				saveToDraft.value = draft.data.saveToDraft;
 				visibility.value = draft.data.visibility;
-				searchableBy.value = draft.data.searchableBy;
+				if (draft.data.searchableBy != null) searchableBy.value = draft.data.searchableBy;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1659,6 +1690,19 @@ onMounted(() => {
 	});
 });
 
+onBeforeUnmount(() => {
+	uploader.abortAll();
+	if (textAutocomplete) {
+		textAutocomplete.detach();
+	}
+	if (cwAutocomplete) {
+		cwAutocomplete.detach();
+	}
+	if (hashtagAutocomplete) {
+		hashtagAutocomplete.detach();
+	}
+});
+
 async function canClose() {
 	if (!uploader.allItemsUploaded.value) {
 		const { canceled } = await os.confirm({
@@ -1707,9 +1751,6 @@ defineExpose({
 
 .cancel {
 	padding: 8px;
-}
-
-.account {
 }
 
 .avatar {

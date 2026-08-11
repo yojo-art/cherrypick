@@ -47,12 +47,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 							-->
 
 							<SearchMarker>
-								<MkRadios v-model="provider">
+								<MkRadios
+									v-model="provider"
+									:options="[
+										{ value: null, label: i18n.ts.none },
+										{ value: 'deepl', label: 'DeepL' },
+										{ value: 'ctav3', label: 'Cloud Translation - Advanced(v3)' },
+										{ value: 'libretranslate', label: 'LibreTranslate' },
+									]"
+								>
 									<template #label><SearchLabel>Translator type</SearchLabel></template>
-									<option :value="null">{{ i18n.ts.none }}</option>
-									<option value="deepl">DeepL</option>
-									<option value="ctav3">Cloud Translation - Advanced(v3)</option>
-									<option value="libretranslate">LibreTranslate</option>
 								</MkRadios>
 							</SearchMarker>
 
@@ -155,9 +159,9 @@ const translateServices = [
 
 const meta = await misskeyApi('admin/meta');
 
-const provider = ref<string | null>(
+const provider = ref<(typeof translateServices)[number] | null>(
 	meta.translatorType != null && (translateServices as readonly string[]).includes(meta.translatorType)
-		? meta.translatorType
+		? meta.translatorType as (typeof translateServices)[number]
 		: null,
 );
 const deeplAuthKey = ref(meta.deeplAuthKey ?? '');
