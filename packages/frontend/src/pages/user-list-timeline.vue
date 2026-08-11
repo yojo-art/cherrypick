@@ -74,7 +74,7 @@ const headerActions = computed(() => list.value ? [
 	}, {
 		icon: 'ti ti-dots',
 		text: i18n.ts.options,
-		handler: (ev) => {
+		handler: (ev: PointerEvent) => {
 			os.popupMenu([
 				{
 					icon: 'ti ti-settings',
