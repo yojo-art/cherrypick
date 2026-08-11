@@ -4,7 +4,7 @@
  */
 
 import * as assert from 'assert';
-import { describe, beforeAll, beforeEach, test, jest } from '@jest/globals';
+import { describe, beforeAll, beforeEach, test, expect, jest } from '@jest/globals';
 import { Test } from '@nestjs/testing';
 
 import { MockResolver } from '../misc/mock-resolver.js';
@@ -108,6 +108,9 @@ describe('RemoteUserResolveService', () => {
 		jest.spyOn(webfingerService, 'webfinger').mockRejectedValueOnce(new Error('remote server is down'));
 
 		const user = await remoteUserResolveService.resolveUser(cached.usernameLower, host);
+
+		// 再取得(WebFinger)が実際に試行されたことを保証する
+		expect(webfingerService.webfinger).toHaveBeenCalledTimes(1);
 
 		assert.strictEqual(user.id, cached.id);
 		assert.strictEqual(user.username, cached.username);
