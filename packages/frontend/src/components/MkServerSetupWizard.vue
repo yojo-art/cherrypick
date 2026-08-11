@@ -221,7 +221,7 @@ const q_name = ref('');
 const q_use = ref<'single' | 'group' | 'open'>('single');
 const q_scale = ref<'small' | 'medium' | 'large'>('small');
 const q_federation = ref<'yes' | 'no'>('no');
-const q_remoteContentsCleaning = ref(true);
+const q_remoteContentsCleaning = ref(false);
 const q_adminName = ref('');
 const q_adminEmail = ref('');
 
