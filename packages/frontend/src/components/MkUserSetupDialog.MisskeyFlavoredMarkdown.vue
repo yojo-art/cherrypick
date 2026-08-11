@@ -40,10 +40,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<MkInfo v-if="!disableShowingAnimatedImages" style="margin-bottom: 15px;" warn>{{ i18n.ts.photosensitiveSeizuresWarning }}</MkInfo>
 		<MkSwitch v-model="disableShowingAnimatedImages">{{ i18n.ts.disableShowingAnimatedImages }}<template #caption>{{ i18n.ts.disableShowingAnimatedImagesDescription }}</template></MkSwitch>
-		<MkRadios v-if="!disableShowingAnimatedImages" v-model="showingAnimatedImages" style="margin-left: 44px;">
-			<option value="always">{{ i18n.ts._showingAnimatedImages.always }}</option>
-			<option value="interaction">{{ i18n.ts._showingAnimatedImages.interaction }}</option>
-			<option value="inactive">{{ i18n.ts._showingAnimatedImages.inactive }}</option>
+		<MkRadios v-if="!disableShowingAnimatedImages" v-model="showingAnimatedImages" style="margin-left: 44px;" :options="[
+			{ value: 'always', label: i18n.ts._showingAnimatedImages.always },
+			{ value: 'interaction', label: i18n.ts._showingAnimatedImages.interaction },
+			{ value: 'inactive', label: i18n.ts._showingAnimatedImages.inactive },
+		]">
 			<template #caption>{{ i18n.ts.showingAnimatedImagesDescription }}</template>
 		</MkRadios>
 	</MkFolder>

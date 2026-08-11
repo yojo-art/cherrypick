@@ -75,7 +75,7 @@ body:
         If you are using a managed service, put that after the version.
 
         Examples:
-          * Installation Method or Hosting Service: docker compose, k8s/docker, systemd, "CherryPick install shell script", development environment
+          * Installation Method or Hosting Service: docker compose, k8s/docker, systemd, "yojo-art install shell script", development environment
           * yojo-art: 1.x.x (Misskey: 2026.x.x)
           * Node: 20.x.x
           * PostgreSQL: 18.x.x

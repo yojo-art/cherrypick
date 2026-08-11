@@ -80,4 +80,10 @@ export const MFM_PARAMS: Record<typeof MFM_TAGS[number], string[]> = {
 	ruby: [],
 	unixtime: [],
 };
+
+/**
+ * デフォルトの絵文字。UIの演出などでも使用されるため空にしてはいけない
+ * （絵文字パレットのデフォルト絵文字を空にする等の場合は、preferenceのdefinition側の値を空にすること）
+ */
+export const DEFAULT_EMOJIS = ['👍', '❤️', '😆', '🤔', '😮', '🎉', '💢', '😥', '😇', '🍮'];
 export const HTML_TAGS = ['bold', 'strike', 'italic', 'small', 'center', 'plain', 'inlinecode', 'blockcode', 'mathinline', 'mathblock'];

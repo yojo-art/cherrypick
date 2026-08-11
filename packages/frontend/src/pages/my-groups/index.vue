@@ -54,6 +54,7 @@ import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import { Paginator } from '@/utility/paginator.js';
+import * as Misskey from 'misskey-js';
 
 const ownedPaginator = markRaw(new Paginator('users/groups/owned', {
 	limit: 10,
@@ -81,7 +82,7 @@ async function create() {
 	});
 }
 
-async function acceptInvite(invitation) {
+async function acceptInvite(invitation: { id: string }) {
 	os.apiWithDialog('users/groups/invitations/accept', {
 		invitationId: invitation.id,
 	}).then(() => {
@@ -91,7 +92,7 @@ async function acceptInvite(invitation) {
 	});
 }
 
-function rejectInvite(invitation) {
+function rejectInvite(invitation: { id: string }) {
 	os.apiWithDialog('users/groups/invitations/reject', {
 		invitationId: invitation.id,
 	}).then(() => {
@@ -101,7 +102,7 @@ function rejectInvite(invitation) {
 	});
 }
 
-async function leave(group) {
+async function leave(group: Misskey.entities.UserGroup) {
 	const { canceled } = await os.confirm({
 		type: 'warning',
 		text: i18n.tsx.leaveGroupConfirm({ name: group.name }),

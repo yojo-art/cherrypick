@@ -104,12 +104,12 @@ export const packedEmojiDetailedSchema = {
 				format: 'id',
 			},
 		},
-		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true, },
-		usageInfo: { type: 'string', nullable: true, },
-		author: { type: 'string', nullable: true, },
-		description: { type: 'string', nullable: true, },
-		isBasedOn: { type: 'string', nullable: true, },
-		importFrom: { type: 'string', nullable: true, },
+		copyPermission: { type: 'string', enum: emojiCopyPermissions, nullable: true },
+		usageInfo: { type: 'string', nullable: true },
+		author: { type: 'string', nullable: true },
+		description: { type: 'string', nullable: true },
+		isBasedOn: { type: 'string', nullable: true },
+		importFrom: { type: 'string', nullable: true },
 	},
 } as const;
 

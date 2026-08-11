@@ -16,7 +16,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div v-if="progressMap[opt.value].status" style="padding-top: 8px; border-top: 1px solid var(--MI_THEME-divider);">
 							<p style="margin: 0 0 4px; font-weight: bold;">{{ opt.label }}</p>
 							<div style="display: flex; align-items: center; gap: 8px;">
-								<progress :value="progressPercentOf(opt.value)" max="100" style="flex: 1; min-width: 0;"/>
+								<progress :value="progressPercentOf(opt.value)" max="100" style="flex: 1; min-width: 0;"></progress>
 								<MkButton v-if="isAbortable(opt.value)" class="button" inline danger small @click="abortIndex(opt.value)"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
 							</div>
 							<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">

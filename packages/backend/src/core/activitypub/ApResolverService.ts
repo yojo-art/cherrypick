@@ -29,7 +29,7 @@ import { ApDbResolverService } from './ApDbResolverService.js';
 import { ApRendererService } from './ApRendererService.js';
 import { ApRequestService } from './ApRequestService.js';
 import { FetchAllowSoftFailMask } from './misc/check-against-url.js';
-import type { IClip, IObject, ICollection, IOrderedCollection, IOrderedCollectionPage } from './type.js';
+import type { ICollection, IObject, IOrderedCollection, IClip, IOrderedCollectionPage } from './type.js';
 
 @Injectable({ scope: Scope.TRANSIENT })
 export class Resolver {

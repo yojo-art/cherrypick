@@ -9,25 +9,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<FormSlot>
 			<template #label>{{ i18n.ts.navbar }}</template>
 			<MkContainer :showHeader="false">
-				<Sortable
+				<MkDraggable
 					v-model="items"
-					itemKey="id"
-					:animation="150"
-					:handle="'.' + $style.itemHandle"
-					@start="e => e.item.classList.add('active')"
-					@end="e => e.item.classList.remove('active')"
+					direction="vertical"
 				>
-					<template #item="{element,index}">
+					<template #default="{ item }">
 						<div
-							v-if="element.type === '-' || navbarItemDef[element.type]"
+							v-if="item.type === '-' || navbarItemDef[item.type]"
 							:class="$style.item"
 						>
 							<button class="_button" :class="$style.itemHandle"><i class="ti ti-menu"></i></button>
-							<i class="ti-fw" :class="[$style.itemIcon, navbarItemDef[element.type]?.icon]"></i><span :class="$style.itemText">{{ navbarItemDef[element.type]?.title ?? i18n.ts.divider }}</span>
-							<button class="_button" :class="$style.itemRemove" @click="removeItem(index)"><i class="ti ti-x"></i></button>
+							<i class="ti-fw" :class="[$style.itemIcon, navbarItemDef[item.type]?.icon]"></i><span :class="$style.itemText">{{ navbarItemDef[item.type]?.title ?? i18n.ts.divider }}</span>
+							<button class="_button" :class="$style.itemRemove" @click="removeItem(item.id)"><i class="ti ti-x"></i></button>
 						</div>
 					</template>
-				</Sortable>
+				</MkDraggable>
 			</MkContainer>
 		</FormSlot>
 		<div class="_buttons">
@@ -37,10 +33,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 
 		<SearchMarker :keywords="['menu', 'display']">
-			<MkRadios v-model="menuDisplay">
-				<template #label><SearchLabel>{{ i18n.ts.display }}</SearchLabel></template>
-				<option value="sideFull">{{ i18n.ts._menuDisplay.sideFull }}</option>
-				<option value="sideIcon">{{ i18n.ts._menuDisplay.sideIcon }}</option>
+			<MkRadios
+				v-model="menuDisplay"
+				:options="[
+					{ value: 'sideFull', label: i18n.ts._menuDisplay.sideFull },
+					{ value: 'sideIcon', label: i18n.ts._menuDisplay.sideIcon },
+				]"
+			>
+				<template #label>{{ i18n.ts.display }}</template>
 			</MkRadios>
 		</SearchMarker>
 
@@ -54,14 +54,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<SearchMarker :keywords="['banner', 'display']">
 			<MkPreferenceContainer k="bannerDisplay">
-				<MkRadios v-model="bannerDisplay">
+				<MkRadios
+					v-model="bannerDisplay"
+					:options="[
+						{ value: 'all', label: i18n.ts._bannerDisplay.all },
+						{ value: 'topBottom', label: i18n.ts._bannerDisplay.topBottom },
+						{ value: 'top', label: i18n.ts._bannerDisplay.top },
+						{ value: 'bottom', label: i18n.ts._bannerDisplay.bottom },
+						{ value: 'bg', label: i18n.ts._bannerDisplay.bg },
+						{ value: 'hide', label: i18n.ts._bannerDisplay.hide },
+					]"
+				>
 					<template #label><SearchLabel>{{ i18n.ts.displayBanner }}</SearchLabel> <span class="_beta" style="vertical-align: middle;">CherryPick</span></template>
-					<option value="all">{{ i18n.ts._bannerDisplay.all }}</option>
-					<option value="topBottom">{{ i18n.ts._bannerDisplay.topBottom }}</option>
-					<option value="top">{{ i18n.ts._bannerDisplay.top }}</option>
-					<option value="bottom">{{ i18n.ts._bannerDisplay.bottom }}</option>
-					<option value="bg">{{ i18n.ts._bannerDisplay.bg }}</option>
-					<option value="hide">{{ i18n.ts._bannerDisplay.hide }}</option>
 				</MkRadios>
 			</MkPreferenceContainer>
 		</SearchMarker>
@@ -123,6 +127,7 @@ import FormSlot from '@/components/form/slot.vue';
 import MkContainer from '@/components/MkContainer.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkPreferenceContainer from '@/components/MkPreferenceContainer.vue';
+import MkDraggable from '@/components/MkDraggable.vue';
 import MkDisableSection from '@/components/MkDisableSection.vue';
 import FormSection from '@/components/form/section.vue';
 import * as os from '@/os.js';
@@ -146,15 +151,13 @@ const handleResize = () => {
 
 window.addEventListener('resize', handleResize);
 
-const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
-
 const items = ref(prefer.s.menu.map(x => ({
 	id: genId(),
 	type: x,
 })));
 const itemTypeValues = computed(() => items.value.map(x => x.type));
 
-const menuDisplay = computed(store.makeGetterSetter('menuDisplay'));
+const menuDisplay = store.model('menuDisplay');
 const showNavbarSubButtons = prefer.model('showNavbarSubButtons');
 const bannerDisplay = prefer.model('bannerDisplay');
 
@@ -196,8 +199,8 @@ async function addItem(ev: MouseEvent) {
 	], ev.currentTarget ?? ev.target );
 }
 
-function removeItem(index: number) {
-	items.value.splice(index, 1);
+function removeItem(itemId: string) {
+	items.value = items.value.filter(i => i.id !== itemId);
 }
 
 function save() {

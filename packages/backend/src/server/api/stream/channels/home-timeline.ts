@@ -73,6 +73,9 @@ export class HomeTimelineChannel extends Channel {
 			// その投稿のユーザーをフォローしていなかったら弾く
 			if (!isMe && !Object.hasOwn(this.following, note.userId)) return;
 		}
+
+		if (!this.isNoteVisibleForMe(note)) return;
+
 		if (note.reply) {
 			const reply = note.reply;
 			if (this.following[note.userId]?.withReplies) {

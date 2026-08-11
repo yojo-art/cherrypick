@@ -12,6 +12,15 @@ import { popup } from '@/os.js';
 
 export type SuggestionType = 'user' | 'hashtag' | 'emoji' | 'mfmTag' | 'mfmParam' | 'htmlTag';
 
+type CompleteProps<T extends keyof CompleteInfo> = {
+	type: T;
+	value: CompleteInfo[T]['payload'];
+};
+
+function isCompleteType<T extends keyof CompleteInfo>(expectedType: T, props: CompleteProps<keyof CompleteInfo>): props is CompleteProps<T> {
+	return props.type === expectedType;
+}
+
 export class Autocomplete {
 	private suggestion: {
 		x: Ref<number>;
@@ -205,7 +214,7 @@ export class Autocomplete {
 		this.currentType = type;
 
 		//#region サジェストを表示すべき位置を計算
-		const caretPosition = getCaretCoordinates(this.textarea, this.textarea.selectionStart);
+		const caretPosition = getCaretCoordinates(this.textarea, this.textarea.selectionStart ?? 0);
 
 		const rect = this.textarea.getBoundingClientRect();
 
@@ -224,10 +233,11 @@ export class Autocomplete {
 			const _y = ref(y);
 			const _q = ref(q);
 
-			const { dispose } = await popup(defineAsyncComponent(() => import('@/components/MkAutocomplete.vue')), {
+			const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkAutocomplete.vue')), {
 				textarea: this.textarea,
 				close: this.close,
 				type: type,
+				//@ts-expect-error popupは今のところジェネリック型のコンポーネントに対応していない
 				q: _q,
 				x: _x,
 				y: _y,
@@ -263,19 +273,19 @@ export class Autocomplete {
 	/**
 	 * オートコンプリートする
 	 */
-	private complete<T extends keyof CompleteInfo>({ type, value }: { type: T; value: CompleteInfo[T]['payload'] }) {
+	private complete<T extends keyof CompleteInfo>(props: CompleteProps<T>) {
 		this.close();
 
 		const caret = Number(this.textarea.selectionStart);
 
-		if (type === 'user') {
+		if (isCompleteType('user', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
 			const trimmedBefore = before.substring(0, before.lastIndexOf('@'));
 			const after = source.substring(caret);
 
-			const acct = value.host === null ? value.username : `${value.username}@${toASCII(value.host)}`;
+			const acct = props.value.host === null ? props.value.username : `${props.value.username}@${toASCII(props.value.host)}`;
 
 			// 挿入
 			this.text = `${trimmedBefore}@${acct} ${after}`;
@@ -286,7 +296,7 @@ export class Autocomplete {
 				const pos = trimmedBefore.length + (acct.length + 2);
 				this.textarea.setSelectionRange(pos, pos);
 			});
-		} else if (type === 'hashtag') {
+		} else if (isCompleteType('hashtag', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
@@ -294,15 +304,15 @@ export class Autocomplete {
 			const after = source.substring(caret);
 
 			// 挿入
-			this.text = `${trimmedBefore}#${value} ${after}`;
+			this.text = `${trimmedBefore}#${props.value} ${after}`;
 
 			// キャレットを戻す
 			nextTick(() => {
 				this.textarea.focus();
-				const pos = trimmedBefore.length + (value.length + 2);
+				const pos = trimmedBefore.length + (props.value.length + 2);
 				this.textarea.setSelectionRange(pos, pos);
 			});
-		} else if (type === 'emoji') {
+		} else if (isCompleteType('emoji', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
@@ -310,15 +320,15 @@ export class Autocomplete {
 			const after = source.substring(caret);
 
 			// 挿入
-			this.text = trimmedBefore + value + after;
+			this.text = trimmedBefore + props.value + after;
 
 			// キャレットを戻す
 			nextTick(() => {
 				this.textarea.focus();
-				const pos = trimmedBefore.length + value.length;
+				const pos = trimmedBefore.length + props.value.length;
 				this.textarea.setSelectionRange(pos, pos);
 			});
-		} else if (type === 'emojiComplete') {
+		} else if (isCompleteType('emojiComplete', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
@@ -326,15 +336,15 @@ export class Autocomplete {
 			const after = source.substring(caret);
 
 			// 挿入
-			this.text = trimmedBefore + value + after;
+			this.text = trimmedBefore + props.value + after;
 
 			// キャレットを戻す
 			nextTick(() => {
 				this.textarea.focus();
-				const pos = trimmedBefore.length + value.length;
+				const pos = trimmedBefore.length + props.value.length;
 				this.textarea.setSelectionRange(pos, pos);
 			});
-		} else if (type === 'mfmTag') {
+		} else if (isCompleteType('mfmTag', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
@@ -342,15 +352,15 @@ export class Autocomplete {
 			const after = source.substring(caret);
 
 			// 挿入
-			this.text = `${trimmedBefore}$[${value} ]${after}`;
+			this.text = `${trimmedBefore}$[${props.value} ]${after}`;
 
 			// キャレットを戻す
 			nextTick(() => {
 				this.textarea.focus();
-				const pos = trimmedBefore.length + (value.length + 3);
+				const pos = trimmedBefore.length + (props.value.length + 3);
 				this.textarea.setSelectionRange(pos, pos);
 			});
-		} else if (type === 'mfmParam') {
+		} else if (isCompleteType('mfmParam', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
@@ -358,15 +368,15 @@ export class Autocomplete {
 			const after = source.substring(caret);
 
 			// 挿入
-			this.text = `${trimmedBefore}.${value}${after}`;
+			this.text = `${trimmedBefore}.${props.value}${after}`;
 
 			// キャレットを戻す
 			nextTick(() => {
 				this.textarea.focus();
-				const pos = trimmedBefore.length + (value.length + 1);
+				const pos = trimmedBefore.length + (props.value.length + 1);
 				this.textarea.setSelectionRange(pos, pos);
 			});
-		} else if (type === 'htmlTag') {
+		} else if (isCompleteType('htmlTag', props)) {
 			const source = this.text;
 
 			const before = source.substring(0, caret);
@@ -374,36 +384,36 @@ export class Autocomplete {
 			const after = source.substring(caret);
 
 			// 挿入
-			if (value === 'bold') this.text = `${trimmedBefore}<b>${after}</b>`;
-			if (value === 'strike') this.text = `${trimmedBefore}~~${after}~~`;
-			if (value === 'italic') this.text = `${trimmedBefore}<i>${after}</i>`;
-			if (value === 'small') this.text = `${trimmedBefore}<small>${after}</small>`;
-			if (value === 'center') this.text = `${trimmedBefore}<center>${after}</center>`;
-			if (value === 'plain') this.text = `${trimmedBefore}<plain>${after}</plain>`;
-			if (value === 'inlinecode') this.text = trimmedBefore + '`' + after + '`';
-			if (value === 'blockcode') this.text = trimmedBefore + '```' + '\n' + after + '\n' + '```';
-			if (value === 'mathinline') this.text = trimmedBefore + '\\(' + after + '\\)';
-			if (value === 'mathblock') this.text = trimmedBefore + '\\(' + after + '\\\\ \\)';
+			if (props.value === 'bold') this.text = `${trimmedBefore}<b>${after}</b>`;
+			if (props.value === 'strike') this.text = `${trimmedBefore}~~${after}~~`;
+			if (props.value === 'italic') this.text = `${trimmedBefore}<i>${after}</i>`;
+			if (props.value === 'small') this.text = `${trimmedBefore}<small>${after}</small>`;
+			if (props.value === 'center') this.text = `${trimmedBefore}<center>${after}</center>`;
+			if (props.value === 'plain') this.text = `${trimmedBefore}<plain>${after}</plain>`;
+			if (props.value === 'inlinecode') this.text = trimmedBefore + '`' + after + '`';
+			if (props.value === 'blockcode') this.text = trimmedBefore + '```' + '\n' + after + '\n' + '```';
+			if (props.value === 'mathinline') this.text = trimmedBefore + '\\(' + after + '\\)';
+			if (props.value === 'mathblock') this.text = trimmedBefore + '\\(' + after + '\\\\ \\)';
 
 			// キャレットを戻す
 			nextTick(() => {
 				this.textarea.focus();
-				const pos = trimmedBefore.length + (value.length + (
-					value.includes('bold')
+				const pos = trimmedBefore.length + (props.value.length + (
+					props.value.includes('bold')
 						? -1
-						: value.includes('strike')
+						: props.value.includes('strike')
 							?	-4
-							: value.includes('italic')
+							: props.value.includes('italic')
 								? -3
-								: value.includes('small') || value.includes('center') || value.includes('plain')
+								: props.value.includes('small') || props.value.includes('center') || props.value.includes('plain')
 									? 2
-									: value.includes('inlinecode')
+									: props.value.includes('inlinecode')
 										? -9
-										: value.includes('blockcode')
+										: props.value.includes('blockcode')
 											? -5
-											: value.includes('mathinline')
+											: props.value.includes('mathinline')
 												? -8
-												: value.includes('mathblock')
+												: props.value.includes('mathblock')
 													? -7
 													: 3
 				));

@@ -25,3 +25,12 @@ declare module 'search-index:settings' {
 declare module 'search-index:admin' {
 	export const searchIndexes: XGeneratedSearchIndexItem[];
 }
+
+declare module 'temml/dist/temml.mjs' {
+	import type { Options } from 'temml';
+	const temml: {
+		render: (expression: string, baseNode: HTMLElement | MathMLElement, options?: Options) => void;
+		renderToString: (expression: string, options?: Options) => string;
+	};
+	export default temml;
+}

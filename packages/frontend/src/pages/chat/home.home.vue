@@ -75,7 +75,7 @@ const searchQuery = ref('');
 const searched = ref(false);
 const searchResults = ref<Misskey.entities.ChatMessage[]>([]);
 
-function start(ev: MouseEvent) {
+function start(ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts._chat.individualChat,
 		caption: i18n.ts._chat.individualChat_description,
@@ -134,7 +134,7 @@ async function search() {
 
 onMounted(() => {
 	updateCurrentAccountPartial({ hasUnreadChatMessages: false });
-	globalEvents.on('createChat', (ev) => start(ev));
+	globalEvents.on('createChat', (ev) => start(ev as PointerEvent));
 });
 
 onUnmounted(() => {
