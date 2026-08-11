@@ -41,13 +41,11 @@ const list = ref<Misskey.entities.UserList | null>(null);
 
 const tlEl = useTemplateRef('tlEl');
 
-const withSensitive = ref(false);
+const withSensitive = ref(true);
 
 const withRenotes = ref(true);
 const onlyFiles = ref(false);
 
-watch(withRenotes, fetch, { immediate: true });
-watch(onlyFiles, fetch, { immediate: true });
 watch(() => props.listId, fetch, { immediate: true });
 
 async function fetch() {
