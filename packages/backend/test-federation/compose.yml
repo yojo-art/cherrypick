@@ -53,16 +53,12 @@ services:
         target: /cherrypick/packages/backend/test-federation/test
         read_only: true
       - type: bind
-        source: ../jest.config.cjs
-        target: /cherrypick/packages/backend/jest.config.cjs
+        source: ../vitest.config.ts
+        target: /cherrypick/packages/backend/vitest.config.ts
         read_only: true
       - type: bind
-        source: ../jest.config.fed.cjs
-        target: /cherrypick/packages/backend/jest.config.fed.cjs
-        read_only: true
-      - type: bind
-        source: ../jest.js
-        target: /cherrypick/packages/backend/jest.js
+        source: ../vitest.config.fed.ts
+        target: /cherrypick/packages/backend/vitest.config.fed.ts
         read_only: true
       - type: bind
         source: ../scripts/compile_config.js

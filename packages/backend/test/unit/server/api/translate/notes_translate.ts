@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
 	mockDetectLanguage,
@@ -27,17 +27,21 @@ import { RoleService } from '@/core/RoleService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { ApiError } from '@/server/api/error.js';
 
-jest.unstable_mockModule('@google-cloud/translate', googleTranslateMockFactory);
-jest.unstable_mockModule('node:fs', fsMockFactory);
+vi.mock('@google-cloud/translate', () => {
+	return import('../../../../helpers/translate-shared.js').then(m => m.googleTranslateMockFactory());
+});
+vi.mock('node:fs', () => {
+	return import('../../../../helpers/translate-shared.js').then(m => m.fsMockFactory());
+});
 
 const { default: TranslateEndpoint } = await import('@/server/api/endpoints/notes/translate.js');
 
 describe('endpoints/notes/translate', () => {
 	let endpoint: InstanceType<typeof TranslateEndpoint>;
-	let httpRequestService: jest.Mocked<HttpRequestService>;
-	let getterService: jest.Mocked<GetterService>;
-	let roleService: jest.Mocked<RoleService>;
-	let noteEntityService: jest.Mocked<NoteEntityService>;
+	let httpRequestService: Mocked<HttpRequestService>;
+	let getterService: Mocked<GetterService>;
+	let roleService: Mocked<RoleService>;
+	let noteEntityService: Mocked<NoteEntityService>;
 	let serverSettings: any;
 
 	//const targetNote = { text: 'こんにちは、世界', cw: null };
@@ -46,10 +50,10 @@ describe('endpoints/notes/translate', () => {
 	const buildModule = async (settingsOverride: Partial<typeof defaultServerSettings> = {}) => {
 		serverSettings = { ...defaultServerSettings, ...settingsOverride };
 
-		httpRequestService = { send: jest.fn<(...args: any[]) => Promise<any>>() } as any;
-		getterService = { getNote: jest.fn<(...args: any[]) => Promise<any>>() } as any;
-		roleService = { getUserPolicies: jest.fn<(...args: any[]) => Promise<any>>() } as any;
-		noteEntityService = { isVisibleForMe: jest.fn<(...args: any[]) => Promise<boolean>>() } as any;
+		httpRequestService = { send: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		getterService = { getNote: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		roleService = { getUserPolicies: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		noteEntityService = { isVisibleForMe: vi.fn<(...args: any[]) => Promise<boolean>>() } as any;
 
 		const moduleRef: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -74,7 +78,7 @@ describe('endpoints/notes/translate', () => {
 		noteEntityService.isVisibleForMe.mockResolvedValue(true);
 	};
 
-	beforeEach(() => jest.clearAllMocks());
+	beforeEach(() => vi.clearAllMocks());
 
 	describe('権限・対象取得・可視性', () => {
 		it('canUseTranslatorがfalseならUNAVAILABLE', async () => {
@@ -129,7 +133,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			const body = (options as any).body;
 			// URLSearchParamsはエンコードするので decode して確認
 			const decoded = decodeURIComponent(body);
@@ -143,7 +147,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).contents).toEqual(['注意\n本文']);
 		});
 
@@ -154,7 +158,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			expect(JSON.parse((options as any).body).q).toBe('注意\n本文');
 		});
 
@@ -165,7 +169,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			const decoded = decodeURIComponent((options as any).body);
 			expect(decoded).toContain('text=本文だけ');
 			expect(decoded).not.toContain('注意');
@@ -206,7 +210,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en-US' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			expect((options as any).body).toContain('target_lang=en');
 		});
 
@@ -237,7 +241,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).targetLanguageCode).toBe('ja');
 			expect((callArg as any).contents).toEqual(['こんにちは、世界']);
 		});
@@ -248,7 +252,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).model).toBe('projects/proj-1/locations/global/models/general/nmt');
 		});
 
@@ -277,7 +281,7 @@ describe('endpoints/notes/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			expect(JSON.parse((options as any).body)).toMatchObject({ api_key: 'libre-key' });
 		});
 

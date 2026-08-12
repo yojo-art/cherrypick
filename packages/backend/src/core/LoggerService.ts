@@ -9,7 +9,7 @@ import type { Config } from '@/config.js';
 import Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import type { Logging } from '@google-cloud/logging';
-import type { KEYWORD } from 'color-convert/conversions.js';
+import type { Keyword } from 'color-convert';
 
 @Injectable()
 export class LoggerService {
@@ -23,7 +23,7 @@ export class LoggerService {
 	}
 
 	@bindThis
-	public getLogger(domain: string, color?: KEYWORD | undefined) {
+	public getLogger(domain: string, color?: Keyword | undefined) {
 		const logger = this.cloudLogging?.log(this.config.cloudLogging?.logName ?? 'cherrypick');
 		return new Logger(domain, color, logger);
 	}

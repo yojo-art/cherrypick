@@ -3,40 +3,41 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { jest } from '@jest/globals';
+import { vi } from 'vitest';
 
 // =========================================================================
 // Google Translate SDKのモック関数
-// 各テストファイルが import してから unstable_mockModule で参照する。
+// テストファイル内の vi.hoisted から参照されるため、ここでは定義のみ export する。
+// (vitest の vi.mock ファクトリは同一ファイル内の hoisted 変数のみ参照可能)
 // =========================================================================
 
-export const mockDetectLanguage = jest.fn<(...args: any[]) => Promise<any>>();
-export const mockTranslateText = jest.fn<(...args: any[]) => Promise<any>>();
+export const mockDetectLanguage = vi.fn<(...args: any[]) => Promise<any>>();
+export const mockTranslateText = vi.fn<(...args: any[]) => Promise<any>>();
 
 /**
  * Google Translate SDKのモック登録ファクトリ。
- * 各テストファイルの冒頭で `jest.unstable_mockModule('@google-cloud/translate', googleTranslateMockFactory)`
+ * 各テストファイルの冒頭で `vi.mock('@google-cloud/translate', googleTranslateMockFactory)`
  * のように使う。
- *
- * 注意: unstable_mockModule自体は各テストファイルで呼ぶ必要がある(共通化不可)。
- * このファクトリ関数だけ共通化している。
  */
-export const googleTranslateMockFactory = () => ({
-	TranslationServiceClient: jest.fn().mockImplementation(() => ({
-		detectLanguage: mockDetectLanguage,
-		translateText: mockTranslateText,
-	})),
-});
+export const googleTranslateMockFactory = () => {
+	class MockTranslationServiceClient {
+		public detectLanguage = mockDetectLanguage;
+		public translateText = mockTranslateText;
+	}
+	return {
+		TranslationServiceClient: MockTranslationServiceClient,
+	};
+};
 
 /**
  * node:fsのモック登録ファクトリ。SAキー書き込みを無害化する。
  */
 export const fsMockFactory = () => {
 	const stub = {
-		writeFileSync: jest.fn(),
-		mkdtempSync: jest.fn(() => '/tmp/fake-tmp-dir'),
-		rmSync: jest.fn(),
-		unlinkSync: jest.fn(),
+		writeFileSync: vi.fn(),
+		mkdtempSync: vi.fn(() => '/tmp/fake-tmp-dir'),
+		rmSync: vi.fn(),
+		unlinkSync: vi.fn(),
 	};
 	return { default: stub, ...stub };
 };

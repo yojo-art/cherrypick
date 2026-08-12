@@ -42,6 +42,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInput v-model="url">
 					<template #label>{{ i18n.ts.imageUrl }}</template>
 				</MkInput>
+				<MkInput v-model="category" :datalist="props.categories || []">
+					<template #label>{{ i18n.ts.category }}</template>
+				</MkInput>
 				<MkTextarea v-model="description">
 					<template #label>{{ i18n.ts.description }}</template>
 				</MkTextarea>
@@ -90,6 +93,7 @@ const $i = ensureSignin();
 
 const props = defineProps<{
 	avatarDecoration?: Misskey.entities.AdminAvatarDecorationsListResponse[number],
+	categories?: string[],
 }>();
 
 const emit = defineEmits<{
@@ -100,6 +104,7 @@ const emit = defineEmits<{
 const windowEl = useTemplateRef('windowEl');
 const url = ref<string>(props.avatarDecoration ? props.avatarDecoration.url : '');
 const name = ref<string>(props.avatarDecoration ? props.avatarDecoration.name : '');
+const category = ref<string>(props.avatarDecoration?.category ? props.avatarDecoration.category : '');
 const description = ref<string>(props.avatarDecoration ? props.avatarDecoration.description : '');
 const roleIdsThatCanBeUsedThisDecoration = ref(props.avatarDecoration ? props.avatarDecoration.roleIdsThatCanBeUsedThisDecoration : []);
 const rolesThatCanBeUsedThisDecoration = ref<Misskey.entities.Role[]>([]);
@@ -129,6 +134,7 @@ async function done() {
 		url: url.value,
 		name: name.value,
 		description: description.value,
+		category: category.value,
 		roleIdsThatCanBeUsedThisDecoration: rolesThatCanBeUsedThisDecoration.value.map(x => x.id),
 	};
 

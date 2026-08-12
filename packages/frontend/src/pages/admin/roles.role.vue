@@ -135,6 +135,7 @@ async function assign() {
 
 	await os.apiWithDialog('admin/roles/assign', { roleId: role.id, userId: user.id, expiresAt });
 	//role.users.push(user);
+	usersPaginator.reload();
 }
 
 async function unassign(userId: Misskey.entities.User['id'], ev: PointerEvent) {
@@ -145,6 +146,7 @@ async function unassign(userId: Misskey.entities.User['id'], ev: PointerEvent) {
 		action: async () => {
 			await os.apiWithDialog('admin/roles/unassign', { roleId: role.id, userId: userId });
 			//role.users = role.users.filter(u => u.id !== userId);
+			usersPaginator.reload();
 		},
 	}], ev.currentTarget ?? ev.target);
 }
