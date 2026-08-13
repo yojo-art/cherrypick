@@ -21,6 +21,7 @@ import { MiAnnouncementRead } from '@/models/AnnouncementRead.js';
 import { MiAntenna } from '@/models/Antenna.js';
 import { MiApp } from '@/models/App.js';
 import { MiAvatarDecoration } from '@/models/AvatarDecoration.js';
+import { MiCustomSound } from '@/models/CustomSound.js';
 import { MiAuthSession } from '@/models/AuthSession.js';
 import { MiBlocking } from '@/models/Blocking.js';
 import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
@@ -194,6 +195,7 @@ export const entities = [
 	MiInstance,
 	MiApp,
 	MiAvatarDecoration,
+	MiCustomSound,
 	MiAuthSession,
 	MiAccessToken,
 	MiUser,
