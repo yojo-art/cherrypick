@@ -1,3 +1,4 @@
+import { beforeAll, describe, test } from 'vitest';
 import assert, { deepStrictEqual, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
 import { createAccount, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';

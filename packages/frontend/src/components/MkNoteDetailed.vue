@@ -63,9 +63,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkA>
 							<span v-if="appearNote.user.isLocked" :class="$style.userBadge"><i class="ti ti-lock"></i></span>
 							<span v-if="appearNote.user.isBot" :class="$style.userBadge"><i class="ti ti-robot"></i></span>
-						<span v-if="appearNote.user.badgeRoles" :class="$style.badgeRoles">
-							<img v-for="(role, i) in appearNote.user.badgeRoles" :key="i" v-tooltip="role.name" :class="$style.badgeRole" :src="role.iconUrl!"/>
-						</span>
+							<span v-if="appearNote.user.badgeRoles" :class="$style.badgeRoles">
+								<img v-for="(role, i) in appearNote.user.badgeRoles" :key="i" v-tooltip="role.name" :class="$style.badgeRole" :src="role.iconUrl!"/>
+							</span>
 						</div>
 						<div :class="$style.noteHeaderUsername"><MkAcct :user="appearNote.user"/></div>
 					</div>
@@ -390,6 +390,7 @@ import { host } from '@@/js/config.js';
 import { shouldAnimatedMfm } from '@@/js/collapsed.js';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
 import type { Keymap } from '@/utility/hotkey.js';
+import type { MenuItem } from '@/types/menu.js';
 import type { TranslateStatus } from '@/utility/translate.js';
 import { parseMfmCached } from '@/utility/mfm-cache.js';
 import MkNoteSub from '@/components/MkNoteSub.vue';
@@ -459,7 +460,7 @@ const emit = defineEmits<{
 	(ev: 'removeReaction', emoji: string): void;
 }>();
 
-const inChannel = inject('inChannel', null);
+const inChannel = inject(DI.inChannel, null);
 
 let note = deepClone(props.note);
 
@@ -922,18 +923,36 @@ async function showRenoteMenu() {
 	const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
 	if (!isLoggedIn) return;
 
-	os.popupMenu([{
-		text: i18n.ts.unrenote,
-		icon: 'ti ti-trash',
-		danger: true,
-		action: () => {
-			misskeyApi('notes/delete', {
-				noteId: note.id,
-			}).then(() => {
-				globalEvents.emit('noteDeleted', note.id);
-			});
-		},
-	}], renoteTime.value);
+	const menu: MenuItem[] = [];
+
+	if (isMyRenote) {
+		menu.push({
+			text: i18n.ts.unrenote,
+			icon: 'ti ti-trash',
+			danger: true,
+			action: () => {
+				misskeyApi('notes/delete', {
+					noteId: note.id,
+				}).then(() => {
+					globalEvents.emit('noteDeleted', note.id);
+				});
+			},
+		});
+	}
+
+	if (
+		props.note.channelId != null &&
+		(inChannel == null || props.note.channelId !== inChannel.value)
+	) {
+		menu.push({
+			type: 'link',
+			text: i18n.ts.viewRenotedChannel,
+			icon: 'ti ti-device-tv',
+			to: `/channels/${props.note.channelId}`,
+		});
+	}
+
+	os.popupMenu(menu, renoteTime.value);
 }
 
 function focus() {

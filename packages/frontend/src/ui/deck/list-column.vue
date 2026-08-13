@@ -102,7 +102,7 @@ async function setList() {
 }
 
 function editList() {
-	os.pageWindow('my/lists/' + props.column.listId);
+	os.pageWindow('/my/lists/' + props.column.listId);
 }
 
 const menu: MenuItem[] = [

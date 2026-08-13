@@ -39,11 +39,11 @@ jobs:
           POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
-        image: redis:7
+        image: redis:8
         ports:
           - 56312:6379
       meilisearch:
-        image: getmeili/meilisearch:v1.38.2
+        image: getmeili/meilisearch:v1.42.1
         ports:
           - 57712:7700
         env:
@@ -55,12 +55,12 @@ jobs:
       with:
         submodules: true
     - name: Setup pnpm
-      uses: pnpm/action-setup@v4.4.0
+      uses: pnpm/action-setup@v6.0.3
     - name: Install FFmpeg
       run: |
         sudo apt install -y ffmpeg
     - name: Use Node.js
-      uses: actions/setup-node@v6.3.0
+      uses: actions/setup-node@v6.4.0
       with:
         node-version-file: ${{ matrix.node-version-file }}
         cache: 'pnpm'
@@ -74,7 +74,7 @@ jobs:
     - name: Test
       run: pnpm --filter backend test-and-coverage
     - name: Upload to Codecov
-      uses: codecov/codecov-action@v5
+      uses: codecov/codecov-action@v6
       with:
         token: ${{ secrets.CODECOV_TOKEN }}
         files: ./packages/backend/coverage/coverage-final.json
@@ -98,7 +98,7 @@ jobs:
           POSTGRES_DB: test-misskey
           POSTGRES_HOST_AUTH_METHOD: trust
       redis:
-        image: redis:7
+        image: redis:8
         ports:
           - 56312:6379
 
@@ -107,9 +107,9 @@ jobs:
         with:
           submodules: true
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4.4.0
+        uses: pnpm/action-setup@v6.0.3
       - name: Use Node.js
-        uses: actions/setup-node@v6.3.0
+        uses: actions/setup-node@v6.4.0
         with:
           node-version-file: ${{ matrix.node-version-file }}
           cache: 'pnpm'
@@ -123,7 +123,7 @@ jobs:
       - name: Test
         run: pnpm --filter backend test-and-coverage:e2e
       - name: Upload to Codecov
-        uses: codecov/codecov-action@v5
+        uses: codecov/codecov-action@v6
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
           files: ./packages/backend/coverage/coverage-final.json
@@ -151,12 +151,12 @@ jobs:
         with:
           submodules: true
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4.4.0
+        uses: pnpm/action-setup@v6.0.3
       - name: Get current date
         id: current-date
         run: echo "today=$(date +'%Y-%m-%d')" >> $GITHUB_OUTPUT
       - name: Use Node.js
-        uses: actions/setup-node@v6.3.0
+        uses: actions/setup-node@v6.4.0
         with:
           node-version-file: ${{ matrix.node-version-file }}
           cache: 'pnpm'

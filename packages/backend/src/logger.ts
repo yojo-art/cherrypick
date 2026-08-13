@@ -12,11 +12,11 @@ import stripAnsi from 'strip-ansi';
 import { bindThis } from '@/decorators.js';
 import { envOption } from './env.js';
 import type { Log } from '@google-cloud/logging';
-import type { KEYWORD } from 'color-convert/conversions.js';
+import type { Keyword } from 'color-convert';
 
 type Context = {
 	name: string;
-	color?: KEYWORD;
+	color?: Keyword;
 };
 
 type Level = 'error' | 'success' | 'warning' | 'debug' | 'info';
@@ -27,7 +27,7 @@ export default class Logger {
 	private parentLogger: Logger | null = null;
 	private cloudLogging: Log | null | undefined;
 
-	constructor(context: string, color?: KEYWORD, cloudLogging?: Log) {
+	constructor(context: string, color?: Keyword, cloudLogging?: Log) {
 		this.context = {
 			name: context,
 			color: color,
@@ -36,7 +36,7 @@ export default class Logger {
 	}
 
 	@bindThis
-	public createSubLogger(context: string, color?: KEYWORD): Logger {
+	public createSubLogger(context: string, color?: Keyword): Logger {
 		const logger = new Logger(context, color);
 		logger.parentLogger = this;
 		return logger;

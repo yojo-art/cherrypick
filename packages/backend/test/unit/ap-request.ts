@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { describe, test } from 'vitest';
 import * as assert from 'assert';
 import httpSignature from '@peertube/http-signature';
 
@@ -41,7 +42,7 @@ describe('ap-request', () => {
 			'User-Agent': 'UA',
 		};
 
-		const req = ApRequestCreator.createSignedPost({ key, url, body, additionalHeaders: headers });
+		const req = await ApRequestCreator.createSignedPost({ key, url, body, additionalHeaders: headers });
 
 		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
 
@@ -57,7 +58,7 @@ describe('ap-request', () => {
 			'User-Agent': 'UA',
 		};
 
-		const req = ApRequestCreator.createSignedGet({ key, url, additionalHeaders: headers });
+		const req = await ApRequestCreator.createSignedGet({ key, url, additionalHeaders: headers });
 
 		const parsed = buildParsedSignature(req.signingString, req.signature, 'rsa-sha256');
 

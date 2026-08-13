@@ -2519,11 +2519,11 @@ _postForm:
   channelPlaceholder: "チャンネルに投稿..."
   _howToUse:
     toolbar_description: "ファイルとかアンケートを付けたり、注釈とかハッシュタグを書いたり、絵文字とかメンションとかを付け足したりできるで。"
-    account_description: "投稿するアカウントを変えたり、アカウントに保存した下書きとか予約投稿とかを見れるで。"
+    account_description: "投稿するアカウントを切り替えられるで。"
     visibility_title: "公開範囲"
     visibility_description: "ノートを誰に見せたいかはここで切り替えてな。"
     menu_title: "メニュー"
-    menu_description: "下書きに保存したり、投稿の予約したり、リアクションの受け入れ設定とか…なんか色々できるで。"
+    menu_description: "下書きの保存・一覧、投稿の予約、リアクションの受け入れ設定とか…なんか色々できるで。"
     submit_description: "ノートを投稿するときはここ押してな。Ctrl + Enter / Cmd + Enter でも投稿できるで。"
   _placeholders:
     a: "いまどないしとるん？"
