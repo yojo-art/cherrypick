@@ -86,7 +86,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { useTemplateRef, computed, markRaw } from 'vue';
+import { useTemplateRef, computed, ref, markRaw } from 'vue';
 import { notificationTypes } from 'misskey-js';
 import * as Misskey from 'misskey-js';
 import XNotificationConfig from './notifications.notification-config.vue';
@@ -103,11 +103,11 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkPushNotificationAllowButton from '@/components/MkPushNotificationAllowButton.vue';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
-import { flushNotification } from '@/utility/check-nortification-delete.js';
 import { Paginator } from '@/utility/paginator.js';
 import MkPagination from '@/components/MkPagination.vue';
 import { userPage } from '@/filters/user.js';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
+import { flushNotification } from '@/utility/check-nortification-delete.js';
 
 const $i = ensureSignin();
 

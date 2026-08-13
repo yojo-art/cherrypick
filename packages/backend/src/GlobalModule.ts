@@ -7,7 +7,7 @@ import process from 'node:process';
 import { Global, Inject, Module } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import { DataSource } from 'typeorm';
-import { MeiliSearch } from 'meilisearch';
+import { Meilisearch } from 'meilisearch';
 import { Client as OpenSearch } from '@opensearch-project/opensearch';
 import { Logging } from '@google-cloud/logging';
 import { MiMeta } from '@/models/Meta.js';
@@ -43,10 +43,10 @@ const $meilisearch: Provider = {
 	useFactory: (config: Config) => {
 		if (config.fulltextSearch?.provider === 'meilisearch') {
 			if (!config.meilisearch) {
-				throw new Error('MeiliSearch is enabled but no configuration is provided');
+				throw new Error('Meilisearch is enabled but no configuration is provided');
 			}
 
-			return new MeiliSearch({
+			return new Meilisearch({
 				host: `${config.meilisearch.ssl ? 'https' : 'http'}://${config.meilisearch.host}:${config.meilisearch.port}`,
 				apiKey: config.meilisearch.apiKey,
 			});

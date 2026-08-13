@@ -1,3 +1,4 @@
+import { afterAll, beforeAll, describe, test } from 'vitest';
 import assert, { strictEqual } from 'node:assert';
 import { notStrictEqual } from 'node:assert/strict';
 import * as Misskey from 'misskey-js';
@@ -52,7 +53,9 @@ describe('Channel', () => {
 	});
 
 	afterAll(async () => {
-		await bob.client.request('following/delete', { userId: carolChActorInB.id });
+		if (carolChActorInB != null) {
+			await bob.client.request('following/delete', { userId: carolChActorInB.id });
+		}
 	});
 
 	describe('Actor', () => {

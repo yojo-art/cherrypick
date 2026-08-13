@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
 	mockDetectLanguage,
@@ -26,17 +26,21 @@ import { GetterService } from '@/server/api/GetterService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { ApiError } from '@/server/api/error.js';
 
-// ESMモードのJestではjest.mockのhoistingが効かないため unstable_mockModule + 動的import を使用
-jest.unstable_mockModule('@google-cloud/translate', googleTranslateMockFactory);
-jest.unstable_mockModule('node:fs', fsMockFactory);
+// vitest では vi.mock が hoisting されるため、モック登録後に動的 import でテスト対象を読み込む
+vi.mock('@google-cloud/translate', () => {
+	return import('../../../../helpers/translate-shared.js').then(m => m.googleTranslateMockFactory());
+});
+vi.mock('node:fs', () => {
+	return import('../../../../helpers/translate-shared.js').then(m => m.fsMockFactory());
+});
 
 const { default: TranslateEndpoint } = await import('@/server/api/endpoints/users/translate.js');
 
 describe('endpoints/users/translate', () => {
 	let endpoint: InstanceType<typeof TranslateEndpoint>;
-	let httpRequestService: jest.Mocked<HttpRequestService>;
-	let getterService: jest.Mocked<GetterService>;
-	let roleService: jest.Mocked<RoleService>;
+	let httpRequestService: Mocked<HttpRequestService>;
+	let getterService: Mocked<GetterService>;
+	let roleService: Mocked<RoleService>;
 	let serverSettings: any;
 
 	const targetUser = { description: 'こんにちは、世界' };
@@ -44,9 +48,9 @@ describe('endpoints/users/translate', () => {
 	const buildModule = async (settingsOverride: Partial<typeof defaultServerSettings> = {}) => {
 		serverSettings = { ...defaultServerSettings, ...settingsOverride };
 
-		httpRequestService = { send: jest.fn<(...args: any[]) => Promise<any>>() } as any;
-		getterService = { getUserProfiles: jest.fn<(...args: any[]) => Promise<any>>() } as any;
-		roleService = { getUserPolicies: jest.fn<(...args: any[]) => Promise<any>>() } as any;
+		httpRequestService = { send: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		getterService = { getUserProfiles: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		roleService = { getUserPolicies: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 
 		const moduleRef: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -64,7 +68,7 @@ describe('endpoints/users/translate', () => {
 	const callEndpoint = (params: any = { userId: 'u1', targetLang: 'ja' }) =>
 		(endpoint as any).exec(params, me);
 
-	beforeEach(() => jest.clearAllMocks());
+	beforeEach(() => vi.clearAllMocks());
 
 	describe('権限・対象取得', () => {
 		it('canUseTranslatorがfalseならUNAVAILABLE', async () => {
@@ -137,7 +141,7 @@ describe('endpoints/users/translate', () => {
 
 			await callEndpoint({ userId: 'u1', targetLang: 'en-US' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			expect((options as any).body).toContain('target_lang=en');
 			expect((options as any).body).not.toContain('en-US');
 		});
@@ -174,7 +178,7 @@ describe('endpoints/users/translate', () => {
 			expect(mockDetectLanguage).toHaveBeenCalled();
 			// 注意: 現実装ではdetectedLanguage(=ソース言語)がtargetLanguageCodeに渡される。
 			// バグの疑いあるが挙動を固定。
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).targetLanguageCode).toBe('ja');
 			expect((callArg as any).glossaryConfig).toMatchObject({
 				glossary: 'projects/proj-1/locations/global/glossaries/my-glossary',
@@ -189,7 +193,7 @@ describe('endpoints/users/translate', () => {
 
 			await callEndpoint({ userId: 'u1', targetLang: 'en' });
 
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).model).toBe('projects/proj-1/locations/global/models/general/nmt');
 		});
 
@@ -224,7 +228,7 @@ describe('endpoints/users/translate', () => {
 
 			await callEndpoint({ userId: 'u1', targetLang: 'en' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			expect(JSON.parse((options as any).body)).toMatchObject({ api_key: 'libre-key' });
 		});
 
@@ -233,7 +237,7 @@ describe('endpoints/users/translate', () => {
 
 			await callEndpoint({ userId: 'u1', targetLang: 'zh-CN' });
 
-			const [, options] = (httpRequestService.send as jest.Mock).mock.calls[0];
+			const [, options] = (httpRequestService.send as any).mock.calls[0];
 			expect(JSON.parse((options as any).body).target).toBe('zh');
 		});
 
