@@ -22,7 +22,7 @@ import type { Config } from '@/config.js';
 import { UserListService } from '@/core/UserListService.js';
 import { FilterUnionByProperty, groupedNotificationTypes, obsoleteNotificationTypes } from '@/types.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
-import { IdentifiableError } from "@/misc/identifiable-error.js";
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 
 @Injectable()
 export class NotificationService implements OnApplicationShutdown {
@@ -317,9 +317,8 @@ export class NotificationService implements OnApplicationShutdown {
 
 	private toXListId(id: string): string {
 		const { date, additional } = this.idService.parseFull(id);
-		// Redis stream ID の sequence 部分は 64 ビットまでなので、additional の下位 64 ビットのみを使用
-		const sequence = additional & ((1n << 64n) - 1n);
-		return date.toString() + '-' + sequence.toString();
+		// Redis Stream sequenceはunit64制約があるため、収まらない場合は下位64bitを取る
+		return date.toString() + '-' + BigInt.asUintN(64, additional).toString();
 	}
 
 	@bindThis

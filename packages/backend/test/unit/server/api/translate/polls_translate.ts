@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { jest } from '@jest/globals';
+import { beforeEach, describe, expect, it, vi, type Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import {
 	mockDetectLanguage,
@@ -25,16 +25,20 @@ import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { ApiError } from '@/server/api/error.js';
 
-jest.unstable_mockModule('@google-cloud/translate', googleTranslateMockFactory);
-jest.unstable_mockModule('node:fs', fsMockFactory);
+vi.mock('@google-cloud/translate', () => {
+	return import('../../../../helpers/translate-shared.js').then(m => m.googleTranslateMockFactory());
+});
+vi.mock('node:fs', () => {
+	return import('../../../../helpers/translate-shared.js').then(m => m.fsMockFactory());
+});
 
 const { default: TranslateEndpoint } = await import('@/server/api/endpoints/notes/polls/translate.js');
 
 describe('endpoints/notes/polls/translate', () => {
 	let endpoint: InstanceType<typeof TranslateEndpoint>;
-	let httpRequestService: jest.Mocked<HttpRequestService>;
+	let httpRequestService: Mocked<HttpRequestService>;
 	let pollsRepository: any;
-	let roleService: jest.Mocked<RoleService>;
+	let roleService: Mocked<RoleService>;
 	let serverSettings: any;
 
 	const targetPoll = { choices: ['選択肢A', '選択肢B', '選択肢C'] };
@@ -42,9 +46,9 @@ describe('endpoints/notes/polls/translate', () => {
 	const buildModule = async (settingsOverride: Partial<typeof defaultServerSettings> = {}) => {
 		serverSettings = { ...defaultServerSettings, ...settingsOverride };
 
-		httpRequestService = { send: jest.fn<(...args: any[]) => Promise<any>>() } as any;
-		pollsRepository = { findOneByOrFail: jest.fn() };
-		roleService = { getUserPolicies: jest.fn<(...args: any[]) => Promise<any>>() } as any;
+		httpRequestService = { send: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		pollsRepository = { findOneByOrFail: vi.fn() };
+		roleService = { getUserPolicies: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 
 		const moduleRef: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -67,7 +71,7 @@ describe('endpoints/notes/polls/translate', () => {
 		pollsRepository.findOneByOrFail.mockResolvedValue(poll);
 	};
 
-	beforeEach(() => jest.clearAllMocks());
+	beforeEach(() => vi.clearAllMocks());
 
 	describe('権限・対象取得', () => {
 		it('canUseTranslatorがfalseならUNAVAILABLE', async () => {
@@ -99,7 +103,7 @@ describe('endpoints/notes/polls/translate', () => {
 		});
 
 		it('choicesの数だけhttpRequestService.sendを呼ぶ', async () => {
-			(httpRequestService.send as jest.Mock)
+			(httpRequestService.send as any)
 				.mockResolvedValueOnce(deeplResponse('A-en') as never)
 				.mockResolvedValueOnce(deeplResponse('B-en') as never)
 				.mockResolvedValueOnce(deeplResponse('C-en') as never);
@@ -115,7 +119,7 @@ describe('endpoints/notes/polls/translate', () => {
 
 		it('Pro版フラグで有料エンドポイント', async () => {
 			serverSettings.deeplIsPro = true;
-			(httpRequestService.send as jest.Mock).mockResolvedValue(deeplResponse('x') as never);
+			(httpRequestService.send as any).mockResolvedValue(deeplResponse('x') as never);
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
@@ -142,7 +146,7 @@ describe('endpoints/notes/polls/translate', () => {
 
 			const res = await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).contents).toEqual(['選択肢A', '選択肢B', '選択肢C']);
 			expect(res).toMatchObject({
 				sourceLang: 'ja',
@@ -157,7 +161,7 @@ describe('endpoints/notes/polls/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const detectArg = (mockDetectLanguage as jest.Mock).mock.calls[0][0];
+			const detectArg = (mockDetectLanguage as any).mock.calls[0][0];
 			expect((detectArg as any).content).toBe('選択肢A\n選択肢B\n選択肢C');
 		});
 
@@ -167,7 +171,7 @@ describe('endpoints/notes/polls/translate', () => {
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const callArg = (mockTranslateText as jest.Mock).mock.calls[0][0];
+			const callArg = (mockTranslateText as any).mock.calls[0][0];
 			expect((callArg as any).model).toBe('projects/proj-1/locations/global/models/general/nmt');
 		});
 
@@ -184,7 +188,7 @@ describe('endpoints/notes/polls/translate', () => {
 		});
 
 		it('choicesの数だけhttpRequestService.sendを呼ぶ', async () => {
-			(httpRequestService.send as jest.Mock)
+			(httpRequestService.send as any)
 				.mockResolvedValueOnce(libreResponse('A-en') as never)
 				.mockResolvedValueOnce(libreResponse('B-en') as never)
 				.mockResolvedValueOnce(libreResponse('C-en') as never);
@@ -200,11 +204,11 @@ describe('endpoints/notes/polls/translate', () => {
 
 		it('APIキー設定時は全リクエストのbodyに含める', async () => {
 			serverSettings.libreTranslateApiKey = 'libre-key';
-			(httpRequestService.send as jest.Mock).mockResolvedValue(libreResponse('x') as never);
+			(httpRequestService.send as any).mockResolvedValue(libreResponse('x') as never);
 
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
-			const calls = (httpRequestService.send as jest.Mock).mock.calls;
+			const calls = (httpRequestService.send as any).mock.calls;
 			for (const [, options] of calls) {
 				expect(JSON.parse((options as any).body)).toMatchObject({ api_key: 'libre-key' });
 			}

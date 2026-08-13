@@ -5,6 +5,7 @@ introMisskey: "ຍິນດີຕ້ອນຮັບ! CherryPick ເປັນຊ�
 poweredByMisskeyDescription: "{name} ແມ່ນສ່ວນໜຶ່ງຂອງການບໍລິການທີ່ຂັບເຄື່ອນໂດຍແພລດຟອມ open source. <b>CherryPick</b> (ເອີ້ນວ່າ \"CherryPick instance\")"
 monthAndDay: "ເດືອນ{month} / ວັນ{day}"
 search: "ຄົ້ນຫາ"
+reset: "ຣີເຊັດ"
 notifications: "ການແຈ້ງເຕືອນ"
 username: "ຊື່ຜູ້ໃຊ້"
 password: "ລະຫັດຜ່ານ"

@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<{
 });
 
 const behavior = props.behavior ?? inject<MkABehavior>('linkNavigationBehavior', null);
+const isWindow = inject<boolean>('inWindow', false);
 
 const el = useTemplateRef('el');
 
@@ -100,7 +101,11 @@ function nav(ev: PointerEvent) {
 	ev.preventDefault();
 
 	if (behavior === 'browser') {
-		window.location.href = props.to;
+		if (isWindow) {
+			window.open(props.to, '_blank', 'noopener');
+		} else {
+			window.location.href = props.to;
+		}
 		return;
 	}
 
