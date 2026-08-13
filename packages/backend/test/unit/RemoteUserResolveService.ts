@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { describe, beforeAll, beforeEach, test, vi } from 'vitest';
+import { describe, beforeAll, beforeEach, test, expect, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 
 import { MockResolver } from '../misc/mock-resolver.js';
