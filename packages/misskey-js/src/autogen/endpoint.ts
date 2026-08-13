@@ -49,6 +49,10 @@ import type {
 	AdminAvatarDecorationsUpdateRequest,
 	AdminCaptchaCurrentResponse,
 	AdminCaptchaSaveRequest,
+	AdminCustomSoundsCreateRequest,
+	AdminCustomSoundsCreateResponse,
+	AdminCustomSoundsDeleteRequest,
+	AdminCustomSoundsListResponse,
 	AdminDeleteAccountRequest,
 	AdminDeleteAllFilesOfAUserRequest,
 	AdminDriveFilesRequest,
@@ -415,6 +419,7 @@ import type {
 	GalleryPostsUpdateRequest,
 	GalleryPostsUpdateResponse,
 	GetAvatarDecorationsResponse,
+	GetCustomSoundsResponse,
 	GetOnlineUsersCountResponse,
 	HashtagsListRequest,
 	HashtagsListResponse,
@@ -764,6 +769,9 @@ export type Endpoints = {
 	'admin/avatar-decorations/update': { req: AdminAvatarDecorationsUpdateRequest; res: EmptyResponse };
 	'admin/captcha/current': { req: EmptyRequest; res: AdminCaptchaCurrentResponse };
 	'admin/captcha/save': { req: AdminCaptchaSaveRequest; res: EmptyResponse };
+	'admin/custom-sounds/create': { req: AdminCustomSoundsCreateRequest; res: AdminCustomSoundsCreateResponse };
+	'admin/custom-sounds/delete': { req: AdminCustomSoundsDeleteRequest; res: EmptyResponse };
+	'admin/custom-sounds/list': { req: EmptyRequest; res: AdminCustomSoundsListResponse };
 	'admin/delete-account': { req: AdminDeleteAccountRequest; res: EmptyResponse };
 	'admin/delete-all-files-of-a-user': { req: AdminDeleteAllFilesOfAUserRequest; res: EmptyResponse };
 	'admin/drive/clean-remote-files': { req: EmptyRequest; res: EmptyResponse };
@@ -1002,6 +1010,7 @@ export type Endpoints = {
 	'gallery/posts/unlike': { req: GalleryPostsUnlikeRequest; res: EmptyResponse };
 	'gallery/posts/update': { req: GalleryPostsUpdateRequest; res: GalleryPostsUpdateResponse };
 	'get-avatar-decorations': { req: EmptyRequest; res: GetAvatarDecorationsResponse };
+	'get-custom-sounds': { req: EmptyRequest; res: GetCustomSoundsResponse };
 	'get-online-users-count': { req: EmptyRequest; res: GetOnlineUsersCountResponse };
 	'hashtags/list': { req: HashtagsListRequest; res: HashtagsListResponse };
 	'hashtags/search': { req: HashtagsSearchRequest; res: HashtagsSearchResponse };

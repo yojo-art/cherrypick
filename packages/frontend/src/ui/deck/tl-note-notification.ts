@@ -10,14 +10,19 @@ import type { SoundStore } from '@/preferences/def.js';
 import { getSoundDuration, playMisskeySfxFile, soundsTypes } from '@/utility/sound.js';
 import { i18n } from '@/i18n.js';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 
 export async function soundSettingsButton(soundSetting: Ref<SoundStore>): Promise<void> {
+	const instanceSounds = await misskeyApi('get-custom-sounds');
+
 	function getSoundTypeName(f: SoundType): string {
 		switch (f) {
 			case null:
 				return i18n.ts.none;
 			case '_driveFile_':
 				return i18n.ts._soundSettings.driveFile;
+			case '_instanceSound_':
+				return i18n.ts._soundSettings.instanceSound;
 			default:
 				return f;
 		}
@@ -31,6 +36,16 @@ export async function soundSettingsButton(soundSetting: Ref<SoundStore>): Promis
 			enum: soundsTypes.map(f => ({
 				value: f ?? 'none' as Exclude<SoundType, null> | 'none',
 				label: getSoundTypeName(f),
+			})),
+		},
+		instanceSound: {
+			type: 'enum',
+			label: i18n.ts._soundSettings.instanceSound,
+			default: 'soundId' in soundSetting.value ? soundSetting.value.soundId : null,
+			hidden: v => v.type !== '_instanceSound_',
+			enum: instanceSounds.map(s => ({
+				value: s.id,
+				label: s.name,
 			})),
 		},
 		soundFile: {
@@ -103,6 +118,16 @@ export async function soundSettingsButton(soundSetting: Ref<SoundStore>): Promis
 				return null;
 			}
 			return { type, volume, fileId, fileUrl };
+		} else if (type === '_instanceSound_') {
+			const sound = instanceSounds.find(s => s.id === r.instanceSound);
+			if (sound == null) {
+				os.alert({
+					type: 'warning',
+					text: i18n.ts._soundSettings.instanceSoundWarn,
+				});
+				return null;
+			}
+			return { type, volume, soundId: sound.id, fileUrl: sound.url };
 		} else {
 			return { type, volume };
 		}

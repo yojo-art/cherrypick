@@ -45,6 +45,37 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<MkInfo v-else-if="opensearchEnabled === false">{{ i18n.ts._reIndexOpenSearch.notEnabled }}</MkInfo>
 				</MkFolder>
 			</SearchMarker>
+
+			<MkFolder v-if="$i?.isAdmin || $i?.policies.canManageCustomSounds">
+				<template #icon><i class="ti ti-music"></i></template>
+				<template #label>{{ i18n.ts._adminSounds.title }}</template>
+				<template #caption>{{ i18n.ts._adminSounds.description }}</template>
+
+				<div class="_gaps_m">
+					<div v-if="customSounds.length === 0" class="_panel" style="padding: 16px;">
+						{{ i18n.ts._adminSounds.noSounds }}
+					</div>
+
+					<div v-for="sound in customSounds" :key="sound.id" class="_panel" style="padding: 16px;">
+						<div style="display: flex; align-items: center; gap: 8px;">
+							<div style="flex: 1; min-width: 0;">{{ sound.name }}</div>
+							<MkButton inline small @click="playCustomSound(sound.url)"><i class="ti ti-player-play"></i></MkButton>
+							<MkButton inline danger small @click="deleteCustomSound(sound)"><i class="ti ti-trash"></i></MkButton>
+						</div>
+					</div>
+
+					<div class="_panel" style="padding: 16px;">
+						<div class="_gaps_m">
+							<MkInput v-model="soundName" :label="i18n.ts._adminSounds.name">
+								<template #caption>{{ i18n.ts._adminSounds.nameCaption }}</template>
+							</MkInput>
+							<MkButton inline primary @click="selectSoundFile">{{ i18n.ts._adminSounds.selectFile }}</MkButton>
+							<span v-if="selectedFile">{{ selectedFile.name }}</span>
+							<MkButton inline primary :disabled="soundName.trim() === '' || selectedFile == null" @click="addCustomSound">{{ i18n.ts._adminSounds.add }}</MkButton>
+						</div>
+					</div>
+				</div>
+			</MkFolder>
 		</div>
 	</div>
 </PageWithHeader>
@@ -56,9 +87,14 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
+import { $i } from '@/i.js';
 import MkButton from '@/components/MkButton.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkInfo from '@/components/MkInfo.vue';
+import MkInput from '@/components/MkInput.vue';
+import type * as Misskey from 'misskey-js';
+import { selectFile } from '@/utility/drive.js';
+import { playUrl } from '@/utility/sound.js';
 
 type IndexKind = 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
 
@@ -100,6 +136,59 @@ const activeIndex = ref<IndexKind>('notes');
 
 // 高度な検索（OpenSearch）が有効かどうか。null は admin/meta 取得前
 const opensearchEnabled = ref<boolean | null>(null);
+
+const customSounds = ref<Misskey.entities.GetCustomSoundsResponse>([]);
+const soundName = ref('');
+const selectedFile = ref<Misskey.entities.DriveFile | null>(null);
+
+async function loadCustomSounds() {
+	customSounds.value = await misskeyApi('admin/custom-sounds/list');
+}
+
+function playCustomSound(url: string) {
+	playUrl(url, { volume: 1 });
+}
+
+function selectSoundFile(ev: PointerEvent) {
+	selectFile({
+		anchorElement: ev.currentTarget ?? ev.target,
+		multiple: false,
+		label: i18n.ts._adminSounds.selectFile,
+	}).then((file) => {
+		if (!file.type.startsWith('audio')) {
+			os.alert({
+				type: 'warning',
+				title: i18n.ts._soundSettings.driveFileTypeWarn,
+				text: i18n.ts._soundSettings.driveFileTypeWarnDescription,
+			});
+			return;
+		}
+		selectedFile.value = file;
+	});
+}
+
+async function addCustomSound() {
+	if (soundName.value.trim() === '' || selectedFile.value == null) return;
+	await os.apiWithDialog('admin/custom-sounds/create', {
+		name: soundName.value.trim(),
+		fileId: selectedFile.value.id,
+	});
+	soundName.value = '';
+	selectedFile.value = null;
+	await loadCustomSounds();
+}
+
+async function deleteCustomSound(sound: Misskey.entities.GetCustomSoundsResponse[number]) {
+	const { canceled } = await os.confirm({
+		type: 'warning',
+		text: i18n.ts._adminSounds.deleteConfirm,
+		okText: i18n.ts._adminSounds.delete,
+		cancelText: i18n.ts.cancel,
+	});
+	if (canceled) return;
+	await os.apiWithDialog('admin/custom-sounds/delete', { id: sound.id });
+	await loadCustomSounds();
+}
 
 function progressPercentOf(index: IndexKind): number {
 	const p = progressMap.value[index];
@@ -168,6 +257,8 @@ function stopPolling() {
 onMounted(async () => {
 	const meta = await misskeyApi('admin/meta');
 	opensearchEnabled.value = meta.opensearchEnabled;
+
+	await loadCustomSounds();
 
 	if (!meta.opensearchEnabled) return;
 

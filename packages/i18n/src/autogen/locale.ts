@@ -9553,6 +9553,10 @@ export interface Locale extends ILocale {
              */
             "canManageAvatarDecorations": string;
             /**
+             * インスタンスサウンドの管理
+             */
+            "canManageCustomSounds": string;
+            /**
              * ドライブ容量
              */
             "driveCapacity": string;
@@ -9955,6 +9959,44 @@ export interface Locale extends ILocale {
          * 広告の配信間隔が極めて短いため、ユーザー体験が著しく損われる可能性があります。
          */
         "adsTooClose": string;
+    };
+    "_adminSounds": {
+        /**
+         * インスタンスのサウンド
+         */
+        "title": string;
+        /**
+         * インスタンス独自のサウンドを登録できます。登録したサウンドは、ユーザーがサウンド設定で選択できます。
+         */
+        "description": string;
+        /**
+         * サウンドを追加
+         */
+        "add": string;
+        /**
+         * 名前
+         */
+        "name": string;
+        /**
+         * サウンド設定に表示される名前です
+         */
+        "nameCaption": string;
+        /**
+         * 音声ファイルを選択
+         */
+        "selectFile": string;
+        /**
+         * 登録されているサウンドはありません
+         */
+        "noSounds": string;
+        /**
+         * 削除
+         */
+        "delete": string;
+        /**
+         * このサウンドを削除しますか？削除したサウンドを選択していたユーザーは、デフォルトのサウンドに戻ります。
+         */
+        "deleteConfirm": string;
     };
     "_forgotPassword": {
         /**
@@ -10991,6 +11033,14 @@ export interface Locale extends ILocale {
          * 音声が読み込めませんでした。設定を変更してください
          */
         "driveFileError": string;
+        /**
+         * インスタンスのサウンド
+         */
+        "instanceSound": string;
+        /**
+         * インスタンスサウンドを選択してください
+         */
+        "instanceSoundWarn": string;
     };
     "_ago": {
         /**
@@ -11465,6 +11515,14 @@ export interface Locale extends ILocale {
          * アバターデコレーションを見る
          */
         "read:admin:avatar-decorations": string;
+        /**
+         * インスタンスサウンドを操作する
+         */
+        "write:admin:custom-sounds": string;
+        /**
+         * インスタンスサウンドを見る
+         */
+        "read:admin:custom-sounds": string;
         /**
          * 連合に関する情報を操作する
          */
