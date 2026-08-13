@@ -108,10 +108,8 @@ onMounted(() => {
 					src: media.url,
 					w: media.properties.width,
 					h: media.properties.height,
-					// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-					alt: media.comment || media.name,
-					// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-					comment: media.comment || media.name,
+					alt: media.comment ?? undefined,
+					comment: media.comment ?? undefined,
 				};
 				if (media.properties.orientation != null && media.properties.orientation >= 5) {
 					[item.w, item.h] = [item.h, item.w];
@@ -158,10 +156,8 @@ onMounted(() => {
 			[itemData.w, itemData.h] = [itemData.h, itemData.w];
 		}
 		itemData.msrc = file.thumbnailUrl ?? undefined;
-		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-		itemData.alt = file.comment || file.name;
-		// eslint-disable-next-line @typescript-eslint/prefer-nullish-coalescing
-		itemData.comment = file.comment || file.name;
+		itemData.alt = file.comment ?? undefined;
+		itemData.comment = file.comment ?? undefined;
 		itemData.title = file.name;
 		itemData.thumbCropped = true;
 
@@ -187,13 +183,9 @@ onMounted(() => {
 				el.appendChild(textBox);
 
 				pswp.on('change', () => {
-					textBox.textContent = pswp.currSlide?.data.comment;
-
 					const altText = pswp.currSlide?.data.alt || null;
 					textBox.textContent = altText;
-					if (!altText) {
-						el.style.display = 'none';
-					}
+					el.style.display = altText ? '' : 'none';
 				});
 			},
 		});
