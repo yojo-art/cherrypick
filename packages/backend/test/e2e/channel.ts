@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { afterAll, beforeAll, beforeEach, describe, test } from 'vitest';
-import { api, castAsError, signup, randomString, uploadUrl, post } from '../utils.js';
+import { api, castAsError, signup, randomString, uploadUrl, post, origin } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('Channel', () => {
@@ -188,6 +188,38 @@ describe('Channel', () => {
 			const afterRes = await api('channels/show', { channelId }, root);
 			assert.strictEqual(afterRes.status, 200);
 			assert.strictEqual(afterRes.body.notesCount, 1, 'チャンネルアカウントのリノートを除きnotesCountは1');
+		});
+	});
+
+	describe('URL照会 (ap/show)', () => {
+		let channel: misskey.entities.ChannelsCreateResponse;
+
+		beforeAll(async () => {
+			const res = await api('channels/create', { name: 'lookup-test-channel', username: randomString() }, root);
+			channel = res.body;
+		});
+
+		test('ローカルのチャンネルURLを照会するとチャンネルアカウントが返る', async () => {
+			const res = await api('ap/show', { uri: `${origin}/channels/${channel.id}` }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.type, 'User');
+			assert.strictEqual(res.body.object.id, channel.actorId);
+		});
+
+		test('チャンネルアカウントのcanonical URIを照会するとチャンネルアカウントが返る', async () => {
+			const userRes = await api('users/show', { userId: channel.actorId! }, alice);
+			assert.strictEqual(userRes.status, 200);
+
+			const res = await api('ap/show', { uri: `${origin}/users/${channel.actorId}` }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.type, 'User');
+			assert.strictEqual(res.body.object.id, channel.actorId);
+		});
+
+		test('idの無いチャンネルURLを照会するとNO_SUCH_OBJECTになる', async () => {
+			const res = await api('ap/show', { uri: `${origin}/channels` }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body as any).error.code, 'NO_SUCH_OBJECT');
 		});
 	});
 });
