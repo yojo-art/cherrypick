@@ -3967,6 +3967,10 @@ _searchOrApShow:
   lookup: "Lookup"
 
 _reIndexOpenSearch:
+  sectionTitle: "Advanced search (OpenSearch)"
+  description: "Rebuilds the index used by advanced search (OpenSearch). Run this when search results are stale or incomplete. If there is a lot of data, it may take a long time and put load on the server."
+  warning: "On servers with many notes, this may take a long time and put load on the server."
+  notEnabled: "Advanced search (OpenSearch) is not enabled on this server, so this feature is unavailable."
   title: "Reindex"
   resume: "Resume"
   stop: "Stop"
@@ -3981,5 +3985,6 @@ _reIndexOpenSearch:
   alreadyRunning: "{target} is already being reindexed. Please stop it first before running again."
 
 _reCreateOpenSearchIndex:
+  description: "Discards the current index and rebuilds it from an empty state. You will need to reindex afterwards."
   title: "Initialize index"
   quesion: "Are you sure you want to initialize the index? Existing data will be discarded."
