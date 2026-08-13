@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+process.env.NODE_ENV = 'test';
+
 import * as assert from 'assert';
-import { describe, beforeAll, beforeEach, test, expect, jest } from '@jest/globals';
+import { describe, beforeAll, beforeEach, test, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 
 import { MockResolver } from '../misc/mock-resolver.js';
@@ -89,7 +91,7 @@ describe('RemoteUserResolveService', () => {
 
 		// Prevent ApPersonService from fetching instance, as it causes Jest import-after-test error
 		const federatedInstanceService = app.get<FederatedInstanceService>(FederatedInstanceService);
-		jest.spyOn(federatedInstanceService, 'fetch').mockImplementation(() => new Promise(() => { }));
+		vi.spyOn(federatedInstanceService, 'fetch').mockImplementation(() => new Promise(() => { }));
 	});
 
 	beforeEach(() => {
@@ -105,7 +107,7 @@ describe('RemoteUserResolveService', () => {
 		});
 
 		// リモートサーバーが落ちている想定 (WebFinger が失敗する)
-		jest.spyOn(webfingerService, 'webfinger').mockRejectedValueOnce(new Error('remote server is down'));
+		vi.spyOn(webfingerService, 'webfinger').mockRejectedValueOnce(new Error('remote server is down'));
 
 		const user = await remoteUserResolveService.resolveUser(cached.usernameLower, host);
 
@@ -122,7 +124,7 @@ describe('RemoteUserResolveService', () => {
 		const usernameLower = secureRndstr(8).toLowerCase();
 
 		// リモートサーバーが落ちている想定 (WebFinger が失敗する)
-		jest.spyOn(webfingerService, 'webfinger').mockRejectedValueOnce(new Error('remote server is down'));
+		vi.spyOn(webfingerService, 'webfinger').mockRejectedValueOnce(new Error('remote server is down'));
 
 		await assert.rejects(
 			remoteUserResolveService.resolveUser(usernameLower, host),
