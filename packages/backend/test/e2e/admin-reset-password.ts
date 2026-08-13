@@ -5,7 +5,7 @@
 
 process.env.NODE_ENV = 'test';
 
-import { beforeAll, describe, test } from '@jest/globals';
+import { beforeAll, describe, expect, test } from 'vitest';
 import { api, failedApiCall, role, signup, successfulApiCall } from '../utils.js';
 import type * as misskey from 'misskey-js';
 

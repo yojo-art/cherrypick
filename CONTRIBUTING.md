@@ -189,6 +189,14 @@ pnpm migrate
 
 After finishing the migration, you can proceed.
 
+#### Cloudflare tunnel
+Cloudflare tunnelを使うとローカルのMisskeyサーバーをインターネットに公開できます。
+HTTPSでしか動作しない機能を検証したい時や、スマホなど別のデバイスからローカルのMisskeyサーバーを検証したい時に便利です。
+
+##### Cloudflare warpと併用する際のtips
+
+> cloudflared (Cloudflare Tunnel) は region1.v2.argotunnel.com / region2.v2.argotunnel.com に QUIC/HTTP2 でアウトバウンド接続するのですが、WARP を有効化するとこのトラフィックが WARP 経由になってループ/切断します。これら 2 ホストを WARP のトンネル除外（split tunnel）に追加することで、cloudflared だけは WARP をバイパスして直接 Cloudflare エッジへ接続できるようになります。
+
 ### Start developing
 During development, it is useful to use the
 ```
@@ -263,13 +271,12 @@ To keep the test data isolated from your development environment, the E2E setup 
 > [!NOTE]
 > The OpenSearch-dependent E2E tests (the `opensearch-e2e` job in CI) require a running OpenSearch server and are out of scope for the Dev Container.
 > Suites that should run in that job must use `describeOpenSearchE2E` (see `packages/backend/test/helpers/describe-opensearch-e2e.ts`).
-> With OpenSearch available and `.github/misskey/test-opensearch.yml` copied to `.config/test.yml`, run `pnpm --filter backend test-and-coverage:e2e:opensearch` (`OPENSEARCH_E2E=1`).
+> With OpenSearch available and `.github/misskey/test-opensearch.yml` copied to `.config/test.yml`, run `pnpm --filter backend test-and-coverage:e2e:opensearch`.
 
 ## Environment Variable
 
 - `MISSKEY_CONFIG_YML`: Specify the file path of config.yml instead of default.yml (e.g. `2nd.yml`).
 - `CHERRYPICK_WEBFINGER_USE_HTTP`: If it's set true, WebFinger requests will be http instead of https, useful for testing federation between servers in localhost. NEVER USE IN PRODUCTION.
-- `OPENSEARCH_E2E`: When set to `1`, backend E2E skips top-level suites that are not wrapped in `describeOpenSearchE2E` (used by the `opensearch-e2e` CI job).
 
 ## Continuous integration
 Misskey uses GitHub Actions for executing automated tests.
