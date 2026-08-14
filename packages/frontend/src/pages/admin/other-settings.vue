@@ -11,7 +11,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkFolder defaultOpen>
 					<template #icon><SearchIcon><i class="ti ti-database"></i></SearchIcon></template>
 					<template #label><SearchLabel>{{ i18n.ts._reIndexOpenSearch.sectionTitle }}</SearchLabel></template>
-					<template v-if="opensearchEnabled === false" #caption><SearchText>{{ i18n.ts._reIndexOpenSearch.notEnabled }}</SearchText></template>
 
 					<template v-if="opensearchEnabled">
 						<MkInfo warn>{{ i18n.ts._reIndexOpenSearch.warning }}</MkInfo>
