@@ -15734,10 +15734,6 @@ export interface Locale extends ILocale {
          */
         "title": string;
         /**
-         * 続きを実行
-         */
-        "resume": string;
-        /**
          * 停止
          */
         "stop": string;
@@ -15758,7 +15754,7 @@ export interface Locale extends ILocale {
          */
         "statusRunning": string;
         /**
-         * 一時停止中です。「続きを実行」で再開できます
+         * 再開待ちです（ジョブキューで待機中）
          */
         "statusPaused": string;
         /**

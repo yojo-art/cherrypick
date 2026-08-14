@@ -19,7 +19,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<div :class="$style.description">{{ i18n.ts._reIndexOpenSearch.description }}</div>
 
 						<div class="_gaps">
-							<div>
+							<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
 								<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
 								<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 							</div>
@@ -257,18 +257,6 @@ async function fullIndex() {
 		discardProgress: true,
 	});
 	activeIndex.value = result.index;
-	window.setTimeout(() => startPolling(), 500);
-}
-
-async function fullIndexResume() {
-	const index = activeIndex.value;
-	// ポーリングで既に取得済みの progressMap をそのまま使う（わざわざ取り直さない）
-	const p = progressMap.value[index];
-	await os.apiWithDialog('admin/full-index', {
-		index,
-		limitCount: p.limitCount ?? undefined,
-		intervalMinutes: p.intervalMinutes ?? undefined,
-	});
 	window.setTimeout(() => startPolling(), 500);
 }
 
