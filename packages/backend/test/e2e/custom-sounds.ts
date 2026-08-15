@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { describe, beforeAll, test } from 'vitest';
-import { api, role, signup, uploadFile } from '../utils.js';
+import { api, castAsError, role, signup, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('admin/custom-sounds', () => {
@@ -148,6 +148,22 @@ describe('admin/custom-sounds', () => {
 			fileId: '00000000000000000000000000',
 		}, root);
 		assert.strictEqual(res.status, 400);
+	});
+
+	test('同じファイルで重複登録はできない', async () => {
+		const file = await uploadAudio(root);
+		const first = await api('admin/custom-sounds/create', {
+			name: 'first-sound',
+			fileId: file.id,
+		}, root);
+		assert.strictEqual(first.status, 200);
+
+		const second = await api('admin/custom-sounds/create', {
+			name: 'second-sound',
+			fileId: file.id,
+		}, root);
+		assert.strictEqual(second.status, 400);
+		assert.strictEqual(castAsError(second.body as any).error.code, 'FILE_ALREADY_USED');
 	});
 
 	test('削除できる', async () => {

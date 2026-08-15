@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Entity, PrimaryColumn, Column } from 'typeorm';
+import { Entity, PrimaryColumn, Column, Index } from 'typeorm';
 import { id } from './util/id.js';
 
 @Entity('custom_sound')
@@ -21,6 +21,7 @@ export class MiCustomSound {
 	})
 	public name: string;
 
+	@Index('IDX_custom_sound_file_id', { unique: true })
 	@Column({
 		...id(),
 		nullable: true,

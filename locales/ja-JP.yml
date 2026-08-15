@@ -2595,6 +2595,8 @@ _adminSounds:
   title: "インスタンスのサウンド"
   description: "インスタンス独自のサウンドを登録できます。登録したサウンドは、ユーザーがサウンド設定で選択できます。"
   add: "サウンドを追加"
+  fileAlreadyUsed: "このドライブファイルは、別のサウンドですでに使用されています。別のファイルを選択してください。"
+  fileAlreadyUsedTitle: "このファイルは使用できません"
   name: "名前"
   nameCaption: "サウンド設定に表示される名前です"
   selectFile: "音声ファイルを選択"

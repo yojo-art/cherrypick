@@ -171,6 +171,11 @@ async function addCustomSoundDialog() {
 	await os.apiWithDialog('admin/custom-sounds/create', {
 		name: result.name.trim(),
 		fileId: result.soundFile.id,
+	}, null, {
+		'5db26a76-89e1-41f1-9d7d-c435c020f231': {
+			title: i18n.ts._adminSounds.fileAlreadyUsedTitle,
+			text: i18n.ts._adminSounds.fileAlreadyUsed,
+		},
 	});
 	await loadCustomSounds();
 }
