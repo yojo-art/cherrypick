@@ -372,7 +372,7 @@ describe('Endpoints', () => {
 			const newAlice = await Users.findOneByOrFail({ id: alice.id });
 			assert.strictEqual(newAlice.followersCount, 1);
 			assert.strictEqual(newAlice.followingCount, 0);
-			connection.destroy();
+			await connection.destroy();
 		});
 
 		test('既にフォローしている場合は怒る', async () => {
@@ -435,7 +435,7 @@ describe('Endpoints', () => {
 			const newAlice = await Users.findOneByOrFail({ id: alice.id });
 			assert.strictEqual(newAlice.followersCount, 0);
 			assert.strictEqual(newAlice.followingCount, 0);
-			connection.destroy();
+			await connection.destroy();
 		});
 
 		test('フォローしていない場合は怒る', async () => {
