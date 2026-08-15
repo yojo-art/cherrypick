@@ -49,11 +49,45 @@ describe('admin/custom-sounds', () => {
 		}, root);
 	}
 
-	async function uploadAudio(user: misskey.entities.SignupResponse): Promise<misskey.entities.DriveFile> {
-		const res = await uploadFile(user, { path: 'kick_gaba7.mp3', name: 'test-sound.mp3' });
+	async function uploadAudio(user: misskey.entities.SignupResponse, path = 'kick_gaba7.mp3', name = 'test-sound.mp3'): Promise<misskey.entities.DriveFile> {
+		const res = await uploadFile(user, { path, name });
 		assert.strictEqual(res.status, 200);
 		return res.body as misskey.entities.DriveFile;
 	}
+
+	test('3つの音声ファイルを登録できる', async () => {
+		const files = [
+			await uploadAudio(root, 'kick_gaba7.mp3', 'kick_gaba7.mp3'),
+			await uploadAudio(root, 'kick_gaba7.wav', 'kick_gaba7.wav'),
+			await uploadAudio(root, 'kick_gaba7.aac', 'kick_gaba7.aac'),
+		];
+
+		const createdIds: string[] = [];
+		for (const file of files) {
+			const res = await api('admin/custom-sounds/create', {
+				name: file.name,
+				fileId: file.id,
+			}, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.name, file.name);
+			createdIds.push(res.body.id);
+		}
+
+		const listRes = await api('admin/custom-sounds/list', {}, root);
+		assert.strictEqual(listRes.status, 200);
+		for (const id of createdIds) {
+			assert.ok(listRes.body.some(s => s.id === id));
+		}
+
+		// 公開取得でURLが解決されている
+		const publicRes = await api('get-custom-sounds', {});
+		assert.strictEqual(publicRes.status, 200);
+		for (const id of createdIds) {
+			const sound = publicRes.body.find(s => s.id === id);
+			assert.ok(sound);
+			assert.ok(sound.url != null, `url should be resolved for ${id}`);
+		}
+	});
 
 	test('権限のないユーザーは作成できない', async () => {
 		const file = await uploadAudio(alice);

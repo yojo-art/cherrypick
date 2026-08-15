@@ -21,13 +21,8 @@ export class MiCustomSound {
 	})
 	public name: string;
 
-	@Column('varchar', {
-		length: 1024,
-	})
-	public url: string;
-
-	@Column('varchar', {
-		length: 1024,
+	@Column({
+		...id(),
 		nullable: true,
 	})
 	public fileId: string | null;

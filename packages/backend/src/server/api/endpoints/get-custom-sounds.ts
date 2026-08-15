@@ -31,7 +31,7 @@ export const meta = {
 				},
 				url: {
 					type: 'string',
-					optional: false, nullable: false,
+					optional: false, nullable: true,
 				},
 			},
 		},
@@ -52,11 +52,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		super(meta, paramDef, async () => {
 			const sounds = await this.customSoundService.getAll();
 
-			return sounds.map(sound => ({
-				id: sound.id,
-				name: sound.name,
-				url: sound.url,
-			}));
+			return await this.customSoundService.packMany(sounds);
 		});
 	}
 }

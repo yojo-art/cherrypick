@@ -59,21 +59,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div v-for="sound in customSounds" :key="sound.id" class="_panel" style="padding: 16px;">
 						<div style="display: flex; align-items: center; gap: 8px;">
 							<div style="flex: 1; min-width: 0;">{{ sound.name }}</div>
-							<MkButton inline small @click="playCustomSound(sound.url)"><i class="ti ti-player-play"></i></MkButton>
-							<MkButton inline danger small @click="deleteCustomSound(sound)"><i class="ti ti-trash"></i></MkButton>
+							<MkButton inline small @click="playCustomSound(sound.url)"><i class="ti ti-player-play"></i> {{ i18n.ts.listen }}</MkButton>
+							<button class="_button" :class="$style.soundDelete" @click="deleteCustomSound(sound)"><i class="ti ti-x"></i></button>
 						</div>
 					</div>
 
-					<div class="_panel" style="padding: 16px;">
-						<div class="_gaps_m">
-							<MkInput v-model="soundName" :label="i18n.ts._adminSounds.name">
-								<template #caption>{{ i18n.ts._adminSounds.nameCaption }}</template>
-							</MkInput>
-							<MkButton inline primary @click="selectSoundFile">{{ i18n.ts._adminSounds.selectFile }}</MkButton>
-							<span v-if="selectedFile">{{ selectedFile.name }}</span>
-							<MkButton inline primary :disabled="soundName.trim() === '' || selectedFile == null" @click="addCustomSound">{{ i18n.ts._adminSounds.add }}</MkButton>
-						</div>
-					</div>
+					<MkButton inline primary @click="addCustomSoundDialog"><i class="ti ti-plus"></i> {{ i18n.ts._adminSounds.add }}</MkButton>
 				</div>
 			</MkFolder>
 		</div>
@@ -91,9 +82,7 @@ import { $i } from '@/i.js';
 import MkButton from '@/components/MkButton.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import MkInfo from '@/components/MkInfo.vue';
-import MkInput from '@/components/MkInput.vue';
 import type * as Misskey from 'misskey-js';
-import { selectFile } from '@/utility/drive.js';
 import { playUrl } from '@/utility/sound.js';
 
 type IndexKind = 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
@@ -138,43 +127,47 @@ const activeIndex = ref<IndexKind>('notes');
 const opensearchEnabled = ref<boolean | null>(null);
 
 const customSounds = ref<Misskey.entities.GetCustomSoundsResponse>([]);
-const soundName = ref('');
-const selectedFile = ref<Misskey.entities.DriveFile | null>(null);
 
 async function loadCustomSounds() {
 	customSounds.value = await misskeyApi('admin/custom-sounds/list');
 }
 
-function playCustomSound(url: string) {
+function playCustomSound(url: string | null) {
+	if (url == null) return;
 	playUrl(url, { volume: 1 });
 }
 
-function selectSoundFile(ev: PointerEvent) {
-	selectFile({
-		anchorElement: ev.currentTarget ?? ev.target,
-		multiple: false,
-		label: i18n.ts._adminSounds.selectFile,
-	}).then((file) => {
-		if (!file.type.startsWith('audio')) {
-			os.alert({
-				type: 'warning',
-				title: i18n.ts._soundSettings.driveFileTypeWarn,
-				text: i18n.ts._soundSettings.driveFileTypeWarnDescription,
-			});
-			return;
-		}
-		selectedFile.value = file;
+async function addCustomSoundDialog() {
+	const { canceled, result } = await os.form(i18n.ts._adminSounds.add, {
+		name: {
+			type: 'string',
+			label: i18n.ts._adminSounds.name,
+			description: i18n.ts._adminSounds.nameCaption,
+		},
+		soundFile: {
+			type: 'drive-file',
+			label: i18n.ts._adminSounds.selectFile,
+			validate: async (file: Misskey.entities.DriveFile) => {
+				if (!file.type.startsWith('audio')) {
+					os.alert({
+						type: 'warning',
+						title: i18n.ts._soundSettings.driveFileTypeWarn,
+						text: i18n.ts._soundSettings.driveFileTypeWarnDescription,
+					});
+					return false;
+				}
+				return true;
+			},
+		},
 	});
-}
 
-async function addCustomSound() {
-	if (soundName.value.trim() === '' || selectedFile.value == null) return;
+	if (canceled) return;
+	if (result.name.trim() === '' || result.soundFile == null) return;
+
 	await os.apiWithDialog('admin/custom-sounds/create', {
-		name: soundName.value.trim(),
-		fileId: selectedFile.value.id,
+		name: result.name.trim(),
+		fileId: result.soundFile.id,
 	});
-	soundName.value = '';
-	selectedFile.value = null;
 	await loadCustomSounds();
 }
 
@@ -385,5 +378,15 @@ definePage(() => ({
 	margin: 0;
 	font-size: 0.9em;
 	color: var(--MI_THEME-fg);
+}
+
+.soundDelete {
+	margin-left: 4px;
+	color: var(--MI_THEME-error);
+	border-radius: 6px;
+
+	&:hover {
+		background: color-mix(in srgb, var(--MI_THEME-error) 15%, transparent);
+	}
 }
 </style>

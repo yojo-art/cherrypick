@@ -8605,7 +8605,7 @@ export interface operations {
                         /** Format: id */
                         id: string;
                         name: string;
-                        url: string;
+                        url: string | null;
                     };
                 };
             };
@@ -8731,7 +8731,7 @@ export interface operations {
                         /** Format: id */
                         id: string;
                         name: string;
-                        url: string;
+                        url: string | null;
                     }[];
                 };
             };
@@ -26057,7 +26057,7 @@ export interface operations {
                          */
                         id: string;
                         name: string;
-                        url: string;
+                        url: string | null;
                     }[];
                 };
             };

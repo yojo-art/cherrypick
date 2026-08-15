@@ -45,7 +45,7 @@ export const meta = {
 			},
 			url: {
 				type: 'string',
-				optional: false, nullable: false,
+				optional: false, nullable: true,
 			},
 		},
 	},
@@ -75,15 +75,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			const sound = await this.customSoundService.create({
 				name: ps.name,
-				url: driveFile.url,
 				fileId: driveFile.id,
 			});
 
-			return {
-				id: sound.id,
-				name: sound.name,
-				url: sound.url,
-			};
+			return await this.customSoundService.pack(sound);
 		});
 	}
 }

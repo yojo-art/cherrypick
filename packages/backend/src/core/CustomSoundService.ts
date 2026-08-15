@@ -4,16 +4,25 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { CustomSoundsRepository, MiCustomSound } from '@/models/_.js';
+import type { CustomSoundsRepository, DriveFilesRepository, MiCustomSound } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
+
+export type CustomSoundPacked = {
+	id: MiCustomSound['id'];
+	name: string;
+	url: string | null;
+};
 
 @Injectable()
 export class CustomSoundService {
 	constructor(
 		@Inject(DI.customSoundsRepository)
 		private customSoundsRepository: CustomSoundsRepository,
+
+		@Inject(DI.driveFilesRepository)
+		private driveFilesRepository: DriveFilesRepository,
 
 		private idService: IdService,
 	) { }
@@ -31,14 +40,12 @@ export class CustomSoundService {
 	@bindThis
 	public async create(options: {
 		name: string;
-		url: string;
 		fileId: string;
 	}): Promise<MiCustomSound> {
 		return this.customSoundsRepository.insertOne({
 			id: this.idService.gen(),
 			updatedAt: null,
 			name: options.name,
-			url: options.url,
 			fileId: options.fileId,
 		});
 	}
@@ -46,5 +53,21 @@ export class CustomSoundService {
 	@bindThis
 	public async delete(id: MiCustomSound['id']): Promise<void> {
 		await this.customSoundsRepository.delete({ id });
+	}
+
+	@bindThis
+	public async pack(sound: MiCustomSound): Promise<CustomSoundPacked> {
+		const file = sound.fileId != null ? await this.driveFilesRepository.findOneBy({ id: sound.fileId }) : null;
+
+		return {
+			id: sound.id,
+			name: sound.name,
+			url: file != null ? (file.webpublicUrl ?? file.url) : null,
+		};
+	}
+
+	@bindThis
+	public async packMany(sounds: MiCustomSound[]): Promise<CustomSoundPacked[]> {
+		return Promise.all(sounds.map(sound => this.pack(sound)));
 	}
 }

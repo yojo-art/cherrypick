@@ -201,7 +201,7 @@ function listen() {
 		});
 		return;
 	}
-	if (type.value === '_instanceSound_' && (!selectedInstanceSoundId.value || !selectedInstanceSound.value)) {
+	if (type.value === '_instanceSound_' && (!selectedInstanceSoundId.value || !selectedInstanceSound.value?.url)) {
 		os.alert({
 			type: 'warning',
 			text: i18n.ts._soundSettings.instanceSoundWarn,
@@ -248,7 +248,7 @@ function save() {
 		return;
 	}
 
-	if (type.value === '_instanceSound_' && (!selectedInstanceSoundId.value || !selectedInstanceSound.value)) {
+	if (type.value === '_instanceSound_' && (!selectedInstanceSoundId.value || !selectedInstanceSound.value?.url)) {
 		os.alert({
 			type: 'warning',
 			text: i18n.ts._soundSettings.instanceSoundWarn,
@@ -265,7 +265,7 @@ function save() {
 	emit('update', {
 		type: type.value,
 		fileId: type.value === '_driveFile_' ? fileId.value : undefined,
-		fileUrl: type.value === '_driveFile_' ? fileUrl.value : (type.value === '_instanceSound_' ? selectedInstanceSound.value?.url : undefined),
+		fileUrl: type.value === '_driveFile_' ? fileUrl.value : (type.value === '_instanceSound_' ? (selectedInstanceSound.value?.url ?? undefined) : undefined),
 		soundId: type.value === '_instanceSound_' ? (selectedInstanceSoundId.value ?? undefined) : undefined,
 		volume: volume.value,
 	});

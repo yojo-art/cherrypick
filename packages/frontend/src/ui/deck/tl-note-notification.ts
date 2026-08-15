@@ -120,7 +120,7 @@ export async function soundSettingsButton(soundSetting: Ref<SoundStore>): Promis
 			return { type, volume, fileId, fileUrl };
 		} else if (type === '_instanceSound_') {
 			const sound = instanceSounds.find(s => s.id === r.instanceSound);
-			if (sound == null) {
+			if (sound == null || sound.url == null) {
 				os.alert({
 					type: 'warning',
 					text: i18n.ts._soundSettings.instanceSoundWarn,
