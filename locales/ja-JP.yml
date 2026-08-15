@@ -4208,20 +4208,24 @@ _searchOrApShow:
   lookup: "照会"
 
 _reIndexOpenSearch:
+  sectionTitle: "高度な検索（OpenSearch）"
+  description: "高度な検索（OpenSearch）で使用するインデックスを再構築します。検索結果が古い・不完全な場合に実行してください。対象データが多いと完了までに時間がかかり、サーバーに負荷がかかります。"
+  warning: "ノート数が多いサーバーでは処理に時間がかかり、サーバーに負荷がかかることがあります。"
+  notEnabled: "このサーバーでは高度な検索（OpenSearch）が有効になっていないため、この機能は利用できません。"
   title: "再インデックスする"
-  resume: "続きを実行"
   stop: "停止"
   indexLabel: "対象"
   limitCountLabel: "1回あたりの処理件数"
   intervalMinutesLabel: "実行間隔（分）"
   statusRunning: "実行中..."
-  statusPaused: "一時停止中です。「続きを実行」で再開できます"
+  statusPaused: "再開待ちです（ジョブキューで待機中）"
   statusQueued: "待機中: 次回実行 {time}"
   statusCompleted: "完了しました"
   statusAborted: "中止しました"
   alreadyRunning: "「{target}」は既に再インデックス中です。先に停止してから再度実行してください。"
 
 _reCreateOpenSearchIndex:
+  description: "現在のインデックスを破棄して、空の状態から作り直します。実行後は再インデックスが必要です。"
   title: "インデックスを初期化する"
   quesion: "インデックスを初期化しますか？既存のデータは破棄されます。"
 

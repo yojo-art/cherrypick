@@ -15714,13 +15714,25 @@ export interface Locale extends ILocale {
     };
     "_reIndexOpenSearch": {
         /**
+         * 高度な検索（OpenSearch）
+         */
+        "sectionTitle": string;
+        /**
+         * 高度な検索（OpenSearch）で使用するインデックスを再構築します。検索結果が古い・不完全な場合に実行してください。対象データが多いと完了までに時間がかかり、サーバーに負荷がかかります。
+         */
+        "description": string;
+        /**
+         * ノート数が多いサーバーでは処理に時間がかかり、サーバーに負荷がかかることがあります。
+         */
+        "warning": string;
+        /**
+         * このサーバーでは高度な検索（OpenSearch）が有効になっていないため、この機能は利用できません。
+         */
+        "notEnabled": string;
+        /**
          * 再インデックスする
          */
         "title": string;
-        /**
-         * 続きを実行
-         */
-        "resume": string;
         /**
          * 停止
          */
@@ -15742,7 +15754,7 @@ export interface Locale extends ILocale {
          */
         "statusRunning": string;
         /**
-         * 一時停止中です。「続きを実行」で再開できます
+         * 再開待ちです（ジョブキューで待機中）
          */
         "statusPaused": string;
         /**
@@ -15763,6 +15775,10 @@ export interface Locale extends ILocale {
         "alreadyRunning": ParameterizedString<"target">;
     };
     "_reCreateOpenSearchIndex": {
+        /**
+         * 現在のインデックスを破棄して、空の状態から作り直します。実行後は再インデックスが必要です。
+         */
+        "description": string;
         /**
          * インデックスを初期化する
          */

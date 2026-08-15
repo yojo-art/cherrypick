@@ -7,40 +7,58 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithHeader>
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
-			<div class="_panel" style="padding: 16px;">
-				<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
-				<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
+			<SearchMarker markerId="opensearchReindex" :keywords="['opensearch', 'reindex', 'index', 'search']">
+				<MkFolder defaultOpen>
+					<template #icon><SearchIcon><i class="ti ti-database"></i></SearchIcon></template>
+					<template #label><SearchLabel>{{ i18n.ts._reIndexOpenSearch.sectionTitle }}</SearchLabel></template>
 
-				<div class="_gaps_s" style="margin-top: 12px;">
-					<template v-for="opt in indexOptions" :key="opt.value">
-						<div v-if="progressMap[opt.value].status" style="padding-top: 8px; border-top: 1px solid var(--MI_THEME-divider);">
-							<p style="margin: 0 0 4px; font-weight: bold;">{{ opt.label }}</p>
-							<div style="display: flex; align-items: center; gap: 8px;">
-								<progress :value="progressPercentOf(opt.value)" max="100" style="flex: 1; min-width: 0;"></progress>
-								<MkButton v-if="isAbortable(opt.value)" class="button" inline danger small @click="abortIndex(opt.value)"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
+					<template v-if="opensearchEnabled">
+						<MkInfo warn>{{ i18n.ts._reIndexOpenSearch.warning }}</MkInfo>
+
+						<div :class="$style.description">{{ i18n.ts._reIndexOpenSearch.description }}</div>
+
+						<div class="_gaps">
+							<div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
+								<MkButton class="button" inline danger @click="fullIndex()"> {{ i18n.ts._reIndexOpenSearch.title }} </MkButton>
+								<MkButton class="button" inline danger @click="reIndex()"> {{ i18n.ts._reCreateOpenSearchIndex.title }} </MkButton>
 							</div>
-							<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
-								{{ progressDisplayText(opt.value) }}
-							</p>
-							<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColorOf(opt.value) }">
-								{{ statusTextOf(opt.value) }}
-							</p>
+
+							<div class="_gaps_s" style="margin-top: 12px;">
+								<template v-for="opt in indexOptions" :key="opt.value">
+									<div v-if="progressMap[opt.value].status" style="padding-top: 8px; border-top: 1px solid var(--MI_THEME-divider);">
+										<p style="margin: 0 0 4px; font-weight: bold;">{{ opt.label }}</p>
+										<div style="display: flex; align-items: center; gap: 8px;">
+											<progress :value="progressPercentOf(opt.value)" max="100" style="flex: 1; min-width: 0;"></progress>
+											<MkButton v-if="isAbortable(opt.value)" class="button" inline danger small @click="abortIndex(opt.value)"> {{ i18n.ts._reIndexOpenSearch.stop }} </MkButton>
+										</div>
+										<p style="margin: 4px 0 0; font-size: 0.9em; color: var(--MI_THEME-fg);">
+											{{ progressDisplayText(opt.value) }}
+										</p>
+										<p :style="{ margin: '2px 0 0', fontSize: '0.8em', color: statusColorOf(opt.value) }">
+											{{ statusTextOf(opt.value) }}
+										</p>
+									</div>
+								</template>
+							</div>
 						</div>
 					</template>
-				</div>
-			</div>
+					<MkInfo v-else-if="opensearchEnabled === false">{{ i18n.ts._reIndexOpenSearch.notEnabled }}</MkInfo>
+				</MkFolder>
+			</SearchMarker>
 		</div>
 	</div>
 </PageWithHeader>
 </template>
 
 <script lang="ts" setup>
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkButton from '@/components/MkButton.vue';
+import MkFolder from '@/components/MkFolder.vue';
+import MkInfo from '@/components/MkInfo.vue';
 
 type IndexKind = 'notes' | 'reaction' | 'pollVote' | 'clipNotes' | 'Favorites';
 
@@ -79,7 +97,9 @@ const progressMap = ref<Record<IndexKind, ProgressData>>({
 });
 
 const activeIndex = ref<IndexKind>('notes');
-const currentProgress = computed(() => progressMap.value[activeIndex.value]);
+
+// 高度な検索（OpenSearch）が有効かどうか。null は admin/meta 取得前
+const opensearchEnabled = ref<boolean | null>(null);
 
 function progressPercentOf(index: IndexKind): number {
 	const p = progressMap.value[index];
@@ -146,6 +166,11 @@ function stopPolling() {
 }
 
 onMounted(async () => {
+	const meta = await misskeyApi('admin/meta');
+	opensearchEnabled.value = meta.opensearchEnabled;
+
+	if (!meta.opensearchEnabled) return;
+
 	await fetchAllProgress();
 	if (isAnyRunning()) {
 		startPolling();
@@ -234,18 +259,6 @@ async function fullIndex() {
 	window.setTimeout(() => startPolling(), 500);
 }
 
-async function fullIndexResume() {
-	const index = activeIndex.value;
-	// ポーリングで既に取得済みの progressMap をそのまま使う（わざわざ取り直さない）
-	const p = progressMap.value[index];
-	await os.apiWithDialog('admin/full-index', {
-		index,
-		limitCount: p.limitCount ?? undefined,
-		intervalMinutes: p.intervalMinutes ?? undefined,
-	});
-	window.setTimeout(() => startPolling(), 500);
-}
-
 function isAbortable(index: IndexKind): boolean {
 	const status = progressMap.value[index].status;
 	return status === 'running' || status === 'queued' || status === 'paused';
@@ -275,3 +288,11 @@ definePage(() => ({
 	icon: 'ti ti-adjustments',
 }));
 </script>
+
+<style lang="scss" module>
+.description {
+	margin: 0;
+	font-size: 0.9em;
+	color: var(--MI_THEME-fg);
+}
+</style>
