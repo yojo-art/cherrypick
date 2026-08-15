@@ -9994,9 +9994,13 @@ export interface Locale extends ILocale {
          */
         "delete": string;
         /**
-         * このサウンドを削除しますか？削除したサウンドを選択していたユーザーは、デフォルトのサウンドに戻ります。
+         * このサウンドを削除しますか？
          */
         "deleteConfirm": string;
+        /**
+         * 削除したサウンドを選択していたユーザーは、デフォルトのサウンドに戻ります。登録元のドライブファイルは削除されず、ドライブに残ります。
+         */
+        "deleteConfirmDriveFileNote": string;
     };
     "_forgotPassword": {
         /**

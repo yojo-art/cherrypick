@@ -129,7 +129,11 @@ const opensearchEnabled = ref<boolean | null>(null);
 const customSounds = ref<Misskey.entities.GetCustomSoundsResponse>([]);
 
 async function loadCustomSounds() {
-	customSounds.value = await misskeyApi('admin/custom-sounds/list');
+	try {
+		customSounds.value = await misskeyApi('admin/custom-sounds/list');
+	} catch (e) {
+		console.warn('Failed to load custom sounds', e);
+	}
 }
 
 function playCustomSound(url: string | null) {
@@ -175,6 +179,7 @@ async function deleteCustomSound(sound: Misskey.entities.GetCustomSoundsResponse
 	const { canceled } = await os.confirm({
 		type: 'warning',
 		text: i18n.ts._adminSounds.deleteConfirm,
+		caption: i18n.ts._adminSounds.deleteConfirmDriveFileNote,
 		okText: i18n.ts._adminSounds.delete,
 		cancelText: i18n.ts.cancel,
 	});
@@ -251,7 +256,9 @@ onMounted(async () => {
 	const meta = await misskeyApi('admin/meta');
 	opensearchEnabled.value = meta.opensearchEnabled;
 
-	await loadCustomSounds();
+	if ($i?.isAdmin || $i?.policies.canManageCustomSounds) {
+		await loadCustomSounds();
+	}
 
 	if (!meta.opensearchEnabled) return;
 

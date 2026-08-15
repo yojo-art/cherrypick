@@ -2490,7 +2490,8 @@ _adminSounds:
   selectFile: "Select an audio file"
   noSounds: "No sounds are registered"
   delete: "Delete"
-  deleteConfirm: "Delete this sound? Users who selected the deleted sound will be reverted to the default sound."
+  deleteConfirm: "Delete this sound?"
+  deleteConfirmDriveFileNote: "Users who selected the deleted sound will be reverted to the default sound. The source drive file is not deleted and remains in the drive."
 
 _forgotPassword:
   enterEmail: "Enter the email address you used to register. A link with which you can reset your password will then be sent to it."

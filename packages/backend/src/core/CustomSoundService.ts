@@ -4,6 +4,7 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
+import { In } from 'typeorm';
 import type { CustomSoundsRepository, DriveFilesRepository, MiCustomSound } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
@@ -68,6 +69,17 @@ export class CustomSoundService {
 
 	@bindThis
 	public async packMany(sounds: MiCustomSound[]): Promise<CustomSoundPacked[]> {
-		return Promise.all(sounds.map(sound => this.pack(sound)));
+		const fileIds = [...new Set(sounds.map(sound => sound.fileId).filter((id): id is string => id != null))];
+		const files = fileIds.length > 0 ? await this.driveFilesRepository.findBy({ id: In(fileIds) }) : [];
+		const fileMap = new Map(files.map(file => [file.id, file]));
+
+		return sounds.map(sound => {
+			const file = sound.fileId != null ? (fileMap.get(sound.fileId) ?? null) : null;
+			return {
+				id: sound.id,
+				name: sound.name,
+				url: file != null ? (file.webpublicUrl ?? file.url) : null,
+			};
+		});
 	}
 }
