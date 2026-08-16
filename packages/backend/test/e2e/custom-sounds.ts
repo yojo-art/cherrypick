@@ -6,8 +6,8 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { describe, beforeAll, test } from 'vitest';
-import { api, castAsError, role, signup, sleep, uploadFile } from '../utils.js';
+import { describe, beforeAll, test, vi } from 'vitest';
+import { api, castAsError, role, signup, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('admin/custom-sounds', () => {
@@ -204,14 +204,13 @@ describe('admin/custom-sounds', () => {
 		const deleteFileRes = await api('drive/files/delete', { fileId: file.id }, root);
 		assert.strictEqual(deleteFileRes.status, 204);
 
-		// deletePostProcess は fire-and-forget で DB 削除が非同期に走るため、反映を待つ
-		await sleep(500);
-
-		// サウンドは残るが url が null になる
-		const after = (await api('get-custom-sounds', {})).body;
-		const soundAfter = after.find(s => s.id === createRes.body.id);
-		assert.ok(soundAfter, 'deleted-file sound should remain in the list');
-		assert.strictEqual(soundAfter.url, null);
+		// deletePostProcess は fire-and-forget で DB 削除が非同期に走るため、反映されるまで待つ
+		await vi.waitFor(async () => {
+			const after = (await api('get-custom-sounds', {})).body;
+			const soundAfter = after.find(s => s.id === createRes.body.id);
+			assert.ok(soundAfter, 'deleted-file sound should remain in the list');
+			assert.strictEqual(soundAfter.url, null);
+		});
 	});
 
 	test('canManageCustomSounds ポリシー保持者は一覧を参照できる', async () => {
