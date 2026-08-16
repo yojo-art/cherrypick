@@ -56,9 +56,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{{ i18n.ts._adminSounds.noSounds }}
 					</div>
 
-					<div v-for="sound in customSounds" :key="sound.id" class="_panel" style="padding: 16px;">
-						<div style="display: flex; align-items: center; gap: 8px;">
-							<div style="flex: 1; min-width: 0;">{{ sound.name }}</div>
+					<div v-for="sound in customSounds" :key="sound.id" class="_panel" :class="$style.soundItem">
+						<div :class="$style.soundName">{{ sound.name }}</div>
+						<div :class="$style.soundActions">
 							<MkButton inline small @click="playCustomSound(sound.url)"><i class="ti ti-player-play"></i> {{ i18n.ts.listen }}</MkButton>
 							<button class="_button" :class="$style.soundDelete" @click="deleteCustomSound(sound)"><i class="ti ti-x"></i></button>
 						</div>
@@ -390,6 +390,28 @@ definePage(() => ({
 	margin: 0;
 	font-size: 0.9em;
 	color: var(--MI_THEME-fg);
+}
+
+.soundItem {
+	display: flex;
+	box-sizing: border-box;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	padding: 12px;
+	border: solid 1px var(--MI_THEME-divider);
+}
+
+.soundName {
+	font-weight: bold;
+	overflow-wrap: anywhere;
+}
+
+.soundActions {
+	display: flex;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
 }
 
 .soundDelete {
