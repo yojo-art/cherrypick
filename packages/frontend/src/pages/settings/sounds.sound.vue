@@ -75,7 +75,7 @@ const driveFileError = ref(false);
 const hasChanged = ref(false);
 const volume = ref(props.def.volume);
 
-const instanceSoundItems = computed(() => instanceSounds.value.map(s => ({
+const instanceSoundItems = computed(() => instanceSounds.value.filter(s => s.url != null).map(s => ({
 	label: s.name,
 	value: s.id,
 })));

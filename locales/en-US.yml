@@ -2485,6 +2485,8 @@ _adminSounds:
   title: "Instance sounds"
   description: "You can register instance-specific sounds. Registered sounds can be selected by users in their sound settings."
   add: "Add sound"
+  fileAlreadyUsed: "This drive file is already used by another sound. Please select another file."
+  fileAlreadyUsedTitle: "This file cannot be used"
   name: "Name"
   nameCaption: "The name shown in the sound settings"
   selectFile: "Select an audio file"

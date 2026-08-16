@@ -13,7 +13,7 @@ import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 
 export async function soundSettingsButton(soundSetting: Ref<SoundStore>): Promise<void> {
-	const instanceSounds = await misskeyApi('get-custom-sounds');
+	const instanceSounds = await misskeyApi('get-custom-sounds').catch(() => [] as Misskey.entities.GetCustomSoundsResponse);
 
 	function getSoundTypeName(f: SoundType): string {
 		switch (f) {
