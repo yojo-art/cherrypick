@@ -37,8 +37,8 @@ export function BaseEmbed(props: PropsWithChildren<CommonProps<{
 					<meta charset="UTF-8" />
 					<meta name="application-name" content="Misskey" />
 					<meta name="referer" content="origin" />
-					<meta name="theme-color" content={props.themeColor ?? '#86b300'} />
-					<meta name="theme-color-orig" content={props.themeColor ?? '#86b300'} />
+					<meta name="theme-color" content={props.themeColor ?? '#ffbcdc'} />
+					<meta name="theme-color-orig" content={props.themeColor ?? '#ffbcdc'} />
 					<meta property="og:site_name" content={props.instanceName || 'Misskey'} />
 					<meta property="instance_url" content={props.instanceUrl} />
 					<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />

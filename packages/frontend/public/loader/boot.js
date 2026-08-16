@@ -7,6 +7,70 @@
 
 // ブロックの中に入れないと、定義した変数がブラウザのグローバルスコープに登録されてしまい邪魔なので
 (async () => {
+	// ダークテーマならピンク、ライトテーマならブルーの --error-* を設定する
+	(() => {
+		try {
+			const PALETTE = {
+				dark: {
+					bg: 'rgb(28, 28, 37)',
+					fg: '#dfddcc',
+					subBg: 'rgb(35, 35, 47)',
+					subBgHover: 'rgba(255, 255, 255, 0.1)',
+					subFg: 'rgb(185, 216, 255)',
+					accent: 'rgb(255, 188, 220)',
+				},
+				light: {
+					bg: 'rgb(238, 241, 252)',
+					fg: 'rgb(87, 112, 150)',
+					subBg: 'rgb(255, 255, 255)',
+					subBgHover: 'rgba(0, 0, 0, 0.05)',
+					subFg: 'rgb(87, 112, 150)',
+					accent: 'rgb(107, 165, 227)',
+				},
+			};
+
+			let dark = null;
+
+			const theme = (() => {
+				try {
+					return JSON.parse(localStorage.getItem('theme') || '{}');
+				} catch (_) {
+					return {};
+				}
+			})();
+
+			if (typeof theme.bg === 'string') {
+				const m = theme.bg.match(/\d+/g);
+				if (m && m.length >= 3) {
+					dark = (0.299 * +m[0] + 0.587 * +m[1] + 0.114 * +m[2]) < 128;
+				}
+			}
+
+			if (dark == null) {
+				const themeId = localStorage.getItem('themeId');
+				if (themeId != null) {
+					if (themeId.startsWith('d-') || themeId === 'dark') dark = true;
+					else if (themeId.startsWith('l-') || themeId === 'light') dark = false;
+				}
+			}
+
+			if (dark == null) {
+				dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+			}
+
+			const p = dark ? PALETTE.dark : PALETTE.light;
+			const root = document.documentElement.style;
+			root.setProperty('--error-bg', p.bg);
+			root.setProperty('--error-fg', p.fg);
+			root.setProperty('--error-sub-bg', p.subBg);
+			root.setProperty('--error-sub-bg-hover', p.subBgHover);
+			root.setProperty('--error-sub-fg', p.subFg);
+			root.setProperty('--error-accent', p.accent);
+		} catch (_) {
+			// localStorage等が使えない環境ではCSSのフォールバック色に任せる
+		}
+	})();
+
 	window.onerror = (e) => {
 		console.error(e);
 		renderError('SOMETHING_HAPPENED', e);
@@ -192,7 +256,7 @@
 			<p>${messages.solution2}</p>
 			<p>${messages.solution3}</p>
 			<p>${messages.solution4}</p>
-			<details style="color: rgb(255, 188, 220);">
+			<details style="color: var(--error-accent, rgb(255, 188, 220));">
 				<summary>${messages.otherOption}</summary>
 				<a href="${safeModeUrl}">
 					<button class="button-small">
@@ -244,8 +308,8 @@
 
 		body,
 		html {
-			background-color: rgb(28, 28, 37);
-			color: #dfddcc;
+			background-color: var(--error-bg, rgb(28, 28, 37));
+			color: var(--error-fg, #dfddcc);
 			justify-content: center;
 			margin: auto;
 			padding: 10px;
@@ -274,12 +338,12 @@
 		}
 
 		.button-small {
-			background: rgb(35, 35, 47);
+			background: var(--error-sub-bg, rgb(35, 35, 47));
 			line-height: 40px;
 		}
 
 		.button-small:hover {
-			background: rgba(255, 255, 255, 0.1);
+			background: var(--error-sub-bg-hover, rgba(255, 255, 255, 0.1));
 		}
 
 		.button-label-big {
@@ -290,13 +354,13 @@
 		}
 
 		.button-label-small {
-			color: rgb(185, 216, 255);
+			color: var(--error-sub-fg, rgb(185, 216, 255));
 			font-size: 16px;
 			padding: 12px;
 		}
 
 		a {
-			color: rgb(134, 179, 0);
+			color: var(--error-accent, rgb(255, 188, 220));
 			text-decoration: none;
 		}
 
@@ -321,7 +385,7 @@
 		}
 
 		#errorInfo {
-			background: rgb(35, 35, 47);
+			background: var(--error-sub-bg, rgb(35, 35, 47));
 			margin-bottom: 2rem;
 			padding: 0.5rem 1rem;
 			width: 40rem;

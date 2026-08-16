@@ -7,6 +7,47 @@
 
 // ブロックの中に入れないと、定義した変数がブラウザのグローバルスコープに登録されてしまい邪魔なので
 (async () => {
+	// colorModeパラメータかOSの配色設定に応じて、ダークならピンク・ライトならブルーを設定する
+	(() => {
+		try {
+			const PALETTE = {
+				dark: {
+					bg: 'rgb(25, 35, 32)',
+					fg: '#dee7e4',
+					border: 'rgba(231, 255, 251, 0.14)',
+					accent: 'rgb(255, 188, 220)',
+					accentHover: 'rgb(255, 222, 241)',
+					onAccent: '#192320',
+				},
+				light: {
+					bg: 'rgb(238, 241, 252)',
+					fg: 'rgb(87, 112, 150)',
+					border: 'rgba(0, 0, 0, 0.1)',
+					accent: 'rgb(107, 165, 227)',
+					accentHover: 'rgb(150, 191, 235)',
+					onAccent: 'rgb(255, 255, 255)',
+				},
+			};
+
+			let dark = null;
+			const colorMode = new URLSearchParams(location.search).get('colorMode');
+			if (colorMode === 'dark') dark = true;
+			else if (colorMode === 'light') dark = false;
+			if (dark == null) dark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+			const p = dark ? PALETTE.dark : PALETTE.light;
+			const root = document.documentElement.style;
+			root.setProperty('--embed-error-bg', p.bg);
+			root.setProperty('--embed-error-fg', p.fg);
+			root.setProperty('--embed-error-border', p.border);
+			root.setProperty('--embed-error-accent', p.accent);
+			root.setProperty('--embed-error-accent-hover', p.accentHover);
+			root.setProperty('--embed-error-on-accent', p.onAccent);
+		} catch (_) {
+			// CSSのフォールバック色に任せる
+		}
+	})();
+
 	window.onerror = (e) => {
 		console.error(e);
 		renderError('SOMETHING_HAPPENED');
@@ -126,7 +167,7 @@
 
 		body {
 			position: relative;
-			color: #dee7e4;
+			color: var(--embed-error-fg, #dee7e4);
 			font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 			line-height: 1.35;
 			display: flex;
@@ -140,7 +181,7 @@
 			overflow: hidden;
 
 			border-radius: var(--MI-radius, 12px);
-			border: 1px solid rgba(231, 255, 251, 0.14);
+			border: 1px solid var(--embed-error-border, rgba(231, 255, 251, 0.14));
 		}
 
 		body::before {
@@ -150,7 +191,7 @@
 			left: 0;
 			width: 100%;
 			height: 100%;
-			background: #192320;
+			background: var(--embed-error-bg, rgb(25, 35, 32));
 			border-radius: var(--MI-radius, 12px);
 			z-index: -1;
 		}
@@ -196,15 +237,15 @@
 			font-family: Hiragino Maru Gothic Pro, BIZ UDGothic, Roboto, HelveticaNeue, Arial, sans-serif;
 			line-height: 1.35;
 			border-radius: 99rem;
-			background-color: #b4e900;
-			color: #192320;
+			background-color: var(--embed-error-accent, rgb(255, 188, 220));
+			color: var(--embed-error-on-accent, #192320);
 			border: none;
 			cursor: pointer;
 			-webkit-tap-highlight-color: transparent;
 		}
 
 		button:hover {
-			background-color: #c6ff03;
+			background-color: var(--embed-error-accent-hover, rgb(255, 222, 241));
 		}`);
 	}
 })();
