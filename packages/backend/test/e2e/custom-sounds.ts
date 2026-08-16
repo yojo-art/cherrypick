@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { describe, beforeAll, test } from 'vitest';
-import { api, castAsError, role, signup, uploadFile } from '../utils.js';
+import { api, castAsError, role, signup, sleep, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('admin/custom-sounds', () => {
@@ -184,5 +184,49 @@ describe('admin/custom-sounds', () => {
 	test('存在しないサウンドの削除はエラー', async () => {
 		const res = await api('admin/custom-sounds/delete', { id: '00000000000000000000000000' }, root);
 		assert.strictEqual(res.status, 400);
+	});
+
+	test('参照先ドライブファイルが削除されたサウンドは url: null を返す', async () => {
+		const file = await uploadAudio(root);
+		const createRes = await api('admin/custom-sounds/create', {
+			name: 'broken-sound',
+			fileId: file.id,
+		}, root);
+		assert.strictEqual(createRes.status, 200);
+
+		// 登録時に url が解決されている
+		const before = (await api('get-custom-sounds', {})).body;
+		const soundBefore = before.find(s => s.id === createRes.body.id);
+		assert.ok(soundBefore);
+		assert.ok(soundBefore.url != null);
+
+		// ドライブファイルを削除する
+		const deleteFileRes = await api('drive/files/delete', { fileId: file.id }, root);
+		assert.strictEqual(deleteFileRes.status, 204);
+
+		// deletePostProcess は fire-and-forget で DB 削除が非同期に走るため、反映を待つ
+		await sleep(500);
+
+		// サウンドは残るが url が null になる
+		const after = (await api('get-custom-sounds', {})).body;
+		const soundAfter = after.find(s => s.id === createRes.body.id);
+		assert.ok(soundAfter, 'deleted-file sound should remain in the list');
+		assert.strictEqual(soundAfter.url, null);
+	});
+
+	test('canManageCustomSounds ポリシー保持者は一覧を参照できる', async () => {
+		const file = await uploadAudio(root);
+		const createRes = await api('admin/custom-sounds/create', {
+			name: 'for-manager-list',
+			fileId: file.id,
+		}, root);
+		assert.strictEqual(createRes.status, 200);
+
+		const manager = await signup({ username: 'soundManagerList' });
+		await setupSoundManager(manager);
+
+		const listRes = await api('admin/custom-sounds/list', {}, manager);
+		assert.strictEqual(listRes.status, 200);
+		assert.ok(listRes.body.some(s => s.id === createRes.body.id));
 	});
 });

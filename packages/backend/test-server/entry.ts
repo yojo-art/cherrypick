@@ -8,10 +8,10 @@ import { ServerService } from '@/server/ServerService.js';
 import { loadConfig } from '@/config.js';
 import { NestLogger } from '@/NestLogger.js';
 
+process.env.NODE_ENV = 'test';
+
 const config = loadConfig();
 const originEnv = JSON.stringify(process.env);
-
-process.env.NODE_ENV = 'test';
 
 let app: INestApplicationContext;
 let serverService: ServerService;
