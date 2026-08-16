@@ -66,12 +66,17 @@ html {
 	left: 0;
 	width: 28px;
 	height: 28px;
-	animation: splashSpinner 2s linear infinite;
-}
-#splashSpinner > .spinner > .path {
-	stroke: var(--MI_THEME-accent);
+	fill-rule: evenodd;
+	clip-rule: evenodd;
 	stroke-linecap: round;
-	animation: dash 1.2s ease-in-out infinite;
+	stroke-linejoin: round;
+	stroke-miterlimit: 1.5;
+}
+#splashSpinner > .spinner.bg {
+	opacity: 0.275;
+}
+#splashSpinner > .spinner.fg {
+	animation: splashSpinner 0.5s linear infinite;
 }
 
 @keyframes splashSpinner {
@@ -80,20 +85,5 @@ html {
 	}
 	100% {
 		transform: rotate(360deg);
-	}
-}
-
-@keyframes dash {
-	0% {
-		stroke-dasharray: 1, 150;
-		stroke-dashoffset: 0;
-	}
-	50% {
-		stroke-dasharray: 90, 150;
-		stroke-dashoffset: -35;
-	}
-	100% {
-		stroke-dasharray: 90, 150;
-		stroke-dashoffset: -124;
 	}
 }
