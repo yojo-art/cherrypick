@@ -165,6 +165,9 @@ export class ApRendererService {
 			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri && !cc.includes(channelActorUri)) {
+			cc.push(channelActorUri);
+		}
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
@@ -216,6 +219,9 @@ export class ApRendererService {
 			//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
 			if (!activity.cc.includes(channelFollowersUri)) {
 				activity.cc.push(channelFollowersUri);
+			}
+			if (channelActorUri && !activity.cc.includes(channelActorUri)) {
+				activity.cc.push(channelActorUri);
 			}
 		}
 		return activity;
@@ -526,6 +532,9 @@ export class ApRendererService {
 			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		if (channelActorUri && !cc.includes(channelActorUri)) {
+			cc.push(channelActorUri);
+		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
 			searchableBy = undefined;
