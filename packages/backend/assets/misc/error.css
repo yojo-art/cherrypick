@@ -19,8 +19,8 @@
 
 body,
 html {
-	background-color: rgb(28, 28, 37);
-	color: #dfddcc;
+	background-color: var(--error-bg, rgb(28, 28, 37));
+	color: var(--error-fg, #dfddcc);
 	justify-content: center;
 	margin: auto;
 	padding: 10px;
@@ -49,12 +49,12 @@ button {
 }
 
 .button-small {
-	background: rgb(35, 35, 47);
+	background: var(--error-sub-bg, rgb(35, 35, 47));
 	line-height: 40px;
 }
 
 .button-small:hover {
-	background: rgba(255, 255, 255, 0.1);
+	background: var(--error-sub-bg-hover, rgba(255, 255, 255, 0.1));
 }
 
 .button-label-big {
@@ -65,13 +65,13 @@ button {
 }
 
 .button-label-small {
-	color: rgb(185, 216, 255);
+	color: var(--error-sub-fg, rgb(185, 216, 255));
 	font-size: 16px;
 	padding: 12px;
 }
 
 a {
-	color: rgb(134, 179, 0);
+	color: var(--error-accent, rgb(255, 188, 220));
 	text-decoration: none;
 }
 
@@ -94,7 +94,7 @@ h1 {
 code {
 	display: block;
 	font-family: "JetBrains Mono", "Pretendard JP", Pretendard, Consolas, Monaco, 'Andale Mono', 'Ubuntu Mono', monospace;
-	background: rgb(35, 35, 47);
+	background: var(--error-sub-bg, rgb(35, 35, 47));
 	padding: 0.5rem 1rem;
 	max-width: 40rem;
 	border-radius: 10px;
