@@ -7,9 +7,11 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { ApiError } from '@/server/api/error.js';
 import { DI } from '@/di-symbols.js';
-import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import type { DriveFilesRepository } from '@/models/_.js';
 import { CustomSoundService } from '@/core/CustomSoundService.js';
+import { DriveService } from '@/core/DriveService.js';
+import { InternalStorageService } from '@/core/InternalStorageService.js';
+import type { MiDriveFile } from '@/models/DriveFile.js';
 
 export const meta = {
 	tags: ['admin'],
@@ -28,11 +30,6 @@ export const meta = {
 			message: 'Unsupported file type.',
 			code: 'UNSUPPORTED_FILE_TYPE',
 			id: 'd1a16b90-6cdc-49f2-a191-cc2204d2049a',
-		},
-		fileAlreadyUsed: {
-			message: 'This file is already used by another sound.',
-			code: 'FILE_ALREADY_USED',
-			id: '5db26a76-89e1-41f1-9d7d-c435c020f231',
 		},
 	},
 
@@ -72,6 +69,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
 
+		private driveService: DriveService,
+
+		private internalStorageService: InternalStorageService,
+
 		private customSoundService: CustomSoundService,
 	) {
 		super(meta, paramDef, async (ps) => {
@@ -79,22 +80,32 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (driveFile == null) throw new ApiError(meta.errors.noSuchFile);
 			if (!driveFile.type.startsWith('audio')) throw new ApiError(meta.errors.unsupportedFileType);
 
-			const existing = await this.customSoundService.findOneByFileId(ps.fileId);
-			if (existing != null) throw new ApiError(meta.errors.fileAlreadyUsed);
-
-			try {
-				const sound = await this.customSoundService.create({
-					name: ps.name,
-					fileId: driveFile.id,
+			// システムユーザーとして再アップロードし、登録したユーザーのドライブファイルに依存しないようにする
+			// 内部ストレージのファイルはローカルでコピーし、それ以外は HTTP で再取得する
+			let systemFile: MiDriveFile;
+			if (driveFile.storedInternal && driveFile.accessKey != null) {
+				systemFile = await this.driveService.addFile({
+					user: null,
+					path: this.internalStorageService.resolvePath(driveFile.accessKey),
+					name: driveFile.name,
+					force: true,
+					url: driveFile.url,
+					uri: driveFile.uri,
 				});
-
-				return await this.customSoundService.pack(sound);
-			} catch (e) {
-				if (isDuplicateKeyValueError(e)) {
-					throw new ApiError(meta.errors.fileAlreadyUsed);
-				}
-				throw e;
+			} else {
+				systemFile = await this.driveService.uploadFromUrl({
+					url: driveFile.url,
+					user: null,
+					force: true,
+				});
 			}
+
+			const sound = await this.customSoundService.create({
+				name: ps.name,
+				fileId: systemFile.id,
+			});
+
+			return await this.customSoundService.pack(sound);
 		});
 	}
 }

@@ -39,11 +39,6 @@ export class CustomSoundService {
 	}
 
 	@bindThis
-	public async findOneByFileId(fileId: string): Promise<MiCustomSound | null> {
-		return this.customSoundsRepository.findOneBy({ fileId });
-	}
-
-	@bindThis
 	public async create(options: {
 		name: string;
 		fileId: string;

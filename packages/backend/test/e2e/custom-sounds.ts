@@ -6,8 +6,8 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { describe, beforeAll, test, vi } from 'vitest';
-import { api, castAsError, role, signup, uploadFile } from '../utils.js';
+import { describe, beforeAll, test } from 'vitest';
+import { api, role, signup, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('admin/custom-sounds', () => {
@@ -150,22 +150,6 @@ describe('admin/custom-sounds', () => {
 		assert.strictEqual(res.status, 400);
 	});
 
-	test('同じファイルで重複登録はできない', async () => {
-		const file = await uploadAudio(root);
-		const first = await api('admin/custom-sounds/create', {
-			name: 'first-sound',
-			fileId: file.id,
-		}, root);
-		assert.strictEqual(first.status, 200);
-
-		const second = await api('admin/custom-sounds/create', {
-			name: 'second-sound',
-			fileId: file.id,
-		}, root);
-		assert.strictEqual(second.status, 400);
-		assert.strictEqual(castAsError(second.body as any).error.code, 'FILE_ALREADY_USED');
-	});
-
 	test('削除できる', async () => {
 		const file = await uploadAudio(root);
 		const createRes = await api('admin/custom-sounds/create', {
@@ -186,10 +170,10 @@ describe('admin/custom-sounds', () => {
 		assert.strictEqual(res.status, 400);
 	});
 
-	test('参照先ドライブファイルが削除されたサウンドは url: null を返す', async () => {
+	test('登録後に元ドライブファイルを削除しても音声は利用できる', async () => {
 		const file = await uploadAudio(root);
 		const createRes = await api('admin/custom-sounds/create', {
-			name: 'broken-sound',
+			name: 'system-copied-sound',
 			fileId: file.id,
 		}, root);
 		assert.strictEqual(createRes.status, 200);
@@ -200,17 +184,14 @@ describe('admin/custom-sounds', () => {
 		assert.ok(soundBefore);
 		assert.ok(soundBefore.url != null);
 
-		// ドライブファイルを削除する
+		// システムユーザーとして再アップロードされるため、元のドライブファイルを削除しても影響しない
 		const deleteFileRes = await api('drive/files/delete', { fileId: file.id }, root);
 		assert.strictEqual(deleteFileRes.status, 204);
 
-		// deletePostProcess は fire-and-forget で DB 削除が非同期に走るため、反映されるまで待つ
-		await vi.waitFor(async () => {
-			const after = (await api('get-custom-sounds', {})).body;
-			const soundAfter = after.find(s => s.id === createRes.body.id);
-			assert.ok(soundAfter, 'deleted-file sound should remain in the list');
-			assert.strictEqual(soundAfter.url, null);
-		});
+		const after = (await api('get-custom-sounds', {})).body;
+		const soundAfter = after.find(s => s.id === createRes.body.id);
+		assert.ok(soundAfter, 'sound should remain in the list');
+		assert.ok(soundAfter.url != null, 'url should still be resolved after deleting the original drive file');
 	});
 
 	test('canManageCustomSounds ポリシー保持者は一覧を参照できる', async () => {

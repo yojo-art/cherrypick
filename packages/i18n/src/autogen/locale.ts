@@ -9974,14 +9974,6 @@ export interface Locale extends ILocale {
          */
         "add": string;
         /**
-         * このドライブファイルは、別のサウンドですでに使用されています。別のファイルを選択してください。
-         */
-        "fileAlreadyUsed": string;
-        /**
-         * このファイルは使用できません
-         */
-        "fileAlreadyUsedTitle": string;
-        /**
          * 名前
          */
         "name": string;
