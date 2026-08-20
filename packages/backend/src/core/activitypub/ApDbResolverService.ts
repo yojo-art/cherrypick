@@ -5,7 +5,7 @@
 
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import { DI } from '@/di-symbols.js';
-import type { NotesRepository, UserPublickeysRepository, UsersRepository } from '@/models/_.js';
+import type { ChannelsRepository, NotesRepository, UserPublickeysRepository, UsersRepository } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import { MemoryKVCache } from '@/misc/cache.js';
 import type { MiUserPublickey } from '@/models/UserPublickey.js';
@@ -13,7 +13,7 @@ import { CacheService } from '@/core/CacheService.js';
 import { UtilityService } from '@/core/UtilityService.js';
 import type { MiNote } from '@/models/Note.js';
 import { bindThis } from '@/decorators.js';
-import { MiLocalUser, MiRemoteUser } from '@/models/User.js';
+import { MiLocalUser, MiRemoteUser, type MiUser } from '@/models/User.js';
 import { getApId } from './type.js';
 import { ApPersonService } from './models/ApPersonService.js';
 import type { IObject } from './type.js';
@@ -48,6 +48,9 @@ export class ApDbResolverService implements OnApplicationShutdown {
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		@Inject(DI.userPublickeysRepository)
 		private userPublickeysRepository: UserPublickeysRepository,
@@ -118,6 +121,25 @@ export class ApDbResolverService implements OnApplicationShutdown {
 				() => this.usersRepository.findOneBy({ uri: parsed.uri, isDeleted: false }),
 			) as MiRemoteUser | null;
 		}
+	}
+
+	/**
+	 * AP Channel (ローカルチャンネルのURL /channels/:id) => チャンネルアカウント(MiUser) in DB
+	 */
+	@bindThis
+	public async getChannelFromApId(value: string | IObject): Promise<MiUser | null> {
+		const parsed = this.parseUri(value);
+
+		if (!parsed.local || parsed.type !== 'channels' || parsed.id == null) return null;
+
+		const channel = await this.channelsRepository.findOneBy({ id: parsed.id });
+		if (channel == null || channel.actorId == null) return null;
+
+		const actorId = channel.actorId;
+		return await this.cacheService.userByIdCache.fetchMaybe(
+			actorId,
+			() => this.usersRepository.findOneBy({ id: actorId, isDeleted: false }).then(x => x ?? undefined),
+		) as MiLocalUser | undefined ?? null;
 	}
 
 	/**

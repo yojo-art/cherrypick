@@ -336,4 +336,3 @@ export class SignupService {
 		return { account, channel };
 	}
 }
-

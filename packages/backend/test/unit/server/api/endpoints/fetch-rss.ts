@@ -3,37 +3,29 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { beforeEach, describe, expect, test, jest } from '@jest/globals';
-import type { Mocked } from 'jest-mock';
+import { beforeEach, describe, expect, test, vi } from 'vitest';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
+import FetchRssEndpoint, { meta } from '@/server/api/endpoints/fetch-rss.js';
+import { ApiError } from '@/server/api/error.js';
+import type { Mocked } from 'vitest';
 import type { Response } from 'node-fetch';
 
-// --- rss-parser のモック登録は、テスト対象を import するより前に行う必要がある ---
-// (ESM環境では jest.mock の自動 hoisting が効かないため、
-//  jest.unstable_mockModule + 動的 import を使う)
-const mockRssParserConstructor = jest.fn<(options: unknown) => void>();
-const mockRssParserParseString = jest.fn<(input: string) => Promise<{ items: unknown[] }>>();
+const rssParserMocks = vi.hoisted(() => ({
+	constructor: vi.fn(),
+	parseString: vi.fn(),
+}));
 
-jest.unstable_mockModule('rss-parser', () => {
-	class MockRssParser {
+vi.mock('rss-parser', () => ({
+	default: class {
 		constructor(options: unknown) {
-			mockRssParserConstructor(options);
+			rssParserMocks.constructor(options);
 		}
 
 		public parseString(input: string) {
-			return mockRssParserParseString(input);
+			return rssParserMocks.parseString(input);
 		}
-	}
-
-	return {
-		__esModule: true,
-		default: MockRssParser,
-	};
-});
-
-// モック登録後に、モック対象を動的importする
-const { default: FetchRssEndpoint, meta } = await import('@/server/api/endpoints/fetch-rss.js');
-const { HttpRequestService } = await import('@/core/HttpRequestService.js');
-const { ApiError } = await import('@/server/api/error.js');
+	},
+}));
 
 const RSS = '<?xml version="1.0"?><rss version="2.0"><channel><title>Test</title></channel></rss>';
 
@@ -50,21 +42,21 @@ function deferred<T>() {
 function response(url: string, text = RSS): Response {
 	return {
 		url,
-		text: jest.fn<() => Promise<string>>().mockResolvedValue(text),
+		text: vi.fn().mockResolvedValue(text),
 	} as unknown as Response;
 }
 
 describe('fetch-rss endpoint', () => {
-	let httpRequestService: Mocked<InstanceType<typeof HttpRequestService>>;
-	let endpoint: InstanceType<typeof FetchRssEndpoint>;
+	let httpRequestService: Mocked<HttpRequestService>;
+	let endpoint: FetchRssEndpoint;
 
 	beforeEach(() => {
-		mockRssParserConstructor.mockReset();
-		mockRssParserParseString.mockReset();
-		mockRssParserParseString.mockResolvedValue({ items: [] });
+		rssParserMocks.constructor.mockReset();
+		rssParserMocks.parseString.mockReset();
+		rssParserMocks.parseString.mockResolvedValue({ items: [] });
 		httpRequestService = {
-			send: jest.fn(),
-		} as unknown as Mocked<InstanceType<typeof HttpRequestService>>;
+			send: vi.fn(),
+		} as unknown as Mocked<HttpRequestService>;
 		endpoint = new FetchRssEndpoint(httpRequestService);
 	});
 
@@ -126,9 +118,9 @@ describe('fetch-rss endpoint', () => {
 		await exec('https://example.com/first.xml');
 		await exec('https://example.com/second.xml');
 
-		expect(mockRssParserConstructor).toHaveBeenCalledTimes(2);
-		expect(mockRssParserConstructor).toHaveBeenNthCalledWith(1, { xml2js: { async: true } });
-		expect(mockRssParserConstructor).toHaveBeenNthCalledWith(2, { xml2js: { async: true } });
+		expect(rssParserMocks.constructor).toHaveBeenCalledTimes(2);
+		expect(rssParserMocks.constructor).toHaveBeenNthCalledWith(1, { xml2js: { async: true } });
+		expect(rssParserMocks.constructor).toHaveBeenNthCalledWith(2, { xml2js: { async: true } });
 	});
 
 	test('rejects a non-HTTP final URL without exposing it', async () => {

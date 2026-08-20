@@ -39,8 +39,8 @@ export function Layout(props: PropsWithChildren<CommonProps<{
 					<meta charset="UTF-8" />
 					<meta name="application-name" content="Misskey" />
 					<meta name="referer" content="origin" />
-					<meta name="theme-color" content={props.themeColor ?? '#86b300'} />
-					<meta name="theme-color-orig" content={props.themeColor ?? '#86b300'} />
+					<meta name="theme-color" content={props.themeColor ?? '#ffbcdc'} />
+					<meta name="theme-color-orig" content={props.themeColor ?? '#ffbcdc'} />
 					<meta property="og:site_name" content={props.instanceName || 'Misskey'} />
 					<meta property="instance_url" content={props.instanceUrl} />
 					<meta name="viewport" content="width=device-width, initial-scale=1, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
@@ -53,11 +53,11 @@ export function Layout(props: PropsWithChildren<CommonProps<{
 					{props.infoImageUrl != null ? <link rel="prefetch" as="image" href={props.infoImageUrl} /> : null}
 					{props.notFoundImageUrl != null ? <link rel="prefetch" as="image" href={props.notFoundImageUrl} /> : null}
 
-					{!props.config.frontendManifestExists ? <script type="module" src="/vite/@vite/client"></script> : null}
+					{props.frontendViteFiles == null ? <script type="module" src="/vite/@vite/client"></script> : null}
 
-					{props.config.frontendEntry.css != null ? props.config.frontendEntry.css.map((href) => (
+					{(props.frontendViteFiles?.css ?? []).map((href) => (
 						<link rel="stylesheet" href={`/vite/${href}`} />
-					)) : null}
+					))}
 
 					{props.titleSlot ?? <title safe>{props.title || 'Misskey'}</title>}
 
@@ -80,7 +80,7 @@ export function Layout(props: PropsWithChildren<CommonProps<{
 
 					<script>
 						const VERSION = '{props.version}';
-						const CLIENT_ENTRY = {JSON.stringify(props.config.frontendEntry.file)};
+						const CLIENT_ENTRY = {JSON.stringify(props.frontendViteFiles?.entryJs ?? null)};
 						const LANGS = {JSON.stringify(props.langs)};
 					</script>
 

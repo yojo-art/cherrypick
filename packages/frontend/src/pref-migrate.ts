@@ -4,8 +4,9 @@
  */
 
 import type { DeckProfile } from '@/deck.js';
+import type { SoundStore } from '@/preferences/def.js';
 import { genId } from '@/utility/id.js';
-import { ColdDeviceStorage, store } from '@/store.js';
+import { store } from '@/store.js';
 import { prefer } from '@/preferences.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { deckStore } from '@/ui/deck/deck-store.js';
@@ -23,16 +24,6 @@ export function migrateOldSettings() {
 				prefer.commit('themes', themes);
 			}
 		});
-
-		const plugins = ColdDeviceStorage.get('plugins');
-		prefer.commit('plugins', plugins.map(p => {
-			const { id, ...rest } = p;
-			return {
-				...rest,
-				config: rest.config ?? {},
-				installId: id,
-			};
-		}));
 
 		prefer.commit('deck.profile', deckStore.s.profile);
 		misskeyApi('i/registry/keys', {
@@ -54,9 +45,6 @@ export function migrateOldSettings() {
 			prefer.commit('deck.profiles', profiles);
 		});
 
-		prefer.commit('lightTheme', ColdDeviceStorage.get('lightTheme'));
-		prefer.commit('darkTheme', ColdDeviceStorage.get('darkTheme'));
-		prefer.commit('syncDeviceDarkMode', ColdDeviceStorage.get('syncDeviceDarkMode'));
 		prefer.commit('emojiPalettes', [{
 			id: 'reactions',
 			name: '',
@@ -140,14 +128,14 @@ export function migrateOldSettings() {
 		prefer.commit('sound.masterVolume', store.s.sound_masterVolume);
 		prefer.commit('sound.notUseSound', store.s.sound_notUseSound);
 		prefer.commit('sound.useSoundOnlyWhenActive', store.s.sound_useSoundOnlyWhenActive);
-		prefer.commit('sound.on.note', store.s.sound_note as any);
-		prefer.commit('sound.on.noteMy', store.s.sound_noteMy as any);
-		prefer.commit('sound.on.noteSchedulePost', store.s.sound_noteSchedulePost as any);
-		prefer.commit('sound.on.noteEdited', store.s.sound_noteEdited as any);
-		prefer.commit('sound.on.notification', store.s.sound_notification as any);
-		prefer.commit('sound.on.reaction', store.s.sound_reaction as any);
-		prefer.commit('sound.on.chat', store.s.sound_chat as any);
-		//prefer.commit('sound.on.chaBg', store.s.sound_chatBg as any);
+		prefer.commit('sound.on.note', store.s.sound_note as SoundStore);
+		prefer.commit('sound.on.noteMy', store.s.sound_noteMy as SoundStore);
+		prefer.commit('sound.on.noteSchedulePost', store.s.sound_noteSchedulePost as SoundStore);
+		prefer.commit('sound.on.noteEdited', store.s.sound_noteEdited as SoundStore);
+		prefer.commit('sound.on.notification', store.s.sound_notification as SoundStore);
+		prefer.commit('sound.on.reaction', store.s.sound_reaction as SoundStore);
+		prefer.commit('sound.on.chat', store.s.sound_chat as SoundStore);
+		//prefer.commit('sound.on.chaBg', store.s.sound_chatBg as SoundStore);
 		prefer.commit('defaultNoteVisibility', store.s.defaultNoteVisibility);
 		prefer.commit('defaultNoteLocalOnly', store.s.defaultNoteLocalOnly);
 
@@ -242,16 +230,11 @@ export function migrateOldSettings() {
 		prefer.commit('showRenoteConfirmPopup', store.s.showRenoteConfirmPopup);
 		prefer.commit('expandOnNoteClick', store.s.expandOnNoteClick);
 		prefer.commit('expandOnNoteClickBehavior', store.s.expandOnNoteClickBehavior);
-		prefer.commit('displayHeaderNavBarWhenScroll', store.s.displayHeaderNavBarWhenScroll);
 		prefer.commit('reactableRemoteReactionEnabled', store.s.reactableRemoteReactionEnabled);
 		prefer.commit('showFollowingMessageInsteadOfButtonEnabled', store.s.showFollowingMessageInsteadOfButtonEnabled);
-		prefer.commit('mobileHeaderChange', store.s.mobileHeaderChange);
 		prefer.commit('renameTheButtonInPostFormToNya', store.s.renameTheButtonInPostFormToNya);
 		prefer.commit('renameTheButtonInPostFormToNyaManualSet', store.s.renameTheButtonInPostFormToNyaManualSet);
 		prefer.commit('enableWidgetsArea', store.s.enableWidgetsArea);
-		prefer.commit('friendlyUiEnableNotificationsArea', store.s.friendlyUiEnableNotificationsArea);
-		prefer.commit('enableLongPressOpenAccountMenu', store.s.enableLongPressOpenAccountMenu);
-		prefer.commit('friendlyUiShowAvatarDecorationsInNavBtn', store.s.friendlyUiShowAvatarDecorationsInNavBtn);
 		// #endregion
 
 		window.setTimeout(() => {

@@ -37,8 +37,13 @@ const props = defineProps<{
 	id?: string;
 }>();
 
+type RoleLike = Pick<Misskey.entities.Role, 'name' | 'description' | 'isAdministrator' | 'isModerator' | 'color' | 'iconUrl' | 'target' | 'isPublic' | 'isExplorable' | 'asBadge' | 'canEditMembersByModerator' | 'displayOrder' | 'preserveAssignmentOnMoveAccount'> & {
+	condFormula: any;
+	policies: any;
+};
+
 const role = ref<Misskey.entities.Role | null>(null);
-const data = ref<any>(null);
+const data = ref<RoleLike | null>(null);
 
 if (props.id) {
 	role.value = await misskeyApi('admin/roles/show', {
@@ -61,11 +66,13 @@ if (props.id) {
 		asBadge: false,
 		canEditMembersByModerator: false,
 		displayOrder: 0,
+		preserveAssignmentOnMoveAccount: false,
 		policies: {},
 	};
 }
 
 async function save() {
+	if (data.value === null) return;
 	rolesCache.delete();
 	if (role.value) {
 		os.apiWithDialog('admin/roles/update', {

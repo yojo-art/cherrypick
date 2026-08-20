@@ -37,6 +37,7 @@ const props = withDefaults(defineProps<{
 });
 
 const behavior = props.behavior ?? inject<MkABehavior>('linkNavigationBehavior', null);
+const isWindow = inject<boolean>('inWindow', false);
 
 const el = useTemplateRef('el');
 
@@ -54,7 +55,7 @@ const active = computed(() => {
 	return resolved.route.name === router.currentRoute.value.name;
 });
 
-function onContextmenu(ev) {
+function onContextmenu(ev: PointerEvent) {
 	const selection = window.getSelection();
 	if (selection && selection.toString() !== '') return;
 	os.contextMenu([{
@@ -91,7 +92,7 @@ function openWindow() {
 	os.pageWindow(props.to);
 }
 
-function nav(ev: MouseEvent) {
+function nav(ev: PointerEvent) {
 	haptic();
 
 	// 制御キーとの組み合わせは無視（shiftを除く）
@@ -100,7 +101,11 @@ function nav(ev: MouseEvent) {
 	ev.preventDefault();
 
 	if (behavior === 'browser') {
-		window.location.href = props.to;
+		if (isWindow) {
+			window.open(props.to, '_blank', 'noopener');
+		} else {
+			window.location.href = props.to;
+		}
 		return;
 	}
 

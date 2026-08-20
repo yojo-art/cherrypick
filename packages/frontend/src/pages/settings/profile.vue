@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<SearchMarker :keywords="['avatar', 'icon', 'change']">
 						<MkButton primary rounded @click="changeAvatar"><SearchLabel>{{ i18n.ts._profile.changeAvatar }}</SearchLabel></MkButton>
 					</SearchMarker>
-					<MkButton primary rounded link to="/settings/avatar-decoration">{{ i18n.ts.decorate }} <i class="ti ti-sparkles"></i></MkButton>
+					<MkButton primary rounded type="routerLink" to="/settings/avatar-decoration">{{ i18n.ts.decorate }} <i class="ti ti-sparkles"></i></MkButton>
 				</div>
 			</div>
 		</div>
@@ -75,30 +75,27 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div :class="$style.metadataRoot" class="_gaps_s">
 						<MkInfo>{{ i18n.ts._profile.verifiedLinkDescription }}</MkInfo>
 
-						<Sortable
+						<MkDraggable
 							v-model="fields"
-							class="_gaps_s"
-							itemKey="id"
-							:animation="150"
-							:handle="'.' + $style.dragItemHandle"
-							@start="e => e.item.classList.add('active')"
-							@end="e => e.item.classList.remove('active')"
+							direction="vertical"
+							withGaps
+							manualDragStart
 						>
-							<template #item="{element, index}">
+							<template #default="{ item, dragStart }">
 								<div v-panel :class="$style.fieldDragItem">
-									<button v-if="!fieldEditMode" class="_button" :class="$style.dragItemHandle" tabindex="-1"><i class="ti ti-menu"></i></button>
-									<button v-if="fieldEditMode" :disabled="fields.length <= 1" class="_button" :class="$style.dragItemRemove" @click="deleteField(index)"><i class="ti ti-x"></i></button>
+									<button v-if="!fieldEditMode" class="_button" :class="$style.dragItemHandle" tabindex="-1" :draggable="true" @dragstart.stop="dragStart"><i class="ti ti-menu"></i></button>
+									<button v-if="fieldEditMode" :disabled="fields.length <= 1" class="_button" :class="$style.dragItemRemove" @click="deleteField(item.id)"><i class="ti ti-x"></i></button>
 									<div :class="$style.dragItemForm">
 										<FormSplit :minWidth="200">
-											<MkInput v-model="element.name" small :placeholder="i18n.ts._profile.metadataLabel">
+											<MkInput v-model="item.name" small :placeholder="i18n.ts._profile.metadataLabel">
 											</MkInput>
-											<MkInput v-model="element.value" small :placeholder="i18n.ts._profile.metadataContent">
+											<MkInput v-model="item.value" small :placeholder="i18n.ts._profile.metadataContent">
 											</MkInput>
 										</FormSplit>
 									</div>
 								</div>
 							</template>
-						</Sortable>
+						</MkDraggable>
 					</div>
 				</MkFolder>
 				<template #caption>{{ i18n.ts._profile.metadataDescription }}</template>
@@ -118,18 +115,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<MkButton inline primary @click="saveMutualLinks"><i class="ti ti-check"></i> {{ i18n.ts.save }}</MkButton>
 						</div>
 
-						<Sortable
+						<MkDraggable
 							v-model="mutualLinkSections"
-							class="_gaps_s"
-							itemKey="id"
-							:animation="150"
-							:handle="'.' + $style.dragItemHandle"
-							@start="e => e.item.classList.add('active')"
-							@end="e => e.item.classList.remove('active')"
+							direction="vertical"
+							withGaps
+							manualDragStart
 						>
-							<template #item="{element: sectionElement,index: sectionIndex}">
+							<template #default="{ item: sectionElement, index: sectionIndex, dragStart }">
 								<div :class="$style.mutualLinkSectionRoot">
-									<button v-if="!mutualLinkSectionEditMode" class="_button" :class="$style.dragItemHandle" tabindex="-1"><i class="ti ti-menu"></i></button>
+									<button v-if="!mutualLinkSectionEditMode" class="_button" :class="$style.dragItemHandle" tabindex="-1" :draggable="true" @dragstart.stop="dragStart"><i class="ti ti-menu"></i></button>
 									<button v-if="mutualLinkSectionEditMode" :disabled="fields.length <= 1" class="_button" :class="$style.dragItemRemove" @click="deleteMutualLinkSection(sectionIndex)"><i class="ti ti-x"></i></button>
 									<FormSlot :style="{flexGrow: 1}">
 										<MkFolder>
@@ -141,18 +135,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 												<MkButton inline style="margin-right: 8px;" :disabled="sectionElement.mutualLinks.length >= $i.policies.mutualLinkLimit" @click="addMutualLinks(sectionIndex)"><i class="ti ti-plus"></i> {{ i18n.ts._profile.addMutualLink }}</MkButton>
 											</div>
 
-											<Sortable
+											<MkDraggable
 												v-model="sectionElement.mutualLinks"
-												class="_gaps_s"
-												itemKey="id"
-												:animation="150"
-												:handle="'.' + $style.dragItemHandle"
-												@start="e => e.item.classList.add('active')"
-												@end="e => e.item.classList.remove('active')"
+												direction="vertical"
+												withGaps
+												manualDragStart
 											>
-												<template #item="{element: linkElement,index: linkIndex}">
+												<template #default="{ item: linkElement, index: linkIndex, dragStart }">
 													<div :class="$style.mutualLinkRoot">
-														<button v-if="!mutualLinkSectionEditMode" class="_button" :class="$style.dragItemHandle" tabindex="-1"><i class="ti ti-menu"></i></button>
+														<button v-if="!mutualLinkSectionEditMode" class="_button" :class="$style.dragItemHandle" tabindex="-1" :draggable="true" @dragstart.stop="dragStart"><i class="ti ti-menu"></i></button>
 														<button v-if="mutualLinkSectionEditMode" :disabled="fields.length <= 1" class="_button" :class="$style.dragItemRemove" @click="deleteMutualLink(sectionIndex,linkIndex)"><i class="ti ti-x"></i></button>
 
 														<div class="_gaps_s" :style="{flex: 1}">
@@ -168,12 +159,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 														</div>
 													</div>
 												</template>
-											</Sortable>
+											</MkDraggable>
 										</MkFolder>
 									</FormSlot>
 								</div>
 							</template>
-						</Sortable>
+						</MkDraggable>
 					</div>
 				</MkFolder>
 
@@ -241,7 +232,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, reactive, ref, watch, defineAsyncComponent } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
+import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -250,6 +242,7 @@ import FormSplit from '@/components/form/split.vue';
 import MkFolder from '@/components/MkFolder.vue';
 import FormSlot from '@/components/form/slot.vue';
 import FormLink from '@/components/form/link.vue';
+import MkDraggable from '@/components/MkDraggable.vue';
 import { chooseDriveFile, selectFile } from '@/utility/drive.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
@@ -267,8 +260,7 @@ import { globalEvents } from '@/events';
 
 const $i = ensureSignin();
 
-const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
-const reactionAcceptance = computed(store.makeGetterSetter('reactionAcceptance'));
+const reactionAcceptance = store.model('reactionAcceptance');
 
 function assertVaildLang(lang: string | null): lang is keyof typeof langmap {
 	return lang != null && lang in langmap;
@@ -327,8 +319,8 @@ while (fields.value.length < 4) {
 	addField();
 }
 
-function deleteField(index: number) {
-	fields.value.splice(index, 1);
+function deleteField(itemId: string) {
+	fields.value = fields.value.filter(f => f.id !== itemId);
 }
 
 function deleteMutualLinkSection(index: number) {
@@ -405,8 +397,8 @@ function changeMutualLinkFile(ev: MouseEvent, sectionIndex: number, linkIndex: n
 	});
 }
 
-function changeAvatar(ev) {
-	async function done(driveFile) {
+function changeAvatar(ev: PointerEvent) {
+	async function done(driveFile: Misskey.entities.DriveFile) {
 		const i = await os.apiWithDialog('i/update', {
 			avatarId: driveFile.id,
 		});
@@ -454,8 +446,8 @@ function changeAvatar(ev) {
 	}], ev.currentTarget ?? ev.target);
 }
 
-function changeBanner(ev) {
-	async function done(driveFile) {
+function changeBanner(ev: PointerEvent) {
+	async function done(driveFile: Misskey.entities.DriveFile) {
 		const i = await os.apiWithDialog('i/update', {
 			bannerId: driveFile.id,
 		});

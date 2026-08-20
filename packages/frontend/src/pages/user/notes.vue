@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_spacer" style="--MI_SPACER-w: 800px;">
-	<div :class="$style.root">
+	<div>
 		<MkStickyContainer>
 			<template #header>
 				<MkTab
@@ -44,9 +44,6 @@ import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 import XReactions from '@/pages/user/reactions.vue';
 import XFiles from '@/pages/user/index.timeline.files.vue';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;

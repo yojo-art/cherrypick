@@ -3,53 +3,20 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { describe } from 'vitest';
 import { loadConfig } from '../../src/config.js';
 
-type Describe = typeof describe;
-
-let openSearchSuiteDepth = 0;
-let originalDescribe: Describe | null = null;
-let filterInstalled = false;
-
 /**
- * OPENSEARCH_E2E=1 のとき、トップレベルの通常 describe を skip する。
- * describeOpenSearchE2E 内のネストされた describe は depth によりそのまま実行される。
+ * describeOpenSearchE2E で宣言される suite の名前に付ける共通プレフィックス。
+ * `vitest --testNamePattern="^\[opensearch\] "` でこのプレフィックスを持つ suite のみ実行する。
  */
-export function installOpenSearchE2EFilter(): void {
-	if (process.env.OPENSEARCH_E2E !== '1' || filterInstalled) return;
-	filterInstalled = true;
-
-	originalDescribe = globalThis.describe;
-	const orig = originalDescribe;
-
-	const wrappedDescribe = ((...args: Parameters<Describe>) => {
-		if (openSearchSuiteDepth === 0) {
-			return orig.skip(...(args as Parameters<Describe['skip']>));
-		}
-		return orig(...args);
-	}) as Describe;
-
-	wrappedDescribe.skip = orig.skip.bind(orig);
-	wrappedDescribe.only = orig.only.bind(orig);
-	wrappedDescribe.each = orig.each.bind(orig);
-
-	globalThis.describe = wrappedDescribe;
-}
-
-function runOpenSearchDescribe(name: string, fn: () => void): void {
-	const d = originalDescribe ?? globalThis.describe;
-	d(name, () => {
-		openSearchSuiteDepth++;
-		try {
-			fn();
-		} finally {
-			openSearchSuiteDepth--;
-		}
-	});
-}
+export const OPENSEARCH_SUITE_PREFIX = '[opensearch] ';
 
 /**
- * OpenSearch E2E CI（OPENSEARCH_E2E=1）でも実行する suite を宣言する。
+ * OpenSearch E2E CI で実行する suite を宣言する。
+ *
+ * package.json の test:e2e:opensearch スクリプトの `--testNamePattern` を使って
+ * 本関数で宣言された suite のみ実行する。
  * requireOpenSearch が true のとき、config に opensearch が無ければ skip する。
  */
 export function describeOpenSearchE2E(
@@ -74,15 +41,10 @@ export function describeOpenSearchE2E(
 	if (opts?.requireOpenSearch) {
 		const config = loadConfig();
 		if (!config.opensearch) {
-			(originalDescribe ?? globalThis.describe).skip(name, callback);
+			describe.skip(OPENSEARCH_SUITE_PREFIX + name, callback);
 			return;
 		}
 	}
 
-	if (process.env.OPENSEARCH_E2E === '1') {
-		runOpenSearchDescribe(name, callback);
-		return;
-	}
-
-	globalThis.describe(name, callback);
+	describe(OPENSEARCH_SUITE_PREFIX + name, callback);
 }

@@ -34,7 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					:key="avatarDecoration.id"
 					v-panel
 					:class="$style.decoration"
-					@click="tab == 'local' ? edit(avatarDecoration) : remoteMenu(avatarDecoration, $event)"
+					@click="onDecorationClick(avatarDecoration, $event)"
 				>
 					<div :class="$style.decorationName">
 						<MkCondensedLine :minScale="0.5">{{ avatarDecoration.name }}</MkCondensedLine>
@@ -71,6 +71,8 @@ import { ensureSignin } from '@/i.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
+import MkFoldableSection from '@/components/MkFoldableSection.vue';
+import { groupAvatarDecorations } from '@/utility/group-avatar-decorations.js';
 import MkRemoteAvatarDecorationEditDialog from '@/components/MkRemoteAvatarDecorationEditDialog.vue';
 import { Paginator } from '@/utility/paginator.js';
 import { prefer } from '@/preferences.js';
@@ -80,13 +82,15 @@ const $i = ensureSignin();
 
 const tab = ref('local');
 const avatarDecorations = ref<Misskey.entities.AdminAvatarDecorationsListResponse>([]);
+const groupedDecorations = computed(() => groupAvatarDecorations(avatarDecorations.value));
 
 const paginator = shallowRef(createPaginator(tab.value));
 const queryHost = ref<string | null>(null);
 const queryHostEl = useTemplateRef('queryHostEl');
 
-async function add(ev: MouseEvent) {
+async function add(ev: PointerEvent) {
 	const { dispose } = await os.popupAsyncWithDialog(import('./avatar-decoration-edit-dialog.vue').then(x => x.default), {
+		categories: Object.keys(groupedDecorations.value),
 	}, {
 		done: result => {
 			if (result.created) {
@@ -97,9 +101,10 @@ async function add(ev: MouseEvent) {
 	});
 }
 
-async function edit(avatarDecoration) {
+async function edit(avatarDecoration: Misskey.entities.AdminAvatarDecorationsListResponse[number]) {
 	const { dispose } = await os.popupAsyncWithDialog(import('./avatar-decoration-edit-dialog.vue').then(x => x.default), {
 		avatarDecoration: avatarDecoration,
+		categories: Object.keys(groupedDecorations.value),
 	}, {
 		done: result => {
 			if (result.updated) {
@@ -116,7 +121,7 @@ async function edit(avatarDecoration) {
 	});
 }
 
-const remoteMenu = (remoteDecoration, ev: MouseEvent) => {
+const remoteMenu = (remoteDecoration: Misskey.entities.AdminAvatarDecorationsListRemoteResponse[number], ev: MouseEvent) => {
 	os.popupMenu([{
 		type: 'label',
 		text: remoteDecoration.name,
@@ -131,7 +136,15 @@ const remoteMenu = (remoteDecoration, ev: MouseEvent) => {
 	}], ev.currentTarget ?? ev.target);
 };
 
-const detailRemoteDecoration = (remoteDecoration) => {
+function onDecorationClick(avatarDecoration: Misskey.entities.AdminAvatarDecorationsListResponse[number] | Misskey.entities.AdminAvatarDecorationsListRemoteResponse[number], ev: MouseEvent) {
+	if (tab.value === 'local') {
+		edit(avatarDecoration);
+	} else {
+		remoteMenu(avatarDecoration as Misskey.entities.AdminAvatarDecorationsListRemoteResponse[number], ev);
+	}
+}
+
+const detailRemoteDecoration = (remoteDecoration: Misskey.entities.AdminAvatarDecorationsListRemoteResponse[number]) => {
 	const { dispose } = os.popup(MkRemoteAvatarDecorationEditDialog, {
 		decoration: remoteDecoration,
 	}, {
@@ -144,7 +157,7 @@ const detailRemoteDecoration = (remoteDecoration) => {
 	});
 };
 
-const importDecoration = (decoration) => {
+const importDecoration = (decoration: Misskey.entities.AdminAvatarDecorationsListRemoteResponse[number]) => {
 	os.apiWithDialog('admin/avatar-decorations/copy', {
 		decorationId: decoration.id,
 	});

@@ -5,7 +5,7 @@
 
 import * as assert from 'node:assert';
 import { setTimeout } from 'node:timers/promises';
-import { describe, beforeAll, test } from '@jest/globals';
+import { describe, beforeAll, test } from 'vitest';
 import { api, signup } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
@@ -52,7 +52,7 @@ describe('users/notify/list', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(res.body.length, 2);
 
-		const ids = res.body.map((u: { id: string, user: misskey.entities.UserDetailed }) => u.user.id).sort();
+		const ids = res.body.map(r => r.user.id).sort();
 		assert.deepStrictEqual(ids, [bob.id, carol.id].sort());
 	});
 
@@ -73,7 +73,7 @@ describe('users/notify/list', () => {
 
 		// alice の一覧には bob の通知設定は反映されない
 		const aliceRes = await api('users/notify/list', {}, alice);
-		const aliceIds = aliceRes.body.map((u: { id: string }) => u.id);
+		const aliceIds = aliceRes.body.map(r => r.user.id);
 		assert.strictEqual(aliceIds.includes(bob.id), false);
 
 		// bob の一覧には carol だけが含まれる

@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				>
 				</MkTab>
 			</template>
-			<MkNotesTimeline :noGap="!prefer.s.showGapBetweenNotesInTimeline" :paginator="eventsPaginator" :class="$style.tl" :getDate="include === 'upcoming' ? note => note.event.start : undefined "/>
+			<MkNotesTimeline :noGap="!prefer.s.showGapBetweenNotesInTimeline" :paginator="eventsPaginator" :class="$style.tl" :getDate="include === 'upcoming' ? (note: Misskey.entities.Note) => note.event?.start : undefined "/>
 		</MkStickyContainer>
 	</div>
 </div>
@@ -32,9 +32,6 @@ import MkTab from '@/components/MkTab.vue';
 import { i18n } from '@/i18n.js';
 import { Paginator } from '@/utility/paginator.js';
 import { prefer } from '@/preferences.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;

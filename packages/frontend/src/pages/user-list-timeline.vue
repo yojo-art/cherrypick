@@ -8,9 +8,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 800px;">
 		<div :class="$style.tl">
 			<MkStreamingNotesTimeline
-				ref="tlEl" :key="listId"
+				ref="tlEl" :key="listId + withRenotes + withSensitive + onlyFiles"
 				src="list"
 				:list="listId"
+				:withRenotes="withRenotes"
+				:withSensitive="withSensitive"
+				:onlyFiles="onlyFiles"
 				:sound="true"
 			/>
 		</div>
@@ -26,6 +29,7 @@ import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
 import { i18n } from '@/i18n.js';
 import { useRouter } from '@/router.js';
+import * as os from '@/os.js';
 
 const router = useRouter();
 
@@ -35,11 +39,20 @@ const props = defineProps<{
 
 const list = ref<Misskey.entities.UserList | null>(null);
 
-watch(() => props.listId, async () => {
+const tlEl = useTemplateRef('tlEl');
+
+const withSensitive = ref(true);
+
+const withRenotes = ref(true);
+const onlyFiles = ref(false);
+
+watch(() => props.listId, fetch, { immediate: true });
+
+async function fetch() {
 	list.value = await misskeyApi('users/lists/show', {
 		listId: props.listId,
 	});
-}, { immediate: true });
+}
 
 function settings() {
 	router.push('/my/lists/:listId', {
@@ -49,11 +62,37 @@ function settings() {
 	});
 }
 
-const headerActions = computed(() => list.value ? [{
-	icon: 'ti ti-settings',
-	text: i18n.ts.settings,
-	handler: settings,
-}] : []);
+const headerActions = computed(() => list.value ? [
+	{
+		icon: 'ti ti-refresh',
+		text: i18n.ts.reload,
+		handler: () => {
+			tlEl.value?.reloadTimeline();
+		},
+	}, {
+		icon: 'ti ti-dots',
+		text: i18n.ts.options,
+		handler: (ev: PointerEvent) => {
+			os.popupMenu([
+				{
+					icon: 'ti ti-settings',
+					text: i18n.ts.editList,
+					action: settings,
+				}, {
+					type: 'switch',
+					text: i18n.ts.showRenotes,
+					ref: withRenotes,
+				}, {
+					type: 'switch',
+					text: i18n.ts.fileAttachedOnly,
+					ref: onlyFiles,
+				}, {
+					type: 'switch',
+					text: i18n.ts.withSensitive,
+					ref: withSensitive,
+				}], ev.currentTarget ?? ev.target);
+		},
+	}] : []);
 
 const headerTabs = computed(() => []);
 

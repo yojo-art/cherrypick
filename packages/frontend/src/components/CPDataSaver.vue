@@ -54,13 +54,13 @@ const dataSaver = ref(prefer.s.dataSaver);
 
 function enableAllDataSaver() {
 	const g = { ...prefer.s.dataSaver };
-	Object.keys(g).forEach((key) => { g[key] = true; });
+	Object.keys(g).forEach((key) => { g[key as keyof typeof g] = true; });
 	dataSaver.value = g;
 }
 
 function disableAllDataSaver() {
 	const g = { ...prefer.s.dataSaver };
-	Object.keys(g).forEach((key) => { g[key] = false; });
+	Object.keys(g).forEach((key) => { g[key as keyof typeof g] = false; });
 	dataSaver.value = g;
 }
 

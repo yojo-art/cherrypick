@@ -5,16 +5,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div v-if="show" ref="el" :class="[$style.root, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.reduceAnimation]: !prefer.s.animation }]">
-	<div :class="[$style.upper, { [$style.slim]: narrow || isFriendly().value, [$style.thin]: thin_, [$style.hideTitle]: hideTitle && isFriendly().value }]">
+	<div :class="[$style.upper, { [$style.slim]: narrow, [$style.thin]: thin_ }]">
 		<div v-if="!thin_ && !canBack && !notification" :class="$style.buttonsLeft">
 			<button class="_button" :class="[$style.button, $style.goBack]" @click.stop="goBack" @touchstart="preventDrag"><i class="ti ti-arrow-left"></i></button>
 		</div>
-		<div v-if="!thin_ && narrow && props.displayMyAvatar && $i && !isFriendly().value && !notification" class="_button" :class="$style.buttonsLeft" @click="openAccountMenu">
+		<div v-if="!thin_ && narrow && props.displayMyAvatar && $i && !notification" class="_button" @click="openAccountMenu">
 			<MkAvatar :class="$style.avatar" :user="$i"/>
 		</div>
-		<div v-else-if="!thin_ && narrow && !hideTitle && canBack" :class="[$style.buttons, $style.buttonsLeft]"></div>
+		<div v-else-if="!thin_ && narrow && !hideTitle && canBack" :class="$style.buttons"></div>
 		<div v-if="leftSpacing" :class="leftSpacing.class ? $style.buttonsLeft : undefined" :style="leftSpacing.style">
-			<div v-for="(width, index) in leftSpacing.children" :key="index" :style="width"/>
+			<div v-for="(width, index) in leftSpacing.children" :key="index" :style="width"></div>
 		</div>
 
 		<template v-if="props.title || props.icon">
@@ -25,7 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<div v-if="props.title">{{ props.title }}</div>
 				</div>
 			</div>
-			<XTabs v-if="(!narrow || hideTitle) && !isFriendly().value" :class="[$style.tabs, { [$style.tabs_canBack]: !canBack }]" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
+			<XTabs v-if="!narrow || hideTitle" :class="[$style.tabs, { [$style.tabs_canBack]: !canBack }]" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 		</template>
 		<template v-else-if="pageMetadata">
 			<div v-if="!hideTitle" :class="[$style.titleContainer, { [$style.titleContainer_canBack]: !canBack }]" @click="(ev) => topWithMenu(ev)">
@@ -42,22 +42,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 			</div>
-			<XTabs v-if="(!narrow || hideTitle) && !isFriendly().value" :class="[$style.tabs, { [$style.tabs_canBack]: !canBack }]" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
+			<XTabs v-if="!narrow || hideTitle" :class="[$style.tabs, { [$style.tabs_canBack]: !canBack }]" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 		</template>
-		<div v-if="!thin_ && !narrow && (actions && actions.length > 0) && hideTitle && ['index'].includes(<string>mainRouter.currentRoute.value.name)" :class="$style.buttonsRight"/>
-		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="[$style.buttons, $style.buttonsRight]">
+		<div v-if="!thin_ && !narrow && (actions && actions.length > 0) && hideTitle && ['index'].includes(<string>mainRouter.currentRoute.value.name)" :class="$style.buttonsRight"></div>
+		<div v-if="(!thin_ && narrow && !hideTitle) || (actions && actions.length > 0)" :class="$style.buttons">
 			<template v-for="action in actions">
 				<button v-tooltip.noDelay="action.text" class="_button" :class="[$style.button, { [$style.highlighted]: action.highlighted }]" @click.stop="action.handler" @touchstart="preventDrag"><i :class="action.icon"></i></button>
 			</template>
 		</div>
-		<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"/>
+		<div v-else-if="!thin_ && !canBack && !(actions && actions.length > 0)" :class="$style.buttonsRight"></div>
 		<div v-if="pageMetadata && avatarUser && ($i && $i.id !== pageMetadata.userName?.id) && mainRouter.currentRoute.value.name === 'user' && !disableFollowButton && !notification" :class="$style.followButton">
 			<MkFollowButton :user="avatarUser" :transparent="false" :full="!narrow"/>
 		</div>
 	</div>
-	<div v-if="((narrow && !hideTitle) || isFriendly().value) && hasTabs" :class="[$style.lower, { [$style.slim]: narrow && !isFriendly().value, [$style.thin]: thin_, [$style.lowerFriendly]: isFriendly().value}]">
-		<div v-if="!thin_ && isFriendly().value" :class="$style.buttonsLeft" style="min-width: 0; width: 0; margin-right: auto;">
-		</div>
+	<div v-if="(narrow && !hideTitle) && hasTabs" :class="[$style.lower, { [$style.slim]: narrow, [$style.thin]: thin_ }]">
 		<XTabs :class="$style.tabs" :tab="tab" :tabs="tabs" :rootEl="el" @update:tab="key => emit('update:tab', key)" @tabClick="onTabClick"/>
 	</div>
 </div>
@@ -89,7 +87,6 @@ import { onMounted, onUnmounted, ref, inject, useTemplateRef, computed } from 'v
 import * as Misskey from 'misskey-js';
 import { getScrollPosition, scrollToTop } from '@@/js/scroll.js';
 import XTabs from './MkPageHeader.tabs.vue';
-import { globalEvents } from '@/events.js';
 import { getAccountMenu } from '@/accounts.js';
 import { $i } from '@/i.js';
 import { DI } from '@/di.js';
@@ -97,12 +94,8 @@ import * as os from '@/os.js';
 import { mainRouter } from '@/router.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
-import { isFriendly } from '@/utility/is-friendly.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import MkFollowButton from '@/components/MkFollowButton.vue';
 import { haptic } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
 
 const canBack = ref(['index', 'explore', 'my-notifications', 'chat'].includes(<string>mainRouter.currentRoute.value.name));
 
@@ -111,7 +104,7 @@ const props = withDefaults(defineProps<PageHeaderProps>(), {
 });
 
 const emit = defineEmits<{
-	(ev: 'update:tab', key: string);
+	(ev: 'update:tab', key: string): void;
 }>();
 
 //const viewId = inject(DI.viewId);
@@ -142,23 +135,11 @@ const leftSpacing = computed(() => {
 	const actions = props.actions;
 	const actionsLength = actions?.length ?? 0;
 
-	if (actionsLength > 1 && isFriendly().value) {
-		const widths: string[] = [];
-		if (!narrow.value && canBack.value) widths.push('width: 50px; margin-right: 8px;');
-		if (actionsLength >= 3) widths.push('width: 42px;');
-		widths.push('width: 34px;');
-		return { class: true, style: 'min-width: initial; margin-right: initial;', children: widths };
-	}
-
-	if (!narrow.value && actionsLength === 1 && isFriendly().value && ['my-notifications', 'chat'].includes(<string>mainRouter.currentRoute.value.name)) {
-		return { class: false, style: '', children: ['width: 50px; margin-right: 8px;'] };
-	}
-
-	if (!narrow.value && actionsLength > 1 && !isFriendly().value && mainRouter.currentRoute.value.name === 'index') {
+	if (!narrow.value && actionsLength > 1 && mainRouter.currentRoute.value.name === 'index') {
 		return { class: true, style: 'margin-right: auto;', children: ['width: 84px;'] };
 	}
 
-	if (narrow.value && actionsLength > 1 && !isFriendly().value && mainRouter.currentRoute.value.name !== 'index') {
+	if (narrow.value && actionsLength > 1 && mainRouter.currentRoute.value.name !== 'index') {
 		return { class: false, style: '', children: ['width: 34px;'] };
 	}
 
@@ -194,7 +175,7 @@ const topWithMenu = (ev: MouseEvent) => {
 	}
 };
 
-async function openAccountMenu(ev: MouseEvent) {
+async function openAccountMenu(ev: PointerEvent) {
 	haptic();
 
 	const menuItems = await getAccountMenu({
@@ -451,10 +432,6 @@ onUnmounted(() => {
 			margin-left: 6px;
 		}
 	}
-}
-
-.lowerFriendly {
-	display: flex;
 }
 
 @container (max-width: 500px) {

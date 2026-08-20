@@ -32,7 +32,7 @@ const cookies = computed(() => saveData.value?.cookies);
 const cps = ref(0);
 const prevCookies = ref(0);
 
-function onClick(ev: MouseEvent) {
+function onClick(ev: PointerEvent) {
 	const x = ev.clientX;
 	const y = ev.clientY;
 	const { dispose } = os.popup(MkPlusOneEffect, { x, y }, {

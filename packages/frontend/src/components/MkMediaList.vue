@@ -4,13 +4,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div>
+<div :class="$style.root">
 	<XBanner v-for="media in mediaList.filter(media => !previewable(media))" :key="media.id" :media="media"/>
 	<div v-if="mediaList.filter(media => previewable(media)).length > 0" :class="$style.container">
 		<div
 			ref="gallery"
 			:class="[
 				$style.medias,
+				...(prefer.s.showMediaListByGridInWideArea ? [$style.gridInWideArea] : []),
 				count === 1 ? [$style.n1, {
 					[$style.n116_9]: prefer.s.mediaListWithOneImageAppearance === '16_9',
 					[$style.n11_1]: prefer.s.mediaListWithOneImageAppearance === '1_1',
@@ -107,8 +108,8 @@ onMounted(() => {
 					src: media.url,
 					w: media.properties.width,
 					h: media.properties.height,
-					alt: media.comment ?? media.name,
-					comment: media.comment ?? media.name,
+					alt: media.comment ?? undefined,
+					comment: media.comment ?? undefined,
 				};
 				if (media.properties.orientation != null && media.properties.orientation >= 5) {
 					[item.w, item.h] = [item.h, item.w];
@@ -156,7 +157,7 @@ onMounted(() => {
 		}
 		itemData.msrc = file.thumbnailUrl ?? undefined;
 		itemData.alt = file.comment ?? undefined;
-		itemData.comment = file.comment ?? file.name;
+		itemData.comment = file.comment ?? undefined;
 		itemData.title = file.name;
 		itemData.thumbCropped = true;
 
@@ -182,13 +183,9 @@ onMounted(() => {
 				el.appendChild(textBox);
 
 				pswp.on('change', () => {
-					textBox.textContent = pswp.currSlide?.data.comment;
-
 					const altText = pswp.currSlide?.data.alt || null;
 					textBox.textContent = altText;
-					if (!altText) {
-						el.style.display = 'none';
-					}
+					el.style.display = altText ? '' : 'none';
 				});
 			},
 		});
@@ -254,6 +251,10 @@ defineExpose({
 </script>
 
 <style lang="scss" module>
+.root {
+	container-type: inline-size;
+}
+
 .container {
 	position: relative;
 	width: 100%;
@@ -335,6 +336,20 @@ defineExpose({
 .media {
 	overflow: hidden; // clipにするとバグる
 	border-radius: 8px;
+}
+
+@container (min-width: 500px) {
+	.medias.gridInWideArea {
+		display: grid;
+		aspect-ratio: auto;
+		grid-template-columns: repeat(4, 1fr);
+		grid-template-rows: auto;
+		grid-gap: 8px;
+
+		> .media {
+			aspect-ratio: 1 / 1;
+		}
+	}
 }
 
 :global(.pswp) {

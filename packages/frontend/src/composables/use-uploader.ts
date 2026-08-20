@@ -64,7 +64,7 @@ const mimeTypeMap = {
 export type UploaderItem = {
 	id: string;
 	name: string;
-	uploadName?: string;
+	suffix: string;
 	progress: { max: number; value: number } | null;
 	thumbnail: string | null;
 	preprocessing: boolean;
@@ -89,6 +89,10 @@ export type UploaderItem = {
 	abort?: (() => void) | null;
 	abortPreprocess?: (() => void) | null;
 };
+
+export function getUploadName(item: UploaderItem): string {
+	return item.name + (item.name.endsWith(item.suffix) ? '' : item.suffix);
+}
 
 function getCompressionSettings(level: 0 | 1 | 2 | 3 | 10, imageWidth: number, imageHeight: number) {
 	if (level === 1) {
@@ -167,6 +171,7 @@ export function useUploader(options: {
 		items.value.push({
 			id,
 			name: prefer.s.keepOriginalFilename ? filename : id + extension,
+			suffix: '',
 			progress: null,
 			thumbnail: THUMBNAIL_SUPPORTED_TYPES.includes(file.type) ? window.URL.createObjectURL(file) : null,
 			preprocessing: false,
@@ -605,7 +610,7 @@ export function useUploader(options: {
 		item.uploading = true;
 
 		const { filePromise, abort } = uploadFile(item.preprocessedFile ?? item.file, {
-			name: item.uploadName ?? item.name,
+			name: getUploadName(item),
 			folderId: options.folderId === undefined ? prefer.s.uploadFolder : options.folderId,
 			isSensitive: item.isSensitive ?? false,
 			caption: item.caption ?? null,
@@ -770,7 +775,7 @@ export function useUploader(options: {
 
 		if (needsCompress) {
 			const config = {
-				mimeType: isWebpSupported() ? 'image/webp' : 'image/jpeg',
+				mimeType: (isWebpSupported() ? 'image/webp' : 'image/jpeg') as 'image/webp' | 'image/jpeg',
 				maxWidth: compressionSettings.maxWidth,
 				maxHeight: compressionSettings.maxHeight,
 				quality: isWebpSupported() ? 0.85 : 0.8,
@@ -783,14 +788,14 @@ export function useUploader(options: {
 					// (and WebP is not browser safe yet)
 					preprocessedFile = result;
 					item.compressedSize = result.size;
-					item.uploadName = preprocessedFile.type !== config.mimeType ? `${item.name}.${mimeTypeMap[config.mimeType]}` : item.name;
+					item.suffix = '.' + mimeTypeMap[config.mimeType];
 				}
 			} catch (err) {
 				console.error('Failed to resize image', err);
 			}
 		} else {
 			item.compressedSize = null;
-			item.uploadName = item.name;
+			item.suffix = '';
 		}
 
 		imageBitmap.close();
@@ -897,10 +902,10 @@ export function useUploader(options: {
 
 			preprocessedFile = new Blob([output.target.buffer!], { type: output.format.mimeType });
 			item.compressedSize = output.target.buffer!.byteLength;
-			item.uploadName = `${item.name}${outputFormat.fileExtension}`;
+			item.suffix = outputFormat.fileExtension;
 		} else {
 			item.compressedSize = null;
-			item.uploadName = item.name;
+			item.suffix = '';
 		}
 
 		if (item.thumbnail != null) URL.revokeObjectURL(item.thumbnail);

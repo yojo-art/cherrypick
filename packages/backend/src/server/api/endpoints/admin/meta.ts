@@ -512,8 +512,7 @@ export const meta = {
 				optional: false, nullable: true,
 			},
 			clientOptions: {
-				type: 'object',
-				optional: false, nullable: false,
+				ref: 'MetaClientOptions',
 			},
 			description: {
 				type: 'string',
@@ -751,6 +750,10 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			opensearchEnabled: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 		},
 	},
 } as const;
@@ -948,6 +951,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				moderatorInactivityLimitDays: instance.moderatorInactivityLimitDays,
 				bubbleInstances: instance.bubbleInstances,
 				customRobotsTxt: instance.customRobotsTxt,
+				opensearchEnabled: this.config.opensearch != null,
 			};
 		});
 	}

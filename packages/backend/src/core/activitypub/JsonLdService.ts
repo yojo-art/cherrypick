@@ -4,7 +4,9 @@
  */
 
 import * as crypto from 'node:crypto';
+import { promisify } from 'node:util';
 import { Injectable } from '@nestjs/common';
+import { RsaKeyPair } from 'slacc';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { bindThis } from '@/decorators.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
@@ -33,7 +35,7 @@ export class JsonLdCacheFrozenError extends JsonLdError {
 	}
 }
 
-export class JsonLdForbiddenDriectiveError extends JsonLdError {
+export class JsonLdForbiddenDirectiveError extends JsonLdError {
 	constructor(public directive: string) {
 		super('0297f79b-0ed9-4b6c-875f-b0a82ff96781', `${directive} is forbidden by Misskey in ActivityPub documents`);
 	}
@@ -79,11 +81,9 @@ export class JsonLd {
 
 		const toBeSigned = await this.createVerifyData(data, options);
 
-		const signer = crypto.createSign('sha256');
-		signer.update(toBeSigned);
-		signer.end();
+		const sign = promisify(RsaKeyPair.prototype.sign).bind(RsaKeyPair.fromPem(privateKey));
 
-		const signature = signer.sign(privateKey);
+		const signature = await sign(Buffer.from(toBeSigned));
 
 		return {
 			...data,
@@ -157,7 +157,7 @@ export class JsonLd {
 				const object = value;
 				for (const [key, value] of Object.entries(object)) {
 					if (JsonLd.forbiddenDirectives.has(key)) {
-						throw new JsonLdForbiddenDriectiveError(key);
+						throw new JsonLdForbiddenDirectiveError(key);
 					}
 
 					if (typeof value === 'object' && value !== null) {

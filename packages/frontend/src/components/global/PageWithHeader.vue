@@ -4,11 +4,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div ref="rootEl" :class="[$style.root, reversed ? '_pageScrollableReversed' : '_pageScrollable']">
+<div ref="rootEl" :class="reversed ? '_pageScrollableReversed' : '_pageScrollable'">
 	<MkStickyContainer>
 		<template #header>
 			<MkPageHeader v-if="notification" v-model:tab="tab" v-bind="pageHeaderProps" :actions="actions" :tabs="props.tabs ?? []" :displayMyAvatar="displayMyAvatar" :title="i18n.ts.notifications" :icon="'ti ti-bell'" notification/>
-			<CPPageHeader v-else-if="isMobile && prefer.s.mobileHeaderChange && !popup" v-model:tab="tab" v-bind="pageHeaderProps" :actions="actions" :tabs="props.tabs ?? []" :displayMyAvatar="displayMyAvatar" :disableFollowButton="(user && (user.isBlocked || user.isBlocking)) == true"/>
 			<MkPageHeader v-else-if="prefer.s.showPageTabBarBottom && (props.tabs?.length ?? 0) > 0" v-bind="pageHeaderPropsWithoutTabs" :actions="actions" :displayMyAvatar="displayMyAvatar" :disableFollowButton="(user && (user.isBlocked || user.isBlocking)) == true"/>
 			<MkPageHeader v-else-if="!popup" v-model:tab="tab" v-bind="pageHeaderProps" :actions="actions" :tabs="props.tabs ?? []" :displayMyAvatar="displayMyAvatar" :disableFollowButton="(user && (user.isBlocked || user.isBlocking)) == true"/>
 		</template>
@@ -29,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, onUnmounted, ref, useTemplateRef } from 'vue';
+import { computed, ref, useTemplateRef } from 'vue';
 import * as Misskey from 'misskey-js';
 import { scrollInContainer } from '@@/js/scroll.js';
 import type { PageHeaderProps } from './MkPageHeader.vue';
@@ -38,18 +37,7 @@ import MkSwiper from '@/components/MkSwiper.vue';
 import { useRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
 import MkTabs from '@/components/MkTabs.vue';
-import { deviceKind } from '@/utility/device-kind.js';
 import { i18n } from '@/i18n.js';
-import { detectScrolling } from '@/utility/detect-scrolling.js';
-
-const MOBILE_THRESHOLD = 500;
-
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
 
 const props = withDefaults(defineProps<PageHeaderProps & {
 	reversed?: boolean;
@@ -77,8 +65,6 @@ const rootEl = useTemplateRef('rootEl');
 
 useScrollPositionKeeper(rootEl);
 
-detectScrolling(rootEl);
-
 const router = useRouter();
 
 router.useListener('same', () => {
@@ -88,10 +74,6 @@ router.useListener('same', () => {
 function scrollToTop() {
 	if (rootEl.value) scrollInContainer(rootEl.value, { top: 0, behavior: 'smooth' });
 }
-
-onUnmounted(() => {
-	window.removeEventListener('resize', handleResize);
-});
 
 defineExpose({
 	scrollToTop,

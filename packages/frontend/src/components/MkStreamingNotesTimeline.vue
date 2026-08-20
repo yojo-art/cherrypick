@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		>
 			<div
 				v-if="paginator.queuedAheadItemsCount.value > 0 && ['default', 'count'].includes(prefer.s.newNoteReceivedNotificationBehavior)"
-				:class="[$style.new2, { [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && !isFriendly().value, [$style.showElTab]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isFriendly().value, [$style.reduceAnimation]: !prefer.s.animation }]"
+				:class="[$style.new2, { [$style.reduceAnimation]: !prefer.s.animation }]"
 			>
 				<button class="_buttonPrimary" :class="$style.newButton2" @click="releaseQueue()">
 					<i class="ti ti-arrow-up"></i>
@@ -99,28 +99,12 @@ import { store } from '@/store.js';
 import MkNote from '@/components/MkNote.vue';
 import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
+import { DI } from '@/di.js';
 import { globalEvents, useGlobalEvent } from '@/events.js';
 import { isSeparatorNeeded, getSeparatorInfo } from '@/utility/timeline-date-separate.js';
 import { MAX_QUEUE_ITEMS, Paginator } from '@/utility/paginator.js';
-import { deviceKind } from '@/utility/device-kind.js';
-import { isFriendly } from '@/utility/is-friendly.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
 import MkNoteMediaGrid from '@/components/MkNoteMediaGrid.vue';
 import { haptic, hapticConfirm } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
-
-const DESKTOP_THRESHOLD = 1100;
-const MOBILE_THRESHOLD = 500;
-
-// デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
-const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
 
 const noGap = !prefer.s.showGapBetweenNotesInTimeline;
 
@@ -151,7 +135,7 @@ const props = withDefaults(defineProps<{
 
 provide('inTimeline', true);
 provide('tl_withSensitive', computed(() => props.withSensitive));
-provide('inChannel', computed(() => props.src === 'channel'));
+provide(DI.inChannel, computed(() => props.src === 'channel' ? props.channel ?? null : null));
 
 let paginator: IPaginator<Misskey.entities.Note>;
 
@@ -304,7 +288,6 @@ onUnmounted(() => {
 	if (scrollContainer) {
 		scrollContainer.removeEventListener('scroll', onScrollContainerScroll);
 	}
-	window.removeEventListener('resize', handleResize);
 });
 
 const visibility = useDocumentVisibility();
@@ -461,13 +444,12 @@ function connectChannel() {
 		connections.main = stream.useChannel('main');
 		connections.main.on('mention', prepend);
 	} else if (props.src === 'directs') {
-		const onNote = note => {
+		connections.main = stream.useChannel('main');
+		connections.main.on('mention', note => {
 			if (note.visibility === 'specified') {
 				prepend(note);
 			}
-		};
-		connections.main = stream.useChannel('main');
-		connections.main.on('mention', onNote);
+		});
 	} else if (props.src === 'list') {
 		if (props.list == null) return;
 		connections.userList = stream.useChannel('userList', {
@@ -629,14 +611,6 @@ defineExpose({
 
 	&:first-child {
 		margin-top: calc(-0.675em - 8px - var(--MI-margin));
-	}
-
-	&.showEl {
-		transform: translateY(calc(var(--MI-stickyTop, 0px) - 101px))
-	}
-
-	&.showElTab {
-		transform: translateY(calc(var(--MI-stickyTop, 0px) - 181px))
 	}
 
 	&.reduceAnimation {

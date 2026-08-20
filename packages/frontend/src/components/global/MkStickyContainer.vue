@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div ref="rootEl">
-	<div ref="headerEl" :class="[$style.header, {[$style.reduceAnimation]: !prefer.s.animation, [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isAllowHideHeader && (mainRouter.currentRoute.value.name !== 'index' || !isFriendly().value), [$style.showElTl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isAllowHideHeader && mainRouter.currentRoute.value.name === 'index' && isFriendly().value }]">
+	<div ref="headerEl" :class="[$style.header, {[$style.reduceAnimation]: !prefer.s.animation }]">
 		<slot name="header"></slot>
 	</div>
 	<div
@@ -24,24 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, provide, inject, ref, watch, useTemplateRef } from 'vue';
 import { DI } from '@/di.js';
-import { deviceKind } from '@/utility/device-kind.js';
-import { mainRouter } from '@/router.js';
 import { prefer } from '@/preferences.js';
-import { isFriendly } from '@/utility/is-friendly.js';
-import { detectScrolling } from '@/utility/detect-scrolling.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const isAllowHideHeader = ref(['index', 'explore', 'my-notifications', 'my-favorites'].includes(<string>mainRouter.currentRoute.value.name));
-const MOBILE_THRESHOLD = 500;
-
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
-
-const { showEl } = scrollToVisibility();
 
 const rootEl = useTemplateRef('rootEl');
 const headerEl = useTemplateRef('headerEl');
@@ -77,8 +60,6 @@ const observer = new ResizeObserver(() => {
 	}, 100);
 });
 
-detectScrolling(rootEl);
-
 onMounted(() => {
 	calc();
 
@@ -95,7 +76,6 @@ onMounted(() => {
 
 onUnmounted(() => {
 	observer.disconnect();
-	window.removeEventListener('resize', handleResize);
 });
 
 defineExpose({
@@ -119,14 +99,6 @@ defineExpose({
 
 	&.reduceAnimation {
 		transition: opacity 0s, transform 0s;
-	}
-
-	&.showEl {
-		transform: translateY(-50.55px);
-	}
-
-	&.showElTl {
-		transform: translateY(-90.55px);
 	}
 }
 

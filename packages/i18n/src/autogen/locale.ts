@@ -2849,6 +2849,10 @@ export interface Locale extends ILocale {
      */
     "limitTo": ParameterizedString<"x">;
     /**
+     * 画面幅が広いときはメディアリストを横並びで表示する
+     */
+    "showMediaListByGridInWideArea": string;
+    /**
      * フォロー申請はありません
      */
     "noFollowRequests": string;
@@ -6491,6 +6495,22 @@ export interface Locale extends ILocale {
      * ゼロ埋め
      */
     "zeroPadding": string;
+    /**
+     * 設定項目はありません
+     */
+    "nothingToConfigure": string;
+    /**
+     * リノート先のチャンネルを見る
+     */
+    "viewRenotedChannel": string;
+    /**
+     * テーマのプレビュー中
+     */
+    "previewingTheme": string;
+    /**
+     * 元に戻す
+     */
+    "previewingThemeRestore": string;
     "_imageEditing": {
         "_vars": {
             /**
@@ -7608,36 +7628,6 @@ export interface Locale extends ILocale {
             "doubleClick": string;
         };
         /**
-         * スクロール時の要素表示（ヘッダー、フローティングボタン、ナビゲーションバー）
-         */
-        "displayHeaderNavBarWhenScroll": string;
-        "_displayHeaderNavBarWhenScroll": {
-            /**
-             * 全て表示
-             */
-            "all": string;
-            /**
-             * ヘッダーだけを隠す
-             */
-            "hideHeaderOnly": string;
-            /**
-             * ヘッダーとフローティングボタンを隠す
-             */
-            "hideHeaderFloatBtn": string;
-            /**
-             * フローティングボタンだけを隠す
-             */
-            "hideFloatBtnOnly": string;
-            /**
-             * フローティングボタンとナビゲーションバーを隠す
-             */
-            "hideFloatBtnNavBar": string;
-            /**
-             * 全て隠す
-             */
-            "hide": string;
-        };
-        /**
          * パッチ
          */
         "patch": string;
@@ -7654,10 +7644,6 @@ export interface Locale extends ILocale {
          */
         "showFollowingMessageInsteadOfButton": string;
         /**
-         * モバイル環境でヘッダーのデザインを変更
-         */
-        "mobileHeaderChange": string;
-        /**
          * ノート作成画面の「ノート」ボタンを「にゃ！」に変更する
          */
         "renameTheButtonInPostFormToNya": string;
@@ -7673,26 +7659,6 @@ export interface Locale extends ILocale {
          * ウィジェット領域を無効化
          */
         "disableWidgetsArea": string;
-        /**
-         * 通知領域を有効化
-         */
-        "friendlyUiEnableNotificationsArea": string;
-        /**
-         * 通知領域を無効化
-         */
-        "friendlyUiDisableNotificationsArea": string;
-        /**
-         * 長押しでアカウントメニューを開く
-         */
-        "enableLongPressOpenAccountMenu": string;
-        /**
-         * 画面下部のタイムラインタブを長押しして開くことができます。
-         */
-        "enableLongPressOpenAccountMenuDescription": string;
-        /**
-         * フローティングボタンにアイコンのデコレーションを表示
-         */
-        "friendlyUiShowAvatarDecorationsInNavBtn": string;
     };
     "_bannerDisplay": {
         /**
@@ -9667,6 +9633,10 @@ export interface Locale extends ILocale {
              */
             "canUseTranslator": string;
             /**
+             * チャンネルの作成
+             */
+            "canCreateChannel": string;
+            /**
              * 自動翻訳機能の利用
              */
             "canUseAutoTranslate": string;
@@ -9678,10 +9648,6 @@ export interface Locale extends ILocale {
              * <b>それでも続けましょうか？</b>
              */
             "canUseAutoTranslateDescription": string;
-            /**
-             * チャンネルの作成
-             */
-            "canCreateChannel": string;
             /**
              * アイコンデコレーションの最大取付個数
              */
@@ -11818,7 +11784,7 @@ export interface Locale extends ILocale {
          */
         "clicker": string;
         /**
-         * 今日誕生日のユーザー
+         * もうすぐ誕生日のユーザー
          */
         "birthdayFollowings": string;
         /**
@@ -11845,6 +11811,144 @@ export interface Locale extends ILocale {
          * データセーバー
          */
         "dataSaver": string;
+    };
+    "_widgetOptions": {
+        /**
+         * ヘッダーを表示
+         */
+        "showHeader": string;
+        /**
+         * 背景を透明にする
+         */
+        "transparent": string;
+        /**
+         * 高さ
+         */
+        "height": string;
+        "_button": {
+            /**
+             * 色付き
+             */
+            "colored": string;
+        };
+        "_clock": {
+            /**
+             * サイズ
+             */
+            "size": string;
+            /**
+             * 針の太さ
+             */
+            "thickness": string;
+            /**
+             * 細い
+             */
+            "thicknessThin": string;
+            /**
+             * 普通
+             */
+            "thicknessMedium": string;
+            /**
+             * 太い
+             */
+            "thicknessThick": string;
+            /**
+             * 文字盤の目盛り
+             */
+            "graduations": string;
+            /**
+             * ドット
+             */
+            "graduationDots": string;
+            /**
+             * アラビア数字
+             */
+            "graduationArabic": string;
+            /**
+             * 目盛りをフェード
+             */
+            "fadeGraduations": string;
+            /**
+             * 秒針のアニメーション
+             */
+            "sAnimation": string;
+            /**
+             * リアル
+             */
+            "sAnimationElastic": string;
+            /**
+             * 滑らか
+             */
+            "sAnimationEaseOut": string;
+            /**
+             * 24時間表示
+             */
+            "twentyFour": string;
+            /**
+             * 時刻
+             */
+            "labelTime": string;
+            /**
+             * タイムゾーン
+             */
+            "labelTz": string;
+            /**
+             * 時刻とタイムゾーン
+             */
+            "labelTimeAndTz": string;
+            /**
+             * タイムゾーン
+             */
+            "timezone": string;
+            /**
+             * ミリ秒を表示
+             */
+            "showMs": string;
+            /**
+             * ラベルを表示
+             */
+            "showLabel": string;
+        };
+        "_jobQueue": {
+            /**
+             * 音を鳴らす
+             */
+            "sound": string;
+        };
+        "_rss": {
+            /**
+             * RSSフィードのURL
+             */
+            "url": string;
+            /**
+             * 更新間隔(秒)
+             */
+            "refreshIntervalSec": string;
+            /**
+             * 最大表示件数
+             */
+            "maxEntries": string;
+        };
+        "_rssTicker": {
+            /**
+             * 表示順をシャッフル
+             */
+            "shuffle": string;
+            /**
+             * ティッカーのスクロール速度(秒)
+             */
+            "duration": string;
+            /**
+             * 逆方向にスクロール
+             */
+            "reverse": string;
+        };
+        "_birthdayFollowings": {
+            /**
+             * 期間
+             */
+            "period": string;
+        };
     };
     "_cw": {
         /**
@@ -12043,7 +12147,7 @@ export interface Locale extends ILocale {
              */
             "account_title": string;
             /**
-             * 投稿するアカウントを切り替えたり、アカウントに保存した下書き・予約投稿を一覧できます。
+             * 投稿するアカウントを切り替えられます。
              */
             "account_description": string;
             /**
@@ -12059,7 +12163,7 @@ export interface Locale extends ILocale {
              */
             "menu_title": string;
             /**
-             * 下書きへの保存、投稿の予約、リアクションの設定など、その他のアクションが行えます。
+             * 下書きの保存・一覧、投稿の予約、リアクションの設定など、その他のアクションが行えます。
              */
             "menu_description": string;
             /**
@@ -15130,10 +15234,6 @@ export interface Locale extends ILocale {
          */
         "discardChangesConfirm": string;
         /**
-         * 設定項目はありません
-         */
-        "nothingToConfigure": string;
-        /**
          * 画像の読み込みに失敗しました
          */
         "failedToLoadImage": string;
@@ -15333,25 +15433,17 @@ export interface Locale extends ILocale {
              */
             "centerY": string;
             /**
-             * スムージング
+             * 密度
              */
-            "zoomLinesSmoothing": string;
+            "density": string;
             /**
-             * スムージングと集中線の幅の設定は併用できません。
+             * 線の影の太さ
              */
-            "zoomLinesSmoothingDescription": string;
-            /**
-             * 集中線の幅
-             */
-            "zoomLinesThreshold": string;
+            "zoomLinesOutlineThickness": string;
             /**
              * 中心径
              */
             "zoomLinesMaskSize": string;
-            /**
-             * 黒色にする
-             */
-            "zoomLinesBlack": string;
             /**
              * 円形
              */
@@ -15622,13 +15714,25 @@ export interface Locale extends ILocale {
     };
     "_reIndexOpenSearch": {
         /**
+         * 高度な検索（OpenSearch）
+         */
+        "sectionTitle": string;
+        /**
+         * 高度な検索（OpenSearch）で使用するインデックスを再構築します。検索結果が古い・不完全な場合に実行してください。対象データが多いと完了までに時間がかかり、サーバーに負荷がかかります。
+         */
+        "description": string;
+        /**
+         * ノート数が多いサーバーでは処理に時間がかかり、サーバーに負荷がかかることがあります。
+         */
+        "warning": string;
+        /**
+         * このサーバーでは高度な検索（OpenSearch）が有効になっていないため、この機能は利用できません。
+         */
+        "notEnabled": string;
+        /**
          * 再インデックスする
          */
         "title": string;
-        /**
-         * 続きを実行
-         */
-        "resume": string;
         /**
          * 停止
          */
@@ -15650,7 +15754,7 @@ export interface Locale extends ILocale {
          */
         "statusRunning": string;
         /**
-         * 一時停止中です。「続きを実行」で再開できます
+         * 再開待ちです（ジョブキューで待機中）
          */
         "statusPaused": string;
         /**
@@ -15671,6 +15775,10 @@ export interface Locale extends ILocale {
         "alreadyRunning": ParameterizedString<"target">;
     };
     "_reCreateOpenSearchIndex": {
+        /**
+         * 現在のインデックスを破棄して、空の状態から作り直します。実行後は再インデックスが必要です。
+         */
+        "description": string;
         /**
          * インデックスを初期化する
          */
