@@ -13,6 +13,7 @@ import { bindThis } from '@/decorators.js';
 export type CustomSoundPacked = {
 	id: MiCustomSound['id'];
 	name: string;
+	driveFile: string | null;
 	url: string | null;
 };
 
@@ -63,6 +64,7 @@ export class CustomSoundService {
 		return {
 			id: sound.id,
 			name: sound.name,
+			driveFile: sound.fileId,
 			url: file != null ? (file.webpublicUrl ?? file.url) : null,
 		};
 	}
@@ -78,6 +80,7 @@ export class CustomSoundService {
 			return {
 				id: sound.id,
 				name: sound.name,
+				driveFile: sound.fileId,
 				url: file != null ? (file.webpublicUrl ?? file.url) : null,
 			};
 		});

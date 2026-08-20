@@ -30,6 +30,11 @@ export const meta = {
 					type: 'string',
 					optional: false, nullable: false,
 				},
+				driveFile: {
+					type: 'string',
+					optional: false, nullable: true,
+					format: 'id',
+				},
 				url: {
 					type: 'string',
 					optional: false, nullable: true,

@@ -8731,6 +8731,8 @@ export interface operations {
                         /** Format: id */
                         id: string;
                         name: string;
+                        /** Format: id */
+                        driveFile: string | null;
                         url: string | null;
                     }[];
                 };
@@ -26057,6 +26059,8 @@ export interface operations {
                          */
                         id: string;
                         name: string;
+                        /** Format: id */
+                        driveFile: string | null;
                         url: string | null;
                     }[];
                 };
