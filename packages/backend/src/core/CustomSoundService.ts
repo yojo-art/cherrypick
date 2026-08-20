@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
 import type { CustomSoundsRepository, DriveFilesRepository, MiCustomSound } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { DI } from '@/di-symbols.js';
 import { bindThis } from '@/decorators.js';
 
@@ -25,6 +26,8 @@ export class CustomSoundService {
 
 		@Inject(DI.driveFilesRepository)
 		private driveFilesRepository: DriveFilesRepository,
+
+		private driveService: DriveService,
 
 		private idService: IdService,
 	) { }
@@ -54,7 +57,18 @@ export class CustomSoundService {
 
 	@bindThis
 	public async delete(id: MiCustomSound['id']): Promise<void> {
+		const sound = await this.customSoundsRepository.findOneBy({ id });
+		if (sound == null) return;
+
 		await this.customSoundsRepository.delete({ id });
+
+		// システムユーザーとして再アップロードした専用ドライブファイルを削除し、orphan を防ぐ
+		if (sound.fileId != null) {
+			const file = await this.driveFilesRepository.findOneBy({ id: sound.fileId });
+			if (file != null) {
+				await this.driveService.deleteFile(file);
+			}
+		}
 	}
 
 	@bindThis

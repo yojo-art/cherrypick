@@ -8605,6 +8605,8 @@ export interface operations {
                         /** Format: id */
                         id: string;
                         name: string;
+                        /** Format: id */
+                        driveFile: string | null;
                         url: string | null;
                     };
                 };
