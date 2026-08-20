@@ -1,3 +1,29 @@
+## 1.10.0
+Cherrypick 4.17.0  
+Misskey 2026.5.4
+
+### Release Date
+2026-08-20
+
+### General
+- Remove: Friendly UIの削除 [#1224](https://github.com/yojo-art/cherrypick/pull/1224)
+
+### Client
+- Change: セットアップウィザードでリモートコンテンツの自動クリーニングをデフォルトで無効化 [#1268](https://github.com/yojo-art/cherrypick/pull/1268)
+- Enhance: リストTLにフィルタオプション（ファイル付きのみ・リノート表示・センシティブ非表示）を追加 [#1276](https://github.com/yojo-art/cherrypick/pull/1276)
+- Enhance: OpenSearch再インデックス機能に説明を追加し、未設定時は利用不可表示に変更 [#1290](https://github.com/yojo-art/cherrypick/pull/1290)
+- Fix: 投稿フォームのUI説明を実際のレイアウトに合わせて修正 [#1254](https://github.com/yojo-art/cherrypick/pull/1254)
+- Fix: オフラインページをダーク/ライトテーマに連動させ、ベースバージョン表示を復元 [#1294](https://github.com/yojo-art/cherrypick/pull/1294)
+- Fix: スプラッシュ画面のスピナーが背景リングと同色になりただの円に見える問題を修正 [#1292](https://github.com/yojo-art/cherrypick/pull/1292)
+- Fix: エラーページの表示色とtheme-colorをダーク/ライトテーマに連動させる [#1293](https://github.com/yojo-art/cherrypick/pull/1293)
+
+### Server
+- Fix: users/showのリモート再取得失敗時に500を返す問題を修正 [#1275](https://github.com/yojo-art/cherrypick/pull/1275)
+- Fix: ローカルのチャンネルURLで照会するとエラーになる問題を修正 [#1263](https://github.com/yojo-art/cherrypick/pull/1263)
+
+### Others
+- Remove: 未使用の vuedraggable と prismjs 依存を削除 [#1287](https://github.com/yojo-art/cherrypick/pull/1287)
+
 ## 1.9.0
 Cherrypick 4.17.0  
 Misskey 2025.12.2
