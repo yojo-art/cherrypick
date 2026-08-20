@@ -338,7 +338,7 @@ describe('Note', () => {
 					assert(n.poll != null);
 					strictEqual(n.poll.choices[0].votes, 1);
 					strictEqual(n.poll.choices[1].votes, 0);
-				}, { timeout: 10_000, interval: 500 });
+				}, { timeout: 10_000, interval: 250 });
 
 				const noteAfterVote = await bob.client.request('notes/show', { noteId: note.id });
 				assert(noteAfterVote.poll != null);
@@ -374,7 +374,7 @@ describe('Note', () => {
 					assert(n.poll != null);
 					strictEqual(n.poll.choices[0].votes, 1);
 					strictEqual(n.poll.choices[1].votes, 0);
-				}, { timeout: 10_000, interval: 500 });
+				}, { timeout: 10_000, interval: 250 });
 
 				const noteAfterVote = await bobRemoteFollower.client.request('notes/show', { noteId: noteInA.id });
 				assert(noteAfterVote.poll != null);
