@@ -9,8 +9,8 @@ Misskey 2026.5.4
 - Remove: Friendly UIの削除 [#1224](https://github.com/yojo-art/cherrypick/pull/1224)
 
 ### Client
-- Enhance: リストTLにフィルタオプション（ファイル付きのみ・リノート表示・センシティブ非表示）を追加 [#1276](https://github.com/yojo-art/cherrypick/pull/1276)
 - Change: セットアップウィザードでリモートコンテンツの自動クリーニングをデフォルトで無効化 [#1268](https://github.com/yojo-art/cherrypick/pull/1268)
+- Enhance: リストTLにフィルタオプション（ファイル付きのみ・リノート表示・センシティブ非表示）を追加 [#1276](https://github.com/yojo-art/cherrypick/pull/1276)
 - Enhance: OpenSearch再インデックス機能に説明を追加し、未設定時は利用不可表示に変更 [#1290](https://github.com/yojo-art/cherrypick/pull/1290)
 - Fix: 投稿フォームのUI説明を実際のレイアウトに合わせて修正 [#1254](https://github.com/yojo-art/cherrypick/pull/1254)
 - Fix: オフラインページをダーク/ライトテーマに連動させ、ベースバージョン表示を復元 [#1294](https://github.com/yojo-art/cherrypick/pull/1294)
