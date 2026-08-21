@@ -436,7 +436,9 @@ if ($i.isSilenced && visibility.value === 'public') {
 }
 
 // 公開以外へのリプライ時は元の公開範囲を引き継ぐ
-if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTargetNote.value.visibility)) {
+// ただしチャンネル選択中は followers/specified への継承は行わない（チャンネルでは禁止のため必ずエラーになる）
+if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTargetNote.value.visibility)
+	&& !(targetChannel.value && ['followers', 'specified'].includes(replyTargetNote.value.visibility))) {
 	if (replyTargetNote.value.visibility === 'home' && visibility.value === 'followers') {
 		visibility.value = 'followers';
 	} else if (['home', 'followers'].includes(replyTargetNote.value.visibility) && visibility.value === 'specified') {
@@ -445,7 +447,7 @@ if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTa
 		visibility.value = replyTargetNote.value.visibility;
 	}
 
-	if (visibility.value === 'specified') {
+	if (visibility.value === 'specified' && !targetChannel.value) {
 		if (replyTargetNote.value.visibleUserIds) {
 			misskeyApi('users/show', {
 				userIds: replyTargetNote.value.visibleUserIds.filter(uid => uid !== $i.id && uid !== replyTargetNote.value?.userId),
@@ -472,6 +474,12 @@ if (targetChannel.value && (visibility.value === 'followers' || visibility.value
 }
 watch(targetChannel, (newChannel) => {
 	if (newChannel && (visibility.value === 'followers' || visibility.value === 'specified')) {
+		visibility.value = 'public';
+	}
+});
+// followers/specified がチャンネル選択中に外部から代入された場合も補正する
+watch(visibility, (newVis) => {
+	if (targetChannel.value && (newVis === 'followers' || newVis === 'specified')) {
 		visibility.value = 'public';
 	}
 });
@@ -805,8 +813,11 @@ function onKeydown(ev: KeyboardEvent) {
 
 	if (prefer.s.postFormVisibilityHotkey) {
 		if (targetChannel.value) {
-			if (ev.ctrlKey && ev.shiftKey && visibility.value === 'public') visibility.value = 'home';
-			else if (ev.ctrlKey && ev.shiftKey && visibility.value === 'home') visibility.value = 'public';
+			if (ev.ctrlKey && ev.shiftKey) {
+				if (visibility.value === 'followers' || visibility.value === 'specified') visibility.value = 'public';
+				else if (visibility.value === 'public') visibility.value = 'home';
+				else if (visibility.value === 'home') visibility.value = 'public';
+			}
 		} else {
 			if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'specified')) visibility.value = 'public';
 			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'public')) visibility.value = 'home';
@@ -1420,6 +1431,10 @@ function showDraftsDialog(scheduled: boolean) {
 			useCw.value = draft.cw != null;
 			cw.value = draft.cw ?? null;
 			visibility.value = draft.visibility;
+			// チャンネル選択中は followers/specified を許容しない
+			if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+				visibility.value = 'public';
+			}
 			//localOnly.value = draft.localOnly ?? false;
 			files.value = draft.files ?? [];
 			hashtags.value = draft.hashtag ?? '';
@@ -1473,6 +1488,11 @@ function showDraftsDialog(scheduled: boolean) {
 			reactionAcceptance.value = draft.reactionAcceptance;
 			scheduledAt.value = draft.scheduledAt ?? null;
 			if (draft.channel) targetChannel.value = draft.channel as unknown as Misskey.entities.Channel;
+
+			// draft復元後にチャンネルとvisibilityの不整合を補正
+			if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+				visibility.value = 'public';
+			}
 
 			visibleUsers.value = [];
 			draft.visibleUserIds?.forEach(uid => {
@@ -1635,6 +1655,10 @@ onMounted(() => {
 				cw.value = draft.data.cw;
 				saveToDraft.value = draft.data.saveToDraft;
 				visibility.value = draft.data.visibility;
+				// チャンネル選択中は followers/specified を許容しない
+				if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+					visibility.value = 'public';
+				}
 				if (draft.data.searchableBy != null) searchableBy.value = draft.data.searchableBy;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
@@ -1662,6 +1686,10 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
+			// チャンネル投稿の編集時は followers/specified を許容しない
+			if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+				visibility.value = 'public';
+			}
 			searchableBy.value = init.searchableBy ?? searchableBy.value;
 			files.value = init.files ?? [];
 			if (init.poll) {
