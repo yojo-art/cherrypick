@@ -335,7 +335,6 @@ describe('Channel', () => {
 
 			strictEqual(notes.filter(note => note.channelId == null).length, 0);
 		});
-
 	});
 
 	describe('Mention', () => {
