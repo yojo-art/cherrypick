@@ -1,4 +1,4 @@
-import { describe, test, beforeAll, afterAll } from 'vitest';
+import { describe, test, beforeAll, afterAll, vi } from 'vitest';
 import assert, { rejects, strictEqual } from 'node:assert';
 import * as Misskey from 'misskey-js';
 import { addCustomEmoji, createAccount, createModerator, deepStrictEqualWithExcludedFields, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile } from './utils.js';
@@ -332,7 +332,13 @@ describe('Note', () => {
 				const note = (await bob.client.request('notes/create', { poll: { choices: ['inu', 'neko'] } })).createdNote;
 				const noteInA = await resolveRemoteNote('b.test', note.id, carol);
 				await carol.client.request('notes/polls/vote', { noteId: noteInA.id, choice: 0 });
-				await sleep();
+
+				await vi.waitFor(async () => {
+					const n = await bob.client.request('notes/show', { noteId: note.id });
+					assert(n.poll != null);
+					strictEqual(n.poll.choices[0].votes, 1);
+					strictEqual(n.poll.choices[1].votes, 0);
+				}, { timeout: 10_000, interval: 250 });
 
 				const noteAfterVote = await bob.client.request('notes/show', { noteId: note.id });
 				assert(noteAfterVote.poll != null);
@@ -362,7 +368,13 @@ describe('Note', () => {
 				// NOTE: resolve before voting
 				const noteInA = await resolveRemoteNote('b.test', note.id, bobRemoteFollower);
 				await localVoter.client.request('notes/polls/vote', { noteId: note.id, choice: 0 });
-				await sleep();
+
+				await vi.waitFor(async () => {
+					const n = await bobRemoteFollower.client.request('notes/show', { noteId: noteInA.id });
+					assert(n.poll != null);
+					strictEqual(n.poll.choices[0].votes, 1);
+					strictEqual(n.poll.choices[1].votes, 0);
+				}, { timeout: 10_000, interval: 250 });
 
 				const noteAfterVote = await bobRemoteFollower.client.request('notes/show', { noteId: noteInA.id });
 				assert(noteAfterVote.poll != null);
