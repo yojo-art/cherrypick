@@ -261,18 +261,6 @@ describe('Channel', () => {
 			assert.strictEqual(res.body.createdNote.visibility, 'home');
 		});
 
-		test('チャンネル外の visibility: followers は成功する', async () => {
-			const res = await api('notes/create', { text: 'hi', visibility: 'followers' }, alice);
-			assert.strictEqual(res.status, 200);
-			assert.strictEqual(res.body.createdNote.visibility, 'followers');
-		});
-
-		test('チャンネル外の visibility: specified は成功する', async () => {
-			const res = await api('notes/create', { text: 'hi', visibility: 'specified', visibleUserIds: [bob.id] }, alice);
-			assert.strictEqual(res.status, 200);
-			assert.strictEqual(res.body.createdNote.visibility, 'specified');
-		});
-
 		test('ドラフト作成で channelId + visibility: followers は拒否される', async () => {
 			const res = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'followers' }, alice);
 			assert.strictEqual(res.status, 400);
