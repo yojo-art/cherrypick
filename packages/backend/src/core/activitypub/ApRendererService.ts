@@ -161,11 +161,12 @@ export class ApRendererService {
 		}
 		//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
 		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
-		if (channelFollowersUri && !cc.includes(channelFollowersUri)) {
+		if (channelFollowersUri && !to.includes(channelFollowersUri) && !cc.includes(channelFollowersUri)) {
 			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri && !cc.includes(channelActorUri)) {
+		if (channelActorUri && note.channel?.actorId !== note.userId && !cc.includes(channelActorUri)) {
+			//チャンネル自分自身は宛先にしない
 			cc.push(channelActorUri);
 		}
 		return {
@@ -215,12 +216,14 @@ export class ApRendererService {
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
-		if (Array.isArray(activity.cc)) {
+		if (Array.isArray(activity.to) && Array.isArray(activity.cc)) {
 			//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
-			if (channelFollowersUri && !activity.cc.includes(channelFollowersUri)) {
+			if (channelFollowersUri && !activity.to.includes(channelFollowersUri) && !activity.cc.includes(channelFollowersUri)) {
 				activity.cc.push(channelFollowersUri);
 			}
-			if (channelActorUri && !activity.cc.includes(channelActorUri)) {
+		}
+		if (Array.isArray(activity.cc)) {
+			if (channelActorUri && note.channel?.actorId !== note.userId && !activity.cc.includes(channelActorUri)) {
 				activity.cc.push(channelActorUri);
 			}
 		}
@@ -528,11 +531,12 @@ export class ApRendererService {
 		}
 		//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
 		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
-		if (channelFollowersUri && !cc.includes(channelFollowersUri)) {
+		if (channelFollowersUri && !to.includes(channelFollowersUri) && !cc.includes(channelFollowersUri)) {
 			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri && !cc.includes(channelActorUri)) {
+		if (channelActorUri && note.channel?.actorId !== note.userId && !cc.includes(channelActorUri)) {
+			//チャンネル自分自身は宛先にしない
 			cc.push(channelActorUri);
 		}
 		let searchableBy: string[] | undefined = [];
