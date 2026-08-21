@@ -225,6 +225,7 @@ export class ApRendererService {
 			}
 		}
 		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId !== note.userId) {
+			//チャンネル自分自身は宛先にしない
 			if (!activity.cc.includes(channelActorUri)) {
 				activity.cc.push(channelActorUri);
 			}
