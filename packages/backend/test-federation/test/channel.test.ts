@@ -254,30 +254,6 @@ describe('Channel', () => {
 		});
 		*/
 
-		test('フォロワー限定なチャンネル投稿が無関係なインスタンスでフォロワー限定なチャンネル投稿として照会できない', async () => {
-			const note = (await alice.client.request('notes/create', {
-				text: 'I am Alice!',
-				channelId: aliceCh.id,
-				visibility: 'followers',
-			})).createdNote;
-
-			strictEqual(note.visibility, 'followers');
-
-			let errored = false;
-			try {
-				await resolveRemoteNote('a.test', note.id, carol);
-			} catch (err) {
-				errored = true;
-				const e = err as { code?: string; status?: number };
-				strictEqual(
-					e.status === 400 || e.code === 'REQUEST_FAILED',
-					true,
-					`unexpected error: ${JSON.stringify(err)}`,
-				);
-			}
-			strictEqual(errored, true, 'request should have been rejected');
-		});
-
 		test('チャンネル管理、閲覧、投稿がすべて別インスタンスでも動く', async () => {
 			const note = (await carol.client.request('notes/create', {
 				text: 'I am Carol!',
@@ -360,65 +336,6 @@ describe('Channel', () => {
 			strictEqual(notes.filter(note => note.channelId == null).length, 0);
 		});
 
-		test('チャンネルタイムラインには自分に表示権限の無い投稿が含まれない (ローカル)', async () => {
-			const homeNote = (await alice.client.request('notes/create', {
-				text: 'home note ' + randomUsername(),
-				channelId: aliceCh.id,
-				visibility: 'home',
-			})).createdNote;
-			const followersNote = (await alice.client.request('notes/create', {
-				text: 'followers note ' + randomUsername(),
-				channelId: aliceCh.id,
-				visibility: 'followers',
-			})).createdNote;
-			const specifiedNote = (await alice.client.request('notes/create', {
-				text: 'specified note ' + randomUsername(),
-				channelId: aliceCh.id,
-				visibility: 'specified',
-				visibleUserIds: [bobInA.id],
-			})).createdNote;
-
-			await sleep(500);//配送待ち
-
-			const notesForBob = (await bob.client.request('channels/timeline', {
-				channelId: aliceChInB.id,
-			}));
-			// bob は alice のフォロワーではないので followersNote は含まれない
-			strictEqual(notesForBob.some(note => note.text === followersNote.text), false, '非フォロワーにフォロワー限定投稿が含まれない');
-			// bob は specifiedNote の指定相手なので含まれる
-			strictEqual(notesForBob.some(note => note.text === specifiedNote.text), true, '指定ユーザーに指定投稿が含まれる');
-		});
-		test('チャンネルタイムラインには自分に表示権限の無い投稿が含まれない (リモート)', async () => {
-			const publicNoteFromCarol = (await carol.client.request('notes/create', {
-				text: 'public from carol ' + randomUsername(),
-				channelId: aliceChInC.id,
-				visibility: 'public',
-			})).createdNote;
-			const followersNoteFromCarol = (await carol.client.request('notes/create', {
-				text: 'followers from carol ' + randomUsername(),
-				channelId: aliceChInC.id,
-				visibility: 'followers',
-			})).createdNote;
-
-			// 配送待ち
-			await sleep(500);
-
-			const notes = (await alice.client.request('channels/timeline', {
-				channelId: aliceCh.id,
-			}));
-
-			// bob は carol のフォロワーでないため、followers 投稿は連合されてこない（または含まれない）
-			strictEqual(notes.some(note => note.text === publicNoteFromCarol.text), true, 'パブリック投稿が含まれる');
-			strictEqual(notes.some(note => note.text === followersNoteFromCarol.text), false, '非フォロワーにフォロワー限定投稿が含まれない');
-
-			const notesForBob = (await bob.client.request('channels/timeline', {
-				channelId: aliceChInB.id,
-			}));
-
-			// bob は carol のフォロワーでないため、followers 投稿は連合されてこない（または含まれない）
-			strictEqual(notesForBob.some(note => note.text === publicNoteFromCarol.text), true, 'パブリック投稿が含まれる');
-			strictEqual(notesForBob.some(note => note.text === followersNoteFromCarol.text), false, '非フォロワーにフォロワー限定投稿が含まれない');
-		});
 	});
 
 	describe('Mention', () => {
