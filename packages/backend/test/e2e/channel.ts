@@ -222,4 +222,91 @@ describe('Channel', () => {
 			assert.strictEqual(castAsError(res.body as any).error.code, 'NO_SUCH_OBJECT');
 		});
 	});
+
+	describe('Channel note visibility', () => {
+		let channel: misskey.entities.ChannelsCreateResponse;
+		let bob: misskey.entities.SignupResponse;
+
+		beforeAll(async () => {
+			bob = await signup({ username: 'bob' });
+			const res = await api('channels/create', { name: 'visibility-test-channel', username: randomString() }, root);
+			assert.strictEqual(res.status, 200);
+			channel = res.body;
+		});
+
+		test('チャンネル投稿で visibility: followers は CHANNEL_VISIBILITY_NOT_ALLOWED で拒否される', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+			assert.strictEqual(castAsError(res.body).error.id, '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b');
+		});
+
+		test('チャンネル投稿で visibility: specified は CHANNEL_VISIBILITY_NOT_ALLOWED で拒否される', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'specified', visibleUserIds: [bob.id] }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+		});
+
+		test('チャンネル投稿で visibility: public は成功する', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'public' }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.createdNote.channelId, channel.id);
+			assert.strictEqual(res.body.createdNote.visibility, 'public');
+		});
+
+		test('チャンネル投稿で visibility: home は成功する', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'home' }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.createdNote.channelId, channel.id);
+			assert.strictEqual(res.body.createdNote.visibility, 'home');
+		});
+
+		test('チャンネル外の visibility: followers は成功する', async () => {
+			const res = await api('notes/create', { text: 'hi', visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.createdNote.visibility, 'followers');
+		});
+
+		test('チャンネル外の visibility: specified は成功する', async () => {
+			const res = await api('notes/create', { text: 'hi', visibility: 'specified', visibleUserIds: [bob.id] }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.createdNote.visibility, 'specified');
+		});
+
+		test('ドラフト作成で channelId + visibility: followers は拒否される', async () => {
+			const res = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+		});
+
+		test('ドラフト作成で channelId + visibility: specified は拒否される', async () => {
+			const res = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'specified', visibleUserIds: [bob.id] }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+		});
+
+		test('ドラフト更新で channelId に followers を後付けすると拒否される', async () => {
+			const draftRes = await api('notes/drafts/create', { text: 'hi', visibility: 'public' }, alice);
+			assert.strictEqual(draftRes.status, 200);
+			const draftId = draftRes.body.createdDraft.id;
+
+			const res = await api('notes/drafts/update', { draftId, channelId: channel.id, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+
+			await api('notes/drafts/delete', { draftId }, alice).catch(() => {});
+		});
+
+		test('既存チャンネルドラフトの visibility を followers に変更すると拒否される', async () => {
+			const draftRes = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'public' }, alice);
+			assert.strictEqual(draftRes.status, 200);
+			const draftId = draftRes.body.createdDraft.id;
+
+			const res = await api('notes/drafts/update', { draftId, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+
+			await api('notes/drafts/delete', { draftId }, alice).catch(() => {});
+		});
+	});
 });

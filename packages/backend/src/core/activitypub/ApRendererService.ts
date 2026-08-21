@@ -205,8 +205,8 @@ export class ApRendererService {
 
 	@bindThis
 	public async renderCreate(object: IObject, note: MiNote): Promise<ICreate> {
-		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
-		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		const channelFollowersUri = (note.channelId && note.userId && note.visibility !== 'specified') ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
+		const channelActorUri = (note.channelId && note.userId && note.visibility !== 'specified') ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		const activity: ICreate = {
 			id: `${this.config.url}/notes/${note.id}/activity`,
 			actor: this.userEntityService.genLocalUserUri(note.userId),
@@ -534,12 +534,12 @@ export class ApRendererService {
 		} else {
 			to = mentions;
 		}
-		//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
-		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
+		//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める（specifiedは除外してDM漏洩防止）
+		const channelFollowersUri = (note.channelId && note.userId && note.visibility !== 'specified') ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
 		if (channelFollowersUri && !to.includes(channelFollowersUri) && !cc.includes(channelFollowersUri)) {
 			cc.push(channelFollowersUri);
 		}
-		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
+		const channelActorUri = (note.channelId && note.userId && note.visibility !== 'specified') ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		if (channelActorUri && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
 			if (!cc.includes(channelActorUri)) {
@@ -559,7 +559,7 @@ export class ApRendererService {
 			searchableBy = ['as:Limited', 'kmyblue:Limited'];
 		}
 		const mentionUserIds = note.mentions.concat();
-		if (!isPureRenote(note) && note.channel?.actorId)mentionUserIds.push(note.channel.actorId);
+		if (!isPureRenote(note) && note.channel?.actorId && note.visibility !== 'specified')mentionUserIds.push(note.channel.actorId);
 		const mentionedUsers = mentionUserIds.length > 0 ? await this.usersRepository.findBy({
 			id: In(mentionUserIds),
 		}) : [];
@@ -578,7 +578,7 @@ export class ApRendererService {
 
 		// AP描画用にmentionedRemoteUsersを差し替えるためのローカルコピー(note本体は不変に保つ)
 		let mentionedRemoteUsersJson = note.mentionedRemoteUsers;
-		if (!isPureRenote(note) && note.channel?.actorId !== note.userId) {
+		if (!isPureRenote(note) && note.channel?.actorId !== note.userId && note.visibility !== 'specified') {
 			//純リノートでなくチャンネルアカウントによる投稿でもない
 			const channelActor = note.channel?.actorId ? await this.usersRepository.findOneBy({ id: note.channel.actorId }) : null;
 			if (channelActor) {

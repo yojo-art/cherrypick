@@ -440,6 +440,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 			if (channel == null) {
 				throw new IdentifiableError('bfa3905b-25f5-4894-b430-da331a490e4b', 'No such channel');
 			}
+
+			if (data.visibility === 'followers' || data.visibility === 'specified') {
+				throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
+			}
 		}
 
 		return this.create(user, {
@@ -481,6 +485,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.createdAt == null) data.createdAt = new Date();
 		if (data.visibility == null) data.visibility = 'public';
 		if (data.localOnly == null) data.localOnly = false;
+
+		if (data.channel && (data.visibility === 'followers' || data.visibility === 'specified')) {
+			throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
+		}
 
 		if (data.visibility === 'public') {
 			const sensitiveWords = this.meta.sensitiveWords;
@@ -544,6 +552,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 					// specified / direct noteはreject
 					throw new Error('Renote target is not public or home');
 			}
+		}
+
+		if (data.channel && (data.visibility === 'followers' || data.visibility === 'specified')) {
+			throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
 		}
 
 		// Check blocking

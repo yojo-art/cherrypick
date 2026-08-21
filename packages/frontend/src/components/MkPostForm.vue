@@ -467,6 +467,15 @@ if (props.specified) {
 	pushVisibleUser(props.specified);
 }
 
+if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+	visibility.value = 'public';
+}
+watch(targetChannel, (newChannel) => {
+	if (newChannel && (visibility.value === 'followers' || visibility.value === 'specified')) {
+		visibility.value = 'public';
+	}
+});
+
 // keep cw when reply
 if (prefer.s.keepCw && replyTargetNote.value && replyTargetNote.value.cw) {
 	useCw.value = true;
@@ -598,6 +607,7 @@ function setVisibility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkVisibilityPicker.vue')), {
 		currentVisibility: visibility.value,
 		isSilenced: $i.isSilenced,
+		isChannel: !!targetChannel.value,
 		anchorElement: visibilityButton.value,
 		...(replyTargetNote.value ? { isReplyVisibilitySpecified: replyTargetNote.value.visibility === 'specified' } : {}),
 	}, {
@@ -794,10 +804,15 @@ function onKeydown(ev: KeyboardEvent) {
 	}
 
 	if (prefer.s.postFormVisibilityHotkey) {
-		if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'specified')) visibility.value = 'public';
-		else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'public')) visibility.value = 'home';
-		else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'home')) visibility.value = 'followers';
-		else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'followers')) visibility.value = 'specified';
+		if (targetChannel.value) {
+			if (ev.ctrlKey && ev.shiftKey && visibility.value === 'public') visibility.value = 'home';
+			else if (ev.ctrlKey && ev.shiftKey && visibility.value === 'home') visibility.value = 'public';
+		} else {
+			if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'specified')) visibility.value = 'public';
+			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'public')) visibility.value = 'home';
+			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'home')) visibility.value = 'followers';
+			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'followers')) visibility.value = 'specified';
+		}
 	}
 
 	// justEndedComposition.value is for Safari, which keyDown occurs after compositionend.
