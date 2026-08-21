@@ -929,6 +929,7 @@ information: "Informácie"
 inMinutes: "min"
 inDays: "dní"
 widgets: "Widgety"
+previewingThemeRestore: "Obnoviť"
 _imageEditing:
   _vars:
     filename: "Názov súboru"

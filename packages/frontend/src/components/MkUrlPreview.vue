@@ -101,7 +101,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { defineAsyncComponent, onDeactivated, onUnmounted, ref } from 'vue';
+import { computed, defineAsyncComponent, onDeactivated, onUnmounted, ref } from 'vue';
 import { url as local } from '@@/js/config.js';
 import { versatileLang } from '@@/js/intl-const.js';
 import { maybeMakeRelative } from '@@/js/url.js';
@@ -135,31 +135,28 @@ const isMobile = ref(deviceKind === 'smartphone' || window.innerWidth <= MOBILE_
 
 const maybeRelativeUrl = maybeMakeRelative(props.url, local);
 let self = maybeRelativeUrl !== props.url;
-let requestUrl = new URL(props.url);
+let requestUrl = new URL(props.url, window.location.href);
 let url_string: string;
 if (props.host === requestUrl.host && (requestUrl.pathname.startsWith('/clips/') || requestUrl.pathname.startsWith('/play/'))) {
 	let split = requestUrl.pathname.split('@');
 	requestUrl = new URL(local + split[0] + '@' + (split.length >= 2 ? split[1] : props.host));
 	self = true;
 	url_string = requestUrl.toString();
-	requestUrl = new URL(props.url);
+	requestUrl = new URL(props.url, window.location.href);
 } else {
 	url_string = requestUrl.toString();
 }
 const attr = self ? 'to' : 'href';
 const target = self ? null : '_blank';
 const fetching = ref(true);
-const title = ref<string | null>(null);
-const description = ref<string | null>(null);
-const thumbnail = ref<string | null>(null);
-const icon = ref<string | null>(null);
-const sitename = ref<string | null>(null);
-const sensitive = ref<boolean>(false);
-const player = ref({
-	url: null,
-	width: null,
-	height: null,
-} as SummalyResult['player']);
+const summalyResult = ref<SummalyResult | null>(null);
+const title = computed(() => summalyResult.value?.title ?? null);
+const description = computed(() => summalyResult.value?.description ?? null);
+const thumbnail = computed(() => summalyResult.value?.thumbnail ?? null);
+const icon = computed(() => summalyResult.value?.icon ?? null);
+const sitename = computed(() => summalyResult.value?.sitename ?? null);
+const sensitive = computed(() => summalyResult.value?.sensitive ?? false);
+const player = computed(() => summalyResult.value?.player ?? { url: null, width: null, height: null });
 const playerEnabled = ref(false);
 const embedId = `embed${Math.random().toString().replace(/\D/, '')}`;
 
@@ -178,7 +175,7 @@ onDeactivated(() => {
 	playerEnabled.value = false;
 });
 
-//const requestUrl = new URL(props.url);
+//const requestUrl = new URL(props.url, window.location.href);
 if (!['http:', 'https:'].includes(requestUrl.protocol)) throw new Error('invalid url');
 
 if (requestUrl.hostname === 'twitter.com' || requestUrl.hostname === 'mobile.twitter.com' || requestUrl.hostname === 'x.com' || requestUrl.hostname === 'mobile.x.com') {
@@ -223,14 +220,11 @@ window.fetch(`${instance.urlPreviewEndpoint}?url=${encodeURIComponent(requestUrl
 
 		fetching.value = false;
 		unknownUrl.value = false;
-
-		title.value = info.title;
-		description.value = info.description;
-		thumbnail.value = getProxiedImageUrlNullable(info.thumbnail, 'avatar', true);
-		icon.value = getProxiedImageUrlNullable(info.icon, 'emoji', true);
-		sitename.value = info.sitename;
-		player.value = info.player;
-		sensitive.value = info.sensitive ?? false;
+		summalyResult.value = {
+			...info,
+			thumbnail: getProxiedImageUrlNullable(info.thumbnail, 'avatar', true),
+			icon: getProxiedImageUrlNullable(info.icon, 'emoji', true),
+		};
 	});
 
 async function openBskyEmbed() {
@@ -251,8 +245,10 @@ async function openBskyEmbed() {
 }
 
 function openPlayer(): void {
+	if (!summalyResult.value) return;
+
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkYouTubePlayer.vue')), {
-		url: requestUrl.href,
+		urlOrSummalyResult: summalyResult.value,
 	}, {
 		closed: () => {
 			dispose();
