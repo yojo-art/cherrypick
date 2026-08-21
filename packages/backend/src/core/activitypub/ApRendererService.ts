@@ -215,9 +215,9 @@ export class ApRendererService {
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
-		if (channelFollowersUri && Array.isArray(activity.cc)) {
+		if (Array.isArray(activity.cc)) {
 			//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
-			if (!activity.cc.includes(channelFollowersUri)) {
+			if (channelFollowersUri && !activity.cc.includes(channelFollowersUri)) {
 				activity.cc.push(channelFollowersUri);
 			}
 			if (channelActorUri && !activity.cc.includes(channelActorUri)) {
