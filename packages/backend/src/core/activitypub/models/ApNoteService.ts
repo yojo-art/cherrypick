@@ -225,7 +225,7 @@ export class ApNoteService {
 			throw new IdentifiableError('85ab9bd7-3a41-4530-959d-f07073900109', 'actor has been suspended');
 		}
 
-		const noteAudience = await this.apAudienceService.parseAudience(actor, note.to, note.cc, resolver);
+		const noteAudience = await this.apAudienceService.parseAudience(actor, note.to, note.cc, note.audience, resolver);
 		const searchableBy = parseSearchableByFromProperty(actor.uri, actor.followersUri ?? undefined, note.searchableBy);
 		let visibility = noteAudience.visibility;
 		const visibleUsers = noteAudience.visibleUsers;
