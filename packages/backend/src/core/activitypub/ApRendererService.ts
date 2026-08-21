@@ -165,9 +165,11 @@ export class ApRendererService {
 			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri && note.channel?.actorId !== note.userId && !cc.includes(channelActorUri)) {
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
-			cc.push(channelActorUri);
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
 		}
 		return {
 			id: `${this.config.url}/notes/${note.id}/activity`,
@@ -222,8 +224,8 @@ export class ApRendererService {
 				activity.cc.push(channelFollowersUri);
 			}
 		}
-		if (Array.isArray(activity.cc)) {
-			if (channelActorUri && note.channel?.actorId !== note.userId && !activity.cc.includes(channelActorUri)) {
+		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId !== note.userId) {
+			if (!activity.cc.includes(channelActorUri)) {
 				activity.cc.push(channelActorUri);
 			}
 		}
@@ -535,9 +537,11 @@ export class ApRendererService {
 			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
-		if (channelActorUri && note.channel?.actorId !== note.userId && !cc.includes(channelActorUri)) {
+		if (channelActorUri && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
-			cc.push(channelActorUri);
+			if (!cc.includes(channelActorUri)) {
+				cc.push(channelActorUri);
+			}
 		}
 		let searchableBy: string[] | undefined = [];
 		if (note.searchableBy === null) {
