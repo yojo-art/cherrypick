@@ -155,7 +155,7 @@ export class ApOutboxFetchService implements OnModuleInit {
 						}
 						this.logger.info(`Creating the (Re)Note: ${activity.id}`);
 
-						const activityAudience = await this.apAudienceService.parseAudience(user, activity.to, activity.cc);
+						const activityAudience = await this.apAudienceService.parseAudience(user, activity.to, activity.cc, activity.audience);
 						const createdAt = activity.published ? new Date(activity.published) : null;
 
 						if (createdAt && createdAt < this.idService.parse(renote.id).date) {
