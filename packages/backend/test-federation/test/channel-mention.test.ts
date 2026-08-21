@@ -65,4 +65,22 @@ describe('Channel Mention', () => {
 		const note = await waitForFederationTestNote(alice, 'channel-mention/06-note-audience-only');
 		strictEqual(note.channelId, aliceCh.id, '通常ノートでaudienceのみ指定されているノートがチャンネルアカウントに投稿される');
 	});
+	test('リノートでaudienceに含まれたチャンネルアカウントに投稿される', async () => {
+		const alice = await createAccount('a.test');
+		const aliceCh = await alice.client.request('channels/create', { username: randomUsername() });
+		assert(aliceCh.actorId);
+
+		// リノート元を配送
+		await deliverFederationTestNote('a.test', 'channel-mention/07-original');
+		const note = await waitForFederationTestNote(alice, 'channel-mention/07-original');
+
+		// Announce を配送
+		await deliverFederationTestNote('a.test', 'channel-mention/08-announce-audience', {
+			placeholders: { channelActor: aliceCh.actorId },
+		});
+
+		const renote = await waitForFederationTestNote(alice, 'channel-mention/08-announce-audience');
+		strictEqual(renote.channelId, aliceCh.id, 'audienceに含まれたチャンネルアカウントにリノートされる');
+		strictEqual(renote.renoteId, note.id);
+	});
 });
