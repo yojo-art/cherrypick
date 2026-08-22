@@ -234,7 +234,11 @@ watch(showProfilePreview, () => prefer.commit('showProfilePreview', showProfileP
 const showAddMfmFunction = ref(prefer.s.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => prefer.commit('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
-const visibility = ref(props.initialVisibility ?? (prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility));
+const visibility = ref(props.initialVisibility ?? (
+	props.channel
+		? (prefer.s.rememberChannelNoteVisibility ? store.s.channelNoteVisibility : prefer.s.defaultChannelNoteVisibility)
+		: (prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility)
+));
 const searchableBy = ref(props.initialSearchableBy ?? (prefer.s.rememberNoteSearchbility ? prefer.s.searchbility : prefer.s.defaultNoteSearchbility));
 const visibleUsers = ref<Misskey.entities.UserDetailed[]>([]);
 if (props.initialVisibleUsers) {
@@ -621,8 +625,14 @@ function setVisibility() {
 	}, {
 		changeVisibility: v => {
 			visibility.value = v;
-			if (prefer.s.rememberNoteVisibility) {
-				store.set('visibility', visibility.value);
+			if (targetChannel.value) {
+				if (prefer.s.rememberChannelNoteVisibility) {
+					store.set('channelNoteVisibility', visibility.value);
+				}
+			} else {
+				if (prefer.s.rememberNoteVisibility) {
+					store.set('visibility', visibility.value);
+				}
 			}
 		},
 		closed: () => dispose(),

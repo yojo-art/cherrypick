@@ -41,14 +41,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkDivider style="margin: 5px 0;"/>
 
 		<div :class="$style.item">
-			<MkSwitch v-model="rememberNoteVisibility">{{ i18n.ts.rememberNoteVisibility }}</MkSwitch>
+			<MkSwitch v-model="rememberModel">{{ props.isChannel ? i18n.ts.rememberChannelNoteVisibility : i18n.ts.rememberNoteVisibility }}</MkSwitch>
 		</div>
 	</div>
 </MkModal>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, useTemplateRef, ref } from 'vue';
+import { nextTick, useTemplateRef, ref, computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkModal from '@/components/MkModal.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -74,6 +74,15 @@ const emit = defineEmits<{
 }>();
 
 const rememberNoteVisibility = prefer.model('rememberNoteVisibility');
+const rememberChannelNoteVisibility = prefer.model('rememberChannelNoteVisibility');
+
+const rememberModel = computed({
+	get: () => props.isChannel ? rememberChannelNoteVisibility.value : rememberNoteVisibility.value,
+	set: (v: boolean) => {
+		if (props.isChannel) rememberChannelNoteVisibility.value = v;
+		else rememberNoteVisibility.value = v;
+	},
+});
 
 const v = ref(props.currentVisibility);
 
