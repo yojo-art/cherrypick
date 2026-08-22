@@ -50,11 +50,11 @@ export class AnnouncementEntityService {
 		}
 
 		const reactions = hint?.reactions.get(announcement.id)
-			?? (await this.announcementReactionService.getCounts([announcement.id])).get(announcement.id)
+			?? (await this.announcementReactionService.getCounts([announcement.id]))?.get(announcement.id)
 			?? {};
 
 		const myReactions = me
-			? (hint?.myReactions ?? await this.announcementReactionService.getMyReactions([announcement.id], me.id)).get(announcement.id) ?? []
+			? (hint?.myReactions ?? await this.announcementReactionService.getMyReactions([announcement.id], me.id))?.get(announcement.id) ?? []
 			: [];
 
 		return {
@@ -82,10 +82,11 @@ export class AnnouncementEntityService {
 	) : Promise<Packed<'Announcement'>[]> {
 		// N+1 を避けるため、リアクションはまとめて取得してから pack に渡す
 		const ids = announcements.map(x => typeof x === 'object' ? x.id : x);
-		const reactions = await this.announcementReactionService.getCounts(ids);
-		const myReactions = me
+		const reactions = await this.announcementReactionService.getCounts(ids)
+			?? new Map<MiAnnouncement['id'], Record<string, number>>();
+		const myReactions = (me
 			? await this.announcementReactionService.getMyReactions(ids, me.id)
-			: new Map<MiAnnouncement['id'], string[]>();
+			: null) ?? new Map<MiAnnouncement['id'], string[]>();
 
 		return (await Promise.allSettled(announcements.map(x => this.pack(x, me, { reactions, myReactions }))))
 			.filter(result => result.status === 'fulfilled')
