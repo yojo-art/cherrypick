@@ -23,14 +23,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<span :class="$style.itemDescription">{{ i18n.ts._visibility.homeDescription }}</span>
 			</div>
 		</button>
-		<button key="followers" :disabled="isReplyVisibilitySpecified || isChannel" class="_button" :class="[$style.item, { [$style.active]: v === 'followers' }]" data-index="3" @click="choose('followers')">
+		<button v-if="!isChannel" key="followers" :disabled="isReplyVisibilitySpecified" class="_button" :class="[$style.item, { [$style.active]: v === 'followers' }]" data-index="3" @click="choose('followers')">
 			<div :class="$style.icon"><i class="ti ti-lock"></i></div>
 			<div :class="$style.body">
 				<span :class="$style.itemTitle">{{ i18n.ts._visibility.followers }}</span>
 				<span :class="$style.itemDescription">{{ i18n.ts._visibility.followersDescription }}</span>
 			</div>
 		</button>
-		<button key="specified" :disabled="isChannel" class="_button" :class="[$style.item, { [$style.active]: v === 'specified' }]" data-index="4" @click="choose('specified')">
+		<button v-if="!isChannel" key="specified" class="_button" :class="[$style.item, { [$style.active]: v === 'specified' }]" data-index="4" @click="choose('specified')">
 			<div :class="$style.icon"><i class="ti ti-mail"></i></div>
 			<div :class="$style.body">
 				<span :class="$style.itemTitle">{{ i18n.ts._visibility.specified }}</span>
