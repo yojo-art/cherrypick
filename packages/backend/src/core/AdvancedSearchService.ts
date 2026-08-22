@@ -1153,6 +1153,8 @@ export class AdvancedSearchService {
 		reactionsExclude?: string[] | null;
 		userId?: MiNote['userId'] | null;
 		host?: string | null;
+		rangeStartAt?: number | null;
+		rangeEndAt?: number | null;
 		origin?: string | null;
 		fileOption?: string | null;
 		visibility?: MiNote['visibility'] | null;
@@ -1183,6 +1185,8 @@ export class AdvancedSearchService {
 		reactionsExclude?: string[] | null;
 		userId?: MiNote['userId'] | null;
 		host?: string | null;
+		rangeStartAt?: number | null;
+		rangeEndAt?: number | null;
 		origin?: string | null;
 		fileOption?: string | null;
 		visibility?: MiNote['visibility'] | null;
@@ -1210,6 +1214,8 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
+			if (opts.rangeStartAt != null) osFilter.bool.must.push({ range: { createdAt: { gte: opts.rangeStartAt } } });
+			if (opts.rangeEndAt != null) osFilter.bool.must.push({ range: { createdAt: { lte: opts.rangeEndAt } } });
 			if (opts.reactions && 0 < opts.reactions.length ) {
 				const reactionsQuery = {
 					nested: {

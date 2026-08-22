@@ -220,6 +220,41 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.includes(nofile_Attached.id), true);//添付なしがある
 		assert.strictEqual(noteIds.includes(file_Attached.id), false);//添付ありがない
 	});
+	let rangeNote: misskey.entities.Note;
+	test('投稿日時指定:範囲内', async () => {
+		rangeNote = await post(alice, { text: 'range_test' });
+		await new Promise(resolve => setTimeout(resolve, 5000));
+		const rangeNoteCreatedAt = Date.parse(rangeNote.createdAt);
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: rangeNoteCreatedAt,
+			rangeEndAt: rangeNoteCreatedAt,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		const noteIds = res.body.map( x => x.id);
+		assert.strictEqual(noteIds.includes(rangeNote.id), true);
+	});
+	test('投稿日時指定:開始が未来の範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.now() + 1000 * 60 * 60,
+			rangeEndAt: Date.now() + 1000 * 60 * 60 * 2,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 0);
+	});
+	test('投稿日時指定:終了が過去の範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.now() - 1000 * 60 * 60 * 2,
+			rangeEndAt: Date.now() - 1000 * 60 * 60,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 0);
+	});
 	test('センシティブオプション:フィルタなし', async() => {
 		const res = await api('notes/advanced-search', {
 			query: 'test_sensitive',
