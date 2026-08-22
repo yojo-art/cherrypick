@@ -132,7 +132,7 @@ class NotificationManager {
 						followerId: In(targetUserIds),
 						isFollowerHibernated: false,
 					},
-					select: ['followerId'],
+					select: { followerId: true },
 				});
 				visibleUserIds = new Set(followers.map(f => f.followerId));
 				break;
@@ -190,6 +190,7 @@ type Option = {
 	visibleUsers?: MinimumUser[] | null;
 	channel?: MiChannel | null;
 	apMentions?: MinimumUser[] | null;
+	apMentionRawCount?: number | null;
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
 	uri?: string | null;
@@ -336,7 +337,11 @@ export class NoteCreateService implements OnApplicationShutdown {
 			// Fetch renote to note
 			renote = await this.notesRepository.findOne({
 				where: { id: data.renoteId },
-				relations: ['user', 'renote', 'reply'],
+				relations: {
+					user: true,
+					renote: true,
+					reply: true,
+				},
 			});
 
 			if (renote == null) {
@@ -385,14 +390,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 			// Fetch reply
 			reply = await this.notesRepository.findOne({
 				where: { id: data.replyId },
-				relations: ['user'],
+				relations: { user: true },
 			});
 
 			if (reply == null) {
 				throw new IdentifiableError('60142edb-1519-408e-926d-4f108d27bee0', 'No such reply target');
 			} else if (isRenote(reply) && !isQuote(reply)) {
 				throw new IdentifiableError('f089e4e2-c0e7-4f60-8a23-e5a6bf786b36', 'Cannot reply to pure renote');
-			} else if (!await this.noteEntityService.isVisibleForMe(reply, user.id)) {
+			} else if (!(await this.noteEntityService.isVisibleForMe(reply, user.id))) {
 				throw new IdentifiableError('11cd37b3-a411-4f77-8633-c580ce6a8dce', 'No such reply target');
 			} else if (reply.visibility === 'specified' && data.visibility !== 'specified') {
 				throw new IdentifiableError('ced780a1-2012-4caf-bc7e-a95a291294cb', 'Cannot reply to specified note with different visibility');
@@ -530,8 +535,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 						throw new Error('Renote target is not public or home');
 					}
 
-					// Renote対象がfollowersならfollowersにする
-					data.visibility = 'followers';
+					// followers noteはfollowers以下にrenote可能
+					if (data.visibility === 'public' || data.visibility === 'home') {
+						data.visibility = 'followers';
+					}
 					break;
 				case 'specified':
 					// specified / direct noteはreject
@@ -598,7 +605,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			emojis = data.apEmojis ?? extractCustomEmojisFromMfm(combinedTokens);
 
-			mentionedUsers = data.apMentions ?? await this.extractMentionedUsers(user, combinedTokens);
+			mentionedUsers = data.apMentions ?? (await this.extractMentionedUsers(user, combinedTokens));
 		}
 
 		// if the host is media-silenced, custom emojis are not allowed
@@ -628,7 +635,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 			mentionedUsers = mentionedUsers.filter(x => x.id !== data.channel?.actorId);
 		}
 
-		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
+		const effectiveMentionCount = Math.max(mentionedUsers.length, data.apMentionRawCount ?? 0);
+		if (effectiveMentionCount > 0 && effectiveMentionCount > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
 		}
 		const note = await this.insertNote(user, data, tags, emojis, mentionedUsers);
@@ -1147,7 +1155,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				where: {
 					followeeId: note.channel.actorId,
 				},
-				select: ['followerId'],
+				select: { followerId: true },
 			}) : [];
 
 			for (const channelFollowing of channelFollowings) {
@@ -1169,13 +1177,20 @@ export class NoteCreateService implements OnApplicationShutdown {
 						followerHost: IsNull(),
 						isFollowerHibernated: false,
 					},
-					select: ['followerId', 'withReplies'],
+					select: {
+						followerId: true,
+						withReplies: true,
+					},
 				}),
 				this.userListMembershipsRepository.find({
 					where: {
 						userId: user.id,
 					},
-					select: ['userListId', 'userListUserId', 'withReplies'],
+					select: {
+						userListId: true,
+						userListUserId: true,
+						withReplies: true,
+					},
 				}),
 			]);
 
@@ -1283,7 +1298,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				id: In(samples.map(x => x.followerId)),
 				lastActiveDate: LessThan(new Date(Date.now() - (1000 * 60 * 60 * 24 * 50))),
 			},
-			select: ['id'],
+			select: { id: true },
 		});
 
 		if (hibernatedUsers.length > 0) {

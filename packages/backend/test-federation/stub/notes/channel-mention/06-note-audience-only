@@ -1,0 +1,15 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/channel-mention/06-note-audience-only",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>cc only channel test</p>",
+	"published": "2026-08-01T00:00:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"cc": [
+
+	],
+	"audience": "https://a.test/users/{{channelActor}}"
+}

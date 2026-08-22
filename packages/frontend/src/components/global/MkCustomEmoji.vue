@@ -55,6 +55,7 @@ import { prefer } from '@/preferences.js';
 import { DI } from '@/di.js';
 import { makeEmojiMuteKey, mute as muteEmoji, unmute as unmuteEmoji, checkMuted as checkEmojiMuted } from '@/utility/emoji-mute.js';
 import { stealEmoji } from '@/utility/import-emoji.js';
+import { addToEmojiPalette } from '@/utility/emoji-palette.js';
 
 const props = defineProps<{
 	name: string;
@@ -190,8 +191,20 @@ function onClick(ev: PointerEvent) {
 			});
 		}
 
+		if (isLocal.value) {
+			menuItems.push({
+				text: i18n.ts.addToEmojiPalette,
+				icon: 'ti ti-palette',
+				action: () => {
+					addToEmojiPalette(`:${props.name}:`);
+				},
+			});
+		}
+
 		if (($i?.isModerator ?? $i?.isAdmin) && isLocal.value) {
 			menuItems.push({
+				type: 'divider',
+			}, {
 				text: i18n.ts.edit,
 				icon: 'ti ti-pencil',
 				action: async () => {

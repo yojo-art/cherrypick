@@ -126,6 +126,21 @@ export class ApRendererService {
 	}
 
 	@bindThis
+	public async getChannelFollowersUri(note: MiNote & { channelId: string }): Promise<string | null> {
+		note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId == null) {
+			//チャンネルアカウントが作成されてない
+			return null;
+		}
+		if (note.channel.host === null) {
+			return this.userEntityService.genLocalUserUri(note.channel.actorId) + '/followers';
+		} else {
+			note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+			return note.channel.actor?.followersUri ?? null;
+		}
+	}
+
+	@bindThis
 	public async renderAnnounce(object: string | IObject, note: MiNote): Promise<IAnnounce> {
 		const attributedTo = this.userEntityService.genLocalUserUri(note.userId);
 
@@ -143,6 +158,11 @@ export class ApRendererService {
 			cc = [];
 		} else {
 			throw new Error('renderAnnounce: cannot render non-public note');
+		}
+		//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
+		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
+		if (channelFollowersUri && !to.includes(channelFollowersUri) && !cc.includes(channelFollowersUri)) {
+			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		if (channelActorUri && note.channel?.actorId !== note.userId) {
@@ -185,6 +205,7 @@ export class ApRendererService {
 
 	@bindThis
 	public async renderCreate(object: IObject, note: MiNote): Promise<ICreate> {
+		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		const activity: ICreate = {
 			id: `${this.config.url}/notes/${note.id}/activity`,
@@ -197,6 +218,12 @@ export class ApRendererService {
 
 		if (object.to) activity.to = object.to;
 		if (object.cc) activity.cc = object.cc;
+		if (Array.isArray(activity.to) && Array.isArray(activity.cc)) {
+			//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
+			if (channelFollowersUri && !activity.to.includes(channelFollowersUri) && !activity.cc.includes(channelFollowersUri)) {
+				activity.cc.push(channelFollowersUri);
+			}
+		}
 		if (channelActorUri && Array.isArray(activity.cc) && note.channel?.actorId !== note.userId) {
 			//チャンネル自分自身は宛先にしない
 			if (!activity.cc.includes(channelActorUri)) {
@@ -223,6 +250,8 @@ export class ApRendererService {
 			mediaType: file.webpublicType ?? file.type,
 			url: this.driveFileEntityService.getPublicUrl(file, undefined, true),
 			name: file.comment,
+			width: file.properties?.width,
+			height: file.properties?.height,
 			sensitive: file.isSensitive,
 		};
 	}
@@ -504,6 +533,11 @@ export class ApRendererService {
 			cc = mentions;
 		} else {
 			to = mentions;
+		}
+		//yojo-art: チャンネル連合 チャンネル投稿は宛先にチャンネルアカウントのフォロワーを含める
+		const channelFollowersUri = (note.channelId && note.userId) ? await this.getChannelFollowersUri(note as MiNote & { channelId: string }) : null;
+		if (channelFollowersUri && !to.includes(channelFollowersUri) && !cc.includes(channelFollowersUri)) {
+			cc.push(channelFollowersUri);
 		}
 		const channelActorUri = (note.channelId && note.userId) ? await this.getChannelUri(note as MiNote & { channelId: string }) : null;
 		if (channelActorUri && note.channel?.actorId !== note.userId) {

@@ -188,7 +188,17 @@ export class ActivityPubServerService {
 			}
 		}
 
-		const activity = request.body as IActivity;
+		const body = request.body;
+
+		// Reject structurally invalid activities (e.g. missing actor) here instead
+		// of letting them fail deep inside the inbox processor. An actor-less
+		// activity can never be authenticated, so there is no point enqueueing it.
+		if (typeof body !== 'object' || body == null || !('actor' in body) || body.actor == null) {
+			reply.code(400);
+			return;
+		}
+
+		const activity = body as IActivity;
 		if (!activity.type || !signature.keyId) {
 			reply.code(400);
 			return;
@@ -1065,6 +1075,8 @@ export class ActivityPubServerService {
 			}
 
 			const acct = Acct.parse(request.params.acct);
+			// normalize acct host
+			if (this.utilityService.isSelfHost(acct.host)) acct.host = null;
 
 			const user = await this.usersRepository.findOneBy({
 				usernameLower: acct.username.toLowerCase(),
