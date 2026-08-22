@@ -1124,4 +1124,71 @@ describeOpenSearchE2E('検索', () => {
 			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
 		});
 	});
+
+	describeOpenSearchE2E('投稿日時指定検索(高度な検索)', () => {
+		test('(高度な検索):境界一致', async () => {
+			const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeStartAt: rangeNoteACreatedAt,
+				rangeEndAt: rangeNoteACreatedAt,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
+		});
+		test('高度な検索):両端を含む範囲', async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 1000,
+				rangeEndAt: Date.parse(rangeNoteB.createdAt) + 1000,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id, rangeNoteB.id].sort());
+		});
+		test('(高度な検索):内部範囲', async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteA.createdAt) + 500,
+				rangeEndAt: Date.parse(rangeNoteB.createdAt),
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+		});
+		test('(高度な検索):開始が未来の範囲', async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteB.createdAt) + 1000,
+				rangeEndAt: Date.parse(rangeNoteB.createdAt) + 60000,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(Array.isArray(res.body), true);
+			assert.strictEqual(res.body.length, 0);
+		});
+		test('(高度な検索):終了が過去の範囲', async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 60000,
+				rangeEndAt: Date.parse(rangeNoteA.createdAt) - 1000,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(Array.isArray(res.body), true);
+			assert.strictEqual(res.body.length, 0);
+		});
+		test('(高度な検索):開始のみ指定', async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteB.createdAt),
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id].sort());
+		});
+		test('(高度な検索):終了のみ指定', async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'range_test',
+				rangeEndAt: Date.parse(rangeNoteA.createdAt),
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
+		});
+	});
 });
