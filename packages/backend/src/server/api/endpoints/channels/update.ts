@@ -159,11 +159,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (ps.pinnedNoteIds) {
 					const old_notes = (await this.userNotePiningsRepository.find({
 						where: { userId: channel.actorId },
-						select: ['noteId'],
+						select: { noteId: true },
 					})).map(x => x.noteId);
 					const new_notes = (await this.notesRepository.find({
 						where: { id: In(ps.pinnedNoteIds) },
-						select: ['id'],
+						select: { id: true },
 					})).map(x => x.id);
 					const add = new_notes.filter(x => !old_notes.includes(x));
 					const remove = old_notes.filter(x => !new_notes.includes(x));

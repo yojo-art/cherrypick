@@ -783,6 +783,7 @@ function clear() {
 	scheduledAt.value = null;
 	scheduledNoteDelete.value = null;
 	saveToDraft.value = false;
+	uploader.reset();
 }
 
 function onKeydown(ev: KeyboardEvent) {

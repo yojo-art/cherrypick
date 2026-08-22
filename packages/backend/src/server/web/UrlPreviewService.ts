@@ -4,7 +4,6 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import type { SummalyResult } from '@misskey-dev/summaly';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
@@ -14,11 +13,13 @@ import { LoggerService } from '@/core/LoggerService.js';
 import { bindThis } from '@/decorators.js';
 import { ApiError } from '@/server/api/error.js';
 import { MiMeta } from '@/models/Meta.js';
+import type { SummalyResult } from '@misskey-dev/summaly';
 import type { FastifyRequest, FastifyReply } from 'fastify';
 
 @Injectable()
 export class UrlPreviewService {
 	private logger: Logger;
+	private readonly summalyDefaultUserAgent: string;
 
 	constructor(
 		@Inject(DI.config)
@@ -31,6 +32,7 @@ export class UrlPreviewService {
 		private loggerService: LoggerService,
 	) {
 		this.logger = this.loggerService.getLogger('url-preview');
+		this.summalyDefaultUserAgent = `SummalyBot/${_SUMMALY_VERSION_} (${this.config.url}; +https://github.com/misskey-dev/summaly/blob/master/README.md)`;
 	}
 
 	@bindThis
@@ -122,7 +124,7 @@ export class UrlPreviewService {
 				http: this.httpRequestService.httpAgent,
 				https: this.httpRequestService.httpsAgent,
 			},
-			userAgent: meta.urlPreviewUserAgent ?? undefined,
+			userAgent: meta.urlPreviewUserAgent ?? this.summalyDefaultUserAgent,
 			operationTimeout: meta.urlPreviewTimeout,
 			contentLengthLimit: meta.urlPreviewMaximumContentLength,
 			contentLengthRequired: meta.urlPreviewRequireContentLength,
@@ -135,7 +137,7 @@ export class UrlPreviewService {
 			url: url,
 			lang: lang ?? 'ja-JP',
 			followRedirects: this.meta.urlPreviewAllowRedirect,
-			userAgent: meta.urlPreviewUserAgent ?? undefined,
+			userAgent: meta.urlPreviewUserAgent ?? this.summalyDefaultUserAgent,
 			operationTimeout: meta.urlPreviewTimeout,
 			contentLengthLimit: meta.urlPreviewMaximumContentLength,
 			contentLengthRequired: meta.urlPreviewRequireContentLength,
