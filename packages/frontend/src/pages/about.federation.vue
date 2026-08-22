@@ -6,11 +6,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_gaps">
 	<div>
-		<MkInput ref="hostEl" v-model="host" :debounce="true" class="">
-			<template #prefix><i class="ti ti-search"></i></template>
-			<template v-if="host != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="host = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
-			<template #label>{{ i18n.ts.host }}</template>
-		</MkInput>
+		<FormSplit>
+			<MkInput v-model="host" :debounce="true" class="">
+				<template #prefix><i class="ti ti-search"></i></template>
+				<template v-if="host != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="host = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
+				<template #label>{{ i18n.ts.host }}</template>
+			</MkInput>
+			<MkInput v-model="softwareName" :debounce="true" class="">
+				<template #prefix><i class="ti ti-search"></i></template>
+				<template v-if="softwareName != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="softwareName = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
+				<template #label>{{ i18n.ts.softwareName }}</template>
+			</MkInput>
+		</FormSplit>
 		<FormSplit style="margin-top: var(--MI-margin);">
 			<MkSelect v-model="state" :items="stateDef">
 				<template #label>{{ i18n.ts.state }}</template>
@@ -21,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</FormSplit>
 	</div>
 
-	<MkPagination v-slot="{items}" ref="instances" :key="host + state" :paginator="paginator">
+	<MkPagination v-slot="{items}" ref="instances" :key="host + softwareName + state" :paginator="paginator">
 		<div :class="$style.items">
 			<MkA v-for="instance in items" :key="instance.id" v-tooltip.mfm="`Status: ${getStatus(instance)}`" :class="$style.item" :to="`/instance-info/${instance.host}`">
 				<MkInstanceCardMini :instance="instance"/>
@@ -44,6 +51,7 @@ import { useMkSelect } from '@/composables/use-mkselect.js';
 import { Paginator } from '@/utility/paginator.js';
 
 const host = ref('');
+const softwareName = ref('');
 const {
 	model: state,
 	def: stateDef,
@@ -89,6 +97,7 @@ const paginator = markRaw(new Paginator('federation/instances', {
 	computedParams: computed(() => ({
 		sort: sort.value,
 		host: host.value !== '' ? host.value : null,
+		softwareName: softwareName.value !== '' ? softwareName.value : null,
 		...(
 			state.value === 'federating' ? { federating: true, suspended: false, blocked: false } :
 			state.value === 'subscribing' ? { subscribing: true, suspended: false, blocked: false } :
