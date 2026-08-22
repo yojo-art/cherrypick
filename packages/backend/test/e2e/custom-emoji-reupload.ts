@@ -1,12 +1,12 @@
 /*
- * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { afterAll, beforeAll, describe, test } from 'vitest';
+import { afterAll, beforeAll, describe, test, vi } from 'vitest';
 import {
 	api,
 	failedApiCall,
@@ -102,20 +102,11 @@ describe('custom-emoji-reupload', () => {
 		const delRes = await api('i/delete-account', { password: 'test' }, uploader);
 		assert.strictEqual(delRes.status, 204);
 
-		// キュージョブの処理開始を待つ
-		await new Promise(r => setTimeout(r, 1000));
-
-		// uploader のファイルが消えるまでポーリング（削除ジョブ完了を待つ）
-		const start = Date.now();
-		const timeout = 30000;
-		while (true) {
+		// uploader のファイルが消えるまで待つ（削除ジョブ完了を待つ）
+		await vi.waitFor(async () => {
 			const res = await fetch(refFile.url);
-			if (res.status !== 200) break;
-			if (Date.now() - start > timeout) {
-				throw new Error('Timeout waiting for account deletion job to complete');
-			}
-			await new Promise(r => setTimeout(r, 500));
-		}
+			assert.notStrictEqual(res.status, 200);
+		}, { timeout: 30000, interval: 500 });
 
 		// otherAdmin で絵文字が残っていることを確認
 		const listRes = await api('admin/emoji/list', { query: emojiName }, otherAdmin);
