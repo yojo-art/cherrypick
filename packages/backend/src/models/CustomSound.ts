@@ -11,11 +11,6 @@ export class MiCustomSound {
 	@PrimaryColumn(id())
 	public id: string;
 
-	@Column('timestamp with time zone', {
-		nullable: true,
-	})
-	public updatedAt: Date | null;
-
 	@Column('varchar', {
 		length: 256,
 	})

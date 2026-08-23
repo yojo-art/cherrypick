@@ -49,7 +49,6 @@ export class CustomSoundService {
 	}): Promise<MiCustomSound> {
 		return this.customSoundsRepository.insertOne({
 			id: this.idService.gen(),
-			updatedAt: null,
 			name: options.name,
 			fileId: options.fileId,
 		});

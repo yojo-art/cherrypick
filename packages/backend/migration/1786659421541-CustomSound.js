@@ -7,7 +7,7 @@ export class CustomSound1786659421541 {
     name = 'CustomSound1786659421541';
 
     async up(queryRunner) {
-        await queryRunner.query(`CREATE TABLE "custom_sound" ("id" character varying(32) NOT NULL, "updatedAt" TIMESTAMP WITH TIME ZONE, "name" character varying(256) NOT NULL, "fileId" character varying(32), CONSTRAINT "PK_6354a679f9398db001ffa6e083e" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "custom_sound" ("id" character varying(32) NOT NULL, "name" character varying(256) NOT NULL, "fileId" character varying(32), CONSTRAINT "PK_6354a679f9398db001ffa6e083e" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_custom_sound_file_id" ON "custom_sound" ("fileId")`);
     }
 
