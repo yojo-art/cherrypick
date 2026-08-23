@@ -128,8 +128,6 @@ describe('admin/custom-sounds', () => {
 		const publicRes = await api('get-custom-sounds', {});
 		assert.strictEqual(publicRes.status, 200);
 		assert.ok(publicRes.body.some(s => s.id === createRes.body.id));
-
-		return createRes.body.id;
 	});
 
 	test('音声以外のファイルは作成できない', async () => {
