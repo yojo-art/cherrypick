@@ -155,13 +155,15 @@ async function toggle(reaction: string) {
 }
 
 /**
- * ピッカーが返す生の絵文字文字列をバックエンドの normalizeReaction と同じルールで正規化する。
- * - カスタム絵文字: :name@.: → :name:（お知らせはローカル専用のため @. を除去）
- * - Unicode絵文字: 異体字セレクタ(U+FE0F)除去（ZWJ 合字はそのまま）
+ * ピッカーが返す生の絵文字文字列をバックエンドの decodeReaction と同じルールで変換する。
+ * - カスタム絵文字: :name: → :name@.: (APIレスポンスがこの形式で返ってくる)
+ * - Unicode絵文字: 異体字セレクタ(U+FE0F)除去(ZWJ 合字はそのまま)
  */
 function normalizePickedReaction(reaction: string): string {
-	const localCustom = reaction.replace(/^:([\w+-]+)@\.:$/, ':$1:');
-	if (localCustom !== reaction) return localCustom;
+	// カスタム絵文字を :name@.: 形式に変換
+	const customMatch = reaction.match(/^:([\w+-]+):$/);
+	if (customMatch) return `:${customMatch[1]}@.:`;
+	// Unicode絵文字の異体字セレクタを除去
 	return reaction.match('\u200d') ? reaction : reaction.replace(/\ufe0f/g, '');
 }
 
