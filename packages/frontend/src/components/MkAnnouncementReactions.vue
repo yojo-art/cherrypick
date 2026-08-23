@@ -70,6 +70,7 @@ const canToggle = computed(() => $i != null);
 
 const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
+const toggling = ref(false);
 
 watch(() => props.reactions, (newReactions) => {
 	reactions.value = { ...newReactions };
@@ -118,12 +119,13 @@ function applyLocally(reaction: string, delta: number) {
 }
 
 async function toggle(reaction: string) {
-	if (!canToggle.value) return;
+	if (!canToggle.value || toggling.value) return;
 
 	const previousReactions = { ...reactions.value };
 	const previousMyReactions = [...myReactions.value];
 	const isReacted = previousMyReactions.includes(reaction);
 
+	toggling.value = true;
 	applyLocally(reaction, isReacted ? -1 : 1);
 
 	try {
@@ -147,6 +149,8 @@ async function toggle(reaction: string) {
 			type: 'error',
 			text: i18n.ts.somethingHappened,
 		});
+	} finally {
+		toggling.value = false;
 	}
 }
 
