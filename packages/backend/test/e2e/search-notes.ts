@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { beforeAll, describe, test } from 'vitest';
+import { beforeAll, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import { loadConfig } from '../../src/config.js';
