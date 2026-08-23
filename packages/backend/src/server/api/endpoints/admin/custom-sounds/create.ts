@@ -11,6 +11,7 @@ import type { DriveFilesRepository } from '@/models/_.js';
 import { CustomSoundService } from '@/core/CustomSoundService.js';
 import { DriveService } from '@/core/DriveService.js';
 import { InternalStorageService } from '@/core/InternalStorageService.js';
+import type { MiCustomSound } from '@/models/CustomSound.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 
 export const meta = {
@@ -105,10 +106,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				});
 			}
 
-			const sound = await this.customSoundService.create({
-				name: ps.name,
-				fileId: systemFile.id,
-			});
+			// 再アップロード後の実際のコンテンツに対して再度判定する
+			if (!systemFile.type.startsWith('audio')) {
+				await this.driveService.deleteFile(systemFile);
+				throw new ApiError(meta.errors.unsupportedFileType);
+			}
+
+			let sound: MiCustomSound;
+			try {
+				sound = await this.customSoundService.create({
+					name: ps.name,
+					fileId: systemFile.id,
+				});
+			} catch (err) {
+				await this.driveService.deleteFile(systemFile);
+				throw err;
+			}
 
 			return await this.customSoundService.pack(sound);
 		});
