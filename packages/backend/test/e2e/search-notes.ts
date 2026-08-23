@@ -6,7 +6,6 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { text } from 'body-parser';
 import { beforeAll, describe, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import type * as misskey from 'misskey-js';
@@ -120,8 +119,6 @@ describeOpenSearchE2E('検索', () => {
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
-
-		console.log(JSON.stringify(reactedNote));
 
 		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: undefined });
 		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });

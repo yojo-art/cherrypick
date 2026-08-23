@@ -124,11 +124,9 @@ export class QueueService implements OnModuleInit {
 	) { }
 
 	async onModuleInit() {
-		console.log('[QueueService] onModuleInit: Setting up', REPEATABLE_SYSTEM_JOB_DEF.length, 'repeatable jobs');
 		try {
 			for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
-				console.log('[QueueService] Setting up repeatable job:', def.name, 'pattern:', def.pattern);
-				const result = await this.systemQueue.upsertJobScheduler(def.name, {
+				await this.systemQueue.upsertJobScheduler(def.name, {
 					pattern: def.pattern,
 					immediately: false,
 				}, {
@@ -143,18 +141,15 @@ export class QueueService implements OnModuleInit {
 						},
 					},
 				});
-				console.log('[QueueService] Result:', def.name, result);
 			}
 
 			// 古いバージョンで作成され現在使われなくなったrepeatableジョブをクリーンアップ
 			const schedulers = await this.systemQueue.getJobSchedulers();
-			console.log('[QueueService] Found', schedulers.length, 'existing schedulers');
 			for (const scheduler of schedulers) {
 				if (!REPEATABLE_SYSTEM_JOB_DEF.some(def => def.name === scheduler.key)) {
 					await this.systemQueue.removeJobScheduler(scheduler.key);
 				}
 			}
-			console.log('[QueueService] onModuleInit: All repeatable jobs set up successfully');
 		} catch (error) {
 			console.error('[QueueService] ERROR in onModuleInit:', error);
 			throw error;
@@ -871,7 +866,6 @@ export class QueueService implements OnModuleInit {
 
 	@bindThis
 	private packJobData(job: Bull.Job): Packed<'QueueJob'> {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const stacktrace = job.stacktrace ? job.stacktrace.filter(Boolean) : [];
 		stacktrace.reverse();
 
