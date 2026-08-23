@@ -229,7 +229,7 @@ describeOpenSearchE2E('検索', () => {
 	test('投稿日時指定:ノート作成と境界一致', async () => {
 		rangeNoteA = await post(alice, { text: 'range_test' });
 		//同時刻に投稿されると日時範囲指定の時刻差分が取れないため僅かに間を置く
-		await new Promise(resolve => setTimeout(resolve, 500));
+		await new Promise(resolve => setTimeout(resolve, 1500));
 		rangeNoteB = await post(alice, { text: 'range_test' });
 		//OpenSearchへの書き込みは作成直後に行われるが、検索可能になるのはrefresh後(既定1秒)のため余裕を持って待つ
 		await new Promise(resolve => setTimeout(resolve, 3000));
