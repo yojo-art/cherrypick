@@ -124,30 +124,35 @@ export class QueueService implements OnModuleInit {
 	) { }
 
 	async onModuleInit() {
-		for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
-			await this.systemQueue.upsertJobScheduler(def.name, {
-				pattern: def.pattern,
-				immediately: false,
-			}, {
-				name: def.name,
-				opts: {
-					// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
-					removeOnComplete: {
-						age: 3600 * 24 * 7, // keep up to 7 days
+		try {
+			for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
+				await this.systemQueue.upsertJobScheduler(def.name, {
+					pattern: def.pattern,
+					immediately: false,
+				}, {
+					name: def.name,
+					opts: {
+						// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
+						removeOnComplete: {
+							age: 3600 * 24 * 7, // keep up to 7 days
+						},
+						removeOnFail: {
+							age: 3600 * 24 * 7, // keep up to 7 days
+						},
 					},
-					removeOnFail: {
-						age: 3600 * 24 * 7, // keep up to 7 days
-					},
-				},
-			});
-		}
-
-		// 古いバージョンで作成され現在使われなくなったrepeatableジョブをクリーンアップ
-		const schedulers = await this.systemQueue.getJobSchedulers();
-		for (const scheduler of schedulers) {
-			if (!REPEATABLE_SYSTEM_JOB_DEF.some(def => def.name === scheduler.key)) {
-				await this.systemQueue.removeJobScheduler(scheduler.key);
+				});
 			}
+
+			// 古いバージョンで作成され現在使われなくなったrepeatableジョブをクリーンアップ
+			const schedulers = await this.systemQueue.getJobSchedulers();
+			for (const scheduler of schedulers) {
+				if (!REPEATABLE_SYSTEM_JOB_DEF.some(def => def.name === scheduler.key)) {
+					await this.systemQueue.removeJobScheduler(scheduler.key);
+				}
+			}
+		} catch (error) {
+			console.error('[QueueService] ERROR in onModuleInit:', error);
+			throw error;
 		}
 	}
 
@@ -861,7 +866,6 @@ export class QueueService implements OnModuleInit {
 
 	@bindThis
 	private packJobData(job: Bull.Job): Packed<'QueueJob'> {
-		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		const stacktrace = job.stacktrace ? job.stacktrace.filter(Boolean) : [];
 		stacktrace.reverse();
 
