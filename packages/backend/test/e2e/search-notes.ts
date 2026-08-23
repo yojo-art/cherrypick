@@ -11,6 +11,10 @@ import { api, post, signup, uploadUrl } from '../utils.js';
 import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
+import { loadConfig } from '../../src/config.js';
+
+// 高度な検索(notes/advanced-search)の投稿日時指定はOpenSearch専用実装のため、OpenSearch未設定環境ではスキップする
+const testWithOpenSearch = loadConfig().opensearch ? test : test.skip;
 
 describeOpenSearchE2E('検索', () => {
 	let alice: misskey.entities.SignupResponse;
@@ -220,26 +224,46 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.includes(nofile_Attached.id), true);//添付なしがある
 		assert.strictEqual(noteIds.includes(file_Attached.id), false);//添付ありがない
 	});
-	let rangeNote: misskey.entities.Note;
-	test('投稿日時指定:範囲内', async () => {
-		rangeNote = await post(alice, { text: 'range_test' });
+	let rangeNoteA: misskey.entities.Note;
+	let rangeNoteB: misskey.entities.Note;
+	test('投稿日時指定:ノート作成と境界一致', async () => {
+		rangeNoteA = await post(alice, { text: 'range_test' });
 		await new Promise(resolve => setTimeout(resolve, 5000));
-		const rangeNoteCreatedAt = Date.parse(rangeNote.createdAt);
+		rangeNoteB = await post(alice, { text: 'range_test' });
+		await new Promise(resolve => setTimeout(resolve, 5000));
+		const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
 		const res = await api('notes/search', {
 			query: 'range_test',
-			rangeStartAt: rangeNoteCreatedAt,
-			rangeEndAt: rangeNoteCreatedAt,
+			rangeStartAt: rangeNoteACreatedAt,
+			rangeEndAt: rangeNoteACreatedAt,
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(Array.isArray(res.body), true);
-		const noteIds = res.body.map( x => x.id);
-		assert.strictEqual(noteIds.includes(rangeNote.id), true);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
+	});
+	test('投稿日時指定:両端を含む範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) - 1000,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) + 1000,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id, rangeNoteB.id].sort());
+	});
+	test('投稿日時指定:内部範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt),
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
 	});
 	test('投稿日時指定:開始が未来の範囲', async () => {
 		const res = await api('notes/search', {
 			query: 'range_test',
-			rangeStartAt: Date.now() + 1000 * 60 * 60,
-			rangeEndAt: Date.now() + 1000 * 60 * 60 * 2,
+			rangeStartAt: Date.parse(rangeNoteB.createdAt) + 1000,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) + 60000,
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(Array.isArray(res.body), true);
@@ -248,8 +272,53 @@ describeOpenSearchE2E('検索', () => {
 	test('投稿日時指定:終了が過去の範囲', async () => {
 		const res = await api('notes/search', {
 			query: 'range_test',
-			rangeStartAt: Date.now() - 1000 * 60 * 60 * 2,
-			rangeEndAt: Date.now() - 1000 * 60 * 60,
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) - 60000,
+			rangeEndAt: Date.parse(rangeNoteA.createdAt) - 1000,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 0);
+	});
+	test('投稿日時指定:開始のみ指定', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+	});
+	test('投稿日時指定:終了のみ指定', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) - 1,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
+	});
+	testWithOpenSearch('投稿日時指定(高度な検索):境界一致', async () => {
+		const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
+		const res = await api('notes/advanced-search', {
+			query: 'range_test',
+			rangeStartAt: rangeNoteACreatedAt,
+			rangeEndAt: rangeNoteACreatedAt,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
+	});
+	testWithOpenSearch('投稿日時指定(高度な検索):内部範囲', async () => {
+		const res = await api('notes/advanced-search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt),
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+	});
+	testWithOpenSearch('投稿日時指定(高度な検索):開始が未来の範囲', async () => {
+		const res = await api('notes/advanced-search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteB.createdAt) + 1000,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) + 60000,
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(Array.isArray(res.body), true);
