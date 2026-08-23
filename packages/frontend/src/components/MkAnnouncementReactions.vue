@@ -109,7 +109,7 @@ function applyLocally(reaction: string, delta: number) {
 	}
 
 	const nextMyReactions = delta > 0
-		? [...myReactions.value, reaction]
+		? (myReactions.value.includes(reaction) ? myReactions.value : [...myReactions.value, reaction])
 		: myReactions.value.filter(r => r !== reaction);
 
 	reactions.value = nextReactions;
