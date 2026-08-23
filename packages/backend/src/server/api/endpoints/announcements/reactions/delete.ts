@@ -3,17 +3,24 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import ms from 'ms';
 import { Inject, Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import type { AnnouncementsRepository } from '@/models/_.js';
-import { AnnouncementReactionService } from '@/core/AnnouncementReactionService.js';
+import { AnnouncementReactionService, AnnouncementReactionErrorIds } from '@/core/AnnouncementReactionService.js';
 import { ApiError } from '../../../error.js';
 
 export const meta = {
 	tags: ['reactions', 'announcements'],
 
 	requireCredential: true,
+
+	limit: {
+		duration: ms('1hour'),
+		max: 60,
+		minInterval: ms('3sec'),
+	},
 
 	prohibitMoved: true,
 
@@ -56,12 +63,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				id: ps.announcementId,
 			});
 
-			if (announcement == null) {
+			if (announcement == null || (announcement.userId != null && announcement.userId !== me.id)) {
 				throw new ApiError(meta.errors.noSuchAnnouncement);
 			}
 
 			await this.announcementReactionService.delete(me, announcement, ps.reaction).catch(err => {
-				if (err.id === '9f2b4d1e-3c8a-4b6f-9d0e-7a1c5b8e2f30') throw new ApiError(meta.errors.notReacted);
+				if (err.id === AnnouncementReactionErrorIds.notReacted) throw new ApiError(meta.errors.notReacted);
 				throw err;
 			});
 		});

@@ -68,6 +68,19 @@ export class AnnouncementReactionService {
 		return `:${name}:`;
 	}
 
+	/**
+	 * 削除時の照合用。存在・権限を再評価せず、DB保存形式への変換のみ行う。
+	 */
+	@bindThis
+	private canonicalizeReaction(reaction: string | null | undefined): string {
+		if (reaction == null) return FALLBACK;
+
+		const custom = reaction.match(isCustomEmojiRegexp);
+		if (custom != null) return `:${custom[1]}:`;
+
+		return this.reactionService.normalize(reaction);
+	}
+
 	@bindThis
 	public async create(user: { id: MiUser['id']; host: MiUser['host'] }, announcement: MiAnnouncement, _reaction?: string | null): Promise<void> {
 		const reaction = await this.normalizeReaction(user, _reaction);
@@ -83,7 +96,7 @@ export class AnnouncementReactionService {
 			await this.announcementReactionsRepository.insert(record);
 		} catch (e) {
 			if (isDuplicateKeyValueError(e)) {
-				throw new IdentifiableError('0b0d5c9f-0c07-4f0e-8a3d-6f6a4a2b0a4f', 'You are already reacting to that announcement.');
+				throw new IdentifiableError(AnnouncementReactionErrorIds.alreadyReacted, 'You are already reacting to that announcement.');
 			}
 			throw e;
 		}
@@ -97,7 +110,7 @@ export class AnnouncementReactionService {
 
 	@bindThis
 	public async delete(user: { id: MiUser['id'] }, announcement: MiAnnouncement, _reaction?: string | null): Promise<void> {
-		const reaction = await this.normalizeReaction(user, _reaction);
+		const reaction = this.canonicalizeReaction(_reaction);
 
 		const exist = await this.announcementReactionsRepository.findOneBy({
 			announcementId: announcement.id,
@@ -106,12 +119,13 @@ export class AnnouncementReactionService {
 		});
 
 		if (exist == null) {
-			throw new IdentifiableError('9f2b4d1e-3c8a-4b6f-9d0e-7a1c5b8e2f30', 'You are not reacting to that announcement.');
+			throw new IdentifiableError(AnnouncementReactionErrorIds.notReacted, 'You are not reacting to that announcement.');
 		}
 
-		await this.announcementReactionsRepository.delete({
+		const result = await this.announcementReactionsRepository.delete({
 			id: exist.id,
 		});
+		if (result.affected !== 1) return; // 競合で既に削除済み
 
 		this.globalEventService.publishBroadcastStream('announcementUnreacted', {
 			announcementId: announcement.id,
@@ -172,3 +186,8 @@ export class AnnouncementReactionService {
 		return result;
 	}
 }
+
+export const AnnouncementReactionErrorIds = {
+	alreadyReacted: '0b0d5c9f-0c07-4f0e-8a3d-6f6a4a2b0a4f',
+	notReacted: '9f2b4d1e-3c8a-4b6f-9d0e-7a1c5b8e2f30',
+} as const;

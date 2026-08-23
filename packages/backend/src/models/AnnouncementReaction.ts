@@ -15,7 +15,6 @@ export class MiAnnouncementReaction {
 	@PrimaryColumn(id())
 	public id: string;
 
-	@Index()
 	@Column(id())
 	public userId: MiUser['id'];
 

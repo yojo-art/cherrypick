@@ -43,7 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, useTemplateRef, watch } from 'vue';
+import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkReactionIcon from '@/components/MkReactionIcon.vue';
 import MkAnnouncementReactedUsersDialog from '@/components/MkAnnouncementReactedUsersDialog.vue';
@@ -53,6 +53,7 @@ import { i18n } from '@/i18n.js';
 import { $i } from '@/i.js';
 import * as os from '@/os.js';
 import * as sound from '@/utility/sound.js';
+import { useStream } from '@/stream.js';
 
 const props = defineProps<{
 	announcementId: Misskey.entities.Announcement['id'];
@@ -72,12 +73,54 @@ const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
 const toggling = ref(false);
 
+const stream = useStream();
+
 watch(() => props.reactions, (newReactions) => {
 	reactions.value = { ...newReactions };
 });
 
 watch(() => props.myReactions, (newMyReactions) => {
 	myReactions.value = [...newMyReactions];
+});
+
+function updateReactions(nextReactions: Record<string, number>, nextMyReactions: string[]) {
+	reactions.value = nextReactions;
+	myReactions.value = nextMyReactions;
+	emit('update', nextReactions, nextMyReactions);
+}
+
+function onReacted({ announcementId, reaction, userId }: Misskey.entities.AnnouncementReacted) {
+	if (announcementId !== props.announcementId) return;
+	// 自分の操作は既に楽観的に反映済みなので無視する
+	if (userId === $i?.id) return;
+
+	const nextReactions = { ...reactions.value };
+	nextReactions[reaction] = (nextReactions[reaction] ?? 0) + 1;
+	updateReactions(nextReactions, myReactions.value);
+}
+
+function onUnreacted({ announcementId, reaction, userId }: Misskey.entities.AnnouncementUnreacted) {
+	if (announcementId !== props.announcementId) return;
+	if (userId === $i?.id) return;
+
+	const nextReactions = { ...reactions.value };
+	const count = (nextReactions[reaction] ?? 0) - 1;
+	if (count > 0) {
+		nextReactions[reaction] = count;
+	} else {
+		delete nextReactions[reaction];
+	}
+	updateReactions(nextReactions, myReactions.value);
+}
+
+onMounted(() => {
+	stream.on('announcementReacted', onReacted);
+	stream.on('announcementUnreacted', onUnreacted);
+});
+
+onUnmounted(() => {
+	stream.off('announcementReacted', onReacted);
+	stream.off('announcementUnreacted', onUnreacted);
 });
 
 const sortedReactions = computed(() => Object.entries(reactions.value)
@@ -113,9 +156,7 @@ function applyLocally(reaction: string, delta: number) {
 		? (myReactions.value.includes(reaction) ? myReactions.value : [...myReactions.value, reaction])
 		: myReactions.value.filter(r => r !== reaction);
 
-	reactions.value = nextReactions;
-	myReactions.value = nextMyReactions;
-	emit('update', nextReactions, nextMyReactions);
+	updateReactions(nextReactions, nextMyReactions);
 }
 
 async function toggle(reaction: string) {
@@ -142,9 +183,7 @@ async function toggle(reaction: string) {
 			sound.playMisskeySfx('reaction');
 		}
 	} catch (err) {
-		reactions.value = previousReactions;
-		myReactions.value = previousMyReactions;
-		emit('update', previousReactions, previousMyReactions);
+		updateReactions(previousReactions, previousMyReactions);
 		os.alert({
 			type: 'error',
 			text: i18n.ts.somethingHappened,

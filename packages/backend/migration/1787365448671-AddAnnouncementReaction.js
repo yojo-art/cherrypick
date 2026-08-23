@@ -11,7 +11,6 @@ export class AddAnnouncementReaction1787365448671 {
      */
     async up(queryRunner) {
         await queryRunner.query(`CREATE TABLE "announcement_reaction" ("id" character varying(32) NOT NULL, "userId" character varying(32) NOT NULL, "announcementId" character varying(32) NOT NULL, "reaction" character varying(260) NOT NULL, CONSTRAINT "PK_8219ba57f520f3b8b31d4bc7050" PRIMARY KEY ("id"))`);
-        await queryRunner.query(`CREATE INDEX "IDX_1cc26178eab91d50906a264a8f" ON "announcement_reaction" ("userId") `);
         await queryRunner.query(`CREATE INDEX "IDX_60b8d991a4c39d2cc84e1d7f50" ON "announcement_reaction" ("announcementId") `);
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_e3490d163f000c3651b46a1936" ON "announcement_reaction" ("userId", "announcementId", "reaction") `);
         await queryRunner.query(`CREATE INDEX "IDX_02f07dbb3c2554be3501fdc0c5" ON "announcement_reaction" ("userId", "announcementId") `);
@@ -28,7 +27,6 @@ export class AddAnnouncementReaction1787365448671 {
         await queryRunner.query(`DROP INDEX "public"."IDX_02f07dbb3c2554be3501fdc0c5"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_e3490d163f000c3651b46a1936"`);
         await queryRunner.query(`DROP INDEX "public"."IDX_60b8d991a4c39d2cc84e1d7f50"`);
-        await queryRunner.query(`DROP INDEX "public"."IDX_1cc26178eab91d50906a264a8f"`);
         await queryRunner.query(`DROP TABLE "announcement_reaction"`);
     }
 }
