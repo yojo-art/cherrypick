@@ -154,13 +154,25 @@ async function toggle(reaction: string) {
 	}
 }
 
+/**
+ * ピッカーが返す生の絵文字文字列をバックエンドの normalizeReaction と同じルールで正規化する。
+ * - カスタム絵文字: :name@.: → :name:（お知らせはローカル専用のため @. を除去）
+ * - Unicode絵文字: 異体字セレクタ(U+FE0F)除去（ZWJ 合字はそのまま）
+ */
+function normalizePickedReaction(reaction: string): string {
+	const localCustom = reaction.replace(/^:([\w+-]+)@\.:$/, ':$1:');
+	if (localCustom !== reaction) return localCustom;
+	return reaction.match('\u200d') ? reaction : reaction.replace(/\ufe0f/g, '');
+}
+
 function pick() {
 	if (!canToggle.value) return;
 
 	reactionPicker.show(pickerButtonEl.value ?? null, null, (reaction) => {
+		const normalized = normalizePickedReaction(reaction);
 		// すでに付けているリアクションを選んだ場合は何もしない
-		if (myReactions.value.includes(reaction)) return;
-		toggle(reaction);
+		if (myReactions.value.includes(normalized)) return;
+		toggle(normalized);
 	});
 }
 </script>
