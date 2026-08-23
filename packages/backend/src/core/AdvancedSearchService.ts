@@ -1214,8 +1214,8 @@ export class AdvancedSearchService {
 
 			if (pagination.untilId) osFilter.bool.must.push({ range: { createdAt: { lt: this.idService.parse(pagination.untilId).date.getTime() } } });
 			if (pagination.sinceId) osFilter.bool.must.push({ range: { createdAt: { gt: this.idService.parse(pagination.sinceId).date.getTime() } } });
-			if (opts.rangeStartAt != null) osFilter.bool.must.push({ range: { createdAt: { gte: opts.rangeStartAt } } });
-			if (opts.rangeEndAt != null) osFilter.bool.must.push({ range: { createdAt: { lte: opts.rangeEndAt } } });
+			if (opts.rangeStartAt) osFilter.bool.must.push({ range: { createdAt: { gte: opts.rangeStartAt } } });
+			if (opts.rangeEndAt) osFilter.bool.must.push({ range: { createdAt: { lte: opts.rangeEndAt } } });
 			if (opts.reactions && 0 < opts.reactions.length ) {
 				const reactionsQuery = {
 					nested: {
