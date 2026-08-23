@@ -124,40 +124,30 @@ export class QueueService implements OnModuleInit {
 	) { }
 
 	async onModuleInit() {
-		console.log('[QueueService] onModuleInit: Setting up', REPEATABLE_SYSTEM_JOB_DEF.length, 'repeatable jobs');
-		try {
-			for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
-				console.log('[QueueService] Setting up repeatable job:', def.name, 'pattern:', def.pattern);
-				const result = await this.systemQueue.upsertJobScheduler(def.name, {
-					pattern: def.pattern,
-					immediately: false,
-				}, {
-					name: def.name,
-					opts: {
-						// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
-						removeOnComplete: {
-							age: 3600 * 24 * 7, // keep up to 7 days
-						},
-						removeOnFail: {
-							age: 3600 * 24 * 7, // keep up to 7 days
-						},
+		for (const def of REPEATABLE_SYSTEM_JOB_DEF) {
+			await this.systemQueue.upsertJobScheduler(def.name, {
+				pattern: def.pattern,
+				immediately: false,
+			}, {
+				name: def.name,
+				opts: {
+					// 期限ではなくcountで設定したいが、ジョブごとではなくキュー全体でカウントされるため、高頻度で実行されるジョブによって低頻度で実行されるジョブのログが消えることになる
+					removeOnComplete: {
+						age: 3600 * 24 * 7, // keep up to 7 days
 					},
-				});
-				console.log('[QueueService] Result:', def.name, result);
-			}
+					removeOnFail: {
+						age: 3600 * 24 * 7, // keep up to 7 days
+					},
+				},
+			});
+		}
 
-			// 古いバージョンで作成され現在使われなくなったrepeatableジョブをクリーンアップ
-			const schedulers = await this.systemQueue.getJobSchedulers();
-			console.log('[QueueService] Found', schedulers.length, 'existing schedulers');
-			for (const scheduler of schedulers) {
-				if (!REPEATABLE_SYSTEM_JOB_DEF.some(def => def.name === scheduler.key)) {
-					await this.systemQueue.removeJobScheduler(scheduler.key);
-				}
+		// 古いバージョンで作成され現在使われなくなったrepeatableジョブをクリーンアップ
+		const schedulers = await this.systemQueue.getJobSchedulers();
+		for (const scheduler of schedulers) {
+			if (!REPEATABLE_SYSTEM_JOB_DEF.some(def => def.name === scheduler.key)) {
+				await this.systemQueue.removeJobScheduler(scheduler.key);
 			}
-			console.log('[QueueService] onModuleInit: All repeatable jobs set up successfully');
-		} catch (error) {
-			console.error('[QueueService] ERROR in onModuleInit:', error);
-			throw error;
 		}
 	}
 
