@@ -186,7 +186,7 @@ export const PREF_DEF = definePreferences({
 		default: false,
 	},
 	defaultChannelNoteVisibility: {
-		default: 'public' as (typeof Misskey.noteVisibilities)[number],
+		default: 'public' as (typeof Misskey.channelNoteVisibilities)[number],
 	},
 	rememberNoteSearchbility: {
 		default: false,
