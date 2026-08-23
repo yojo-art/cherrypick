@@ -8,10 +8,10 @@ process.env.NODE_ENV = 'test';
 import * as assert from 'assert';
 import { beforeAll, describe, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
-import type * as misskey from 'misskey-js';
-import { query } from '@/misc/prelude/url.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import { loadConfig } from '../../src/config.js';
+import type * as misskey from 'misskey-js';
+import { query } from '@/misc/prelude/url.js';
 
 // 高度な検索(notes/advanced-search)の投稿日時指定はOpenSearch専用実装のため、OpenSearch未設定環境ではスキップする
 const testWithOpenSearch = loadConfig().opensearch ? test : test.skip;
@@ -118,7 +118,7 @@ describeOpenSearchE2E('検索', () => {
 				choices: ['1', '2'],
 				multiple: false,
 			},
-		 });
+		});
 		clipedNote = await post(carol, { text: 'indexable_text' });
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
@@ -228,9 +228,11 @@ describeOpenSearchE2E('検索', () => {
 	let rangeNoteB: misskey.entities.Note;
 	test('投稿日時指定:ノート作成と境界一致', async () => {
 		rangeNoteA = await post(alice, { text: 'range_test' });
-		await new Promise(resolve => setTimeout(resolve, 5000));
+		//同時刻に投稿されると日時範囲指定の時刻差分が取れないため僅かに間を置く
+		await new Promise(resolve => setTimeout(resolve, 500));
 		rangeNoteB = await post(alice, { text: 'range_test' });
-		await new Promise(resolve => setTimeout(resolve, 5000));
+		//OpenSearchへの書き込みは作成直後に行われるが、検索可能になるのはrefresh後(既定1秒)のため余裕を持って待つ
+		await new Promise(resolve => setTimeout(resolve, 3000));
 		const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
 		const res = await api('notes/search', {
 			query: 'range_test',
