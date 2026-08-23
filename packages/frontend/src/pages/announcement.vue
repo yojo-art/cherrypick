@@ -35,6 +35,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{{ i18n.ts.updatedAt }}: <MkTime :time="announcement.updatedAt" mode="detail"/>
 					</div>
 				</div>
+				<div :class="$style.reactions">
+					<MkAnnouncementReactions
+						:announcementId="announcement.id"
+						:reactions="announcement.reactions"
+						:myReactions="announcement.myReactions"
+						@update="onReactionsUpdate"
+					/>
+				</div>
 				<div v-if="$i && !announcement.silence && !announcement.isRead" :class="$style.footer">
 					<MkButton primary @click="read(announcement)"><i class="ti ti-check"></i> {{ i18n.ts.gotIt }}</MkButton>
 				</div>
@@ -50,6 +58,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref, computed, watch } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
+import MkAnnouncementReactions from '@/components/MkAnnouncementReactions.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -96,8 +105,17 @@ async function read(target: Misskey.entities.Announcement): Promise<void> {
 	}
 }
 
-watch(() => path.value, _fetch_, { immediate: true });
+function onReactionsUpdate(reactions: Record<string, number>, myReactions: string[]) {
+	if (announcement.value == null) return;
 
+	announcement.value = {
+		...announcement.value,
+		reactions,
+		myReactions,
+	};
+}
+
+watch(() => path.value, _fetch_, { immediate: true });
 const headerActions = computed(() => []);
 
 const headerTabs = computed(() => []);
@@ -143,6 +161,10 @@ definePage(() => ({
 		max-height: 300px;
 		max-width: 100%;
 	}
+}
+
+.reactions {
+	margin-top: 16px;
 }
 
 .footer {

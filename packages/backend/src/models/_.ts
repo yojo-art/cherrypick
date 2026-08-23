@@ -15,6 +15,7 @@ import { MiAccessToken } from '@/models/AccessToken.js';
 import { MiAd } from '@/models/Ad.js';
 import { MiAnnouncement } from '@/models/Announcement.js';
 import { MiAnnouncementRead } from '@/models/AnnouncementRead.js';
+import { MiAnnouncementReaction } from '@/models/AnnouncementReaction.js';
 import { MiAntenna } from '@/models/Antenna.js';
 import { MiApp } from '@/models/App.js';
 import { MiAuthSession } from '@/models/AuthSession.js';
@@ -113,6 +114,7 @@ export {
 	MiAd,
 	MiAnnouncement,
 	MiAnnouncementRead,
+	MiAnnouncementReaction,
 	MiAntenna,
 	MiApp,
 	MiAvatarDecoration,
@@ -201,6 +203,7 @@ export type AccessTokensRepository = Repository<MiAccessToken> & MiRepository<Mi
 export type AdsRepository = Repository<MiAd> & MiRepository<MiAd>;
 export type AnnouncementsRepository = Repository<MiAnnouncement> & MiRepository<MiAnnouncement>;
 export type AnnouncementReadsRepository = Repository<MiAnnouncementRead> & MiRepository<MiAnnouncementRead>;
+export type AnnouncementReactionsRepository = Repository<MiAnnouncementReaction> & MiRepository<MiAnnouncementReaction>;
 export type AntennasRepository = Repository<MiAntenna> & MiRepository<MiAntenna>;
 export type AppsRepository = Repository<MiApp> & MiRepository<MiApp>;
 export type AvatarDecorationsRepository = Repository<MiAvatarDecoration> & MiRepository<MiAvatarDecoration>;

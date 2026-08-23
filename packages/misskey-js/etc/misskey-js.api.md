@@ -523,6 +523,21 @@ type AnnouncementCreated = {
 };
 
 // @public (undocumented)
+type AnnouncementReaction = components['schemas']['AnnouncementReaction'];
+
+// @public (undocumented)
+type AnnouncementsReactionsCreateRequest = operations['announcements___reactions___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsDeleteRequest = operations['announcements___reactions___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsRequest = operations['announcements___reactions']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsResponse = operations['announcements___reactions']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AnnouncementsRequest = operations['announcements']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -1796,6 +1811,10 @@ declare namespace entities {
         AdminUpdateUserNoteRequest,
         AnnouncementsRequest,
         AnnouncementsResponse,
+        AnnouncementsReactionsRequest,
+        AnnouncementsReactionsResponse,
+        AnnouncementsReactionsCreateRequest,
+        AnnouncementsReactionsDeleteRequest,
         AnnouncementsShowRequest,
         AnnouncementsShowResponse,
         AntennasCreateRequest,
@@ -2382,6 +2401,7 @@ declare namespace entities {
         AchievementName,
         Ad,
         Announcement,
+        AnnouncementReaction,
         App,
         Note,
         NoteDraft,

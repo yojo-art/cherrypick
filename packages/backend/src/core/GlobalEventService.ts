@@ -8,6 +8,7 @@ import * as Redis from 'ioredis';
 import * as Reversi from 'misskey-reversi';
 import type { MiChannel } from '@/models/Channel.js';
 import type { MiUser } from '@/models/User.js';
+import type { MiAnnouncement } from '@/models/Announcement.js';
 import type { MiUserProfile } from '@/models/UserProfile.js';
 import type { MiNote } from '@/models/Note.js';
 import type { MiAntenna } from '@/models/Antenna.js';
@@ -44,6 +45,16 @@ export interface BroadcastTypes {
 	};
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
+	};
+	announcementReacted: {
+		announcementId: MiAnnouncement['id'];
+		reaction: string;
+		userId: MiUser['id'];
+	};
+	announcementUnreacted: {
+		announcementId: MiAnnouncement['id'];
+		reaction: string;
+		userId: MiUser['id'];
 	};
 }
 

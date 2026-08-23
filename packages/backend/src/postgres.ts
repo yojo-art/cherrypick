@@ -18,6 +18,7 @@ import { MiAccessToken } from '@/models/AccessToken.js';
 import { MiAd } from '@/models/Ad.js';
 import { MiAnnouncement } from '@/models/Announcement.js';
 import { MiAnnouncementRead } from '@/models/AnnouncementRead.js';
+import { MiAnnouncementReaction } from '@/models/AnnouncementReaction.js';
 import { MiAntenna } from '@/models/Antenna.js';
 import { MiApp } from '@/models/App.js';
 import { MiAvatarDecoration } from '@/models/AvatarDecoration.js';
@@ -190,6 +191,7 @@ export const entities = [
 	MiAbuseReportResolver,
 	MiAnnouncement,
 	MiAnnouncementRead,
+	MiAnnouncementReaction,
 	MiMeta,
 	MiInstance,
 	MiApp,
