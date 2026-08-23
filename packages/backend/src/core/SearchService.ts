@@ -247,13 +247,11 @@ export class SearchService {
 		}
 
 		if (opts.rangeStartAt != null) {
-			//OpenSearch/Meilisearch の createdAt >= rangeStartAt と同じく指定時刻を含む範囲とするため、rangeStartAtより1ms前のIDより後を検索する
 			const date = this.idService.gen(opts.rangeStartAt - 1);
 			query.andWhere('note.id > :rangeStartAt', { rangeStartAt: date });
 		}
 
 		if (opts.rangeEndAt != null) {
-			//OpenSearch/Meilisearch の createdAt <= rangeEndAt と同じく指定時刻を含む範囲とするため、rangeEndAtより1ms後のIDより前を検索する
 			const date = this.idService.gen(opts.rangeEndAt + 1);
 			query.andWhere('note.id < :rangeEndAt', { rangeEndAt: date });
 		}
@@ -284,7 +282,7 @@ export class SearchService {
 			k: 'createdAt',
 			v: this.idService.parse(pagination.untilId).date.getTime(),
 		});
-		if (opts.rangeEndAt != null) filter.qs.push({
+		if (opts.rangeEndAt) filter.qs.push({
 			op: '<=',
 			k: 'createdAt',
 			v: opts.rangeEndAt,
@@ -294,7 +292,7 @@ export class SearchService {
 			k: 'createdAt',
 			v: this.idService.parse(pagination.sinceId).date.getTime(),
 		});
-		if (opts.rangeStartAt != null) filter.qs.push({
+		if (opts.rangeStartAt) filter.qs.push({
 			op: '>=',
 			k: 'createdAt',
 			v: opts.rangeStartAt,
