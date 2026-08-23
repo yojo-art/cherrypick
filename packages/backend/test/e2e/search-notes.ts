@@ -49,6 +49,8 @@ describeOpenSearchE2E('検索', () => {
 	let noteSearchableByFollowersAndReacted: misskey.entities.Note;
 	let noteSearchableByReacted: misskey.entities.Note;
 	let noteSearchableByPrivate: misskey.entities.Note;
+	let rangeNoteA: misskey.entities.Note;
+	let rangeNoteB: misskey.entities.Note;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
@@ -123,6 +125,11 @@ describeOpenSearchE2E('検索', () => {
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
+
+		rangeNoteA = await post(alice, { text: 'range_test' });
+		//同時刻に投稿されると日時範囲指定の時刻差分が取れないため僅かに間を置く
+		await new Promise(resolve => setTimeout(resolve, 1500));
+		rangeNoteB = await post(alice, { text: 'range_test' });
 
 		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: undefined });
 		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });
@@ -224,15 +231,7 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.includes(nofile_Attached.id), true);//添付なしがある
 		assert.strictEqual(noteIds.includes(file_Attached.id), false);//添付ありがない
 	});
-	let rangeNoteA: misskey.entities.Note;
-	let rangeNoteB: misskey.entities.Note;
-	test('投稿日時指定:ノート作成と境界一致', async () => {
-		rangeNoteA = await post(alice, { text: 'range_test' });
-		//同時刻に投稿されると日時範囲指定の時刻差分が取れないため僅かに間を置く
-		await new Promise(resolve => setTimeout(resolve, 1500));
-		rangeNoteB = await post(alice, { text: 'range_test' });
-		//OpenSearchへの書き込みは作成直後に行われるが、検索可能になるのはrefresh後(既定1秒)のため余裕を持って待つ
-		await new Promise(resolve => setTimeout(resolve, 3000));
+	test('投稿日時指定:境界一致', async () => {
 		const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
 		const res = await api('notes/search', {
 			query: 'range_test',
