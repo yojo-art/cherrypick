@@ -121,8 +121,6 @@ describeOpenSearchE2E('検索', () => {
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
 
-		console.log(JSON.stringify(reactedNote));
-
 		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: undefined });
 		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });
 		noteSearchableByFollowersAndReacted = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'followersAndReacted' });
