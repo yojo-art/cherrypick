@@ -713,6 +713,9 @@ export abstract class ChannelConnection<Channel extends AnyOf<Channels> = AnyOf<
 }
 
 // @public (undocumented)
+export const channelNoteVisibilities: readonly ["public", "home"];
+
+// @public (undocumented)
 export type Channels = {
     main: {
         params: null;
