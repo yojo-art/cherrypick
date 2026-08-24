@@ -217,6 +217,18 @@ describe('AnnouncementReactionService', () => {
 			expect(thrown).toBeDefined();
 			expect(thrown.id).toBe(AnnouncementReactionErrorIds.notReacted);
 		});
+
+		test('削除後に同じリアクションを再度付けられる', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement();
+
+			await service.create(user, announcement, 'like');
+			await service.delete(user, announcement, 'like');
+			await service.create(user, announcement, 'like');
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows).toHaveLength(1);
+		});
 	});
 
 	describe('getCounts / getMyReactions', () => {
@@ -232,6 +244,72 @@ describe('AnnouncementReactionService', () => {
 
 			const mine = await service.getMyReactions([announcement.id], user.id);
 			expect(mine.get(announcement.id)).toEqual([':local@.:']);
+		});
+
+		test('複数ユーザー・複数種類のリアクションを集計できる', async () => {
+			const userA = await createUser();
+			const userB = await createUser();
+			const announcement = await createAnnouncement();
+
+			await service.create(userA, announcement, 'like');
+			await service.create(userA, announcement, 'pudding');
+			await service.create(userB, announcement, 'like');
+
+			const counts = await service.getCounts([announcement.id]);
+			expect(counts.get(announcement.id)).toEqual({ '👍': 2, '🍮': 1 });
+
+			const mineA = await service.getMyReactions([announcement.id], userA.id);
+			expect([...(mineA.get(announcement.id) ?? [])].sort()).toEqual(['🍮', '👍']);
+
+			const mineB = await service.getMyReactions([announcement.id], userB.id);
+			expect(mineB.get(announcement.id)).toEqual(['👍']);
+		});
+	});
+
+	describe('stream events', () => {
+		test('グローバルお知らせへのリアクションは broadcast する', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement();
+
+			await service.create(user, announcement, 'like');
+
+			expect(globalEventService.publishBroadcastStream).toHaveBeenCalledWith('announcementReacted', expect.objectContaining({
+				announcementId: announcement.id,
+				reaction: '👍',
+				userId: user.id,
+			}));
+			expect(globalEventService.publishMainStream).not.toHaveBeenCalled();
+
+			await service.delete(user, announcement, 'like');
+
+			expect(globalEventService.publishBroadcastStream).toHaveBeenCalledWith('announcementUnreacted', expect.objectContaining({
+				announcementId: announcement.id,
+				reaction: '👍',
+				userId: user.id,
+			}));
+		});
+
+		test('個人宛てお知らせへのリアクションは宛先ユーザーの mainStream に限定する', async () => {
+			const target = await createUser();
+			const reactor = await createUser();
+			const announcement = await createAnnouncement({ userId: target.id });
+
+			await service.create(reactor, announcement, 'like');
+
+			expect(globalEventService.publishMainStream).toHaveBeenCalledWith(target.id, 'announcementReacted', expect.objectContaining({
+				announcementId: announcement.id,
+				reaction: '👍',
+				userId: reactor.id,
+			}));
+			expect(globalEventService.publishBroadcastStream).not.toHaveBeenCalled();
+
+			await service.delete(reactor, announcement, 'like');
+
+			expect(globalEventService.publishMainStream).toHaveBeenCalledWith(target.id, 'announcementUnreacted', expect.objectContaining({
+				announcementId: announcement.id,
+				reaction: '👍',
+				userId: reactor.id,
+			}));
 		});
 	});
 });

@@ -109,6 +109,8 @@ export interface MainEventTypes {
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
 	};
+	announcementReacted: BroadcastTypes['announcementReacted'];
+	announcementUnreacted: BroadcastTypes['announcementUnreacted'];
 }
 
 export interface DriveEventTypes {

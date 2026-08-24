@@ -101,7 +101,7 @@ export class AnnouncementReactionService {
 			throw e;
 		}
 
-		this.globalEventService.publishBroadcastStream('announcementReacted', {
+		this.publishReactionEvent(announcement, 'announcementReacted', {
 			announcementId: announcement.id,
 			reaction: this.reactionService.decodeReaction(reaction).reaction,
 			userId: user.id,
@@ -127,7 +127,7 @@ export class AnnouncementReactionService {
 		});
 		if (result.affected !== 1) return; // 競合で既に削除済み
 
-		this.globalEventService.publishBroadcastStream('announcementUnreacted', {
+		this.publishReactionEvent(announcement, 'announcementUnreacted', {
 			announcementId: announcement.id,
 			reaction: this.reactionService.decodeReaction(exist.reaction).reaction,
 			userId: user.id,
@@ -184,6 +184,22 @@ export class AnnouncementReactionService {
 		}
 
 		return result;
+	}
+
+	/**
+	 * 個人宛てお知らせは宛先ユーザーの mainStream に限定し、全体向けのみ broadcast する。
+	 */
+	@bindThis
+	private publishReactionEvent(
+		announcement: MiAnnouncement,
+		type: 'announcementReacted' | 'announcementUnreacted',
+		event: { announcementId: MiAnnouncement['id']; reaction: string; userId: MiUser['id'] },
+	): void {
+		if (announcement.userId != null) {
+			this.globalEventService.publishMainStream(announcement.userId, type, event);
+		} else {
+			this.globalEventService.publishBroadcastStream(type, event);
+		}
 	}
 }
 

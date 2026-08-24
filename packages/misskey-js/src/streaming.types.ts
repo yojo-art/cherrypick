@@ -74,6 +74,8 @@ export type Channels = {
 			readAntenna: (payload: Antenna) => void;
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
+			announcementReacted: (payload: AnnouncementReacted) => void;
+			announcementUnreacted: (payload: AnnouncementUnreacted) => void;
 		};
 		receives: null;
 	};

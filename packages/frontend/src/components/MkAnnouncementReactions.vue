@@ -74,6 +74,7 @@ const myReactions = ref<string[]>([...props.myReactions]);
 const toggling = ref(false);
 
 const stream = useStream();
+const mainChannel = $i != null ? stream.useChannel('main') : null;
 
 watch(() => props.reactions, (newReactions) => {
 	reactions.value = { ...newReactions };
@@ -116,11 +117,16 @@ function onUnreacted({ announcementId, reaction, userId }: Misskey.entities.Anno
 onMounted(() => {
 	stream.on('announcementReacted', onReacted);
 	stream.on('announcementUnreacted', onUnreacted);
+	mainChannel?.on('announcementReacted', onReacted);
+	mainChannel?.on('announcementUnreacted', onUnreacted);
 });
 
 onUnmounted(() => {
 	stream.off('announcementReacted', onReacted);
 	stream.off('announcementUnreacted', onUnreacted);
+	mainChannel?.off('announcementReacted', onReacted);
+	mainChannel?.off('announcementUnreacted', onUnreacted);
+	mainChannel?.dispose();
 });
 
 const sortedReactions = computed(() => Object.entries(reactions.value)
