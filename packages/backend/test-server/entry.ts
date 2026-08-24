@@ -22,13 +22,7 @@ let serverService: ServerService;
 export async function setup() {
 	await killTestServer();
 
-	console.log('starting application...');
-
-	app = await NestFactory.createApplicationContext(MainModule, {
-		logger: new NestLogger(),
-	});
-	serverService = app.get(ServerService);
-	await serverService.launch();
+	await launchApp();
 
 	await startControllerEndpoints();
 
@@ -36,6 +30,25 @@ export async function setup() {
 	// ジョブキューが動くとテスト結果の確認に支障が出ることがあるので意図的に動かさないでいる
 
 	console.log('application initialized.');
+}
+
+async function launchApp() {
+	console.log('starting application...');
+
+	app = await NestFactory.createApplicationContext(MainModule, {
+		logger: new NestLogger(),
+	});
+	serverService = app.get(ServerService);
+	await serverService.launch();
+}
+
+async function disposeApp() {
+	process.env = JSON.parse(originEnv);
+
+	await serverService.dispose();
+	await app.close();
+
+	await killTestServer();
 }
 
 /**
@@ -54,11 +67,10 @@ async function killTestServer() {
 	//
 	try {
 		const pid = await portToPid(config.port);
-		if (pid) {
+		if (pid && pid !== process.pid) {
 			await fkill(pid, { force: true });
 		}
-	} catch {
-		// NOP;
+	} catch { // NOP;
 	}
 }
 
@@ -82,21 +94,14 @@ async function startControllerEndpoints(port = config.port + 1000) {
 		res.code(200).send({ success: true });
 	});
 
-	fastify.post<{ Body: { key?: string, value?: string } }>('/env-reset', async (req, res) => {
-		process.env = JSON.parse(originEnv);
+	fastify.post('/dispose', async (req, res) => {
+		await disposeApp();
 
-		await serverService.dispose();
-		await app.close();
+		res.code(200).send({ success: true });
+	});
 
-		await killTestServer();
-
-		console.log('starting application...');
-
-		app = await NestFactory.createApplicationContext(MainModule, {
-			logger: new NestLogger(),
-		});
-		serverService = app.get(ServerService);
-		await serverService.launch();
+	fastify.post('/launch', async (req, res) => {
+		await launchApp();
 
 		res.code(200).send({ success: true });
 	});
