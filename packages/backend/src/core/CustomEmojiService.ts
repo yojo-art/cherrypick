@@ -15,7 +15,7 @@ import { bindThis } from '@/decorators.js';
 import { DI } from '@/di-symbols.js';
 import { MemoryKVCache, RedisSingleCache } from '@/misc/cache.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
-import type { DriveFilesRepository, EmojisRepository, MiMeta, MiRole, MiUser } from '@/models/_.js';
+import type { DriveFilesRepository, EmojisRepository, MiDriveFile, MiMeta, MiRole, MiUser } from '@/models/_.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import { emojiCopyPermissions, Serialized } from '@/types.js';
 import { DriveService } from '@/core/DriveService.js';
@@ -197,7 +197,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		null
 		| 'NO_SUCH_EMOJI'
 		| 'SAME_NAME_EMOJI_EXISTS'
-		> {
+	> {
 		const emoji = data.id
 			? await this.getEmojiById(data.id)
 			: await this.getEmojiByName(data.name!);
@@ -734,32 +734,44 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		const errors: string[] = [];
 		const originalSourceUrl = data.originalUrl;
 
-		while (retryCount < MAX_RETRY_COUNT) {
-			try {
-				copyDriveFile = await this.driveService.uploadFromUrl({
-					url: originalSourceUrl,
-					user: null,
-					force: true,
-				});
-				break;
-			} catch (e) {
-				retryCount++;
-				this.logger.warn(`Failed to upload custom emoji (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
-					error: e instanceof Error ? e.message : String(e),
-					stack: e instanceof Error ? e.stack : undefined,
-					originalUrl: originalSourceUrl,
-					...loggerContext,
-				});
-				errors.push(e instanceof Error ? e.message : String(e));
-				if (retryCount >= MAX_RETRY_COUNT) {
-					this.logger.error('Maximum retry count reached for custom emoji upload', {
+		const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
+		if (originalDriveFile && originalDriveFile.userHost === null) {
+			//ローカルユーザーがアップロードした絵文字はコピーする
+			copyDriveFile = await this.driveService.copy({
+				file: originalDriveFile,
+				folderId: null,
+				userId: null,
+				userHost: null,
+			});
+		} else {
+			//リモートからインポートする時はダウンロード
+			while (retryCount < MAX_RETRY_COUNT) {
+				try {
+					copyDriveFile = await this.driveService.uploadFromUrl({
+						url: originalSourceUrl,
+						user: null,
+						force: true,
+					});
+					break;
+				} catch (e) {
+					retryCount++;
+					this.logger.warn(`Failed to upload custom emoji (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
 						error: e instanceof Error ? e.message : String(e),
+						stack: e instanceof Error ? e.stack : undefined,
 						originalUrl: originalSourceUrl,
 						...loggerContext,
 					});
-					throw new Error(`Failed to process custom emoji upload after ${MAX_RETRY_COUNT} attempts: ${errors.join('; ')}`);
+					errors.push(e instanceof Error ? e.message : String(e));
+					if (retryCount >= MAX_RETRY_COUNT) {
+						this.logger.error('Maximum retry count reached for custom emoji upload', {
+							error: e instanceof Error ? e.message : String(e),
+							originalUrl: originalSourceUrl,
+							...loggerContext,
+						});
+						throw new Error(`Failed to process custom emoji upload after ${MAX_RETRY_COUNT} attempts: ${errors.join('; ')}`);
+					}
+					await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
 				}
-				await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
 			}
 		}
 
@@ -770,7 +782,6 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		const newUrl = copyDriveFile.url;
 		if (originalSourceUrl !== newUrl) {
 			try {
-				const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
 				if (originalDriveFile && originalDriveFile.id !== copyDriveFile.id) {
 					const referenceCount = await this.driveFilesRepository.count({
 						where: { url: originalSourceUrl, id: Not(originalDriveFile.id) },

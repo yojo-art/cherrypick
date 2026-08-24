@@ -7,13 +7,13 @@ import { URL } from 'node:url';
 import * as http from 'node:http';
 import * as https from 'node:https';
 import { Injectable } from '@nestjs/common';
-import { DeleteObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { DeleteObjectCommand, S3Client, CopyObjectCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand, UploadPartCopyCommand, AbortMultipartUploadCommand, HeadObjectCommand } from '@aws-sdk/client-s3';
 import { Upload } from '@aws-sdk/lib-storage';
 import { NodeHttpHandler, NodeHttpHandlerOptions } from '@smithy/node-http-handler';
 import type { MiMeta } from '@/models/Meta.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { bindThis } from '@/decorators.js';
-import type { DeleteObjectCommandInput, PutObjectCommandInput } from '@aws-sdk/client-s3';
+import type { AbortMultipartUploadCommandOutput, CompletedPart, CompleteMultipartUploadCommandOutput, CopyObjectCommandInput, CopyObjectCommandOutput, DeleteObjectCommandInput, PutObjectCommandInput } from '@aws-sdk/client-s3';
 
 @Injectable()
 export class S3Service {
@@ -86,6 +86,81 @@ export class S3Service {
 				? 500 * 1024 * 1024
 				: 8 * 1024 * 1024,
 		}).done();
+	}
+
+	@bindThis
+	public async copy(meta: MiMeta, input: CopyObjectCommandInput, size:number, isRemote = false): Promise<CopyObjectCommandOutput | CompleteMultipartUploadCommandOutput | AbortMultipartUploadCommandOutput> {
+		const client = this.getS3Client(meta, isRemote);
+
+		if (size <= 4 * 1024 * 1024 * 1024) {
+			//小さいファイルは単独コマンドでコピー操作が可能
+			return client.send(new CopyObjectCommand(input));
+		}
+
+		return this.multipartCopy(client, input, size);
+	}
+
+	@bindThis
+	private async multipartCopy(client: S3Client, input: CopyObjectCommandInput, size:number) : Promise<CompleteMultipartUploadCommandOutput | AbortMultipartUploadCommandOutput> {
+		const PART_SIZE = 100 * 1024 * 1024;
+		const CONCURRENCY = 5;
+		const head = await client.send(new HeadObjectCommand({
+			Bucket: input.Bucket,
+			Key: input.Key,
+		}));
+		const { UploadId } = await client.send(new CreateMultipartUploadCommand({
+			Bucket: input.Bucket,
+			Key: input.Key,
+			ContentType: head.ContentType,
+			ContentDisposition: head.ContentDisposition,
+		}));
+
+		const queue:{ partNumber: number, start: number, end: number }[] = [];
+		let partNumber = 1;
+		for (let start = 0; start < size; start += PART_SIZE) {
+			const end = Math.min(start + PART_SIZE, size) - 1;
+			queue.push({ partNumber, start, end });
+			partNumber++;
+		}
+
+		const parts :(CompletedPart & { PartNumber: number })[] = [];
+
+		async function worker() {
+			while (queue.length > 0) {
+				const task = queue.shift();
+				if (!task) break;
+				const res = await client.send(new UploadPartCopyCommand({
+					Bucket: input.Bucket,
+					Key: input.Key,
+					UploadId,
+					PartNumber: task.partNumber,
+					CopySource: input.CopySource,
+					CopySourceRange: `bytes=${task.start}-${task.end}`,
+				}));
+				if (!res.CopyPartResult) throw new Error('UploadPartCopyCommand failed');
+				parts.push({ ETag: res.CopyPartResult.ETag, PartNumber: task.partNumber });
+			}
+		}
+
+		try {
+			const workers = Array.from({ length: CONCURRENCY }, () => worker());
+			await Promise.all(workers);
+
+			parts.sort((a, b) => a.PartNumber - b.PartNumber);
+
+			return client.send(new CompleteMultipartUploadCommand({
+				Bucket: input.Bucket,
+				Key: input.Key,
+				UploadId,
+				MultipartUpload: { Parts: parts },
+			}));
+		} catch (_err) {
+			return await client.send(new AbortMultipartUploadCommand({
+				Bucket: input.Bucket,
+				Key: input.Key,
+				UploadId,
+			}));
+		}
 	}
 
 	@bindThis
