@@ -779,6 +779,8 @@ export type Channels = {
             readAntenna: (payload: Antenna) => void;
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
+            announcementReacted: (payload: AnnouncementReacted) => void;
+            announcementUnreacted: (payload: AnnouncementUnreacted) => void;
         };
         receives: null;
     };
@@ -4280,8 +4282,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:60:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:258:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:274:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:260:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:276:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 
