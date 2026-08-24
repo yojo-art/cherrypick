@@ -35,7 +35,7 @@ export class InternalStorageService {
 	public copy(key: string, srcKey: string) {
 		fs.mkdirSync(this.path, { recursive: true });
 		fs.copyFileSync(this.resolvePath(srcKey), this.resolvePath(key));
-		return `${this.config.url}/files/${key}`;
+		return this.getUrl(key);
 	}
 
 	@bindThis
