@@ -254,7 +254,8 @@ describeOpenSearchE2E('検索', () => {
 	test('投稿日時指定:内部範囲', async () => {
 		const res = await api('notes/search', {
 			query: 'range_test',
-			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+			//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため同ミリ秒内の前後関係が不定。AとBの中間時刻を指定して決定的にする
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 500,
 			rangeEndAt: Date.parse(rangeNoteB.createdAt),
 		}, alice);
 		assert.strictEqual(res.status, 200);
@@ -283,7 +284,8 @@ describeOpenSearchE2E('検索', () => {
 	test('投稿日時指定:開始のみ指定', async () => {
 		const res = await api('notes/search', {
 			query: 'range_test',
-			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+			//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため、+1のような同ミリ秒境界は乱数部次第で前後する。Bの時刻そのものを指定して決的にする
+			rangeStartAt: Date.parse(rangeNoteB.createdAt),
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
@@ -291,7 +293,7 @@ describeOpenSearchE2E('検索', () => {
 	test('投稿日時指定:終了のみ指定', async () => {
 		const res = await api('notes/search', {
 			query: 'range_test',
-			rangeEndAt: Date.parse(rangeNoteB.createdAt) - 1,
+			rangeEndAt: Date.parse(rangeNoteA.createdAt),
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
@@ -309,7 +311,7 @@ describeOpenSearchE2E('検索', () => {
 	testWithOpenSearch('投稿日時指定(高度な検索):内部範囲', async () => {
 		const res = await api('notes/advanced-search', {
 			query: 'range_test',
-			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 500,
 			rangeEndAt: Date.parse(rangeNoteB.createdAt),
 		}, alice);
 		assert.strictEqual(res.status, 200);
@@ -328,7 +330,7 @@ describeOpenSearchE2E('検索', () => {
 	testWithOpenSearch('投稿日時指定(高度な検索):開始のみ指定', async () => {
 		const res = await api('notes/advanced-search', {
 			query: 'range_test',
-			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+			rangeStartAt: Date.parse(rangeNoteB.createdAt),
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id].sort());
@@ -336,7 +338,7 @@ describeOpenSearchE2E('検索', () => {
 	testWithOpenSearch('投稿日時指定(高度な検索):終了のみ指定', async () => {
 		const res = await api('notes/advanced-search', {
 			query: 'range_test',
-			rangeEndAt: Date.parse(rangeNoteB.createdAt) - 1,
+			rangeEndAt: Date.parse(rangeNoteA.createdAt),
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
