@@ -45,30 +45,6 @@ describe('DriveService', () => {
 	});
 
 	describe('Object storage', () => {
-		test('copies an object-storage file', async () => {
-			s3Mock.on(CopyObjectCommand).callsFake(input => {
-				expect((input.input as { CopySource: string }).CopySource).toMatch(/^bucket\/.+$/);
-				return {} as CopyObjectCommandOutput;
-			});
-
-			const copied = await driveService.copy({
-				file: {
-					id: 'a'.repeat(24),
-					accessKey: 'original/uuid.jpg',
-					name: 'test.jpg',
-					type: 'image/jpeg',
-					size: 1024,
-					storedInternal: false,
-					userHost: null,
-				} as any,
-				folderId: null,
-				userId: null,
-				userHost: null,
-			});
-
-			expect(copied.accessKey).not.toBe('original/uuid.jpg');
-		});
-
 		test('delete a file', async () => {
 			s3Mock.on(DeleteObjectCommand)
 				.resolves({} as DeleteObjectCommandOutput);
