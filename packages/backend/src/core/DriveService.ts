@@ -9,7 +9,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
-import { In, IsNull } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
 import { DeleteObjectCommandInput, PutObjectCommandInput, CopyObjectCommandInput } from '@aws-sdk/client-s3';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, UsersRepository, DriveFoldersRepository, UserProfilesRepository, MiMeta } from '@/models/_.js';
@@ -227,7 +227,7 @@ export class DriveService {
 			//#region Uploads
 			this.registerLogger.info(`uploading original: ${key}`);
 			const uploads = [
-				this.s3Copy(opts.file.accessKey, key, isRemote, opts.file.name),
+				this.s3Copy(opts.file.accessKey, key, opts.file.size, isRemote, opts.file.name),
 			];
 
 			if (opts.file.webpublicAccessKey) {
@@ -236,7 +236,7 @@ export class DriveService {
 				webpublicUrl = `${ baseUrl }/${ webpublicKey }`;
 
 				this.registerLogger.info(`uploading webpublic: ${webpublicKey}`);
-				uploads.push(this.s3Copy(opts.file.webpublicAccessKey, webpublicKey, isRemote, opts.file.name));
+				uploads.push(this.s3Copy(opts.file.webpublicAccessKey, webpublicKey, opts.file.size, isRemote, opts.file.name));
 			}
 
 			if (opts.file.thumbnailAccessKey) {
@@ -245,7 +245,7 @@ export class DriveService {
 				thumbnailUrl = `${ baseUrl }/${ thumbnailKey }`;
 
 				this.registerLogger.info(`uploading thumbnail: ${thumbnailKey}`);
-				uploads.push(this.s3Copy(opts.file.thumbnailAccessKey, thumbnailKey, isRemote, `${opts.file.name}.thumbnail`));
+				uploads.push(this.s3Copy(opts.file.thumbnailAccessKey, thumbnailKey, opts.file.size, isRemote, `${opts.file.name}.thumbnail`));
 			}
 
 			await Promise.all(uploads);
@@ -575,7 +575,7 @@ export class DriveService {
 	 * Copy ObjectStorage File
 	 */
 	@bindThis
-	private async s3Copy(source_key:string, key: string, isRemote = false, filename?: string) {
+	private async s3Copy(source_key:string, key: string, size: number, isRemote = false, filename?: string) {
 		const useRemoteObjectStorage = isRemote && this.meta.useRemoteObjectStorage;
 
 		const objectStorageBucket = useRemoteObjectStorage
@@ -595,7 +595,7 @@ export class DriveService {
 
 		if (objectStorageSetPublicRead) params.ACL = 'public-read';
 
-		await this.s3Service.upload(this.meta, params, isRemote)
+		await this.s3Service.copy(this.meta, params, size, isRemote)
 			.then(
 				result => {
 					if ('Bucket' in result) { // CompleteMultipartUploadCommandOutput
@@ -1184,5 +1184,103 @@ export class DriveService {
 			if (file.isSensitive) SensitiveCount++;
 		}
 		return SensitiveCount;
+	}
+
+	@bindThis
+	public async reuploadFileAndCleanup(data: {
+		originalUrl: string;
+		name?: string;
+	}, loggerContext: { name?: string }) :Promise<MiDriveFile> {
+		let retryCount = 0;
+		let copyDriveFile;
+		const MAX_RETRY_COUNT = 3;
+		const errors: string[] = [];
+		const originalSourceUrl = data.originalUrl;
+
+		const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
+		if (originalDriveFile && originalDriveFile.userHost === null) {
+			//ローカルユーザーがアップロードした絵文字はコピーする
+			try {
+				copyDriveFile = await this.copy({
+					file: originalDriveFile,
+					folderId: null,
+					userId: null,
+					userHost: null,
+				});
+			} catch (e) {
+				// ストレージ設定とファイル実体の不整合等でコピーできない場合はダウンロードへフォールバック
+				this.registerLogger.warn('Failed to copy local drive file, falling back to download', {
+					error: e instanceof Error ? e.message : String(e),
+					fileId: originalDriveFile.id,
+					originalUrl: originalSourceUrl,
+					...loggerContext,
+				});
+			}
+		}
+		if (!copyDriveFile) {
+			//リモートからインポートする時とコピー失敗時はダウンロード
+			while (retryCount < MAX_RETRY_COUNT) {
+				try {
+					copyDriveFile = await this.uploadFromUrl({
+						url: originalSourceUrl,
+						user: null,
+						force: true,
+					});
+					break;
+				} catch (e) {
+					retryCount++;
+					this.registerLogger.warn(`Failed to upload custom emoji (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
+						error: e instanceof Error ? e.message : String(e),
+						stack: e instanceof Error ? e.stack : undefined,
+						originalUrl: originalSourceUrl,
+						...loggerContext,
+					});
+					errors.push(e instanceof Error ? e.message : String(e));
+					if (retryCount >= MAX_RETRY_COUNT) {
+						this.registerLogger.error('Maximum retry count reached for upload', {
+							error: e instanceof Error ? e.message : String(e),
+							originalUrl: originalSourceUrl,
+							...loggerContext,
+						});
+						throw new Error(`Failed to process upload after ${MAX_RETRY_COUNT} attempts: ${errors.join('; ')}`);
+					}
+					await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+				}
+			}
+		}
+
+		if (!copyDriveFile) {
+			throw new Error('Emoji upload succeeded but drive file is undefined. This should never happen.');
+		}
+
+		const newUrl = copyDriveFile.url;
+		if (originalSourceUrl !== newUrl) {
+			try {
+				if (originalDriveFile && originalDriveFile.id !== copyDriveFile.id) {
+					const referenceCount = await this.driveFilesRepository.count({
+						where: { url: originalSourceUrl, id: Not(originalDriveFile.id) },
+					});
+					if (referenceCount === 0) {
+						await this.deleteFile(originalDriveFile);
+						this.deleteLogger.info('Deleted original file as it\'s no longer referenced', {
+							fileId: originalDriveFile.id,
+							url: originalSourceUrl,
+						});
+					} else {
+						this.deleteLogger.info(`Skipped deleting original file as it has ${referenceCount} references`, {
+							fileId: originalDriveFile.id,
+							url: originalSourceUrl,
+						});
+					}
+				}
+			} catch (e) {
+				this.deleteLogger.warn('Failed to delete original file', {
+					error: e instanceof Error ? e.message : String(e),
+					originalUrl: originalSourceUrl,
+				});
+			}
+		}
+
+		return copyDriveFile;
 	}
 }

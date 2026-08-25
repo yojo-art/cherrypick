@@ -102,17 +102,23 @@ export class S3Service {
 
 	@bindThis
 	private async multipartCopy(client: S3Client, input: CopyObjectCommandInput, size:number) : Promise<CompleteMultipartUploadCommandOutput | AbortMultipartUploadCommandOutput> {
+		const copySource = input.CopySource;
+		if (!copySource) throw new Error('CopySource is null');
 		const PART_SIZE = 100 * 1024 * 1024;
 		const CONCURRENCY = 5;
+		// Head はコピー「元」に対して行う。CopySource は URL エンコード済み bucket/key 形式
+		const slash = copySource.indexOf('/');
 		const head = await client.send(new HeadObjectCommand({
-			Bucket: input.Bucket,
-			Key: input.Key,
+			Bucket: decodeURIComponent(copySource.slice(0, slash)),
+			Key: decodeURIComponent(copySource.slice(slash + 1)),
 		}));
 		const { UploadId } = await client.send(new CreateMultipartUploadCommand({
 			Bucket: input.Bucket,
 			Key: input.Key,
 			ContentType: head.ContentType,
 			ContentDisposition: head.ContentDisposition,
+			CacheControl: input.CacheControl,
+			ACL: input.ACL,
 		}));
 
 		const queue:{ partNumber: number, start: number, end: number }[] = [];

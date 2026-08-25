@@ -127,7 +127,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		importFrom?: string | null,
 	}, moderator?: MiUser): Promise<MiEmoji> {
 		// システムユーザーとして再アップロード
-		const result = await this.reuploadFileAndCleanup({ originalUrl: data.originalUrl, name: data.name }, { name: data.name });
+		const result = await this.driveService.reuploadFileAndCleanup({ originalUrl: data.originalUrl, name: data.name }, { name: data.name });
 		data.originalUrl = result.url;
 		data.publicUrl = result.webpublicUrl ?? result.url;
 		data.fileType = result.webpublicType ?? result.type;
@@ -214,7 +214,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		// ファイルの更新がある場合
 		if (( data.originalUrl || data.publicUrl || data.fileType ) && emoji.originalUrl !== data.originalUrl) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const result = await this.reuploadFileAndCleanup({ originalUrl: data.originalUrl!, name: data.name }, { name: data.name });
+			const result = await this.driveService.reuploadFileAndCleanup({ originalUrl: data.originalUrl!, name: data.name }, { name: data.name });
 			data.originalUrl = result.url;
 			data.publicUrl = result.webpublicUrl ?? result.url;
 			data.fileType = result.webpublicType ?? result.type;
@@ -721,97 +721,5 @@ export class CustomEmojiService implements OnApplicationShutdown {
 	@bindThis
 	public onApplicationShutdown(signal?: string | undefined): void {
 		this.dispose();
-	}
-
-	@bindThis
-	private async reuploadFileAndCleanup(data: {
-		originalUrl: string;
-		name?: string;
-	}, loggerContext: { name?: string }) {
-		let retryCount = 0;
-		let copyDriveFile;
-		const MAX_RETRY_COUNT = 3;
-		const errors: string[] = [];
-		const originalSourceUrl = data.originalUrl;
-
-		const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
-		if (originalDriveFile && originalDriveFile.userHost === null) {
-			//ローカルユーザーがアップロードした絵文字はコピーする
-			copyDriveFile = await this.driveService.copy({
-				file: originalDriveFile,
-				folderId: null,
-				userId: null,
-				userHost: null,
-			});
-		} else {
-			//リモートからインポートする時はダウンロード
-			while (retryCount < MAX_RETRY_COUNT) {
-				try {
-					copyDriveFile = await this.driveService.uploadFromUrl({
-						url: originalSourceUrl,
-						user: null,
-						force: true,
-					});
-					break;
-				} catch (e) {
-					retryCount++;
-					this.logger.warn(`Failed to upload custom emoji (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
-						error: e instanceof Error ? e.message : String(e),
-						stack: e instanceof Error ? e.stack : undefined,
-						originalUrl: originalSourceUrl,
-						...loggerContext,
-					});
-					errors.push(e instanceof Error ? e.message : String(e));
-					if (retryCount >= MAX_RETRY_COUNT) {
-						this.logger.error('Maximum retry count reached for custom emoji upload', {
-							error: e instanceof Error ? e.message : String(e),
-							originalUrl: originalSourceUrl,
-							...loggerContext,
-						});
-						throw new Error(`Failed to process custom emoji upload after ${MAX_RETRY_COUNT} attempts: ${errors.join('; ')}`);
-					}
-					await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
-				}
-			}
-		}
-
-		if (!copyDriveFile) {
-			throw new Error('Emoji upload succeeded but drive file is undefined. This should never happen.');
-		}
-
-		const newUrl = copyDriveFile.url;
-		if (originalSourceUrl !== newUrl) {
-			try {
-				if (originalDriveFile && originalDriveFile.id !== copyDriveFile.id) {
-					const referenceCount = await this.driveFilesRepository.count({
-						where: { url: originalSourceUrl, id: Not(originalDriveFile.id) },
-					});
-					if (referenceCount === 0) {
-						await this.driveService.deleteFile(originalDriveFile);
-						this.logger.info('Deleted original emoji file as it\'s no longer referenced', {
-							fileId: originalDriveFile.id,
-							url: originalSourceUrl,
-						});
-					} else {
-						this.logger.info(`Skipped deleting original emoji file as it has ${referenceCount} references`, {
-							fileId: originalDriveFile.id,
-							url: originalSourceUrl,
-						});
-					}
-				}
-			} catch (e) {
-				this.logger.warn('Failed to delete original emoji file', {
-					error: e instanceof Error ? e.message : String(e),
-					originalUrl: originalSourceUrl,
-				});
-			}
-		}
-
-		return {
-			url: copyDriveFile.url,
-			type: copyDriveFile.type,
-			webpublicUrl: copyDriveFile.webpublicUrl,
-			webpublicType: copyDriveFile.webpublicType,
-		};
 	}
 }
