@@ -313,4 +313,100 @@ describe('Announcement reactions', () => {
 		assert.strictEqual(emptyPage.status, 200);
 		assert.strictEqual(emptyPage.body.length, 0);
 	});
+
+	test('ロールポリシー reactionLimit でユーザーごとのリアクション数が制限される', async () => {
+		const dave = await signup({ username: 'dave' });
+		const roleRes = await api('admin/roles/create', {
+			name: 'reactionLimitTest',
+			description: '',
+			color: null,
+			iconUrl: null,
+			displayOrder: 0,
+			target: 'manual',
+			condFormula: {},
+			isAdministrator: false,
+			isModerator: false,
+			isPublic: false,
+			isExplorable: false,
+			asBadge: false,
+			canEditMembersByModerator: false,
+			policies: {
+				reactionLimit: {
+					useDefault: false,
+					priority: 0,
+					value: 1,
+				},
+			},
+		}, alice);
+		assert.strictEqual(roleRes.status, 200);
+		assert.strictEqual((await api('admin/roles/assign', {
+			userId: dave.id,
+			roleId: roleRes.body.id,
+		}, alice)).status, 204);
+
+		const ann = await createAnnouncement({ title: 'limit' });
+
+		await sleep(3100);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: 'like',
+		}, dave)).status, 204);
+
+		await failedApiCall({
+			endpoint: 'announcements/reactions/create',
+			parameters: { announcementId: ann.id, reaction: 'pudding' },
+			user: dave,
+		}, { status: 400, code: 'TOO_MANY_REACTIONS', id: 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d' });
+
+		// 削除すれば再度付けられる
+		assert.strictEqual((await api('announcements/reactions/delete', {
+			announcementId: ann.id,
+			reaction: 'like',
+		}, dave)).status, 204);
+
+		await sleep(3100);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: 'pudding',
+		}, dave)).status, 204);
+	});
+
+	test('ロールポリシー reactionLimit が 0 のユーザーはリアクションできない', async () => {
+		const eve = await signup({ username: 'eve' });
+		const roleRes = await api('admin/roles/create', {
+			name: 'reactionZeroTest',
+			description: '',
+			color: null,
+			iconUrl: null,
+			displayOrder: 0,
+			target: 'manual',
+			condFormula: {},
+			isAdministrator: false,
+			isModerator: false,
+			isPublic: false,
+			isExplorable: false,
+			asBadge: false,
+			canEditMembersByModerator: false,
+			policies: {
+				reactionLimit: {
+					useDefault: false,
+					priority: 0,
+					value: 0,
+				},
+			},
+		}, alice);
+		assert.strictEqual(roleRes.status, 200);
+		assert.strictEqual((await api('admin/roles/assign', {
+			userId: eve.id,
+			roleId: roleRes.body.id,
+		}, alice)).status, 204);
+
+		const ann = await createAnnouncement({ title: 'limit zero' });
+
+		await failedApiCall({
+			endpoint: 'announcements/reactions/create',
+			parameters: { announcementId: ann.id, reaction: 'like' },
+			user: eve,
+		}, { status: 400, code: 'TOO_MANY_REACTIONS', id: 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d' });
+	});
 });
