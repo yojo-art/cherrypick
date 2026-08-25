@@ -13,8 +13,6 @@ import {
 	InvalidObjectState,
 	NoSuchKey,
 	S3Client,
-	CopyObjectCommand,
-	CopyObjectCommandOutput,
 } from '@aws-sdk/client-s3';
 import { mockClient } from 'aws-sdk-client-mock';
 import type { TestingModule } from '@nestjs/testing';

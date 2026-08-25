@@ -147,7 +147,7 @@ export class DriveService {
 		this.advancedSearchService = this.moduleRef.get('AdvancedSearchService');
 	}
 
-	private getS3BaseURL(useRemoteObjectStorage:boolean):string {
+	private getS3BaseURL(useRemoteObjectStorage: boolean):string {
 		const objectStorageBaseUrl = useRemoteObjectStorage
 			? this.meta.remoteObjectStorageBaseUrl
 			: this.meta.objectStorageBaseUrl;
@@ -172,7 +172,7 @@ export class DriveService {
 				?? `${ objectStorageUseSSL ? 'https' : 'http' }://${ objectStorageEndpoint }${ objectStoragePort ? `:${ objectStoragePort }` : '' }/${ objectStorageBucket }`;
 		return baseUrl;
 	}
-	private getExtension(name:string, type:string):string {
+	private getExtension(name: string, type: string):string {
 		let [ext] = (name.match(/\.([a-zA-Z0-9_-]+)$/) ?? ['']);
 
 		if (ext === '') {
@@ -199,10 +199,12 @@ export class DriveService {
 			requestIp?: MiDriveFile['requestIp'],
 			requestHeaders?: MiDriveFile['requestHeaders'],
 		}): Promise<MiDriveFile> {
-		const isRemote = false;//暫定。ローカル対応のみ
+		//yojo-art: 暫定。ローカル対応のみ
+		const isRemote = false;
 		if (!opts.file.accessKey) throw new Error('accessKey is null');
+		if (opts.file.userHost !== null) throw new Error('copying a file stored for a remote user is not supported yet');
 		if (this.meta.useObjectStorage) {
-			if (opts.file.storedInternal) throw new Error('is local file');
+			if (opts.file.storedInternal) throw new Error('internal storage 保存ファイルはS3にコピー不可');
 			//#region ObjectStorage params
 			let ext = this.getExtension(opts.file.name, opts.file.type);
 
@@ -227,7 +229,7 @@ export class DriveService {
 			//#region Uploads
 			this.registerLogger.info(`uploading original: ${key}`);
 			const uploads = [
-				this.s3Copy(opts.file.accessKey, key, opts.file.size, isRemote, opts.file.name),
+				this.s3Copy(opts.file.accessKey, key, isRemote, opts.file.name),
 			];
 
 			if (opts.file.webpublicAccessKey) {
@@ -236,7 +238,7 @@ export class DriveService {
 				webpublicUrl = `${ baseUrl }/${ webpublicKey }`;
 
 				this.registerLogger.info(`uploading webpublic: ${webpublicKey}`);
-				uploads.push(this.s3Copy(opts.file.webpublicAccessKey, webpublicKey, opts.file.size, isRemote, opts.file.name));
+				uploads.push(this.s3Copy(opts.file.webpublicAccessKey, webpublicKey, isRemote, opts.file.name));
 			}
 
 			if (opts.file.thumbnailAccessKey) {
@@ -245,7 +247,7 @@ export class DriveService {
 				thumbnailUrl = `${ baseUrl }/${ thumbnailKey }`;
 
 				this.registerLogger.info(`uploading thumbnail: ${thumbnailKey}`);
-				uploads.push(this.s3Copy(opts.file.thumbnailAccessKey, thumbnailKey, opts.file.size, isRemote, `${opts.file.name}.thumbnail`));
+				uploads.push(this.s3Copy(opts.file.thumbnailAccessKey, thumbnailKey, isRemote, `${opts.file.name}.thumbnail`));
 			}
 
 			await Promise.all(uploads);
@@ -575,7 +577,7 @@ export class DriveService {
 	 * Copy ObjectStorage File
 	 */
 	@bindThis
-	private async s3Copy(source_key:string, key: string, size: number, isRemote = false, filename?: string) {
+	private async s3Copy(sourceKey: string, key: string, isRemote = false, filename?: string) {
 		const useRemoteObjectStorage = isRemote && this.meta.useRemoteObjectStorage;
 
 		const objectStorageBucket = useRemoteObjectStorage
@@ -589,24 +591,26 @@ export class DriveService {
 		const params = {
 			Bucket: objectStorageBucket,
 			Key: key,
-			CacheControl: 'max-age=31536000, immutable',
-			CopySource: `${objectStorageBucket}/${encodeURIComponent(source_key)}`,
+			CopySource: `${objectStorageBucket}/${encodeURIComponent(sourceKey)}`,
 		} as CopyObjectCommandInput;
 
 		if (objectStorageSetPublicRead) params.ACL = 'public-read';
 
-		await this.s3Service.copy(this.meta, params, size, isRemote)
+		await this.s3Service.copy(this.meta, params, isRemote)
 			.then(
 				result => {
-					if ('Bucket' in result) { // CompleteMultipartUploadCommandOutput
-						this.registerLogger.debug(`Uploaded: ${result.Bucket}/${result.Key} => ${result.Location}`);
+					if ('CopyObjectResult' in result) { // CopyObjectCommandOutput（単独コピー成功）
+						this.registerLogger.debug(`S3 Copied: key = ${key}, filename = ${filename}`);
+					} else if ('Location' in result) { // CompleteMultipartUploadCommandOutput
+						this.registerLogger.debug(`S3 Copied: ${result.Bucket}/${result.Key} => ${result.Location}`);
 					} else { // AbortMultipartUploadCommandOutput
-						this.registerLogger.error(`Upload Result Aborted: key = ${key}, filename = ${filename}`);
+						this.registerLogger.error(`S3 Copy Result Aborted: key = ${key}, filename = ${filename}`);
 					}
 				})
 			.catch(
 				err => {
-					this.registerLogger.error(`Upload Failed: key = ${key}, filename = ${filename}`, err);
+					this.registerLogger.error(`S3 Copy Failed: key = ${key}, filename = ${filename}`, err);
+					throw err;
 				},
 			);
 	}

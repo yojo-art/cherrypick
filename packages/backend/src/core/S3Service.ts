@@ -89,34 +89,36 @@ export class S3Service {
 	}
 
 	@bindThis
-	public async copy(meta: MiMeta, input: CopyObjectCommandInput, size:number, isRemote = false): Promise<CopyObjectCommandOutput | CompleteMultipartUploadCommandOutput | AbortMultipartUploadCommandOutput> {
+	public async copy(meta: MiMeta, input: CopyObjectCommandInput, isRemote = false): Promise<CopyObjectCommandOutput | CompleteMultipartUploadCommandOutput> {
 		const client = this.getS3Client(meta, isRemote);
-
-		if (size <= 4 * 1024 * 1024 * 1024) {
-			//小さいファイルは単独コマンドでコピー操作が可能
-			return client.send(new CopyObjectCommand(input));
-		}
-
-		return this.multipartCopy(client, input, size);
-	}
-
-	@bindThis
-	private async multipartCopy(client: S3Client, input: CopyObjectCommandInput, size:number) : Promise<CompleteMultipartUploadCommandOutput | AbortMultipartUploadCommandOutput> {
 		const copySource = input.CopySource;
 		if (!copySource) throw new Error('CopySource is null');
-		const PART_SIZE = 100 * 1024 * 1024;
-		const CONCURRENCY = 5;
 		// Head はコピー「元」に対して行う。CopySource は URL エンコード済み bucket/key 形式
 		const slash = copySource.indexOf('/');
 		const head = await client.send(new HeadObjectCommand({
 			Bucket: decodeURIComponent(copySource.slice(0, slash)),
 			Key: decodeURIComponent(copySource.slice(slash + 1)),
 		}));
+		const size = head.ContentLength ?? 0;
+		if (size <= 4 * 1024 * 1024 * 1024) {
+			//小さいファイルは単独コマンドでコピー操作が可能
+			return client.send(new CopyObjectCommand(input));
+		}
+		input.ContentType = head.ContentType;
+		input.ContentDisposition = head.ContentDisposition;
+
+		return this.multipartCopy(client, input, size);
+	}
+
+	@bindThis
+	private async multipartCopy(client: S3Client, input: CopyObjectCommandInput, size:number) : Promise<CompleteMultipartUploadCommandOutput> {
+		const PART_SIZE = 100 * 1024 * 1024;
+		const CONCURRENCY = 5;
 		const { UploadId } = await client.send(new CreateMultipartUploadCommand({
 			Bucket: input.Bucket,
 			Key: input.Key,
-			ContentType: head.ContentType,
-			ContentDisposition: head.ContentDisposition,
+			ContentType: input.ContentType,
+			ContentDisposition: input.ContentDisposition,
 			CacheControl: input.CacheControl,
 			ACL: input.ACL,
 		}));
@@ -160,12 +162,13 @@ export class S3Service {
 				UploadId,
 				MultipartUpload: { Parts: parts },
 			}));
-		} catch (_err) {
-			return await client.send(new AbortMultipartUploadCommand({
+		} catch (err) {
+			await client.send(new AbortMultipartUploadCommand({
 				Bucket: input.Bucket,
 				Key: input.Key,
 				UploadId,
 			}));
+			throw err;
 		}
 	}
 
