@@ -70,7 +70,8 @@ async function killTestServer() {
 		if (pid && pid !== process.pid) {
 			await fkill(pid, { force: true });
 		}
-	} catch { // NOP;
+	} catch {
+		// NOP;
 	}
 }
 
