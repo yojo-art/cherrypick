@@ -1443,6 +1443,16 @@ export class AdvancedSearchService {
 				}
 			}
 
+			if (opts.rangeStartAt != null) {
+				const date = this.idService.gen(opts.rangeStartAt - 1);
+				query.andWhere('note.id > :rangeStartAt', { rangeStartAt: date });
+			}
+
+			if (opts.rangeEndAt != null) {
+				const date = this.idService.gen(opts.rangeEndAt + 1);
+				query.andWhere('note.id < :rangeEndAt', { rangeEndAt: date });
+			}
+
 			if (me) this.queryService.generateMutedUserQueryForNotes(query, me);
 			if (me) this.queryService.generateBlockedUserQueryForNotes(query, me);
 			if (opts.followingFilter) {
@@ -1492,13 +1502,23 @@ export class AdvancedSearchService {
 
 			if ( FilterdNotes.length === OpenSearchOption.size) break;
 
-			//until指定
+			//until指定（ページネーション用）: rangeStartAt/rangeEndAt の gte/lte と混同しないよう lt のみを対象に更新する
+			const ltValue = this.idService.parse(notes[notes.length - 1]._id).date.getTime();
+			const paginationRange = { range: { createdAt: { lt: ltValue } } };
 			if (untilAvail === 1) {
-				OpenSearchOption.body.query.bool.must[0] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
+				// 初回に pagination.untilId 由来の lt が must[0] に入っている前提で置換
+				OpenSearchOption.body.query.bool.must[0] = paginationRange;
 			} else if (untilAvail === 0) {
-				OpenSearchOption.body.query.bool.must.push({ range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } });
+				const must = OpenSearchOption.body.query.bool.must as any[];
+				// 既に push したページネーション lt があれば置換、なければ push（lt と lte は別キーなので rangeEnd の lte を誤爆しない）
+				const paginationIdx = must.findLastIndex((q: any) => q?.range?.createdAt?.lt != null);
+				if (paginationIdx !== -1) {
+					must[paginationIdx] = paginationRange;
+				} else {
+					must.push(paginationRange);
+				}
 			} else {
-				OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1 ] = { range: { createdAt: { lt: this.idService.parse(notes[notes.length - 1 ]._id).date.getTime() } } };
+				OpenSearchOption.body.query.bool.must[OpenSearchOption.body.query.bool.must.length - 1 ] = paginationRange;
 			}
 		}
 		return FilterdNotes;

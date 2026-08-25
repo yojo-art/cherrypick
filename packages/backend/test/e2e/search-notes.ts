@@ -280,8 +280,6 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(Array.isArray(res.body), true);
 		assert.strictEqual(res.body.length, 0);
 	});
-	/*
-	rangeStartAt / rangeEndAt どちらか片方は期間指定として動作していないのでコメントアウトする
 	test('投稿日時指定:開始のみ指定', async () => {
 		const res = await api('notes/search', {
 			query: 'range_test',
@@ -297,7 +295,7 @@ describeOpenSearchE2E('検索', () => {
 		}, alice);
 		assert.strictEqual(res.status, 200);
 		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
-	});*/
+	});
 	testWithOpenSearch('投稿日時指定(高度な検索):境界一致', async () => {
 		const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
 		const res = await api('notes/advanced-search', {
@@ -326,6 +324,22 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(res.status, 200);
 		assert.strictEqual(Array.isArray(res.body), true);
 		assert.strictEqual(res.body.length, 0);
+	});
+	testWithOpenSearch('投稿日時指定(高度な検索):開始のみ指定', async () => {
+		const res = await api('notes/advanced-search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 1,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id].sort());
+	});
+	testWithOpenSearch('投稿日時指定(高度な検索):終了のみ指定', async () => {
+		const res = await api('notes/advanced-search', {
+			query: 'range_test',
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) - 1,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
 	});
 	test('センシティブオプション:フィルタなし', async() => {
 		const res = await api('notes/advanced-search', {
