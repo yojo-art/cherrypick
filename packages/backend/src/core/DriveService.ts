@@ -147,7 +147,7 @@ export class DriveService {
 		this.advancedSearchService = this.moduleRef.get('AdvancedSearchService');
 	}
 
-	private getS3BaseURL(useRemoteObjectStorage: boolean):string {
+	private getS3BaseURL(useRemoteObjectStorage: boolean): string {
 		const objectStorageBaseUrl = useRemoteObjectStorage
 			? this.meta.remoteObjectStorageBaseUrl
 			: this.meta.objectStorageBaseUrl;
@@ -172,7 +172,7 @@ export class DriveService {
 				?? `${ objectStorageUseSSL ? 'https' : 'http' }://${ objectStorageEndpoint }${ objectStoragePort ? `:${ objectStoragePort }` : '' }/${ objectStorageBucket }`;
 		return baseUrl;
 	}
-	private getExtension(name: string, type: string):string {
+	private getExtension(name: string, type: string): string {
 		let [ext] = (name.match(/\.([a-zA-Z0-9_-]+)$/) ?? ['']);
 
 		if (ext === '') {
@@ -199,7 +199,7 @@ export class DriveService {
 			requestIp?: MiDriveFile['requestIp'],
 			requestHeaders?: MiDriveFile['requestHeaders'],
 		}): Promise<MiDriveFile> {
-		//yojo-art: 暫定。ローカル対応のみ
+		// yojo-art: 暫定。ローカル対応のみ
 		const isRemote = false;
 		if (!opts.file.accessKey) throw new Error('accessKey is null');
 		if (opts.file.userHost !== null) throw new Error('copying a file stored for a remote user is not supported yet');
@@ -272,28 +272,24 @@ export class DriveService {
 			return await this.driveFilesRepository.insertOne(copy);
 		} else { // use internal storage
 			const accessKey = randomUUID();
-			const thumbnailAccessKey = 'thumbnail-' + randomUUID();
-			const webpublicAccessKey = 'webpublic-' + randomUUID();
 
 			const url = this.internalStorageService.copy(accessKey, opts.file.accessKey);
 
+			let thumbnailAccessKey: string | null = null;
 			let thumbnailUrl: string | null = null;
+			let webpublicAccessKey: string | null = null;
 			let webpublicUrl: string | null = null;
 
-			if (opts.file.thumbnailUrl) {
-				const filename = new URL(opts.file.thumbnailUrl).pathname.split('/').pop();
-				if (filename) {
-					thumbnailUrl = this.internalStorageService.copy(thumbnailAccessKey, filename);
-					this.registerLogger.info(`thumbnail stored: ${thumbnailAccessKey}`);
-				}
+			if (opts.file.thumbnailAccessKey) {
+				thumbnailAccessKey = 'thumbnail-' + randomUUID();
+				thumbnailUrl = this.internalStorageService.copy(thumbnailAccessKey, opts.file.thumbnailAccessKey);
+				this.registerLogger.info(`thumbnail stored: ${thumbnailAccessKey}`);
 			}
 
-			if (opts.file.webpublicUrl) {
-				const filename = new URL(opts.file.webpublicUrl).pathname.split('/').pop();
-				if (filename) {
-					webpublicUrl = this.internalStorageService.copy(webpublicAccessKey, filename);
-					this.registerLogger.info(`web stored: ${webpublicAccessKey}`);
-				}
+			if (opts.file.webpublicAccessKey) {
+				webpublicAccessKey = 'webpublic-' + randomUUID();
+				webpublicUrl = this.internalStorageService.copy(webpublicAccessKey, opts.file.webpublicAccessKey);
+				this.registerLogger.info(`web stored: ${webpublicAccessKey}`);
 			}
 
 			const copy: MiDriveFile = {
@@ -1191,10 +1187,9 @@ export class DriveService {
 	}
 
 	@bindThis
-	public async reuploadFileAndCleanup(data: {
+	public async reuploadFile(data: {
 		originalUrl: string;
-		name?: string;
-	}, loggerContext: { name?: string }) :Promise<MiDriveFile> {
+	}): Promise<MiDriveFile> {
 		let retryCount = 0;
 		let copyDriveFile;
 		const MAX_RETRY_COUNT = 3;
@@ -1217,7 +1212,6 @@ export class DriveService {
 					error: e instanceof Error ? e.message : String(e),
 					fileId: originalDriveFile.id,
 					originalUrl: originalSourceUrl,
-					...loggerContext,
 				});
 			}
 		}
@@ -1237,14 +1231,12 @@ export class DriveService {
 						error: e instanceof Error ? e.message : String(e),
 						stack: e instanceof Error ? e.stack : undefined,
 						originalUrl: originalSourceUrl,
-						...loggerContext,
 					});
 					errors.push(e instanceof Error ? e.message : String(e));
 					if (retryCount >= MAX_RETRY_COUNT) {
 						this.registerLogger.error('Maximum retry count reached for upload', {
 							error: e instanceof Error ? e.message : String(e),
 							originalUrl: originalSourceUrl,
-							...loggerContext,
 						});
 						throw new Error(`Failed to process upload after ${MAX_RETRY_COUNT} attempts: ${errors.join('; ')}`);
 					}
@@ -1255,34 +1247,6 @@ export class DriveService {
 
 		if (!copyDriveFile) {
 			throw new Error('Emoji upload succeeded but drive file is undefined. This should never happen.');
-		}
-
-		const newUrl = copyDriveFile.url;
-		if (originalSourceUrl !== newUrl) {
-			try {
-				if (originalDriveFile && originalDriveFile.id !== copyDriveFile.id) {
-					const referenceCount = await this.driveFilesRepository.count({
-						where: { url: originalSourceUrl, id: Not(originalDriveFile.id) },
-					});
-					if (referenceCount === 0) {
-						await this.deleteFile(originalDriveFile);
-						this.deleteLogger.info('Deleted original file as it\'s no longer referenced', {
-							fileId: originalDriveFile.id,
-							url: originalSourceUrl,
-						});
-					} else {
-						this.deleteLogger.info(`Skipped deleting original file as it has ${referenceCount} references`, {
-							fileId: originalDriveFile.id,
-							url: originalSourceUrl,
-						});
-					}
-				}
-			} catch (e) {
-				this.deleteLogger.warn('Failed to delete original file', {
-					error: e instanceof Error ? e.message : String(e),
-					originalUrl: originalSourceUrl,
-				});
-			}
 		}
 
 		return copyDriveFile;

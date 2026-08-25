@@ -5,7 +5,7 @@
 
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import * as Redis from 'ioredis';
-import { In, IsNull } from 'typeorm';
+import { In, IsNull, Not } from 'typeorm';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { IdService } from '@/core/IdService.js';
@@ -15,7 +15,7 @@ import { bindThis } from '@/decorators.js';
 import { DI } from '@/di-symbols.js';
 import { MemoryKVCache, RedisSingleCache } from '@/misc/cache.js';
 import { sqlLikeEscape } from '@/misc/sql-like-escape.js';
-import type { DriveFilesRepository, EmojisRepository, MiMeta, MiRole, MiUser } from '@/models/_.js';
+import type { DriveFilesRepository, EmojisRepository, MiDriveFile, MiMeta, MiRole, MiUser } from '@/models/_.js';
 import type { MiEmoji } from '@/models/Emoji.js';
 import { emojiCopyPermissions, Serialized } from '@/types.js';
 import { DriveService } from '@/core/DriveService.js';
@@ -127,7 +127,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		importFrom?: string | null,
 	}, moderator?: MiUser): Promise<MiEmoji> {
 		// システムユーザーとして再アップロード
-		const result = await this.driveService.reuploadFileAndCleanup({ originalUrl: data.originalUrl, name: data.name }, { name: data.name });
+		const result = await this.reuploadFileAndCleanup({ originalUrl: data.originalUrl, name: data.name });
 		data.originalUrl = result.url;
 		data.publicUrl = result.webpublicUrl ?? result.url;
 		data.fileType = result.webpublicType ?? result.type;
@@ -214,7 +214,7 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		// ファイルの更新がある場合
 		if (( data.originalUrl || data.publicUrl || data.fileType ) && emoji.originalUrl !== data.originalUrl) {
 			// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-			const result = await this.driveService.reuploadFileAndCleanup({ originalUrl: data.originalUrl!, name: data.name }, { name: data.name });
+			const result = await this.reuploadFileAndCleanup({ originalUrl: data.originalUrl!, name: data.name });
 			data.originalUrl = result.url;
 			data.publicUrl = result.webpublicUrl ?? result.url;
 			data.fileType = result.webpublicType ?? result.type;
@@ -268,6 +268,45 @@ export class CustomEmojiService implements OnApplicationShutdown {
 		return null;
 	}
 
+	@bindThis
+	public async reuploadFileAndCleanup(data: {
+		originalUrl: string;
+		name?: string;
+	}): Promise<MiDriveFile> {
+		// yojo-art: 絵文字再アップロード 元ファイルを削除するべきか要検討
+		const copyDriveFile = await this.driveService.reuploadFile(data);
+		const originalSourceUrl = data.originalUrl;
+		const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
+
+		const newUrl = copyDriveFile.url;
+		if (originalSourceUrl !== newUrl) {
+			try {
+				if (originalDriveFile && originalDriveFile.id !== copyDriveFile.id) {
+					const referenceCount = await this.driveFilesRepository.count({
+						where: { url: originalSourceUrl, id: Not(originalDriveFile.id) },
+					});
+					if (referenceCount === 0) {
+						await this.driveService.deleteFile(originalDriveFile);
+						this.logger.info('Deleted original file as it\'s no longer referenced', {
+							fileId: originalDriveFile.id,
+							url: originalSourceUrl,
+						});
+					} else {
+						this.logger.info(`Skipped deleting original file as it has ${referenceCount} references`, {
+							fileId: originalDriveFile.id,
+							url: originalSourceUrl,
+						});
+					}
+				}
+			} catch (e) {
+				this.logger.warn('Failed to delete original file', {
+					error: e instanceof Error ? e.message : String(e),
+					originalUrl: originalSourceUrl,
+				});
+			}
+		}
+		return copyDriveFile;
+	}
 	@bindThis
 	public async importEmoji(data: {
 		id?: string;

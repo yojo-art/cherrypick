@@ -111,7 +111,7 @@ export class S3Service {
 	}
 
 	@bindThis
-	private async multipartCopy(client: S3Client, input: CopyObjectCommandInput, size:number) : Promise<CompleteMultipartUploadCommandOutput> {
+	private async multipartCopy(client: S3Client, input: CopyObjectCommandInput, size:number): Promise<CompleteMultipartUploadCommandOutput> {
 		const PART_SIZE = 100 * 1024 * 1024;
 		const CONCURRENCY = 5;
 		const { UploadId } = await client.send(new CreateMultipartUploadCommand({
@@ -123,7 +123,7 @@ export class S3Service {
 			ACL: input.ACL,
 		}));
 
-		const queue:{ partNumber: number, start: number, end: number }[] = [];
+		const queue: { partNumber: number, start: number, end: number }[] = [];
 		let partNumber = 1;
 		for (let start = 0; start < size; start += PART_SIZE) {
 			const end = Math.min(start + PART_SIZE, size) - 1;
@@ -131,7 +131,7 @@ export class S3Service {
 			partNumber++;
 		}
 
-		const parts :(CompletedPart & { PartNumber: number })[] = [];
+		const parts: (CompletedPart & { PartNumber: number })[] = [];
 
 		async function worker() {
 			while (queue.length > 0) {
@@ -163,11 +163,12 @@ export class S3Service {
 				MultipartUpload: { Parts: parts },
 			}));
 		} catch (err) {
+			// abort 自体の失敗は元のエラーを優先して投げるため無視する
 			await client.send(new AbortMultipartUploadCommand({
 				Bucket: input.Bucket,
 				Key: input.Key,
 				UploadId,
-			}));
+			})).catch(() => undefined);
 			throw err;
 		}
 	}
