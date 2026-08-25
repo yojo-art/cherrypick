@@ -24,7 +24,7 @@ export interface Locale extends ILocale {
      */
     "unRenoteAllConfirm": string;
     /**
-     * このノートのすべてのリノットを削除しようとしています。実行しますか？
+     * このノートのすべてのリノートを削除しようとしています。実行しますか？
      */
     "unRenoteAllConfirmDescription": string;
     /**
