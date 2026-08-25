@@ -70,12 +70,16 @@ describeObjectStorageE2E('オブジェクトストレージ', () => {
 			}),
 		}));
 
+		// S3Serviceはエンドポイント文字列をそのまま使うため <host>:<port> 形式にする
+		// (objectStoragePort は公開URL構築用のレガシー項目でS3クライアントには反映されない)
+		const storageUrl = new URL(OBJECT_STORAGE_ENDPOINT);
+
 		await api('admin/update-meta', {
 			useObjectStorage: true,
 			objectStorageBaseUrl: null,
-			objectStorageEndpoint: '127.0.0.1',
-			objectStoragePort: new URL(OBJECT_STORAGE_ENDPOINT).port ? Number(new URL(OBJECT_STORAGE_ENDPOINT).port) : null,
-			objectStorageUseSSL: false,
+			objectStorageEndpoint: storageUrl.host,
+			objectStoragePort: null,
+			objectStorageUseSSL: storageUrl.protocol === 'https:',
 			objectStorageBucket: OBJECT_STORAGE_BUCKET,
 			objectStoragePrefix: 'test',
 			objectStorageAccessKey: OBJECT_STORAGE_ACCESS_KEY,
