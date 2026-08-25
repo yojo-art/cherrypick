@@ -232,7 +232,7 @@ export class DriveService {
 
 			if (opts.file.webpublicAccessKey) {
 				const ext = this.getExtension(opts.file.webpublicAccessKey, opts.file.webpublicType ?? '');
-				webpublicKey = `${prefix}webpublic-${randomUUID()}.${ext}`;
+				webpublicKey = `${prefix}webpublic-${randomUUID()}${ext}`;
 				webpublicUrl = `${ baseUrl }/${ webpublicKey }`;
 
 				this.registerLogger.info(`uploading webpublic: ${webpublicKey}`);
@@ -241,7 +241,7 @@ export class DriveService {
 
 			if (opts.file.thumbnailAccessKey) {
 				const ext = this.getExtension(opts.file.thumbnailAccessKey, '');
-				thumbnailKey = `${prefix}thumbnail-${randomUUID()}.${ext}`;
+				thumbnailKey = `${prefix}thumbnail-${randomUUID()}${ext}`;
 				thumbnailUrl = `${ baseUrl }/${ thumbnailKey }`;
 
 				this.registerLogger.info(`uploading thumbnail: ${thumbnailKey}`);
