@@ -24,6 +24,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<i v-else-if="announcement.icon === 'success'" class="ti ti-check" style="color: var(--MI_THEME-success);"></i>
 					</span>
 					<Mfm :text="announcement.title" class="_selectable"/>
+					<span v-if="announcement.reactionAcceptance != null" :title="i18n.ts.reactionAcceptance" style="margin-left: 0.5em;">
+						<i v-if="announcement.reactionAcceptance === 'nonSensitiveOnly'" class="ti ti-icons"></i>
+						<i v-else-if="announcement.reactionAcceptance === 'likeOnly'" class="ti ti-heart" style="color: var(--MI_THEME-love);"></i>
+						<i v-else-if="announcement.reactionAcceptance === 'none'" class="ti ti-ban"></i>
+					</span>
 				</div>
 				<div :class="$style.content">
 					<Mfm :text="announcement.text" class="_selectable"/>
@@ -35,7 +40,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{{ i18n.ts.updatedAt }}: <MkTime :time="announcement.updatedAt" mode="detail"/>
 					</div>
 				</div>
-				<div :class="$style.reactions">
+				<div v-if="announcement.reactionAcceptance !== 'none'" :class="$style.reactions">
 					<MkAnnouncementReactions
 						:announcementId="announcement.id"
 						:reactions="announcement.reactions"

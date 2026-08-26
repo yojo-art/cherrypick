@@ -60,6 +60,11 @@ export const packedAnnouncementSchema = {
 			type: 'boolean',
 			optional: true, nullable: false,
 		},
+		reactionAcceptance: {
+			type: 'string',
+			optional: false, nullable: true,
+			enum: ['likeOnly', 'nonSensitiveOnly', 'none', null],
+		},
 		reactions: {
 			type: 'object',
 			optional: false, nullable: false,
