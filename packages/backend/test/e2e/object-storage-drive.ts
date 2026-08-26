@@ -6,6 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
+import { randomUUID } from 'node:crypto';
 import { readFile } from 'node:fs/promises';
 import { afterAll, beforeAll, describe, test, vi } from 'vitest';
 import {
@@ -21,7 +22,8 @@ import type * as misskey from 'misskey-js';
 
 // ローカルで起動した rustfs (packages/backend/test/compose.yml 参照) に接続する
 const OBJECT_STORAGE_ENDPOINT = process.env.OBJECT_STORAGE_ENDPOINT ?? 'http://127.0.0.1:59312';
-const OBJECT_STORAGE_BUCKET = process.env.OBJECT_STORAGE_BUCKET ?? 'misskey-test';
+// 実行ごとに新しいバケットを作り、前回実行の残留オブジェクトによる非決定性を防ぐ
+const OBJECT_STORAGE_BUCKET = `misskey-test-${randomUUID()}`;
 const OBJECT_STORAGE_ACCESS_KEY = process.env.OBJECT_STORAGE_ACCESS_KEY ?? 'rustfsadmin';
 const OBJECT_STORAGE_SECRET_KEY = process.env.OBJECT_STORAGE_SECRET_KEY ?? 'rustfsadmin';
 
@@ -44,16 +46,9 @@ describeObjectStorageE2E('オブジェクトストレージ', () => {
 			forcePathStyle: true,
 		});
 
-		try {
-			await s3Client.send(new CreateBucketCommand({
-				Bucket: OBJECT_STORAGE_BUCKET,
-			}));
-		} catch (err: any) {
-			// 既にバケットが存在する場合は問題ない
-			if (!['BucketAlreadyOwnedByYou', 'BucketAlreadyExists'].includes(err?.name)) {
-				throw err;
-			}
-		}
+		await s3Client.send(new CreateBucketCommand({
+			Bucket: OBJECT_STORAGE_BUCKET,
+		}));
 
 		// Misskeyは生成したURLへ匿名アクセスするため、バケットを公開読み取り可能にしておく
 		await s3Client.send(new PutBucketPolicyCommand({
