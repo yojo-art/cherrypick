@@ -13,6 +13,7 @@ import {
 	MiAd,
 	MiAnnouncement,
 	MiAnnouncementRead,
+	MiAnnouncementReaction,
 	MiAntenna,
 	MiApp,
 	MiAuthSession,
@@ -118,6 +119,12 @@ const $announcementsRepository: Provider = {
 const $announcementReadsRepository: Provider = {
 	provide: DI.announcementReadsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiAnnouncementRead).extend(miRepository as MiRepository<MiAnnouncementRead>),
+	inject: [DI.db],
+};
+
+const $announcementReactionsRepository: Provider = {
+	provide: DI.announcementReactionsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiAnnouncementReaction).extend(miRepository as MiRepository<MiAnnouncementReaction>),
 	inject: [DI.db],
 };
 
@@ -614,6 +621,7 @@ const $officialTagRepository: Provider = {
 		$notesRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
+		$announcementReactionsRepository,
 		$appsRepository,
 		$avatarDecorationsRepository,
 		$noteFavoritesRepository,
@@ -701,6 +709,7 @@ const $officialTagRepository: Provider = {
 		$notesRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
+		$announcementReactionsRepository,
 		$appsRepository,
 		$avatarDecorationsRepository,
 		$noteFavoritesRepository,

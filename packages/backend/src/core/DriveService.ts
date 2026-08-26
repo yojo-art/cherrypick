@@ -9,8 +9,8 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import sharp from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
-import { In, IsNull } from 'typeorm';
-import { DeleteObjectCommandInput, PutObjectCommandInput, NoSuchKey } from '@aws-sdk/client-s3';
+import { In, IsNull, Not } from 'typeorm';
+import { DeleteObjectCommandInput, PutObjectCommandInput, CopyObjectCommandInput } from '@aws-sdk/client-s3';
 import { DI } from '@/di-symbols.js';
 import type { DriveFilesRepository, UsersRepository, DriveFoldersRepository, UserProfilesRepository, MiMeta } from '@/models/_.js';
 import type { Config } from '@/config.js';
@@ -147,6 +147,170 @@ export class DriveService {
 		this.advancedSearchService = this.moduleRef.get('AdvancedSearchService');
 	}
 
+	private getS3BaseURL(useRemoteObjectStorage: boolean): string {
+		const objectStorageBaseUrl = useRemoteObjectStorage
+			? this.meta.remoteObjectStorageBaseUrl
+			: this.meta.objectStorageBaseUrl;
+
+		const objectStorageUseSSL = useRemoteObjectStorage
+			? this.meta.remoteObjectStorageUseSSL
+			: this.meta.objectStorageUseSSL;
+
+		const objectStorageEndpoint = useRemoteObjectStorage
+			? this.meta.remoteObjectStorageEndpoint
+			: this.meta.objectStorageEndpoint;
+
+		const objectStoragePort = useRemoteObjectStorage
+			? this.meta.remoteObjectStoragePort
+			: this.meta.objectStoragePort;
+
+		const objectStorageBucket = useRemoteObjectStorage
+			? this.meta.remoteObjectStorageBucket
+			: this.meta.objectStorageBucket;
+
+		const baseUrl = objectStorageBaseUrl
+				?? `${ objectStorageUseSSL ? 'https' : 'http' }://${ objectStorageEndpoint }${ objectStoragePort ? `:${ objectStoragePort }` : '' }/${ objectStorageBucket }`;
+		return baseUrl;
+	}
+	private getExtension(name: string, type: string): string {
+		let [ext] = (name.match(/\.([a-zA-Z0-9_-]+)$/) ?? ['']);
+
+		if (ext === '') {
+			if (type === 'image/jpeg') ext = '.jpg';
+			if (type === 'image/png') ext = '.png';
+			if (type === 'image/webp') ext = '.webp';
+			if (type === 'image/avif') ext = '.avif';
+			if (type === 'image/apng') ext = '.apng';
+			if (type === 'image/vnd.mozilla.apng') ext = '.apng';
+		}
+		return ext;
+	}
+
+	/***
+	 * Copy file
+	 */
+	@bindThis
+	public async copy(
+		opts:{
+			file: MiDriveFile,
+			folderId: MiDriveFolder['id'] | null,
+			userId: MiUser['id'] | null,
+			userHost: MiUser['host'] | null,
+			requestIp?: MiDriveFile['requestIp'],
+			requestHeaders?: MiDriveFile['requestHeaders'],
+		}): Promise<MiDriveFile> {
+		// yojo-art: 暫定。ローカル対応のみ
+		const isRemote = false;
+		if (!opts.file.accessKey) throw new Error('accessKey is null');
+		if (opts.file.userHost !== null) throw new Error('copying a file stored for a remote user is not supported yet');
+		if (this.meta.useObjectStorage) {
+			if (opts.file.storedInternal) throw new Error('internal storage 保存ファイルはS3にコピー不可');
+			//#region ObjectStorage params
+			let ext = this.getExtension(opts.file.name, opts.file.type);
+
+			// 拡張子からContent-Typeを設定してそうな挙動を示すオブジェクトストレージ (upcloud?) も存在するので、
+			// 許可されているファイル形式でしかURLに拡張子をつけない
+			if (!FILE_TYPE_BROWSERSAFE.includes(opts.file.type)) {
+				ext = '';
+			}
+			const baseUrl = this.getS3BaseURL(isRemote);
+			// for original
+			const prefix = this.meta.objectStoragePrefix ? `${this.meta.objectStoragePrefix}/` : '';
+			const key = `${prefix}${randomUUID()}${ext}`;
+			const url = `${ baseUrl }/${ key }`;
+
+			// for alts
+			let webpublicKey: string | null = null;
+			let webpublicUrl: string | null = null;
+			let thumbnailKey: string | null = null;
+			let thumbnailUrl: string | null = null;
+			//#endregion
+
+			//#region Uploads
+			this.registerLogger.info(`uploading original: ${key}`);
+			const uploads = [
+				this.s3Copy(opts.file.accessKey, key, isRemote, opts.file.name),
+			];
+
+			if (opts.file.webpublicAccessKey) {
+				const ext = this.getExtension(opts.file.webpublicAccessKey, opts.file.webpublicType ?? '');
+				webpublicKey = `${prefix}webpublic-${randomUUID()}${ext}`;
+				webpublicUrl = `${ baseUrl }/${ webpublicKey }`;
+
+				this.registerLogger.info(`uploading webpublic: ${webpublicKey}`);
+				uploads.push(this.s3Copy(opts.file.webpublicAccessKey, webpublicKey, isRemote, opts.file.name));
+			}
+
+			if (opts.file.thumbnailAccessKey) {
+				const ext = this.getExtension(opts.file.thumbnailAccessKey, '');
+				thumbnailKey = `${prefix}thumbnail-${randomUUID()}${ext}`;
+				thumbnailUrl = `${ baseUrl }/${ thumbnailKey }`;
+
+				this.registerLogger.info(`uploading thumbnail: ${thumbnailKey}`);
+				uploads.push(this.s3Copy(opts.file.thumbnailAccessKey, thumbnailKey, isRemote, `${opts.file.name}.thumbnail`));
+			}
+
+			await Promise.all(uploads);
+			//#endregion
+			const copy: MiDriveFile = {
+				...opts.file,
+				id: this.idService.gen(),
+				folderId: opts.folderId,
+				userId: opts.userId,
+				userHost: opts.userHost,
+				requestIp: opts.requestIp ?? null,
+				requestHeaders: opts.requestHeaders ?? null,
+				url,
+				thumbnailUrl,
+				webpublicUrl,
+				accessKey: key,
+				thumbnailAccessKey: thumbnailKey,
+				webpublicAccessKey: webpublicKey,
+				storedInternal: false,
+			};
+
+			return await this.driveFilesRepository.insertOne(copy);
+		} else { // use internal storage
+			const accessKey = randomUUID();
+
+			const url = this.internalStorageService.copy(accessKey, opts.file.accessKey);
+
+			let thumbnailAccessKey: string | null = null;
+			let thumbnailUrl: string | null = null;
+			let webpublicAccessKey: string | null = null;
+			let webpublicUrl: string | null = null;
+
+			if (opts.file.thumbnailAccessKey) {
+				thumbnailAccessKey = 'thumbnail-' + randomUUID();
+				thumbnailUrl = this.internalStorageService.copy(thumbnailAccessKey, opts.file.thumbnailAccessKey);
+				this.registerLogger.info(`thumbnail stored: ${thumbnailAccessKey}`);
+			}
+
+			if (opts.file.webpublicAccessKey) {
+				webpublicAccessKey = 'webpublic-' + randomUUID();
+				webpublicUrl = this.internalStorageService.copy(webpublicAccessKey, opts.file.webpublicAccessKey);
+				this.registerLogger.info(`web stored: ${webpublicAccessKey}`);
+			}
+
+			const copy: MiDriveFile = {
+				...opts.file,
+				id: this.idService.gen(),
+				folderId: opts.folderId,
+				userId: opts.userId,
+				userHost: opts.userHost,
+				requestIp: opts.requestIp ?? null,
+				requestHeaders: opts.requestHeaders ?? null,
+				url,
+				thumbnailUrl,
+				webpublicUrl,
+				accessKey,
+				thumbnailAccessKey,
+				webpublicAccessKey,
+				storedInternal: true,
+			};
+			return await this.driveFilesRepository.insertOne(copy);
+		}
+	}
 	/***
 	 * Save file
 	 * @param path Path for original
@@ -164,17 +328,8 @@ export class DriveService {
 			thumbnail: null,
 		} : await this.generateAlts(path, type, !file.uri, file.userId);
 		if (this.meta.useObjectStorage) {
-		//#region ObjectStorage params
-			let [ext] = (name.match(/\.([a-zA-Z0-9_-]+)$/) ?? ['']);
-
-			if (ext === '') {
-				if (type === 'image/jpeg') ext = '.jpg';
-				if (type === 'image/png') ext = '.png';
-				if (type === 'image/webp') ext = '.webp';
-				if (type === 'image/avif') ext = '.avif';
-				if (type === 'image/apng') ext = '.apng';
-				if (type === 'image/vnd.mozilla.apng') ext = '.apng';
-			}
+			//#region ObjectStorage params
+			let ext = this.getExtension(name, type);
 
 			// 拡張子からContent-Typeを設定してそうな挙動を示すオブジェクトストレージ (upcloud?) も存在するので、
 			// 許可されているファイル形式でしかURLに拡張子をつけない
@@ -184,33 +339,11 @@ export class DriveService {
 
 			const useRemoteObjectStorage = isRemote && this.meta.useRemoteObjectStorage;
 
-			const objectStorageBaseUrl = useRemoteObjectStorage
-				? this.meta.remoteObjectStorageBaseUrl
-				: this.meta.objectStorageBaseUrl;
-
-			const objectStorageUseSSL = useRemoteObjectStorage
-				? this.meta.remoteObjectStorageUseSSL
-				: this.meta.objectStorageUseSSL;
-
-			const objectStorageEndpoint = useRemoteObjectStorage
-				? this.meta.remoteObjectStorageEndpoint
-				: this.meta.objectStorageEndpoint;
-
-			const objectStoragePort = useRemoteObjectStorage
-				? this.meta.remoteObjectStoragePort
-				: this.meta.objectStoragePort;
-
-			const objectStorageBucket = useRemoteObjectStorage
-				? this.meta.remoteObjectStorageBucket
-				: this.meta.objectStorageBucket;
-
 			const objectStoragePrefix = useRemoteObjectStorage
 				? this.meta.remoteObjectStoragePrefix
 				: this.meta.objectStoragePrefix;
 
-			const baseUrl = objectStorageBaseUrl
-				?? `${ objectStorageUseSSL ? 'https' : 'http' }://${ objectStorageEndpoint }${ objectStoragePort ? `:${ objectStoragePort }` : '' }/${ objectStorageBucket }`;
-
+			const baseUrl = this.getS3BaseURL(useRemoteObjectStorage);
 			// for original
 			const prefix = objectStoragePrefix ? `${objectStoragePrefix}/` : '';
 			const key = `${prefix}${randomUUID()}${ext}`;
@@ -434,6 +567,48 @@ export class DriveService {
 			webpublic,
 			thumbnail,
 		};
+	}
+
+	/**
+	 * Copy ObjectStorage File
+	 */
+	@bindThis
+	private async s3Copy(sourceKey: string, key: string, isRemote = false, filename?: string) {
+		const useRemoteObjectStorage = isRemote && this.meta.useRemoteObjectStorage;
+
+		const objectStorageBucket = useRemoteObjectStorage
+			? this.meta.remoteObjectStorageBucket
+			: this.meta.objectStorageBucket;
+
+		const objectStorageSetPublicRead = useRemoteObjectStorage
+			? this.meta.remoteObjectStorageSetPublicRead
+			: this.meta.objectStorageSetPublicRead;
+
+		const params = {
+			Bucket: objectStorageBucket,
+			Key: key,
+			CopySource: `${objectStorageBucket}/${encodeURIComponent(sourceKey)}`,
+		} as CopyObjectCommandInput;
+
+		if (objectStorageSetPublicRead) params.ACL = 'public-read';
+
+		await this.s3Service.copy(this.meta, params, isRemote)
+			.then(
+				result => {
+					if ('CopyObjectResult' in result) { // CopyObjectCommandOutput（単独コピー成功）
+						this.registerLogger.debug(`S3 Copied: key = ${key}, filename = ${filename}`);
+					} else if ('Location' in result) { // CompleteMultipartUploadCommandOutput
+						this.registerLogger.debug(`S3 Copied: ${result.Bucket}/${result.Key} => ${result.Location}`);
+					} else { // AbortMultipartUploadCommandOutput
+						this.registerLogger.error(`S3 Copy Result Aborted: key = ${key}, filename = ${filename}`);
+					}
+				})
+			.catch(
+				err => {
+					this.registerLogger.error(`S3 Copy Failed: key = ${key}, filename = ${filename}`, err);
+					throw err;
+				},
+			);
 	}
 
 	/**
@@ -1009,5 +1184,71 @@ export class DriveService {
 			if (file.isSensitive) SensitiveCount++;
 		}
 		return SensitiveCount;
+	}
+
+	@bindThis
+	public async reuploadFile(data: {
+		originalUrl: string;
+	}): Promise<MiDriveFile> {
+		let retryCount = 0;
+		let copyDriveFile;
+		const MAX_RETRY_COUNT = 3;
+		const errors: string[] = [];
+		const originalSourceUrl = data.originalUrl;
+
+		const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
+		if (originalDriveFile && originalDriveFile.userHost === null) {
+			//ローカルユーザーがアップロードした絵文字はコピーする
+			try {
+				copyDriveFile = await this.copy({
+					file: originalDriveFile,
+					folderId: null,
+					userId: null,
+					userHost: null,
+				});
+			} catch (e) {
+				// ストレージ設定とファイル実体の不整合等でコピーできない場合はダウンロードへフォールバック
+				this.registerLogger.warn('Failed to copy local drive file, falling back to download', {
+					error: e instanceof Error ? e.message : String(e),
+					fileId: originalDriveFile.id,
+					originalUrl: originalSourceUrl,
+				});
+			}
+		}
+		if (!copyDriveFile) {
+			//リモートからインポートする時とコピー失敗時はダウンロード
+			while (retryCount < MAX_RETRY_COUNT) {
+				try {
+					copyDriveFile = await this.uploadFromUrl({
+						url: originalSourceUrl,
+						user: null,
+						force: true,
+					});
+					break;
+				} catch (e) {
+					retryCount++;
+					this.registerLogger.warn(`Failed to upload custom emoji (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
+						error: e instanceof Error ? e.message : String(e),
+						stack: e instanceof Error ? e.stack : undefined,
+						originalUrl: originalSourceUrl,
+					});
+					errors.push(e instanceof Error ? e.message : String(e));
+					if (retryCount >= MAX_RETRY_COUNT) {
+						this.registerLogger.error('Maximum retry count reached for upload', {
+							error: e instanceof Error ? e.message : String(e),
+							originalUrl: originalSourceUrl,
+						});
+						throw new Error(`Failed to process upload after ${MAX_RETRY_COUNT} attempts: ${errors.join('; ')}`);
+					}
+					await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
+				}
+			}
+		}
+
+		if (!copyDriveFile) {
+			throw new Error('Emoji upload succeeded but drive file is undefined. This should never happen.');
+		}
+
+		return copyDriveFile;
 	}
 }
