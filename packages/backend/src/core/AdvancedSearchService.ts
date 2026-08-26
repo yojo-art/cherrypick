@@ -1443,12 +1443,12 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (opts.rangeStartAt != null) {
+			if (opts.rangeStartAt) {
 				const date = this.idService.gen(opts.rangeStartAt - 1);
 				query.andWhere('note.id > :rangeStartAt', { rangeStartAt: date });
 			}
 
-			if (opts.rangeEndAt != null) {
+			if (opts.rangeEndAt) {
 				const date = this.idService.gen(opts.rangeEndAt + 1);
 				query.andWhere('note.id < :rangeEndAt', { rangeEndAt: date });
 			}
