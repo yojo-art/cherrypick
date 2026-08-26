@@ -8,10 +8,11 @@ process.env.NODE_ENV = 'test';
 import * as assert from 'assert';
 import { beforeAll, describe, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
+import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
 
-describe('検索', () => {
+describeOpenSearchE2E('検索', () => {
 	let alice: misskey.entities.SignupResponse;
 	let bob: misskey.entities.SignupResponse;
 	let carol: misskey.entities.SignupResponse;
