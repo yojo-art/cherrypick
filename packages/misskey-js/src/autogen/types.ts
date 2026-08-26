@@ -32000,10 +32000,6 @@ export interface operations {
                      * @default false
                      */
                     useStrictSearch?: boolean | null;
-                    /** @description 指定した日時以降に作成されたノートを探します (ミリ秒) */
-                    rangeStartAt?: number | null;
-                    /** @description 指定した日時以前に作成されたノートを探します (ミリ秒) */
-                    rangeEndAt?: number | null;
                 };
             };
         };
