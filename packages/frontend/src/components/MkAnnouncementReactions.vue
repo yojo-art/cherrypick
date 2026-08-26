@@ -5,40 +5,56 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<button
-		v-for="[reaction, count] in sortedReactions"
-		:key="reaction"
-		v-ripple="canToggle"
-		class="_button"
-		:class="[$style.reaction, { [$style.reacted]: myReactions.includes(reaction), [$style.canToggle]: canToggle }]"
-		:disabled="!canToggle"
-		:aria-pressed="myReactions.includes(reaction)"
-		:aria-label="reaction"
-		@click="toggle(reaction)"
-		@contextmenu.prevent.stop="showReactedUsers(reaction)"
-	>
-		<MkReactionIcon style="pointer-events: none;" :reaction="reaction"/>
-		<span :class="$style.count">{{ count }}</span>
-	</button>
-	<button
-		v-if="canToggle"
-		ref="pickerButtonEl"
-		v-tooltip="i18n.ts.reaction"
-		class="_button"
-		:class="[$style.reaction, $style.add]"
-		:aria-label="i18n.ts.reaction"
-		@click="pick"
-	>
-		<i class="ti ti-plus"></i>
-	</button>
-	<button
-		v-if="hasReactions"
-		class="_button"
-		:class="[$style.reaction, $style.more]"
-		@click="showReactedUsers()"
-	>
-		{{ i18n.ts.more }}
-	</button>
+	<template v-if="isLikeOnly">
+		<button
+			v-ripple="canToggle"
+			class="_button"
+			:class="[$style.reaction, { [$style.reacted]: myReactions.includes(likeOnlyReaction), [$style.canToggle]: canToggle }]"
+			:disabled="!canToggle"
+			:aria-pressed="myReactions.includes(likeOnlyReaction)"
+			:aria-label="likeOnlyReaction"
+			@click="toggle(likeOnlyReaction)"
+		>
+			<MkReactionIcon style="pointer-events: none;" :reaction="likeOnlyReaction"/>
+			<span :class="$style.count">{{ likeOnlyCount }}</span>
+		</button>
+	</template>
+	<template v-else>
+		<button
+			v-for="[reaction, count] in sortedReactions"
+			:key="reaction"
+			v-ripple="canToggle"
+			class="_button"
+			:class="[$style.reaction, { [$style.reacted]: myReactions.includes(reaction), [$style.canToggle]: canToggle }]"
+			:disabled="!canToggle"
+			:aria-pressed="myReactions.includes(reaction)"
+			:aria-label="reaction"
+			@click="toggle(reaction)"
+			@contextmenu.prevent.stop="showReactedUsers(reaction)"
+		>
+			<MkReactionIcon style="pointer-events: none;" :reaction="reaction"/>
+			<span :class="$style.count">{{ count }}</span>
+		</button>
+		<button
+			v-if="canAddReaction"
+			ref="pickerButtonEl"
+			v-tooltip="i18n.ts.reaction"
+			class="_button"
+			:class="[$style.reaction, $style.add]"
+			:aria-label="i18n.ts.reaction"
+			@click="pick"
+		>
+			<i class="ti ti-plus"></i>
+		</button>
+		<button
+			v-if="hasReactions"
+			class="_button"
+			:class="[$style.reaction, $style.more]"
+			@click="showReactedUsers()"
+		>
+			{{ i18n.ts.more }}
+		</button>
+	</template>
 </div>
 </template>
 
@@ -59,6 +75,7 @@ const props = defineProps<{
 	announcementId: Misskey.entities.Announcement['id'];
 	reactions: Record<string, number>;
 	myReactions: string[];
+	reactionAcceptance?: Misskey.entities.Announcement['reactionAcceptance'];
 }>();
 
 const emit = defineEmits<{
@@ -68,6 +85,10 @@ const emit = defineEmits<{
 const pickerButtonEl = useTemplateRef('pickerButtonEl');
 
 const canToggle = computed(() => $i != null);
+const isLikeOnly = computed(() => props.reactionAcceptance === 'likeOnly');
+const likeOnlyReaction = '\u2764';
+const likeOnlyCount = computed(() => reactions.value[likeOnlyReaction] ?? 0);
+const canAddReaction = computed(() => canToggle.value && !isLikeOnly.value);
 
 const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
@@ -213,7 +234,7 @@ function normalizePickedReaction(reaction: string): string {
 }
 
 function pick() {
-	if (!canToggle.value) return;
+	if (!canAddReaction.value) return;
 
 	reactionPicker.show(pickerButtonEl.value ?? null, null, (reaction) => {
 		const normalized = normalizePickedReaction(reaction);

@@ -43,6 +43,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							:announcementId="announcement.id"
 							:reactions="announcement.reactions"
 							:myReactions="announcement.myReactions"
+							:reactionAcceptance="announcement.reactionAcceptance"
 							@update="(reactions, myReactions) => onReactionsUpdate(announcement, reactions, myReactions)"
 						/>
 					</div>
