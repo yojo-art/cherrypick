@@ -97,6 +97,7 @@
 | 全体 lint (typecheck + eslint) | `pnpm lint` |
 | Backend unit test | `pnpm --filter backend test` |
 | Backend e2e test | `pnpm --filter backend test:e2e` |
+| Backend オブジェクトストレージ E2E (要 S3 互換ストレージ) | `pnpm --filter backend test:e2e:object-storage` |
 | Backend federation test | `pnpm --filter backend test:fed` |
 | Backend federation test (local Docker) | `packages/backend/test-federation/run-local-docker.sh` |
 | Frontend unit test | `pnpm --filter frontend test` |
