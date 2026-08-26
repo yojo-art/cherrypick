@@ -523,6 +523,28 @@ type AnnouncementCreated = {
 };
 
 // @public (undocumented)
+type AnnouncementReacted = {
+    announcementId: string;
+    reaction: string;
+    userId: string;
+};
+
+// @public (undocumented)
+type AnnouncementReaction = components['schemas']['AnnouncementReaction'];
+
+// @public (undocumented)
+type AnnouncementsReactionsCreateRequest = operations['announcements___reactions___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsDeleteRequest = operations['announcements___reactions___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsRequest = operations['announcements___reactions']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsResponse = operations['announcements___reactions']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AnnouncementsRequest = operations['announcements']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -533,6 +555,9 @@ type AnnouncementsShowRequest = operations['announcements___show']['requestBody'
 
 // @public (undocumented)
 type AnnouncementsShowResponse = operations['announcements___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementUnreacted = AnnouncementReacted;
 
 // @public (undocumented)
 type Antenna = components['schemas']['Antenna'];
@@ -754,6 +779,8 @@ export type Channels = {
             readAntenna: (payload: Antenna) => void;
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
+            announcementReacted: (payload: AnnouncementReacted) => void;
+            announcementUnreacted: (payload: AnnouncementUnreacted) => void;
         };
         receives: null;
     };
@@ -1623,6 +1650,8 @@ declare namespace entities {
         EmojiUpdated,
         EmojiDeleted,
         AnnouncementCreated,
+        AnnouncementReacted,
+        AnnouncementUnreacted,
         SignupRequest,
         SignupResponse,
         SignupPendingRequest,
@@ -1796,6 +1825,10 @@ declare namespace entities {
         AdminUpdateUserNoteRequest,
         AnnouncementsRequest,
         AnnouncementsResponse,
+        AnnouncementsReactionsRequest,
+        AnnouncementsReactionsResponse,
+        AnnouncementsReactionsCreateRequest,
+        AnnouncementsReactionsDeleteRequest,
         AnnouncementsShowRequest,
         AnnouncementsShowResponse,
         AntennasCreateRequest,
@@ -2382,6 +2415,7 @@ declare namespace entities {
         AchievementName,
         Ad,
         Announcement,
+        AnnouncementReaction,
         App,
         Note,
         NoteDraft,
@@ -4248,8 +4282,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:60:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:256:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:272:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:260:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:276:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

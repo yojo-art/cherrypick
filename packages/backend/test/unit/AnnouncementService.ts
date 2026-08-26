@@ -12,6 +12,7 @@ import { Test } from '@nestjs/testing';
 import { GlobalModule } from '@/GlobalModule.js';
 import { AnnouncementService } from '@/core/AnnouncementService.js';
 import { AnnouncementEntityService } from '@/core/entities/AnnouncementEntityService.js';
+import { AnnouncementReactionService } from '@/core/AnnouncementReactionService.js';
 import type {
 	AnnouncementReadsRepository,
 	AnnouncementsRepository,
@@ -80,6 +81,12 @@ describe('AnnouncementService', () => {
 				} else if (token === ModerationLogService) {
 					return {
 						log: vi.fn(),
+					};
+				} else if (token === AnnouncementReactionService) {
+					// pack 時にリアクションを引くため、Map を返すモックが必要
+					return {
+						getCounts: vi.fn().mockResolvedValue(new Map()),
+						getMyReactions: vi.fn().mockResolvedValue(new Map()),
 					};
 				} else if (typeof token === 'function') {
 					return mockDeep<typeof token>();
