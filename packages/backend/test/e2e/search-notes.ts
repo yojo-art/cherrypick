@@ -9,7 +9,6 @@ import * as assert from 'assert';
 import { beforeAll, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
-import { loadConfig } from '../../src/config.js';
 import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
 
