@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { beforeAll, test } from 'vitest';
+import { beforeAll, describe, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import type * as misskey from 'misskey-js';
@@ -988,7 +988,7 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.length, 1);
 	});
 
-	describeOpenSearchE2E('投稿日時指定検索', () => {
+	describe('投稿日時指定検索', () => {
 		test('境界一致', async () => {
 			const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
 			const res = await api('notes/search', {
