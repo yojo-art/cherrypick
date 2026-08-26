@@ -8,11 +8,10 @@ process.env.NODE_ENV = 'test';
 import * as assert from 'assert';
 import { beforeAll, describe, test } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
-import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
 
-describeOpenSearchE2E('検索', () => {
+describe('検索', () => {
 	let alice: misskey.entities.SignupResponse;
 	let bob: misskey.entities.SignupResponse;
 	let carol: misskey.entities.SignupResponse;
@@ -988,73 +987,71 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.length, 1);
 	});
 
-	describe('投稿日時指定検索', () => {
-		test('境界一致', async () => {
-			const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
-			const res = await api('notes/search', {
-				query: 'range_test',
-				rangeStartAt: rangeNoteACreatedAt,
-				rangeEndAt: rangeNoteACreatedAt,
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.strictEqual(Array.isArray(res.body), true);
-			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
-		});
-		test('両端を含む範囲', async () => {
-			const res = await api('notes/search', {
-				query: 'range_test',
-				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 1000,
-				rangeEndAt: Date.parse(rangeNoteB.createdAt) + 1000,
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id, rangeNoteB.id].sort());
-		});
-		test('内部範囲', async () => {
-			const res = await api('notes/search', {
-				query: 'range_test',
-				//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため同ミリ秒内の前後関係が不定。AとBの中間時刻を指定して決定的にする
-				rangeStartAt: Date.parse(rangeNoteA.createdAt) + 500,
-				rangeEndAt: Date.parse(rangeNoteB.createdAt),
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
-		});
-		test('開始が未来の範囲', async () => {
-			const res = await api('notes/search', {
-				query: 'range_test',
-				rangeStartAt: Date.parse(rangeNoteB.createdAt) + 1000,
-				rangeEndAt: Date.parse(rangeNoteB.createdAt) + 60000,
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.strictEqual(Array.isArray(res.body), true);
-			assert.strictEqual(res.body.length, 0);
-		});
-		test('終了が過去の範囲', async () => {
-			const res = await api('notes/search', {
-				query: 'range_test',
-				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 60000,
-				rangeEndAt: Date.parse(rangeNoteA.createdAt) - 1000,
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.strictEqual(Array.isArray(res.body), true);
-			assert.strictEqual(res.body.length, 0);
-		});
-		test('開始のみ指定', async () => {
-			const res = await api('notes/search', {
-				query: 'range_test',
-				//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため、+1のような同ミリ秒境界は乱数部次第で前後する。Bの時刻そのものを指定して決的にする
-				rangeStartAt: Date.parse(rangeNoteB.createdAt),
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
-		});
-		test('終了のみ指定', async () => {
-			const res = await api('notes/search', {
-				query: 'range_test',
-				rangeEndAt: Date.parse(rangeNoteA.createdAt),
-			}, alice);
-			assert.strictEqual(res.status, 200);
-			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
-		});
+	test('投稿日時指定検索 境界一致', async () => {
+		const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: rangeNoteACreatedAt,
+			rangeEndAt: rangeNoteACreatedAt,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
+	});
+	test('投稿日時指定検索 両端を含む範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) - 1000,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) + 1000,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id, rangeNoteB.id].sort());
+	});
+	test('投稿日時指定検索 内部範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため同ミリ秒内の前後関係が不定。AとBの中間時刻を指定して決定的にする
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) + 500,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt),
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+	});
+	test('投稿日時指定検索 開始が未来の範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteB.createdAt) + 1000,
+			rangeEndAt: Date.parse(rangeNoteB.createdAt) + 60000,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 0);
+	});
+	test('投稿日時指定検索 終了が過去の範囲', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeStartAt: Date.parse(rangeNoteA.createdAt) - 60000,
+			rangeEndAt: Date.parse(rangeNoteA.createdAt) - 1000,
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.strictEqual(Array.isArray(res.body), true);
+		assert.strictEqual(res.body.length, 0);
+	});
+	test('投稿日時指定検索 開始のみ指定', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため、+1のような同ミリ秒境界は乱数部次第で前後する。Bの時刻そのものを指定して決的にする
+			rangeStartAt: Date.parse(rangeNoteB.createdAt),
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+	});
+	test('投稿日時指定検索 終了のみ指定', async () => {
+		const res = await api('notes/search', {
+			query: 'range_test',
+			rangeEndAt: Date.parse(rangeNoteA.createdAt),
+		}, alice);
+		assert.strictEqual(res.status, 200);
+		assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
 	});
 });
