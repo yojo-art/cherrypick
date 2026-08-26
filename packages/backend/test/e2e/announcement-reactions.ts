@@ -21,11 +21,13 @@ describe('Announcement reactions', () => {
 		title: string;
 		text?: string;
 		userId?: string;
+		reactionAcceptance?: 'likeOnly' | 'nonSensitiveOnly' | 'none' | null;
 	}): Promise<{ id: string }> {
 		const res = await api('admin/announcements/create', {
 			title: params.title,
 			text: params.text ?? 'x',
 			imageUrl: null,
+			reactionAcceptance: params.reactionAcceptance ?? null,
 			...(params.userId != null ? { userId: params.userId } : {}),
 		}, alice);
 		assert.strictEqual(res.status, 200);
@@ -312,5 +314,85 @@ describe('Announcement reactions', () => {
 		}, bob);
 		assert.strictEqual(emptyPage.status, 200);
 		assert.strictEqual(emptyPage.body.length, 0);
+	});
+
+	test('likeOnly のお知らせでは任意のリアクションが ❤ に強制される', async () => {
+		const ann = await createAnnouncement({ title: 'likeOnly', reactionAcceptance: 'likeOnly' });
+
+		await sleep(3100);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '👍',
+		}, bob)).status, 204);
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, { '❤': 1 });
+		assert.deepStrictEqual(item.myReactions, ['❤']);
+	});
+
+	test('nonSensitiveOnly のお知らせではセンシティブなカスタム絵文字は ❤ に強制される', async () => {
+		const file = await uploadFile(alice, { path: '192.png' });
+		assert.ok(file.body);
+		const secretRes = await api('admin/emoji/add', {
+			name: 'announcement_test_secret',
+			fileId: file.body.id,
+			isSensitive: true,
+		}, alice);
+		assert.strictEqual(secretRes.status, 200);
+
+		const file2 = await uploadFile(alice, { path: '192.png' });
+		assert.ok(file2.body);
+		const okRes = await api('admin/emoji/add', {
+			name: 'announcement_test_ok',
+			fileId: file2.body.id,
+			isSensitive: false,
+		}, alice);
+		assert.strictEqual(okRes.status, 200);
+
+		const ann = await createAnnouncement({ title: 'nonSensitiveOnly', reactionAcceptance: 'nonSensitiveOnly' });
+
+		await sleep(3100);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: ':announcement_test_secret@.:',
+		}, bob)).status, 204);
+
+		let listRes = await api('announcements', {}, bob);
+		let item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, { '❤': 1 });
+
+		// 非センシティブはそのまま
+		const ann2 = await createAnnouncement({ title: 'nonSensitiveOnly2', reactionAcceptance: 'nonSensitiveOnly' });
+		await sleep(3100);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann2.id,
+			reaction: ':announcement_test_ok@.:',
+		}, bob)).status, 204);
+		listRes = await api('announcements', {}, bob);
+		item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann2.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, { ':announcement_test_ok@.:': 1 });
+	});
+
+	test('none のお知らせではリアクションが拒否される', async () => {
+		const ann = await createAnnouncement({ title: 'none', reactionAcceptance: 'none' });
+
+		await sleep(3100);
+		await failedApiCall({
+			endpoint: 'announcements/reactions/create',
+			parameters: { announcementId: ann.id, reaction: 'like' },
+			user: bob,
+		}, { status: 400, code: 'REACTIONS_NOT_ALLOWED', id: '5dc6d2af-e34c-4cdf-9303-1875fa390d02' });
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, {});
+		assert.deepStrictEqual(item.myReactions, []);
 	});
 });
