@@ -120,15 +120,22 @@ describeObjectStorageE2E('オブジェクトストレージ', () => {
 		assert.strictEqual(thumbnail.status, 200);
 		assert.strictEqual(thumbnail.headers.get('content-type'), 'image/webp');
 
-		// オリジナル・webpublic・サムネイルの3オブジェクト以上が保存されている
+		// 192.jpgはEXIF等を持たない小さい画像なのでwebpublicは生成されず、オリジナル・サムネイルが保存される
 		const listed = await s3Client.send(new ListObjectsV2Command({
 			Bucket: OBJECT_STORAGE_BUCKET,
 		}));
-		assert.ok((listed.KeyCount ?? 0) >= 3, `objects: ${JSON.stringify(listed.Contents?.map(o => o.Key))}`);
+		assert.ok((listed.KeyCount ?? 0) >= 2, `objects: ${JSON.stringify(listed.Contents?.map(o => o.Key))}`);
 	});
 
 	test('ファイルを削除するとオブジェクトストレージからも削除される', async () => {
-		const upRes = await uploadFile(root, { path: '192.png' });
+		// 当該アップロード由来のキーを特定できるよう、事前のキー一覧を取得しておく
+		const beforeKeys = new Set((await s3Client.send(new ListObjectsV2Command({
+			Bucket: OBJECT_STORAGE_BUCKET,
+		}))).Contents?.map(o => o.Key!) ?? []);
+
+		// EXIFを持つrotate.jpgを使い、webpublic代替画像の生成・削除も検証対象にする
+		// (EXIF等を持たない小さい画像はsatisfyWebpublicによりwebpublicが生成されない)
+		const upRes = await uploadFile(root, { path: 'rotate.jpg' });
 		assert.strictEqual(upRes.status, 200);
 		const file = upRes.body!;
 
@@ -136,17 +143,27 @@ describeObjectStorageE2E('オブジェクトストレージ', () => {
 		assert.ok(file.url.startsWith(expectedPrefix));
 		assert.ok(file.thumbnailUrl != null && file.thumbnailUrl.startsWith(expectedPrefix));
 
+		// original・webpublic・サムネイルの3オブジェクトが作られていることを確認
+		const listedAfterUpload = await s3Client.send(new ListObjectsV2Command({
+			Bucket: OBJECT_STORAGE_BUCKET,
+		}));
+		const uploadedKeys = (listedAfterUpload.Contents?.map(o => o.Key!) ?? [])
+			.filter(key => !beforeKeys.has(key));
+		assert.ok(uploadedKeys.length >= 3, `uploaded keys: ${JSON.stringify(uploadedKeys)}`);
+
 		const delRes = await api('drive/files/delete', { fileId: file.id }, root);
 		assert.strictEqual(delRes.status, 204);
 
-		// 削除はジョブキュー経由で行われるので完了まで待つ
+		// 削除はジョブキュー経由で行われるので完了まで待つ(S3上のキー消失で判定する)
 		await vi.waitFor(async () => {
-			const [original, thumbnail] = await Promise.all([
-				fetch(file.url),
-				fetch(file.thumbnailUrl!),
-			]);
-			assert.notStrictEqual(original.status, 200, 'original still exists');
-			assert.notStrictEqual(thumbnail.status, 200, 'thumbnail still exists');
+			const listedAfterDelete = await s3Client.send(new ListObjectsV2Command({
+				Bucket: OBJECT_STORAGE_BUCKET,
+			}));
+			const remainingKeys = uploadedKeys.filter(key => listedAfterDelete.Contents?.some(o => o.Key === key));
+			assert.deepStrictEqual(remainingKeys, [], `remaining keys: ${JSON.stringify(remainingKeys)}`);
 		}, { timeout: 30_000, interval: 500 });
+
+		// 匿名GETが404になることも確認する(403など「読めないがオブジェクトが残っている」状態と区別するため)
+		assert.strictEqual((await fetch(file.url)).status, 404);
 	});
 });
