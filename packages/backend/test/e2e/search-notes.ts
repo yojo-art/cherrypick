@@ -6,11 +6,11 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { beforeAll, describe, test, vi } from 'vitest';
+import { beforeAll, test, vi } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
+import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import type * as misskey from 'misskey-js';
 import { query } from '@/misc/prelude/url.js';
-import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 
 describeOpenSearchE2E('検索', () => {
 	let alice: misskey.entities.SignupResponse;
@@ -45,6 +45,8 @@ describeOpenSearchE2E('検索', () => {
 	let noteSearchableByFollowersAndReacted: misskey.entities.Note;
 	let noteSearchableByReacted: misskey.entities.Note;
 	let noteSearchableByPrivate: misskey.entities.Note;
+	let rangeNoteA: misskey.entities.Note;
+	let rangeNoteB: misskey.entities.Note;
 
 	beforeAll(async () => {
 		root = await signup({ username: 'root' });
@@ -114,11 +116,16 @@ describeOpenSearchE2E('検索', () => {
 				choices: ['1', '2'],
 				multiple: false,
 			},
-		 });
+		});
 		clipedNote = await post(carol, { text: 'indexable_text' });
 		favoritedNote = await post(carol, { text: 'indexable_text' });
 		renotedNote = await post(carol, { text: 'indexable_text' });
 		replyedNote = await post(carol, { text: 'indexable_text' });
+
+		rangeNoteA = await post(alice, { text: 'range_test' });
+		//同時刻に投稿されると日時範囲指定の時刻差分が取れないため僅かに間を置く
+		await new Promise(resolve => setTimeout(resolve, 1500));
+		rangeNoteB = await post(alice, { text: 'range_test' });
 
 		noteSearchableByNull = await post(carol, { text: 'SearchableBy_Test', searchableBy: undefined });
 		noteSearchableByPublic = await post(carol, { text: 'SearchableBy_Test', searchableBy: 'public' });
@@ -1046,5 +1053,75 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
 		assert.strictEqual(noteIds.length, 1);
+	});
+
+	describeOpenSearchE2E('投稿日時指定検索', () => {
+		test('境界一致', async () => {
+			const rangeNoteACreatedAt = Date.parse(rangeNoteA.createdAt);
+			const res = await api('notes/search', {
+				query: 'range_test',
+				rangeStartAt: rangeNoteACreatedAt,
+				rangeEndAt: rangeNoteACreatedAt,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(Array.isArray(res.body), true);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
+		});
+		test('両端を含む範囲', async () => {
+			const res = await api('notes/search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 1000,
+				rangeEndAt: Date.parse(rangeNoteB.createdAt) + 1000,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id, rangeNoteB.id].sort());
+		});
+		test('内部範囲', async () => {
+			const res = await api('notes/search', {
+				query: 'range_test',
+				//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため同ミリ秒内の前後関係が不定。AとBの中間時刻を指定して決定的にする
+				rangeStartAt: Date.parse(rangeNoteA.createdAt) + 500,
+				rangeEndAt: Date.parse(rangeNoteB.createdAt),
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+		});
+		test('開始が未来の範囲', async () => {
+			const res = await api('notes/search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteB.createdAt) + 1000,
+				rangeEndAt: Date.parse(rangeNoteB.createdAt) + 60000,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(Array.isArray(res.body), true);
+			assert.strictEqual(res.body.length, 0);
+		});
+		test('終了が過去の範囲', async () => {
+			const res = await api('notes/search', {
+				query: 'range_test',
+				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 60000,
+				rangeEndAt: Date.parse(rangeNoteA.createdAt) - 1000,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(Array.isArray(res.body), true);
+			assert.strictEqual(res.body.length, 0);
+		});
+		test('開始のみ指定', async () => {
+			const res = await api('notes/search', {
+				query: 'range_test',
+				//sqlLikeはノートID(ミリ秒時刻+乱数)の辞書順比較のため、+1のような同ミリ秒境界は乱数部次第で前後する。Bの時刻そのものを指定して決的にする
+				rangeStartAt: Date.parse(rangeNoteB.createdAt),
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteB.id]);
+		});
+		test('終了のみ指定', async () => {
+			const res = await api('notes/search', {
+				query: 'range_test',
+				rangeEndAt: Date.parse(rangeNoteA.createdAt),
+			}, alice);
+			assert.strictEqual(res.status, 200);
+			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id]);
+		});
 	});
 });
