@@ -23,14 +23,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<span :class="$style.itemDescription">{{ i18n.ts._visibility.homeDescription }}</span>
 			</div>
 		</button>
-		<button key="followers" :disabled="isReplyVisibilitySpecified" class="_button" :class="[$style.item, { [$style.active]: v === 'followers' }]" data-index="3" @click="choose('followers')">
+		<button v-if="!isChannel" key="followers" :disabled="isReplyVisibilitySpecified" class="_button" :class="[$style.item, { [$style.active]: v === 'followers' }]" data-index="3" @click="choose('followers')">
 			<div :class="$style.icon"><i class="ti ti-lock"></i></div>
 			<div :class="$style.body">
 				<span :class="$style.itemTitle">{{ i18n.ts._visibility.followers }}</span>
 				<span :class="$style.itemDescription">{{ i18n.ts._visibility.followersDescription }}</span>
 			</div>
 		</button>
-		<button key="specified" class="_button" :class="[$style.item, { [$style.active]: v === 'specified' }]" data-index="4" @click="choose('specified')">
+		<button v-if="!isChannel" key="specified" class="_button" :class="[$style.item, { [$style.active]: v === 'specified' }]" data-index="4" @click="choose('specified')">
 			<div :class="$style.icon"><i class="ti ti-mail"></i></div>
 			<div :class="$style.body">
 				<span :class="$style.itemTitle">{{ i18n.ts._visibility.specified }}</span>
@@ -41,14 +41,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkDivider style="margin: 5px 0;"/>
 
 		<div :class="$style.item">
-			<MkSwitch v-model="rememberNoteVisibility">{{ i18n.ts.rememberNoteVisibility }}</MkSwitch>
+			<MkSwitch v-model="rememberModel">{{ props.isChannel ? i18n.ts.rememberChannelNoteVisibility : i18n.ts.rememberNoteVisibility }}</MkSwitch>
 		</div>
 	</div>
 </MkModal>
 </template>
 
 <script lang="ts" setup>
-import { nextTick, useTemplateRef, ref } from 'vue';
+import { nextTick, useTemplateRef, ref, computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import MkModal from '@/components/MkModal.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -63,7 +63,9 @@ const props = withDefaults(defineProps<{
 	isSilenced: boolean;
 	anchorElement?: HTMLElement | null;
 	isReplyVisibilitySpecified?: boolean;
+	isChannel?: boolean;
 }>(), {
+	isChannel: false,
 });
 
 const emit = defineEmits<{
@@ -72,6 +74,15 @@ const emit = defineEmits<{
 }>();
 
 const rememberNoteVisibility = prefer.model('rememberNoteVisibility');
+const rememberChannelNoteVisibility = prefer.model('rememberChannelNoteVisibility');
+
+const rememberModel = computed({
+	get: () => props.isChannel ? rememberChannelNoteVisibility.value : rememberNoteVisibility.value,
+	set: (v: boolean) => {
+		if (props.isChannel) rememberChannelNoteVisibility.value = v;
+		else rememberNoteVisibility.value = v;
+	},
+});
 
 const v = ref(props.currentVisibility);
 
