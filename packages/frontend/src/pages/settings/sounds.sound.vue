@@ -8,6 +8,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkSelect v-model="type" :items="typeDef">
 		<template #label>{{ i18n.ts.sound }}</template>
 	</MkSelect>
+	<MkSelect v-if="type === '_instanceSound_'" v-model="selectedInstanceSoundId" :items="instanceSoundItems">
+		<template #label>{{ i18n.ts._soundSettings.instanceSound }}</template>
+	</MkSelect>
 	<div v-if="type === '_driveFile_' && driveFileError === true" :class="$style.fileSelectorRoot">
 		<MkButton :class="$style.fileSelectorButton" inline rounded primary @click="selectSound">{{ i18n.ts.selectFile }}</MkButton>
 		<div :class="$style.fileErrorRoot">
@@ -33,6 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 import { ref, computed, watch } from 'vue';
 import type { SoundType } from '@/utility/sound.js';
 import type { SoundStore } from '@/preferences/def.js';
+import type * as Misskey from 'misskey-js';
 import MkSelect from '@/components/MkSelect.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkRange from '@/components/MkRange.vue';
@@ -48,7 +52,7 @@ const props = defineProps<{
 }>();
 
 const emit = defineEmits<{
-	(ev: 'update', result: { type: SoundType; fileId?: string; fileUrl?: string; volume: number; }): void;
+	(ev: 'update', result: { type: SoundType; fileId?: string; fileUrl?: string; soundId?: string; volume: number; }): void;
 }>();
 
 const {
@@ -61,12 +65,31 @@ const {
 	})),
 	initialValue: props.def.type,
 });
+
+const instanceSounds = ref<Misskey.entities.GetCustomSoundsResponse>([]);
+const selectedInstanceSoundId = ref<string | null>('soundId' in props.def ? props.def.soundId : null);
 const fileId = ref('fileId' in props.def ? props.def.fileId : undefined);
 const fileUrl = ref('fileUrl' in props.def ? props.def.fileUrl : undefined);
 const fileName = ref<string>('');
 const driveFileError = ref(false);
 const hasChanged = ref(false);
 const volume = ref(props.def.volume);
+
+const instanceSoundItems = computed(() => instanceSounds.value.filter(s => s.url != null).map(s => ({
+	label: s.name,
+	value: s.id,
+})));
+
+const selectedInstanceSound = computed(() => instanceSounds.value.find(s => s.id === selectedInstanceSoundId.value));
+
+async function loadInstanceSounds() {
+	if (instanceSounds.value.length > 0) return;
+	const sounds = await misskeyApi('get-custom-sounds');
+	instanceSounds.value = sounds;
+	if (selectedInstanceSoundId.value != null && !sounds.some(s => s.id === selectedInstanceSoundId.value)) {
+		selectedInstanceSoundId.value = null;
+	}
+}
 
 if (type.value === '_driveFile_' && fileId.value) {
 	await misskeyApi('drive/files/show', {
@@ -78,12 +101,24 @@ if (type.value === '_driveFile_' && fileId.value) {
 	});
 }
 
+if (type.value === '_instanceSound_') {
+	await loadInstanceSounds();
+}
+
+watch(type, (t) => {
+	if (t === '_instanceSound_') {
+		loadInstanceSounds();
+	}
+});
+
 function getSoundTypeName(f: SoundType): string {
 	switch (f) {
 		case null:
 			return i18n.ts.none;
 		case '_driveFile_':
 			return i18n.ts._soundSettings.driveFile;
+		case '_instanceSound_':
+			return i18n.ts._soundSettings.instanceSound;
 		default:
 			return f;
 	}
@@ -134,12 +169,24 @@ function selectSound(ev: PointerEvent) {
 	});
 }
 
-watch([type, volume], ([typeTo, volumeTo], [typeFrom, volumeFrom]) => {
-	if (typeFrom !== typeTo && typeTo !== '_driveFile_') {
-		fileUrl.value = undefined;
-		fileName.value = '';
-		fileId.value = undefined;
-		driveFileError.value = false;
+watch([type, volume, selectedInstanceSoundId], ([typeTo, volumeTo, soundIdTo], [typeFrom, volumeFrom, soundIdFrom]) => {
+	if (typeFrom !== typeTo) {
+		if (typeTo === '_driveFile_') {
+			selectedInstanceSoundId.value = null;
+		}
+		if (typeTo === '_instanceSound_') {
+			fileUrl.value = undefined;
+			fileName.value = '';
+			fileId.value = undefined;
+			driveFileError.value = false;
+		}
+		if (typeTo !== '_driveFile_' && typeTo !== '_instanceSound_') {
+			fileUrl.value = undefined;
+			fileName.value = '';
+			fileId.value = undefined;
+			selectedInstanceSoundId.value = null;
+			driveFileError.value = false;
+		}
 	}
 	hasChanged.value = true;
 });
@@ -154,16 +201,38 @@ function listen() {
 		});
 		return;
 	}
+	if (type.value === '_instanceSound_' && (!selectedInstanceSoundId.value || !selectedInstanceSound.value?.url)) {
+		os.alert({
+			type: 'warning',
+			text: i18n.ts._soundSettings.instanceSoundWarn,
+		});
+		return;
+	}
 
-	playMisskeySfxFile(type.value === '_driveFile_' ? {
-		type: '_driveFile_',
-		fileId: fileId.value as string,
-		fileUrl: fileUrl.value as string,
-		volume: volume.value,
-	} : {
-		type: type.value,
-		volume: volume.value,
-	});
+	playMisskeySfxFile(buildStore());
+}
+
+function buildStore(): SoundStore {
+	if (type.value === '_driveFile_') {
+		return {
+			type: '_driveFile_',
+			fileId: fileId.value as string,
+			fileUrl: fileUrl.value as string,
+			volume: volume.value,
+		};
+	} else if (type.value === '_instanceSound_') {
+		return {
+			type: '_instanceSound_',
+			soundId: selectedInstanceSoundId.value as string,
+			fileUrl: selectedInstanceSound.value?.url as string,
+			volume: volume.value,
+		};
+	} else {
+		return {
+			type: type.value,
+			volume: volume.value,
+		};
+	}
 }
 
 function save() {
@@ -179,6 +248,14 @@ function save() {
 		return;
 	}
 
+	if (type.value === '_instanceSound_' && (!selectedInstanceSoundId.value || !selectedInstanceSound.value?.url)) {
+		os.alert({
+			type: 'warning',
+			text: i18n.ts._soundSettings.instanceSoundWarn,
+		});
+		return;
+	}
+
 	if (type.value !== '_driveFile_') {
 		fileUrl.value = undefined;
 		fileName.value = '';
@@ -187,8 +264,9 @@ function save() {
 
 	emit('update', {
 		type: type.value,
-		fileId: fileId.value,
-		fileUrl: fileUrl.value,
+		fileId: type.value === '_driveFile_' ? fileId.value : undefined,
+		fileUrl: type.value === '_driveFile_' ? fileUrl.value : (type.value === '_instanceSound_' ? (selectedInstanceSound.value?.url ?? undefined) : undefined),
+		soundId: type.value === '_instanceSound_' ? (selectedInstanceSoundId.value ?? undefined) : undefined,
 		volume: volume.value,
 	});
 

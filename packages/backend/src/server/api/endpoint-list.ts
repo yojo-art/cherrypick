@@ -40,6 +40,9 @@ export * as 'admin/avatar-decorations/list-remote' from './endpoints/admin/avata
 export * as 'admin/avatar-decorations/update' from './endpoints/admin/avatar-decorations/update.js';
 export * as 'admin/captcha/current' from './endpoints/admin/captcha/current.js';
 export * as 'admin/captcha/save' from './endpoints/admin/captcha/save.js';
+export * as 'admin/custom-sounds/create' from './endpoints/admin/custom-sounds/create.js';
+export * as 'admin/custom-sounds/delete' from './endpoints/admin/custom-sounds/delete.js';
+export * as 'admin/custom-sounds/list' from './endpoints/admin/custom-sounds/list.js';
 export * as 'admin/delete-account' from './endpoints/admin/delete-account.js';
 export * as 'admin/delete-all-files-of-a-user' from './endpoints/admin/delete-all-files-of-a-user.js';
 export * as 'admin/drive/clean-remote-files' from './endpoints/admin/drive/clean-remote-files.js';
@@ -254,6 +257,7 @@ export * as 'gallery/posts/show' from './endpoints/gallery/posts/show.js';
 export * as 'gallery/posts/unlike' from './endpoints/gallery/posts/unlike.js';
 export * as 'gallery/posts/update' from './endpoints/gallery/posts/update.js';
 export * as 'get-avatar-decorations' from './endpoints/get-avatar-decorations.js';
+export * as 'get-custom-sounds' from './endpoints/get-custom-sounds.js';
 export * as 'get-online-users-count' from './endpoints/get-online-users-count.js';
 export * as 'hashtags/list' from './endpoints/hashtags/list.js';
 export * as 'hashtags/search' from './endpoints/hashtags/search.js';

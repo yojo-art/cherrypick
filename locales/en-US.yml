@@ -2391,6 +2391,7 @@ _role:
     inviteExpirationTime: "Invite expiration interval"
     canManageCustomEmojis: "Can manage custom emojis"
     canManageAvatarDecorations: "Manage avatar decorations"
+    canManageCustomSounds: "Manage instance sounds"
     driveCapacity: "Drive capacity"
     maxFileSize: "Upload-able max file size"
     maxFileSize_caption: "Reverse proxies, CDNs, and other front-end components may have their own configuration settings."
@@ -2491,6 +2492,19 @@ _ad:
   notesPerOneAd: "Real-time update ad placement interval (Notes per ad)"
   setZeroToDisable: "Set this value to 0 to disable real-time update ads"
   adsTooClose: "The current ad interval may significantly worsen the user experience due to being too low."
+
+_adminSounds:
+  title: "Instance sounds"
+  description: "You can register instance-specific sounds. Registered sounds can be selected by users in their sound settings."
+  add: "Add sound"
+  name: "Name"
+  nameCaption: "The name shown in the sound settings"
+  selectFile: "Select an audio file"
+  noSounds: "No sounds are registered"
+  delete: "Delete"
+  deleteConfirm: "Delete this sound?"
+  deleteConfirmDriveFileNote: "Users who selected the deleted sound will be reverted to the default sound. The source drive file is not deleted and remains in the drive."
+
 _forgotPassword:
   enterEmail: "Enter the email address you used to register. A link with which you can reset your password will then be sent to it."
   ifNoEmail: "If you did not use an email during registration, please contact the instance administrator instead."
@@ -2756,6 +2770,8 @@ _soundSettings:
   driveFileDurationWarn: "The audio is too long."
   driveFileDurationWarnDescription: "Long audio may disrupt using CherryPick. Still continue?"
   driveFileError: "It couldn't load the sound. Please change the setting."
+  instanceSound: "Instance sound"
+  instanceSoundWarn: "Select an instance sound."
 _ago:
   future: "Future"
   justNow: "Just now"
@@ -2876,6 +2892,8 @@ _permissions:
   "read:admin:announcements": "View announcements"
   "write:admin:avatar-decorations": "Can manage avatar decorations"
   "read:admin:avatar-decorations": "View avatar decorations"
+  "write:admin:custom-sounds": "Can manage instance sounds"
+  "read:admin:custom-sounds": "View instance sounds"
   "write:admin:federation": "Manage federation data"
   "write:admin:account": "Manage user account"
   "read:admin:account": "View user account"

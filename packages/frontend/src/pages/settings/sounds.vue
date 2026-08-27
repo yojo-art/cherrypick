@@ -41,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div class="_gaps_s">
 				<MkFolder v-for="type in operationTypes" :key="type">
 					<template #label>{{ i18n.ts._sfx[type] }}</template>
-					<template #suffix>{{ getSoundTypeName(sounds[type].type) }}</template>
+					<template #suffix>{{ getSoundTypeName(sounds[type].type, sounds[type]) }}</template>
 					<Suspense>
 						<template #default>
 							<XSound :def="sounds[type]" @update="(res) => updated(type, res)"/>
@@ -79,10 +79,14 @@ import { PREF_DEF } from '@/preferences/def.js';
 import MkFeatureBanner from '@/components/MkFeatureBanner.vue';
 import { getInitialPrefValue } from '@/preferences/manager.js';
 import * as os from '@/os.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
+import type * as Misskey from 'misskey-js';
 
 const notUseSound = prefer.model('sound.notUseSound');
 const useSoundOnlyWhenActive = prefer.model('sound.useSoundOnlyWhenActive');
 const masterVolume = prefer.model('sound.masterVolume');
+
+const instanceSounds = ref<Misskey.entities.GetCustomSoundsResponse>([]);
 
 const sounds = ref<Record<OperationType, Ref<SoundStore>>>({
 	note: prefer.r['sound.on.note'],
@@ -94,21 +98,33 @@ const sounds = ref<Record<OperationType, Ref<SoundStore>>>({
 	chatMessage: prefer.r['sound.on.chatMessage'],
 });
 
-function getSoundTypeName(f: SoundType): string {
+function getSoundTypeName(f: SoundType, store?: SoundStore): string {
 	switch (f) {
 		case null:
 			return i18n.ts.none;
 		case '_driveFile_':
 			return i18n.ts._soundSettings.driveFile;
+		case '_instanceSound_':
+			return getInstanceSoundName(store && 'soundId' in store ? store.soundId : undefined) ?? i18n.ts._soundSettings.instanceSound;
 		default:
 			return f;
 	}
 }
 
-async function updated(type: keyof typeof sounds.value, sound: { type: SoundType; fileId?: string; fileUrl?: string; volume: number; }) {
+function getInstanceSoundName(soundId: string | undefined): string | null {
+	if (soundId == null) return null;
+	return instanceSounds.value.find(s => s.id === soundId)?.name ?? null;
+}
+
+async function updated(type: keyof typeof sounds.value, sound: { type: SoundType; fileId?: string; fileUrl?: string; soundId?: string; volume: number; }) {
 	const v: SoundStore = sound.type === '_driveFile_' ? {
 		type: sound.type,
 		fileId: sound.fileId!,
+		fileUrl: sound.fileUrl!,
+		volume: sound.volume,
+	} : sound.type === '_instanceSound_' ? {
+		type: sound.type,
+		soundId: sound.soundId!,
 		fileUrl: sound.fileUrl!,
 		volume: sound.volume,
 	} : {
@@ -129,6 +145,10 @@ function reset() {
 
 	os.success();
 }
+
+misskeyApi('get-custom-sounds').then((soundsList) => {
+	instanceSounds.value = soundsList;
+});
 
 const headerActions = computed(() => []);
 

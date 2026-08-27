@@ -20,6 +20,7 @@ import { MiAntenna } from '@/models/Antenna.js';
 import { MiApp } from '@/models/App.js';
 import { MiAuthSession } from '@/models/AuthSession.js';
 import { MiAvatarDecoration } from '@/models/AvatarDecoration.js';
+import { MiCustomSound } from '@/models/CustomSound.js';
 import { MiBlocking } from '@/models/Blocking.js';
 import { MiBubbleGameRecord } from '@/models/BubbleGameRecord.js';
 import { MiChannel } from '@/models/Channel.js';
@@ -126,6 +127,7 @@ export {
 	MiClipNote,
 	MiClipFavorite,
 	MiClipFavoriteRemote,
+	MiCustomSound,
 	MiDriveFile,
 	MiDriveFolder,
 	MiEmoji,
@@ -215,6 +217,7 @@ export type ClipsRepository = Repository<MiClip> & MiRepository<MiClip>;
 export type ClipNotesRepository = Repository<MiClipNote> & MiRepository<MiClipNote>;
 export type ClipFavoritesRepository = Repository<MiClipFavorite> & MiRepository<MiClipFavorite>;
 export type ClipFavoritesRemoteRepository = Repository<MiClipFavoriteRemote> & MiRepository<MiClipFavoriteRemote>;
+export type CustomSoundsRepository = Repository<MiCustomSound> & MiRepository<MiCustomSound>;
 export type DriveFilesRepository = Repository<MiDriveFile> & MiRepository<MiDriveFile>;
 export type DriveFoldersRepository = Repository<MiDriveFolder> & MiRepository<MiDriveFolder>;
 export type EmojisRepository = Repository<MiEmoji> & MiRepository<MiEmoji>;

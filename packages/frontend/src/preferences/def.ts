@@ -21,7 +21,7 @@ import { deepEqual } from '@/utility/deep-equal.js';
 
 /** サウンド設定 */
 export type SoundStore = {
-	type: Exclude<SoundType, '_driveFile_'>;
+	type: Exclude<SoundType, '_driveFile_' | '_instanceSound_'>;
 	volume: number;
 } | {
 	type: '_driveFile_';
@@ -30,6 +30,16 @@ export type SoundStore = {
 	fileId: string;
 
 	/** ファイルURL（こちらが優先される） */
+	fileUrl: string;
+
+	volume: number;
+} | {
+	type: '_instanceSound_';
+
+	/** インスタンスサウンドのID */
+	soundId: string;
+
+	/** ファイルURL */
 	fileUrl: string;
 
 	volume: number;

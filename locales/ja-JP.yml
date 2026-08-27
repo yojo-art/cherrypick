@@ -2489,6 +2489,7 @@ _role:
     inviteExpirationTime: "招待コードの有効期限"
     canManageCustomEmojis: "カスタム絵文字の管理"
     canManageAvatarDecorations: "アバターデコレーションの管理"
+    canManageCustomSounds: "インスタンスサウンドの管理"
     driveCapacity: "ドライブ容量"
     maxFileSize: "アップロード可能な最大ファイルサイズ"
     maxFileSize_caption: "リバースプロキシやCDNなど、前段で別の設定値が存在する場合があります。"
@@ -2600,6 +2601,18 @@ _ad:
   notesPerOneAd: "リアルタイム更新中に広告を配信する間隔（ノートの個数）"
   setZeroToDisable: "0でリアルタイム更新時の広告配信を無効"
   adsTooClose: "広告の配信間隔が極めて短いため、ユーザー体験が著しく損われる可能性があります。"
+
+_adminSounds:
+  title: "インスタンスのサウンド"
+  description: "インスタンス独自のサウンドを登録できます。登録したサウンドは、ユーザーがサウンド設定で選択できます。"
+  add: "サウンドを追加"
+  name: "名前"
+  nameCaption: "サウンド設定に表示される名前です"
+  selectFile: "音声ファイルを選択"
+  noSounds: "登録されているサウンドはありません"
+  delete: "削除"
+  deleteConfirm: "このサウンドを削除しますか？"
+  deleteConfirmDriveFileNote: "削除したサウンドを選択していたユーザーは、デフォルトのサウンドに戻ります。登録元のドライブファイルは削除されず、ドライブに残ります。"
 
 _forgotPassword:
   enterEmail: "アカウントに登録したメールアドレスを入力してください。そのアドレス宛てに、パスワードリセット用のリンクが送信されます。"
@@ -2890,6 +2903,8 @@ _soundSettings:
   driveFileDurationWarn: "音声が長すぎます"
   driveFileDurationWarnDescription: "長い音声を使用するとyojo-artの使用に支障をきたす可能性があります。それでも続行しますか？"
   driveFileError: "音声が読み込めませんでした。設定を変更してください"
+  instanceSound: "インスタンスのサウンド"
+  instanceSoundWarn: "インスタンスサウンドを選択してください"
 
 _ago:
   future: "未来"
@@ -3016,6 +3031,8 @@ _permissions:
   "read:admin:announcements": "お知らせを見る"
   "write:admin:avatar-decorations": "アバターデコレーションを操作する"
   "read:admin:avatar-decorations": "アバターデコレーションを見る"
+  "write:admin:custom-sounds": "インスタンスサウンドを操作する"
+  "read:admin:custom-sounds": "インスタンスサウンドを見る"
   "write:admin:federation": "連合に関する情報を操作する"
   "write:admin:account": "ユーザーアカウントを操作する"
   "read:admin:account": "ユーザーに関する情報を見る"

@@ -21,6 +21,10 @@ function chatPage(...args: Parameters<typeof page>) {
 	return $i?.policies.chatAvailability !== 'unavailable' ? page(...args) : page(() => import('@/pages/not-found.vue'));
 }
 
+function customSoundsPage(...args: Parameters<typeof page>) {
+	return $i != null && ($i.isAdmin === true || $i.policies.canManageCustomSounds === true) ? page(...args) : page(() => import('@/pages/not-found.vue'));
+}
+
 export const ROUTE_DEF = [{
 	name: 'index',
 	path: '/',
@@ -147,6 +151,10 @@ export const ROUTE_DEF = [{
 		path: '/sounds',
 		name: 'sounds',
 		component: page(() => import('@/pages/settings/sounds.vue')),
+	}, {
+		path: '/custom-sounds',
+		name: 'custom-sounds',
+		component: customSoundsPage(() => import('@/pages/settings/custom-sounds.vue')),
 	}, {
 		path: '/plugin/install',
 		name: 'plugin',

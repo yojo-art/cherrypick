@@ -130,7 +130,12 @@ const menuDef = computed<SuperMenuDef[]>(() => [{
 		text: i18n.ts.sounds,
 		to: '/settings/sounds',
 		active: currentPage.value?.route.name === 'sounds',
-	}, {
+	}, ...($i?.isAdmin || $i?.policies.canManageCustomSounds ? [{
+		icon: 'ti ti-music',
+		text: i18n.ts._adminSounds.title,
+		to: '/settings/custom-sounds',
+		active: currentPage.value?.route.name === 'custom-sounds',
+	}] : []), {
 		icon: 'ti ti-plug',
 		text: i18n.ts.plugins,
 		to: '/settings/plugin',

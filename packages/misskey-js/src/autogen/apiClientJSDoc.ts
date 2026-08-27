@@ -346,6 +346,39 @@ declare module '../api.js' {
     /**
      * No description provided.
      * 
+     * **Credential required**: *Yes* / **Permission**: *write:admin:custom-sounds*
+     */
+    request<E extends 'admin/custom-sounds/create', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *write:admin:custom-sounds*
+     */
+    request<E extends 'admin/custom-sounds/delete', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *Yes* / **Permission**: *read:admin:custom-sounds*
+     */
+    request<E extends 'admin/custom-sounds/list', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
      * **Credential required**: *Yes* / **Permission**: *write:admin:delete-account*
      */
     request<E extends 'admin/delete-account', P extends Endpoints[E]['req']>(
@@ -3036,6 +3069,17 @@ declare module '../api.js' {
      * **Credential required**: *No*
      */
     request<E extends 'get-avatar-decorations', P extends Endpoints[E]['req']>(
+      endpoint: E,
+      params: P,
+      credential?: string | null,
+    ): Promise<SwitchCaseResponseType<E, P>>;
+
+    /**
+     * No description provided.
+     * 
+     * **Credential required**: *No*
+     */
+    request<E extends 'get-custom-sounds', P extends Endpoints[E]['req']>(
       endpoint: E,
       params: P,
       credential?: string | null,

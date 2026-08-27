@@ -25,6 +25,7 @@ import { AchievementService } from './AchievementService.js';
 import { AvatarDecorationService } from './AvatarDecorationService.js';
 import { CaptchaService } from './CaptchaService.js';
 import { CustomEmojiService } from './CustomEmojiService.js';
+import { CustomSoundService } from './CustomSoundService.js';
 import { DeleteAccountService } from './DeleteAccountService.js';
 import { TruncateAccountService } from './TruncateAccountService.js';
 import { DownloadService } from './DownloadService.js';
@@ -182,6 +183,7 @@ const $AchievementService: Provider = { provide: 'AchievementService', useExisti
 const $AvatarDecorationService: Provider = { provide: 'AvatarDecorationService', useExisting: AvatarDecorationService };
 const $CaptchaService: Provider = { provide: 'CaptchaService', useExisting: CaptchaService };
 const $CustomEmojiService: Provider = { provide: 'CustomEmojiService', useExisting: CustomEmojiService };
+const $CustomSoundService: Provider = { provide: 'CustomSoundService', useExisting: CustomSoundService };
 const $DeleteAccountService: Provider = { provide: 'DeleteAccountService', useExisting: DeleteAccountService };
 const $TruncateAccountService: Provider = { provide: 'TruncateAccountService', useExisting: TruncateAccountService };
 const $DownloadService: Provider = { provide: 'DownloadService', useExisting: DownloadService };
@@ -347,6 +349,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		AvatarDecorationService,
 		CaptchaService,
 		CustomEmojiService,
+		CustomSoundService,
 		DeleteAccountService,
 		TruncateAccountService,
 		DownloadService,
@@ -510,6 +513,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$AvatarDecorationService,
 		$CaptchaService,
 		$CustomEmojiService,
+		$CustomSoundService,
 		$DeleteAccountService,
 		$TruncateAccountService,
 		$DownloadService,
@@ -672,6 +676,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		AvatarDecorationService,
 		CaptchaService,
 		CustomEmojiService,
+		CustomSoundService,
 		DeleteAccountService,
 		TruncateAccountService,
 		DownloadService,
@@ -834,6 +839,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$AvatarDecorationService,
 		$CaptchaService,
 		$CustomEmojiService,
+		$CustomSoundService,
 		$DeleteAccountService,
 		$TruncateAccountService,
 		$DownloadService,

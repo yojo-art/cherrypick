@@ -26,6 +26,7 @@ import {
 	MiClip,
 	MiClipFavorite,
 	MiClipFavoriteRemote,
+	MiCustomSound,
 	MiClipNote,
 	MiDriveFile,
 	MiDriveFolder,
@@ -137,6 +138,12 @@ const $appsRepository: Provider = {
 const $avatarDecorationsRepository: Provider = {
 	provide: DI.avatarDecorationsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiAvatarDecoration).extend(miRepository as MiRepository<MiAvatarDecoration>),
+	inject: [DI.db],
+};
+
+const $customSoundsRepository: Provider = {
+	provide: DI.customSoundsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiCustomSound).extend(miRepository as MiRepository<MiCustomSound>),
 	inject: [DI.db],
 };
 
@@ -624,6 +631,7 @@ const $officialTagRepository: Provider = {
 		$announcementReactionsRepository,
 		$appsRepository,
 		$avatarDecorationsRepository,
+		$customSoundsRepository,
 		$noteFavoritesRepository,
 		$noteThreadMutingsRepository,
 		$noteReactionsRepository,
@@ -712,6 +720,7 @@ const $officialTagRepository: Provider = {
 		$announcementReactionsRepository,
 		$appsRepository,
 		$avatarDecorationsRepository,
+		$customSoundsRepository,
 		$noteFavoritesRepository,
 		$noteThreadMutingsRepository,
 		$noteReactionsRepository,
