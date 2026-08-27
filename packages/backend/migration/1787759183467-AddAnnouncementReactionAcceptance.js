@@ -6,16 +6,10 @@
 export class AddAnnouncementReactionAcceptance1787759183467 {
     name = 'AddAnnouncementReactionAcceptance1787759183467'
 
-    /**
-     * @param {QueryRunner} queryRunner
-     */
     async up(queryRunner) {
         await queryRunner.query(`ALTER TABLE "announcement" ADD "reactionAcceptance" character varying(64)`);
     }
 
-    /**
-     * @param {QueryRunner} queryRunner
-     */
     async down(queryRunner) {
         await queryRunner.query(`ALTER TABLE "announcement" DROP COLUMN "reactionAcceptance"`);
     }
