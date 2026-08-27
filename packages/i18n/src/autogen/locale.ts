@@ -1181,6 +1181,14 @@ export interface Locale extends ILocale {
      */
     "rememberNoteVisibility": string;
     /**
+     * チャンネル投稿の公開範囲を記憶する
+     */
+    "rememberChannelNoteVisibility": string;
+    /**
+     * チャンネル投稿のデフォルトの公開範囲
+     */
+    "defaultChannelNoteVisibility": string;
+    /**
      * 検索可能範囲を記憶する
      */
     "rememberNoteSearchbility": string;

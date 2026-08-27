@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { beforeAll, test } from 'vitest';
+import { beforeAll, test, vi } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import type * as misskey from 'misskey-js';
@@ -287,14 +287,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: tomNoteDirect.id,
 		}, alice);
 		assert.strictEqual(rres2.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 
-		const asres0 = await api('notes/advanced-search', {
-			query: 'ff_test',
-		}, alice);
-		assert.strictEqual(asres0.status, 200);
-		assert.strictEqual(Array.isArray(asres0.body), true);
-		assert.strictEqual(asres0.body.length, 2);
+		const asres0 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'ff_test',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 2);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const ids = asres0.body.map((x) => x.id);
 		assert.strictEqual(ids.includes(tomNote.id), true);
@@ -420,13 +422,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: reactedNote.id,
 		}, alice);
 		assert.strictEqual(rres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres1 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres1.status, 200);
-		assert.strictEqual(Array.isArray(asres1.body), true);
-		assert.strictEqual(asres1.body.length, 1);
+
+		const asres1 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 1);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids1 = asres1.body.map( x => x.id);
 		assert.strictEqual(asnids1.includes(reactedNote.id), true);
@@ -447,15 +452,18 @@ describeOpenSearchE2E('検索', () => {
 		const rnres = await api('notes/create', {
 			renoteId: renotedNote.id,
 		}, alice);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 		assert.strictEqual(rnres.status, 200);
 		rnId = rnres.body.createdNote.id;
-		const asres2 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres2.status, 200);
-		assert.strictEqual(Array.isArray(asres2.body), true);
-		assert.strictEqual(asres2.body.length, 2);
+
+		const asres2 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 2);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), true);
@@ -479,14 +487,16 @@ describeOpenSearchE2E('検索', () => {
 		}, alice);
 		assert.strictEqual(rpres.status, 200);
 		replyId = rpres.body.createdNote.id;
-		await new Promise(resolve => setTimeout(resolve, 5000));
 
-		const asres3 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres3.status, 200);
-		assert.strictEqual(Array.isArray(asres3.body), true);
-		assert.strictEqual(asres3.body.length, 3);
+		const asres3 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 3);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids3 = asres3.body.map( x => x.id);
 		assert.strictEqual(asnids3.includes(replyedNote.id), true);
@@ -507,14 +517,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: favoritedNote.id,
 		}, alice);
 		assert.strictEqual(fvres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 
-		const asres4 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres4.status, 200);
-		assert.strictEqual(Array.isArray(asres4.body), true);
-		assert.strictEqual(asres4.body.length, 4);
+		const asres4 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 4);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids4 = asres4.body.map( x => x.id);
 		assert.strictEqual(asnids4.includes(favoritedNote.id), true);
@@ -544,13 +556,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: clipedNote.id,
 		}, alice);
 		assert.strictEqual(clpaddres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres5 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres5.status, 200);
-		assert.strictEqual(Array.isArray(asres5.body), true);
-		assert.strictEqual(asres5.body.length, 5);
+
+		const asres5 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 5);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids5 = asres5.body.map( x => x.id);
 		assert.strictEqual(asnids5.includes(clipedNote.id), true);
@@ -572,13 +587,16 @@ describeOpenSearchE2E('検索', () => {
 			choice: 0,
 		}, alice);
 		assert.strictEqual(vres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres6 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres6.status, 200);
-		assert.strictEqual(Array.isArray(asres6.body), true);
-		assert.strictEqual(asres6.body.length, 6);
+
+		const asres6 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 6);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids6 = asres6.body.map( x => x.id);
 		assert.strictEqual(asnids6.includes(votedNote.id), true);
@@ -600,13 +618,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: reactedNote.id,
 		}, alice);
 		assert.strictEqual(rres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres1 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres1.status, 200);
-		assert.strictEqual(Array.isArray(asres1.body), true);
-		assert.strictEqual(asres1.body.length, 5);
+
+		const asres1 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 5);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids1 = asres1.body.map( x => x.id);
 		assert.strictEqual(asnids1.includes(reactedNote.id), false);
@@ -627,13 +648,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: rnId,
 		}, alice);
 		assert.strictEqual(rnres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres2 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres2.status, 200);
-		assert.strictEqual(Array.isArray(asres2.body), true);
-		assert.strictEqual(asres2.body.length, 4);
+
+		const asres2 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 4);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), false);
@@ -654,13 +678,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: replyId,
 		}, alice);
 		assert.strictEqual(rnres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres2 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres2.status, 200);
-		assert.strictEqual(Array.isArray(asres2.body), true);
-		assert.strictEqual(asres2.body.length, 3);
+
+		const asres2 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 3);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids2 = asres2.body.map( x => x.id);
 		assert.strictEqual(asnids2.includes(renotedNote.id), false);
@@ -682,13 +709,16 @@ describeOpenSearchE2E('検索', () => {
 			noteId: clipedNote.id,
 		}, alice);
 		assert.strictEqual(clpaddres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
-		const asres5 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres5.status, 200);
-		assert.strictEqual(Array.isArray(asres5.body), true);
-		assert.strictEqual(asres5.body.length, 2);
+
+		const asres5 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 2);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids5 = asres5.body.map( x => x.id);
 		assert.strictEqual(asnids5.includes(clipedNote.id), false);
@@ -707,14 +737,16 @@ describeOpenSearchE2E('検索', () => {
 	test('indexable false お気に入り消したらでない', async() => {
 		const fvres = await api('notes/favorites/delete', { noteId: favoritedNote.id }, alice);
 		assert.strictEqual(fvres.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 
-		const asres4 = await api('notes/advanced-search', {
-			query: 'indexable_text',
-		}, alice);
-		assert.strictEqual(asres4.status, 200);
-		assert.strictEqual(Array.isArray(asres4.body), true);
-		assert.strictEqual(asres4.body.length, 1);
+		const asres4 = await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'indexable_text',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+			assert.strictEqual(Array.isArray(n.body), true);
+			assert.strictEqual(n.body.length, 1);
+			return n;
+		}, { timeout: 5_000, interval: 500 });
 
 		const asnids4 = asres4.body.map( x => x.id);
 		assert.strictEqual(asnids4.includes(favoritedNote.id), false);
@@ -799,20 +831,20 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(rres3.status, 204);
 		assert.strictEqual(rres4.status, 204);
 		assert.strictEqual(rres5.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
+		await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'SearchableBy_Test',
+			}, alice);
+			assert.strictEqual(n.status, 200);
 
-		const res = await api('notes/advanced-search', {
-			query: 'SearchableBy_Test',
-		}, alice);
-		assert.strictEqual(res.status, 200);
-
-		const noteIds = res.body.map( x => x.id);
-		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
-		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
-		assert.strictEqual(noteIds.length, 4);
+			const noteIds = n.body.map( x => x.id);
+			assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
+			assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
+			assert.strictEqual(noteIds.length, 4);
+		}, { timeout: 5_000, interval: 500 });
 
 		const rdres = await api('notes/reactions/delete', {
 			noteId: noteSearchableByPublic.id,
@@ -835,7 +867,6 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(rdres3.status, 204);
 		assert.strictEqual(rdres4.status, 204);
 		assert.strictEqual(rdres5.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 	});
 
 	//nullとpublicだけ出てくる
@@ -845,15 +876,17 @@ describeOpenSearchE2E('検索', () => {
 		}, carol);
 		assert.strictEqual(ires.status, 200);
 
-		const res = await api('notes/advanced-search', {
-			query: 'SearchableBy_Test',
-		}, alice);
-		assert.strictEqual(res.status, 200);
+		await vi.waitFor(async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'SearchableBy_Test',
+			}, alice);
+			assert.strictEqual(res.status, 200);
 
-		const noteIds = res.body.map( x => x.id);
-		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
-		assert.strictEqual(noteIds.length, 2);
+			const noteIds = res.body.map( x => x.id);
+			assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+			assert.strictEqual(noteIds.length, 2);
+		}, { timeout: 5_000, interval: 500 });
 	});
 
 	//nullとpublicだけ出てくる
@@ -902,19 +935,20 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(rres1.status, 204);
 		assert.strictEqual(rres2.status, 204);
 		assert.strictEqual(rres3.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 
-		const res = await api('notes/advanced-search', {
-			query: 'SearchableBy_Test',
-		}, alice);
-		assert.strictEqual(res.status, 200);
+		await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'SearchableBy_Test',
+			}, alice);
+			assert.strictEqual(n.status, 200);
 
-		const noteIds = res.body.map( x => x.id);
-		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
-		assert.strictEqual(noteIds.length, 4);
+			const noteIds = n.body.map( x => x.id);
+			assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByFollowersAndReacted.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
+			assert.strictEqual(noteIds.length, 4);
+		}, { timeout: 5_000, interval: 500 });
 
 		const rdres1 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByFollowersAndReacted.id,
@@ -929,7 +963,27 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(rdres1.status, 204);
 		assert.strictEqual(rdres2.status, 204);
 		assert.strictEqual(rdres3.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		await vi.waitFor(async () => {
+			const n = await api('notes/advanced-search', {
+				query: 'SearchableBy_Test',
+			}, alice);
+			assert.strictEqual(n.status, 200);
+
+			const noteIds = n.body.map( x => x.id);
+			assert.strictEqual(noteIds.length, 1);
+
+			for (const targetId of [
+				noteSearchableByNull.id,
+				noteSearchableByFollowersAndReacted.id,
+				noteSearchableByReacted.id,
+			]) {
+				const found = n.body.find(x => x.id === targetId);
+				if (found) {
+					assert.strictEqual(found.reactionCount, 0);
+				}
+			}
+		}, { timeout: 5_000, interval: 500 });
 	});
 	test('searchableBy(user: reactedOnly, indexable false)', async () =>	{
 		const ires = await api('i/update', {
@@ -946,18 +1000,19 @@ describeOpenSearchE2E('検索', () => {
 		}, alice);
 		assert.strictEqual(rres1.status, 204);
 		assert.strictEqual(rres2.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
 
-		const res = await api('notes/advanced-search', {
-			query: 'SearchableBy_Test',
-		}, alice);
-		assert.strictEqual(res.status, 200);
+		await vi.waitFor(async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'SearchableBy_Test',
+			}, alice);
+			assert.strictEqual(res.status, 200);
 
-		const noteIds = res.body.map( x => x.id);
-		assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
-		assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
-		assert.strictEqual(noteIds.length, 3);
+			const noteIds = res.body.map( x => x.id);
+			assert.strictEqual(noteIds.includes(noteSearchableByNull.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), true);
+			assert.strictEqual(noteIds.length, 3);
+		}, { timeout: 5_000, interval: 500 });
 
 		const rdres1 = await api('notes/reactions/delete', {
 			noteId: noteSearchableByReacted.id,
@@ -967,7 +1022,19 @@ describeOpenSearchE2E('検索', () => {
 		}, alice);
 		assert.strictEqual(rdres1.status, 204);
 		assert.strictEqual(rdres2.status, 204);
-		await new Promise(resolve => setTimeout(resolve, 5000));
+
+		await vi.waitFor(async () => {
+			const res = await api('notes/advanced-search', {
+				query: 'SearchableBy_Test',
+			}, alice);
+			assert.strictEqual(res.status, 200);
+
+			const noteIds = res.body.map( x => x.id);
+			assert.strictEqual(noteIds.includes(noteSearchableByNull.id), false);
+			assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
+			assert.strictEqual(noteIds.includes(noteSearchableByReacted.id), false);
+			assert.strictEqual(noteIds.length, 1);
+		}, { timeout: 5_000, interval: 500 });
 	});
 
 	test('searchableBy(user: private, indexable false)', async () =>	{
