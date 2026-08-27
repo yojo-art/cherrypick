@@ -156,6 +156,8 @@ const props = withDefaults(defineProps<{
 	excludeCw?: boolean;
 	excludeQuote?: boolean;
 	strictSearch?: boolean;
+	rangeStartAt?: string | null;
+	rangeEndAt?: string | null;
 }>(), {
 	query: '',
 	userId: undefined,
@@ -170,6 +172,8 @@ const props = withDefaults(defineProps<{
 	excludeCw: false,
 	excludeQuote: false,
 	strictSearch: false,
+	rangeStartAt: null,
+	rangeEndAt: null,
 });
 const router = useRouter();
 
@@ -178,8 +182,8 @@ const searchQuery = ref(toRef(props, 'query').value);
 const paginator = shallowRef<Paginator<'notes/advanced-search'> | null>(null);
 const user = ref<UserDetailed | null>(null);
 const hostInput = ref(toRef(props, 'host').value);
-const rangeStartAt = ref<string | null>(null);
-const rangeEndAt = ref<string | null>(null);
+const rangeStartAt = ref<string | null>(toRef(props, 'rangeStartAt').value);
+const rangeEndAt = ref<string | null>(toRef(props, 'rangeEndAt').value);
 const searchOrigin = ref<'combined' | 'local' | 'remote' | 'specified'>('combined');
 const isLocalOnly = ref(false);
 const isfileOnly = ref(toRef(props, 'fileAttach').value);
