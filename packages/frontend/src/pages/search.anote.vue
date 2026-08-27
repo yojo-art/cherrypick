@@ -12,14 +12,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkFoldableSection :expanded="true">
 			<template #header>{{ i18n.ts.options }}</template>
 			<div class="_gaps_m">
-				<MkRadios v-model="searchOrigin" :options="[
-					{ value: 'combined', label: i18n.ts.all },
-					{ value: 'local', label: i18n.ts.local },
-					...noteSearchableScope == 'global' ? [
-						{ value: 'remote', label: i18n.ts.remote },
-						{ value: 'specified', label: i18n.ts.specifyHost },
-					] : [],
-				]" @update:modelValue="search()">
+				<MkRadios
+					v-model="searchOrigin" :options="[
+						{ value: 'combined', label: i18n.ts.all },
+						{ value: 'local', label: i18n.ts.local },
+						...noteSearchableScope == 'global' ? [
+							{ value: 'remote', label: i18n.ts.remote },
+							{ value: 'specified', label: i18n.ts.specifyHost },
+						] : [],
+					]" @update:modelValue="search()"
+				>
 					<template #label>{{ i18n.ts.host }}</template>
 				</MkRadios>
 				<MkInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="user != null || searchOrigin == 'combined' || searchOrigin == 'local' || searchOrigin === 'remote'" :large="true" type="search" @enter.prevent="search">
@@ -36,26 +38,38 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<button class="_button" :class="$style.remove" :disabled="user == null" @click="removeUser"><i class="ti ti-x"></i></button>
 						</div>
 					</div>
+					<div style="display: flex; gap: 8px;">
+						<MkInput v-model="rangeStartAt" type="datetime-local">
+							<template #label>{{ i18n.ts._search.postFrom }}</template>
+						</MkInput>
+						<MkInput v-model="rangeEndAt" type="datetime-local">
+							<template #label>{{ i18n.ts._search.postTo }}</template>
+						</MkInput>
+					</div>
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._fileOption.title }}</template>
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="isfileOnly" :options="[
-								{ value: 'combined', label: i18n.ts._advancedSearch._fileOption.combined },
-								{ value: 'file-only', label: i18n.ts._advancedSearch._fileOption.fileAttachedOnly },
-								{ value: 'no-file', label: i18n.ts._advancedSearch._fileOption.noFile },
-							]" @update:modelValue="search()"></MkRadios>
+							<MkRadios
+								v-model="isfileOnly" :options="[
+									{ value: 'combined', label: i18n.ts._advancedSearch._fileOption.combined },
+									{ value: 'file-only', label: i18n.ts._advancedSearch._fileOption.fileAttachedOnly },
+									{ value: 'no-file', label: i18n.ts._advancedSearch._fileOption.noFile },
+								]" @update:modelValue="search()"
+							></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._fileNsfwOption.title }}</template>
 
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="sensitiveFilter" :options="[
-								{ value: 'combined', label: i18n.ts._advancedSearch._fileNsfwOption.combined },
-								{ value: 'withOutSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive },
-								{ value: 'includeSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.includeSensitive },
-								{ value: 'sensitiveOnly', label: i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly },
-							]" @update:modelValue="search()"></MkRadios>
+							<MkRadios
+								v-model="sensitiveFilter" :options="[
+									{ value: 'combined', label: i18n.ts._advancedSearch._fileNsfwOption.combined },
+									{ value: 'withOutSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive },
+									{ value: 'includeSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.includeSensitive },
+									{ value: 'sensitiveOnly', label: i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly },
+								]" @update:modelValue="search()"
+							></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
@@ -72,11 +86,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._followingFilter.title }}</template>
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="followingFilter" :options="[
-								{ value: 'combined', label: i18n.ts._advancedSearch._followingFilter.combined },
-								{ value: 'following', label: i18n.ts._advancedSearch._followingFilter.following },
-								{ value: 'notFollowing', label: i18n.ts._advancedSearch._followingFilter.notFollowing },
-							]" @update:modelValue="search()"></MkRadios>
+							<MkRadios
+								v-model="followingFilter" :options="[
+									{ value: 'combined', label: i18n.ts._advancedSearch._followingFilter.combined },
+									{ value: 'following', label: i18n.ts._advancedSearch._followingFilter.following },
+									{ value: 'notFollowing', label: i18n.ts._advancedSearch._followingFilter.notFollowing },
+								]" @update:modelValue="search()"
+							></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
@@ -162,6 +178,8 @@ const searchQuery = ref(toRef(props, 'query').value);
 const paginator = shallowRef<Paginator<'notes/advanced-search'> | null>(null);
 const user = ref<UserDetailed | null>(null);
 const hostInput = ref(toRef(props, 'host').value);
+const rangeStartAt = ref<string | null>(null);
+const rangeEndAt = ref<string | null>(null);
 const searchOrigin = ref<'combined' | 'local' | 'remote' | 'specified'>('combined');
 const isLocalOnly = ref(false);
 const isfileOnly = ref(toRef(props, 'fileAttach').value);
@@ -195,6 +213,13 @@ function removeUser() {
 }
 
 const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
+
+const searchRange = () => {
+	return {
+		rangeStartAt: rangeStartAt.value ? new Date(rangeStartAt.value).getTime() : null,
+		rangeEndAt: rangeEndAt.value ? new Date(rangeEndAt.value).getTime() : null,
+	};
+};
 
 async function search() {
 	const query = searchQuery.value.toString().trim();
@@ -256,6 +281,7 @@ async function search() {
 			return;
 		}
 	}
+
 	const reactionsQuery = emojiSearchQuery.value.split(' ').filter( item => item !== '');
 	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(' ').filter( item => item !== '');
 	paginator.value = markRaw(new Paginator('notes/advanced-search', {
@@ -273,6 +299,7 @@ async function search() {
 			sensitiveFilter: sensitiveFilter.value,
 			followingFilter: followingFilter.value,
 			useStrictSearch: strictSearch.value,
+			...searchRange(),
 		},
 	}));
 	key.value++;
