@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { describe, beforeAll, test } from 'vitest';
-import { api, failedApiCall, signup, uploadFile } from '../utils.js';
+import { api, failedApiCall, signup, sleep, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 let noRateLimitRoleId: string;
 
@@ -55,7 +55,7 @@ describe('Announcement reactions', () => {
 			policies: {
 				rateLimitFactor: {
 					useDefault: false,
-					priority: 3,
+					priority: 1,
 					value: 0.3,
 				},
 			},
@@ -337,6 +337,7 @@ describe('Announcement reactions', () => {
 
 	test('ロールポリシー reactionLimit でユーザーごとのリアクション数が制限される', async () => {
 		const dave = await signup({ username: 'dave' });
+		assert.strictEqual((await api('admin/roles/assign', { userId: dave.id, roleId: noRateLimitRoleId }, alice)).status, 204);
 		const roleRes = await api('admin/roles/create', {
 			name: 'reactionLimitTest',
 			description: '',
@@ -354,7 +355,7 @@ describe('Announcement reactions', () => {
 			policies: {
 				reactionLimit: {
 					useDefault: false,
-					priority: 0,
+					priority: 1,
 					value: 1,
 				},
 			},
@@ -392,6 +393,7 @@ describe('Announcement reactions', () => {
 
 	test('ロールポリシー reactionLimit が 0 のユーザーはリアクションできない', async () => {
 		const eve = await signup({ username: 'eve' });
+		assert.strictEqual((await api('admin/roles/assign', { userId: eve.id, roleId: noRateLimitRoleId }, alice)).status, 204);
 		const roleRes = await api('admin/roles/create', {
 			name: 'reactionZeroTest',
 			description: '',
@@ -409,7 +411,7 @@ describe('Announcement reactions', () => {
 			policies: {
 				reactionLimit: {
 					useDefault: false,
-					priority: 0,
+					priority: 1,
 					value: 0,
 				},
 			},
