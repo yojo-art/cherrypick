@@ -9,6 +9,7 @@ import * as assert from 'assert';
 import { describe, beforeAll, test } from 'vitest';
 import { api, failedApiCall, signup, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
+let noRateLimitRoleId: string;
 
 describe('Announcement reactions', () => {
 	let alice: misskey.entities.SignupResponse;
@@ -37,15 +38,33 @@ describe('Announcement reactions', () => {
 		bob = await signup({ username: 'bob' });
 		carol = await signup({ username: 'carol' });
 
-		// announcement reactions の minInterval(3sec) を回避するため rateLimitFactor 0.0 に設定し sleep(3100) を不要にする
-		// ApiCallService.ts:350 で factor === 0 なら RateLimiterService.limit() 自体がスキップされ事実上無制限になる
-		// ロールでの rateLimitFactor 緩和は他ポリシー(reactionLimit等)と priority で競合して上限が上書きされるため、
-		// 追加ロールではなくベースポリシー(全ユーザ共通)を 0 にする方式を採る (federation/test/utils.ts と同様)
-		assert.strictEqual((await api('admin/roles/update-default-policies', {
+		const noRateLimitRoleRes = await api('admin/roles/create', {
+			name: 'NoRateLimitForAnnouncementReactionsTest',
+			description: 'announcement-reactions e2e で rate limit を無効化するためのテスト用ロール',
+			color: null,
+			iconUrl: null,
+			displayOrder: 0,
+			target: 'manual',
+			condFormula: {},
+			isAdministrator: false,
+			isModerator: false,
+			isPublic: false,
+			isExplorable: false,
+			asBadge: false,
+			canEditMembersByModerator: false,
 			policies: {
-				rateLimitFactor: 0,
+				rateLimitFactor: {
+					useDefault: false,
+					priority: 3,
+					value: 0.3,
+				},
 			},
-		} as any, alice)).status, 204);
+		}, alice);
+		assert.strictEqual(noRateLimitRoleRes.status, 200);
+		noRateLimitRoleId = (noRateLimitRoleRes.body as { id: string }).id;
+		for (const user of [alice, bob, carol]) {
+			assert.strictEqual((await api('admin/roles/assign', { userId: user.id, roleId: noRateLimitRoleId }, alice)).status, 204);
+		}
 
 		globalAnnouncement = await createAnnouncement({
 			title: 'global',
