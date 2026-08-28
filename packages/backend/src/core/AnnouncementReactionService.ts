@@ -45,11 +45,11 @@ export class AnnouncementReactionService {
 	 */
 	@bindThis
 	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined, announcement: MiAnnouncement): Promise<string> {
-		if (reaction == null) return FALLBACK;
-
 		if (announcement.reactionAcceptance === 'none') {
 			throw new IdentifiableError(AnnouncementReactionErrorIds.reactionsNotAllowed, 'Reactions are not allowed for this announcement.');
 		}
+
+		if (reaction == null) return FALLBACK;
 
 		if (announcement.reactionAcceptance === 'likeOnly') {
 			return FALLBACK;

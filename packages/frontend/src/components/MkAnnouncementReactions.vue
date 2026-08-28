@@ -14,9 +14,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:aria-pressed="myReactions.includes(likeOnlyReaction)"
 			:aria-label="likeOnlyReaction"
 			@click="toggle(likeOnlyReaction)"
+			@contextmenu.prevent.stop="showReactedUsers(likeOnlyReaction)"
 		>
 			<MkReactionIcon style="pointer-events: none;" :reaction="likeOnlyReaction"/>
 			<span :class="$style.count">{{ likeOnlyCount }}</span>
+		</button>
+		<button
+			v-if="hasReactions"
+			class="_button"
+			:class="[$style.reaction, $style.more]"
+			@click="showReactedUsers()"
+		>
+			{{ i18n.ts.more }}
 		</button>
 	</template>
 	<template v-else>
@@ -209,7 +218,7 @@ async function toggle(reaction: string) {
 			});
 			sound.playMisskeySfx('reaction');
 		}
-	} catch (err) {
+	} catch {
 		updateReactions(previousReactions, previousMyReactions);
 		os.alert({
 			type: 'error',
