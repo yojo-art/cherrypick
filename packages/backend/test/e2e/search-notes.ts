@@ -1136,7 +1136,7 @@ describeOpenSearchE2E('検索', () => {
 			assert.strictEqual(res.status, 200);
 			assert.deepStrictEqual(res.body.map( x => x.id).sort(), [rangeNoteA.id].sort());
 		});
-		test('高度な検索):両端を含む範囲', async () => {
+		test('(高度な検索):両端を含む範囲', async () => {
 			const res = await api('notes/advanced-search', {
 				query: 'range_test',
 				rangeStartAt: Date.parse(rangeNoteA.createdAt) - 1000,

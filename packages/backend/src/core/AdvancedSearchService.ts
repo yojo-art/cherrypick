@@ -1423,7 +1423,7 @@ export class AdvancedSearchService {
 				} else if (opts.visibility === 'followers') {
 					query.andWhere('(note.visibility = \'followers\')');
 				} else if (opts.visibility === 'public') {
-					query.andWhere('(note.visibility === \'public\')');
+					query.andWhere('(note.visibility = \'public\')');
 				}
 			}
 
