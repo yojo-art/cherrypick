@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { describe, beforeAll, test } from 'vitest';
-import { api, failedApiCall, signup, sleep, uploadFile } from '../utils.js';
+import { api, failedApiCall, signup, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('Announcement reactions', () => {
@@ -36,6 +36,16 @@ describe('Announcement reactions', () => {
 		alice = await signup({ username: 'alice' });
 		bob = await signup({ username: 'bob' });
 		carol = await signup({ username: 'carol' });
+
+		// announcement reactions の minInterval(3sec) を回避するため rateLimitFactor 0.0 に設定し sleep(3100) を不要にする
+		// ApiCallService.ts:350 で factor === 0 なら RateLimiterService.limit() 自体がスキップされ事実上無制限になる
+		// ロールでの rateLimitFactor 緩和は他ポリシー(reactionLimit等)と priority で競合して上限が上書きされるため、
+		// 追加ロールではなくベースポリシー(全ユーザ共通)を 0 にする方式を採る (federation/test/utils.ts と同様)
+		assert.strictEqual((await api('admin/roles/update-default-policies', {
+			policies: {
+				rateLimitFactor: 0,
+			},
+		} as any, alice)).status, 204);
 
 		globalAnnouncement = await createAnnouncement({
 			title: 'global',
@@ -83,7 +93,6 @@ describe('Announcement reactions', () => {
 	});
 
 	test('同じリアクションを二度付けると ALREADY_REACTED エラー', async () => {
-		await sleep(3100);
 		await failedApiCall({
 			endpoint: 'announcements/reactions/create',
 			parameters: { announcementId: globalAnnouncement.id, reaction: 'like' },
@@ -178,13 +187,11 @@ describe('Announcement reactions', () => {
 	test('複数ユーザー・複数種類のリアクションを集計できる', async () => {
 		const ann = await createAnnouncement({ title: 'aggregate' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
 		}, bob)).status, 204);
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'pudding',
@@ -221,7 +228,6 @@ describe('Announcement reactions', () => {
 
 		const ann = await createAnnouncement({ title: 'custom emoji' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: ':announcement_test_emoji@.:',
@@ -246,7 +252,6 @@ describe('Announcement reactions', () => {
 	test('非アクティブなお知らせにはリアクションできないが削除はできる', async () => {
 		const ann = await createAnnouncement({ title: 'inactive' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
@@ -261,7 +266,6 @@ describe('Announcement reactions', () => {
 		}, alice);
 		assert.strictEqual(updateRes.status, 204);
 
-		await sleep(3100);
 		await failedApiCall({
 			endpoint: 'announcements/reactions/create',
 			parameters: { announcementId: ann.id, reaction: 'pudding' },
@@ -277,13 +281,11 @@ describe('Announcement reactions', () => {
 	test('announcements/reactions のページネーションが機能する', async () => {
 		const ann = await createAnnouncement({ title: 'pagination' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
 		}, bob)).status, 204);
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'pudding',
@@ -346,7 +348,6 @@ describe('Announcement reactions', () => {
 
 		const ann = await createAnnouncement({ title: 'limit' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
@@ -364,7 +365,6 @@ describe('Announcement reactions', () => {
 			reaction: 'like',
 		}, dave)).status, 204);
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'pudding',
