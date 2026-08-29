@@ -216,7 +216,7 @@ async function toggle(reaction: string) {
 			});
 			sound.playMisskeySfx('reaction');
 		}
-	} catch {
+	} catch (err) {
 		updateReactions(previousReactions, previousMyReactions);
 		os.alert({
 			type: 'error',
