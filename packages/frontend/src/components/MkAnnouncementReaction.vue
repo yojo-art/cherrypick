@@ -33,7 +33,6 @@ import * as sound from '@/utility/sound.js';
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
 import { haptic } from '@/utility/haptic.js';
-import { useRouter } from '@/router.js';
 
 const props = defineProps<{
 	announcementId: Misskey.entities.Announcement['id'];
@@ -60,33 +59,13 @@ const canToggle = computed(() => {
 	const emoji = customEmojisMap.get(emojiName.value) ?? getUnicodeEmojiOrNull(props.reaction);
 	return props.reaction.match(/@\w/) == null && $i != null && emoji != null;
 });
-const canGetInfo = computed(() => props.reaction.startsWith(':'));
-const isLocalCustomEmoji = props.reaction[0] === ':' && props.reaction.includes('@.');
 
 const reactionName = computed(() => {
 	const r = props.reaction.replace(':', '');
 	return r.slice(0, r.indexOf('@'));
 });
 
-const reactionHost = computed(() => {
-	const r = props.reaction.replaceAll(':', '');
-	return r.split('@')[1];
-});
-
-const router = useRouter();
-
 const alternative: ComputedRef<string | null> = computed(() => prefer.s.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
-
-const canImport = computed(() =>
-	$i != null &&
-	($i.isAdmin || $i.policies.canManageCustomEmojis) &&
-	props.reaction.startsWith(':') &&
-	!!reactionHost.value &&
-	reactionHost.value !== '.' &&
-	!customEmojisMap.has(reactionName.value),
-);
-
-const reactionLabel = computed(() => props.reaction.startsWith(':') ? `:${reactionName.value}:` : props.reaction);
 
 const toggling = ref(false);
 
