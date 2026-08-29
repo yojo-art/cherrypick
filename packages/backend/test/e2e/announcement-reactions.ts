@@ -319,7 +319,6 @@ describe('Announcement reactions', () => {
 	test('likeOnly のお知らせでは任意のリアクションが ❤ に強制される', async () => {
 		const ann = await createAnnouncement({ title: 'likeOnly', reactionAcceptance: 'likeOnly' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: '👍',
@@ -354,7 +353,6 @@ describe('Announcement reactions', () => {
 
 		const ann = await createAnnouncement({ title: 'nonSensitiveOnly', reactionAcceptance: 'nonSensitiveOnly' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: ':announcement_test_secret@.:',
@@ -367,7 +365,6 @@ describe('Announcement reactions', () => {
 
 		// 非センシティブはそのまま
 		const ann2 = await createAnnouncement({ title: 'nonSensitiveOnly2', reactionAcceptance: 'nonSensitiveOnly' });
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann2.id,
 			reaction: ':announcement_test_ok@.:',
@@ -381,7 +378,6 @@ describe('Announcement reactions', () => {
 	test('none のお知らせではリアクションが拒否される', async () => {
 		const ann = await createAnnouncement({ title: 'none', reactionAcceptance: 'none' });
 
-		await sleep(3100);
 		await failedApiCall({
 			endpoint: 'announcements/reactions/create',
 			parameters: { announcementId: ann.id, reaction: 'like' },
