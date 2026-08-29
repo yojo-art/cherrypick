@@ -44,14 +44,14 @@ export class AnnouncementReactionService {
 	 * お知らせの reactionAcceptance 設定に応じて、リアクションを強制的に ❤ に変換する。
 	 */
 	@bindThis
-	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined, announcement: MiAnnouncement): Promise<string> {
-		if (announcement.reactionAcceptance === 'none') {
+	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined, reactionAcceptance: 'likeOnly' | 'nonSensitiveOnly' | 'none' | null): Promise<string> {
+		if (reactionAcceptance === 'none') {
 			throw new IdentifiableError(AnnouncementReactionErrorIds.reactionsNotAllowed, 'Reactions are not allowed for this announcement.');
 		}
 
 		if (reaction == null) return FALLBACK;
 
-		if (announcement.reactionAcceptance === 'likeOnly') {
+		if (reactionAcceptance === 'likeOnly') {
 			return FALLBACK;
 		}
 
@@ -75,7 +75,7 @@ export class AnnouncementReactionService {
 		if (!allowed) return FALLBACK;
 
 		// センシティブ絵文字の制限
-		if (announcement.reactionAcceptance === 'nonSensitiveOnly' && emoji.isSensitive) {
+		if (reactionAcceptance === 'nonSensitiveOnly' && emoji.isSensitive) {
 			return FALLBACK;
 		}
 
@@ -97,7 +97,7 @@ export class AnnouncementReactionService {
 
 	@bindThis
 	public async create(user: { id: MiUser['id']; host: MiUser['host'] }, announcement: MiAnnouncement, _reaction?: string | null): Promise<void> {
-		const reaction = await this.normalizeReaction(user, _reaction, announcement);
+		const reaction = await this.normalizeReaction(user, _reaction, announcement.reactionAcceptance);
 
 		const record: MiAnnouncementReaction = {
 			id: this.idService.gen(),
