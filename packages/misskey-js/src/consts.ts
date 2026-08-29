@@ -246,6 +246,7 @@ export const rolePolicies = [
 	'canAdvancedSearchNotes',
 	'mutualLinkSectionLimit',
 	'mutualLinkLimit',
+	'reactionLimit',
 ] as const;
 
 export const queueTypes = [

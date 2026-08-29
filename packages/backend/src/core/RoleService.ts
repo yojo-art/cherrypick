@@ -80,6 +80,7 @@ export type RolePolicies = {
 	mutualLinkSectionLimit: number;
 	mutualLinkLimit: number;
 	canAdvancedSearchNotes: boolean;
+	reactionLimit: number;
 };
 
 export const DEFAULT_POLICIES: RolePolicies = {
@@ -135,6 +136,7 @@ export const DEFAULT_POLICIES: RolePolicies = {
 	mutualLinkSectionLimit: 1,
 	mutualLinkLimit: 15,
 	canAdvancedSearchNotes: false,
+	reactionLimit: 5,
 };
 
 @Injectable()
@@ -479,6 +481,7 @@ export class RoleService implements OnApplicationShutdown, OnModuleInit {
 			mutualLinkSectionLimit: calc('mutualLinkSectionLimit', vs => Math.max(...vs)),
 			mutualLinkLimit: calc('mutualLinkLimit', vs => Math.max(...vs)),
 			canAdvancedSearchNotes: calc('canAdvancedSearchNotes', vs => vs.some(v => v === true)),
+			reactionLimit: calc('reactionLimit', vs => Math.max(...vs)),
 		};
 	}
 

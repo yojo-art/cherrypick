@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<span :class="$style.count">{{ count }}</span>
 	</button>
 	<button
-		v-if="canToggle"
+		v-if="canAddReaction"
 		ref="pickerButtonEl"
 		v-tooltip="i18n.ts.reaction"
 		class="_button"
@@ -65,9 +65,16 @@ const emit = defineEmits<{
 	(ev: 'update', reactions: Record<string, number>, myReactions: string[]): void;
 }>();
 
+// packages/backend/src/server/api/endpoints/announcements/reactions/create.ts の TOO_MANY_REACTIONS と同期すべし
+const TOO_MANY_REACTIONS_ERROR_ID = 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d';
+
 const pickerButtonEl = useTemplateRef('pickerButtonEl');
 
 const canToggle = computed(() => $i != null);
+
+const reactionLimit = computed(() => $i?.policies.reactionLimit ?? 0);
+
+const canAddReaction = computed(() => canToggle.value && myReactions.value.length < reactionLimit.value);
 
 const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
@@ -192,7 +199,9 @@ async function toggle(reaction: string) {
 		updateReactions(previousReactions, previousMyReactions);
 		os.alert({
 			type: 'error',
-			text: i18n.ts.somethingHappened,
+			text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
+				? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit.value })
+				: i18n.ts.somethingHappened,
 		});
 	} finally {
 		toggling.value = false;
@@ -213,7 +222,7 @@ function normalizePickedReaction(reaction: string): string {
 }
 
 function pick() {
-	if (!canToggle.value) return;
+	if (!canAddReaction.value) return;
 
 	reactionPicker.show(pickerButtonEl.value ?? null, null, (reaction) => {
 		const normalized = normalizePickedReaction(reaction);
