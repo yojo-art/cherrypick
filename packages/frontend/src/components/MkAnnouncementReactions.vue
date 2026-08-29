@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div :class="$style.root">
 	<template v-if="isLikeOnly">
 		<button
-			v-ripple="canToggle"
+			v-if="canAddReaction"
 			class="_button"
 			:class="[$style.reaction, { [$style.reacted]: myReactions.includes(likeOnlyReaction), [$style.canToggle]: canToggle }]"
 			:disabled="!canToggle"
@@ -100,7 +100,6 @@ const canToggle = computed(() => $i != null);
 const isLikeOnly = computed(() => props.reactionAcceptance === 'likeOnly');
 const likeOnlyReaction = '\u2764';
 const likeOnlyCount = computed(() => reactions.value[likeOnlyReaction] ?? 0);
-const canAddReaction = computed(() => canToggle.value && !isLikeOnly.value);
 
 const reactionLimit = computed(() => $i?.policies.reactionLimit ?? 0);
 
