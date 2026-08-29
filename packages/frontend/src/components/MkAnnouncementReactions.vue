@@ -7,7 +7,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div :class="$style.root">
 	<template v-if="isLikeOnly">
 		<button
-			v-if="canAddReaction"
+			v-if="canToggle"
 			class="_button"
 			:class="[$style.reaction, { [$style.reacted]: myReactions.includes(likeOnlyReaction), [$style.canToggle]: canToggle }]"
 			:disabled="!canToggle"
@@ -24,10 +24,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<button
 			v-for="[reaction, count] in sortedReactions"
 			:key="reaction"
-			v-ripple="canToggle"
+			v-ripple="canAddReaction"
 			class="_button"
 			:class="[$style.reaction, { [$style.reacted]: myReactions.includes(reaction), [$style.canToggle]: canToggle }]"
-			:disabled="!canToggle"
+			:disabled="!canAddReaction"
 			:aria-pressed="myReactions.includes(reaction)"
 			:aria-label="reaction"
 			@click="toggle(reaction)"
