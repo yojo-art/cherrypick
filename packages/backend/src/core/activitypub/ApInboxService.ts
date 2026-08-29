@@ -28,7 +28,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
-import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
+import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChannelsRepository, MiChannel, QuoteAuthorizationsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
@@ -36,7 +36,7 @@ import { AbuseReportService } from '@/core/AbuseReportService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isInvite, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isJoin, isReversi, isLeave, isClip, isGame, isQuoteRequest } from './type.js';
-import { encodeQuoteAuthorizationToken } from './misc/quoteAuthorizationToken.js';
+import { generateQuoteAuthorizationToken } from './misc/quoteAuthorizationToken.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -90,6 +90,9 @@ export class ApInboxService {
 
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
+
+		@Inject(DI.quoteAuthorizationsRepository)
+		private quoteAuthorizationsRepository: QuoteAuthorizationsRepository,
 
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
@@ -394,7 +397,23 @@ export class ApInboxService {
 			return 'skip: cannot determine instrument';
 		}
 
-		const token = encodeQuoteAuthorizationToken(quotingUri, quoted.id);
+		let token: string;
+		const existing = await this.quoteAuthorizationsRepository.findOneBy({
+			interactingObject: quotingUri,
+			noteId: quoted.id,
+		});
+		if (existing != null) {
+			token = existing.token;
+		} else {
+			token = generateQuoteAuthorizationToken();
+			await this.quoteAuthorizationsRepository.insertOne({
+				id: this.idService.gen(),
+				noteId: quoted.id,
+				token: token,
+				interactingObject: quotingUri,
+			});
+		}
+
 		const approvalUri = `${this.config.url}/users/${author.id}/quote_authorizations/${token}`;
 
 		const accept = {

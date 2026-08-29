@@ -93,6 +93,7 @@ import {
 	MiChatRoomMembership,
 	MiChatRoomInvitation,
 	MiChatApproval,
+	MiQuoteAuthorization,
 } from './_.js';
 import { NoteHistory } from './NoteHistory.js';
 import type { Provider } from '@nestjs/common';
@@ -614,6 +615,12 @@ const $officialTagRepository: Provider = {
 	inject: [DI.db],
 };
 
+const $quoteAuthorizationsRepository: Provider = {
+	provide: DI.quoteAuthorizationsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiQuoteAuthorization).extend(miRepository as MiRepository<MiQuoteAuthorization>),
+	inject: [DI.db],
+};
+
 @Module({
 	imports: [],
 	providers: [
@@ -703,6 +710,7 @@ const $officialTagRepository: Provider = {
 		$abuseReportResolversRepository,
 		$noteHistoryRepository,
 		$officialTagRepository,
+		$quoteAuthorizationsRepository,
 	],
 	exports: [
 		$usersRepository,
@@ -791,6 +799,7 @@ const $officialTagRepository: Provider = {
 		$abuseReportResolversRepository,
 		$noteHistoryRepository,
 		$officialTagRepository,
+		$quoteAuthorizationsRepository,
 	],
 })
 export class RepositoryModule {

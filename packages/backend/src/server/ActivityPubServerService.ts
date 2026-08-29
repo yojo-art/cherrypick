@@ -14,7 +14,7 @@ import vary from 'vary';
 import secureJson from 'secure-json-parse';
 import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
+import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ClipsRepository, ClipNotesRepository, MiClipNote, QuoteAuthorizationsRepository } from '@/models/_.js';
 import * as url from '@/misc/prelude/url.js';
 import type { Config } from '@/config.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -29,7 +29,6 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
-import { decodeQuoteAuthorizationToken } from '@/core/activitypub/misc/quoteAuthorizationToken.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import * as Acct from '@/misc/acct.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
@@ -82,6 +81,9 @@ export class ActivityPubServerService {
 
 		@Inject(DI.clipNotesRepository)
 		private clipNotesRepository: ClipNotesRepository,
+
+		@Inject(DI.quoteAuthorizationsRepository)
+		private quoteAuthorizationsRepository: QuoteAuthorizationsRepository,
 
 		private utilityService: UtilityService,
 		private userEntityService: UserEntityService,
@@ -1041,14 +1043,17 @@ export class ActivityPubServerService {
 				return;
 			}
 
-			const payload = decodeQuoteAuthorizationToken(request.params.token);
-			if (payload == null) {
+			const authorization = await this.quoteAuthorizationsRepository.findOneBy({
+				token: request.params.token,
+			});
+
+			if (authorization == null) {
 				reply.code(404);
 				return;
 			}
 
 			const note = await this.notesRepository.findOneBy({
-				id: payload.noteId,
+				id: authorization.noteId,
 				userId: user.id,
 			});
 
@@ -1064,7 +1069,7 @@ export class ActivityPubServerService {
 			return this.apRendererService.renderQuoteAuthorization(
 				approvalUri,
 				{ id: user.id, host: null },
-				payload.interactingObject,
+				authorization.interactingObject,
 				`${this.config.url}/notes/${note.id}`,
 			);
 		});
