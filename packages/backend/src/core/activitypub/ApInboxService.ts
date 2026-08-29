@@ -35,7 +35,8 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
-import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isInvite, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isJoin, isReversi, isLeave, isClip, isGame } from './type.js';
+import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isInvite, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isJoin, isReversi, isLeave, isClip, isGame, isQuoteRequest } from './type.js';
+import { encodeQuoteAuthorizationToken } from './misc/quoteAuthorizationToken.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
 import { ApDbResolverService } from './ApDbResolverService.js';
@@ -48,8 +49,9 @@ import { ApMfmService } from './ApMfmService.js';
 import { ApGameService } from './models/ApGameService.js';
 import { ApClipService } from './models/ApClipService.js';
 import { ApDeliverManagerService } from './ApDeliverManagerService.js';
+import { ApRendererService } from './ApRendererService.js';
 import type { Resolver } from './ApResolverService.js';
-import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IApGame, IJoin, ILeave } from './type.js';
+import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IApGame, IJoin, ILeave, IQuoteRequest } from './type.js';
 
 @Injectable()
 export class ApInboxService {
@@ -119,6 +121,7 @@ export class ApInboxService {
 		private apgameService: ApGameService,
 		private apClipService: ApClipService,
 		private apDeliverManagerService: ApDeliverManagerService,
+		private apRendererService: ApRendererService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -211,6 +214,8 @@ export class ApInboxService {
 			return await this.join(actor, activity);
 		} else if (isLeave(activity)) {
 			return await this.leave(actor, activity);
+		} else if (isQuoteRequest(activity)) {
+			return await this.quoteRequest(actor, activity);
 		} else {
 			return `unrecognized activity type: ${activity.type}`;
 		}
@@ -362,6 +367,45 @@ export class ApInboxService {
 
 		this.logger.info(`Remote user ${actor.id} accepted invitation and joined room ${roomId}`);
 		return 'ok';
+	}
+
+	/**
+	 * FEP-044f の QuoteRequest (Mastodon 等からの引用リクエスト) を処理する。
+	 * yojo-art では引用を拒否する機能がないため、引用対象のローカルノートが存在すれば無条件で許可する。
+	 */
+	@bindThis
+	private async quoteRequest(actor: MiRemoteUser, activity: IQuoteRequest): Promise<string> {
+		if (typeof activity.id !== 'string') return 'skip: QuoteRequest id is not a string';
+
+		const quoted = await this.apDbResolverService.getNoteFromApId(activity.object);
+		if (quoted == null) return 'skip: quoted note not found';
+		if (quoted.userHost !== null) return 'skip: quoted note is not a local note';
+
+		const author = await this.usersRepository.findOneBy({ id: quoted.userId });
+		if (author == null || author.host !== null) return 'skip: quoted note author is not a local user';
+
+		let quotingUri: string;
+		try {
+			quotingUri = getApId(activity.instrument);
+			if (this.utilityService.extractDbHost(quotingUri) !== this.utilityService.extractDbHost(actor.uri)) {
+				return 'skip: instrument host mismatch';
+			}
+		} catch (e) {
+			return 'skip: cannot determine instrument';
+		}
+
+		const token = encodeQuoteAuthorizationToken(quotingUri, quoted.id);
+		const approvalUri = `${this.config.url}/users/${author.id}/quote_authorizations/${token}`;
+
+		const accept = {
+			type: 'Accept',
+			actor: this.userEntityService.genLocalUserUri(author.id),
+			object: activity.id,
+			result: approvalUri,
+		};
+		this.queueService.deliver(author, this.apRendererService.addContext(accept), actor.inbox, false);
+
+		return `ok: quote request accepted: ${approvalUri}`;
 	}
 
 	@bindThis

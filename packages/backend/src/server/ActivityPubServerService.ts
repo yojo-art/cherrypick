@@ -29,6 +29,7 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
+import { decodeQuoteAuthorizationToken } from '@/core/activitypub/misc/quoteAuthorizationToken.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
 import * as Acct from '@/misc/acct.js';
 import { FanoutTimelineEndpointService } from '@/core/FanoutTimelineEndpointService.js';
@@ -1018,6 +1019,54 @@ export class ActivityPubServerService {
 				reply.code(400);
 				return;
 			}
+		});
+
+		// quote authorization (FEP-044f)
+		fastify.get<{ Params: { user: string; token: string; } }>('/users/:user/quote_authorizations/:token', async (request, reply) => {
+			if (this.meta.federation === 'none') {
+				reply.code(403);
+				return;
+			}
+
+			const userId = request.params.user;
+
+			const user = await this.usersRepository.findOneBy({
+				id: userId,
+				host: IsNull(),
+				isSuspended: false,
+			});
+
+			if (user == null) {
+				reply.code(404);
+				return;
+			}
+
+			const payload = decodeQuoteAuthorizationToken(request.params.token);
+			if (payload == null) {
+				reply.code(404);
+				return;
+			}
+
+			const note = await this.notesRepository.findOneBy({
+				id: payload.noteId,
+				userId: user.id,
+			});
+
+			if (note == null || note.userHost !== null) {
+				reply.code(404);
+				return;
+			}
+
+			const approvalUri = `${this.config.url}/users/${user.id}/quote_authorizations/${request.params.token}`;
+
+			reply.header('Cache-Control', 'public, max-age=180');
+			this.setResponseType(request, reply);
+			return this.apRendererService.renderQuoteAuthorization(
+				approvalUri,
+				{ id: user.id, host: null },
+				payload.interactingObject,
+				`${this.config.url}/notes/${note.id}`,
+			);
 		});
 
 		fastify.get<{ Params: { channel: string; } }>('/channels/:channel', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {

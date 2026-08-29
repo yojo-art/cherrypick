@@ -36,7 +36,7 @@ import { JsonLdService } from './JsonLdService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { CONTEXT } from './misc/contexts.js';
 import { toSerchableByProperty } from './misc/searchableBy.js';
-import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, IClip, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IOrderedCollection, IPost, IQuestion, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
+import type { IAccept, IActivity, IAdd, IAnnounce, IApDocument, IApEmoji, IApHashtag, IApImage, IApMention, IApReversi, IBlock, IClip, ICreate, IDelete, IFlag, IFollow, IInvite, IJoin, IKey, ILeave, ILike, IMove, IObject, IOrderedCollection, IPost, IQuestion, IQuoteAuthorization, IRead, IReject, IRemove, ITombstone, IUndo, IUpdate } from './type.js';
 
 @Injectable()
 export class ApRendererService {
@@ -871,6 +871,26 @@ export class ApRendererService {
 		return {
 			id,
 			type: 'Tombstone',
+		};
+	}
+
+	@bindThis
+	public renderQuoteAuthorization(id: string, quotedAuthor: { id: MiUser['id']; host: null; }, interactingObject: string, interactionTarget: string): IQuoteAuthorization {
+		return {
+			'@context': [
+				'https://www.w3.org/ns/activitystreams',
+				{
+					gts: 'https://gotosocial.org/ns#',
+					QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
+					interactingObject: { '@id': 'gts:interactingObject', '@type': '@id' },
+					interactionTarget: { '@id': 'gts:interactionTarget', '@type': '@id' },
+				},
+			],
+			id,
+			type: 'QuoteAuthorization',
+			attributedTo: this.userEntityService.genLocalUserUri(quotedAuthor.id),
+			interactingObject,
+			interactionTarget,
 		};
 	}
 
