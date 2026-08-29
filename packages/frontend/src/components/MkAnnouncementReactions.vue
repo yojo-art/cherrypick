@@ -24,10 +24,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<button
 			v-for="[reaction, count] in sortedReactions"
 			:key="reaction"
-			v-ripple="canAddReaction"
+			v-ripple="canToggle"
 			class="_button"
 			:class="[$style.reaction, { [$style.reacted]: myReactions.includes(reaction), [$style.canToggle]: canToggle }]"
-			:disabled="!canAddReaction"
+			:disabled="!canToggle"
 			:aria-pressed="myReactions.includes(reaction)"
 			:aria-label="reaction"
 			@click="toggle(reaction)"
