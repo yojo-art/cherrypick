@@ -99,6 +99,19 @@ export class AnnouncementReactionService {
 	public async create(user: { id: MiUser['id']; host: MiUser['host'] }, announcement: MiAnnouncement, _reaction?: string | null): Promise<void> {
 		const reaction = await this.normalizeReaction(user, _reaction, announcement.reactionAcceptance);
 
+		const reactionLimit = (await this.roleService.getUserPolicies(user.id)).reactionLimit;
+		if (reactionLimit === 0) {
+			throw new IdentifiableError(AnnouncementReactionErrorIds.tooManyReactions, 'You can no longer react to this announcement.');
+		}
+
+		const count = await this.announcementReactionsRepository.countBy({
+			userId: user.id,
+			announcementId: announcement.id,
+		});
+		if (count >= reactionLimit) {
+			throw new IdentifiableError(AnnouncementReactionErrorIds.tooManyReactions, 'You have reached the reaction limit for this announcement.');
+		}
+
 		const record: MiAnnouncementReaction = {
 			id: this.idService.gen(),
 			announcementId: announcement.id,
@@ -221,4 +234,5 @@ export const AnnouncementReactionErrorIds = {
 	alreadyReacted: '0b0d5c9f-0c07-4f0e-8a3d-6f6a4a2b0a4f',
 	notReacted: '9f2b4d1e-3c8a-4b6f-9d0e-7a1c5b8e2f30',
 	reactionsNotAllowed: '5dc6d2af-e34c-4cdf-9303-1875fa390d02',
+	tooManyReactions: '3f8a1d2c-5b4e-4c7f-9a6d-8e2b1c0d9f4e',
 } as const;

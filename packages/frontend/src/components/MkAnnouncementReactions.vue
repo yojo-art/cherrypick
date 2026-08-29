@@ -91,6 +91,9 @@ const emit = defineEmits<{
 	(ev: 'update', reactions: Record<string, number>, myReactions: string[]): void;
 }>();
 
+// packages/backend/src/server/api/endpoints/announcements/reactions/create.ts の TOO_MANY_REACTIONS と同期すべし
+const TOO_MANY_REACTIONS_ERROR_ID = 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d';
+
 const pickerButtonEl = useTemplateRef('pickerButtonEl');
 
 const canToggle = computed(() => $i != null);
@@ -98,6 +101,10 @@ const isLikeOnly = computed(() => props.reactionAcceptance === 'likeOnly');
 const likeOnlyReaction = '\u2764';
 const likeOnlyCount = computed(() => reactions.value[likeOnlyReaction] ?? 0);
 const canAddReaction = computed(() => canToggle.value && !isLikeOnly.value);
+
+const reactionLimit = computed(() => $i?.policies.reactionLimit ?? 0);
+
+const canAddReaction = computed(() => canToggle.value && myReactions.value.length < reactionLimit.value);
 
 const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
@@ -222,7 +229,9 @@ async function toggle(reaction: string) {
 		updateReactions(previousReactions, previousMyReactions);
 		os.alert({
 			type: 'error',
-			text: i18n.ts.somethingHappened,
+			text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
+				? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit.value })
+				: i18n.ts.somethingHappened,
 		});
 	} finally {
 		toggling.value = false;

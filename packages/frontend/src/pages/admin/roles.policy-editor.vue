@@ -466,6 +466,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkInput>
 			</template>
 		</XFolder>
+
+		<XFolder v-if="matchQuery([i18n.ts._role._options.reactionMax, 'reactionLimit'])" v-model:policyMeta="policyMetaModel.reactionLimit" :isBaseRole="isBaseRole" :readonly="readonly">
+			<template #label>{{ i18n.ts._role._options.reactionMax }}</template>
+			<template #valueText>{{ valuesModel.reactionLimit }}</template>
+			<template #default="{ disabled }">
+				<MkInput v-model="valuesModel.reactionLimit" type="number" :min="0" :disabled="disabled">
+					<template #caption>{{ i18n.ts._role._options.descriptionOfReactionMax }}</template>
+				</MkInput>
+			</template>
+		</XFolder>
 	</div>
 </template>
 

@@ -197,6 +197,8 @@ export class SearchService {
 				return this.advancedSearchService.searchOrFail(me, {
 					userId: opts.userId,
 					host: opts.host,
+					rangeStartAt: opts.rangeStartAt,
+					rangeEndAt: opts.rangeEndAt,
 					useStrictSearch: true,
 					wildCard: true,
 				}, pagination, q);

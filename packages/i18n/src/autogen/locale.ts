@@ -1181,6 +1181,14 @@ export interface Locale extends ILocale {
      */
     "rememberNoteVisibility": string;
     /**
+     * チャンネル投稿の公開範囲を記憶する
+     */
+    "rememberChannelNoteVisibility": string;
+    /**
+     * チャンネル投稿のデフォルトの公開範囲
+     */
+    "defaultChannelNoteVisibility": string;
+    /**
      * 検索可能範囲を記憶する
      */
     "rememberNoteSearchbility": string;
@@ -7580,6 +7588,10 @@ export interface Locale extends ILocale {
          * オンにすると、このお知らせは通知されず、既読にする必要もなくなります。
          */
         "silenceDescription": string;
+        /**
+         * このお知らせに付けられるリアクションの数が上限({n}個)に達しています。
+         */
+        "reactionLimitExceeded": ParameterizedString<"n">;
     };
     "_group": {
         /**
@@ -9748,6 +9760,14 @@ export interface Locale extends ILocale {
              * セクション内の相互リンクの最大数
              */
             "mutualLinkLimit": string;
+            /**
+             * リアクションの最大数
+             */
+            "reactionMax": string;
+            /**
+             * ユーザーが1つの投稿に対して付けられるリアクションの最大数です。0にするとリアクションできなくなります。（現時点ではお知らせのみに適用されます）
+             */
+            "descriptionOfReactionMax": string;
         };
         "_condition": {
             /**

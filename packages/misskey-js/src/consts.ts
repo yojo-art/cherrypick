@@ -42,6 +42,8 @@ export const notificationTypes = [
 
 export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as const;
 
+export const channelNoteVisibilities = ['public', 'home'] as const;
+
 export const mutedNoteReasons = ['word', 'manual', 'spam', 'other'] as const;
 
 export const followingVisibilities = ['public', 'followers', 'private'] as const;
@@ -244,6 +246,7 @@ export const rolePolicies = [
 	'canAdvancedSearchNotes',
 	'mutualLinkSectionLimit',
 	'mutualLinkLimit',
+	'reactionLimit',
 ] as const;
 
 export const queueTypes = [
