@@ -41,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			key="more"
 			class="_button"
 			:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
-			@click="showReactedUsers()"
+			@click="isExpanded = true"
 		>
 			{{ i18n.ts.more }}
 		</button>
@@ -99,6 +99,7 @@ const initialReactions = new Set(Object.keys(props.reactions));
 
 const _reactions = ref<[string, number][]>([]);
 const hasMoreReactions = ref(false);
+const isExpanded = ref(false);
 
 for (const r of props.myReactions) {
 	if (!(r in props.reactions)) {
@@ -106,9 +107,10 @@ for (const r of props.myReactions) {
 	}
 }
 
-watch([() => props.reactions, () => props.maxNumber], ([newSource, maxNumber]) => {
+watch([() => props.reactions, () => props.maxNumber, isExpanded], ([newSource, maxNumber, expanded]) => {
+	const effectiveMax = expanded ? Infinity : maxNumber;
 	let newReactions: [string, number][] = [];
-	hasMoreReactions.value = Object.keys(newSource).length > maxNumber;
+	hasMoreReactions.value = !expanded && Object.keys(newSource).length > (maxNumber as number);
 
 	for (let i = 0; i < _reactions.value.length; i++) {
 		const reaction = _reactions.value[i][0];
@@ -123,10 +125,10 @@ watch([() => props.reactions, () => props.maxNumber], ([newSource, maxNumber]) =
 		...newReactions,
 		...Object.entries(newSource)
 			.sort((a, b) => b[1] - a[1])
-			.filter(([y], i) => i < (maxNumber as number) && !newReactionsNames.includes(y)),
+			.filter(([y], i) => i < (effectiveMax as number) && !newReactionsNames.includes(y)),
 	];
 
-	newReactions = newReactions.slice(0, props.maxNumber);
+	newReactions = newReactions.slice(0, effectiveMax as number);
 
 	for (const mr of myReactions.value) {
 		if (!newReactions.map(([x]) => x).includes(mr) && mr in newSource) {
