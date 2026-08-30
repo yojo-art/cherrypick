@@ -14,7 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	tag="div" :class="$style.root"
 >
 	<MkAnnouncementReaction
-		v-for="[reaction, count] in sortedReactions"
+		v-for="[reaction, count] in _reactions"
 		:key="reaction"
 		:announcementId="announcementId"
 		:reaction="reaction"
@@ -36,16 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	>
 		<i class="ti ti-plus"></i>
 	</button>
-	<slot v-if="hasReactions" name="more">
-		<button
-			key="more"
-			class="_button"
-			:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
-			@click="showReactedUsers()"
-		>
-			{{ i18n.ts.more }}
-		</button>
-	</slot>
+	<slot v-if="hasMoreReactions" name="more"></slot>
 </component>
 </template>
 
@@ -64,11 +55,14 @@ import * as sound from '@/utility/sound.js';
 import { useStream } from '@/stream.js';
 import { prefer } from '@/preferences.js';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	announcementId: Misskey.entities.Announcement['id'];
 	reactions: Record<string, number>;
 	myReactions: string[];
-}>();
+	maxNumber?: number;
+}>(), {
+	maxNumber: Infinity,
+});
 
 const emit = defineEmits<{
 	(ev: 'update', reactions: Record<string, number>, myReactions: string[]): void;
@@ -93,6 +87,46 @@ const stream = useStream();
 const mainChannel = $i != null ? stream.useChannel('main') : null;
 
 const initialReactions = new Set(Object.keys(props.reactions));
+
+const _reactions = ref<[string, number][]>([]);
+const hasMoreReactions = ref(false);
+
+for (const r of props.myReactions) {
+	if (!(r in props.reactions)) {
+		_reactions.value.push([r, 0]);
+	}
+}
+
+watch([() => props.reactions, () => props.maxNumber], ([newSource, maxNumber]) => {
+	let newReactions: [string, number][] = [];
+	hasMoreReactions.value = Object.keys(newSource).length > maxNumber;
+
+	for (let i = 0; i < _reactions.value.length; i++) {
+		const reaction = _reactions.value[i][0];
+		if (reaction in newSource && newSource[reaction] !== 0) {
+			_reactions.value[i][1] = newSource[reaction];
+			newReactions.push(_reactions.value[i]);
+		}
+	}
+
+	const newReactionsNames = newReactions.map(([x]) => x);
+	newReactions = [
+		...newReactions,
+		...Object.entries(newSource)
+			.sort((a, b) => b[1] - a[1])
+			.filter(([y], i) => i < (maxNumber as number) && !newReactionsNames.includes(y)),
+	];
+
+	newReactions = newReactions.slice(0, props.maxNumber);
+
+	for (const mr of myReactions.value) {
+		if (!newReactions.map(([x]) => x).includes(mr) && mr in newSource) {
+			newReactions.push([mr, (newSource as Record<string, number>)[mr]]);
+		}
+	}
+
+	_reactions.value = newReactions;
+}, { immediate: true, deep: true });
 
 watch(() => props.reactions, (newReactions) => {
 	reactions.value = { ...newReactions };
@@ -146,12 +180,6 @@ onUnmounted(() => {
 	mainChannel?.off('announcementUnreacted', onUnreacted);
 	mainChannel?.dispose();
 });
-
-const sortedReactions = computed(() => Object.entries(reactions.value)
-	.filter(([, count]) => count > 0)
-	.sort((a, b) => b[1] - a[1]));
-
-const hasReactions = computed(() => sortedReactions.value.length > 0);
 
 function showReactedUsers(initialReaction?: string) {
 	const { dispose } = os.popup(MkAnnouncementReactedUsersDialog, {
