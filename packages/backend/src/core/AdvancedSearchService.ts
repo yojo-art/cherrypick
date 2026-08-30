@@ -1423,7 +1423,7 @@ export class AdvancedSearchService {
 				} else if (opts.visibility === 'followers') {
 					query.andWhere('(note.visibility = \'followers\')');
 				} else if (opts.visibility === 'public') {
-					query.andWhere('(note.visibility === \'public\')');
+					query.andWhere('(note.visibility = \'public\')');
 				}
 			}
 
@@ -1443,12 +1443,12 @@ export class AdvancedSearchService {
 				}
 			}
 
-			if (opts.rangeStartAt) {
+			if (opts.rangeStartAt != null) {
 				const date = this.idService.gen(opts.rangeStartAt - 1);
 				query.andWhere('note.id > :rangeStartAt', { rangeStartAt: date });
 			}
 
-			if (opts.rangeEndAt) {
+			if (opts.rangeEndAt != null) {
 				const date = this.idService.gen(opts.rangeEndAt + 1);
 				query.andWhere('note.id < :rangeEndAt', { rangeEndAt: date });
 			}

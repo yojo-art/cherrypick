@@ -1921,6 +1921,7 @@ _announcement:
   dialogAnnouncementUxWarn: "ダイアログ形式のお知らせが同時に2つ以上ある場合、UXに悪影響を及ぼす可能性が非常に高いため、使用は慎重に行うことを推奨します。"
   silence: "非通知"
   silenceDescription: "オンにすると、このお知らせは通知されず、既読にする必要もなくなります。"
+  reactionLimitExceeded: "このお知らせに付けられるリアクションの数が上限({n}個)に達しています。"
 
 _group:
   leader: "グループオーナー"
@@ -2529,6 +2530,8 @@ _role:
     canSetFederationAvatarShape: "アイコンの形設定の連合を許可"
     mutualLinkSectionLimit: "相互リンクのセクションの最大数"
     mutualLinkLimit: "セクション内の相互リンクの最大数"
+    reactionMax: "リアクションの最大数"
+    descriptionOfReactionMax: "ユーザーが1つの投稿に対して付けられるリアクションの最大数です。0にするとリアクションできなくなります。（現時点ではお知らせのみに適用されます）"
   _condition:
     roleAssignedTo: "マニュアルロールにアサイン済み"
     isLocal: "ローカルユーザー"

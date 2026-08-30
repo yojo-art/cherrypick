@@ -9,6 +9,7 @@ import * as assert from 'assert';
 import { describe, beforeAll, test } from 'vitest';
 import { api, failedApiCall, signup, sleep, uploadFile } from '../utils.js';
 import type * as misskey from 'misskey-js';
+let noRateLimitRoleId: string;
 
 describe('Announcement reactions', () => {
 	let alice: misskey.entities.SignupResponse;
@@ -36,6 +37,34 @@ describe('Announcement reactions', () => {
 		alice = await signup({ username: 'alice' });
 		bob = await signup({ username: 'bob' });
 		carol = await signup({ username: 'carol' });
+
+		const noRateLimitRoleRes = await api('admin/roles/create', {
+			name: 'NoRateLimitForAnnouncementReactionsTest',
+			description: 'announcement-reactions e2e で rate limit を無効化するためのテスト用ロール',
+			color: null,
+			iconUrl: null,
+			displayOrder: 0,
+			target: 'manual',
+			condFormula: {},
+			isAdministrator: false,
+			isModerator: false,
+			isPublic: false,
+			isExplorable: false,
+			asBadge: false,
+			canEditMembersByModerator: false,
+			policies: {
+				rateLimitFactor: {
+					useDefault: false,
+					priority: 1,
+					value: 0.3,
+				},
+			},
+		}, alice);
+		assert.strictEqual(noRateLimitRoleRes.status, 200);
+		noRateLimitRoleId = (noRateLimitRoleRes.body as { id: string }).id;
+		for (const user of [alice, bob, carol]) {
+			assert.strictEqual((await api('admin/roles/assign', { userId: user.id, roleId: noRateLimitRoleId }, alice)).status, 204);
+		}
 
 		globalAnnouncement = await createAnnouncement({
 			title: 'global',
@@ -83,7 +112,6 @@ describe('Announcement reactions', () => {
 	});
 
 	test('同じリアクションを二度付けると ALREADY_REACTED エラー', async () => {
-		await sleep(3100);
 		await failedApiCall({
 			endpoint: 'announcements/reactions/create',
 			parameters: { announcementId: globalAnnouncement.id, reaction: 'like' },
@@ -178,13 +206,11 @@ describe('Announcement reactions', () => {
 	test('複数ユーザー・複数種類のリアクションを集計できる', async () => {
 		const ann = await createAnnouncement({ title: 'aggregate' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
 		}, bob)).status, 204);
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'pudding',
@@ -221,7 +247,6 @@ describe('Announcement reactions', () => {
 
 		const ann = await createAnnouncement({ title: 'custom emoji' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: ':announcement_test_emoji@.:',
@@ -246,7 +271,6 @@ describe('Announcement reactions', () => {
 	test('非アクティブなお知らせにはリアクションできないが削除はできる', async () => {
 		const ann = await createAnnouncement({ title: 'inactive' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
@@ -261,7 +285,6 @@ describe('Announcement reactions', () => {
 		}, alice);
 		assert.strictEqual(updateRes.status, 204);
 
-		await sleep(3100);
 		await failedApiCall({
 			endpoint: 'announcements/reactions/create',
 			parameters: { announcementId: ann.id, reaction: 'pudding' },
@@ -277,13 +300,11 @@ describe('Announcement reactions', () => {
 	test('announcements/reactions のページネーションが機能する', async () => {
 		const ann = await createAnnouncement({ title: 'pagination' });
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'like',
 		}, bob)).status, 204);
 
-		await sleep(3100);
 		assert.strictEqual((await api('announcements/reactions/create', {
 			announcementId: ann.id,
 			reaction: 'pudding',
@@ -312,5 +333,101 @@ describe('Announcement reactions', () => {
 		}, bob);
 		assert.strictEqual(emptyPage.status, 200);
 		assert.strictEqual(emptyPage.body.length, 0);
+	});
+
+	test('ロールポリシー reactionLimit でユーザーごとのリアクション数が制限される', async () => {
+		const dave = await signup({ username: 'dave' });
+		assert.strictEqual((await api('admin/roles/assign', { userId: dave.id, roleId: noRateLimitRoleId }, alice)).status, 204);
+		const roleRes = await api('admin/roles/create', {
+			name: 'reactionLimitTest',
+			description: '',
+			color: null,
+			iconUrl: null,
+			displayOrder: 0,
+			target: 'manual',
+			condFormula: {},
+			isAdministrator: false,
+			isModerator: false,
+			isPublic: false,
+			isExplorable: false,
+			asBadge: false,
+			canEditMembersByModerator: false,
+			policies: {
+				reactionLimit: {
+					useDefault: false,
+					priority: 1,
+					value: 1,
+				},
+			},
+		}, alice);
+		assert.strictEqual(roleRes.status, 200);
+		assert.strictEqual((await api('admin/roles/assign', {
+			userId: dave.id,
+			roleId: roleRes.body.id,
+		}, alice)).status, 204);
+
+		const ann = await createAnnouncement({ title: 'limit' });
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: 'like',
+		}, dave)).status, 204);
+
+		await failedApiCall({
+			endpoint: 'announcements/reactions/create',
+			parameters: { announcementId: ann.id, reaction: 'pudding' },
+			user: dave,
+		}, { status: 400, code: 'TOO_MANY_REACTIONS', id: 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d' });
+
+		// 削除すれば再度付けられる
+		assert.strictEqual((await api('announcements/reactions/delete', {
+			announcementId: ann.id,
+			reaction: 'like',
+		}, dave)).status, 204);
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: 'pudding',
+		}, dave)).status, 204);
+	});
+
+	test('ロールポリシー reactionLimit が 0 のユーザーはリアクションできない', async () => {
+		const eve = await signup({ username: 'eve' });
+		assert.strictEqual((await api('admin/roles/assign', { userId: eve.id, roleId: noRateLimitRoleId }, alice)).status, 204);
+		const roleRes = await api('admin/roles/create', {
+			name: 'reactionZeroTest',
+			description: '',
+			color: null,
+			iconUrl: null,
+			displayOrder: 0,
+			target: 'manual',
+			condFormula: {},
+			isAdministrator: false,
+			isModerator: false,
+			isPublic: false,
+			isExplorable: false,
+			asBadge: false,
+			canEditMembersByModerator: false,
+			policies: {
+				reactionLimit: {
+					useDefault: false,
+					priority: 1,
+					value: 0,
+				},
+			},
+		}, alice);
+		assert.strictEqual(roleRes.status, 200);
+		assert.strictEqual((await api('admin/roles/assign', {
+			userId: eve.id,
+			roleId: roleRes.body.id,
+		}, alice)).status, 204);
+
+		const ann = await createAnnouncement({ title: 'limit zero' });
+
+		await failedApiCall({
+			endpoint: 'announcements/reactions/create',
+			parameters: { announcementId: ann.id, reaction: 'like' },
+			user: eve,
+		}, { status: 400, code: 'TOO_MANY_REACTIONS', id: 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d' });
 	});
 });

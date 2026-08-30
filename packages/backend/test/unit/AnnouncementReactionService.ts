@@ -13,7 +13,7 @@ import { CoreModule } from '@/core/CoreModule.js';
 import { GlobalModule } from '@/GlobalModule.js';
 import { AnnouncementReactionService, AnnouncementReactionErrorIds } from '@/core/AnnouncementReactionService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
-import { RoleService } from '@/core/RoleService.js';
+import { DEFAULT_POLICIES, RoleService } from '@/core/RoleService.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { DI } from '@/di-symbols.js';
 import type { AnnouncementReactionsRepository, AnnouncementsRepository, UsersRepository, MiUser, MiAnnouncement, MiEmoji } from '@/models/_.js';
@@ -92,6 +92,7 @@ describe('AnnouncementReactionService', () => {
 		vi.clearAllMocks();
 		customEmojiService.localEmojisCache.fetch.mockResolvedValue(new Map());
 		roleService.getUserRoles.mockResolvedValue([]);
+		roleService.getUserPolicies.mockResolvedValue(DEFAULT_POLICIES);
 	});
 
 	afterEach(async () => {
@@ -173,6 +174,58 @@ describe('AnnouncementReactionService', () => {
 			}
 			expect(thrown).toBeDefined();
 			expect(thrown.id).toBe(AnnouncementReactionErrorIds.alreadyReacted);
+		});
+
+		test('上限に達したユーザーは新規リアクションを付けられない', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement();
+			roleService.getUserPolicies.mockResolvedValue({ ...DEFAULT_POLICIES, reactionLimit: 2 });
+
+			await service.create(user, announcement, 'like');
+			await service.create(user, announcement, 'pudding');
+
+			let thrown: any;
+			try {
+				await service.create(user, announcement, 'angry');
+			} catch (e) {
+				thrown = e;
+			}
+			expect(thrown).toBeDefined();
+			expect(thrown.id).toBe(AnnouncementReactionErrorIds.tooManyReactions);
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows).toHaveLength(2);
+		});
+
+		test('reactionLimit が 0 のユーザーはリアクションできない', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement();
+			roleService.getUserPolicies.mockResolvedValue({ ...DEFAULT_POLICIES, reactionLimit: 0 });
+
+			let thrown: any;
+			try {
+				await service.create(user, announcement, 'like');
+			} catch (e) {
+				thrown = e;
+			}
+			expect(thrown).toBeDefined();
+			expect(thrown.id).toBe(AnnouncementReactionErrorIds.tooManyReactions);
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows).toHaveLength(0);
+		});
+
+		test('他ユーザーのリアクションは自分の上限にカウントされない', async () => {
+			const userA = await createUser();
+			const userB = await createUser();
+			const announcement = await createAnnouncement();
+			roleService.getUserPolicies.mockResolvedValue({ ...DEFAULT_POLICIES, reactionLimit: 1 });
+
+			await service.create(userA, announcement, 'like');
+			await service.create(userB, announcement, 'pudding');
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows).toHaveLength(2);
 		});
 	});
 
