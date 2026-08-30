@@ -78,6 +78,7 @@ export class AnnouncementService {
 			forExistingUsers: values.forExistingUsers,
 			silence: values.silence,
 			needConfirmationToRead: values.needConfirmationToRead,
+			reactionAcceptance: values.reactionAcceptance ?? null,
 			userId: values.userId,
 		});
 
@@ -132,6 +133,7 @@ export class AnnouncementService {
 			forExistingUsers: values.forExistingUsers,
 			silence: values.silence,
 			needConfirmationToRead: values.needConfirmationToRead,
+			reactionAcceptance: values.reactionAcceptance,
 			isActive: values.isActive,
 		});
 

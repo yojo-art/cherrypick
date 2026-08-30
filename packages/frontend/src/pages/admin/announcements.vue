@@ -76,6 +76,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkSwitch v-model="announcement.needConfirmationToRead" :helpText="i18n.ts._announcement.needConfirmationToReadDescription">
 							{{ i18n.ts._announcement.needConfirmationToRead }}
 						</MkSwitch>
+						<MkSelect
+							v-model="announcement.reactionAcceptance"
+							:items="[
+								{ label: i18n.ts.all, value: null },
+								{ label: i18n.ts.nonSensitiveOnly, value: 'nonSensitiveOnly' },
+								{ label: i18n.ts.likeOnly, value: 'likeOnly' },
+								{ label: i18n.ts.none, value: 'none' },
+							]"
+						>
+							<template #label>{{ i18n.ts.reactionAcceptance }}</template>
+						</MkSelect>
 						<p v-if="announcement.reads">{{ i18n.tsx.nUsersRead({ n: announcement.reads }) }}</p>
 					</div>
 				</MkFolder>
@@ -150,6 +161,7 @@ function add() {
 		forExistingUsers: false,
 		silence: false,
 		needConfirmationToRead: false,
+		reactionAcceptance: null,
 		userId: null,
 	});
 }

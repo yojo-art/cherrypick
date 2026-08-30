@@ -47,6 +47,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 					{{ i18n.ts._announcement.needConfirmationToRead }}
 					<template #caption>{{ i18n.ts._announcement.needConfirmationToReadDescription }}</template>
 				</MkSwitch>
+				<MkSelect
+					v-model="reactionAcceptance"
+					:items="[
+						{ label: i18n.ts.all, value: null },
+						{ label: i18n.ts.nonSensitiveOnly, value: 'nonSensitiveOnly' },
+						{ label: i18n.ts.likeOnly, value: 'likeOnly' },
+						{ label: i18n.ts.none, value: 'none' },
+					]"
+				>
+					<template #label>{{ i18n.ts.reactionAcceptance }}</template>
+				</MkSelect>
 				<MkButton v-if="announcement" danger @click="del()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
 		</div>
@@ -69,6 +80,7 @@ import { i18n } from '@/i18n.js';
 import MkTextarea from '@/components/MkTextarea.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkRadios from '@/components/MkRadios.vue';
+import MkSelect from '@/components/MkSelect.vue';
 
 type AdminAnnouncementType = Misskey.entities.AdminAnnouncementsCreateRequest & { id: string; };
 
@@ -88,6 +100,7 @@ const text = ref(props.announcement ? props.announcement.text : '');
 const icon = ref(props.announcement ? props.announcement.icon : 'info');
 const display = ref(props.announcement ? props.announcement.display : 'dialog');
 const needConfirmationToRead = ref(props.announcement ? props.announcement.needConfirmationToRead : false);
+const reactionAcceptance = ref(props.announcement ? props.announcement.reactionAcceptance ?? null : null);
 
 async function done() {
 	const params = {
@@ -97,6 +110,7 @@ async function done() {
 		imageUrl: null,
 		display: display.value,
 		needConfirmationToRead: needConfirmationToRead.value,
+		reactionAcceptance: reactionAcceptance.value,
 		userId: props.user.id,
 	} satisfies Misskey.entities.AdminAnnouncementsCreateRequest;
 
