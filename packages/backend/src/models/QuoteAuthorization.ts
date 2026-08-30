@@ -8,6 +8,7 @@ import { id } from './util/id.js';
 import { MiNote } from './Note.js';
 
 @Entity('quote_authorization')
+@Index(['noteId', 'interactingObject'], { unique: true })
 export class MiQuoteAuthorization {
 	@PrimaryColumn(id())
 	public id: string;

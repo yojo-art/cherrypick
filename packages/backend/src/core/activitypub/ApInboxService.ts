@@ -383,13 +383,19 @@ export class ApInboxService {
 		const quoted = await this.apDbResolverService.getNoteFromApId(activity.object);
 		if (quoted == null) return 'skip: quoted note not found';
 		if (quoted.userHost !== null) return 'skip: quoted note is not a local note';
+		if (quoted.localOnly) return 'skip: quoted note is localOnly';
+		if (quoted.visibility !== 'public' && quoted.visibility !== 'home') return 'skip: quoted note is not publicly readable';
 
 		const author = await this.usersRepository.findOneBy({ id: quoted.userId });
 		if (author == null || author.host !== null) return 'skip: quoted note author is not a local user';
 
+		const blocked = await this.userBlockingService.checkBlocked(author.id, actor.id);
+		if (blocked) return 'skip: actor is blocked by the quoted note author';
+
 		let quotingUri: string;
 		try {
 			quotingUri = getApId(activity.instrument);
+			if (quotingUri.length > 4096) return 'skip: instrument uri is too long';
 			if (this.utilityService.extractDbHost(quotingUri) !== this.utilityService.extractDbHost(actor.uri)) {
 				return 'skip: instrument host mismatch';
 			}
@@ -406,12 +412,21 @@ export class ApInboxService {
 			token = existing.token;
 		} else {
 			token = generateQuoteAuthorizationToken();
-			await this.quoteAuthorizationsRepository.insertOne({
-				id: this.idService.gen(),
-				noteId: quoted.id,
-				token: token,
-				interactingObject: quotingUri,
-			});
+			try {
+				await this.quoteAuthorizationsRepository.insertOne({
+					id: this.idService.gen(),
+					noteId: quoted.id,
+					token: token,
+					interactingObject: quotingUri,
+				});
+			} catch (e) {
+				const raced = await this.quoteAuthorizationsRepository.findOneBy({
+					interactingObject: quotingUri,
+					noteId: quoted.id,
+				});
+				if (raced == null) throw e;
+				token = raced.token;
+			}
 		}
 
 		const approvalUri = `${this.config.url}/users/${author.id}/quote_authorizations/${token}`;
@@ -424,7 +439,7 @@ export class ApInboxService {
 		};
 		this.queueService.deliver(author, this.apRendererService.addContext(accept), actor.inbox, false);
 
-		return `ok: quote request accepted: ${approvalUri}`;
+		return 'ok: quote request accepted';
 	}
 
 	@bindThis

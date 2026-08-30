@@ -1057,14 +1057,18 @@ export class ActivityPubServerService {
 				userId: user.id,
 			});
 
-			if (note == null || note.userHost !== null) {
+			if (note == null || note.userHost !== null || note.localOnly) {
+				reply.code(404);
+				return;
+			}
+			if (note.visibility !== 'public' && note.visibility !== 'home') {
 				reply.code(404);
 				return;
 			}
 
 			const approvalUri = `${this.config.url}/users/${user.id}/quote_authorizations/${request.params.token}`;
 
-			reply.header('Cache-Control', 'public, max-age=180');
+			reply.header('Cache-Control', 'private, max-age=180');
 			this.setResponseType(request, reply);
 			return this.apRendererService.renderQuoteAuthorization(
 				approvalUri,
