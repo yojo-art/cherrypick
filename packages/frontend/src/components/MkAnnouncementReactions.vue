@@ -61,7 +61,7 @@ const props = withDefaults(defineProps<{
 	myReactions: string[];
 	maxNumber?: number;
 }>(), {
-	maxNumber: Infinity,
+	maxNumber: 20,
 });
 
 const emit = defineEmits<{
