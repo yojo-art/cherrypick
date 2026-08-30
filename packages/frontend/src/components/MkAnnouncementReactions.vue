@@ -22,6 +22,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		:isInitial="initialReactions.has(reaction)"
 		:myReactions="myReactions"
 		@announcementReactionToggled="onAnnouncementReactionToggled"
+		@showUsers="showReactedUsers"
 	/>
 	<button
 		v-if="canAddReaction"

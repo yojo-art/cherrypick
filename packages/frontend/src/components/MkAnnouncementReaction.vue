@@ -10,6 +10,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	class="_button"
 	:class="[$style.root, { [$style.reacted]: isReacted, [$style.canToggle]: (canToggle || alternative), [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
 	@click.stop="(ev) => toggleReaction(ev)"
+	@contextmenu.prevent.stop="menu"
 >
 	<MkReactionIcon style="pointer-events: none;" :class="prefer.s.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction"/>
 	<span :class="$style.count">{{ count }}</span>
@@ -21,8 +22,10 @@ import { computed, onMounted, useTemplateRef, watch, ref } from 'vue';
 import * as Misskey from 'misskey-js';
 import { getUnicodeEmojiOrNull } from '@@/js/emojilist.js';
 import type { ComputedRef } from 'vue';
+import type { MenuItem } from '@/types/menu';
 import XDetails from '@/components/MkReactionsViewer.details.vue';
 import MkReactionIcon from '@/components/MkReactionIcon.vue';
+import MkCustomEmojiDetailedDialog from '@/components/MkCustomEmojiDetailedDialog.vue';
 import * as os from '@/os.js';
 import { misskeyApi, misskeyApiGet } from '@/utility/misskey-api.js';
 import { useTooltip } from '@/composables/use-tooltip.js';
@@ -33,6 +36,11 @@ import * as sound from '@/utility/sound.js';
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
 import { haptic } from '@/utility/haptic.js';
+import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
+import { mute as muteEmoji, unmute as unmuteEmoji, checkMuted as isEmojiMuted } from '@/utility/emoji-mute.js';
+import { addToEmojiPalette } from '@/utility/emoji-palette.js';
+import { useRouter } from '@/router.js';
+import { advanccedNotesSearchAvailable } from '@/utility/check-permissions.js';
 
 const props = defineProps<{
 	announcementId: Misskey.entities.Announcement['id'];
@@ -44,6 +52,7 @@ const props = defineProps<{
 
 const emit = defineEmits<{
 	(ev: 'announcementReactionToggled', reaction: string, delta: number): void;
+	(ev: 'showUsers', reaction: string): void;
 }>();
 
 const buttonEl = useTemplateRef('buttonEl');
@@ -65,6 +74,18 @@ const reactionName = computed(() => {
 });
 
 const alternative: ComputedRef<string | null> = computed(() => prefer.s.reactableRemoteReactionEnabled ? (customEmojis.value.find(it => it.name === reactionName.value)?.name ?? null) : null);
+
+const canGetInfo = computed(() => props.reaction.startsWith(':'));
+const isLocalCustomEmoji = computed(() => props.reaction[0] === ':' && props.reaction.includes('@.'));
+
+const reactionHost = computed(() => {
+	const r = props.reaction.replaceAll(':', '');
+	return r.split('@')[1];
+});
+
+const reactionLabel = computed(() => props.reaction.startsWith(':') ? `:${reactionName.value}:` : props.reaction);
+
+const router = useRouter();
 
 const toggling = ref(false);
 
@@ -179,6 +200,110 @@ async function chooseAlternative() {
 			});
 		}
 	}
+}
+
+async function menu(ev: PointerEvent) {
+	const isCustomEmoji = props.reaction.endsWith(':');
+	let menuItems: MenuItem[] = [];
+
+	menuItems.push({
+		type: 'label',
+		text: reactionLabel.value,
+	});
+
+	if (canGetInfo.value) {
+		menuItems.push({
+			text: i18n.ts.info,
+			icon: 'ti ti-info-circle',
+			action: async () => {
+				const { dispose } = os.popup(MkCustomEmojiDetailedDialog, {
+					emoji: await misskeyApiGet('emoji', isLocalCustomEmoji.value ? { name: reactionName.value } : {
+						name: reactionName.value,
+						host: reactionHost.value,
+					}),
+				}, {
+					closed: () => dispose(),
+				});
+			},
+		});
+	}
+
+	if (customEmojis.value.find(it => it.name === reactionName.value)) {
+		menuItems.push({
+			text: i18n.ts.copy,
+			icon: 'ti ti-copy',
+			action: () => {
+				copyToClipboard(`:${reactionName.value}:`);
+			},
+		});
+	}
+
+	if (isEmojiMuted(props.reaction).value) {
+		menuItems.push({
+			text: i18n.ts.emojiUnmute,
+			icon: 'ti ti-mood-smile',
+			action: () => {
+				os.confirm({
+					type: 'question',
+					title: i18n.tsx.unmuteX({ x: isLocalCustomEmoji.value ? `:${emojiName.value}:` : props.reaction }),
+				}).then(({ canceled }) => {
+					if (canceled) return;
+					unmuteEmoji(props.reaction);
+				});
+			},
+		});
+	} else {
+		menuItems.push({
+			text: i18n.ts.emojiMute,
+			icon: 'ti ti-mood-off',
+			action: () => {
+				os.confirm({
+					type: 'question',
+					title: i18n.tsx.muteX({ x: isLocalCustomEmoji.value ? `:${emojiName.value}:` : props.reaction }),
+				}).then(({ canceled }) => {
+					if (canceled) return;
+					muteEmoji(props.reaction);
+				});
+			},
+		});
+	}
+
+	if (canToggle.value) {
+		menuItems.push({
+			text: i18n.ts.addToEmojiPalette,
+			icon: 'ti ti-palette',
+			action: () => {
+				addToEmojiPalette(isLocalCustomEmoji.value ? `:${emojiName.value}:` : props.reaction);
+			},
+		});
+	}
+
+	if (advanccedNotesSearchAvailable) {
+		menuItems.push({
+			text: i18n.ts.searchThisReaction,
+			icon: 'ti ti-search',
+			action: () => {
+				router.pushByPath(`/search?type=anote&reactions=${encodeURIComponent(isCustomEmoji ? props.reaction.endsWith('@.:') ? props.reaction.replace('@.', '') : props.reaction : props.reaction)}`);
+			},
+		});
+		if (isCustomEmoji) {
+			menuItems.push({
+				text: `${i18n.ts.searchThisReaction}(${i18n.ts.partialMatch})`,
+				icon: 'ti ti-search',
+				action: () => {
+					router.pushByPath(`/search?type=anote&reactions=${encodeURIComponent(`${props.reaction.endsWith('@.:') ? props.reaction.replace('@.:', '') : props.reaction.split('@')[0]}*`)}`);
+				},
+			});
+		}
+	}
+
+	menuItems.push({
+		icon: 'ti ti-users',
+		text: i18n.ts.reactionUsers,
+		action: () => emit('showUsers', props.reaction),
+	});
+
+	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
 
 watch(() => props.count, (newCount, oldCount) => {
