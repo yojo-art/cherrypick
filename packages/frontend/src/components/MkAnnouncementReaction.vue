@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:class="[$style.root, { [$style.reacted]: isReacted, [$style.canToggle]: (canToggle || alternative), [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
 	@click.stop="(ev) => toggleReaction(ev)"
 >
-	<MkReactionIcon style="pointer-events: none;" :class="prefer.s.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction" @click.stop="(ev: PointerEvent) => { toggleReaction(ev); }"/>
+	<MkReactionIcon style="pointer-events: none;" :class="prefer.s.limitWidthOfReaction ? $style.limitWidth : ''" :reaction="reaction"/>
 	<span :class="$style.count">{{ count }}</span>
 </button>
 </template>
@@ -40,7 +40,6 @@ const props = defineProps<{
 	count: number;
 	isInitial: boolean;
 	myReactions: string[];
-	reactions: Record<string, number>;
 }>();
 
 const emit = defineEmits<{
@@ -73,10 +72,9 @@ async function toggleReaction(ev: MouseEvent) {
 	haptic();
 
 	if (!canToggle.value) {
-		await chooseAlternative(ev as PointerEvent);
+		await chooseAlternative();
 		return;
 	}
-	if ($i == null) return;
 
 	await toggleAnnouncementReaction(ev);
 }
@@ -137,7 +135,7 @@ function anime() {
 	});
 }
 
-async function chooseAlternative(ev: PointerEvent) {
+async function chooseAlternative() {
 	if (!alternative.value) return;
 
 	const reaction = `:${alternative.value}:`;
@@ -149,10 +147,18 @@ async function chooseAlternative(ev: PointerEvent) {
 		});
 		if (confirm.canceled) return;
 		emit('announcementReactionToggled', reaction, -1);
-		await misskeyApi('announcements/reactions/delete', {
-			announcementId: props.announcementId,
-			reaction,
-		});
+		try {
+			await misskeyApi('announcements/reactions/delete', {
+				announcementId: props.announcementId,
+				reaction,
+			});
+		} catch (err) {
+			emit('announcementReactionToggled', reaction, 1);
+			os.alert({
+				type: 'error',
+				text: i18n.ts.somethingHappened,
+			});
+		}
 	} else {
 		emit('announcementReactionToggled', reaction, 1);
 		try {

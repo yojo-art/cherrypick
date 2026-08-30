@@ -21,11 +21,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 		:count="count"
 		:isInitial="initialReactions.has(reaction)"
 		:myReactions="myReactions"
-		:reactions="reactions"
 		@announcementReactionToggled="onAnnouncementReactionToggled"
 	/>
 	<button
 		v-if="canAddReaction"
+		key="add-reaction"
 		ref="pickerButtonEl"
 		v-tooltip="i18n.ts.reaction"
 		class="_button"
@@ -37,6 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</button>
 	<slot v-if="hasReactions" name="more">
 		<button
+			key="more"
 			class="_button"
 			:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
 			@click="showReactedUsers()"
@@ -60,7 +61,6 @@ import { $i } from '@/i.js';
 import * as os from '@/os.js';
 import * as sound from '@/utility/sound.js';
 import { useStream } from '@/stream.js';
-import MkReactionEffect from '@/components/MkReactionEffect.vue';
 import { prefer } from '@/preferences.js';
 
 const props = defineProps<{
@@ -186,24 +186,6 @@ function applyLocally(reaction: string, delta: number) {
 	updateReactions(nextReactions, nextMyReactions);
 }
 
-function showReactionEffect(reaction: string, rect: DOMRect | null) {
-	if (!prefer.s.animation) return;
-	let x: number, y: number;
-	if (rect) {
-		x = rect.left + rect.width / 2;
-		y = rect.top + rect.height / 2;
-	} else if (pickerButtonEl.value) {
-		const r = pickerButtonEl.value.getBoundingClientRect();
-		x = r.left + r.width / 2;
-		y = r.top + r.height / 2;
-	} else {
-		return;
-	}
-	const { dispose } = os.popup(MkReactionEffect, { reaction, x, y }, {
-		end: () => dispose(),
-	});
-}
-
 /**
  * ピッカーが返す生の絵文字文字列をバックエンドの decodeReaction と同じルールで変換する。
  * - カスタム絵文字: :name: → :name@.: (APIレスポンスがこの形式で返ってくる)
@@ -218,17 +200,12 @@ function normalizePickedReaction(reaction: string): string {
 function pick() {
 	if (!canAddReaction.value || toggling.value) return;
 
-	const pickerRect = pickerButtonEl.value?.getBoundingClientRect() ?? null;
-
 	reactionPicker.show(pickerButtonEl.value ?? null, null, async (reaction) => {
 		const normalized = normalizePickedReaction(reaction);
 		if (myReactions.value.includes(normalized)) return;
 
 		const previousReactions = { ...reactions.value };
 		const previousMyReactions = [...myReactions.value];
-
-		// エフェクト座標は pickerRect から
-		const rect = pickerRect;
 
 		toggling.value = true;
 		applyLocally(normalized, 1);
@@ -239,7 +216,6 @@ function pick() {
 				reaction: normalized,
 			});
 			sound.playMisskeySfx('reaction');
-			//showReactionEffect(normalized, rect);
 		} catch (err) {
 			updateReactions(previousReactions, previousMyReactions);
 			os.alert({
