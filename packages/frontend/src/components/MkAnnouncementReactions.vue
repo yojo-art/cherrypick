@@ -130,12 +130,6 @@ watch([() => props.reactions, () => props.maxNumber, isExpanded], ([newSource, m
 
 	newReactions = newReactions.slice(0, effectiveMax as number);
 
-	for (const mr of myReactions.value) {
-		if (!newReactions.map(([x]) => x).includes(mr) && mr in newSource) {
-			newReactions.push([mr, (newSource as Record<string, number>)[mr]]);
-		}
-	}
-
 	_reactions.value = newReactions;
 }, { immediate: true, deep: true });
 
