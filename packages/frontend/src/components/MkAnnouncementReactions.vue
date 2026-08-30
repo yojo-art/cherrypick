@@ -36,7 +36,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 	>
 		<i class="ti ti-plus"></i>
 	</button>
-	<slot v-if="hasMoreReactions" name="more"></slot>
+	<slot v-if="hasMoreReactions" name="more">
+		<button
+			key="more"
+			class="_button"
+			:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
+			@click="showReactedUsers()"
+		>
+			{{ i18n.ts.more }}
+		</button>
+	</slot>
 </component>
 </template>
 
