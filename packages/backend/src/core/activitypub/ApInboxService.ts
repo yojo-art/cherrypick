@@ -34,6 +34,7 @@ import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { isDuplicateKeyValueError } from '@/misc/is-duplicate-key-value-error.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isInvite, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isJoin, isReversi, isLeave, isClip, isGame, isQuoteRequest } from './type.js';
 import { generateQuoteAuthorizationToken } from './misc/quoteAuthorizationToken.js';
@@ -52,6 +53,14 @@ import { ApDeliverManagerService } from './ApDeliverManagerService.js';
 import { ApRendererService } from './ApRendererService.js';
 import type { Resolver } from './ApResolverService.js';
 import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IApGame, IJoin, ILeave, IQuoteRequest } from './type.js';
+
+// PostgreSQL の btree 一意インデックスの行サイズ上限は約 2704 バイト (8KB ページの 1/3)。
+// quote_authorization の (noteId, interactingObject) 一意インデックスには
+// noteId (32 バイト) と interactingObject が格納されるため、インデックス行サイズ上限を超えない
+// バイト基準の実効上限 (余裕を持たせて 2500 バイト) で instrument を受け付ける。
+// varchar(4096) の「文字」数ではなくバイト数でガードしないと、
+// 上限超過の INSERT は SQLSTATE 54000 で inbox ジョブのリトライ対象になってしまう。
+const MAX_INTERACTING_OBJECT_BYTES = 2500;
 
 @Injectable()
 export class ApInboxService {
@@ -374,34 +383,69 @@ export class ApInboxService {
 
 	/**
 	 * FEP-044f の QuoteRequest (Mastodon 等からの引用リクエスト) を処理する。
-	 * yojo-art では引用を拒否する機能がないため、引用対象のローカルノートが存在すれば無条件で許可する。
+	 * yojo-art では引用を拒否する機能がないため原則無条件で許可するが、次の場合は承認しない:
+	 * - 引用対象がローカルノートでない / localOnly / 公開範囲が public・home でない
+	 * - ノート作者が要求アクターをブロックしている
+	 * - ノート作者が凍結済み・削除済みである
+	 * - instrument が要求アクターのホストと異る、または長すぎる (バイト基準)
+	 * 作者が特定できる拒否経路 (localOnly / 公開範囲 / ブロック) では Reject を配送し、
+	 * リモート側の引用を pending のまま放置しない。
 	 */
 	@bindThis
 	private async quoteRequest(actor: MiRemoteUser, activity: IQuoteRequest): Promise<string> {
 		if (typeof activity.id !== 'string') return 'skip: QuoteRequest id is not a string';
+		const requestId = activity.id;
 
 		const quoted = await this.apDbResolverService.getNoteFromApId(activity.object);
 		if (quoted == null) return 'skip: quoted note not found';
 		if (quoted.userHost !== null) return 'skip: quoted note is not a local note';
-		if (quoted.localOnly) return 'skip: quoted note is localOnly';
-		if (quoted.visibility !== 'public' && quoted.visibility !== 'home') return 'skip: quoted note is not publicly readable';
 
 		const author = await this.usersRepository.findOneBy({ id: quoted.userId });
 		if (author == null || author.host !== null) return 'skip: quoted note author is not a local user';
+		if (author.isSuspended || author.isDeleted) return 'skip: quoted note author is suspended or deleted';
+
+		// 作者が特定できる拒否経路では Reject を返してリモート側の pending を解消する。
+		// 作者が不明な経路では Reject を送っても Mastodon 等に無視されるため返さない。
+		const rejectQuoting = (): void => {
+			this.queueService.deliver(
+				author,
+				this.apRendererService.addContext(this.apRendererService.renderReject(requestId, author)),
+				actor.inbox,
+				false,
+			);
+		};
+
+		if (quoted.localOnly) {
+			rejectQuoting();
+			return 'skip: quoted note is localOnly';
+		}
+		if (quoted.visibility !== 'public' && quoted.visibility !== 'home') {
+			rejectQuoting();
+			return 'skip: quoted note is not publicly readable';
+		}
 
 		const blocked = await this.userBlockingService.checkBlocked(author.id, actor.id);
-		if (blocked) return 'skip: actor is blocked by the quoted note author';
+		if (blocked) {
+			rejectQuoting();
+			return 'skip: actor is blocked by the quoted note author';
+		}
 
 		let quotingUri: string;
 		try {
 			quotingUri = getApId(activity.instrument);
-			if (quotingUri.length > 4096) return 'skip: instrument uri is too long';
-			if (this.utilityService.extractDbHost(quotingUri) !== this.utilityService.extractDbHost(actor.uri)) {
-				return 'skip: instrument host mismatch';
-			}
 		} catch (e) {
 			return 'skip: cannot determine instrument';
 		}
+
+		if (Buffer.byteLength(quotingUri, 'utf8') > MAX_INTERACTING_OBJECT_BYTES) return 'skip: instrument uri is too long';
+
+		let hostMatches: boolean;
+		try {
+			hostMatches = this.utilityService.extractDbHost(quotingUri) === this.utilityService.extractDbHost(actor.uri);
+		} catch (e) {
+			return 'skip: cannot determine instrument';
+		}
+		if (!hostMatches) return 'skip: instrument host mismatch';
 
 		let token: string;
 		const existing = await this.quoteAuthorizationsRepository.findOneBy({
@@ -409,6 +453,7 @@ export class ApInboxService {
 			noteId: quoted.id,
 		});
 		if (existing != null) {
+			if (existing.requestedById !== actor.id) return 'skip: instrument is already used by another actor';
 			token = existing.token;
 		} else {
 			token = generateQuoteAuthorizationToken();
@@ -418,13 +463,19 @@ export class ApInboxService {
 					noteId: quoted.id,
 					token: token,
 					interactingObject: quotingUri,
+					requestedById: actor.id,
 				});
 			} catch (e) {
+				if (!isDuplicateKeyValueError(e)) {
+					this.logger.error(`QuoteAuthorization insert failed: ${e}`);
+					throw e;
+				}
 				const raced = await this.quoteAuthorizationsRepository.findOneBy({
 					interactingObject: quotingUri,
 					noteId: quoted.id,
 				});
 				if (raced == null) throw e;
+				if (raced.requestedById !== actor.id) return 'skip: instrument is already used by another actor';
 				token = raced.token;
 			}
 		}

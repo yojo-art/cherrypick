@@ -1,8 +1,3 @@
-## Unreleased
-
-### Server
-- Feat: Mastodon 等からの FEP-044f 引用リクエスト (QuoteRequest) を受け付け、承認情報をDBに保存した上でQuoteAuthorizationを応答するように (#776)
-
 ## 2026.6.0
 
 ### General

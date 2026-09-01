@@ -18,6 +18,7 @@ Misskey 2026.5.4
 - Fix: エラーページの表示色とtheme-colorをダーク/ライトテーマに連動させる [#1293](https://github.com/yojo-art/cherrypick/pull/1293)
 
 ### Server
+- Feat: Mastodon 等からの FEP-044f 引用リクエスト (QuoteRequest) を受け付け、承認情報をDBに保存した上でQuoteAuthorizationを応答するように [#1326](https://github.com/yojo-art/cherrypick/pull/1326)
 - Fix: users/showのリモート再取得失敗時に500を返す問題を修正 [#1275](https://github.com/yojo-art/cherrypick/pull/1275)
 - Fix: ローカルのチャンネルURLで照会するとエラーになる問題を修正 [#1263](https://github.com/yojo-art/cherrypick/pull/1263)
 

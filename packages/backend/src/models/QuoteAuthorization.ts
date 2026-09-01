@@ -6,6 +6,7 @@
 import { Entity, Index, JoinColumn, Column, ManyToOne, PrimaryColumn } from 'typeorm';
 import { id } from './util/id.js';
 import { MiNote } from './Note.js';
+import { MiUser } from './User.js';
 
 @Entity('quote_authorization')
 @Index(['noteId', 'interactingObject'], { unique: true })
@@ -38,4 +39,16 @@ export class MiQuoteAuthorization {
 		comment: 'The URI of the object interacting with the note (the quoting object).',
 	})
 	public interactingObject: string;
+
+	@Column({
+		...id(),
+		comment: 'The ID of the requesting actor.',
+	})
+	public requestedById: MiUser['id'];
+
+	@ManyToOne(() => MiUser, {
+		onDelete: 'CASCADE',
+	})
+	@JoinColumn()
+	public requestedBy: MiUser | null;
 }

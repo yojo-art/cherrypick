@@ -54,10 +54,10 @@ describe('Quote authorization (FEP-044f)', () => {
 		localOnlyNote = localOnlyNoteCreated;
 
 		await quoteAuthorizations.insert([
-			{ id: `${publicNote.id}q1`, noteId: publicNote.id, token: token.public, interactingObject },
-			{ id: `${homeNote.id}q1`, noteId: homeNote.id, token: token.home, interactingObject },
-			{ id: `${followersNote.id}q1`, noteId: followersNote.id, token: token.followers, interactingObject },
-			{ id: `${localOnlyNote.id}q1`, noteId: localOnlyNote.id, token: token.localOnly, interactingObject },
+			{ id: `${publicNote.id}q1`, noteId: publicNote.id, token: token.public, interactingObject, requestedById: alice.id },
+			{ id: `${homeNote.id}q1`, noteId: homeNote.id, token: token.home, interactingObject, requestedById: alice.id },
+			{ id: `${followersNote.id}q1`, noteId: followersNote.id, token: token.followers, interactingObject, requestedById: alice.id },
+			{ id: `${localOnlyNote.id}q1`, noteId: localOnlyNote.id, token: token.localOnly, interactingObject, requestedById: alice.id },
 		]);
 	}, 1000 * 60 * 2);
 

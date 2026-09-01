@@ -1024,7 +1024,13 @@ export class ActivityPubServerService {
 		});
 
 		// quote authorization (FEP-044f)
-		fastify.get<{ Params: { user: string; token: string; } }>('/users/:user/quote_authorizations/:token', async (request, reply) => {
+		// 承認URIは256bitランダムトークン限定の capability URL であり、HTTP 署名や
+		// リクエスト元チェックは行わない (トークンが推測不可能なため許容と判断。
+		// ブロック関係の再評価等は、認証されたリクエスト元を特定できないこのエンドポイントでは
+		// 原理的に実施できない)。
+		fastify.get<{ Params: { user: string; token: string; } }>('/users/:user/quote_authorizations/:token', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
+			vary(reply.raw, 'Accept');
+
 			if (this.meta.federation === 'none') {
 				reply.code(403);
 				return;
@@ -1036,6 +1042,7 @@ export class ActivityPubServerService {
 				id: userId,
 				host: IsNull(),
 				isSuspended: false,
+				isDeleted: false,
 			});
 
 			if (user == null) {
