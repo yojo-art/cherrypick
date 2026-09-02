@@ -280,20 +280,15 @@ describe('ApInboxService (QuoteRequest)', () => {
 		takeDelivers();
 	});
 
-	test('フォロワー限定ノートは skip され Reject が配送され行が残らない', async () => {
+	test('フォロワー限定ノートは skip され Reject は配送されず行が残らない', async () => {
 		const instrument = `${instrumentBase}/${randomString(undefined, 8)}`;
 		const activity = buildQuoteRequest(noteUri(followersNote), instrument);
 		const result = await apInboxService.performOneActivity(remoteActor, activity);
 
 		assert.strictEqual(result, 'skip: quoted note is not publicly readable');
 
-		const delivers = takeDelivers();
-		assert.strictEqual(delivers.length, 1);
-		const delivered = delivers[0];
-		assert.strictEqual(delivered.to, remoteActor.inbox);
-		assert.strictEqual(delivered.content.type, 'Reject');
-		assert.strictEqual(delivered.content.actor, `${config.url}/users/${authorId}`);
-		assert.strictEqual(delivered.content.object, activity.id);
+		// 公開範囲が理由の拒否は Reject を配送しない (非公開投稿の存在漏洩防止)
+		assert.strictEqual(takeDelivers().length, 0);
 
 		const count = await quoteAuthorizationsRepository.countBy({
 			noteId: followersNote.id,

@@ -388,8 +388,9 @@ export class ApInboxService {
 	 * - ノート作者が要求アクターをブロックしている
 	 * - ノート作者が凍結済み・削除済みである
 	 * - instrument が要求アクターのホストと異る、または長すぎる (バイト基準)
-	 * 作者が特定できる拒否経路 (localOnly / 公開範囲 / ブロック) では Reject を配送し、
+	 * 作者が特定できる拒否経路 (localOnly / ブロック) では Reject を配送し、
 	 * リモート側の引用を pending のまま放置しない。
+	 * 公開範囲が理由の拒否は、Reject 配送が非公開投稿の存在を漏らすため行わない。
 	 */
 	@bindThis
 	private async quoteRequest(actor: MiRemoteUser, activity: IQuoteRequest): Promise<string> {
@@ -420,7 +421,7 @@ export class ApInboxService {
 			return 'skip: quoted note is localOnly';
 		}
 		if (quoted.visibility !== 'public' && quoted.visibility !== 'home') {
-			rejectQuoting();
+			// Reject を配送すると非公開投稿の存在を漏らすことになるため黙って無視する
 			return 'skip: quoted note is not publicly readable';
 		}
 
