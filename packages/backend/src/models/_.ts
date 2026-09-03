@@ -34,6 +34,7 @@ import { MiClip } from '@/models/Clip.js';
 import { MiClipFavorite } from '@/models/ClipFavorite.js';
 import { MiClipNote } from '@/models/ClipNote.js';
 import { MiClipFavoriteRemote } from '@/models/ClipFavoriteRemote.js';
+import { MiQuoteAuthorization } from '@/models/QuoteAuthorization.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
 import { MiDriveFolder } from '@/models/DriveFolder.js';
 import { MiEmoji } from '@/models/Emoji.js';
@@ -190,6 +191,7 @@ export {
 	MiChatRoomMembership,
 	MiChatRoomInvitation,
 	MiChatApproval,
+	MiQuoteAuthorization,
 	MiBubbleGameRecord,
 	MiReversiGame,
 };
@@ -215,6 +217,7 @@ export type ClipsRepository = Repository<MiClip> & MiRepository<MiClip>;
 export type ClipNotesRepository = Repository<MiClipNote> & MiRepository<MiClipNote>;
 export type ClipFavoritesRepository = Repository<MiClipFavorite> & MiRepository<MiClipFavorite>;
 export type ClipFavoritesRemoteRepository = Repository<MiClipFavoriteRemote> & MiRepository<MiClipFavoriteRemote>;
+export type QuoteAuthorizationsRepository = Repository<MiQuoteAuthorization> & MiRepository<MiQuoteAuthorization>;
 export type DriveFilesRepository = Repository<MiDriveFile> & MiRepository<MiDriveFile>;
 export type DriveFoldersRepository = Repository<MiDriveFolder> & MiRepository<MiDriveFolder>;
 export type EmojisRepository = Repository<MiEmoji> & MiRepository<MiEmoji>;

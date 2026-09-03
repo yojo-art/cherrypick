@@ -106,5 +106,6 @@ export const DI = {
 	noteHistoryRepository: Symbol('noteHistoryRepository'),
 	noteScheduleRepository: Symbol('noteScheduleRepository'),
 	officialTagRepository: Symbol('officialTagRepository'),
+	quoteAuthorizationsRepository: Symbol('quoteAuthorizationsRepository'),
 	//#endregion
 };

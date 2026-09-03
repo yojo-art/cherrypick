@@ -431,6 +431,19 @@ export interface IInvite extends IActivity {
 	type: 'Invite';
 }
 
+export interface IQuoteRequest extends IActivity {
+	type: 'QuoteRequest';
+	instrument?: IObject | string;
+}
+
+export interface IQuoteAuthorization extends IObject {
+	type: 'QuoteAuthorization';
+	interactingObject?: string;
+	interactionTarget?: string;
+}
+
+export const isQuoteRequest = (object: IObject): object is IQuoteRequest => getApType(object) === 'QuoteRequest';
+
 export const isCreate = (object: IObject): object is ICreate => getApType(object) === 'Create';
 export const isDelete = (object: IObject): object is IDelete => getApType(object) === 'Delete';
 export const isUpdate = (object: IObject): object is IUpdate => getApType(object) === 'Update';

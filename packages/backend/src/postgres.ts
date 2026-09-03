@@ -28,6 +28,7 @@ import { MiChannelFavorite } from '@/models/ChannelFavorite.js';
 import { MiChannelMuting } from '@/models/ChannelMuting.js';
 import { MiClip } from '@/models/Clip.js';
 import { MiClipNote } from '@/models/ClipNote.js';
+import { MiQuoteAuthorization } from '@/models/QuoteAuthorization.js';
 import { MiClipFavorite } from '@/models/ClipFavorite.js';
 import { MiClipFavoriteRemote } from '@/models/ClipFavoriteRemote.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
@@ -245,6 +246,7 @@ export const entities = [
 	MiClipNote,
 	MiClipFavorite,
 	MiClipFavoriteRemote,
+	MiQuoteAuthorization,
 	MiAntenna,
 	MiPromoNote,
 	MiPromoRead,

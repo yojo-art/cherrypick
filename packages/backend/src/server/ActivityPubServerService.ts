@@ -14,7 +14,7 @@ import vary from 'vary';
 import secureJson from 'secure-json-parse';
 import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
+import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ClipsRepository, ClipNotesRepository, MiClipNote, QuoteAuthorizationsRepository } from '@/models/_.js';
 import * as url from '@/misc/prelude/url.js';
 import type { Config } from '@/config.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -26,6 +26,7 @@ import { countIf } from '@/misc/prelude/array.js';
 import type { MiNote } from '@/models/Note.js';
 import { QueryService } from '@/core/QueryService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
@@ -82,8 +83,12 @@ export class ActivityPubServerService {
 		@Inject(DI.clipNotesRepository)
 		private clipNotesRepository: ClipNotesRepository,
 
+		@Inject(DI.quoteAuthorizationsRepository)
+		private quoteAuthorizationsRepository: QuoteAuthorizationsRepository,
+
 		private utilityService: UtilityService,
 		private userEntityService: UserEntityService,
+		private userBlockingService: UserBlockingService,
 		private apRendererService: ApRendererService,
 		private queueService: QueueService,
 		private userKeypairService: UserKeypairService,
@@ -1018,6 +1023,84 @@ export class ActivityPubServerService {
 				reply.code(400);
 				return;
 			}
+		});
+
+		// quote authorization (FEP-044f)
+		// 承認URIは256bitランダムトークン限定の capability URL であり、HTTP 署名や
+		// リクエスト元チェックは行わない (トークンが推測不可能なため許容と判断)。
+		// ブロック関係や要求アクターの状態の再評価は、HTTP のリクエスト元ではなく
+		// 行に保存した requestedBy を用いて実施する。
+		fastify.get<{ Params: { user: string; token: string; } }>('/users/:user/quote_authorizations/:token', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
+			vary(reply.raw, 'Accept');
+
+			if (this.meta.federation === 'none') {
+				reply.code(403);
+				return;
+			}
+
+			const userId = request.params.user;
+
+			const user = await this.usersRepository.findOneBy({
+				id: userId,
+				host: IsNull(),
+				isSuspended: false,
+				isDeleted: false,
+			});
+
+			if (user == null) {
+				reply.code(404);
+				return;
+			}
+
+			const authorization = await this.quoteAuthorizationsRepository.findOneBy({
+				token: request.params.token,
+			});
+
+			if (authorization == null) {
+				reply.code(404);
+				return;
+			}
+
+			const requestedBy = await this.usersRepository.findOneBy({
+				id: authorization.requestedById,
+				isSuspended: false,
+				isDeleted: false,
+			});
+
+			if (requestedBy == null) {
+				reply.code(404);
+				return;
+			}
+
+			if (await this.userBlockingService.checkBlocked(user.id, requestedBy.id)) {
+				reply.code(404);
+				return;
+			}
+
+			const note = await this.notesRepository.findOneBy({
+				id: authorization.noteId,
+				userId: user.id,
+			});
+
+			if (note == null || note.userHost !== null || note.localOnly) {
+				reply.code(404);
+				return;
+			}
+			if (note.visibility !== 'public' && note.visibility !== 'home') {
+				reply.code(404);
+				return;
+			}
+
+			const approvalUri = `${this.config.url}/users/${user.id}/quote_authorizations/${request.params.token}`;
+
+			reply.header('Cache-Control', 'private, max-age=180');
+			this.setResponseType(request, reply);
+			return this.apRendererService.renderQuoteAuthorization(
+				approvalUri,
+				{ id: user.id, host: null },
+				authorization.interactingObject,
+				`${this.config.url}/notes/${note.id}`,
+			);
 		});
 
 		fastify.get<{ Params: { channel: string; } }>('/channels/:channel', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
