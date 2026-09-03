@@ -26,6 +26,7 @@ describe('Quote authorization (FEP-044f)', () => {
 		home: 'aaaaaaaahometoken00000000000000000',
 		followers: 'aaaaaaaafollowerstoken00000000000',
 		localOnly: 'aaaaaaaalocalonlytoken0000000000',
+		blockedAfterIssue: 'aaaaaaaablockrevoke0000000000000',
 	} as const;
 
 	let publicNote: misskey.entities.Note;
@@ -115,6 +116,31 @@ describe('Quote authorization (FEP-044f)', () => {
 		});
 
 		assert.strictEqual(res.status, 404);
+	});
+
+	test('承認発行後に作者が要求者をブロックすると承認トークンは 404 になる', async () => {
+		const carol = await signup({ username: 'carol' });
+		await quoteAuthorizations.insert({
+			id: `${publicNote.id}q2`,
+			noteId: publicNote.id,
+			token: token.blockedAfterIssue,
+			interactingObject: `${interactingObject}#carol`,
+			requestedById: carol.id,
+		});
+
+		const before = await relativeFetch(getPath(alice.id, token.blockedAfterIssue), {
+			headers: { Accept: 'application/activity+json' },
+		});
+		assert.strictEqual(before.status, 200);
+
+		await api('blocking/create', { userId: carol.id }, alice);
+		// ブロック時のキャッシュリフレッシュが fire-and-forget なので少し待つ
+		await sleep(1000);
+
+		const after = await relativeFetch(getPath(alice.id, token.blockedAfterIssue), {
+			headers: { Accept: 'application/activity+json' },
+		});
+		assert.strictEqual(after.status, 404);
 	});
 
 	test('federation が none なら 403', async () => {

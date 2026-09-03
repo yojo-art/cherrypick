@@ -26,6 +26,7 @@ import { countIf } from '@/misc/prelude/array.js';
 import type { MiNote } from '@/models/Note.js';
 import { QueryService } from '@/core/QueryService.js';
 import { UtilityService } from '@/core/UtilityService.js';
+import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
@@ -87,6 +88,7 @@ export class ActivityPubServerService {
 
 		private utilityService: UtilityService,
 		private userEntityService: UserEntityService,
+		private userBlockingService: UserBlockingService,
 		private apRendererService: ApRendererService,
 		private queueService: QueueService,
 		private userKeypairService: UserKeypairService,
@@ -1025,9 +1027,9 @@ export class ActivityPubServerService {
 
 		// quote authorization (FEP-044f)
 		// 承認URIは256bitランダムトークン限定の capability URL であり、HTTP 署名や
-		// リクエスト元チェックは行わない (トークンが推測不可能なため許容と判断。
-		// ブロック関係の再評価等は、認証されたリクエスト元を特定できないこのエンドポイントでは
-		// 原理的に実施できない)。
+		// リクエスト元チェックは行わない (トークンが推測不可能なため許容と判断)。
+		// ブロック関係や要求アクターの状態の再評価は、HTTP のリクエスト元ではなく
+		// 行に保存した requestedBy を用いて実施する。
 		fastify.get<{ Params: { user: string; token: string; } }>('/users/:user/quote_authorizations/:token', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
 			vary(reply.raw, 'Accept');
 
@@ -1055,6 +1057,22 @@ export class ActivityPubServerService {
 			});
 
 			if (authorization == null) {
+				reply.code(404);
+				return;
+			}
+
+			const requestedBy = await this.usersRepository.findOneBy({
+				id: authorization.requestedById,
+				isSuspended: false,
+				isDeleted: false,
+			});
+
+			if (requestedBy == null) {
+				reply.code(404);
+				return;
+			}
+
+			if (await this.userBlockingService.checkBlocked(user.id, requestedBy.id)) {
 				reply.code(404);
 				return;
 			}

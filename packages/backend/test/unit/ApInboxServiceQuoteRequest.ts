@@ -18,7 +18,7 @@ import { ApInboxService } from '@/core/activitypub/ApInboxService.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import type { MiNote } from '@/models/Note.js';
 import type { MiRemoteUser } from '@/models/User.js';
-import type { BlockingsRepository, NotesRepository, QuoteAuthorizationsRepository, UsersRepository } from '@/models/_.js';
+import type { BlockingsRepository, FollowingsRepository, NotesRepository, QuoteAuthorizationsRepository, UsersRepository } from '@/models/_.js';
 import { randomString } from '../utils.js';
 
 describe('ApInboxService (QuoteRequest)', () => {
@@ -29,6 +29,7 @@ describe('ApInboxService (QuoteRequest)', () => {
 	let usersRepository: UsersRepository;
 	let notesRepository: NotesRepository;
 	let blockingsRepository: BlockingsRepository;
+	let followingsRepository: FollowingsRepository;
 	let quoteAuthorizationsRepository: QuoteAuthorizationsRepository;
 	let idService: IdService;
 	let deliverMock: Mock;
@@ -41,6 +42,7 @@ describe('ApInboxService (QuoteRequest)', () => {
 	let homeNote: MiNote;
 	let followersNote: MiNote;
 	let localOnlyNote: MiNote;
+	let localOnlyFollowersNote: MiNote;
 	let remoteActor: MiRemoteUser;
 	let sameHostActor: MiRemoteUser;
 	let blockedActor: MiRemoteUser;
@@ -117,6 +119,7 @@ describe('ApInboxService (QuoteRequest)', () => {
 		usersRepository = app.get<UsersRepository>(DI.usersRepository);
 		notesRepository = app.get<NotesRepository>(DI.notesRepository);
 		blockingsRepository = app.get<BlockingsRepository>(DI.blockingsRepository);
+		followingsRepository = app.get<FollowingsRepository>(DI.followingsRepository);
 		quoteAuthorizationsRepository = app.get<QuoteAuthorizationsRepository>(DI.quoteAuthorizationsRepository);
 		idService = app.get<IdService>(IdService);
 
@@ -135,6 +138,7 @@ describe('ApInboxService (QuoteRequest)', () => {
 		homeNote = await createNote('home', false);
 		followersNote = await createNote('followers', false);
 		localOnlyNote = await createNote('public', true);
+		localOnlyFollowersNote = await createNote('followers', true);
 		remoteActor = await createRemoteUser();
 		sameHostActor = await createRemoteUser();
 		blockedActor = await createRemoteUser();
@@ -362,10 +366,10 @@ describe('ApInboxService (QuoteRequest)', () => {
 	});
 
 	test('instrument がバイト上限を超えると skip され行が残らない', async () => {
-		// 文字数は 4096 文字未満でも UTF-8 バイト数がインデックス実効上限を超えれば skip する
-		const instrument = `https://${remoteHost}/${'あ'.repeat(830)}`;
-		assert.ok(instrument.length < 4096);
-		assert.ok(Buffer.byteLength(instrument, 'utf8') > 2500);
+		// 文字数は 512 文字未満でも UTF-8 バイト数が上限を超えれば skip する
+		const instrument = `https://${remoteHost}/${'あ'.repeat(200)}`;
+		assert.ok(instrument.length < 512);
+		assert.ok(Buffer.byteLength(instrument, 'utf8') > 512);
 		const result = await apInboxService.performOneActivity(remoteActor, buildQuoteRequest(noteUri(publicNote), instrument));
 
 		assert.strictEqual(result, 'skip: instrument uri is too long');
@@ -374,6 +378,70 @@ describe('ApInboxService (QuoteRequest)', () => {
 			interactingObject: instrument,
 		});
 		assert.strictEqual(count, 0);
+		takeDelivers();
+	});
+
+	test('フォロワーからのフォロワー限定ノートへの QuoteRequest は黙殺せず Reject を配送する', async () => {
+		await followingsRepository.insert({
+			id: idService.gen(),
+			followerId: remoteActor.id,
+			followeeId: authorId,
+			followerHost: remoteActor.host,
+			followeeHost: null,
+		});
+
+		const instrument = `${instrumentBase}/${randomString(undefined, 8)}`;
+		const result = await apInboxService.performOneActivity(remoteActor, buildQuoteRequest(noteUri(followersNote), instrument));
+
+		assert.strictEqual(result, 'skip: quoted note is not publicly readable');
+
+		const delivers = takeDelivers();
+		assert.strictEqual(delivers.length, 1);
+		assert.strictEqual(delivers[0].content.type, 'Reject');
+
+		const count = await quoteAuthorizationsRepository.countBy({
+			noteId: followersNote.id,
+			interactingObject: instrument,
+		});
+		assert.strictEqual(count, 0);
+	});
+
+	test('localOnly かつフォロワー限定のノートは閲覧でない相手には黙殺され Reject も配送されない', async () => {
+		const instrument = `${instrumentBase}/${randomString(undefined, 8)}`;
+		const result = await apInboxService.performOneActivity(sameHostActor, buildQuoteRequest(noteUri(localOnlyFollowersNote), instrument, sameHostActor));
+
+		assert.strictEqual(result, 'skip: quoted note is not publicly readable');
+		assert.strictEqual(takeDelivers().length, 0);
+
+		const count = await quoteAuthorizationsRepository.countBy({
+			noteId: localOnlyFollowersNote.id,
+			interactingObject: instrument,
+		});
+		assert.strictEqual(count, 0);
+	});
+
+	test('instrument にデフォルトポートを明示した URI もホスト一致として受理される', async () => {
+		const instrument = `https://${remoteHost}:443/notes/${randomString(undefined, 8)}`;
+		const result = await apInboxService.performOneActivity(remoteActor, buildQuoteRequest(noteUri(publicNote), instrument));
+
+		assert.strictEqual(result, 'ok: quote request accepted');
+		takeDelivers();
+	});
+
+	test('バイト上限直下の圧縮されない instrument で受理され行が残る', async () => {
+		const instrument = `https://${remoteHost}/notes/${randomString(undefined, 470)}`;
+		const bytes = Buffer.byteLength(instrument, 'utf8');
+		assert.ok(bytes > 480);
+		assert.ok(bytes <= 512);
+
+		const result = await apInboxService.performOneActivity(remoteActor, buildQuoteRequest(noteUri(publicNote), instrument));
+		assert.strictEqual(result, 'ok: quote request accepted');
+
+		const row = await quoteAuthorizationsRepository.findOneByOrFail({
+			noteId: publicNote.id,
+			interactingObject: instrument,
+		});
+		assert.match(row.token, /^[A-Za-z0-9_-]+$/);
 		takeDelivers();
 	});
 

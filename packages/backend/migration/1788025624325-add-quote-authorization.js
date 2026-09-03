@@ -10,7 +10,7 @@ export class AddQuoteAuthorization1788025624325 {
      * @param {QueryRunner} queryRunner
      */
     async up(queryRunner) {
-        await queryRunner.query(`CREATE TABLE "quote_authorization" ("id" character varying(32) NOT NULL, "noteId" character varying(32) NOT NULL, "token" character varying(255) NOT NULL, "interactingObject" character varying(4096) NOT NULL, "requestedById" character varying(32) NOT NULL, CONSTRAINT "PK_quote_authorization_id" PRIMARY KEY ("id"))`);
+        await queryRunner.query(`CREATE TABLE "quote_authorization" ("id" character varying(32) NOT NULL, "noteId" character varying(32) NOT NULL, "token" character varying(255) NOT NULL, "interactingObject" character varying(512) NOT NULL, "requestedById" character varying(32) NOT NULL, CONSTRAINT "PK_quote_authorization_id" PRIMARY KEY ("id"))`);
         await queryRunner.query(`CREATE INDEX "IDX_4be92a3964ab9ff71665581050" ON "quote_authorization" ("noteId") `);
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_9e03fb8baad3833fdd5a734e7e" ON "quote_authorization" ("token") `);
         await queryRunner.query(`CREATE UNIQUE INDEX "IDX_f0f2acdced9cb1927b8c69821f" ON "quote_authorization" ("noteId", "interactingObject") `);

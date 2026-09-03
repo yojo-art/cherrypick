@@ -35,7 +35,7 @@ export class MiQuoteAuthorization {
 	public token: string;
 
 	@Column('varchar', {
-		length: 4096,
+		length: 512,
 		comment: 'The URI of the object interacting with the note (the quoting object).',
 	})
 	public interactingObject: string;

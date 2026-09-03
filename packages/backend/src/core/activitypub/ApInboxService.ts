@@ -60,7 +60,7 @@ import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow
 // バイト基準の実効上限 (余裕を持たせて 2500 バイト) で instrument を受け付ける。
 // varchar(4096) の「文字」数ではなくバイト数でガードしないと、
 // 上限超過の INSERT は SQLSTATE 54000 で inbox ジョブのリトライ対象になってしまう。
-const MAX_INTERACTING_OBJECT_BYTES = 2500;
+const MAX_INTERACTING_OBJECT_BYTES = 512;
 
 @Injectable()
 export class ApInboxService {
@@ -388,9 +388,10 @@ export class ApInboxService {
 	 * - ノート作者が要求アクターをブロックしている
 	 * - ノート作者が凍結済み・削除済みである
 	 * - instrument が要求アクターのホストと異る、または長すぎる (バイト基準)
-	 * 作者が特定できる拒否経路 (localOnly / ブロック) では Reject を配送し、
-	 * リモート側の引用を pending のまま放置しない。
-	 * 公開範囲が理由の拒否は、Reject 配送が非公開投稿の存在を漏らすため行わない。
+	 * 作者が特定できる拒否経路 (localOnly / ブロック / 閲覧可能な相手からの公開範囲由来の拒否)
+	 * では Reject を配送し、リモート側の引用を pending のまま放置しない。
+	 * 閲覧できない相手に対する公開範囲由来の拒否は、Reject 配送が非公開投稿の存在を漏らすため
+	 * 行わない。
 	 */
 	@bindThis
 	private async quoteRequest(actor: MiRemoteUser, activity: IQuoteRequest): Promise<string> {
@@ -416,13 +417,17 @@ export class ApInboxService {
 			);
 		};
 
+		if (quoted.visibility !== 'public' && quoted.visibility !== 'home') {
+			// 閲覧できない相手には Reject 配送が非公開投稿の存在を漏らすため黙殺し、
+			// 閲覧できる相手には Reject を送って pending を解消する
+			if (await this.noteEntityService.isVisibleForMe(quoted, actor.id)) {
+				rejectQuoting();
+			}
+			return 'skip: quoted note is not publicly readable';
+		}
 		if (quoted.localOnly) {
 			rejectQuoting();
 			return 'skip: quoted note is localOnly';
-		}
-		if (quoted.visibility !== 'public' && quoted.visibility !== 'home') {
-			// Reject を配送すると非公開投稿の存在を漏らすことになるため黙って無視する
-			return 'skip: quoted note is not publicly readable';
 		}
 
 		const blocked = await this.userBlockingService.checkBlocked(author.id, actor.id);
@@ -442,7 +447,7 @@ export class ApInboxService {
 
 		let hostMatches: boolean;
 		try {
-			hostMatches = this.utilityService.extractDbHost(quotingUri) === this.utilityService.extractDbHost(actor.uri);
+			hostMatches = this.extractPunyHostname(quotingUri) === this.extractPunyHostname(actor.uri);
 		} catch (e) {
 			return 'skip: cannot determine instrument';
 		}
@@ -492,6 +497,15 @@ export class ApInboxService {
 		this.queueService.deliver(author, this.apRendererService.addContext(accept), actor.inbox, false);
 
 		return 'ok: quote request accepted';
+	}
+
+	/**
+	 * extractDbHost はホスト部をポート込みで返すため、デフォルトポートを明示した
+	 * 正当な URI がホスト不一致で誤棄却される。比較用にはポートを除外して比較する。
+	 */
+	@bindThis
+	private extractPunyHostname(uri: string): string {
+		return this.utilityService.toPuny(new URL(uri).hostname);
 	}
 
 	@bindThis
