@@ -550,6 +550,18 @@ const extension_context_definition = {
 		'@id': 'fedibird:searchableBy',
 		'@type': '@id',
 	},
+	// FEP-044f
+	QuoteRequest: 'https://w3id.org/fep/044f#QuoteRequest',
+	QuoteAuthorization: 'https://w3id.org/fep/044f#QuoteAuthorization',
+	gts: 'https://gotosocial.org/ns#',
+	interactingObject: {
+		'@id': 'gts:interactingObject',
+		'@type': '@id',
+	},
+	interactionTarget: {
+		'@id': 'gts:interactionTarget',
+		'@type': '@id',
+	},
 	// schema
 	schema: 'http://schema.org#',
 	PropertyValue: 'schema:PropertyValue',
