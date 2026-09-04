@@ -1,51 +1,59 @@
 <!--
-SPDX-FileCopyrightText: syuilo and misskey-project
+SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
 SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :class="$style.root">
-	<button
-		v-for="[reaction, count] in sortedReactions"
+<component
+	:is="prefer.s.animation ? TransitionGroup : 'div'"
+	:enterActiveClass="$style.transition_x_enterActive"
+	:leaveActiveClass="$style.transition_x_leaveActive"
+	:enterFromClass="$style.transition_x_enterFrom"
+	:leaveToClass="$style.transition_x_leaveTo"
+	:moveClass="$style.transition_x_move"
+	tag="div" :class="$style.root"
+>
+	<MkAnnouncementReaction
+		v-for="[reaction, count] in _reactions"
 		:key="reaction"
-		v-ripple="canToggle"
-		class="_button"
-		:class="[$style.reaction, { [$style.reacted]: myReactions.includes(reaction), [$style.canToggle]: canToggle }]"
-		:disabled="!canToggle"
-		:aria-pressed="myReactions.includes(reaction)"
-		:aria-label="reaction"
-		@click="toggle(reaction)"
-		@contextmenu.prevent.stop="showReactedUsers(reaction)"
-	>
-		<MkReactionIcon style="pointer-events: none;" :reaction="reaction"/>
-		<span :class="$style.count">{{ count }}</span>
-	</button>
+		:announcementId="announcementId"
+		:reaction="reaction"
+		:count="count"
+		:isInitial="initialReactions.has(reaction)"
+		:myReactions="myReactions"
+		@announcementReactionToggled="onAnnouncementReactionToggled"
+		@showUsers="showReactedUsers"
+	/>
 	<button
 		v-if="canAddReaction"
+		key="add-reaction"
 		ref="pickerButtonEl"
 		v-tooltip="i18n.ts.reaction"
 		class="_button"
-		:class="[$style.reaction, $style.add]"
+		:class="[$style.add, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
 		:aria-label="i18n.ts.reaction"
 		@click="pick"
 	>
 		<i class="ti ti-plus"></i>
 	</button>
-	<button
-		v-if="hasReactions"
-		class="_button"
-		:class="[$style.reaction, $style.more]"
-		@click="showReactedUsers()"
-	>
-		{{ i18n.ts.more }}
-	</button>
-</div>
+	<slot v-if="hasMoreReactions" name="more">
+		<button
+			key="more"
+			class="_button"
+			:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
+			@click="isExpanded = true"
+		>
+			{{ i18n.ts.more }}
+		</button>
+	</slot>
+</component>
 </template>
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, useTemplateRef, watch } from 'vue';
+import { TransitionGroup } from 'vue';
 import * as Misskey from 'misskey-js';
-import MkReactionIcon from '@/components/MkReactionIcon.vue';
+import MkAnnouncementReaction from '@/components/MkAnnouncementReaction.vue';
 import MkAnnouncementReactedUsersDialog from '@/components/MkAnnouncementReactedUsersDialog.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { reactionPicker } from '@/utility/reaction-picker.js';
@@ -54,12 +62,16 @@ import { $i } from '@/i.js';
 import * as os from '@/os.js';
 import * as sound from '@/utility/sound.js';
 import { useStream } from '@/stream.js';
+import { prefer } from '@/preferences.js';
 
-const props = defineProps<{
+const props = withDefaults(defineProps<{
 	announcementId: Misskey.entities.Announcement['id'];
 	reactions: Record<string, number>;
 	myReactions: string[];
-}>();
+	maxNumber?: number;
+}>(), {
+	maxNumber: 20,
+});
 
 const emit = defineEmits<{
 	(ev: 'update', reactions: Record<string, number>, myReactions: string[]): void;
@@ -82,6 +94,44 @@ const toggling = ref(false);
 
 const stream = useStream();
 const mainChannel = $i != null ? stream.useChannel('main') : null;
+
+const initialReactions = new Set(Object.keys(props.reactions));
+
+const _reactions = ref<[string, number][]>([]);
+const hasMoreReactions = ref(false);
+const isExpanded = ref(false);
+
+for (const r of props.myReactions) {
+	if (!(r in props.reactions)) {
+		_reactions.value.push([r, 0]);
+	}
+}
+
+watch([() => props.reactions, () => props.maxNumber, isExpanded], ([newSource, maxNumber, expanded]) => {
+	const effectiveMax = expanded ? Infinity : maxNumber;
+	let newReactions: [string, number][] = [];
+	hasMoreReactions.value = !expanded && Object.keys(newSource).length > (maxNumber as number);
+
+	for (let i = 0; i < _reactions.value.length; i++) {
+		const reaction = _reactions.value[i][0];
+		if (reaction in newSource && newSource[reaction] !== 0) {
+			_reactions.value[i][1] = newSource[reaction];
+			newReactions.push(_reactions.value[i]);
+		}
+	}
+
+	const newReactionsNames = newReactions.map(([x]) => x);
+	newReactions = [
+		...newReactions,
+		...Object.entries(newSource)
+			.sort((a, b) => b[1] - a[1])
+			.filter(([y], i) => i < (effectiveMax as number) && !newReactionsNames.includes(y)),
+	];
+
+	newReactions = newReactions.slice(0, effectiveMax as number);
+
+	_reactions.value = newReactions;
+}, { immediate: true, deep: true });
 
 watch(() => props.reactions, (newReactions) => {
 	reactions.value = { ...newReactions };
@@ -136,12 +186,6 @@ onUnmounted(() => {
 	mainChannel?.dispose();
 });
 
-const sortedReactions = computed(() => Object.entries(reactions.value)
-	.filter(([, count]) => count > 0)
-	.sort((a, b) => b[1] - a[1]));
-
-const hasReactions = computed(() => sortedReactions.value.length > 0);
-
 function showReactedUsers(initialReaction?: string) {
 	const { dispose } = os.popup(MkAnnouncementReactedUsersDialog, {
 		announcementId: props.announcementId,
@@ -153,8 +197,12 @@ function showReactedUsers(initialReaction?: string) {
 }
 
 /**
- * リアクションを楽観的に適用し、失敗時に巻き戻せるよう元の状態を返す。
+ * 子 MkReaction からの楽観的更新を受け取る
  */
+function onAnnouncementReactionToggled(reaction: string, delta: number) {
+	applyLocally(reaction, delta);
+}
+
 function applyLocally(reaction: string, delta: number) {
 	const nextReactions = { ...reactions.value };
 	const count = (nextReactions[reaction] ?? 0) + delta;
@@ -172,118 +220,131 @@ function applyLocally(reaction: string, delta: number) {
 	updateReactions(nextReactions, nextMyReactions);
 }
 
-async function toggle(reaction: string) {
-	if (!canToggle.value || toggling.value) return;
-
-	const previousReactions = { ...reactions.value };
-	const previousMyReactions = [...myReactions.value];
-	const isReacted = previousMyReactions.includes(reaction);
-
-	toggling.value = true;
-	applyLocally(reaction, isReacted ? -1 : 1);
-
-	try {
-		if (isReacted) {
-			await misskeyApi('announcements/reactions/delete', {
-				announcementId: props.announcementId,
-				reaction,
-			});
-		} else {
-			await misskeyApi('announcements/reactions/create', {
-				announcementId: props.announcementId,
-				reaction,
-			});
-			sound.playMisskeySfx('reaction');
-		}
-	} catch (err) {
-		updateReactions(previousReactions, previousMyReactions);
-		os.alert({
-			type: 'error',
-			text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
-				? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit.value })
-				: i18n.ts.somethingHappened,
-		});
-	} finally {
-		toggling.value = false;
-	}
-}
-
 /**
  * ピッカーが返す生の絵文字文字列をバックエンドの decodeReaction と同じルールで変換する。
  * - カスタム絵文字: :name: → :name@.: (APIレスポンスがこの形式で返ってくる)
  * - Unicode絵文字: 異体字セレクタ(U+FE0F)除去(ZWJ 合字はそのまま)
  */
 function normalizePickedReaction(reaction: string): string {
-	// カスタム絵文字を :name@.: 形式に変換
 	const customMatch = reaction.match(/^:([\w+-]+):$/);
 	if (customMatch) return `:${customMatch[1]}@.:`;
-	// Unicode絵文字の異体字セレクタを除去
 	return reaction.match('\u200d') ? reaction : reaction.replace(/\ufe0f/g, '');
 }
 
 function pick() {
-	if (!canAddReaction.value) return;
+	if (!canAddReaction.value || toggling.value) return;
 
-	reactionPicker.show(pickerButtonEl.value ?? null, null, (reaction) => {
+	reactionPicker.show(pickerButtonEl.value ?? null, null, async (reaction) => {
 		const normalized = normalizePickedReaction(reaction);
-		// すでに付けているリアクションを選んだ場合は何もしない
 		if (myReactions.value.includes(normalized)) return;
-		toggle(normalized);
+
+		const previousReactions = { ...reactions.value };
+		const previousMyReactions = [...myReactions.value];
+
+		toggling.value = true;
+		applyLocally(normalized, 1);
+
+		try {
+			await misskeyApi('announcements/reactions/create', {
+				announcementId: props.announcementId,
+				reaction: normalized,
+			});
+			sound.playMisskeySfx('reaction');
+		} catch (err) {
+			updateReactions(previousReactions, previousMyReactions);
+			os.alert({
+				type: 'error',
+				text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
+					? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit.value })
+					: i18n.ts.somethingHappened,
+			});
+		} finally {
+			toggling.value = false;
+		}
 	});
 }
 </script>
 
 <style lang="scss" module>
+.transition_x_move,
+.transition_x_enterActive,
+.transition_x_leaveActive {
+	transition: opacity 0.2s cubic-bezier(0,.5,.5,1), transform 0.2s cubic-bezier(0,.5,.5,1) !important;
+}
+.transition_x_enterFrom,
+.transition_x_leaveTo {
+	opacity: 0;
+	transform: scale(0.7);
+}
+.transition_x_leaveActive {
+	position: absolute;
+}
+
 .root {
 	display: flex;
 	flex-wrap: wrap;
-	gap: 4px;
-}
-
-.reaction {
-	display: inline-flex;
 	align-items: center;
-	height: 32px;
-	padding: 0 6px;
-	border-radius: 4px;
-	background: var(--MI_THEME-buttonBg);
+	gap: 4px;
 
-	&.canToggle:hover {
-		background: light-dark(rgba(0, 0, 0, 0.05), rgba(255, 255, 255, 0.05));
+	&:empty {
+		display: none;
 	}
-
-	&:not(.canToggle) {
-		cursor: default;
-	}
-
-	&.reacted,
-	&.reacted:hover {
-		background: var(--MI_THEME-accentedBg);
-		color: var(--MI_THEME-accent);
-		box-shadow: 0 0 0 1px var(--MI_THEME-accent) inset;
-
-		> .count {
-			color: var(--MI_THEME-accent);
-		}
-	}
-}
-
-.count {
-	font-size: 0.9em;
-	line-height: 32px;
-	margin: 0 0 0 4px;
 }
 
 .add {
-	color: var(--MI_THEME-fgTransparentWeak);
-}
-
-.more {
-	font-size: 0.9em;
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 38px;
+	padding: 0 12px;
+	font-size: 1.35em;
+	border-radius: 999px;
+	background: var(--MI_THEME-buttonBg);
 	color: var(--MI_THEME-fgTransparentWeak);
 
 	&:hover {
+		background: var(--MI_THEME-buttonHoverBg, rgba(0, 0, 0, 0.1));
+	}
+
+	&.small {
+		height: 30px;
+		padding: 0 10px;
+		font-size: 1em;
+	}
+
+	&.large {
+		height: 46px;
+		padding: 4px 16px;
+		font-size: 1.8em;
+	}
+}
+
+.more {
+	display: inline-flex;
+	align-items: center;
+	justify-content: center;
+	height: 38px;
+	padding: 0 12px;
+	font-size: 0.9em;
+	border-radius: 999px;
+	background: var(--MI_THEME-buttonBg);
+	color: var(--MI_THEME-fgTransparentWeak);
+
+	&:hover {
+		background: var(--MI_THEME-buttonHoverBg, rgba(0, 0, 0, 0.1));
 		color: var(--MI_THEME-fg);
+	}
+
+	&.small {
+		height: 30px;
+		padding: 0 10px;
+		font-size: 0.8em;
+	}
+
+	&.large {
+		height: 46px;
+		padding: 4px 16px;
+		font-size: 1em;
 	}
 }
 </style>
