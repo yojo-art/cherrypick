@@ -158,6 +158,7 @@ function anime() {
 
 async function chooseAlternative() {
 	if (!alternative.value) return;
+	if ($i == null) return;
 
 	const reaction = `:${alternative.value}:`;
 	const isReactedNow = props.myReactions.includes(reaction);
