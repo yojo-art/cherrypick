@@ -78,7 +78,7 @@ export const meta = {
 				reactionAcceptance: {
 					type: 'string',
 					optional: false, nullable: true,
-					enum: [null, 'likeOnly', 'nonSensitiveOnly', 'none'],
+					enum: [null, 'likeOnly', 'none'],
 				},
 				userId: {
 					type: 'string',

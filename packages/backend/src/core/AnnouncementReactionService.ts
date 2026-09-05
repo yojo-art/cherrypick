@@ -44,7 +44,7 @@ export class AnnouncementReactionService {
 	 * お知らせの reactionAcceptance 設定に応じて、リアクションを強制的に ❤ に変換する。
 	 */
 	@bindThis
-	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined, reactionAcceptance: 'likeOnly' | 'nonSensitiveOnly' | 'none' | null): Promise<string> {
+	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined, reactionAcceptance: 'likeOnly' | 'none' | null): Promise<string> {
 		if (reactionAcceptance === 'none') {
 			throw new IdentifiableError(AnnouncementReactionErrorIds.reactionsNotAllowed, 'Reactions are not allowed for this announcement.');
 		}
@@ -73,11 +73,6 @@ export class AnnouncementReactionService {
 			(await this.roleService.getUserRoles(user.id)).some(r => emoji.roleIdsThatCanBeUsedThisEmojiAsReaction.includes(r.id));
 
 		if (!allowed) return FALLBACK;
-
-		// センシティブ絵文字の制限
-		if (reactionAcceptance === 'nonSensitiveOnly' && emoji.isSensitive) {
-			return FALLBACK;
-		}
 
 		return `:${name}:`;
 	}

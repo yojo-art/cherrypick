@@ -22,7 +22,7 @@ describe('Announcement reactions', () => {
 		title: string;
 		text?: string;
 		userId?: string;
-		reactionAcceptance?: 'likeOnly' | 'nonSensitiveOnly' | 'none' | null;
+		reactionAcceptance?: 'likeOnly' | 'none' | null;
 	}): Promise<{ id: string }> {
 		const res = await api('admin/announcements/create', {
 			title: params.title,
@@ -351,49 +351,6 @@ describe('Announcement reactions', () => {
 		assert.ok(item);
 		assert.deepStrictEqual(item.reactions, { '❤': 1 });
 		assert.deepStrictEqual(item.myReactions, ['❤']);
-	});
-
-	test('nonSensitiveOnly のお知らせではセンシティブなカスタム絵文字は ❤ に強制される', async () => {
-		const file = await uploadFile(alice, { path: '192.png' });
-		assert.ok(file.body);
-		const secretRes = await api('admin/emoji/add', {
-			name: 'announcement_test_secret',
-			fileId: file.body.id,
-			isSensitive: true,
-		}, alice);
-		assert.strictEqual(secretRes.status, 200);
-
-		const file2 = await uploadFile(alice, { path: '192.png' });
-		assert.ok(file2.body);
-		const okRes = await api('admin/emoji/add', {
-			name: 'announcement_test_ok',
-			fileId: file2.body.id,
-			isSensitive: false,
-		}, alice);
-		assert.strictEqual(okRes.status, 200);
-
-		const ann = await createAnnouncement({ title: 'nonSensitiveOnly', reactionAcceptance: 'nonSensitiveOnly' });
-
-		assert.strictEqual((await api('announcements/reactions/create', {
-			announcementId: ann.id,
-			reaction: ':announcement_test_secret@.:',
-		}, bob)).status, 204);
-
-		let listRes = await api('announcements', {}, bob);
-		let item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
-		assert.ok(item);
-		assert.deepStrictEqual(item.reactions, { '❤': 1 });
-
-		// 非センシティブはそのまま
-		const ann2 = await createAnnouncement({ title: 'nonSensitiveOnly2', reactionAcceptance: 'nonSensitiveOnly' });
-		assert.strictEqual((await api('announcements/reactions/create', {
-			announcementId: ann2.id,
-			reaction: ':announcement_test_ok@.:',
-		}, bob)).status, 204);
-		listRes = await api('announcements', {}, bob);
-		item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann2.id);
-		assert.ok(item);
-		assert.deepStrictEqual(item.reactions, { ':announcement_test_ok@.:': 1 });
 	});
 
 	test('none のお知らせではリアクションが拒否される', async () => {

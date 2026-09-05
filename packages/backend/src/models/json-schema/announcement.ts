@@ -63,7 +63,7 @@ export const packedAnnouncementSchema = {
 		reactionAcceptance: {
 			type: 'string',
 			optional: false, nullable: true,
-			enum: ['likeOnly', 'nonSensitiveOnly', 'none', null],
+			enum: ['likeOnly', 'none', null],
 		},
 		reactions: {
 			type: 'object',

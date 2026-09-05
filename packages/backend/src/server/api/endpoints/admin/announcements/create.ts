@@ -61,7 +61,7 @@ export const paramDef = {
 		forExistingUsers: { type: 'boolean', default: false },
 		silence: { type: 'boolean', default: false },
 		needConfirmationToRead: { type: 'boolean', default: false },
-		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'nonSensitiveOnly', 'none'], default: null },
+		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'none'], default: null },
 		userId: { type: 'string', format: 'misskey:id', nullable: true, default: null },
 	},
 	required: ['title', 'text', 'imageUrl'],

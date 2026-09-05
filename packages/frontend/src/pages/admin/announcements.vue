@@ -79,9 +79,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkSelect
 							v-model="announcement.reactionAcceptance"
 							:items="[
-								{ label: i18n.ts.all, value: null },
-								{ label: i18n.ts.nonSensitiveOnly, value: 'nonSensitiveOnly' },
-								{ label: i18n.ts.likeOnly, value: 'likeOnly' },
+							{ label: i18n.ts.all, value: null },
+							{ label: i18n.ts.likeOnly, value: 'likeOnly' },
 								{ label: i18n.ts.none, value: 'none' },
 							]"
 						>

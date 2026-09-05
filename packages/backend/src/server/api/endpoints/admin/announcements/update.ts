@@ -38,7 +38,7 @@ export const paramDef = {
 		forExistingUsers: { type: 'boolean' },
 		silence: { type: 'boolean' },
 		needConfirmationToRead: { type: 'boolean' },
-		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'nonSensitiveOnly', 'none'] },
+		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'none'] },
 		isActive: { type: 'boolean' },
 	},
 	required: ['id'],

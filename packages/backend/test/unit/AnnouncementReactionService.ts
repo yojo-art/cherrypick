@@ -253,28 +253,6 @@ describe('AnnouncementReactionService', () => {
 			expect(rows[0].reaction).toBe('❤');
 		});
 
-		test('nonSensitiveOnly のお知らせでは非センシティブなカスタム絵文字はそのまま保存される', async () => {
-			const user = await createUser();
-			const announcement = await createAnnouncement({ reactionAcceptance: 'nonSensitiveOnly' });
-			customEmojiService.localEmojisCache.fetch.mockResolvedValue(new Map([['ok', mockEmoji('ok', [], false)]]));
-
-			await service.create(user, announcement, ':ok:');
-
-			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
-			expect(rows[0].reaction).toBe(':ok:');
-		});
-
-		test('nonSensitiveOnly のお知らせではセンシティブなカスタム絵文字は ❤ に強制される', async () => {
-			const user = await createUser();
-			const announcement = await createAnnouncement({ reactionAcceptance: 'nonSensitiveOnly' });
-			customEmojiService.localEmojisCache.fetch.mockResolvedValue(new Map([['secret', mockEmoji('secret', [], true)]]));
-
-			await service.create(user, announcement, ':secret:');
-
-			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
-			expect(rows[0].reaction).toBe('❤');
-		});
-
 		test('none のお知らせではリアクションが拒否される', async () => {
 			const user = await createUser();
 			const announcement = await createAnnouncement({ reactionAcceptance: 'none' });

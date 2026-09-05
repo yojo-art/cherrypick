@@ -63,7 +63,7 @@ export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as 
 
 export const noteReactionAcceptances = ['likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote', null] as const;
 
-export const announcementReactionAcceptances = ['likeOnly', 'nonSensitiveOnly', 'none', null] as const;
+export const announcementReactionAcceptances = ['likeOnly', 'none', null] as const;
 
 export const mutedNoteReasons = ['word', 'manual', 'spam', 'other'] as const;
 
