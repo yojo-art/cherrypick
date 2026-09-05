@@ -41,10 +41,19 @@ export class AnnouncementReactionService {
 	/**
 	 * リアクション文字列を検証して正規化する。
 	 * カスタム絵文字はローカルに存在し、かつ使用権限があるものだけを受け付ける。
+	 * お知らせの reactionAcceptance 設定に応じて、リアクションを強制的に ❤ に変換する。
 	 */
 	@bindThis
-	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined): Promise<string> {
+	private async normalizeReaction(user: { id: MiUser['id']; host?: MiUser['host'] }, reaction: string | null | undefined, reactionAcceptance: 'likeOnly' | 'none' | null): Promise<string> {
+		if (reactionAcceptance === 'none') {
+			throw new IdentifiableError(AnnouncementReactionErrorIds.reactionsNotAllowed, 'Reactions are not allowed for this announcement.');
+		}
+
 		if (reaction == null) return FALLBACK;
+
+		if (reactionAcceptance === 'likeOnly') {
+			return FALLBACK;
+		}
 
 		const custom = reaction.match(isCustomEmojiRegexp);
 		if (custom == null) {
@@ -83,7 +92,7 @@ export class AnnouncementReactionService {
 
 	@bindThis
 	public async create(user: { id: MiUser['id']; host: MiUser['host'] }, announcement: MiAnnouncement, _reaction?: string | null): Promise<void> {
-		const reaction = await this.normalizeReaction(user, _reaction);
+		const reaction = await this.normalizeReaction(user, _reaction, announcement.reactionAcceptance);
 
 		const reactionLimit = (await this.roleService.getUserPolicies(user.id)).reactionLimit;
 		if (reactionLimit === 0) {
@@ -219,5 +228,6 @@ export class AnnouncementReactionService {
 export const AnnouncementReactionErrorIds = {
 	alreadyReacted: '0b0d5c9f-0c07-4f0e-8a3d-6f6a4a2b0a4f',
 	notReacted: '9f2b4d1e-3c8a-4b6f-9d0e-7a1c5b8e2f30',
+	reactionsNotAllowed: '5dc6d2af-e34c-4cdf-9303-1875fa390d02',
 	tooManyReactions: '3f8a1d2c-5b4e-4c7f-9a6d-8e2b1c0d9f4e',
 } as const;

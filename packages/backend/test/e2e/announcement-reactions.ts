@@ -22,11 +22,13 @@ describe('Announcement reactions', () => {
 		title: string;
 		text?: string;
 		userId?: string;
+		reactionAcceptance?: 'likeOnly' | 'none' | null;
 	}): Promise<{ id: string }> {
 		const res = await api('admin/announcements/create', {
 			title: params.title,
 			text: params.text ?? 'x',
 			imageUrl: null,
+			reactionAcceptance: params.reactionAcceptance ?? null,
 			...(params.userId != null ? { userId: params.userId } : {}),
 		}, alice);
 		assert.strictEqual(res.status, 200);
@@ -333,6 +335,85 @@ describe('Announcement reactions', () => {
 		}, bob);
 		assert.strictEqual(emptyPage.status, 200);
 		assert.strictEqual(emptyPage.body.length, 0);
+	});
+
+	test('likeOnly のお知らせでは任意のリアクションが ❤ に強制される', async () => {
+		const ann = await createAnnouncement({ title: 'likeOnly', reactionAcceptance: 'likeOnly' });
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '👍',
+		}, bob)).status, 204);
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, { '❤': 1 });
+		assert.deepStrictEqual(item.myReactions, ['❤']);
+	});
+
+	test('none のお知らせではリアクションが拒否される', async () => {
+		const ann = await createAnnouncement({ title: 'none', reactionAcceptance: 'none' });
+
+		await failedApiCall({
+			endpoint: 'announcements/reactions/create',
+			parameters: { announcementId: ann.id, reaction: 'like' },
+			user: bob,
+		}, { status: 400, code: 'REACTIONS_NOT_ALLOWED', id: '5dc6d2af-e34c-4cdf-9303-1875fa390d02' });
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, {});
+		assert.deepStrictEqual(item.myReactions, []);
+	});
+
+	test('後から none に変更したお知らせでは既存リアクションが API 上は空になる', async () => {
+		const ann = await createAnnouncement({ title: 'toNone' });
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '\u{1F44D}',
+		}, bob)).status, 204);
+
+		assert.strictEqual((await api('admin/announcements/update', {
+			id: ann.id,
+			reactionAcceptance: 'none',
+		}, alice)).status, 204);
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, {});
+		assert.deepStrictEqual(item.myReactions, []);
+	});
+
+	test('後から likeOnly に変更したお知らせでは既存リアクションはハートのみ表示される', async () => {
+		const ann = await createAnnouncement({ title: 'toLikeOnly' });
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '\u{1F44D}',
+		}, bob)).status, 204);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '\u2764',
+		}, bob)).status, 204);
+
+		assert.strictEqual((await api('admin/announcements/update', {
+			id: ann.id,
+			reactionAcceptance: 'likeOnly',
+		}, alice)).status, 204);
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, { '\u2764': 1 });
+		assert.deepStrictEqual(item.myReactions, ['\u2764']);
 	});
 
 	test('ロールポリシー reactionLimit でユーザーごとのリアクション数が制限される', async () => {

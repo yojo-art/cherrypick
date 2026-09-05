@@ -35,11 +35,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{{ i18n.ts.updatedAt }}: <MkTime :time="announcement.updatedAt" mode="detail"/>
 					</div>
 				</div>
-				<div :class="$style.reactions">
+				<div v-if="announcement.reactionAcceptance !== 'none'" :class="$style.reactions">
 					<MkAnnouncementReactions
 						:announcementId="announcement.id"
 						:reactions="announcement.reactions"
 						:myReactions="announcement.myReactions"
+						:reactionAcceptance="announcement.reactionAcceptance"
 						@update="onReactionsUpdate"
 					/>
 				</div>

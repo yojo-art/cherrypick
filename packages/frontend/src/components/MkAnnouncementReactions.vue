@@ -13,39 +13,52 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:moveClass="$style.transition_x_move"
 	tag="div" :class="$style.root"
 >
-	<MkAnnouncementReaction
-		v-for="[reaction, count] in _reactions"
-		:key="reaction"
-		:announcementId="announcementId"
-		:reaction="reaction"
-		:count="count"
-		:isInitial="initialReactions.has(reaction)"
-		:myReactions="myReactions"
-		@announcementReactionToggled="onAnnouncementReactionToggled"
-		@showUsers="showReactedUsers"
-	/>
-	<button
-		v-if="canAddReaction"
-		key="add-reaction"
-		ref="pickerButtonEl"
-		v-tooltip="i18n.ts.reaction"
-		class="_button"
-		:class="[$style.add, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
-		:aria-label="i18n.ts.reaction"
-		@click="pick"
-	>
-		<i class="ti ti-plus"></i>
-	</button>
-	<slot v-if="hasMoreReactions" name="more">
+	<template v-if="isLikeOnly">
+		<MkAnnouncementReaction
+			:announcementId="announcementId"
+			:reaction="likeOnlyReaction"
+			:count="likeOnlyCount"
+			:isInitial="initialReactions.has(likeOnlyReaction)"
+			:myReactions="myReactions"
+			@announcementReactionToggled="onAnnouncementReactionToggled"
+			@showUsers="showReactedUsers"
+		/>
+	</template>
+	<template v-else>
+		<MkAnnouncementReaction
+			v-for="[reaction, count] in _reactions"
+			:key="reaction"
+			:announcementId="announcementId"
+			:reaction="reaction"
+			:count="count"
+			:isInitial="initialReactions.has(reaction)"
+			:myReactions="myReactions"
+			@announcementReactionToggled="onAnnouncementReactionToggled"
+			@showUsers="showReactedUsers"
+		/>
 		<button
-			key="more"
+			v-if="canAddReaction"
+			key="add-reaction"
+			ref="pickerButtonEl"
+			v-tooltip="i18n.ts.reaction"
 			class="_button"
-			:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
-			@click="isExpanded = true"
+			:class="[$style.add, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
+			:aria-label="i18n.ts.reaction"
+			@click="pick"
 		>
-			{{ i18n.ts.more }}
+			<i class="ti ti-plus"></i>
 		</button>
-	</slot>
+		<slot v-if="hasMoreReactions" name="more">
+			<button
+				key="more"
+				class="_button"
+				:class="[$style.more, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
+				@click="isExpanded = true"
+			>
+				{{ i18n.ts.more }}
+			</button>
+		</slot>
+	</template>
 </component>
 </template>
 
@@ -69,6 +82,7 @@ const props = withDefaults(defineProps<{
 	reactions: Record<string, number>;
 	myReactions: string[];
 	maxNumber?: number;
+	reactionAcceptance?: Misskey.entities.Announcement['reactionAcceptance'];
 }>(), {
 	maxNumber: 20,
 });
@@ -83,10 +97,13 @@ const TOO_MANY_REACTIONS_ERROR_ID = 'd1a4b6c8-2e9f-4a3d-b7c5-6f0e8a9b2c1d';
 const pickerButtonEl = useTemplateRef('pickerButtonEl');
 
 const canToggle = computed(() => $i != null);
+const isLikeOnly = computed(() => props.reactionAcceptance === 'likeOnly');
+const likeOnlyReaction = '❤';
+const likeOnlyCount = computed(() => reactions.value[likeOnlyReaction] ?? 0);
 
 const reactionLimit = computed(() => $i?.policies.reactionLimit ?? 0);
 
-const canAddReaction = computed(() => canToggle.value && myReactions.value.length < reactionLimit.value);
+const canAddReaction = computed(() => !isLikeOnly.value && canToggle.value && myReactions.value.length < reactionLimit.value);
 
 const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
@@ -108,6 +125,10 @@ for (const r of props.myReactions) {
 }
 
 watch([() => props.reactions, () => props.maxNumber, isExpanded], ([newSource, maxNumber, expanded]) => {
+	if (isLikeOnly.value) {
+		hasMoreReactions.value = false;
+		return;
+	}
 	const effectiveMax = expanded ? Infinity : maxNumber;
 	let newReactions: [string, number][] = [];
 	hasMoreReactions.value = !expanded && Object.keys(newSource).length > (maxNumber as number);
