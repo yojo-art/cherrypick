@@ -153,6 +153,7 @@ const props = withDefaults(defineProps<{
 	asWindow?: boolean;
 	asReactionPicker?: boolean; // 今は使われてないが将来的に使いそう
 	targetNote?: Misskey.entities.Note | null;
+	reactionAcceptance?: Misskey.entities.Note['reactionAcceptance'] | Misskey.entities.Announcement['reactionAcceptance'] | null;
 }>(), {
 	showPinned: true,
 });
@@ -376,7 +377,10 @@ watch(q, () => {
 });
 
 function canReact(emoji: Misskey.entities.EmojiSimple | UnicodeEmojiDef | string): boolean {
-	return !props.targetNote || checkReactionPermissions($i!, props.targetNote, emoji);
+	if (props.targetNote) return checkReactionPermissions($i!, props.targetNote, emoji);
+	// お知らせ等、Noteを渡さないが受け入れ設定で絞る場合 (未指定の場合は従来通り無制限)
+	if (props.reactionAcceptance !== undefined) return checkReactionPermissions($i!, { reactionAcceptance: props.reactionAcceptance }, emoji);
+	return true;
 }
 
 function filterCategory(emoji: Misskey.entities.EmojiSimple, category: string): boolean {

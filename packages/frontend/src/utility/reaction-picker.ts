@@ -29,9 +29,11 @@ class ReactionPicker {
 		targetNote: Misskey.entities.Note | null,
 		onChosen?: (reaction: string) => void,
 		onClosed?: () => void,
+		reactionAcceptance?: Misskey.entities.Note['reactionAcceptance'] | Misskey.entities.Announcement['reactionAcceptance'] | null,
 	) {
 		const anchorRef = shallowRef(anchorElement);
 		const targetNoteRef = ref(targetNote);
+		const reactionAcceptanceRef = ref(reactionAcceptance);
 
 		// defineAsyncComponentはiOS等でユーザーアクティベーションが失われてfocusが効かなくなるため使用不可
 		const { dispose } = popup(MkEmojiPickerDialog, {
@@ -39,6 +41,7 @@ class ReactionPicker {
 			pinnedEmojis: this.reactionsRef,
 			asReactionPicker: true,
 			targetNote: targetNoteRef,
+			reactionAcceptance: reactionAcceptanceRef,
 		}, {
 			done: (reaction: string) => {
 				if (onChosen) onChosen(reaction);
