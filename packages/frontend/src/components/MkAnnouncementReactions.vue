@@ -282,7 +282,7 @@ function pick() {
 		} finally {
 			toggling.value = false;
 		}
-	}, undefined, props.reactionAcceptance);
+	});
 }
 </script>
 

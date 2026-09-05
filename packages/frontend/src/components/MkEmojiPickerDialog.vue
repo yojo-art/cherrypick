@@ -27,7 +27,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 		:pinnedEmojis="pinnedEmojis"
 		:asReactionPicker="asReactionPicker"
 		:targetNote="targetNote"
-		:reactionAcceptance="reactionAcceptance"
 		:asDrawer="type === 'drawer'"
 		:max-height="maxHeight"
 		@chosen="chosen"
@@ -50,7 +49,6 @@ const props = withDefaults(defineProps<{
 	pinnedEmojis?: string[],
 	asReactionPicker?: boolean;
 	targetNote?: Misskey.entities.Note | null;
-	reactionAcceptance?: Misskey.entities.Note['reactionAcceptance'] | Misskey.entities.Announcement['reactionAcceptance'] | null;
 	choseAndClose?: boolean;
 }>(), {
 	manualShowing: null,
