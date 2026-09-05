@@ -370,6 +370,52 @@ describe('Announcement reactions', () => {
 		assert.deepStrictEqual(item.myReactions, []);
 	});
 
+	test('後から none に変更したお知らせでは既存リアクションが API 上は空になる', async () => {
+		const ann = await createAnnouncement({ title: 'toNone' });
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '\u{1F44D}',
+		}, bob)).status, 204);
+
+		assert.strictEqual((await api('admin/announcements/update', {
+			id: ann.id,
+			reactionAcceptance: 'none',
+		}, alice)).status, 204);
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, {});
+		assert.deepStrictEqual(item.myReactions, []);
+	});
+
+	test('後から likeOnly に変更したお知らせでは既存リアクションはハートのみ表示される', async () => {
+		const ann = await createAnnouncement({ title: 'toLikeOnly' });
+
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '\u{1F44D}',
+		}, bob)).status, 204);
+		assert.strictEqual((await api('announcements/reactions/create', {
+			announcementId: ann.id,
+			reaction: '\u2764',
+		}, bob)).status, 204);
+
+		assert.strictEqual((await api('admin/announcements/update', {
+			id: ann.id,
+			reactionAcceptance: 'likeOnly',
+		}, alice)).status, 204);
+
+		const listRes = await api('announcements', {}, bob);
+		assert.strictEqual(listRes.status, 200);
+		const item = (listRes.body as misskey.entities.Announcement[]).find(a => a.id === ann.id);
+		assert.ok(item);
+		assert.deepStrictEqual(item.reactions, { '\u2764': 1 });
+		assert.deepStrictEqual(item.myReactions, ['\u2764']);
+	});
+
 	test('ロールポリシー reactionLimit でユーザーごとのリアクション数が制限される', async () => {
 		const dave = await signup({ username: 'dave' });
 		assert.strictEqual((await api('admin/roles/assign', { userId: dave.id, roleId: noRateLimitRoleId }, alice)).status, 204);
