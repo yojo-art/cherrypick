@@ -59,6 +59,7 @@ function truncateForLog(value: unknown): string {
 	const text = typeof value === 'string' ? value : JSON.stringify(value) ?? String(value);
 	return text.length > MAX_NAME_LENGTH ? text.slice(0, MAX_NAME_LENGTH) + '...' : text;
 }
+
 // TODO: 名前衝突時の動作を選べるようにする
 @Injectable()
 export class ImportCustomEmojisProcessorService {
