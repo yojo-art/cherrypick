@@ -151,23 +151,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			// バナー・アイコンをチャンネルアカウントが所有するファイルとして複製する。
 			// 元ファイルは削除しない。複製に失敗した時は元ファイルを使う従来動作のままとする。
 			const accountUpdates = {} as Partial<MiUser>;
+			banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, actor.id);
 			if (banner) {
-				const bannerCopy = await this.channelEntityService.reuploadFileAsChannelAccount(banner, actor.id);
-				if (bannerCopy) {
-					banner = bannerCopy;
-					accountUpdates.bannerId = bannerCopy.id;
-					accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl(bannerCopy);
-					accountUpdates.bannerBlurhash = bannerCopy.blurhash;
-					await this.channelsRepository.update(channel.id, { bannerId: bannerCopy.id });
-				}
+				accountUpdates.bannerId = banner.id;
+				accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+				accountUpdates.bannerBlurhash = banner.blurhash;
+				await this.channelsRepository.update(channel.id, { bannerId: banner.id });
 			}
+			icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, actor.id);
 			if (icon) {
-				const iconCopy = await this.channelEntityService.reuploadFileAsChannelAccount(icon, actor.id);
-				if (iconCopy) {
-					accountUpdates.avatarId = iconCopy.id;
-					accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl(iconCopy, 'avatar');
-					accountUpdates.avatarBlurhash = iconCopy.blurhash;
-				}
+				accountUpdates.avatarId = icon.id;
+				accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
+				accountUpdates.avatarBlurhash = icon.blurhash;
 			}
 			if (Object.keys(accountUpdates).length > 0) {
 				await this.usersRepository.update(actor.id, accountUpdates);

@@ -239,7 +239,8 @@ export class ChannelEntityService {
 	 * 複製に失敗した時は null を返す。元ファイルは削除しない。
 	 */
 	@bindThis
-	public async reuploadFileAsChannelAccount(file: MiDriveFile, actorId: MiUser['id']): Promise<MiDriveFile | null> {
+	public async reuploadFileAsChannelAccount(file: MiDriveFile | null | undefined, actorId: MiUser['id']): Promise<MiDriveFile | null> {
+		if (file == null) return null;
 		if (file.userId === actorId) return file;
 
 		try {

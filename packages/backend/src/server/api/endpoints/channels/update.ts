@@ -179,38 +179,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 				}
+				if (account?.bannerId != null) {
+					await this.channelEntityService.deleteChannelAccountFile(account.bannerId, channel.actorId);
+				}
+				banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, channel.actorId);
 				if (banner) {
-					const prevBannerId = account?.bannerId ?? null;
-					// 元ファイルは削除せず、チャンネルアカウントが所有するファイルとして複製する
-					banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, channel.actorId) ?? banner;
-					if (prevBannerId != null && prevBannerId !== banner.id) {
-						await this.channelEntityService.deleteChannelAccountFile(prevBannerId, channel.actorId);
-					}
 					updates.bannerId = banner.id;
 					updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
 					updates.bannerBlurhash = banner.blurhash;
 				} else if (ps.bannerId === null) {
-					if (account?.bannerId != null) {
-						await this.channelEntityService.deleteChannelAccountFile(account.bannerId, channel.actorId);
-					}
 					updates.bannerId = null;
 					updates.bannerUrl = null;
 					updates.bannerBlurhash = null;
 				}
+				if (account?.avatarId != null) {
+					await this.channelEntityService.deleteChannelAccountFile(account.avatarId, channel.actorId);
+				}
+				icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, channel.actorId);
 				if (icon) {
-					const prevAvatarId = account?.avatarId ?? null;
-					// 元ファイルは削除せず、チャンネルアカウントが所有するファイルとして複製する
-					icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, channel.actorId) ?? icon;
-					if (prevAvatarId != null && prevAvatarId !== icon.id) {
-						await this.channelEntityService.deleteChannelAccountFile(prevAvatarId, channel.actorId);
-					}
 					updates.avatarId = icon.id;
 					updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
 					updates.avatarBlurhash = icon.blurhash;
 				} else if (ps.iconId === null) {
-					if (account?.avatarId != null) {
-						await this.channelEntityService.deleteChannelAccountFile(account.avatarId, channel.actorId);
-					}
 					updates.avatarId = null;
 					updates.avatarUrl = null;
 					updates.avatarBlurhash = null;
