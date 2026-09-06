@@ -204,7 +204,7 @@ import { reactionPicker } from '@/utility/reaction-picker.js';
 import { claimAchievement } from '@/utility/achievements.js';
 import { noteEvents, useNoteCapture } from '@/composables/use-note-capture.js';
 import { haptic } from '@/utility/haptic.js';
-import { misskeyApi, misskeyApiGet } from '@/utility/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { store } from '@/store.js';
 import { DI } from '@/di.js';
 import detectLanguage from '@/utility/detect-language.js';
@@ -308,10 +308,9 @@ if (!props.mock) {
 
 	if (props.note.reactionAcceptance === 'likeOnly') {
 		useTooltip(reactButton, async (showing) => {
-			const reactions = await misskeyApiGet('notes/reactions', {
+			const reactions = await misskeyApi('notes/reactions', {
 				noteId: props.note.id,
 				limit: 10,
-				_cacheKey_: $note.reactionCount,
 			});
 
 			const users = reactions.map(x => x.user);
