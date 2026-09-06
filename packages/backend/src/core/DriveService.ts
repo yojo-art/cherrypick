@@ -1247,7 +1247,7 @@ export class DriveService {
 		}
 
 		if (!copyDriveFile) {
-			throw new Error('Emoji upload succeeded but drive file is undefined. This should never happen.');
+			throw new Error('File upload succeeded but drive file is undefined. This should never happen.');
 		}
 
 		return copyDriveFile;
