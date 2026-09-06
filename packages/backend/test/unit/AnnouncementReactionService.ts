@@ -81,10 +81,11 @@ describe('AnnouncementReactionService', () => {
 		}).then(x => announcementsRepository.findOneByOrFail(x.identifiers[0]));
 	}
 
-	function mockEmoji(name: string, roleIdsThatCanBeUsedThisEmojiAsReaction: string[] = []): MiEmoji {
+	function mockEmoji(name: string, roleIdsThatCanBeUsedThisEmojiAsReaction: string[] = [], isSensitive = false): MiEmoji {
 		return {
 			name,
 			roleIdsThatCanBeUsedThisEmojiAsReaction,
+			isSensitive,
 		} as MiEmoji;
 	}
 
@@ -226,6 +227,58 @@ describe('AnnouncementReactionService', () => {
 
 			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
 			expect(rows).toHaveLength(2);
+		});
+	});
+
+	describe('reactionAcceptance', () => {
+		test('likeOnly のお知らせでは任意のリアクションが ❤ に強制される（Unicode）', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement({ reactionAcceptance: 'likeOnly' });
+
+			await service.create(user, announcement, '👍');
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows).toHaveLength(1);
+			expect(rows[0].reaction).toBe('❤');
+		});
+
+		test('likeOnly のお知らせではカスタム絵文字も ❤ に強制される', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement({ reactionAcceptance: 'likeOnly' });
+			customEmojiService.localEmojisCache.fetch.mockResolvedValue(new Map([['ok', mockEmoji('ok')]]));
+
+			await service.create(user, announcement, ':ok:');
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows[0].reaction).toBe('❤');
+		});
+
+		test('none のお知らせではリアクションが拒否される', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement({ reactionAcceptance: 'none' });
+
+			let thrown: any;
+			try {
+				await service.create(user, announcement, '👍');
+			} catch (e) {
+				thrown = e;
+			}
+			expect(thrown).toBeDefined();
+			expect(thrown.id).toBe(AnnouncementReactionErrorIds.reactionsNotAllowed);
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows).toHaveLength(0);
+		});
+
+		test('null（デフォルト）のお知らせでは任意のリアクションがそのまま保存される', async () => {
+			const user = await createUser();
+			const announcement = await createAnnouncement({ reactionAcceptance: null });
+			customEmojiService.localEmojisCache.fetch.mockResolvedValue(new Map([['ok', mockEmoji('ok')]]));
+
+			await service.create(user, announcement, ':ok:');
+
+			const rows = await announcementReactionsRepository.findBy({ announcementId: announcement.id });
+			expect(rows[0].reaction).toBe(':ok:');
 		});
 	});
 

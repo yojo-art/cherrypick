@@ -57,6 +57,19 @@ export class AnnouncementEntityService {
 			? (hint?.myReactions ?? await this.announcementReactionService.getMyReactions([announcement.id], me.id))?.get(announcement.id) ?? []
 			: [];
 
+		// acceptance 変更前に付いた既存リアクションはDBに残るため、API 応答上は設定に応じて絞って返す
+		const acceptance = announcement.reactionAcceptance ?? null;
+		const filteredReactions = acceptance === 'none'
+			? {}
+			: acceptance === 'likeOnly'
+				? Object.fromEntries(Object.entries(reactions).filter(([r]) => r === '❤'))
+				: reactions;
+		const filteredMyReactions = acceptance === 'none'
+			? []
+			: acceptance === 'likeOnly'
+				? myReactions.filter((r) => r === '❤')
+				: myReactions;
+
 		return {
 			id: announcement.id,
 			createdAt: this.idService.parse(announcement.id).date.toISOString(),
@@ -70,8 +83,9 @@ export class AnnouncementEntityService {
 			needConfirmationToRead: announcement.needConfirmationToRead,
 			silence: announcement.silence,
 			isRead: announcement.isRead !== null ? announcement.isRead : undefined,
-			reactions,
-			myReactions,
+			reactionAcceptance: acceptance,
+			reactions: filteredReactions,
+			myReactions: filteredMyReactions,
 		};
 	}
 

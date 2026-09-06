@@ -48,6 +48,7 @@ export const Default = {
 			needConfirmationToRead: false,
 			silence: false,
 			forYou: true,
+			reactionAcceptance: null,
 			reactions: {},
 			myReactions: [],
 		},

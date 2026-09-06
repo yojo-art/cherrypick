@@ -39,6 +39,12 @@ export const meta = {
 			id: '18aca5e1-b265-47b2-b40a-6cc0958fdeab',
 		},
 
+		reactionsNotAllowed: {
+			message: 'Reactions are not allowed for this announcement.',
+			code: 'REACTIONS_NOT_ALLOWED',
+			id: '5dc6d2af-e34c-4cdf-9303-1875fa390d02',
+		},
+
 		tooManyReactions: {
 			message: 'You have reached the reaction limit for this announcement.',
 			code: 'TOO_MANY_REACTIONS',
@@ -76,6 +82,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			await this.announcementReactionService.create(me, announcement, ps.reaction).catch(err => {
 				if (err.id === AnnouncementReactionErrorIds.alreadyReacted) throw new ApiError(meta.errors.alreadyReacted);
+				if (err.id === AnnouncementReactionErrorIds.reactionsNotAllowed) throw new ApiError(meta.errors.reactionsNotAllowed);
 				if (err.id === AnnouncementReactionErrorIds.tooManyReactions) throw new ApiError(meta.errors.tooManyReactions);
 				throw err;
 			});

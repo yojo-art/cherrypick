@@ -4,6 +4,7 @@
  */
 
 import { Entity, Index, Column, PrimaryColumn, ManyToOne, JoinColumn } from 'typeorm';
+import { announcementReactionAcceptances } from '@/types.js';
 import { id } from './util/id.js';
 import { MiUser } from './User.js';
 
@@ -71,6 +72,11 @@ export class MiAnnouncement {
 		default: false,
 	})
 	public silence: boolean;
+
+	@Column('varchar', {
+		length: 64, nullable: true,
+	})
+	public reactionAcceptance: typeof announcementReactionAcceptances[number];
 
 	@Index()
 	@Column({

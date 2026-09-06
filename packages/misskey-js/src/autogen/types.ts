@@ -4932,6 +4932,8 @@ export type components = {
             silence: boolean;
             forYou: boolean;
             isRead?: boolean;
+            /** @enum {string|null} */
+            reactionAcceptance: 'likeOnly' | 'none' | null;
             reactions: {
                 [key: string]: number;
             };
@@ -7693,6 +7695,11 @@ export interface operations {
                     /** @default false */
                     needConfirmationToRead?: boolean;
                     /**
+                     * @default null
+                     * @enum {string|null}
+                     */
+                    reactionAcceptance?: null | 'likeOnly' | 'none';
+                    /**
                      * Format: misskey:id
                      * @default null
                      */
@@ -7882,6 +7889,8 @@ export interface operations {
                         forExistingUsers: boolean;
                         silence: boolean;
                         needConfirmationToRead: boolean;
+                        /** @enum {string|null} */
+                        reactionAcceptance: null | 'likeOnly' | 'none';
                         userId: string | null;
                         imageUrl: string | null;
                         reads: number;
@@ -7951,6 +7960,8 @@ export interface operations {
                     forExistingUsers?: boolean;
                     silence?: boolean;
                     needConfirmationToRead?: boolean;
+                    /** @enum {string|null} */
+                    reactionAcceptance?: null | 'likeOnly' | 'none';
                     isActive?: boolean;
                 };
             };

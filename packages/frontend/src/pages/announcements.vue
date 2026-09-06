@@ -33,11 +33,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</MkA>
 					</div>
-					<div :class="$style.reactions">
+					<div v-if="announcement.reactionAcceptance !== 'none'" :class="$style.reactions">
 						<MkAnnouncementReactions
 							:announcementId="announcement.id"
 							:reactions="announcement.reactions"
 							:myReactions="announcement.myReactions"
+							:reactionAcceptance="announcement.reactionAcceptance"
 							@update="(reactions, myReactions) => onReactionsUpdate(announcement, reactions, myReactions)"
 						/>
 					</div>
