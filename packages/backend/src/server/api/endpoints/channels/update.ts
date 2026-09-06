@@ -152,8 +152,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				icon = null;
 			}
 
+			const account = channel.actorId ? await this.usersRepository.findOneBy({ id: channel.actorId }) : null;
 			if (channel.actorId) {
-				const account = await this.usersRepository.findOneBy({ id: channel.actorId });
 				if (ps.description !== undefined) {
 					await this.userProfilesRepository.update({ userId: channel.actorId }, {
 						description: ps.description,
@@ -179,9 +179,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 				}
-				if (account?.bannerId != null) {
-					await this.channelEntityService.deleteChannelAccountFile(account.bannerId, channel.actorId);
-				}
 				banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, channel.actorId);
 				if (banner) {
 					updates.bannerId = banner.id;
@@ -191,9 +188,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					updates.bannerId = null;
 					updates.bannerUrl = null;
 					updates.bannerBlurhash = null;
-				}
-				if (account?.avatarId != null) {
-					await this.channelEntityService.deleteChannelAccountFile(account.avatarId, channel.actorId);
 				}
 				icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, channel.actorId);
 				if (icon) {
@@ -251,6 +245,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			});
 
+			if (account) {
+				//このaccountは変更前の状態
+				if (account.bannerId != null) {
+					await this.channelEntityService.deleteChannelAccountFile(account.bannerId, account.id);
+				}
+				if (account.avatarId != null) {
+					await this.channelEntityService.deleteChannelAccountFile(account.avatarId, account.id);
+				}
+			}
 			return await this.channelEntityService.pack(channel.id, me);
 		});
 	}
