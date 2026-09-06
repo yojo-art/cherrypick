@@ -6,14 +6,15 @@
 import { Inject, Injectable } from '@nestjs/common';
 import ms from 'ms';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { ChannelsRepository, DriveFilesRepository } from '@/models/_.js';
-import type { MiChannel } from '@/models/Channel.js';
+import type { ChannelsRepository, DriveFilesRepository, UsersRepository, MiChannel, MiDriveFile, MiUser } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { SignupService } from '@/core/SignupService.js';
 import { RoleService } from '@/core/RoleService.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
 import { ApiError } from '../../error.js';
 
@@ -84,11 +85,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
+
 		private channelEntityService: ChannelEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private userEntityService: UserEntityService,
 		private signupService: SignupService,
 		private roleService: RoleService,
+		private globalEventService: GlobalEventService,
+		private driveService: DriveService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			let banner = null;
@@ -123,9 +129,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.invalidUsername);
 			}
 			let _channel: MiChannel;
+			let actor: MiUser;
 			//チャンネルアカウントを作成
 			try {
-				const { channel } = await this.signupService.signupChannel({
+				const { channel, account } = await this.signupService.signupChannel({
 					bannerId: banner?.id,
 					avatarId: icon?.id,
 					avatarUrl: icon ? this.driveFileEntityService.getPublicUrl(icon, 'avatar') : undefined,
@@ -137,10 +144,39 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					ignorePreservedUsernames: await this.roleService.isModerator(me),
 				});
 				_channel = channel;
+				actor = account;
 			} catch (err) {
 				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
 			}
 			const channel = _channel;
+
+			// バナー・アイコンをチャンネルアカウントが所有するファイルとして複製する。
+			// 元ファイルは削除しない。複製に失敗した時は元ファイルを使う従来動作のままとする。
+			if (banner) {
+				const bannerCopy = await this.copyFileToChannelAccount(banner, actor);
+				if (bannerCopy) {
+					banner = bannerCopy;
+					await this.usersRepository.update(actor.id, {
+						bannerId: bannerCopy.id,
+						bannerUrl: this.driveFileEntityService.getPublicUrl(bannerCopy),
+						bannerBlurhash: bannerCopy.blurhash,
+					});
+					await this.channelsRepository.update(channel.id, { bannerId: bannerCopy.id });
+					this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
+				}
+			}
+			if (icon) {
+				const iconCopy = await this.copyFileToChannelAccount(icon, actor);
+				if (iconCopy) {
+					await this.usersRepository.update(actor.id, {
+						avatarId: iconCopy.id,
+						avatarUrl: this.driveFileEntityService.getPublicUrl(iconCopy, 'avatar'),
+						avatarBlurhash: iconCopy.blurhash,
+					});
+					this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
+				}
+			}
+
 			if (ps.name !== undefined || ps.color !== undefined || typeof ps.isSensitive === 'boolean' || typeof ps.allowRenoteToExternal === 'boolean') {
 				await this.channelsRepository.update(channel.id, {
 					...(ps.name !== undefined ? { name: ps.name } : {}),
@@ -151,13 +187,28 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 			return await this.channelEntityService.pack({
 				...channel,
+				...(banner ? { bannerId: banner.id } : {}),
 				...(ps.name !== undefined ? { name: ps.name } : {}),
 				...(ps.description !== undefined ? { description: ps.description } : {}),
 				...(ps.color !== undefined ? { color: ps.color } : {}),
-				...(banner ? { bannerId: banner.id } : {}),
 				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
 				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			}, me);
 		});
+	}
+
+	/***
+	 * ファイルをチャンネルアカウント所有のファイルとして複製する。
+	 * 複製に失敗した時は null を返し、チャンネルアカウント側の設定をそのままにする。
+	 */
+	private async copyFileToChannelAccount(file: MiDriveFile, actor: MiUser): Promise<MiDriveFile | null> {
+		try {
+			return await this.driveService.reuploadFile({
+				originalUrl: file.url,
+				user: { id: actor.id, host: null },
+			});
+		} catch {
+			return null;
+		}
 	}
 }

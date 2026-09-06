@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import * as mfm from 'mfc-js';
 import { In } from 'typeorm';
 import { Endpoint } from '@/server/api/endpoint-base.js';
-import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository, MiUser } from '@/models/_.js';
+import type { DriveFilesRepository, ChannelsRepository, UsersRepository, NotesRepository, UserNotePiningsRepository, UserProfilesRepository, MiDriveFile, MiUser } from '@/models/_.js';
 import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { RoleService } from '@/core/RoleService.js';
@@ -18,6 +18,7 @@ import { normalizeForSearch } from '@/misc/normalize-for-search.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { HashtagService } from '@/core/HashtagService.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -104,6 +105,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private globalEventService: GlobalEventService,
 		private hashtagService: HashtagService,
 		private driveFileEntityService: DriveFileEntityService,
+		private driveService: DriveService,
 
 		private roleService: RoleService,
 	) {
@@ -130,7 +132,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.bannerId != null) {
 				banner = await this.driveFilesRepository.findOneBy({ id: ps.bannerId });
 
-				if (banner == null || banner.userId !== me.id) throw new ApiError(meta.errors.noSuchFile);
+				// チャンネルアカウント所有のファイル（既に複製されているもの）も受け付ける
+				if (banner == null || (banner.userId !== me.id && banner.userId !== channel.actorId)) throw new ApiError(meta.errors.noSuchFile);
 
 				if (!banner.type.startsWith('image/')) {
 					banner = undefined;//画像以外が指定された時は変更なし
@@ -144,7 +147,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.iconId != null) {
 				icon = await this.driveFilesRepository.findOneBy({ id: ps.iconId });
 
-				if (icon == null || icon.userId !== me.id) throw new ApiError(meta.errors.noSuchFile);
+				// チャンネルアカウント所有のファイル（既に複製されているもの）も受け付ける
+				if (icon == null || (icon.userId !== me.id && icon.userId !== channel.actorId)) throw new ApiError(meta.errors.noSuchFile);
 				if (!icon.type.startsWith('image/')) throw new ApiError(meta.errors.iconNotAnImage);
 			} else if (ps.iconId === null) {
 				icon = null;
@@ -177,6 +181,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 				}
 				if (banner) {
+					// 元ファイルは削除せず、チャンネルアカウントが所有するファイルとして複製する
+					banner = await this.copyFileToChannelAccount(banner, channel.actorId);
 					updates.bannerId = banner.id;
 					updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
 					updates.bannerBlurhash = banner.blurhash;
@@ -186,6 +192,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					updates.bannerBlurhash = null;
 				}
 				if (icon) {
+					// 元ファイルは削除せず、チャンネルアカウントが所有するファイルとして複製する
+					icon = await this.copyFileToChannelAccount(icon, channel.actorId);
 					updates.avatarId = icon.id;
 					updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
 					updates.avatarBlurhash = icon.blurhash;
@@ -242,5 +250,23 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			return await this.channelEntityService.pack(channel.id, me);
 		});
+	}
+
+	/***
+	 * ファイルをチャンネルアカウント所有のファイルとして複製する。
+	 * 既にチャンネルアカウントが所有するファイルの場合はそのまま返し、
+	 * 複製に失敗した時は従来動作（元ファイルを使用）にフォールバックする。
+	 */
+	private async copyFileToChannelAccount(file: MiDriveFile, actorId: MiUser['id']): Promise<MiDriveFile> {
+		if (file.userId === actorId) return file;
+
+		try {
+			return await this.driveService.reuploadFile({
+				originalUrl: file.url,
+				user: { id: actorId, host: null },
+			});
+		} catch {
+			return file;
+		}
 	}
 }
