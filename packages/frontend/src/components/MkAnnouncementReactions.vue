@@ -15,6 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 >
 	<template v-if="isLikeOnly">
 		<MkAnnouncementReaction
+			v-if="likeOnlyCount > 0"
 			:announcementId="announcementId"
 			:reaction="likeOnlyReaction"
 			:count="likeOnlyCount"
@@ -23,6 +24,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 			@announcementReactionToggled="onAnnouncementReactionToggled"
 			@showUsers="showReactedUsers"
 		/>
+		<button
+			v-else-if="canAddLike"
+			key="add-like"
+			v-tooltip="i18n.ts.like"
+			class="_button"
+			:class="[$style.add, { [$style.small]: prefer.s.reactionsDisplaySize === 'small', [$style.large]: prefer.s.reactionsDisplaySize === 'large' }]"
+			:aria-label="i18n.ts.like"
+			@click="like"
+		>
+			<i class="ti ti-heart"></i>
+		</button>
 	</template>
 	<template v-else>
 		<MkAnnouncementReaction
@@ -104,6 +116,7 @@ const likeOnlyCount = computed(() => reactions.value[likeOnlyReaction] ?? 0);
 const reactionLimit = computed(() => $i?.policies.reactionLimit ?? 0);
 
 const canAddReaction = computed(() => !isLikeOnly.value && canToggle.value && myReactions.value.length < reactionLimit.value);
+const canAddLike = computed(() => isLikeOnly.value && canToggle.value && !myReactions.value.includes(likeOnlyReaction) && myReactions.value.length < reactionLimit.value);
 
 const reactions = ref<Record<string, number>>({ ...props.reactions });
 const myReactions = ref<string[]>([...props.myReactions]);
@@ -250,6 +263,35 @@ function normalizePickedReaction(reaction: string): string {
 	const customMatch = reaction.match(/^:([\w+-]+):$/);
 	if (customMatch) return `:${customMatch[1]}@.:`;
 	return reaction.match('\u200d') ? reaction : reaction.replace(/\ufe0f/g, '');
+}
+
+async function like() {
+	if (!canAddLike.value || toggling.value) return;
+	if (myReactions.value.includes(likeOnlyReaction)) return;
+
+	const previousReactions = { ...reactions.value };
+	const previousMyReactions = [...myReactions.value];
+
+	toggling.value = true;
+	applyLocally(likeOnlyReaction, 1);
+
+	try {
+		await misskeyApi('announcements/reactions/create', {
+			announcementId: props.announcementId,
+			reaction: likeOnlyReaction,
+		});
+		sound.playMisskeySfx('reaction');
+	} catch (err) {
+		updateReactions(previousReactions, previousMyReactions);
+		os.alert({
+			type: 'error',
+			text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
+				? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit.value })
+				: i18n.ts.somethingHappened,
+		});
+	} finally {
+		toggling.value = false;
+	}
 }
 
 function pick() {
