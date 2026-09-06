@@ -259,10 +259,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (account) {
 				//このaccountは変更前の状態
-				if (account.bannerId != null) {
+				if (updates.bannerId !== undefined && account.bannerId != null) {
 					await this.channelEntityService.deleteChannelAccountFile(account.bannerId, account.id);
 				}
-				if (account.avatarId != null) {
+				if (updates.avatarId !== undefined && account.avatarId != null) {
 					await this.channelEntityService.deleteChannelAccountFile(account.avatarId, account.id);
 				}
 			}
