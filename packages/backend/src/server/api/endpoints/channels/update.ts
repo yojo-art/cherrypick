@@ -131,8 +131,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				banner = await this.driveFilesRepository.findOneBy({ id: ps.bannerId });
 
 				// チャンネルアカウント所有のファイル（既に複製されているもの）も受け付ける
-				if (banner == null || (banner.userId !== me.id && !(channel.actorId != null && banner.userId === channel.actorId))) throw new ApiError(meta.errors.noSuchFile);
-
+				if (banner?.userId === me.id) {
+					//自身が所有するファイル
+				} else if (channel.actorId != null && banner?.userId === channel.actorId) {
+					//チャンネルアカウントが所有するファイル
+				} else {
+					throw new ApiError(meta.errors.noSuchFile);
+				}
 				if (!banner.type.startsWith('image/')) {
 					banner = undefined;//画像以外が指定された時は変更なし
 				}
@@ -146,7 +151,13 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				icon = await this.driveFilesRepository.findOneBy({ id: ps.iconId });
 
 				// チャンネルアカウント所有のファイル（既に複製されているもの）も受け付ける
-				if (icon == null || (icon.userId !== me.id && !(channel.actorId != null && icon.userId === channel.actorId))) throw new ApiError(meta.errors.noSuchFile);
+				if (icon?.userId === me.id) {
+					//自身が所有するファイル
+				} else if (channel.actorId != null && icon?.userId === channel.actorId) {
+					//チャンネルアカウントが所有するファイル
+				} else {
+					throw new ApiError(meta.errors.noSuchFile);
+				}
 				if (!icon.type.startsWith('image/')) throw new ApiError(meta.errors.iconNotAnImage);
 			} else if (ps.iconId === null) {
 				icon = null;
@@ -244,6 +255,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
 				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
 			});
+			//FIXME: ユーザーファイル複製->DB設定失敗の時に複製したファイルが残る
 
 			if (account) {
 				//このaccountは変更前の状態
