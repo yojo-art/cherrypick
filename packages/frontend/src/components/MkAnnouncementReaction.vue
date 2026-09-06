@@ -114,32 +114,48 @@ async function toggleAnnouncementReaction(_ev?: MouseEvent) {
 
 	toggling.value = true;
 
-	const delta = isReactedNow ? -1 : 1;
-	emit('announcementReactionToggled', props.reaction, delta);
-
 	try {
 		if (isReactedNow) {
+			// 削除は悲観的更新: API 成功後にのみ表示を更新する
+			// （レートリミット時は表示を残す）
 			await misskeyApi('announcements/reactions/delete', {
 				announcementId: props.announcementId,
 				reaction: props.reaction,
 			});
+			emit('announcementReactionToggled', props.reaction, -1);
 		} else {
-			await misskeyApi('announcements/reactions/create', {
-				announcementId: props.announcementId,
-				reaction: props.reaction,
-			});
-			sound.playMisskeySfx('reaction');
-			// effect は watch(count)→anime() に一任 (二重表示防止)
+			const delta = 1;
+			emit('announcementReactionToggled', props.reaction, delta);
+
+			try {
+				await misskeyApi('announcements/reactions/create', {
+					announcementId: props.announcementId,
+					reaction: props.reaction,
+				});
+				sound.playMisskeySfx('reaction');
+				// effect は watch(count)→anime() に一任 (二重表示防止)
+			} catch (err) {
+				emit('announcementReactionToggled', props.reaction, -delta);
+				throw err;
+			}
 		}
 	} catch (err) {
-		emit('announcementReactionToggled', props.reaction, -delta);
 		const reactionLimit = $i?.policies.reactionLimit ?? 0;
-		os.alert({
-			type: 'error',
-			text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
-				? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit })
-				: i18n.ts.somethingHappened,
-		});
+		const apiError = err as { code?: string; id?: string };
+		if (apiError.code === 'RATE_LIMIT_EXCEEDED') {
+			os.alert({
+				type: 'error',
+				title: i18n.ts.cannotPerformTemporary,
+				text: i18n.ts.cannotPerformTemporaryDescription,
+			});
+		} else {
+			os.alert({
+				type: 'error',
+				text: apiError.id === TOO_MANY_REACTIONS_ERROR_ID
+					? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit })
+					: i18n.ts.somethingHappened,
+			});
+		}
 	} finally {
 		toggling.value = false;
 	}
@@ -168,18 +184,28 @@ async function chooseAlternative() {
 			text: i18n.ts.cancelReactionConfirm,
 		});
 		if (confirm.canceled) return;
-		emit('announcementReactionToggled', reaction, -1);
+		// 削除は悲観的更新: API 成功後にのみ表示を更新する
+		// （レートリミット時は表示を残す）
 		try {
 			await misskeyApi('announcements/reactions/delete', {
 				announcementId: props.announcementId,
 				reaction,
 			});
+			emit('announcementReactionToggled', reaction, -1);
 		} catch (err) {
-			emit('announcementReactionToggled', reaction, 1);
-			os.alert({
-				type: 'error',
-				text: i18n.ts.somethingHappened,
-			});
+			const apiError = err as { code?: string };
+			if (apiError.code === 'RATE_LIMIT_EXCEEDED') {
+				os.alert({
+					type: 'error',
+					title: i18n.ts.cannotPerformTemporary,
+					text: i18n.ts.cannotPerformTemporaryDescription,
+				});
+			} else {
+				os.alert({
+					type: 'error',
+					text: i18n.ts.somethingHappened,
+				});
+			}
 		}
 	} else {
 		emit('announcementReactionToggled', reaction, 1);
@@ -193,12 +219,21 @@ async function chooseAlternative() {
 		} catch (err) {
 			emit('announcementReactionToggled', reaction, -1);
 			const reactionLimit = $i?.policies.reactionLimit ?? 0;
-			os.alert({
-				type: 'error',
-				text: (err as { id?: string }).id === TOO_MANY_REACTIONS_ERROR_ID
-					? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit })
-					: i18n.ts.somethingHappened,
-			});
+			const apiError = err as { code?: string; id?: string };
+			if (apiError.code === 'RATE_LIMIT_EXCEEDED') {
+				os.alert({
+					type: 'error',
+					title: i18n.ts.cannotPerformTemporary,
+					text: i18n.ts.cannotPerformTemporaryDescription,
+				});
+			} else {
+				os.alert({
+					type: 'error',
+					text: apiError.id === TOO_MANY_REACTIONS_ERROR_ID
+						? i18n.tsx._announcement.reactionLimitExceeded({ n: reactionLimit })
+						: i18n.ts.somethingHappened,
+				});
+			}
 		}
 	}
 }
