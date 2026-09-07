@@ -45,6 +45,7 @@ import {
 } from '@/models/json-schema/emoji.js';
 import { packedFlashSchema } from '@/models/json-schema/flash.js';
 import { packedAnnouncementSchema } from '@/models/json-schema/announcement.js';
+import { packedAnnouncementReactionSchema } from '@/models/json-schema/announcement-reaction.js';
 import { packedSigninSchema } from '@/models/json-schema/signin.js';
 import {
 	packedRoleCondFormulaFollowersOrFollowingOrNotesSchema,
@@ -93,6 +94,7 @@ export const refs = {
 	AchievementName: packedAchievementNameSchema,
 	Ad: packedAdSchema,
 	Announcement: packedAnnouncementSchema,
+	AnnouncementReaction: packedAnnouncementReactionSchema,
 	App: packedAppSchema,
 	Note: packedNoteSchema,
 	NoteDraft: packedNoteDraftSchema,

@@ -11,6 +11,7 @@ Misskey backend のテスト構成、`.config/test.yml` の前提、e2e テス�
 - [`api()` ヘルパー](#api-ヘルパー)
 - [`signup()` / `post()` / `uploadFile()` 等](#signup--post--uploadfile-等)
 - [ローカル DB / Redis](#ローカル-db--redis)
+- [オブジェクトストレージ E2E](#オブジェクトストレージ-e2e)
 
 ## 前提: `.config/test.yml`
 
@@ -229,3 +230,28 @@ docker compose -f compose.local-db.yml up -d
 ```
 
 `compose.local-db.yml` は開発向け (標準ポート `5432` / `6379`) で、テスト用 DB (`test-misskey` / ポート `54312` / `56312`) とは別物。CI (`.github/workflows/test-backend.yml`) は docker compose ではなく GitHub Actions の `services:` で同じテスト用ポートの postgres / redis コンテナを立ててから走る。
+
+## オブジェクトストレージ E2E
+
+`[object-storage]` プレフィックスの付いた suite は S3 互換ストレージへの実接続を伴うため、通常の e2e とは追加の前提がある。
+
+### ゲートとスクリプト
+
+- テスト本体: [`packages/backend/test/e2e/object-storage-drive.ts`](../../../../../packages/backend/test/e2e/object-storage-drive.ts) は [`describeObjectStorageE2E`](../../../../../packages/backend/test/helpers/describe-object-storage-e2e.ts) でラップされ、環境変数 `OBJECT_STORAGE_E2E` が truthy でない場合は `describe.skip` で自動スキップされる。素の `pnpm --filter backend test:e2e` はストレージなしでも安全に通る。
+- 専用スクリプト `test:e2e:object-storage` / `test-and-coverage:e2e:object-storage` ([`packages/backend/package.json`](../../../../../packages/backend/package.json)) は内部で `OBJECT_STORAGE_E2E=true` をセット済み。ストレージが起動していない状態で実行すると `beforeAll` で失敗する。
+- エンドポイント等上書き: `OBJECT_STORAGE_ENDPOINT` (既定 `http://127.0.0.1:59312`) / `OBJECT_STORAGE_ACCESS_KEY` / `OBJECT_STORAGE_SECRET_KEY` (既定 `rustfsadmin`)。
+
+### 環境別起動方法
+
+| 環境 | 起動方法 | 接続先 |
+| --- | --- | --- |
+| ホスト Docker あり | `docker compose -f packages/backend/test/compose.yml up -d objectstoragetest` (`rustfs/rustfs:1.0.0-rc.3`、ホスト `59312` → コンテナ `9000`) | 既定 `http://127.0.0.1:59312` のまま |
+| devcontainer | `objectstorage` サービスが `internal_network` 上で自動起動。`app` には `OBJECT_STORAGE_ENDPOINT=http://objectstorage:9000` が注入済み ([`.devcontainer/compose.yml`](../../../../../.devcontainer/compose.yml)) で追加設定不要 | `http://objectstorage:9000` |
+| 非Docker (バイナリ) | rustfs 単体バイナリを GitHub Releases (CI/compose と同じ `1.0.0-rc.3` 推奨) から取得。`RUSTFS_ADDRESS` でリッスンアドレスを指定: <br> `RUSTFS_ACCESS_KEY=rustfsadmin RUSTFS_SECRET_KEY=rustfsadmin RUSTFS_ADDRESS=127.0.0.1:59312 rustfs /tmp/rustfs-data &` <br> `curl http://127.0.0.1:59312/health` で疎通確認 → 既定エンドポイントのまま `pnpm --filter backend test:e2e:object-storage` | `127.0.0.1:59312` |
+| 任意 S3 互換 (MinIO 等) | 別ポートで起動した場合、環境変数で上書き: <br> `OBJECT_STORAGE_ENDPOINT=http://127.0.0.1:9000 OBJECT_STORAGE_ACCESS_KEY=... OBJECT_STORAGE_SECRET_KEY=... pnpm --filter backend test:e2e:object-storage` | 指定値 |
+
+補足:
+
+- 非Docker でも DB / Redis (`54312` / `56312`) は依然として必要。Docker が使えるなら同じ `compose.yml` の `dbtest` / `redistest` で賄える。使えない場合はネイティブの postgres / redis を同ポートで用意するか、[`.github/misskey/test.yml`](../../../../../.github/misskey/test.yml) のポート設定に合わせて起動する。
+- 各テスト実行は `misskey-test-<uuid>` のランダムバケットを新規作成するため、永続ディレクトリ (`/tmp/rustfs-data` 等) に前回実行の残骸が溜まる。検証用なら `mktemp -d` で一時ディレクトリを使うか、定期的に削除する。
+- CI ([`.github/workflows/test-backend.yml`](../../../../../.github/workflows/test-backend.yml) の `object-storage-e2e` ジョブ) は `services.rustfs` (ポート `59312:9000`) で同一構成を再現している。

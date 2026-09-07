@@ -13,6 +13,7 @@ export type Achievement = components['schemas']['Achievement'];
 export type AchievementName = components['schemas']['AchievementName'];
 export type Ad = components['schemas']['Ad'];
 export type Announcement = components['schemas']['Announcement'];
+export type AnnouncementReaction = components['schemas']['AnnouncementReaction'];
 export type App = components['schemas']['App'];
 export type Note = components['schemas']['Note'];
 export type NoteDraft = components['schemas']['NoteDraft'];

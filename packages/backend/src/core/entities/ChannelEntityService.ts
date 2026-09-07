@@ -23,6 +23,7 @@ import type { MiUser } from '@/models/User.js';
 import type { MiChannel } from '@/models/Channel.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
+import { DriveService } from '@/core/DriveService.js';
 import { DriveFileEntityService } from './DriveFileEntityService.js';
 import { NoteEntityService } from './NoteEntityService.js';
 
@@ -48,6 +49,7 @@ export class ChannelEntityService {
 		private noteEntityService: NoteEntityService,
 		private driveFileEntityService: DriveFileEntityService,
 		private idService: IdService,
+		private driveService: DriveService,
 	) {
 	}
 
@@ -229,6 +231,42 @@ export class ChannelEntityService {
 			muting,
 			pinnedNotes,
 		})));
+	}
+
+	/***
+	 * ファイルをチャンネルアカウント所有のファイルとして複製する。
+	 * 既にチャンネルアカウントが所有するファイルの場合はそのまま返し、
+	 * 複製に失敗した時は null を返す。元ファイルは削除しない。
+	 */
+	@bindThis
+	public async reuploadFileAsChannelAccount(file: MiDriveFile | null | undefined, actorId: MiUser['id']): Promise<MiDriveFile | null> {
+		if (file == null) return null;
+		if (file.userId === actorId) return file;
+
+		try {
+			return await this.driveService.reuploadFile({
+				originalUrl: file.url,
+				user: { id: actorId, host: null },
+			});
+		} catch {
+			return null;
+		}
+	}
+
+	/***
+	 * チャンネルアカウントが所有するファイルを削除する。
+	 * チャンネルアカウントが所有しないファイル（ユーザーがアップロードした元ファイル等）は削除しない。
+	 */
+	@bindThis
+	public async deleteChannelAccountFile(fileId: MiDriveFile['id'], actorId: MiUser['id']): Promise<void> {
+		const file = await this.driveFilesRepository.findOneBy({ id: fileId });
+		if (file == null || file.userId !== actorId) return;
+
+		try {
+			await this.driveService.deleteFile(file);
+		} catch {
+			// 削除失敗は孤児が残るだけで参照整合性は保たれるので放置する
+		}
 	}
 }
 

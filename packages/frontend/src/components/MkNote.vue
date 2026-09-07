@@ -438,7 +438,7 @@ import { userPage } from '@/filters/user.js';
 import number from '@/filters/number.js';
 import * as os from '@/os.js';
 import * as sound from '@/utility/sound.js';
-import { misskeyApi, misskeyApiGet } from '@/utility/misskey-api.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { reactionPicker } from '@/utility/reaction-picker.js';
 import { extractUrlFromMfm } from '@/utility/extract-url-from-mfm.js';
 import { $i } from '@/i.js';
@@ -491,6 +491,7 @@ const inTimeline = inject<boolean>('inTimeline', false);
 const tl_withSensitive = inject<Ref<boolean>>('tl_withSensitive', ref(true));
 const inChannel = inject(DI.inChannel, null);
 const currentClip = inject<Ref<Misskey.entities.Clip> | null>('currentClip', null);
+const currentAntenna = inject<Ref<Misskey.entities.Antenna | null> | null>('currentAntenna', null);
 
 let note = deepClone(props.note);
 
@@ -710,10 +711,9 @@ if (!props.mock) {
 
 	if (appearNote.reactionAcceptance === 'likeOnly') {
 		useTooltip(reactButton, async (showing) => {
-			const reactions = await misskeyApiGet('notes/reactions', {
+			const reactions = await misskeyApi('notes/reactions', {
 				noteId: appearNote.id,
 				limit: 10,
-				_cacheKey_: $appearNote.reactionCount,
 			});
 
 			const users = reactions.map(x => x.user);
@@ -995,7 +995,7 @@ function onContextmenu(ev: PointerEvent): void {
 		ev.preventDefault();
 		react();
 	} else {
-		const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value });
+		const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value, currentAntenna: currentAntenna?.value ?? undefined });
 		os.contextMenu(menu, ev).then(focus).finally(cleanup);
 	}
 }
@@ -1007,7 +1007,7 @@ function showMenu(): void {
 
 	haptic();
 
-	const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value });
+	const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value, currentAntenna: currentAntenna?.value ?? undefined });
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 

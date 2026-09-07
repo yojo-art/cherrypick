@@ -15,6 +15,8 @@ import {
 } from './autogen/models.js';
 import {
 	AnnouncementCreated,
+	AnnouncementReacted,
+	AnnouncementUnreacted,
 	EmojiAdded, EmojiDeleted,
 	EmojiUpdated,
 	PageEvent,
@@ -72,6 +74,8 @@ export type Channels = {
 			readAntenna: (payload: Antenna) => void;
 			receiveFollowRequest: (payload: User) => void;
 			announcementCreated: (payload: AnnouncementCreated) => void;
+			announcementReacted: (payload: AnnouncementReacted) => void;
+			announcementUnreacted: (payload: AnnouncementUnreacted) => void;
 		};
 		receives: null;
 	};
@@ -365,4 +369,6 @@ export type BroadcastEvents = {
 	emojiUpdated: (payload: EmojiUpdated) => void;
 	emojiDeleted: (payload: EmojiDeleted) => void;
 	announcementCreated: (payload: AnnouncementCreated) => void;
+	announcementReacted: (payload: AnnouncementReacted) => void;
+	announcementUnreacted: (payload: AnnouncementUnreacted) => void;
 };

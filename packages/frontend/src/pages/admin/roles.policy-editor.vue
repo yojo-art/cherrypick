@@ -229,6 +229,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkInput v-model="valuesModel.maxFileSizeMb" type="number" :disabled="disabled">
 					<template #suffix>MB</template>
 					<template #caption>
+						<div>{{ i18n.tsx._role._options.maxFileSize_caption2({ max: `${Math.floor(instance.maxFileSize / (1024 * 1024))}MB` }) }}</div>
 						<div><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i> {{ i18n.ts._role._options.maxFileSize_caption }}</div>
 					</template>
 				</MkInput>
@@ -465,11 +466,22 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkInput>
 			</template>
 		</XFolder>
+
+		<XFolder v-if="matchQuery([i18n.ts._role._options.reactionMax, 'reactionLimit'])" v-model:policyMeta="policyMetaModel.reactionLimit" :isBaseRole="isBaseRole" :readonly="readonly">
+			<template #label>{{ i18n.ts._role._options.reactionMax }}</template>
+			<template #valueText>{{ valuesModel.reactionLimit }}</template>
+			<template #default="{ disabled }">
+				<MkInput v-model="valuesModel.reactionLimit" type="number" :min="0" :disabled="disabled">
+					<template #caption>{{ i18n.ts._role._options.descriptionOfReactionMax }}</template>
+				</MkInput>
+			</template>
+		</XFolder>
 	</div>
 </template>
 
 <script lang="ts">
 import * as Misskey from 'misskey-js';
+import { instance } from '@/instance.js';
 
 export type PolicyMeta = {
 	useDefault: boolean;

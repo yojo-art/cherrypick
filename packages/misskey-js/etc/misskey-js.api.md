@@ -335,6 +335,9 @@ type AdminQueueJobsRequest = operations['admin___queue___jobs']['requestBody']['
 type AdminQueueJobsResponse = operations['admin___queue___jobs']['responses']['200']['content']['application/json'];
 
 // @public (undocumented)
+type AdminQueuePauseRequest = operations['admin___queue___pause']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
 type AdminQueuePromoteJobsRequest = operations['admin___queue___promote-jobs']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -348,6 +351,9 @@ type AdminQueueQueueStatsResponse = operations['admin___queue___queue-stats']['r
 
 // @public (undocumented)
 type AdminQueueRemoveJobRequest = operations['admin___queue___remove-job']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AdminQueueResumeRequest = operations['admin___queue___resume']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AdminQueueRetryJobRequest = operations['admin___queue___retry-job']['requestBody']['content']['application/json'];
@@ -517,6 +523,28 @@ type AnnouncementCreated = {
 };
 
 // @public (undocumented)
+type AnnouncementReacted = {
+    announcementId: string;
+    reaction: string;
+    userId: string;
+};
+
+// @public (undocumented)
+type AnnouncementReaction = components['schemas']['AnnouncementReaction'];
+
+// @public (undocumented)
+type AnnouncementsReactionsCreateRequest = operations['announcements___reactions___create']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsDeleteRequest = operations['announcements___reactions___delete']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsRequest = operations['announcements___reactions']['requestBody']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementsReactionsResponse = operations['announcements___reactions']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
 type AnnouncementsRequest = operations['announcements']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
@@ -527,6 +555,9 @@ type AnnouncementsShowRequest = operations['announcements___show']['requestBody'
 
 // @public (undocumented)
 type AnnouncementsShowResponse = operations['announcements___show']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AnnouncementUnreacted = AnnouncementReacted;
 
 // @public (undocumented)
 type Antenna = components['schemas']['Antenna'];
@@ -548,6 +579,9 @@ type AntennasNotesRequest = operations['antennas___notes']['requestBody']['conte
 
 // @public (undocumented)
 type AntennasNotesResponse = operations['antennas___notes']['responses']['200']['content']['application/json'];
+
+// @public (undocumented)
+type AntennasRemoveNoteRequest = operations['antennas___remove-note']['requestBody']['content']['application/json'];
 
 // @public (undocumented)
 type AntennasShowRequest = operations['antennas___show']['requestBody']['content']['application/json'];
@@ -704,6 +738,9 @@ export abstract class ChannelConnection<Channel extends AnyOf<Channels> = AnyOf<
 }
 
 // @public (undocumented)
+export const channelNoteVisibilities: readonly ["public", "home"];
+
+// @public (undocumented)
 export type Channels = {
     main: {
         params: null;
@@ -745,6 +782,8 @@ export type Channels = {
             readAntenna: (payload: Antenna) => void;
             receiveFollowRequest: (payload: User) => void;
             announcementCreated: (payload: AnnouncementCreated) => void;
+            announcementReacted: (payload: AnnouncementReacted) => void;
+            announcementUnreacted: (payload: AnnouncementUnreacted) => void;
         };
         receives: null;
     };
@@ -1614,6 +1653,8 @@ declare namespace entities {
         EmojiUpdated,
         EmojiDeleted,
         AnnouncementCreated,
+        AnnouncementReacted,
+        AnnouncementUnreacted,
         SignupRequest,
         SignupResponse,
         SignupPendingRequest,
@@ -1725,11 +1766,13 @@ declare namespace entities {
         AdminQueueInboxDelayedResponse,
         AdminQueueJobsRequest,
         AdminQueueJobsResponse,
+        AdminQueuePauseRequest,
         AdminQueuePromoteJobsRequest,
         AdminQueueQueueStatsRequest,
         AdminQueueQueueStatsResponse,
         AdminQueueQueuesResponse,
         AdminQueueRemoveJobRequest,
+        AdminQueueResumeRequest,
         AdminQueueRetryJobRequest,
         AdminQueueShowJobRequest,
         AdminQueueShowJobResponse,
@@ -1785,6 +1828,10 @@ declare namespace entities {
         AdminUpdateUserNoteRequest,
         AnnouncementsRequest,
         AnnouncementsResponse,
+        AnnouncementsReactionsRequest,
+        AnnouncementsReactionsResponse,
+        AnnouncementsReactionsCreateRequest,
+        AnnouncementsReactionsDeleteRequest,
         AnnouncementsShowRequest,
         AnnouncementsShowResponse,
         AntennasCreateRequest,
@@ -1793,6 +1840,7 @@ declare namespace entities {
         AntennasListResponse,
         AntennasNotesRequest,
         AntennasNotesResponse,
+        AntennasRemoveNoteRequest,
         AntennasShowRequest,
         AntennasShowResponse,
         AntennasUpdateRequest,
@@ -2370,6 +2418,7 @@ declare namespace entities {
         AchievementName,
         Ad,
         Announcement,
+        AnnouncementReaction,
         App,
         Note,
         NoteDraft,
@@ -3745,7 +3794,7 @@ type RoleLite = components['schemas']['RoleLite'];
 type RolePolicies = components['schemas']['RolePolicies'];
 
 // @public (undocumented)
-export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "btlAvailable", "canPublicNote", "canEditNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canUseAutoTranslate", "canHideAds", "canCreateChannel", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "scheduledNoteLimit", "watermarkAvailable", "canSetFederationAvatarShape", "canAdvancedSearchNotes", "mutualLinkSectionLimit", "mutualLinkLimit"];
+export const rolePolicies: readonly ["gtlAvailable", "ltlAvailable", "btlAvailable", "canPublicNote", "canEditNote", "mentionLimit", "canInvite", "inviteLimit", "inviteLimitCycle", "inviteExpirationTime", "canManageCustomEmojis", "canManageAvatarDecorations", "canSearchNotes", "canSearchUsers", "canUseTranslator", "canUseAutoTranslate", "canHideAds", "canCreateChannel", "driveCapacityMb", "maxFileSizeMb", "alwaysMarkNsfw", "canUpdateBioMedia", "pinLimit", "antennaLimit", "wordMuteLimit", "webhookLimit", "clipLimit", "noteEachClipsLimit", "userListLimit", "userEachUserListsLimit", "rateLimitFactor", "avatarDecorationLimit", "canImportAntennas", "canImportBlocking", "canImportFollowing", "canImportMuting", "canImportUserLists", "chatAvailability", "uploadableFileTypes", "noteDraftLimit", "scheduledNoteLimit", "watermarkAvailable", "canSetFederationAvatarShape", "canAdvancedSearchNotes", "mutualLinkSectionLimit", "mutualLinkLimit", "reactionLimit"];
 
 // @public (undocumented)
 type RolesListResponse = operations['roles___list']['responses']['200']['content']['application/json'];
@@ -4236,8 +4285,8 @@ type VerifyEmailRequest = operations['verify-email']['requestBody']['content']['
 //
 // src/entities.ts:60:2 - (ae-forgotten-export) The symbol "ModerationLogPayloads" needs to be exported by the entry point index.d.ts
 // src/streaming.ts:57:3 - (ae-forgotten-export) The symbol "ReconnectingWebSocket" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:256:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
-// src/streaming.types.ts:272:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:260:4 - (ae-forgotten-export) The symbol "ReversiUpdateKey" needs to be exported by the entry point index.d.ts
+// src/streaming.types.ts:276:4 - (ae-forgotten-export) The symbol "ReversiUpdateSettings" needs to be exported by the entry point index.d.ts
 
 // (No @packageDocumentation comment for this package)
 

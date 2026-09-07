@@ -39,6 +39,8 @@ export type SearchOpts = {
 	userId?: MiNote['userId'] | null;
 	channelId?: MiNote['channelId'] | null;
 	host?: string | null;
+	rangeStartAt?: number | null;
+	rangeEndAt?: number | null;
 };
 
 export type SearchPagination = {
@@ -195,6 +197,8 @@ export class SearchService {
 				return this.advancedSearchService.searchOrFail(me, {
 					userId: opts.userId,
 					host: opts.host,
+					rangeStartAt: opts.rangeStartAt,
+					rangeEndAt: opts.rangeEndAt,
 					useStrictSearch: true,
 					wildCard: true,
 				}, pagination, q);
@@ -242,6 +246,16 @@ export class SearchService {
 			}
 		}
 
+		if (opts.rangeStartAt != null) {
+			const date = this.idService.gen(opts.rangeStartAt - 1);
+			query.andWhere('note.id > :rangeStartAt', { rangeStartAt: date });
+		}
+
+		if (opts.rangeEndAt != null) {
+			const date = this.idService.gen(opts.rangeEndAt + 1);
+			query.andWhere('note.id < :rangeEndAt', { rangeEndAt: date });
+		}
+
 		this.queryService.generateVisibilityQuery(query, me, { search: true });
 		this.queryService.generateBaseNoteFilteringQuery(query, me);
 
@@ -268,10 +282,20 @@ export class SearchService {
 			k: 'createdAt',
 			v: this.idService.parse(pagination.untilId).date.getTime(),
 		});
+		if (opts.rangeEndAt) filter.qs.push({
+			op: '<=',
+			k: 'createdAt',
+			v: opts.rangeEndAt,
+		});
 		if (pagination.sinceId) filter.qs.push({
 			op: '>',
 			k: 'createdAt',
 			v: this.idService.parse(pagination.sinceId).date.getTime(),
+		});
+		if (opts.rangeStartAt) filter.qs.push({
+			op: '>=',
+			k: 'createdAt',
+			v: opts.rangeStartAt,
 		});
 		if (opts.userId) filter.qs.push({ op: '=', k: 'userId', v: opts.userId });
 		if (opts.channelId) filter.qs.push({ op: '=', k: 'channelId', v: opts.channelId });

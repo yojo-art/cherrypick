@@ -83,6 +83,8 @@ export * as 'admin/queue/remove-job' from './endpoints/admin/queue/remove-job.js
 export * as 'admin/queue/show-job' from './endpoints/admin/queue/show-job.js';
 export * as 'admin/queue/show-job-logs' from './endpoints/admin/queue/show-job-logs.js';
 export * as 'admin/queue/promote-jobs' from './endpoints/admin/queue/promote-jobs.js';
+export * as 'admin/queue/pause' from './endpoints/admin/queue/pause.js';
+export * as 'admin/queue/resume' from './endpoints/admin/queue/resume.js';
 export * as 'admin/queue/jobs' from './endpoints/admin/queue/jobs.js';
 export * as 'admin/queue/stats' from './endpoints/admin/queue/stats.js';
 export * as 'admin/queue/queues' from './endpoints/admin/queue/queues.js';
@@ -122,10 +124,14 @@ export * as 'admin/update-proxy-account' from './endpoints/admin/update-proxy-ac
 export * as 'admin/update-user-note' from './endpoints/admin/update-user-note.js';
 export * as 'announcements' from './endpoints/announcements.js';
 export * as 'announcements/show' from './endpoints/announcements/show.js';
+export * as 'announcements/reactions' from './endpoints/announcements/reactions.js';
+export * as 'announcements/reactions/create' from './endpoints/announcements/reactions/create.js';
+export * as 'announcements/reactions/delete' from './endpoints/announcements/reactions/delete.js';
 export * as 'antennas/create' from './endpoints/antennas/create.js';
 export * as 'antennas/delete' from './endpoints/antennas/delete.js';
 export * as 'antennas/list' from './endpoints/antennas/list.js';
 export * as 'antennas/notes' from './endpoints/antennas/notes.js';
+export * as 'antennas/remove-note' from './endpoints/antennas/remove-note.js';
 export * as 'antennas/show' from './endpoints/antennas/show.js';
 export * as 'antennas/update' from './endpoints/antennas/update.js';
 export * as 'ap/get' from './endpoints/ap/get.js';

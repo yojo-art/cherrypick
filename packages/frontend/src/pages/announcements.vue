@@ -33,6 +33,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</div>
 						</MkA>
 					</div>
+					<div v-if="announcement.reactionAcceptance !== 'none'" :class="$style.reactions">
+						<MkAnnouncementReactions
+							:announcementId="announcement.id"
+							:reactions="announcement.reactions"
+							:myReactions="announcement.myReactions"
+							:reactionAcceptance="announcement.reactionAcceptance"
+							@update="(reactions, myReactions) => onReactionsUpdate(announcement, reactions, myReactions)"
+						/>
+					</div>
 					<div v-if="tab !== 'past' && $i != null && !announcement.silence && !announcement.isRead" :class="$style.footer">
 						<MkButton primary @click="read(announcement)"><i class="ti ti-check"></i> {{ i18n.ts.gotIt }}</MkButton>
 					</div>
@@ -49,6 +58,7 @@ import * as Misskey from 'misskey-js';
 import MkPagination from '@/components/MkPagination.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
+import MkAnnouncementReactions from '@/components/MkAnnouncementReactions.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -65,6 +75,14 @@ const paginator = markRaw(new Paginator('announcements', {
 }));
 
 const tab = ref('current');
+
+function onReactionsUpdate(target: Misskey.entities.Announcement, reactions: Record<string, number>, myReactions: string[]) {
+	paginator.updateItem(target.id, a => ({
+		...a,
+		reactions,
+		myReactions,
+	}));
+}
 
 async function read(target: Misskey.entities.Announcement) {
 	if ($i == null) return;
@@ -132,6 +150,10 @@ definePage(() => ({
 		max-height: 300px;
 		max-width: 100%;
 	}
+}
+
+.reactions {
+	margin-top: 16px;
 }
 
 .footer {

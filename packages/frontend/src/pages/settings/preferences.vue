@@ -755,6 +755,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkSwitch>
 								</MkPreferenceContainer>
 							</SearchMarker>
+							<SearchMarker :keywords="['remember', 'keep', 'channel', 'visibility']">
+								<MkPreferenceContainer k="rememberChannelNoteVisibility">
+									<MkSwitch v-model="rememberChannelNoteVisibility">
+										<template #label><SearchLabel>{{ i18n.ts.rememberChannelNoteVisibility }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
 
 							<MkDisableSection :disabled="!advancedMfm">
 								<SearchMarker :keywords="['mfm', 'mfc', 'enable', 'show', 'advanced', 'picker', 'form', 'function', 'fn']">
@@ -812,6 +819,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 													{ label: i18n.ts._visibility.home, value: 'home' },
 													{ label: i18n.ts._visibility.followers, value: 'followers' },
 													{ label: i18n.ts._visibility.specified, value: 'specified' },
+												]"
+											>
+											</MkSelect>
+										</MkPreferenceContainer>
+									</div>
+								</MkFolder>
+							</MkDisableSection>
+						</SearchMarker>
+						<SearchMarker :keywords="['default', 'channel', 'visibility']">
+							<MkDisableSection :disabled="rememberChannelNoteVisibility">
+								<MkFolder>
+									<template #label><SearchLabel>{{ i18n.ts.defaultChannelNoteVisibility }}</SearchLabel></template>
+									<template v-if="defaultChannelNoteVisibility === 'public'" #suffix>{{ i18n.ts._visibility.public }}</template>
+									<template v-else-if="defaultChannelNoteVisibility === 'home'" #suffix>{{ i18n.ts._visibility.home }}</template>
+
+									<div class="_gaps_s">
+										<MkPreferenceContainer k="defaultChannelNoteVisibility">
+											<MkSelect
+												v-model="defaultChannelNoteVisibility"
+												:items="[
+													{ label: i18n.ts._visibility.public, value: 'public' },
+													{ label: i18n.ts._visibility.home, value: 'home' },
 												]"
 											>
 											</MkSelect>
@@ -1550,9 +1579,11 @@ const useGroupedNoteNotifications = prefer.model('useGroupedNoteNotifications');
 const alwaysConfirmFollow = prefer.model('alwaysConfirmFollow');
 const confirmWhenRevealingSensitiveMedia = prefer.model('confirmWhenRevealingSensitiveMedia');
 const defaultNoteVisibility = prefer.model('defaultNoteVisibility');
+const defaultChannelNoteVisibility = prefer.model('defaultChannelNoteVisibility');
 const defaultNoteSearchbility = prefer.model('defaultNoteSearchbility');
 const defaultNoteLocalOnly = prefer.model('defaultNoteLocalOnly');
 const rememberNoteVisibility = prefer.model('rememberNoteVisibility');
+const rememberChannelNoteVisibility = prefer.model('rememberChannelNoteVisibility');
 const rememberNoteSearchbility = prefer.model('rememberNoteSearchbility');
 const showGapBetweenNotesInTimeline = prefer.model('showGapBetweenNotesInTimeline');
 const notificationPosition = prefer.model('notificationPosition');

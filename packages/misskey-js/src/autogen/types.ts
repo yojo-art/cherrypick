@@ -636,6 +636,15 @@ export type paths = {
          */
         post: operations['admin___queue___jobs'];
     };
+    '/admin/queue/pause': {
+        /**
+         * admin/queue/pause
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:queue*
+         */
+        post: operations['admin___queue___pause'];
+    };
     '/admin/queue/promote-jobs': {
         /**
          * admin/queue/promote-jobs
@@ -671,6 +680,15 @@ export type paths = {
          *     **Credential required**: *Yes* / **Permission**: *write:admin:queue*
          */
         post: operations['admin___queue___remove-job'];
+    };
+    '/admin/queue/resume': {
+        /**
+         * admin/queue/resume
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:queue*
+         */
+        post: operations['admin___queue___resume'];
     };
     '/admin/queue/retry-job': {
         /**
@@ -1039,6 +1057,33 @@ export type paths = {
          */
         post: operations['announcements'];
     };
+    '/announcements/reactions': {
+        /**
+         * announcements/reactions
+         * @description No description provided.
+         *
+         *     **Credential required**: *No*
+         */
+        post: operations['announcements___reactions'];
+    };
+    '/announcements/reactions/create': {
+        /**
+         * announcements/reactions/create
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:reactions*
+         */
+        post: operations['announcements___reactions___create'];
+    };
+    '/announcements/reactions/delete': {
+        /**
+         * announcements/reactions/delete
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:reactions*
+         */
+        post: operations['announcements___reactions___delete'];
+    };
     '/announcements/show': {
         /**
          * announcements/show
@@ -1083,6 +1128,15 @@ export type paths = {
          *     **Credential required**: *Yes* / **Permission**: *read:account*
          */
         post: operations['antennas___notes'];
+    };
+    '/antennas/remove-note': {
+        /**
+         * antennas/remove-note
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:account*
+         */
+        post: operations['antennas___remove-note'];
     };
     '/antennas/show': {
         /**
@@ -4878,6 +4932,20 @@ export type components = {
             silence: boolean;
             forYou: boolean;
             isRead?: boolean;
+            /** @enum {string|null} */
+            reactionAcceptance: 'likeOnly' | 'none' | null;
+            reactions: {
+                [key: string]: number;
+            };
+            myReactions: string[];
+        };
+        AnnouncementReaction: {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            user: components['schemas']['UserLite'];
+            type: string;
         };
         App: {
             id: string;
@@ -5915,6 +5983,7 @@ export type components = {
             noteDraftLimit: number;
             scheduledNoteLimit: number;
             watermarkAvailable: boolean;
+            reactionLimit: number;
         };
         ReversiGameLite: {
             /** Format: id */
@@ -7626,6 +7695,11 @@ export interface operations {
                     /** @default false */
                     needConfirmationToRead?: boolean;
                     /**
+                     * @default null
+                     * @enum {string|null}
+                     */
+                    reactionAcceptance?: null | 'likeOnly' | 'none';
+                    /**
                      * Format: misskey:id
                      * @default null
                      */
@@ -7815,6 +7889,8 @@ export interface operations {
                         forExistingUsers: boolean;
                         silence: boolean;
                         needConfirmationToRead: boolean;
+                        /** @enum {string|null} */
+                        reactionAcceptance: null | 'likeOnly' | 'none';
                         userId: string | null;
                         imageUrl: string | null;
                         reads: number;
@@ -7884,6 +7960,8 @@ export interface operations {
                     forExistingUsers?: boolean;
                     silence?: boolean;
                     needConfirmationToRead?: boolean;
+                    /** @enum {string|null} */
+                    reactionAcceptance?: null | 'likeOnly' | 'none';
                     isActive?: boolean;
                 };
             };
@@ -11384,6 +11462,69 @@ export interface operations {
             };
         };
     };
+    admin___queue___pause: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @enum {string} */
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
     'admin___queue___promote-jobs': {
         requestBody: {
             content: {
@@ -11621,6 +11762,69 @@ export interface operations {
                     /** @enum {string} */
                     queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                     jobId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    admin___queue___resume: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** @enum {string} */
+                    queue: 'system' | 'endedPollNotification' | 'postScheduledNote' | 'deliver' | 'inbox' | 'db' | 'relationship' | 'objectStorage' | 'userWebhookDeliver' | 'systemWebhookDeliver';
                 };
             };
         };
@@ -14766,6 +14970,225 @@ export interface operations {
             };
         };
     };
+    announcements___reactions: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    announcementId: string;
+                    type?: string | null;
+                    /** @default 10 */
+                    limit?: number;
+                    /** Format: misskey:id */
+                    sinceId?: string;
+                    /** Format: misskey:id */
+                    untilId?: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (with results) */
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['AnnouncementReaction'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    announcements___reactions___create: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    announcementId: string;
+                    reaction: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Too many requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    announcements___reactions___delete: {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    announcementId: string;
+                    reaction: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Too many requests */
+            429: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
     announcements___show: {
         requestBody: {
             content: {
@@ -15059,6 +15482,71 @@ export interface operations {
                 };
                 content: {
                     'application/json': components['schemas']['Note'][];
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'antennas___remove-note': {
+        requestBody: {
+            content: {
+                'application/json': {
+                    /** Format: misskey:id */
+                    antennaId: string;
+                    /** Format: misskey:id */
+                    noteId: string;
+                };
+            };
+        };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
                 };
             };
             /** @description Client error */
@@ -31524,6 +32012,10 @@ export interface operations {
                      * @default false
                      */
                     useStrictSearch?: boolean | null;
+                    /** @description 指定した日時以降に作成されたノートを探します (ミリ秒) */
+                    rangeStartAt?: number | null;
+                    /** @description 指定した日時以前に作成されたノートを探します (ミリ秒) */
+                    rangeEndAt?: number | null;
                 };
             };
         };
@@ -33770,6 +34262,8 @@ export interface operations {
             content: {
                 'application/json': {
                     query: string;
+                    rangeStartAt?: number | null;
+                    rangeEndAt?: number | null;
                     /** Format: misskey:id */
                     sinceId?: string;
                     /** Format: misskey:id */

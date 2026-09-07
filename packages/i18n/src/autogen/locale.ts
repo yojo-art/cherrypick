@@ -24,7 +24,7 @@ export interface Locale extends ILocale {
      */
     "unRenoteAllConfirm": string;
     /**
-     * このノートのすべてのリノットを削除しようとしています。実行しますか？
+     * このノートのすべてのリノートを削除しようとしています。実行しますか？
      */
     "unRenoteAllConfirmDescription": string;
     /**
@@ -1180,6 +1180,14 @@ export interface Locale extends ILocale {
      * 公開範囲を記憶する
      */
     "rememberNoteVisibility": string;
+    /**
+     * チャンネル投稿の公開範囲を記憶する
+     */
+    "rememberChannelNoteVisibility": string;
+    /**
+     * チャンネル投稿のデフォルトの公開範囲
+     */
+    "defaultChannelNoteVisibility": string;
     /**
      * 検索可能範囲を記憶する
      */
@@ -3712,6 +3720,14 @@ export interface Locale extends ILocale {
      * このノートはすでにクリップ「{name}」に含まれています。ノートをこのクリップから除外しますか？
      */
     "confirmToUnclipAlreadyClippedNote": ParameterizedString<"name">;
+    /**
+     * このアンテナから削除
+     */
+    "removeFromAntenna": string;
+    /**
+     * 「{name}」からこのノートを削除しますか？
+     */
+    "removeNoteFromAntennaConfirm": ParameterizedString<"name">;
     /**
      * パブリック
      */
@@ -6511,6 +6527,30 @@ export interface Locale extends ILocale {
      * 元に戻す
      */
     "previewingThemeRestore": string;
+    /**
+     * アクセストークン
+     */
+    "accessToken": string;
+    /**
+     * 絵文字パレットを選択
+     */
+    "chooseEmojiPalette": string;
+    /**
+     * 絵文字パレットに追加
+     */
+    "addToEmojiPalette": string;
+    /**
+     * この絵文字はすでにこの絵文字パレットに含まれています。追加しなおしますか？
+     */
+    "emojiPaletteAlreadyAddedConfirm": string;
+    /**
+     * 末尾に追加
+     */
+    "append": string;
+    /**
+     * 先頭に追加
+     */
+    "prepend": string;
     "_imageEditing": {
         "_vars": {
             /**
@@ -7548,6 +7588,10 @@ export interface Locale extends ILocale {
          * オンにすると、このお知らせは通知されず、既読にする必要もなくなります。
          */
         "silenceDescription": string;
+        /**
+         * このお知らせに付けられるリアクションの数が上限({n}個)に達しています。
+         */
+        "reactionLimitExceeded": ParameterizedString<"n">;
     };
     "_group": {
         /**
@@ -9565,6 +9609,10 @@ export interface Locale extends ILocale {
              */
             "maxFileSize_caption": string;
             /**
+             * サーバー全体の最大ファイルサイズ設定は {max} です。これより大きいファイルをアップロードできるようにするには、Misskeyの設定ファイルからこの設定を緩和してください。
+             */
+            "maxFileSize_caption2": ParameterizedString<"max">;
+            /**
              * ファイルにNSFWを常に付与
              */
             "alwaysMarkNsfw": string;
@@ -9712,6 +9760,14 @@ export interface Locale extends ILocale {
              * セクション内の相互リンクの最大数
              */
             "mutualLinkLimit": string;
+            /**
+             * リアクションの最大数
+             */
+            "reactionMax": string;
+            /**
+             * ユーザーが1つの投稿に対して付けられるリアクションの最大数です。0にするとリアクションできなくなります。（現時点ではお知らせのみに適用されます）
+             */
+            "descriptionOfReactionMax": string;
         };
         "_condition": {
             /**
@@ -14553,6 +14609,14 @@ export interface Locale extends ILocale {
          * ユーザーを選択してください
          */
         "pleaseSelectUser": string;
+        /**
+         * 投稿日時from
+         */
+        "postFrom": string;
+        /**
+         * 投稿日時to
+         */
+        "postTo": string;
         /**
          * 例: cherrypick.example.com
          */

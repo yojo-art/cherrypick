@@ -189,6 +189,12 @@ export const meta = {
 			code: 'CANNOT_SCHEDULE_DELETE_EARLIER_THAN_NOW',
 			id: '9f04994a-3aa2-11ef-a495-177eea74788f',
 		},
+
+		channelVisibilityNotAllowed: {
+			message: 'Channel notes cannot be set to followers or specified visibility.',
+			code: 'CHANNEL_VISIBILITY_NOT_ALLOWED',
+			id: '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b',
+		},
 	},
 
 	limit: {
@@ -346,6 +352,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 							throw new ApiError(meta.errors.scheduledAtRequired);
 						case 'b34d0c1b-996f-4e34-a428-c636d98df457':
 							throw new ApiError(meta.errors.scheduledAtMustBeInFuture);
+						case '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b':
+							throw new ApiError(meta.errors.channelVisibilityNotAllowed);
 						default:
 							throw err;
 					}

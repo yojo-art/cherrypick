@@ -19,3 +19,13 @@ services:
     environment:
       - MEILI_NO_ANALYTICS=true
       - MEILI_ENV=development
+
+  # オブジェクトストレージE2E ([object-storage] suite) 用
+  # OBJECT_STORAGE_E2E=true を付けて test:e2e:object-storage を実行する時に使う
+  objectstoragetest:
+    image: rustfs/rustfs:1.0.0-rc.3
+    ports:
+      - "127.0.0.1:59312:9000"
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin

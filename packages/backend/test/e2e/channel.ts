@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { afterAll, beforeAll, beforeEach, describe, test } from 'vitest';
-import { api, castAsError, signup, randomString, uploadUrl, post, origin } from '../utils.js';
+import { api, castAsError, signup, randomString, uploadFile, uploadUrl, post, origin } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('Channel', () => {
@@ -145,6 +145,80 @@ describe('Channel', () => {
 		});
 	});
 
+	describe('チャンネルバナーの複製ファイル', () => {
+		let channel: misskey.entities.ChannelsCreateResponse;
+		let imageFile: misskey.entities.DriveFile;
+
+		beforeAll(async () => {
+			const res = await api('channels/create', { name: 'banner-reupload-test', username: randomString() }, root);
+			assert.strictEqual(res.status, 200);
+			channel = res.body;
+			const uploaded = await uploadFile(root);
+			assert.strictEqual(uploaded.status, 200);
+			imageFile = uploaded.body!;
+		});
+
+		test('バナーを設定するとチャンネルアカウント所有の複製ファイルが設定される', async () => {
+			const res = await api('channels/update', { channelId: channel.id, bannerId: imageFile.id }, root);
+			assert.strictEqual(res.status, 200);
+			assert.notStrictEqual(res.body.bannerUrl, null, 'バナーが設定される');
+			const bannerId = res.body.bannerId!;
+			assert.notStrictEqual(bannerId, imageFile.id, 'バナーは元画像とは別の複製ファイルである');
+
+			const bannerFile = await api('admin/drive/show-file', { fileId: bannerId }, root);
+			assert.strictEqual(bannerFile.status, 200);
+			assert.strictEqual(bannerFile.body.userId, channel.actorId, '複製ファイルはチャンネルアカウントが所有する');
+
+			const originalFile = await api('drive/files/show', { fileId: imageFile.id }, root);
+			assert.strictEqual(originalFile.status, 200, '元ファイルは削除されない');
+		});
+
+		test('現在のバナーIDを再送してもバナーファイルは削除されない', async () => {
+			const current = await api('channels/show', { channelId: channel.id }, root);
+			const bannerId = current.body.bannerId!;
+
+			const res = await api('channels/update', { channelId: channel.id, bannerId: bannerId }, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.bannerId, bannerId, 'バナーは変更されない');
+			assert.notStrictEqual(res.body.bannerUrl, null, 'バナー画像がそのまま設定されたままである');
+
+			const bannerFile = await api('admin/drive/show-file', { fileId: bannerId }, root);
+			assert.strictEqual(bannerFile.status, 200, '現在のバナーファイルは削除されない');
+		});
+
+		test('bannerId を指定しない更新でもバナーは保持される', async () => {
+			const current = await api('channels/show', { channelId: channel.id }, root);
+			const bannerId = current.body.bannerId!;
+
+			const res = await api('channels/update', { channelId: channel.id, name: randomString() + ' renamed' }, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.bannerId, bannerId, 'bannerId 未指定の更新でバナーはクリアされない');
+			assert.notStrictEqual(res.body.bannerUrl, null, 'バナー画像がそのまま設定されたままである');
+		});
+
+		test('bannerId: null でバナーを解除すると複製ファイルは削除される', async () => {
+			const current = await api('channels/show', { channelId: channel.id }, root);
+			const bannerId = current.body.bannerId!;
+
+			const res = await api('channels/update', { channelId: channel.id, bannerId: null }, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.bannerId, null, 'バナーが解除される');
+			assert.strictEqual(res.body.bannerUrl, null, 'バナー画像が解除される');
+
+			// ファイル削除の DB 反映は非同期なので待つ
+			let deleted = false;
+			for (let i = 0; i < 10 && !deleted; i++) {
+				await new Promise(resolve => setTimeout(resolve, 500));
+				const bannerFile = await api('admin/drive/show-file', { fileId: bannerId }, root);
+				deleted = bannerFile.status !== 200 && castAsError(bannerFile.body as any).error?.code === 'NO_SUCH_FILE';
+			}
+			assert.ok(deleted, '解除されたバナーファイルは削除される');
+
+			const originalFile = await api('drive/files/show', { fileId: imageFile.id }, root);
+			assert.strictEqual(originalFile.status, 200, '元ファイルは削除されない');
+		});
+	});
+
 	describe('usersCount', () => {
 		test('チャンネルへの投稿でチャンネルアカウントのリノートがusersCountに含まれない', async () => {
 			const ch = await api('channels/create', { name: 'usersCount-test', username: randomString() }, root);
@@ -220,6 +294,81 @@ describe('Channel', () => {
 			const res = await api('ap/show', { uri: `${origin}/channels` }, alice);
 			assert.strictEqual(res.status, 400);
 			assert.strictEqual(castAsError(res.body as any).error.code, 'NO_SUCH_OBJECT');
+		});
+	});
+
+	describe('Channel note visibility', () => {
+		let channel: misskey.entities.ChannelsCreateResponse;
+		let bob: misskey.entities.SignupResponse;
+
+		beforeAll(async () => {
+			bob = await signup({ username: 'bob' });
+			const res = await api('channels/create', { name: 'visibility-test-channel', username: randomString() }, root);
+			assert.strictEqual(res.status, 200);
+			channel = res.body;
+		});
+
+		test('チャンネル投稿で visibility: followers は CHANNEL_VISIBILITY_NOT_ALLOWED で拒否される', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+			assert.strictEqual(castAsError(res.body).error.id, '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b');
+		});
+
+		test('チャンネル投稿で visibility: specified は CHANNEL_VISIBILITY_NOT_ALLOWED で拒否される', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'specified', visibleUserIds: [bob.id] }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+		});
+
+		test('チャンネル投稿で visibility: public は成功する', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'public' }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.createdNote.channelId, channel.id);
+			assert.strictEqual(res.body.createdNote.visibility, 'public');
+		});
+
+		test('チャンネル投稿で visibility: home は成功する', async () => {
+			const res = await api('notes/create', { text: 'hi', channelId: channel.id, visibility: 'home' }, alice);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.createdNote.channelId, channel.id);
+			assert.strictEqual(res.body.createdNote.visibility, 'home');
+		});
+
+		test('ドラフト作成で channelId + visibility: followers は拒否される', async () => {
+			const res = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+		});
+
+		test('ドラフト作成で channelId + visibility: specified は拒否される', async () => {
+			const res = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'specified', visibleUserIds: [bob.id] }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+		});
+
+		test('ドラフト更新で channelId に followers を後付けすると拒否される', async () => {
+			const draftRes = await api('notes/drafts/create', { text: 'hi', visibility: 'public' }, alice);
+			assert.strictEqual(draftRes.status, 200);
+			const draftId = draftRes.body.createdDraft.id;
+
+			const res = await api('notes/drafts/update', { draftId, channelId: channel.id, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+
+			await api('notes/drafts/delete', { draftId }, alice).catch(() => {});
+		});
+
+		test('既存チャンネルドラフトの visibility を followers に変更すると拒否される', async () => {
+			const draftRes = await api('notes/drafts/create', { text: 'hi', channelId: channel.id, visibility: 'public' }, alice);
+			assert.strictEqual(draftRes.status, 200);
+			const draftId = draftRes.body.createdDraft.id;
+
+			const res = await api('notes/drafts/update', { draftId, visibility: 'followers' }, alice);
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'CHANNEL_VISIBILITY_NOT_ALLOWED');
+
+			await api('notes/drafts/delete', { draftId }, alice).catch(() => {});
 		});
 	});
 });

@@ -31,11 +31,12 @@ export class ApAudienceService {
 	}
 
 	@bindThis
-	public async parseAudience(actor: MiRemoteUser, to?: ApObject, cc?: ApObject, resolver?: Resolver): Promise<AudienceInfo> {
+	public async parseAudience(actor: MiRemoteUser, to?: ApObject, cc?: ApObject, audience?: ApObject, resolver?: Resolver): Promise<AudienceInfo> {
 		const toGroups = this.groupingAudience(getApIds(to), actor);
 		const ccGroups = this.groupingAudience(getApIds(cc), actor);
+		const audienceGroups = this.groupingAudience(getApIds(audience), actor);
 
-		const others = unique(concat([toGroups.other, ccGroups.other]));
+		const others = unique(concat([toGroups.other, ccGroups.other, audienceGroups.other]));
 
 		const limit = promiseLimit<MiUser | null>(2);
 		const mentionedUsers = (await Promise.all(

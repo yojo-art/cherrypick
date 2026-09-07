@@ -143,6 +143,16 @@ export const paramDef = {
 			default: false,
 			description: '表記ゆれ検索を無効にする',
 		},
+		rangeStartAt: {
+			type: 'integer',
+			nullable: true,
+			description: '指定した日時以降に作成されたノートを探します (ミリ秒)',
+		},
+		rangeEndAt: {
+			type: 'integer',
+			nullable: true,
+			description: '指定した日時以前に作成されたノートを探します (ミリ秒)',
+		},
 	},
 } as const;
 
@@ -175,6 +185,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 				excludeQuote: ps.excludeQuote,
 				offset: ps.offset,
 				useStrictSearch: ps.useStrictSearch,
+				rangeStartAt: ps.rangeStartAt,
+				rangeEndAt: ps.rangeEndAt,
 			}, {
 				untilId: ps.untilId,
 				sinceId: ps.sinceId,

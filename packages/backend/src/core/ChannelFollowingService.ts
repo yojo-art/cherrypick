@@ -6,7 +6,7 @@
 import { Inject, Injectable, OnModuleInit } from '@nestjs/common';
 import Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
-import type { UsersRepository, FollowingsRepository, ChannelsRepository, MiUser, } from '@/models/_.js';
+import type { UsersRepository, FollowingsRepository, ChannelsRepository, MiUser } from '@/models/_.js';
 import { MiChannel } from '@/models/_.js';
 import { IdService } from '@/core/IdService.js';
 import { GlobalEvents, GlobalEventService } from '@/core/GlobalEventService.js';

@@ -463,7 +463,7 @@ export class ApInboxService {
 
 			this.logger.info(`Creating the (Re)Note: ${uri}`);
 
-			const activityAudience = await this.apAudienceService.parseAudience(actor, activity.to, activity.cc, resolver);
+			const activityAudience = await this.apAudienceService.parseAudience(actor, activity.to, activity.cc, activity.audience, resolver);
 			const createdAt = activity.published ? new Date(activity.published) : null;
 
 			if (createdAt && createdAt < this.idService.parse(renote.id).date) {
@@ -488,7 +488,7 @@ export class ApInboxService {
 					//リモートユーザーによるローカルのチャンネルへの投稿
 					const user = { id: channel.actor.id, host: null };
 					if (activity.signature) {
-						//内容に署名されていれば転送する
+						//yojo-art: チャンネル連合 内容に署名されていれば転送する
 						const dm = this.apDeliverManagerService.createDeliverManager(user, activity);
 						dm.addChannelFollowersRecipe(user.id);
 						trackPromise(dm.execute());

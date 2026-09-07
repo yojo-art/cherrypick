@@ -10,6 +10,9 @@ services:
 
     command: sleep infinity
 
+    environment:
+      OBJECT_STORAGE_ENDPOINT: http://objectstorage:9000
+
     networks:
       - internal_network
       - external_network
@@ -54,6 +57,21 @@ services:
       test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
       retries: 20
+
+  objectstorage:
+    restart: unless-stopped
+    image: rustfs/rustfs:1.0.0-rc.3
+    networks:
+      - internal_network
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
 
 volumes:
   postgres-data:
