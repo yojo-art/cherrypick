@@ -27,7 +27,7 @@ Misskey 2026.6.0
 - Fix: セキュリティに関する修正 (Cherry-picked from misskey 2026.9.0)
 
 ### Others
-- 未使用のbody-parser依存を削除 [#1309](https://github.com/yojo-art/cherrypick/pull/1309)
+- Remove: 未使用のbody-parser依存を削除 [#1309](https://github.com/yojo-art/cherrypick/pull/1309)
 
 ## 1.10.0
 Cherrypick 4.17.0  
