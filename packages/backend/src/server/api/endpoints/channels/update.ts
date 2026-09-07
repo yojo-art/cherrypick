@@ -130,12 +130,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.bannerId != null) {
 				banner = await this.driveFilesRepository.findOneBy({ id: ps.bannerId });
 
-				// チャンネルアカウント所有のファイル（既に複製されているもの）も受け付ける
-				if (banner?.userId === me.id) {
-					//自身が所有するファイル
-				} else if (channel.actorId != null && banner?.userId === channel.actorId) {
-					//チャンネルアカウントが所有するファイル
-				} else {
+				// 自身が所有するファイルと、チャンネルアカウント所有のファイル（既に複製されているもの）を受け付ける
+				if (!(banner != null && (banner.userId === me.id || (channel.actorId != null && banner.userId === channel.actorId)))) {
 					throw new ApiError(meta.errors.noSuchFile);
 				}
 				if (!banner.type.startsWith('image/')) {
@@ -150,12 +146,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (ps.iconId != null) {
 				icon = await this.driveFilesRepository.findOneBy({ id: ps.iconId });
 
-				// チャンネルアカウント所有のファイル（既に複製されているもの）も受け付ける
-				if (icon?.userId === me.id) {
-					//自身が所有するファイル
-				} else if (channel.actorId != null && icon?.userId === channel.actorId) {
-					//チャンネルアカウントが所有するファイル
-				} else {
+				// 自身が所有するファイルと、チャンネルアカウント所有のファイル（既に複製されているもの）を受け付ける
+				if (!(icon != null && (icon.userId === me.id || (channel.actorId != null && icon.userId === channel.actorId)))) {
 					throw new ApiError(meta.errors.noSuchFile);
 				}
 				if (!icon.type.startsWith('image/')) throw new ApiError(meta.errors.iconNotAnImage);
@@ -190,7 +182,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
 					}
 				}
-				banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, channel.actorId);
+				if (banner != null) {
+					const reuploadedBanner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, channel.actorId);
+					// 複製失敗時は「変更なし」扱い
+					banner = reuploadedBanner ?? undefined;
+				}
 				if (banner) {
 					updates.bannerId = banner.id;
 					updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
@@ -200,7 +196,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					updates.bannerUrl = null;
 					updates.bannerBlurhash = null;
 				}
-				icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, channel.actorId);
+				if (icon != null) {
+					const reuploadedIcon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, channel.actorId);
+					// 複製失敗時は「変更なし」扱い
+					icon = reuploadedIcon ?? undefined;
+				}
 				if (icon) {
 					updates.avatarId = icon.id;
 					updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
@@ -258,11 +258,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			//FIXME: ユーザーファイル複製->DB設定失敗の時に複製したファイルが残る
 
 			if (account) {
-				//このaccountは変更前の状態
-				if (updates.bannerId !== undefined && account.bannerId != null) {
+				//このaccountは変更前の状態（新旧同一ファイルの時は削除しない）
+				if (updates.bannerId !== undefined && account.bannerId != null && account.bannerId !== updates.bannerId) {
 					await this.channelEntityService.deleteChannelAccountFile(account.bannerId, account.id);
 				}
-				if (updates.avatarId !== undefined && account.avatarId != null) {
+				if (updates.avatarId !== undefined && account.avatarId != null && account.avatarId !== updates.avatarId) {
 					await this.channelEntityService.deleteChannelAccountFile(account.avatarId, account.id);
 				}
 			}

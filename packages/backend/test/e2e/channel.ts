@@ -7,7 +7,7 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { afterAll, beforeAll, beforeEach, describe, test } from 'vitest';
-import { api, castAsError, signup, randomString, uploadUrl, post, origin } from '../utils.js';
+import { api, castAsError, signup, randomString, uploadFile, uploadUrl, post, origin } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('Channel', () => {
@@ -142,6 +142,80 @@ describe('Channel', () => {
 			assert.strictEqual(ch.status, 200);
 			const channelActor = await api('users/show', { userId: ch.body.actorId! }, root);
 			assert.strictEqual(channelActor.body.name!, name, 'チャンネル作成時に指定した名前がユーザーとして正しく設定される');
+		});
+	});
+
+	describe('チャンネルバナーの複製ファイル', () => {
+		let channel: misskey.entities.ChannelsCreateResponse;
+		let imageFile: misskey.entities.DriveFile;
+
+		beforeAll(async () => {
+			const res = await api('channels/create', { name: 'banner-reupload-test', username: randomString() }, root);
+			assert.strictEqual(res.status, 200);
+			channel = res.body;
+			const uploaded = await uploadFile(root);
+			assert.strictEqual(uploaded.status, 200);
+			imageFile = uploaded.body!;
+		});
+
+		test('バナーを設定するとチャンネルアカウント所有の複製ファイルが設定される', async () => {
+			const res = await api('channels/update', { channelId: channel.id, bannerId: imageFile.id }, root);
+			assert.strictEqual(res.status, 200);
+			assert.notStrictEqual(res.body.bannerUrl, null, 'バナーが設定される');
+			const bannerId = res.body.bannerId!;
+			assert.notStrictEqual(bannerId, imageFile.id, 'バナーは元画像とは別の複製ファイルである');
+
+			const bannerFile = await api('admin/drive/show-file', { fileId: bannerId }, root);
+			assert.strictEqual(bannerFile.status, 200);
+			assert.strictEqual(bannerFile.body.userId, channel.actorId, '複製ファイルはチャンネルアカウントが所有する');
+
+			const originalFile = await api('drive/files/show', { fileId: imageFile.id }, root);
+			assert.strictEqual(originalFile.status, 200, '元ファイルは削除されない');
+		});
+
+		test('現在のバナーIDを再送してもバナーファイルは削除されない', async () => {
+			const current = await api('channels/show', { channelId: channel.id }, root);
+			const bannerId = current.body.bannerId!;
+
+			const res = await api('channels/update', { channelId: channel.id, bannerId: bannerId }, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.bannerId, bannerId, 'バナーは変更されない');
+			assert.notStrictEqual(res.body.bannerUrl, null, 'バナー画像がそのまま設定されたままである');
+
+			const bannerFile = await api('admin/drive/show-file', { fileId: bannerId }, root);
+			assert.strictEqual(bannerFile.status, 200, '現在のバナーファイルは削除されない');
+		});
+
+		test('bannerId を指定しない更新でもバナーは保持される', async () => {
+			const current = await api('channels/show', { channelId: channel.id }, root);
+			const bannerId = current.body.bannerId!;
+
+			const res = await api('channels/update', { channelId: channel.id, name: randomString() + ' renamed' }, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.bannerId, bannerId, 'bannerId 未指定の更新でバナーはクリアされない');
+			assert.notStrictEqual(res.body.bannerUrl, null, 'バナー画像がそのまま設定されたままである');
+		});
+
+		test('bannerId: null でバナーを解除すると複製ファイルは削除される', async () => {
+			const current = await api('channels/show', { channelId: channel.id }, root);
+			const bannerId = current.body.bannerId!;
+
+			const res = await api('channels/update', { channelId: channel.id, bannerId: null }, root);
+			assert.strictEqual(res.status, 200);
+			assert.strictEqual(res.body.bannerId, null, 'バナーが解除される');
+			assert.strictEqual(res.body.bannerUrl, null, 'バナー画像が解除される');
+
+			// ファイル削除の DB 反映は非同期なので待つ
+			let deleted = false;
+			for (let i = 0; i < 10 && !deleted; i++) {
+				await new Promise(resolve => setTimeout(resolve, 500));
+				const bannerFile = await api('admin/drive/show-file', { fileId: bannerId }, root);
+				deleted = bannerFile.status !== 200 && castAsError(bannerFile.body as any).error?.code === 'NO_SUCH_FILE';
+			}
+			assert.ok(deleted, '解除されたバナーファイルは削除される');
+
+			const originalFile = await api('drive/files/show', { fileId: imageFile.id }, root);
+			assert.strictEqual(originalFile.status, 200, '元ファイルは削除されない');
 		});
 	});
 

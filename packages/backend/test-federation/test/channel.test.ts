@@ -115,10 +115,14 @@ describe('Channel', () => {
 			await alice.client.request('channels/update', { channelId: aliceCh.id, bannerId: image.id });
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
 			notStrictEqual(aliceCh.bannerUrl, null, 'ローカルにバナー画像が設定される');
+			assert(aliceCh.bannerId != null);
+			notStrictEqual(aliceCh.bannerId, image.id, 'バナーは元画像とは別の複製ファイルである');
 			assert(aliceCh.actorId);
 
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.bannerUrl, aliceCh.bannerUrl, 'バナー画像を設定するとローカルの対応したユーザーのバナーになる');
+			const bannerFileInA = await (await fetchAdmin('a.test')).client.request('admin/drive/show-file', { fileId: aliceCh.bannerId });
+			strictEqual(bannerFileInA.userId, aliceCh.actorId, 'バナーファイルはチャンネルアカウントが所有する');
 			await sleep();
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });

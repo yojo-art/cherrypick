@@ -149,7 +149,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const channel = _channel;
 
 			// バナー・アイコンをチャンネルアカウントが所有するファイルとして複製する。
-			// 元ファイルは削除しない。複製に失敗した時はアイコン・バナーを設定しない。
+			// 元ファイルは削除しない。複製に失敗した時は signupChannel で設定された
+			// ユーザーアップロード元のファイルがそのまま残る。
 			const accountUpdates = {} as Partial<MiUser>;
 			banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, actor.id);
 			if (banner) {
