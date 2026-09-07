@@ -152,22 +152,35 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			// 元ファイルは削除しない。複製に失敗した時は signupChannel で設定された
 			// ユーザーアップロード元のファイルがそのまま残る。
 			const accountUpdates = {} as Partial<MiUser>;
-			banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, actor.id);
-			if (banner) {
-				accountUpdates.bannerId = banner.id;
-				accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
-				accountUpdates.bannerBlurhash = banner.blurhash;
-				await this.channelsRepository.update(channel.id, { bannerId: banner.id });
-			}
-			icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, actor.id);
-			if (icon) {
-				accountUpdates.avatarId = icon.id;
-				accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
-				accountUpdates.avatarBlurhash = icon.blurhash;
-			}
-			if (Object.keys(accountUpdates).length > 0) {
-				await this.usersRepository.update(actor.id, accountUpdates);
-				this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
+			const originalBanner = banner;
+			const originalIcon = icon;
+			const createdCopyIds: string[] = [];
+			try {
+				banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, actor.id);
+				if (banner) {
+					if (banner.id !== originalBanner?.id) createdCopyIds.push(banner.id);
+					accountUpdates.bannerId = banner.id;
+					accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+					accountUpdates.bannerBlurhash = banner.blurhash;
+					await this.channelsRepository.update(channel.id, { bannerId: banner.id });
+				}
+				icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, actor.id);
+				if (icon) {
+					if (icon.id !== originalIcon?.id) createdCopyIds.push(icon.id);
+					accountUpdates.avatarId = icon.id;
+					accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
+					accountUpdates.avatarBlurhash = icon.blurhash;
+				}
+				if (Object.keys(accountUpdates).length > 0) {
+					await this.usersRepository.update(actor.id, accountUpdates);
+					this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
+				}
+			} catch (e) {
+				// DB反映に失敗したらこの処理で新規作成した複製ファイルだけ後始末する（元ファイルは残す）
+				for (const fileId of createdCopyIds) {
+					await this.channelEntityService.deleteChannelAccountFile(fileId, actor.id);
+				}
+				throw e;
 			}
 
 			if (ps.name !== undefined || ps.color !== undefined || typeof ps.isSensitive === 'boolean' || typeof ps.allowRenoteToExternal === 'boolean') {

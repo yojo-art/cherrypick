@@ -156,106 +156,125 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			const account = channel.actorId ? await this.usersRepository.findOneBy({ id: channel.actorId }) : null;
-			if (channel.actorId) {
-				if (ps.description !== undefined) {
-					await this.userProfilesRepository.update({ userId: channel.actorId }, {
-						description: ps.description,
-					});
-				}
-				if (ps.pinnedNoteIds) {
-					const old_notes = (await this.userNotePiningsRepository.find({
-						where: { userId: channel.actorId },
-						select: { noteId: true },
-					})).map(x => x.noteId);
-					const new_notes = (await this.notesRepository.find({
-						where: { id: In(ps.pinnedNoteIds) },
-						select: { id: true },
-					})).map(x => x.id);
-					const add = new_notes.filter(x => !old_notes.includes(x));
-					const remove = old_notes.filter(x => !new_notes.includes(x));
-					for (const pin of remove) {
-						console.log('remove pin note ' + pin);
-						await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin, channel);
+			const createdCopyIds: string[] = [];
+			try {
+				if (channel.actorId) {
+					if (ps.description !== undefined) {
+						await this.userProfilesRepository.update({ userId: channel.actorId }, {
+							description: ps.description,
+						});
 					}
-					for (const pin of add) {
-						console.log('add pin note ' + pin);
-						await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
-					}
-				}
-				if (banner != null) {
-					const reuploadedBanner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, channel.actorId);
-					// 複製失敗時は「変更なし」扱い
-					banner = reuploadedBanner ?? undefined;
-				}
-				if (banner) {
-					updates.bannerId = banner.id;
-					updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
-					updates.bannerBlurhash = banner.blurhash;
-				} else if (ps.bannerId === null) {
-					updates.bannerId = null;
-					updates.bannerUrl = null;
-					updates.bannerBlurhash = null;
-				}
-				if (icon != null) {
-					const reuploadedIcon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, channel.actorId);
-					// 複製失敗時は「変更なし」扱い
-					icon = reuploadedIcon ?? undefined;
-				}
-				if (icon) {
-					updates.avatarId = icon.id;
-					updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
-					updates.avatarBlurhash = icon.blurhash;
-				} else if (ps.iconId === null) {
-					updates.avatarId = null;
-					updates.avatarUrl = null;
-					updates.avatarBlurhash = null;
-				}
-				if (ps.name !== undefined || ps.description !== undefined) {
-					const user = await this.usersRepository.findOneBy({ id: channel.actorId });
-					if (ps.name !== undefined) {
-						if (ps.name === user?.username) {
-							updates.name = null;
-						} else {
-							const trimmedName = ps.name.trim();
-							updates.name = trimmedName === '' ? null : trimmedName;
+					if (ps.pinnedNoteIds) {
+						const old_notes = (await this.userNotePiningsRepository.find({
+							where: { userId: channel.actorId },
+							select: { noteId: true },
+						})).map(x => x.noteId);
+						const new_notes = (await this.notesRepository.find({
+							where: { id: In(ps.pinnedNoteIds) },
+							select: { id: true },
+						})).map(x => x.id);
+						const add = new_notes.filter(x => !old_notes.includes(x));
+						const remove = old_notes.filter(x => !new_notes.includes(x));
+						for (const pin of remove) {
+							console.log('remove pin note ' + pin);
+							await this.notePiningService.removePinned({ id: channel.actorId, host: channel.host }, pin, channel);
+						}
+						for (const pin of add) {
+							console.log('add pin note ' + pin);
+							await this.notePiningService.addPinned({ id: channel.actorId, host: channel.host }, pin, channel);
 						}
 					}
-					let emojis = [] as string[];
-					if (ps.name != null) {
-						const tokens = mfm.parseSimple(ps.name);
-						emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+					if (banner != null) {
+						const originalBanner = banner;
+						const reuploadedBanner = await this.channelEntityService.reuploadFileAsChannelAccount(originalBanner, channel.actorId);
+						// 実際に新規作成された複製ファイルのみ、DB反映失敗時の後始末対象とする
+						if (reuploadedBanner != null && reuploadedBanner.id !== originalBanner.id) {
+							createdCopyIds.push(reuploadedBanner.id);
+						}
+						// 複製失敗時は「変更なし」扱い
+						banner = reuploadedBanner ?? undefined;
 					}
-					let tags = [] as string[];
-					if (ps.description != null) {
-						const tokens = mfm.parse(ps.description);
-						emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
-						tags = extractHashtags(tokens).map(tag => normalizeForSearch(tag)).splice(0, 32);
+					if (banner) {
+						updates.bannerId = banner.id;
+						updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+						updates.bannerBlurhash = banner.blurhash;
+					} else if (ps.bannerId === null) {
+						updates.bannerId = null;
+						updates.bannerUrl = null;
+						updates.bannerBlurhash = null;
 					}
+					if (icon != null) {
+						const originalIcon = icon;
+						const reuploadedIcon = await this.channelEntityService.reuploadFileAsChannelAccount(originalIcon, channel.actorId);
+						if (reuploadedIcon != null && reuploadedIcon.id !== originalIcon.id) {
+							createdCopyIds.push(reuploadedIcon.id);
+						}
+						// 複製失敗時は「変更なし」扱い
+						icon = reuploadedIcon ?? undefined;
+					}
+					if (icon) {
+						updates.avatarId = icon.id;
+						updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
+						updates.avatarBlurhash = icon.blurhash;
+					} else if (ps.iconId === null) {
+						updates.avatarId = null;
+						updates.avatarUrl = null;
+						updates.avatarBlurhash = null;
+					}
+					if (ps.name !== undefined || ps.description !== undefined) {
+						const user = await this.usersRepository.findOneBy({ id: channel.actorId });
+						if (ps.name !== undefined) {
+							if (ps.name === user?.username) {
+								updates.name = null;
+							} else {
+								const trimmedName = ps.name.trim();
+								updates.name = trimmedName === '' ? null : trimmedName;
+							}
+						}
+						let emojis = [] as string[];
+						if (ps.name != null) {
+							const tokens = mfm.parseSimple(ps.name);
+							emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+						}
+						let tags = [] as string[];
+						if (ps.description != null) {
+							const tokens = mfm.parse(ps.description);
+							emojis = emojis.concat(extractCustomEmojisFromMfm(tokens));
+							tags = extractHashtags(tokens).map(tag => normalizeForSearch(tag)).splice(0, 32);
+						}
 
-					updates.emojis = emojis;
-					updates.tags = tags;
+						updates.emojis = emojis;
+						updates.tags = tags;
 
-					// ハッシュタグ更新
-					if (user) {
-						this.hashtagService.updateUsertags(user, tags);
+						// ハッシュタグ更新
+						if (user) {
+							this.hashtagService.updateUsertags(user, tags);
+						}
+					}
+					if (Object.keys(updates).length > 0) {
+						await this.usersRepository.update(channel.actorId, updates);
+						this.globalEventService.publishInternalEvent('localUserUpdated', { id: channel.actorId });
 					}
 				}
-				if (Object.keys(updates).length > 0) {
-					await this.usersRepository.update(channel.actorId, updates);
-					this.globalEventService.publishInternalEvent('localUserUpdated', { id: channel.actorId });
+				await this.channelsRepository.update(channel.id, {
+					...(ps.name !== undefined ? { name: ps.name } : {}),
+					...(ps.description !== undefined ? { description: ps.description } : {}),
+					...(ps.pinnedNoteIds !== undefined ? { pinnedNoteIds: ps.pinnedNoteIds } : {}),
+					...(ps.color !== undefined ? { color: ps.color } : {}),
+					...(typeof ps.isArchived === 'boolean' ? { isArchived: ps.isArchived } : {}),
+					...(banner !== undefined ? { bannerId: banner?.id ?? null } : {}),
+					...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
+					...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
+				});
+			} catch (e) {
+				// DB反映に失敗したらこの処理で新規作成した複製ファイルだけ後始末する（元ファイルは残す）
+				if (channel.actorId != null) {
+					for (const fileId of createdCopyIds) {
+						await this.channelEntityService.deleteChannelAccountFile(fileId, channel.actorId);
+					}
 				}
+				throw e;
 			}
-			await this.channelsRepository.update(channel.id, {
-				...(ps.name !== undefined ? { name: ps.name } : {}),
-				...(ps.description !== undefined ? { description: ps.description } : {}),
-				...(ps.pinnedNoteIds !== undefined ? { pinnedNoteIds: ps.pinnedNoteIds } : {}),
-				...(ps.color !== undefined ? { color: ps.color } : {}),
-				...(typeof ps.isArchived === 'boolean' ? { isArchived: ps.isArchived } : {}),
-				...(banner !== undefined ? { bannerId: banner?.id ?? null } : {}),
-				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
-				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
-			});
-			//FIXME: ユーザーファイル複製->DB設定失敗の時に複製したファイルが残る
 
 			if (account) {
 				//このaccountは変更前の状態（新旧同一ファイルの時は削除しない）
