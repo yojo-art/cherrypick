@@ -1,6 +1,6 @@
-import { afterAll, beforeAll, describe, test } from 'vitest';
 import assert, { strictEqual } from 'node:assert';
 import { notStrictEqual } from 'node:assert/strict';
+import { afterAll, beforeAll, describe, test } from 'vitest';
 import * as Misskey from 'misskey-js';
 import { isPureRenote } from 'misskey-js/note.js';
 import { createAccount, fetchAdmin, type LoginUser, randomUsername, resolveRemoteNote, resolveRemoteUser, sleep, uploadFile, waitFor } from './utils.js';
@@ -114,11 +114,15 @@ describe('Channel', () => {
 			const image = await uploadFile('a.test', alice);
 			await alice.client.request('channels/update', { channelId: aliceCh.id, bannerId: image.id });
 			aliceCh = await alice.client.request('channels/show', { channelId: aliceCh.id });
-			strictEqual(aliceCh.bannerUrl, image.url, 'ローカルにバナー画像が設定される');
+			notStrictEqual(aliceCh.bannerUrl, null, 'ローカルにバナー画像が設定される');
+			assert(aliceCh.bannerId != null);
+			notStrictEqual(aliceCh.bannerId, image.id, 'バナーは元画像とは別の複製ファイルである');
 			assert(aliceCh.actorId);
 
 			const channelActorInA = await alice.client.request('users/show', { userId: aliceCh.actorId });
 			strictEqual(channelActorInA.bannerUrl, aliceCh.bannerUrl, 'バナー画像を設定するとローカルの対応したユーザーのバナーになる');
+			const bannerFileInA = await (await fetchAdmin('a.test')).client.request('admin/drive/show-file', { fileId: aliceCh.bannerId });
+			strictEqual(bannerFileInA.userId, aliceCh.actorId, 'バナーファイルはチャンネルアカウントが所有する');
 			await sleep();
 
 			await bob.client.request('federation/update-remote-user', { userId: aliceChActorInB.id });

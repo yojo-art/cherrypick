@@ -1189,6 +1189,7 @@ export class DriveService {
 	@bindThis
 	public async reuploadFile(data: {
 		originalUrl: string;
+		user?: { id: MiUser['id']; host: MiUser['host'] } | null;
 	}): Promise<MiDriveFile> {
 		let retryCount = 0;
 		let copyDriveFile;
@@ -1198,12 +1199,12 @@ export class DriveService {
 
 		const originalDriveFile = await this.driveFilesRepository.findOneBy({ url: originalSourceUrl });
 		if (originalDriveFile && originalDriveFile.userHost === null) {
-			//ローカルユーザーがアップロードした絵文字はコピーする
+			//ローカルユーザーがアップロードしたファイルはコピーする
 			try {
 				copyDriveFile = await this.copy({
 					file: originalDriveFile,
 					folderId: null,
-					userId: null,
+					userId: data.user?.id ?? null,
 					userHost: null,
 				});
 			} catch (e) {
@@ -1221,13 +1222,13 @@ export class DriveService {
 				try {
 					copyDriveFile = await this.uploadFromUrl({
 						url: originalSourceUrl,
-						user: null,
+						user: data.user ?? null,
 						force: true,
 					});
 					break;
 				} catch (e) {
 					retryCount++;
-					this.registerLogger.warn(`Failed to upload custom emoji (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
+					this.registerLogger.warn(`Failed to upload file (attempt ${retryCount}/${MAX_RETRY_COUNT})`, {
 						error: e instanceof Error ? e.message : String(e),
 						stack: e instanceof Error ? e.stack : undefined,
 						originalUrl: originalSourceUrl,
@@ -1246,7 +1247,7 @@ export class DriveService {
 		}
 
 		if (!copyDriveFile) {
-			throw new Error('Emoji upload succeeded but drive file is undefined. This should never happen.');
+			throw new Error('File upload succeeded but drive file is undefined. This should never happen.');
 		}
 
 		return copyDriveFile;
