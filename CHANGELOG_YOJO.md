@@ -1,3 +1,34 @@
+## 1.11.0
+Cherrypick 4.17.0  
+Misskey 2026.6.0
+
+### Release Date
+2026-09-07
+
+### General
+- Misskey 2026.6.0 のマージ [#1305](https://github.com/yojo-art/cherrypick/pull/1305)
+- Feat: 高度な検索に投稿日時の期間指定を追加 [#1325](https://github.com/yojo-art/cherrypick/pull/1325)
+- Feat: お知らせにノートと同じようにリアクションできるように [#1312](https://github.com/yojo-art/cherrypick/pull/1312)
+  - お知らせにリアクション受け入れ設定を追加 [#1323](https://github.com/yojo-art/cherrypick/pull/1323)
+  - ロールポリシー reactionLimit でお知らせへのリアクション数に上限を設定できるように [#1322](https://github.com/yojo-art/cherrypick/pull/1322)
+- Feat: チャンネル投稿の公開範囲を制限し、通常投稿と記憶先を分離 [#1302](https://github.com/yojo-art/cherrypick/pull/1302)
+  - チャンネル投稿でフォロワー限定・ダイレクトを選択できなくなりました
+- Change: チャンネル設定のファイルを複製 [#1342](https://github.com/yojo-art/cherrypick/pull/1342)
+  - チャンネルにバナー・アイコンを設定する時、ファイルをコピーしてチャンネルアカウントの所有にします
+
+### Client
+- Fix: FTT設定の「CherryPick」表記を「Misskey」に変更 [#1337](https://github.com/yojo-art/cherrypick/pull/1337)
+- Fix: ja-JPのunRenoteAllConfirmDescriptionの誤字修正 [#1319](https://github.com/yojo-art/cherrypick/pull/1319)
+
+### Server
+- Change: チャンネル投稿AP表現変更 [#1296](https://github.com/yojo-art/cherrypick/pull/1296)
+- Change: ローカルユーザーがアップロードした絵文字はコピーするように [#1316](https://github.com/yojo-art/cherrypick/pull/1316)
+- Fix: QueueServiceの起動時デバッグログを削除 [#1310](https://github.com/yojo-art/cherrypick/pull/1310)
+- Fix: セキュリティに関する修正 (Cherry-picked from misskey 2026.9.0)
+
+### Others
+- 未使用のbody-parser依存を削除 [#1309](https://github.com/yojo-art/cherrypick/pull/1309)
+
 ## 1.10.0
 Cherrypick 4.17.0  
 Misskey 2026.5.4
@@ -83,7 +114,7 @@ Misskey 2025.10.2
 - Fix: チャンネル内リノートが配送されない問題の修正 [#1200](https://github.com/yojo-art/cherrypick/pull/1200)
   - チャンネルアカウント、投稿者双方が修正されたバージョンである必要があります。
 	- yojo-art以外の実装では無視される可能性があります。
-- Fix: セキュリティに関する修正 (Cherry-picked from misskey)
+- Fix: セキュリティに関する修正 (Cherry-picked from misskey 2026.7.0)
 
 ## 1.8.0
 Cherrypick 4.17.0  
