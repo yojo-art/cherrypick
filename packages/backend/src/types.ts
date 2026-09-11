@@ -25,6 +25,7 @@
  * createToken - トークン作成
  * app - アプリ通知
  * test - テスト通知（サーバー側）
+ * abuseReport - 通報があった（モデレーター/管理者向け）
  */
 export const notificationTypes = [
 	'note',
@@ -48,6 +49,7 @@ export const notificationTypes = [
 	'createToken',
 	'app',
 	'test',
+	'abuseReport',
 ] as const;
 
 export const groupedNotificationTypes = [

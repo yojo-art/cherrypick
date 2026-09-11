@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { setTimeout } from 'node:timers/promises';
 import { entities } from 'misskey-js';
 import {
 	beforeEach,
@@ -71,6 +72,19 @@ describe('[シナリオ] ユーザ通報', () => {
 			credential ?? admin,
 		);
 		return res.body;
+	}
+
+	// notifications の discriminated union は misskey-js の autogen 型が持つが、
+	// Array.prototype.find の型ガード無しでは呼び出し側で narrowing されないため、
+	// テストの見やすさのために緩く型付けした専用 helper を用意する。
+	function findAbuseReportNotification(body: unknown[], reportId: string) {
+		return body.find(n => (n as { type?: string }).type === 'abuseReport' && (n as { reportId?: string }).reportId === reportId) as {
+			targetUserId: string;
+			userId: string;
+			resolved: boolean;
+			resolvedAs: string | null;
+			assigneeId: string | null;
+		} | undefined;
 	}
 
 	async function resolveAbuseReport(args?: Partial<entities.AdminResolveAbuseUserReportRequest>, credential?: UserToken): Promise<entities.EmptyResponse> {
@@ -356,6 +370,59 @@ describe('[シナリオ] ユーザ通報', () => {
 			}).catch(e => e.message);
 
 			expect(webhookBody2).toBe('timeout');
+		});
+	});
+
+	describe('InAppNotification', () => {
+		test('通報を受けた -> モデレーターの通知欄にabuseReport通知が作成される(コメントは含まれない)', async () => {
+			// 通報(bob -> alice)
+			const abuse = {
+				userId: alice.id,
+				comment: randomString(),
+			};
+			await createAbuseReport(abuse, bob);
+
+			// Redisに追加されるのを待つ
+			await setTimeout(100);
+
+			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
+
+			const notifRes = await api('i/notifications', {}, admin);
+			expect(notifRes.status).toBe(200);
+
+			const abuseNotif = findAbuseReportNotification(notifRes.body, abuseReportId);
+
+			if (abuseNotif == null) {
+				throw new Error('abuseReport notification not found');
+			}
+			expect(abuseNotif.targetUserId).toBe(alice.id);
+			expect(abuseNotif.userId).toBe(bob.id);
+			expect(abuseNotif.resolved).toBe(false);
+			expect(abuseNotif.resolvedAs).toBeNull();
+			expect(abuseNotif.assigneeId).toBeNull();
+			expect(abuseNotif).not.toHaveProperty('comment');
+		});
+
+		test('通報を解決すると、既存の通知のresolvedが更新される(read時に都度解決される)', async () => {
+			const abuse = {
+				userId: alice.id,
+				comment: randomString(),
+			};
+			await createAbuseReport(abuse, bob);
+			await setTimeout(100);
+
+			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
+
+			await resolveAbuseReport({ reportId: abuseReportId }, admin);
+
+			const notifRes = await api('i/notifications', {}, admin);
+			const abuseNotif = findAbuseReportNotification(notifRes.body, abuseReportId);
+
+			if (abuseNotif == null) {
+				throw new Error('abuseReport notification not found');
+			}
+			expect(abuseNotif.resolved).toBe(true);
+			expect(abuseNotif.assigneeId).toBe(admin.id);
 		});
 	});
 });

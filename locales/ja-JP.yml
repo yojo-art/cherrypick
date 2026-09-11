@@ -3407,6 +3407,7 @@ _notification:
   loginDescription: "{ip}でログインされました。\n承認されていない機器であれば、セキュリティのために「{text}」を通じてすべての機器でログアウトを行ってください。"
   createToken: "アクセストークンが作成されました"
   createTokenDescription: "心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。"
+  abuseReport: "通報がありました"
 
   _types:
     all: "すべて"
@@ -3431,6 +3432,7 @@ _notification:
     createToken: "アクセストークンの作成"
     test: "通知のテスト"
     app: "連携アプリからの通知"
+    abuseReport: "通報があった"
 
   _actions:
     followBack: "フォローバック"

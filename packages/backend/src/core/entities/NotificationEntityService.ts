@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import { In } from 'typeorm';
 import { DI } from '@/di-symbols.js';
-import type { FollowRequestsRepository, NotesRepository, MiUser, UsersRepository, UserGroupInvitationsRepository } from '@/models/_.js';
+import type { FollowRequestsRepository, NotesRepository, MiUser, UsersRepository, UserGroupInvitationsRepository, AbuseUserReportsRepository, MiAbuseUserReport } from '@/models/_.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import type { MiGroupedNotification, MiNotification } from '@/models/Notification.js';
 import type { MiNote } from '@/models/Note.js';
@@ -59,6 +59,9 @@ export class NotificationEntityService implements OnModuleInit {
 		@Inject(DI.userGroupInvitationsRepository)
 		private userGroupInvitationsRepository: UserGroupInvitationsRepository,
 
+		@Inject(DI.abuseUserReportsRepository)
+		private abuseUserReportsRepository: AbuseUserReportsRepository,
+
 		private cacheService: CacheService,
 	) {
 	}
@@ -83,6 +86,7 @@ export class NotificationEntityService implements OnModuleInit {
 		hint?: {
 			packedNotes: Map<MiNote['id'], Packed<'Note'>>;
 			packedUsers: Map<MiUser['id'], Packed<'UserLite'>>;
+			abuseReports?: Map<MiAbuseUserReport['id'], MiAbuseUserReport>;
 		},
 	): Promise<Packed<'Notification'> | null> {
 		const notification = src;
@@ -191,6 +195,37 @@ export class NotificationEntityService implements OnModuleInit {
 			return null;
 		}
 
+		// abuseReport通知は永続化された内容を持たず、read時に現在の通報の状態
+		// (reporterId / targetUserId / resolved / resolvedAs / assigneeId) を
+		// 都度引き直す。他のモデレーターが対処した後も通知欄が「未対応」のまま
+		// 残るのを防ぐため。
+		const needsAbuseReport = notification.type === 'abuseReport';
+		const abuseReport = needsAbuseReport ? (
+			hint?.abuseReports != null
+				? (hint.abuseReports.get(notification.reportId) ?? null)
+				: await this.abuseUserReportsRepository.findOneBy({ id: notification.reportId })
+		) : undefined;
+		// if the report has been deleted, don't show this notification
+		if (needsAbuseReport && !abuseReport) {
+			return null;
+		}
+
+		// 通報者(reporter)は notifierId ではなく abuseReport.reporterId から解決する。
+		// notifierId にすると #validateNotifier の isSuspended / mutings チェックが
+		// 通報者に対して効いてしまい、モデレーターが通報者をミュートしている・
+		// 通報後に通報者がサスペンドされた、というだけでこの通知が作成されない/
+		// 読めなくなる (通知欄に残す目的そのものを破る)。ここでは deleted のみを
+		// drop 条件にする。
+		const abuseReportReporter = needsAbuseReport && abuseReport != null ? (
+			hint?.packedUsers != null && hint.packedUsers.has(abuseReport.reporterId)
+				? hint.packedUsers.get(abuseReport.reporterId)
+				: await this.userEntityService.pack(abuseReport.reporterId, { id: meId })
+		) : undefined;
+		// if the reporter has been deleted, don't show this notification
+		if (needsAbuseReport && !abuseReportReporter) {
+			return null;
+		}
+
 		return await awaitAll({
 			id: notification.id,
 			createdAt: new Date(notification.createdAt).toISOString(),
@@ -228,6 +263,20 @@ export class NotificationEntityService implements OnModuleInit {
 				header: notification.customHeader,
 				icon: notification.customIcon,
 			} : {}),
+			...(notification.type === 'abuseReport' ? {
+				reportId: notification.reportId,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				targetUserId: abuseReport!.targetUserId,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				resolved: abuseReport!.resolved,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				resolvedAs: abuseReport!.resolvedAs,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				assigneeId: abuseReport!.assigneeId,
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				userId: abuseReport!.reporterId,
+				user: abuseReportReporter,
+			} : {}),
 		});
 	}
 
@@ -261,12 +310,26 @@ export class NotificationEntityService implements OnModuleInit {
 
 		validNotifications = validNotifications.filter(x => !('noteId' in x) || packedNotes.has(x.noteId));
 
+		// abuseReport の reporter は notifierId ではなく reportId 経由で解決するため
+		// (#packInternal 参照)、userIds を集める前に abuseReports を引いておく必要がある。
+		const reportIds = validNotifications.map(x => x.type === 'abuseReport' ? x.reportId : null).filter(x => x != null);
+		const abuseReportsArray = reportIds.length > 0 ? await this.abuseUserReportsRepository.find({
+			where: { id: In(reportIds) },
+		}) : [];
+		const abuseReports = new Map(abuseReportsArray.map(r => [r.id, r]));
+
+		validNotifications = validNotifications.filter(x => x.type !== 'abuseReport' || abuseReports.has(x.reportId));
+
 		const userIds = [];
 		for (const notification of validNotifications) {
 			if ('notifierId' in notification) userIds.push(notification.notifierId);
 			if (notification.type === 'reaction:grouped') userIds.push(...notification.reactions.map(x => x.userId));
 			if (notification.type === 'renote:grouped') userIds.push(...notification.userIds);
 			if (notification.type === 'note:grouped') userIds.push(...notification.notifierIds);
+			if (notification.type === 'abuseReport') {
+				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
+				userIds.push(abuseReports.get(notification.reportId)!.reporterId);
+			}
 		}
 		const users = userIds.length > 0 ? await this.usersRepository.find({
 			where: { id: In(userIds) },
@@ -288,7 +351,7 @@ export class NotificationEntityService implements OnModuleInit {
 				x,
 				meId,
 				{ checkValidNotifier: false },
-				{ packedNotes, packedUsers },
+				{ packedNotes, packedUsers, abuseReports },
 			);
 		});
 
@@ -306,6 +369,7 @@ export class NotificationEntityService implements OnModuleInit {
 		hint?: {
 			packedNotes: Map<MiNote['id'], Packed<'Note'>>;
 			packedUsers: Map<MiUser['id'], Packed<'UserLite'>>;
+			abuseReports?: Map<MiAbuseUserReport['id'], MiAbuseUserReport>;
 		},
 	): Promise<Packed<'Notification'> | null> {
 		return await this.#packInternal(src, meId, options, hint);

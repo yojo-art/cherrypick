@@ -23,6 +23,7 @@ import { RecipientMethod } from '@/models/AbuseReportNotificationRecipient.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { NotificationService } from '@/core/NotificationService.js';
 import { IdService } from './IdService.js';
 
 @Injectable()
@@ -44,6 +45,7 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 		private moderationLogService: ModerationLogService,
 		private globalEventService: GlobalEventService,
 		private userEntityService: UserEntityService,
+		private notificationService: NotificationService,
 	) {
 		this.redisForSub.on('message', this.onMessage);
 	}
@@ -78,6 +80,53 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 						comment: abuseReport.comment,
 					},
 				);
+			}
+		}
+	}
+
+	/**
+	 * 通知欄（ベル）にも{@link abuseReports}の内容を残す.
+	 * **upstream には無い機能** — {@link notifyAdminStream}はその瞬間に管理画面を
+	 * 開いている人にしか届かず、後から見返すことができないため追加している。
+	 * 通知先ユーザは{@link getModeratorIds}の取得結果に依る。
+	 *
+	 * 通報コメント本文は通知に含めない — 定型フォームの全文は通知欄では読みにくい上、
+	 * Redis に本文を複製する理由が無く、権限を失った元モデレーターに読まれる面も
+	 * 減らせるため。通知は{@link NotificationService.createNotification}が best-effort
+	 * で作成する。
+	 *
+	 * **notifierId には reporterId を渡さない。** createNotification へ notifierId を
+	 * 渡すと、NotificationService / NotificationEntityService 側の汎用フィルタ
+	 * (ミュート・サスペンド判定) が通報者に対して適用されてしまい、「モデレーターが
+	 * 通報者をミュートしている」「通報後に通報者がサスペンドされた」というだけで
+	 * この通知が作成されない・後から読めなくなる (通知欄に残す目的そのものを破る)。
+	 * そのため notifierId は渡さず、通報者自身がモデレーターの場合の自己通知抑止も
+	 * ここで明示的に行う (createNotification 側の notifierId 起点の自己抑止に頼らない)。
+	 * reporter の解決は NotificationEntityService が reportId 経由で行う。
+	 *
+	 * @see RoleService.getModeratorIds
+	 * @see NotificationService.createNotification
+	 */
+	@bindThis
+	public async notifyInApp(abuseReports: MiAbuseUserReport[]) {
+		if (abuseReports.length <= 0) {
+			return;
+		}
+
+		const moderatorIds = await this.roleService.getModeratorIds({
+			includeAdmins: true,
+			excludeExpire: true,
+		});
+
+		for (const moderatorId of moderatorIds) {
+			for (const abuseReport of abuseReports) {
+				// 通報者自身がモデレーターなら自分の通知欄には出さない。
+				if (moderatorId === abuseReport.reporterId) {
+					continue;
+				}
+				this.notificationService.createNotification(moderatorId, 'abuseReport', {
+					reportId: abuseReport.id,
+				});
 			}
 		}
 	}
