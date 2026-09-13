@@ -10,7 +10,7 @@ import { WebSocket } from 'ws';
 import { api, port, post, randomString, signup } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
-describe('Bubble timeline streaming (0222)', () => {
+describe('Bubble timeline streaming', () => {
 	let root: misskey.entities.SignupResponse;
 
 	beforeAll(async () => {
@@ -80,7 +80,7 @@ describe('Bubble timeline streaming (0222)', () => {
 		const remote = await signup({ username: randomString(), host: 'bubble.example' });
 		const { ws, waitForNote } = await connectGuestChannel('bubbleTimeline');
 		try {
-			const note = await post(remote, { text: 'poc-0222', visibility: 'public' });
+			const note = await post(remote, { text: 'guest-bubble-note', visibility: 'public' });
 			const received = await waitForNote(note.id);
 			expect(received.id).toBe(note.id);
 			expect(received.user.host).toBe('bubble.example');
