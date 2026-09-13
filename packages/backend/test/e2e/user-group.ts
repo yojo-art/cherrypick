@@ -597,9 +597,9 @@ describe('UserGroup', () => {
 		let group2: any;
 
 		beforeAll(async () => {
-			owner = await signup({ username: 'group_delete_owner' });
-			invitee1 = await signup({ username: 'group_delete_invitee1' });
-			invitee2 = await signup({ username: 'group_delete_invitee2' });
+			owner = await signup({ username: 'dave' });
+			invitee1 = await signup({ username: 'erin' });
+			invitee2 = await signup({ username: 'frank' });
 		}, 1000 * 60 * 2);
 
 		afterAll(async () => {
