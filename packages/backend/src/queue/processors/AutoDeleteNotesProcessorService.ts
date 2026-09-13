@@ -3,8 +3,10 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { randomUUID } from 'node:crypto';
 import { Inject, Injectable } from '@nestjs/common';
-import { IsNull, LessThan, Not } from 'typeorm';
+import * as Redis from 'ioredis';
+import { IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
@@ -12,6 +14,15 @@ import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type * as Bull from 'bullmq';
+
+// 一度の実行(cronの1tick)で削除するノート数の上限。実行頻度を上げつつ1回あたりの
+// 削除件数・トランザクションサイズを抑える設計にしている(cronは10分おき)。
+const MAX_NOTES_PER_RUN = 200;
+// 実行中フラグの Redis ロックキー / TTL。実行間隔(10分)より十分短く、かつ
+// プロセスがクラッシュしてロック解放できなくても自動的に開放されるようにする。
+const LOCK_KEY = 'autoDeleteNotes:lock';
+const LOCK_TTL_MS = 5 * 60 * 1000;
+const RELEASE_LOCK_SCRIPT = 'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end';
 
 @Injectable()
 export class AutoDeleteNotesProcessorService {
@@ -24,6 +35,9 @@ export class AutoDeleteNotesProcessorService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private idService: IdService,
 		private queueLoggerService: QueueLoggerService,
 	) {
@@ -32,6 +46,29 @@ export class AutoDeleteNotesProcessorService {
 
 	@bindThis
 	public async process(job: Bull.Job<Record<string, unknown>>): Promise<{
+		deletedCount: number;
+		processedUsers: number;
+	}> {
+		// cluster (複数ワーカープロセス) 環境では同じ system キューを複数プロセスが
+		// 処理し得るため、in-memory なフラグではなく Redis ロックで前回実行中の
+		// 重複起動を防ぐ。
+		const lockToken = randomUUID();
+		const acquired = await this.redisClient.set(LOCK_KEY, lockToken, 'PX', LOCK_TTL_MS, 'NX');
+
+		if (acquired !== 'OK') {
+			this.logger.info('Previous auto-delete notes run is still in progress. Skipping this tick.');
+			return { deletedCount: 0, processedUsers: 0 };
+		}
+
+		try {
+			return await this.processWithLock();
+		} finally {
+			await this.redisClient.eval(RELEASE_LOCK_SCRIPT, 1, LOCK_KEY, lockToken);
+		}
+	}
+
+	@bindThis
+	private async processWithLock(): Promise<{
 		deletedCount: number;
 		processedUsers: number;
 	}> {
@@ -54,8 +91,11 @@ export class AutoDeleteNotesProcessorService {
 
 		this.logger.info(`Found ${usersWithAutoDelete.length} users with auto-delete settings.`);
 
-		// 각 유저별로 처리
+		// 각 유저별로 처리 (1回の実行あたり MAX_NOTES_PER_RUN 件に達したら打ち切り、
+		// 続きは次回の実行(10分後)に持ち越す)
 		for (const user of usersWithAutoDelete) {
+			if (stats.deletedCount >= MAX_NOTES_PER_RUN) break;
+
 			try {
 				const days = user.autoDeleteNotesAfterDays;
 				if (days === null || days <= 0) continue;
@@ -66,7 +106,7 @@ export class AutoDeleteNotesProcessorService {
 
 				this.logger.info(`Processing user ${user.id}: deleting notes older than ${days} days (before ${deleteBeforeDate.toISOString()})`);
 
-				// 삭제할 노트 찾기
+				// 삭제할 노트 찾기 (古いノートから優先的に削除する)
 				const queryBuilder = this.notesRepository.createQueryBuilder('note')
 					.where('note.userId = :userId', { userId: user.id })
 					.andWhere('note.id < :deleteBeforeId', { deleteBeforeId });
@@ -78,7 +118,8 @@ export class AutoDeleteNotesProcessorService {
 
 				const notesToDelete = await queryBuilder
 					.select('note.id')
-					.limit(1000) // 한 번에 최대 1000개씩 처리
+					.orderBy('note.id', 'ASC')
+					.limit(MAX_NOTES_PER_RUN - stats.deletedCount)
 					.getMany();
 
 				if (notesToDelete.length > 0) {
