@@ -96,8 +96,10 @@ export class AutoDeleteNotesProcessorService {
 			processedUsers: 0,
 		};
 
-		// autoDeleteNotesAfterDays가 설정된 유저 찾기
+		// autoDeleteNotesAfterDays가 설정된 유저 찾기 (この設定はローカルユーザーの
+		// 自分自身しか書き込めないが、クエリ自体にも host IS NULL を明示しておく)
 		const usersWithAutoDelete = await this.usersRepository.findBy({
+			host: IsNull(),
 			autoDeleteNotesAfterDays: Not(IsNull()),
 		});
 

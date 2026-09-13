@@ -8,6 +8,7 @@ process.env.NODE_ENV = 'test';
 import { afterAll, afterEach, beforeAll, beforeEach, describe, test, expect, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { mockDeep } from 'vitest-mock-extended';
+import { IsNull, Not } from 'typeorm';
 import type { TestingModule } from '@nestjs/testing';
 import { AutoDeleteNotesProcessorService } from '@/queue/processors/AutoDeleteNotesProcessorService.js';
 import { IdService } from '@/core/IdService.js';
@@ -157,6 +158,17 @@ describe('AutoDeleteNotesProcessorService', () => {
 
 		expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('alice'));
 		expect(stats).toEqual({ deletedCount: 1, processedUsers: 1 });
+	});
+
+	test('対象ユーザーの検索は host IS NULL (ローカルユーザー) に限定される', async () => {
+		mockUsersRepository.findBy.mockResolvedValue([]);
+
+		await runProcess();
+
+		expect(mockUsersRepository.findBy).toHaveBeenCalledWith({
+			host: IsNull(),
+			autoDeleteNotesAfterDays: Not(IsNull()),
+		});
 	});
 
 	test('対象ユーザーがいない場合は何もしない', async () => {
