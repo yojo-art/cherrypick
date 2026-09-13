@@ -7,7 +7,8 @@ process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
 import { afterAll, beforeAll, describe, test } from 'vitest';
-import { api, signup, sleep } from '../utils.js';
+import { MiUserGroupInvitation } from '@/models/UserGroupInvitation.js';
+import { api, initTestDb, signup, sleep } from '../utils.js';
 import type * as misskey from 'misskey-js';
 
 describe('UserGroup', () => {
@@ -586,5 +587,70 @@ describe('UserGroup', () => {
 			await api('users/groups/delete', { groupId: bobGroup.body.id }, bob);
 			await api('users/groups/delete', { groupId: carolGroup.body.id }, carol);
 		});
+	});
+
+	describe('users/groups/delete', () => {
+		let owner: misskey.entities.SignupResponse;
+		let invitee1: misskey.entities.SignupResponse;
+		let invitee2: misskey.entities.SignupResponse;
+		let group1: any;
+		let group2: any;
+
+		beforeAll(async () => {
+			owner = await signup({ username: 'dave' });
+			invitee1 = await signup({ username: 'erin' });
+			invitee2 = await signup({ username: 'frank' });
+		}, 1000 * 60 * 2);
+
+		afterAll(async () => {
+			if (group1 != null) await api('users/groups/delete', { groupId: group1.body.id }, owner);
+			if (group2 != null) await api('users/groups/delete', { groupId: group2.body.id }, owner);
+		});
+
+		// i/notifications は 30req/30s のレート制限があるため、ポーリング回数を抑える
+		async function waitForGroupInvitedNotification(user: misskey.entities.SignupResponse): Promise<any[]> {
+			for (let i = 0; i < 20; i++) {
+				const res = await api('i/notifications', { limit: 100 }, user);
+				assert.strictEqual(res.status, 200);
+				if (res.body.some((n: any) => n.type === 'groupInvited')) return res.body;
+				await sleep(250);
+			}
+			throw new Error('groupInvited notification was not created in time');
+		}
+
+		test('グループ削除時に招待された側の通知も消える', async () => {
+			group1 = await api('users/groups/create', { name: 'delete-notification-group' }, owner);
+			assert.strictEqual(group1.status, 200);
+
+			await api('users/groups/invite', { groupId: group1.body.id, userId: invitee1.id }, owner);
+			await waitForGroupInvitedNotification(invitee1);
+
+			const del = await api('users/groups/delete', { groupId: group1.body.id }, owner);
+			assert.strictEqual(del.status, 204);
+
+			const after = await api('i/notifications', { limit: 100 }, invitee1);
+			assert.strictEqual(after.status, 200);
+			assert.strictEqual(after.body.some((n: any) => n.type === 'groupInvited'), false);
+		}, 1000 * 60);
+
+		test('招待行が消えても Redis に通知が残っていれば i/notifications は 500 にならない', async () => {
+			group2 = await api('users/groups/create', { name: 'stale-notification-group' }, owner);
+			assert.strictEqual(group2.status, 200);
+
+			await api('users/groups/invite', { groupId: group2.body.id, userId: invitee2.id }, owner);
+			await waitForGroupInvitedNotification(invitee2);
+
+			// FK cascade 相当の状況を再現: 招待行のみ直接削除し、Redis 上には通知を残す
+			const connection = await initTestDb(true);
+			try {
+				await connection.getRepository(MiUserGroupInvitation).delete({ userGroupId: group2.body.id });
+			} finally {
+				await connection.destroy();
+			}
+
+			const after = await api('i/notifications', { limit: 100 }, invitee2);
+			assert.strictEqual(after.status, 200);
+			assert.strictEqual(after.body.some((n: any) => n.type === 'groupInvited'), false);
+		}, 1000 * 60);
 	});
 });
