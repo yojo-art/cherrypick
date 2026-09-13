@@ -13,6 +13,7 @@ import { RoleService } from '@/core/RoleService.js';
 import type { MiMeta } from '@/models/Meta.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
 import type { JsonObject } from '@/misc/json-value.js';
+import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
 import Channel, { type ChannelRequest } from '../channel.js';
 
 @Injectable({ scope: Scope.TRANSIENT })
@@ -33,6 +34,7 @@ export class BubbleTimelineChannel extends Channel {
 		private metaService: MetaService,
 		private roleService: RoleService,
 		private noteEntityService: NoteEntityService,
+		private noteStreamingHidingService: NoteStreamingHidingService,
 
 	) {
 		super(request);
@@ -67,9 +69,10 @@ export class BubbleTimelineChannel extends Channel {
 
 		if (isRenotePacked(note) && !isQuotePacked(note) && !this.withRenotes) return;
 
-		if (!this.following[note.userId] && note.userId !== this.user!.id) return;
-
 		if (this.isNoteMutedOrBlocked(note)) return;
+
+		const { shouldSkip } = await this.noteStreamingHidingService.processHiding(note, this.user?.id ?? null);
+		if (shouldSkip) return;
 
 		if (this.user && isRenotePacked(note) && !isQuotePacked(note)) {
 			if (note.renote && Object.keys(note.renote.reactions).length > 0) {
