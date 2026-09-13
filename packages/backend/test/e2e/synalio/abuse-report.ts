@@ -107,7 +107,8 @@ describe('[シナリオ] ユーザ通報', () => {
 		alice = await signup({ username: 'alice' });
 		bob = await signup({ username: 'bob' });
 
-		await role(admin, { isAdministrator: true });
+		const adminRole = await role(admin, { isAdministrator: true });
+		await api('admin/roles/assign', { userId: admin.id, roleId: adminRole.id }, admin);
 	}, 1000 * 60 * 2);
 
 	afterAll(async () => {
