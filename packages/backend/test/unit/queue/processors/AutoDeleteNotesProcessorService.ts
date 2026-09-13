@@ -189,6 +189,21 @@ describe('AutoDeleteNotesProcessorService', () => {
 		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(40);
 	});
 
+	test('実行中にロックの延長に失敗した場合はその時点で処理を打ち切る', async () => {
+		const notes7 = Array.from({ length: 7 }, (_, i) => ({ id: `note-${i}`, userId: 'alice' } as MiNote));
+		mockUsersRepository.findBy.mockResolvedValue([user]);
+		mockQueryBuilder(notes7);
+		// 1回目の eval 呼び出し(1チャンク目の後のロック延長)だけ失敗させる
+		mockRedisClient.eval.mockResolvedValueOnce(0);
+
+		const stats = await runProcess();
+
+		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(1);
+		expect(mockNotesRepository.delete).toHaveBeenCalledWith(notes7.slice(0, 5).map(n => n.id));
+		expect(stats).toEqual({ deletedCount: 5, processedUsers: 1 });
+		expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Lost the auto-delete notes lock'));
+	});
+
 	test('別プロセスが実行中(ロック取得失敗)の場合は何もせずスキップする', async () => {
 		mockRedisClient.set.mockResolvedValueOnce(null);
 
