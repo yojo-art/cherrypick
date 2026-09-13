@@ -4,6 +4,7 @@
  */
 
 import { randomUUID } from 'node:crypto';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { Inject, Injectable } from '@nestjs/common';
 import * as Redis from 'ioredis';
 import { IsNull, Not } from 'typeorm';
@@ -18,6 +19,10 @@ import type * as Bull from 'bullmq';
 // 一度の実行(cronの1tick)で削除するノート数の上限。実行頻度を上げつつ1回あたりの
 // 削除件数・トランザクションサイズを抑える設計にしている(cronは10分おき)。
 const MAX_NOTES_PER_RUN = 200;
+// 1回の DELETE 文で処理する件数。MAX_NOTES_PER_RUN 分を一括で消すのではなく
+// 小分けにし、間に間隔を空けることで削除がパルス的に集中しないようにする。
+const SUB_BATCH_SIZE = 5;
+const SUB_BATCH_INTERVAL_MS = 1000;
 // 実行中フラグの Redis ロックキー / TTL。実行間隔(10分)より十分短く、かつ
 // プロセスがクラッシュしてロック解放できなくても自動的に開放されるようにする。
 const LOCK_KEY = 'autoDeleteNotes:lock';
@@ -124,9 +129,19 @@ export class AutoDeleteNotesProcessorService {
 
 				if (notesToDelete.length > 0) {
 					const noteIds = notesToDelete.map(note => note.id);
-					await this.notesRepository.delete(noteIds);
 
-					stats.deletedCount += noteIds.length;
+					// SUB_BATCH_SIZE 件ずつに分けて削除し、間に間隔を空けることで
+					// 一度に大量のDELETE(とそれに伴うカスケード削除)が集中しないようにする
+					for (let i = 0; i < noteIds.length; i += SUB_BATCH_SIZE) {
+						const chunk = noteIds.slice(i, i + SUB_BATCH_SIZE);
+						await this.notesRepository.delete(chunk);
+						stats.deletedCount += chunk.length;
+
+						if (i + SUB_BATCH_SIZE < noteIds.length) {
+							await sleep(SUB_BATCH_INTERVAL_MS);
+						}
+					}
+
 					this.logger.info(`Deleted ${noteIds.length} notes for user ${user.id}`);
 				} else {
 					this.logger.info(`No notes to delete for user ${user.id}`);

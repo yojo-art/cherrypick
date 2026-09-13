@@ -5,7 +5,7 @@
 
 process.env.NODE_ENV = 'test';
 
-import { afterAll, beforeAll, beforeEach, describe, test, expect, vi } from 'vitest';
+import { afterAll, afterEach, beforeAll, beforeEach, describe, test, expect, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { mockDeep } from 'vitest-mock-extended';
 import type { TestingModule } from '@nestjs/testing';
@@ -78,26 +78,52 @@ describe('AutoDeleteNotesProcessorService', () => {
 
 	beforeEach(() => {
 		vi.clearAllMocks();
+		vi.useFakeTimers();
 		// ロックは既定で取得できることにする(competing lock のテストでは個別に上書きする)
 		mockRedisClient.set.mockResolvedValue('OK');
 		mockRedisClient.eval.mockResolvedValue(1);
 	});
 
-	test('対象ノートは userId 単位でまとめて削除される', async () => {
+	afterEach(() => {
+		vi.useRealTimers();
+	});
+
+	// SUB_BATCH_SIZE 単位のチャンク間で sleep が入るため、フェイクタイマーを進めながら実行する
+	async function runProcess() {
+		const promise = service.process({} as any);
+		await vi.runAllTimersAsync();
+		return await promise;
+	}
+
+	test('SUB_BATCH_SIZE (5件) 以下ならまとめて1回で削除される', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		mockQueryBuilder([noteA, noteB]);
 
-		const stats = await service.process({} as any);
+		const stats = await runProcess();
 
+		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(1);
 		expect(mockNotesRepository.delete).toHaveBeenCalledWith(['note-a', 'note-b']);
 		expect(stats).toEqual({ deletedCount: 2, processedUsers: 1 });
+	});
+
+	test('SUB_BATCH_SIZE (5件) を超える分は複数回に分けて削除される', async () => {
+		const notes7 = Array.from({ length: 7 }, (_, i) => ({ id: `note-${i}`, userId: 'alice' } as MiNote));
+		mockUsersRepository.findBy.mockResolvedValue([user]);
+		mockQueryBuilder(notes7);
+
+		const stats = await runProcess();
+
+		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(2);
+		expect(mockNotesRepository.delete).toHaveBeenNthCalledWith(1, notes7.slice(0, 5).map(n => n.id));
+		expect(mockNotesRepository.delete).toHaveBeenNthCalledWith(2, notes7.slice(5).map(n => n.id));
+		expect(stats).toEqual({ deletedCount: 7, processedUsers: 1 });
 	});
 
 	test('削除対象は note.id 昇順(古い順)で取得する', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		const qb = mockQueryBuilder([noteA]);
 
-		await service.process({} as any);
+		await runProcess();
 
 		expect(qb.orderBy).toHaveBeenCalledWith('note.id', 'ASC');
 	});
@@ -106,7 +132,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 		mockUsersRepository.findBy.mockResolvedValue([{ ...user, autoDeleteKeepFavorites: true }]);
 		const qb = mockQueryBuilder([noteA]);
 
-		await service.process({} as any);
+		await runProcess();
 
 		expect(qb.andWhere).toHaveBeenCalledWith(expect.stringContaining('note_favorite'));
 	});
@@ -115,7 +141,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 		mockUsersRepository.findBy.mockResolvedValue([{ ...user, autoDeleteKeepFavorites: false }]);
 		const qb = mockQueryBuilder([noteA]);
 
-		await service.process({} as any);
+		await runProcess();
 
 		expect(qb.andWhere.mock.calls.some(args => String(args[0]).includes('note_favorite'))).toBe(false);
 	});
@@ -127,7 +153,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 			.mockImplementationOnce(() => { throw new Error('query failed'); })
 			.mockImplementationOnce(() => mockQueryBuilder([noteA]));
 
-		const stats = await service.process({} as any);
+		const stats = await runProcess();
 
 		expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('alice'));
 		expect(stats).toEqual({ deletedCount: 1, processedUsers: 1 });
@@ -136,7 +162,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 	test('対象ユーザーがいない場合は何もしない', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([]);
 
-		const stats = await service.process({} as any);
+		const stats = await runProcess();
 
 		expect(mockNotesRepository.createQueryBuilder).not.toHaveBeenCalled();
 		expect(stats).toEqual({ deletedCount: 0, processedUsers: 0 });
@@ -145,27 +171,28 @@ describe('AutoDeleteNotesProcessorService', () => {
 	test('days が 0 以下のユーザーはスキップされる', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([{ ...user, autoDeleteNotesAfterDays: 0 }]);
 
-		const stats = await service.process({} as any);
+		const stats = await runProcess();
 
 		expect(mockNotesRepository.createQueryBuilder).not.toHaveBeenCalled();
 		expect(stats).toEqual({ deletedCount: 0, processedUsers: 0 });
 	});
 
-	test('1回の実行では MAX_NOTES_PER_RUN (200件) を超えて削除しない', async () => {
+	test('1回の実行では MAX_NOTES_PER_RUN (200件) を超えて削除しない (5件ずつ40回に分けて削除)', async () => {
 		const notes200 = Array.from({ length: 200 }, (_, i) => ({ id: `note-${i}`, userId: 'alice' } as MiNote));
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		mockQueryBuilder(notes200);
 
-		const stats = await service.process({} as any);
+		const stats = await runProcess();
 
 		expect(stats.deletedCount).toBe(200);
 		expect(mockNotesRepository.createQueryBuilder).toHaveBeenCalledTimes(1);
+		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(40);
 	});
 
 	test('別プロセスが実行中(ロック取得失敗)の場合は何もせずスキップする', async () => {
 		mockRedisClient.set.mockResolvedValueOnce(null);
 
-		const stats = await service.process({} as any);
+		const stats = await runProcess();
 
 		expect(mockUsersRepository.findBy).not.toHaveBeenCalled();
 		expect(stats).toEqual({ deletedCount: 0, processedUsers: 0 });
@@ -175,7 +202,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 	test('実行後にロックを解放する(自分が取得したトークンで解放する)', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([]);
 
-		await service.process({} as any);
+		await runProcess();
 
 		expect(mockRedisClient.set).toHaveBeenCalledWith('autoDeleteNotes:lock', expect.any(String), 'PX', expect.any(Number), 'NX');
 		expect(mockRedisClient.eval).toHaveBeenCalledWith(expect.any(String), 1, 'autoDeleteNotes:lock', expect.any(String));
