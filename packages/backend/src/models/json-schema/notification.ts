@@ -512,6 +512,50 @@ export const packedNotificationSchema = {
 			type: {
 				type: 'string',
 				optional: false, nullable: false,
+				enum: ['abuseReport'],
+			},
+			user: {
+				type: 'object',
+				ref: 'UserLite',
+				optional: false, nullable: false,
+			},
+			userId: {
+				type: 'string',
+				optional: false, nullable: false,
+				format: 'id',
+			},
+			reportId: {
+				type: 'string',
+				optional: false, nullable: false,
+				format: 'id',
+			},
+			targetUserId: {
+				type: 'string',
+				optional: false, nullable: false,
+				format: 'id',
+			},
+			resolved: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
+			resolvedAs: {
+				type: 'string',
+				optional: false, nullable: true,
+				enum: ['accept', 'reject', null],
+			},
+			assigneeId: {
+				type: 'string',
+				optional: false, nullable: true,
+				format: 'id',
+			},
+		},
+	}, {
+		type: 'object',
+		properties: {
+			...baseSchema.properties,
+			type: {
+				type: 'string',
+				optional: false, nullable: false,
 				enum: ['groupInvited'],
 			},
 			user: {

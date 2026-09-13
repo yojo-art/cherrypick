@@ -11,6 +11,7 @@ import { MiAccessToken } from './AccessToken.js';
 import { MiRole } from './Role.js';
 import { MiDriveFile } from './DriveFile.js';
 import { MiNoteDraft } from './NoteDraft.js';
+import { MiAbuseUserReport } from './AbuseUserReport.js';
 
 // misskey-js の notificationTypes と同期すべし
 export type MiNotification = {
@@ -150,6 +151,16 @@ export type MiNotification = {
 	type: 'test';
 	id: string;
 	createdAt: string;
+} | {
+	type: 'abuseReport';
+	id: string;
+	createdAt: string;
+	// notifierId (通報者) を持たない。持たせると #validateNotifier の
+	// isSuspended / mutings チェックが効いてしまい、モデレーターが通報者を
+	// ミュートしている・通報後に通報者がサスペンドされた、というだけで
+	// この通知が作成されない/読めなくなる (通知欄に残す目的そのものを破る)。
+	// reporterId / targetUserId は reportId から read 時に都度解決する。
+	reportId: MiAbuseUserReport['id'];
 };
 
 export type MiGroupedNotification = MiNotification | {

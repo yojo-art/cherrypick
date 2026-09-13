@@ -252,6 +252,14 @@ async function composeNotification(data: PushNotificationDataMap[keyof PushNotif
 						],
 					}];
 
+				case 'abuseReport':
+					return [i18n.ts._notification.abuseReport, {
+						body: `${getUserName(data.body.user)} (@${data.body.user.username}${data.body.user.host != null ? '@' + data.body.user.host : ''})`,
+						icon: data.body.user.avatarUrl ?? undefined,
+						badge: iconUrl('bell'),
+						data,
+					}];
+
 				case 'achievementEarned':
 					return [i18n.ts._notification.achievementEarned, {
 						body: i18n.ts._achievements._types[`_${data.body.achievement}`].title,

@@ -29,6 +29,7 @@ import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { RecipientMethod } from '@/models/AbuseReportNotificationRecipient.js';
 import { SystemWebhookService } from '@/core/SystemWebhookService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { NotificationService } from '@/core/NotificationService.js';
 
 process.env.NODE_ENV = 'test';
 
@@ -46,6 +47,7 @@ describe('AbuseReportNotificationService', () => {
 	let roleService: Mocked<RoleService>;
 	let emailService: Mocked<EmailService>;
 	let webhookService: Mocked<SystemWebhookService>;
+	let notificationService: Mocked<NotificationService>;
 
 	// --------------------------------------------------------------------------------------
 
@@ -133,6 +135,9 @@ describe('AbuseReportNotificationService', () => {
 					{
 						provide: GlobalEventService, useFactory: () => ({ publishAdminStream: vi.fn() }),
 					},
+					{
+						provide: NotificationService, useFactory: () => ({ createNotification: vi.fn() }),
+					},
 				],
 			})
 			.compile();
@@ -147,6 +152,7 @@ describe('AbuseReportNotificationService', () => {
 		roleService = app.get(RoleService) as Mocked<RoleService>;
 		emailService = app.get<EmailService>(EmailService) as Mocked<EmailService>;
 		webhookService = app.get<SystemWebhookService>(SystemWebhookService) as Mocked<SystemWebhookService>;
+		notificationService = app.get<NotificationService>(NotificationService) as Mocked<NotificationService>;
 
 		app.enableShutdownHooks();
 	});
@@ -164,6 +170,7 @@ describe('AbuseReportNotificationService', () => {
 	afterEach(async () => {
 		emailService.sendEmail.mockClear();
 		webhookService.enqueueSystemWebhook.mockClear();
+		notificationService.createNotification.mockClear();
 
 		await usersRepository.createQueryBuilder().delete().execute();
 		await userProfilesRepository.createQueryBuilder().delete().execute();
@@ -390,6 +397,67 @@ describe('AbuseReportNotificationService', () => {
 			expect(webhookService.enqueueSystemWebhook).toHaveBeenCalledTimes(1);
 			expect(webhookService.enqueueSystemWebhook.mock.calls[0][0]).toBe('abuseReport');
 			expect(webhookService.enqueueSystemWebhook.mock.calls[0][2]).toEqual({ excludes: [systemWebhook2.id] });
+		});
+	});
+
+	describe('notifyInApp', () => {
+		function buildReport(data: Partial<MiAbuseUserReport> = {}): MiAbuseUserReport {
+			return {
+				id: idService.gen(),
+				targetUserId: alice.id,
+				targetUser: alice,
+				reporterId: bob.id,
+				reporter: bob,
+				assigneeId: null,
+				assignee: null,
+				resolved: false,
+				forwarded: false,
+				comment: 'test',
+				moderationNote: '',
+				resolvedAs: null,
+				targetUserHost: null,
+				reporterHost: null,
+				...data,
+			};
+		}
+
+		test('モデレーターごとに通知が作成される(通報コメント・notifierIdは含まれない)', async () => {
+			const report = buildReport();
+
+			await service.notifyInApp([report]);
+
+			// beforeEachでgetModeratorIdsは[root, alice, bob]を返すようモックされている。
+			// bob は通報者自身なので自分には作成されない (下の別テストで確認)。
+			expect(notificationService.createNotification).toHaveBeenCalledTimes(2);
+			for (const moderatorId of [root.id, alice.id]) {
+				expect(notificationService.createNotification).toHaveBeenCalledWith(
+					moderatorId,
+					'abuseReport',
+					{ reportId: report.id },
+				);
+			}
+		});
+
+		test('通報者自身がモデレーターの場合、自分には作成されない', async () => {
+			// createNotification へ notifierId を渡すと NotificationService /
+			// NotificationEntityService の汎用ミュート/サスペンド判定が通報者に
+			// 対して効いてしまうため、notifierId には依存せずここで明示的に
+			// 自己通知を抑止している (#20)。
+			const report = buildReport({ reporterId: bob.id });
+
+			await service.notifyInApp([report]);
+
+			expect(notificationService.createNotification).not.toHaveBeenCalledWith(
+				bob.id,
+				expect.anything(),
+				expect.anything(),
+			);
+		});
+
+		test('通報が0件なら何もしない', async () => {
+			await service.notifyInApp([]);
+
+			expect(notificationService.createNotification).not.toHaveBeenCalled();
 		});
 	});
 });

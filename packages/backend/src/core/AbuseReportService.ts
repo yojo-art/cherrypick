@@ -36,6 +36,7 @@ export class AbuseReportService {
 	/**
 	 * ユーザからの通報をDBに記録し、その内容を下記の手段で管理者各位に通知する.
 	 * - 管理者用Redisイベント
+	 * - 通知欄（ベル）に残る in-app 通知
 	 * - EMail（モデレータ権限所有者ユーザ＋metaテーブルに設定されているメールアドレス）
 	 * - SystemWebhook
 	 *
@@ -69,6 +70,7 @@ export class AbuseReportService {
 
 		return Promise.all([
 			this.abuseReportNotificationService.notifyAdminStream(reports),
+			this.abuseReportNotificationService.notifyInApp(reports),
 			this.abuseReportNotificationService.notifySystemWebhook(reports, 'abuseReport'),
 			this.abuseReportNotificationService.notifyMail(reports),
 		]);

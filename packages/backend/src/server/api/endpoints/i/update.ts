@@ -240,6 +240,7 @@ export const paramDef = {
 				achievementEarned: notificationRecieveConfig,
 				app: notificationRecieveConfig,
 				test: notificationRecieveConfig,
+				abuseReport: notificationRecieveConfig,
 			},
 		},
 		emailNotificationTypes: { type: 'array', items: {

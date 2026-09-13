@@ -12940,6 +12940,10 @@ export interface Locale extends ILocale {
          * 心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。
          */
         "createTokenDescription": ParameterizedString<"text">;
+        /**
+         * 通報がありました
+         */
+        "abuseReport": string;
         "_types": {
             /**
              * すべて
@@ -13029,6 +13033,10 @@ export interface Locale extends ILocale {
              * 連携アプリからの通知
              */
             "app": string;
+            /**
+             * 通報があった
+             */
+            "abuseReport": string;
         };
         "_actions": {
             /**
