@@ -1142,20 +1142,20 @@ describeOpenSearchE2E('検索', () => {
 			anonNoIndex = await signup({ username: 'anonSearchNoIndex' });
 			assert.strictEqual((await api('i/update', { isIndexable: false }, anonNoIndex)).status, 200);
 
-		// NOTE: advanced-search は形態素解析 (simple_query_string) のため、前方一致ではなく
-		// クエリ 'AnonSearchable' がトークンとしてそのまま含まれるようスペース区切りにする。
-		// アンダースコア結合だと sudachi のトークン分割に依存してヒットしなくなる。
-		anonNotes.privateUserNull = await post(anonPrivate, { text: 'AnonSearchable private user null' });
-		anonNotes.privateUserPublic = await post(anonPrivate, { text: 'AnonSearchable private user public', searchableBy: 'public' });
-		anonNotes.privateUserPrivate = await post(anonPrivate, { text: 'AnonSearchable private user private', searchableBy: 'private' });
-		anonNotes.followersUserNull = await post(anonFollowers, { text: 'AnonSearchable followers user null' });
-		anonNotes.reactedUserNull = await post(anonReacted, { text: 'AnonSearchable reacted user null' });
-		anonNotes.publicUserNull = await post(anonPublic, { text: 'AnonSearchable public user null' });
-		anonNotes.nullUserNull = await post(anonNull, { text: 'AnonSearchable null user null' });
-		anonNotes.noIndexUserNull = await post(anonNoIndex, { text: 'AnonSearchable noindex user null' });
-		anonNotes.noIndexUserPublic = await post(anonNoIndex, { text: 'AnonSearchable noindex user public', searchableBy: 'public' });
-		anonNotes.eventPrivate = await post(anonPrivate, { text: 'AnonSearchable event', searchableBy: 'private', event: { title: 'AnonSearchableEventPrivate', start: Date.now() } });
-		anonNotes.eventPublic = await post(anonPrivate, { text: 'AnonSearchable event', searchableBy: 'public', event: { title: 'AnonSearchableEventPublic', start: Date.now() } });
+			// NOTE: advanced-search は形態素解析 (simple_query_string) のため、前方一致ではなく
+			// クエリ 'AnonSearchable' がトークンとしてそのまま含まれるようスペース区切りにする。
+			// アンダースコア結合だと sudachi のトークン分割に依存してヒットしなくなる。
+			anonNotes.privateUserNull = await post(anonPrivate, { text: 'AnonSearchable private user null' });
+			anonNotes.privateUserPublic = await post(anonPrivate, { text: 'AnonSearchable private user public', searchableBy: 'public' });
+			anonNotes.privateUserPrivate = await post(anonPrivate, { text: 'AnonSearchable private user private', searchableBy: 'private' });
+			anonNotes.followersUserNull = await post(anonFollowers, { text: 'AnonSearchable followers user null' });
+			anonNotes.reactedUserNull = await post(anonReacted, { text: 'AnonSearchable reacted user null' });
+			anonNotes.publicUserNull = await post(anonPublic, { text: 'AnonSearchable public user null' });
+			anonNotes.nullUserNull = await post(anonNull, { text: 'AnonSearchable null user null' });
+			anonNotes.noIndexUserNull = await post(anonNoIndex, { text: 'AnonSearchable noindex user null' });
+			anonNotes.noIndexUserPublic = await post(anonNoIndex, { text: 'AnonSearchable noindex user public', searchableBy: 'public' });
+			anonNotes.eventPrivate = await post(anonPrivate, { text: 'AnonSearchable event', searchableBy: 'private', event: { title: 'AnonSearchableEventPrivate', start: Date.now() } });
+			anonNotes.eventPublic = await post(anonPrivate, { text: 'AnonSearchable event', searchableBy: 'public', event: { title: 'AnonSearchableEventPublic', start: Date.now() } });
 
 			await api('admin/roles/update-default-policies', {
 				policies: {
