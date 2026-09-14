@@ -144,7 +144,6 @@ export class AutoDeleteNotesProcessorService {
 
 				if (notesToDelete.length > 0) {
 					const noteIds = notesToDelete.map(note => note.id);
-					let deletedForUser = 0;
 
 					// SUB_BATCH_SIZE 件ずつに分けて削除し、間に間隔を空けることで
 					// 一度に大量のDELETE(とそれに伴うカスケード削除)が集中しないようにする
@@ -152,7 +151,6 @@ export class AutoDeleteNotesProcessorService {
 						const chunk = noteIds.slice(i, i + SUB_BATCH_SIZE);
 						await this.notesRepository.delete(chunk);
 						stats.deletedCount += chunk.length;
-						deletedForUser += chunk.length;
 
 						// チャンクを1つ処理するたびにロックのTTLを延長する。延長できなかった
 						// 場合、既に他プロセスがロックを奪って実行している可能性があるため
@@ -167,10 +165,6 @@ export class AutoDeleteNotesProcessorService {
 							await sleep(SUB_BATCH_INTERVAL_MS);
 						}
 					}
-
-					this.logger.info(`Deleted ${deletedForUser} notes for user ${user.id}`);
-				} else {
-					this.logger.info(`No notes to delete for user ${user.id}`);
 				}
 
 				stats.processedUsers++;
