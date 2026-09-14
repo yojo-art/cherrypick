@@ -945,6 +945,129 @@ describe('Note', () => {
 				roleId: res.body.id,
 			}, root);
 		});
+
+		test('イベントの metadata.url に javascript: は保存されない', async () => {
+			const created = await api('notes/create', {
+				text: 'event xss poc',
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { url: 'javascript:alert(1)' },
+				},
+			} as any, alice);
+
+			assert.strictEqual(created.status, 200);
+
+			const shown = await api('notes/show', { noteId: created.body.createdNote.id }, alice);
+			assert.strictEqual(shown.status, 200);
+			assert.strictEqual((shown.body as any).event?.metadata?.url, undefined);
+		});
+
+		test('イベントの offers.url に javascript: は保存されない', async () => {
+			const created = await api('notes/create', {
+				text: 'event xss poc',
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { offers: { '@type': 'Offer', url: 'javascript:alert(1)' } },
+				},
+			} as any, alice);
+
+			assert.strictEqual(created.status, 200);
+
+			const shown = await api('notes/show', { noteId: created.body.createdNote.id }, alice);
+			assert.strictEqual(shown.status, 200);
+			assert.strictEqual((shown.body as any).event?.metadata?.offers?.url, undefined);
+		});
+
+		test('イベントの metadata.url の https は保存される', async () => {
+			const created = await api('notes/create', {
+				text: 'event poc',
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { url: 'https://example.com/event' },
+				},
+			} as any, alice);
+
+			assert.strictEqual(created.status, 200);
+
+			const shown = await api('notes/show', { noteId: created.body.createdNote.id }, alice);
+			assert.strictEqual(shown.status, 200);
+			assert.strictEqual((shown.body as any).event?.metadata?.url, 'https://example.com/event');
+		});
+
+		test('イベントの metadata の本文 (description等) は編集されない', async () => {
+			const created = await api('notes/create', {
+				text: 'event poc',
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { url: 'javascript:alert(1)', description: 'javascript:alert(1) を含む本文' },
+				},
+			} as any, alice);
+
+			assert.strictEqual(created.status, 200);
+
+			const shown = await api('notes/show', { noteId: created.body.createdNote.id }, alice);
+			assert.strictEqual(shown.status, 200);
+			assert.strictEqual((shown.body as any).event?.metadata?.url, undefined);
+			assert.strictEqual((shown.body as any).event?.metadata?.description, 'javascript:alert(1) を含む本文');
+		});
+	});
+
+	describe('notes/drafts', () => {
+		test('下書きの eventMetadata に javascript: は保存されない', async () => {
+			const created = await api('notes/drafts/create', {
+				text: 'draft event xss poc',
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { url: 'javascript:alert(1)' },
+				},
+			} as any, alice);
+
+			assert.strictEqual(created.status, 200);
+			assert.strictEqual((created.body as any).createdDraft?.event?.metadata?.url, undefined);
+		});
+
+		test('下書き更新の eventMetadata に javascript: は保存されない', async () => {
+			const created = await api('notes/drafts/create', {
+				text: 'draft event poc',
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { url: 'https://example.com/event' },
+				},
+			} as any, alice);
+
+			assert.strictEqual(created.status, 200);
+			const draftId = (created.body as any).createdDraft.id;
+
+			const updated = await api('notes/drafts/update', {
+				draftId,
+				event: {
+					title: 'poc event',
+					start: Date.now() + 1000 * 60 * 60,
+					end: Date.now() + 1000 * 60 * 60 * 2,
+					metadata: { url: 'javascript:alert(1)' },
+				},
+			} as any, alice);
+
+			assert.strictEqual(updated.status, 200);
+
+			const listed = await api('notes/drafts/list', {}, alice);
+			assert.strictEqual(listed.status, 200);
+			const draft = (listed.body as any[]).find((d: any) => d.id === draftId);
+			assert.ok(draft);
+			assert.strictEqual(draft.event?.metadata?.url, undefined);
+		});
 	});
 
 	describe('notes/delete', () => {

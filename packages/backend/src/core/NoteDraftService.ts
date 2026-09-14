@@ -15,6 +15,7 @@ import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { IPoll } from '@/models/Poll.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { isRenote, isQuote } from '@/misc/is-renote.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
 import type { IEvent } from '@/models/Event.js';
@@ -196,6 +197,13 @@ export class NoteDraftService {
 			if (data.pollExpiresAt.getTime() < Date.now()) {
 				throw new IdentifiableError('04da457d-b083-4055-9082-955525eda5a5', 'Cannot create expired poll');
 			}
+		}
+
+		// eventMetadata は予約投稿時に note 化され MkEvent.vue の生 <a :href> に流れるため
+		// javascript: 等の危険なスキームを書き込み時に除去する。
+		// validate は create/update 両方から呼ばれるためここで正規化すれば両経路を覆う。
+		if (data.eventMetadata != null) {
+			data.eventMetadata = sanitizeEventMetadata(data.eventMetadata);
 		}
 
 		//#region visibleUsers
