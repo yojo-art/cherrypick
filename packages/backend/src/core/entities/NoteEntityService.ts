@@ -13,6 +13,7 @@ import type { MiUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
 import type { UsersRepository, NotesRepository, FollowingsRepository, PollsRepository, PollVotesRepository, NoteReactionsRepository, ChannelsRepository, MiMeta, EventsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import { shouldHideNoteByTime } from '@/misc/should-hide-note-by-time.js';
@@ -240,7 +241,7 @@ export class NoteEntityService implements OnModuleInit {
 			title: event.title,
 			start: event.start.toISOString(),
 			end: event.end ? event.end.toISOString() : null,
-			metadata: event.metadata,
+			metadata: sanitizeEventMetadata(event.metadata),
 		};
 	}
 

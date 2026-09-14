@@ -191,6 +191,13 @@ export class NotificationEntityService implements OnModuleInit {
 			return null;
 		}
 
+		const needsGroupInvitation = notification.type === 'groupInvited';
+		const groupInvitation = needsGroupInvitation ? await this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId).catch(() => null) : undefined;
+		// if the invitation has been deleted, don't show this notification
+		if (needsGroupInvitation && !groupInvitation) {
+			return null;
+		}
+
 		return await awaitAll({
 			id: notification.id,
 			createdAt: new Date(notification.createdAt).toISOString(),
@@ -202,7 +209,7 @@ export class NotificationEntityService implements OnModuleInit {
 				reaction: notification.reaction,
 			} : {}),
 			...(notification.type === 'groupInvited' ? {
-				invitation: this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId),
+				invitation: groupInvitation,
 			} : {}),
 			...(notification.type === 'roleAssigned' ? {
 				role: role,

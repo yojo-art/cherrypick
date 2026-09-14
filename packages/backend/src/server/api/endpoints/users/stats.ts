@@ -7,6 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
+import { RoleService } from '@/core/RoleService.js';
 import { DI } from '@/di-symbols.js';
 import type { UsersRepository, NotesRepository, FollowingsRepository, DriveFilesRepository, NoteReactionsRepository, PageLikesRepository, NoteFavoritesRepository, PollVotesRepository } from '@/models/_.js';
 import { ApiError } from '../../error.js';
@@ -14,7 +15,14 @@ import { ApiError } from '../../error.js';
 export const meta = {
 	tags: ['users'],
 
-	requireCredential: false,
+	requireCredential: true,
+
+	kind: 'read:account',
+
+	limit: {
+		duration: 60 * 1000,
+		max: 10,
+	},
 
 	description: 'Show statistics about a user.',
 
@@ -23,6 +31,12 @@ export const meta = {
 			message: 'No such user.',
 			code: 'NO_SUCH_USER',
 			id: '9e638e45-3b25-4ef7-8f95-07e8498f1819',
+		},
+		permissionDenied: {
+			message: 'You are not permitted to view the statistics of this user.',
+			code: 'PERMISSION_DENIED',
+			id: '7ff2224a-677b-4e0b-828e-e337b859978f',
+			kind: 'permission',
 		},
 	},
 
@@ -151,11 +165,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> {
 		private pollVotesRepository: PollVotesRepository,
 
 		private driveFileEntityService: DriveFileEntityService,
+		private roleService: RoleService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const user = await this.usersRepository.findOneBy({ id: ps.userId });
 			if (user == null) {
 				throw new ApiError(meta.errors.noSuchUser);
+			}
+
+			if (user.id !== me.id && !(await this.roleService.isAdministrator(me))) {
+				throw new ApiError(meta.errors.permissionDenied);
 			}
 
 			const result = await awaitAll({

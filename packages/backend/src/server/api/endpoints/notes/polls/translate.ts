@@ -8,7 +8,9 @@ import fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { GetterService } from '@/server/api/GetterService.js';
 import { createTemp } from '@/misc/create-temp.js';
 import { RoleService } from '@/core/RoleService.js';
 import { MiMeta } from '@/models/_.js';
@@ -45,6 +47,16 @@ export const meta = {
 			code: 'UNAVAILABLE',
 			id: 'dc5ba5b7-0d50-4dcd-80f5-910f16a56b40',
 		},
+		noSuchNote: {
+			message: 'No such note.',
+			code: 'NO_SUCH_NOTE',
+			id: 'dc3b840b-5f55-4cc9-870f-f3689736fd8d',
+		},
+		cannotTranslateInvisibleNote: {
+			message: 'Cannot translate invisible note.',
+			code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
+			id: '1cfefacf-70d4-4231-ab68-de9a3e68e88b',
+		},
 		noTranslateService: {
 			message: 'Translate service is not available.',
 			code: 'NO_TRANSLATE_SERVICE',
@@ -71,6 +83,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.pollsRepository)
 		private pollsRepository: PollsRepository,
 
+		private noteEntityService: NoteEntityService,
+		private getterService: GetterService,
 		private httpRequestService: HttpRequestService,
 		private roleService: RoleService,
 	) {
@@ -80,7 +94,19 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.unavailable);
 			}
 
-			const poll = await this.pollsRepository.findOneByOrFail({ noteId: ps.noteId });
+			const note = await this.getterService.getNote(ps.noteId).catch(err => {
+				if (err.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
+				throw err;
+			});
+
+			if (!(await this.noteEntityService.isVisibleForMe(note, me.id))) {
+				throw new ApiError(meta.errors.cannotTranslateInvisibleNote);
+			}
+
+			const poll = await this.pollsRepository.findOneBy({ noteId: ps.noteId });
+			if (poll == null) {
+				throw new ApiError(meta.errors.noSuchNote);
+			}
 
 			if (poll.choices == null) {
 				return;

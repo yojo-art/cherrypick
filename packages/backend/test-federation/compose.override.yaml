@@ -19,6 +19,9 @@ services:
       external_network:
       internal_network:
         ipv4_address: 172.20.1.1
+      # auto-delete regression test reaches db.a.test / redis.test directly
+      # to insert a backdated note and enqueue the autoDeleteNotes job
+      internal_network_a:
     volumes:
       - type: volume
         source: node_modules_dev

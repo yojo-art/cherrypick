@@ -5,13 +5,13 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { Brackets } from 'typeorm';
-import got, * as Got from 'got';
 import * as Redis from 'ioredis';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { DI } from '@/di-symbols.js';
 import type { ClipsRepository, ClipNotesRepository, NotesRepository, MiUser, FlashsRepository, FlashLikesRepository, FlashLikesRemoteRepository, MiFlashLikeRemote, MiFlashLike } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
@@ -58,6 +58,7 @@ export class FlashService {
 		private httpRequestService: HttpRequestService,
 		private userEntityService: UserEntityService,
 		private remoteUserResolveService: RemoteUserResolveService,
+		private utilityService: UtilityService,
 		private flashLikeEntityService: FlashLikeEntityService,
 		private roleService: RoleService,
 		private idService: IdService,
@@ -174,39 +175,23 @@ export class FlashService {
 		host:string,
 		fetch_emoji = false,
 	) : Promise<Packed<'Flash'>> {
+		if (!this.utilityService.isValidRemoteHost(host)) {
+			throw new FlashService.FailedToResolveRemoteUserError();
+		}
 		const cache_key = 'flash:show:' + flashId + '@' + host;
 		const cache_value = await this.redisForRemoteApis.get(cache_key);
 		let remote_json = null;
 		if (cache_value === null) {
-			const timeout = 30 * 1000;
-			const operationTimeout = 60 * 1000;
 			const url = 'https://' + host + '/api/flash/show';
-			const res = got.post(url, {
+			const res = await this.httpRequestService.send(url, {
+				method: 'POST',
 				headers: {
-					'User-Agent': this.config.userAgent,
 					'Content-Type': 'application/json; charset=utf-8',
 				},
-				timeout: {
-					lookup: timeout,
-					connect: timeout,
-					secureConnect: timeout,
-					socket: timeout,	// read timeout
-					response: timeout,
-					send: timeout,
-					request: operationTimeout,	// whole operation timeout
-				},
-				agent: {
-					http: this.httpRequestService.httpAgent,
-					https: this.httpRequestService.httpsAgent,
-				},
-				http2: true,
-				retry: {
-					limit: 1,
-				},
-				enableUnixSockets: false,
 				body: JSON.stringify({
 					flashId,
 				}),
+				timeout: 30 * 1000,
 			});
 			remote_json = await res.text();
 			const redisPipeline = this.redisForRemoteApis.pipeline();

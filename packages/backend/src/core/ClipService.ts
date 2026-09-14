@@ -5,13 +5,13 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { QueryFailedError } from 'typeorm';
-import got from 'got';
 import * as Redis from 'ioredis';
 import type { Config } from '@/config.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { awaitAll } from '@/misc/prelude/await-all.js';
 import { RemoteUserResolveService } from '@/core/RemoteUserResolveService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { DI } from '@/di-symbols.js';
 import type { ClipsRepository, MiNote, MiClip, ClipNotesRepository, NotesRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
@@ -53,6 +53,7 @@ export class ClipService {
 		private httpRequestService: HttpRequestService,
 		private userEntityService: UserEntityService,
 		private remoteUserResolveService: RemoteUserResolveService,
+		private utilityService: UtilityService,
 		private roleService: RoleService,
 		private idService: IdService,
 		private advancedSearchService: AdvancedSearchService,
@@ -340,39 +341,23 @@ export class ClipService {
 		host:string,
 		fetch_emoji = false,
 	) : Promise<Packed<'Clip'>> {
+		if (!this.utilityService.isValidRemoteHost(host)) {
+			throw new ClipService.FailedToResolveRemoteUserError();
+		}
 		const cache_key = 'clip:show:' + clipId + '@' + host;
 		const cache_value = await this.redisForRemoteApis.get(cache_key);
 		let remote_json = null;
 		if (cache_value === null) {
-			const timeout = 30 * 1000;
-			const operationTimeout = 60 * 1000;
 			const url = 'https://' + host + '/api/clips/show';
-			const res = got.post(url, {
+			const res = await this.httpRequestService.send(url, {
+				method: 'POST',
 				headers: {
-					'User-Agent': this.config.userAgent,
 					'Content-Type': 'application/json; charset=utf-8',
 				},
-				timeout: {
-					lookup: timeout,
-					connect: timeout,
-					secureConnect: timeout,
-					socket: timeout,	// read timeout
-					response: timeout,
-					send: timeout,
-					request: operationTimeout,	// whole operation timeout
-				},
-				agent: {
-					http: this.httpRequestService.httpAgent,
-					https: this.httpRequestService.httpsAgent,
-				},
-				http2: true,
-				retry: {
-					limit: 1,
-				},
-				enableUnixSockets: false,
 				body: JSON.stringify({
 					clipId,
 				}),
+				timeout: 30 * 1000,
 			});
 			remote_json = await res.text();
 			const redisPipeline = this.redisForRemoteApis.pipeline();

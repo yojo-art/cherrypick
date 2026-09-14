@@ -9,6 +9,7 @@ import { IdService } from '@/core/IdService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { ClipService } from '@/core/ClipService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -65,6 +66,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private clipFavoritesRemoteRepository: ClipFavoritesRemoteRepository,
 
 		private clipService: ClipService,
+		private utilityService: UtilityService,
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
@@ -74,6 +76,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 			const host = clipIdArray.length > 1 ? clipIdArray[1] : null;
 			if (host) {
+				if (!this.utilityService.isValidRemoteHost(host)) {
+					throw new ApiError(meta.errors.failedToResolveRemoteUser);
+				}
 				const clipId = clipIdArray[0];
 				const clip = await clipService.showRemote(clipId, host);
 

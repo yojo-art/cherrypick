@@ -8,6 +8,7 @@ import * as fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
 import sharp from 'sharp';
+import type { Sharp } from 'sharp';
 import { sharpBmp } from '@misskey-dev/sharp-read-bmp';
 import { In, IsNull, Not } from 'typeorm';
 import { DeleteObjectCommandInput, PutObjectCommandInput, CopyObjectCommandInput } from '@aws-sdk/client-s3';
@@ -472,7 +473,7 @@ export class DriveService {
 			};
 		}
 
-		let img: sharp.Sharp | null = null;
+		let img: Sharp | null = null;
 		let satisfyWebpublic: boolean;
 		let isAnimated: boolean;
 		let width: number;
