@@ -9,6 +9,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { FlashEntityService } from '@/core/entities/FlashEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { FlashService } from '@/core/FlashService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -58,12 +59,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private flashLikesRemoteRepository: FlashLikesRemoteRepository,
 
 		private flashService: FlashService,
+		private utilityService: UtilityService,
 		private flashEntityService: FlashEntityService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.flashId.split('@');
 			switch (parsed_id.length) {
 				case 2:{//is remote
+					if (!this.utilityService.isValidRemoteHost(parsed_id[1])) {
+						throw new ApiError(meta.errors.invalidIdFormat);
+					}
 					const flash = await flashService.showRemote(parsed_id[0], parsed_id[1], true).catch(err => {
 						throw new ApiError(meta.errors.failedToResolveRemoteUser);
 					});
