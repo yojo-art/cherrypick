@@ -102,6 +102,9 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			const parsed_id = ps.clipId.split('@');
 			let notes = [];
 			if (parsed_id.length === 2 ) {//is remote
+				if (!this.utilityService.isValidRemoteHost(parsed_id[1])) {
+					throw new ApiError(meta.errors.invalidIdFormat);
+				}
 				const url = 'https://' + parsed_id[1] + '/api/clips/notes';
 				apLoggerService.logger.debug('remote clip ' + url);
 				notes = await remote(config, httpRequestService, redisForRemoteApis, apNoteService, metaService, utilityService, apLoggerService, url, parsed_id[0], parsed_id[1], ps.clipId, ps.limit, ps.sinceId, ps.untilId);
@@ -213,7 +216,6 @@ async function remote(
 				http: httpRequestService.httpAgent,
 				https: httpRequestService.httpsAgent,
 			},
-			http2: true,
 			retry: {
 				limit: 1,
 			},
