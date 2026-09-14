@@ -1161,6 +1161,31 @@ describe('Note', () => {
 		});
 	});
 
+	describe('notes/polls/translate', () => {
+		test('存在しないノートの投票は翻訳できない', async () => {
+			const res = await api('notes/polls/translate', { noteId: 'foo', targetLang: 'ja' }, alice);
+
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'NO_SUCH_NOTE');
+		});
+
+		test('不可視なノートの投票は翻訳できない', async () => {
+			const aliceNote = await post(alice, { visibility: 'followers', text: 'Hello', poll: { choices: ['kinoko', 'takenoko'] } });
+			const bobTranslateAttempt = await api('notes/polls/translate', { noteId: aliceNote.id, targetLang: 'ja' }, bob);
+
+			assert.strictEqual(bobTranslateAttempt.status, 400);
+			assert.strictEqual(castAsError(bobTranslateAttempt.body).error.code, 'CANNOT_TRANSLATE_INVISIBLE_NOTE');
+		});
+
+		test('投票のないノートは翻訳できない', async () => {
+			const aliceNote = await post(alice, { text: 'Hello' });
+			const res = await api('notes/polls/translate', { noteId: aliceNote.id, targetLang: 'ja' }, alice);
+
+			assert.strictEqual(res.status, 400);
+			assert.strictEqual(castAsError(res.body).error.code, 'NO_SUCH_NOTE');
+		});
+	});
+
 	describe('非表示ハッシュタグ', () => {
 		test('作成時にtagTextからハッシュタグを追加できる', async () => {
 			const aliceNote = await post(alice, { text: 'Hello', tagText: '#aaa #bbb #ccc' });

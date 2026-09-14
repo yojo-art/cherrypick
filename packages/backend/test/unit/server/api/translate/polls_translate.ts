@@ -22,8 +22,9 @@ import {
 } from '../../../../helpers/translate-shared.js';
 import { DI } from '@/di-symbols.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { GetterService } from '@/server/api/GetterService.js';
 import { RoleService } from '@/core/RoleService.js';
-import { ApiError } from '@/server/api/error.js';
+import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 
 vi.mock('@google-cloud/translate', () => {
 	return import('../../../../helpers/translate-shared.js').then(m => m.googleTranslateMockFactory());
@@ -38,17 +39,22 @@ describe('endpoints/notes/polls/translate', () => {
 	let endpoint: InstanceType<typeof TranslateEndpoint>;
 	let httpRequestService: Mocked<HttpRequestService>;
 	let pollsRepository: any;
+	let getterService: Mocked<GetterService>;
 	let roleService: Mocked<RoleService>;
+	let noteEntityService: Mocked<NoteEntityService>;
 	let serverSettings: any;
 
+	const targetNote = { id: 'n1' } as any;
 	const targetPoll = { choices: ['選択肢A', '選択肢B', '選択肢C'] };
 
 	const buildModule = async (settingsOverride: Partial<typeof defaultServerSettings> = {}) => {
 		serverSettings = { ...defaultServerSettings, ...settingsOverride };
 
 		httpRequestService = { send: vi.fn<(...args: any[]) => Promise<any>>() } as any;
-		pollsRepository = { findOneByOrFail: vi.fn() };
+		pollsRepository = { findOneBy: vi.fn() };
+		getterService = { getNote: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 		roleService = { getUserPolicies: vi.fn<(...args: any[]) => Promise<any>>() } as any;
+		noteEntityService = { isVisibleForMe: vi.fn<(...args: any[]) => Promise<boolean>>() } as any;
 
 		const moduleRef: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -56,7 +62,9 @@ describe('endpoints/notes/polls/translate', () => {
 				{ provide: DI.meta, useValue: serverSettings },
 				{ provide: DI.pollsRepository, useValue: pollsRepository },
 				{ provide: HttpRequestService, useValue: httpRequestService },
+				{ provide: GetterService, useValue: getterService },
 				{ provide: RoleService, useValue: roleService },
+				{ provide: NoteEntityService, useValue: noteEntityService },
 			],
 		}).compile();
 
@@ -68,17 +76,60 @@ describe('endpoints/notes/polls/translate', () => {
 
 	const setHappyPath = (poll: any = targetPoll) => {
 		roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
-		pollsRepository.findOneByOrFail.mockResolvedValue(poll);
+		getterService.getNote.mockResolvedValue(targetNote);
+		noteEntityService.isVisibleForMe.mockResolvedValue(true);
+		pollsRepository.findOneBy.mockResolvedValue(poll);
 	};
 
 	beforeEach(() => vi.clearAllMocks());
 
-	describe('権限・対象取得', () => {
+	describe('権限・対象取得・可視性', () => {
 		it('canUseTranslatorがfalseならUNAVAILABLE', async () => {
 			await buildModule(deeplSettings);
 			roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: false } as any);
 
 			await expect(callEndpoint()).rejects.toMatchObject({ code: 'UNAVAILABLE' });
+		});
+
+		it('NO_SUCH_NOTE的なエラーをNO_SUCH_NOTEに変換', async () => {
+			await buildModule(deeplSettings);
+			roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
+			const err: any = new Error('no such note');
+			err.id = '9725d0ce-ba28-4dde-95a7-2cbb2c15de24';
+			getterService.getNote.mockRejectedValue(err);
+
+			await expect(callEndpoint()).rejects.toMatchObject({ code: 'NO_SUCH_NOTE' });
+		});
+
+		it('isVisibleForMeがfalseならCANNOT_TRANSLATE_INVISIBLE_NOTE', async () => {
+			await buildModule(deeplSettings);
+			roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
+			getterService.getNote.mockResolvedValue(targetNote);
+			noteEntityService.isVisibleForMe.mockResolvedValue(false);
+
+			await expect(callEndpoint()).rejects.toMatchObject({
+				code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
+			});
+		});
+
+		it('可視でない場合は翻訳サービスを呼ばない', async () => {
+			await buildModule(deeplSettings);
+			roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
+			getterService.getNote.mockResolvedValue(targetNote);
+			noteEntityService.isVisibleForMe.mockResolvedValue(false);
+
+			await expect(callEndpoint()).rejects.toMatchObject({
+				code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
+			});
+			expect(httpRequestService.send).not.toHaveBeenCalled();
+		});
+
+		it('投票が存在しなければNO_SUCH_NOTE', async () => {
+			await buildModule(deeplSettings);
+			setHappyPath();
+			pollsRepository.findOneBy.mockResolvedValue(null);
+
+			await expect(callEndpoint()).rejects.toMatchObject({ code: 'NO_SUCH_NOTE' });
 		});
 
 		it('poll.choicesがnullならundefinedを返す', async () => {
