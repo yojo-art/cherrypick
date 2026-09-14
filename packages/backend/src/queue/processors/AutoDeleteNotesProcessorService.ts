@@ -13,6 +13,7 @@ import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
+import { NoteDeleteService } from '@/core/NoteDeleteService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type * as Bull from 'bullmq';
 
@@ -48,6 +49,7 @@ export class AutoDeleteNotesProcessorService {
 		private redisClient: Redis.Redis,
 
 		private idService: IdService,
+		private noteDeleteService: NoteDeleteService,
 		private queueLoggerService: QueueLoggerService,
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('auto-delete-notes');
@@ -137,20 +139,25 @@ export class AutoDeleteNotesProcessorService {
 				}
 
 				const notesToDelete = await queryBuilder
-					.select('note.id')
 					.orderBy('note.id', 'ASC')
 					.limit(MAX_NOTES_PER_RUN - stats.deletedCount)
 					.getMany();
 
 				if (notesToDelete.length > 0) {
-					const noteIds = notesToDelete.map(note => note.id);
-
-					// SUB_BATCH_SIZE 件ずつに分けて削除し、間に間隔を空けることで
-					// 一度に大量のDELETE(とそれに伴うカスケード削除)が集中しないようにする
-					for (let i = 0; i < noteIds.length; i += SUB_BATCH_SIZE) {
-						const chunk = noteIds.slice(i, i + SUB_BATCH_SIZE);
-						await this.notesRepository.delete(chunk);
-						stats.deletedCount += chunk.length;
+					// SUB_BATCH_SIZE 件ずつに分けて NoteDeleteService を通して削除する (AP Delete 配送・
+					// ストリーム通知・検索 unindex・チャート・返信カウンタ等の副作用を実行するため)。
+					// 間に間隔を空けることで一度に大量の削除(とそれに伴うカスケード処理)が集中しないようにする
+					let deletedForUser = 0;
+					for (let i = 0; i < notesToDelete.length; i += SUB_BATCH_SIZE) {
+						const chunk = notesToDelete.slice(i, i + SUB_BATCH_SIZE);
+						for (const note of chunk) {
+							try {
+								await this.noteDeleteService.delete(user, note);
+								deletedForUser++;
+							} catch (error) {
+								this.logger.error(`Failed to delete note ${note.id} of user ${user.id}: ${error}`);
+							}
+						}
 
 						// チャンクを1つ処理するたびにロックのTTLを延長する。延長できなかった
 						// 場合、既に他プロセスがロックを奪って実行している可能性があるため
@@ -161,10 +168,12 @@ export class AutoDeleteNotesProcessorService {
 							break;
 						}
 
-						if (i + SUB_BATCH_SIZE < noteIds.length) {
+						if (i + SUB_BATCH_SIZE < notesToDelete.length) {
 							await sleep(SUB_BATCH_INTERVAL_MS);
 						}
 					}
+
+					stats.deletedCount += deletedForUser;
 				}
 
 				stats.processedUsers++;

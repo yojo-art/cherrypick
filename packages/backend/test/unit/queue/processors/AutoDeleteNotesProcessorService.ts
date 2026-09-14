@@ -1,16 +1,18 @@
 /*
- * SPDX-FileCopyrightText: noridev and cherrypick-project
+ * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
 process.env.NODE_ENV = 'test';
 
 import { afterAll, afterEach, beforeAll, beforeEach, describe, test, expect, vi } from 'vitest';
+import type { Mocked } from 'vitest';
 import { Test } from '@nestjs/testing';
 import { mockDeep } from 'vitest-mock-extended';
 import { IsNull, Not } from 'typeorm';
 import type { TestingModule } from '@nestjs/testing';
 import { AutoDeleteNotesProcessorService } from '@/queue/processors/AutoDeleteNotesProcessorService.js';
+import { NoteDeleteService } from '@/core/NoteDeleteService.js';
 import { IdService } from '@/core/IdService.js';
 import { QueueLoggerService } from '@/queue/QueueLoggerService.js';
 import { DI } from '@/di-symbols.js';
@@ -20,6 +22,7 @@ import type { MiUser } from '@/models/User.js';
 describe('AutoDeleteNotesProcessorService', () => {
 	let app: TestingModule;
 	let service: AutoDeleteNotesProcessorService;
+	let noteDeleteService: Mocked<NoteDeleteService>;
 	const mockUsersRepository = { findBy: vi.fn() };
 	const mockNotesRepository = { createQueryBuilder: vi.fn(), delete: vi.fn() };
 	const mockIdService = { gen: vi.fn() };
@@ -39,7 +42,6 @@ describe('AutoDeleteNotesProcessorService', () => {
 		const qb = {
 			where: vi.fn().mockReturnThis(),
 			andWhere: vi.fn().mockReturnThis(),
-			select: vi.fn().mockReturnThis(),
 			orderBy: vi.fn().mockReturnThis(),
 			limit: vi.fn().mockReturnThis(),
 			getMany: vi.fn().mockResolvedValue(notes),
@@ -69,6 +71,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 		app.enableShutdownHooks();
 
 		service = app.get<AutoDeleteNotesProcessorService>(AutoDeleteNotesProcessorService);
+		noteDeleteService = app.get<NoteDeleteService>(NoteDeleteService) as Mocked<NoteDeleteService>;
 
 		mockIdService.gen.mockReturnValue('threshold-id');
 	});
@@ -96,33 +99,39 @@ describe('AutoDeleteNotesProcessorService', () => {
 		return await promise;
 	}
 
-	test('SUB_BATCH_SIZE (5件) 以下ならまとめて1回で削除される', async () => {
+	test('対象ノートは NoteDeleteService 経由で削除され、素の repository.delete は呼ばれない', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		mockQueryBuilder([noteA, noteB]);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		const stats = await runProcess();
 
-		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(1);
-		expect(mockNotesRepository.delete).toHaveBeenCalledWith(['note-a', 'note-b']);
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(2);
+		expect(noteDeleteService.delete).toHaveBeenNthCalledWith(1, user, noteA);
+		expect(noteDeleteService.delete).toHaveBeenNthCalledWith(2, user, noteB);
+		expect(mockNotesRepository.delete).not.toHaveBeenCalled();
 		expect(stats).toEqual({ deletedCount: 2, processedUsers: 1 });
 	});
 
-	test('SUB_BATCH_SIZE (5件) を超える分は複数回に分けて削除される', async () => {
+	test('SUB_BATCH_SIZE (5件) を超える分は複数チャンクに分けてロック延長を挟みながら削除される', async () => {
 		const notes7 = Array.from({ length: 7 }, (_, i) => ({ id: `note-${i}`, userId: 'alice' } as MiNote));
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		mockQueryBuilder(notes7);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		const stats = await runProcess();
 
-		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(2);
-		expect(mockNotesRepository.delete).toHaveBeenNthCalledWith(1, notes7.slice(0, 5).map(n => n.id));
-		expect(mockNotesRepository.delete).toHaveBeenNthCalledWith(2, notes7.slice(5).map(n => n.id));
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(7);
+		// 5件目までの1チャンク目と、残り2件の2チャンク目でロック延長が1回ずつ走り、
+		// 最後に redisClient.eval によるロック解放が1回走る (延長2回 + 解放1回 = 3回)
+		expect(mockRedisClient.eval).toHaveBeenCalledTimes(3);
 		expect(stats).toEqual({ deletedCount: 7, processedUsers: 1 });
 	});
 
 	test('削除対象は note.id 昇順(古い順)で取得する', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		const qb = mockQueryBuilder([noteA]);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		await runProcess();
 
@@ -132,19 +141,36 @@ describe('AutoDeleteNotesProcessorService', () => {
 	test('autoDeleteKeepFavorites が有効な場合は favorite を除外する条件が付く', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([{ ...user, autoDeleteKeepFavorites: true }]);
 		const qb = mockQueryBuilder([noteA]);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		await runProcess();
 
 		expect(qb.andWhere).toHaveBeenCalledWith(expect.stringContaining('note_favorite'));
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(1);
 	});
 
 	test('autoDeleteKeepFavorites が無効な場合は除外条件が付かない', async () => {
 		mockUsersRepository.findBy.mockResolvedValue([{ ...user, autoDeleteKeepFavorites: false }]);
 		const qb = mockQueryBuilder([noteA]);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		await runProcess();
 
 		expect(qb.andWhere.mock.calls.some(args => String(args[0]).includes('note_favorite'))).toBe(false);
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(1);
+	});
+
+	test('1 件の削除に失敗しても残りを継続し、成功数のみ計上する', async () => {
+		mockUsersRepository.findBy.mockResolvedValue([user]);
+		mockQueryBuilder([noteA, noteB]);
+		noteDeleteService.delete.mockRejectedValueOnce(new Error('delete failed'));
+		noteDeleteService.delete.mockResolvedValueOnce(undefined);
+
+		const stats = await runProcess();
+
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(2);
+		expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('note-a'));
+		expect(stats).toEqual({ deletedCount: 1, processedUsers: 1 });
 	});
 
 	test('ユーザー処理中にエラーが起きても残りのユーザーの処理を継続する', async () => {
@@ -153,6 +179,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 		mockNotesRepository.createQueryBuilder
 			.mockImplementationOnce(() => { throw new Error('query failed'); })
 			.mockImplementationOnce(() => mockQueryBuilder([noteA]));
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		const stats = await runProcess();
 
@@ -177,6 +204,7 @@ describe('AutoDeleteNotesProcessorService', () => {
 		const stats = await runProcess();
 
 		expect(mockNotesRepository.createQueryBuilder).not.toHaveBeenCalled();
+		expect(noteDeleteService.delete).not.toHaveBeenCalled();
 		expect(stats).toEqual({ deletedCount: 0, processedUsers: 0 });
 	});
 
@@ -189,29 +217,32 @@ describe('AutoDeleteNotesProcessorService', () => {
 		expect(stats).toEqual({ deletedCount: 0, processedUsers: 0 });
 	});
 
-	test('1回の実行では MAX_NOTES_PER_RUN (200件) を超えて削除しない (5件ずつ40回に分けて削除)', async () => {
+	test('1回の実行では MAX_NOTES_PER_RUN (200件) を超えて削除しない (5件ずつ40チャンクに分けて削除)', async () => {
 		const notes200 = Array.from({ length: 200 }, (_, i) => ({ id: `note-${i}`, userId: 'alice' } as MiNote));
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		mockQueryBuilder(notes200);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 
 		const stats = await runProcess();
 
 		expect(stats.deletedCount).toBe(200);
 		expect(mockNotesRepository.createQueryBuilder).toHaveBeenCalledTimes(1);
-		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(40);
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(200);
+		// 40チャンク分のロック延長 + 最後のロック解放1回 = 41回
+		expect(mockRedisClient.eval).toHaveBeenCalledTimes(41);
 	});
 
 	test('実行中にロックの延長に失敗した場合はその時点で処理を打ち切る', async () => {
 		const notes7 = Array.from({ length: 7 }, (_, i) => ({ id: `note-${i}`, userId: 'alice' } as MiNote));
 		mockUsersRepository.findBy.mockResolvedValue([user]);
 		mockQueryBuilder(notes7);
+		noteDeleteService.delete.mockResolvedValue(undefined);
 		// 1回目の eval 呼び出し(1チャンク目の後のロック延長)だけ失敗させる
 		mockRedisClient.eval.mockResolvedValueOnce(0);
 
 		const stats = await runProcess();
 
-		expect(mockNotesRepository.delete).toHaveBeenCalledTimes(1);
-		expect(mockNotesRepository.delete).toHaveBeenCalledWith(notes7.slice(0, 5).map(n => n.id));
+		expect(noteDeleteService.delete).toHaveBeenCalledTimes(5);
 		expect(stats).toEqual({ deletedCount: 5, processedUsers: 1 });
 		expect(mockLogger.error).toHaveBeenCalledWith(expect.stringContaining('Lost the auto-delete notes lock'));
 	});
