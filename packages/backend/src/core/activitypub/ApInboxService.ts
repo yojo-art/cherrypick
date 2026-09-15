@@ -28,7 +28,8 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
-import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
+import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChannelsRepository, MiChannel, UserPublickeysRepository } from '@/models/_.js';
+import { JsonLdService } from '@/core/activitypub/JsonLdService.js';
 import { bindThis } from '@/decorators.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
@@ -89,6 +90,10 @@ export class ApInboxService {
 		@Inject(DI.channelsRepository)
 		private channelsRepository: ChannelsRepository,
 
+		@Inject(DI.userPublickeysRepository)
+		private userPublickeysRepository: UserPublickeysRepository,
+
+		private jsonLdService: JsonLdService,
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
 		private utilityService: UtilityService,
@@ -410,6 +415,40 @@ export class ApInboxService {
 		return `skip: unknown object type ${getApType(target)}`;
 	}
 
+	/**
+	 * Verify the LD-signature attached to an incoming Announce before relaying
+	 * it to channel followers. Only a signature created by the activity actor
+	 * passes here.
+	 */
+	@bindThis
+	private async verifyAnnounceLdSignature(actor: MiRemoteUser, activity: IAnnounce): Promise<boolean> {
+		try {
+			const ldSignature = activity.signature;
+			if (ldSignature?.type !== 'RsaSignature2017' || typeof ldSignature.creator !== 'string') return false;
+
+			// The signer must be the activity actor.
+			const creatorUri = ldSignature.creator.replace(/#.*/, '');
+			if (this.utilityService.extractDbHost(creatorUri) !== this.utilityService.extractDbHost(actor.uri)) return false;
+			const signer = await this.apDbResolverService.getUserFromApId(creatorUri).catch(() => null);
+			if (signer == null || signer.id !== actor.id) return false;
+
+			const key = await this.userPublickeysRepository.findOneBy({ userId: signer.id });
+			if (key == null) return false;
+
+			// Verify on a clone so the inbox activity object is left untouched.
+			const jsonLd = this.jsonLdService.use();
+			const target = JSON.parse(JSON.stringify(activity)) as IAnnounce;
+			delete target.signature;
+			const compacted = await jsonLd.compact(target) as IAnnounce;
+			jsonLd.checkForForbiddenDirectives(compacted);
+			compacted.signature = ldSignature;
+			jsonLd.freeze();
+			return await jsonLd.verifyRsaSignature2017(compacted, key.keyPem);
+		} catch {
+			return false;
+		}
+	}
+
 	@bindThis
 	private async announceNote(actor: MiRemoteUser, activity: IAnnounce, target: IPost, resolver?: Resolver): Promise<string | void> {
 		if (actor.isSuspended) {
@@ -487,8 +526,8 @@ export class ApInboxService {
 				if (channel?.actor && channel.actor.host === null) {
 					//リモートユーザーによるローカルのチャンネルへの投稿
 					const user = { id: channel.actor.id, host: null };
-					if (activity.signature) {
-						//yojo-art: チャンネル連合 内容に署名されていれば転送する
+					//yojo-art: チャンネル連合 LD署名を検証できた場合のみ転送する。
+					if (await this.verifyAnnounceLdSignature(actor, activity)) {
 						const dm = this.apDeliverManagerService.createDeliverManager(user, activity);
 						dm.addChannelFollowersRecipe(user.id);
 						trackPromise(dm.execute());
