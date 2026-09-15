@@ -89,6 +89,13 @@ export class NoteUpdateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 	}, data: Option, note: MiNote, silent = false): Promise<MiNote | null> {
+		// 所有者検証はサービス内でも行う。AP Update経路はattributedTo/hostしか
+		// 検証しないため、同一ホストの別actorがURIを再利用してattributedToを
+		// 自分にしたUpdateを送ると、他人のノートを上書きできてしまう。
+		if (note.userId !== user.id) {
+			throw new Error('note.userId !== user.id: refusing to update another user\'s note');
+		}
+
 		if (data.updatedAt == null) data.updatedAt = new Date();
 
 		if (data.text) {
@@ -149,7 +156,15 @@ export class NoteUpdateService implements OnApplicationShutdown {
 	private async updateNote(user: {
 		id: MiUser['id']; host: MiUser['host'];
 	}, note: MiNote, data: Option, tags: string[], emojis: string[]): Promise<MiNote | null> {
-		const updatedAtHistory = note.updatedAtHistory ? note.updatedAtHistory : [];
+		// updatedAtHistoryは最大100件で保持する。notes/updateのレート制限が
+		// 効かないリモートからのAP Update再送でも更新のたびに追記され、
+		// 行と各パック応答が肥大化するため。上限を超えた分は古いものから
+		// 落とすが、最初に観測した1件は残す。
+		const maxUpdatedAtHistory = 100;
+		const history = note.updatedAtHistory ?? [];
+		const updatedAtHistory = history.length >= maxUpdatedAtHistory
+			? [history[0], ...history.slice(-(maxUpdatedAtHistory - 2))]
+			: history;
 
 		const values = new MiNote({
 			updatedAt: data.updatedAt,
