@@ -1,3 +1,23 @@
+## 1.11.1
+Cherrypick 4.17.0  
+Misskey 2026.6.0
+
+### Release Date
+2026-09-15
+
+### General
+- Fix: セキュリティに関する修正
+
+### Client
+- Fix: セキュリティに関する修正
+
+### Server
+- Fix: グループ削除後に残る招待通知で i/notifications が 500 になる問題を修正 [#1353](https://github.com/yojo-art/cherrypick/pull/1353)
+- Fix: ゲストがバブルタイムラインのノートを受信できない問題を修正 [#1356](https://github.com/yojo-art/cherrypick/pull/1356)
+- Fix: 自動ノート削除の負荷分散 [#1358](https://github.com/yojo-art/cherrypick/pull/1358)
+- Fix: セキュリティに関する修正
+- Fix: セキュリティに関する修正 (Based on misskey 2026.9.0)
+
 ## 1.11.0
 Cherrypick 4.17.0  
 Misskey 2026.6.0

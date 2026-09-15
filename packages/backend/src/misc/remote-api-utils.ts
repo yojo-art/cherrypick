@@ -72,7 +72,6 @@ export async function fetch_remote_emojis(
 			http: httpRequestService.httpAgent,
 			https: httpRequestService.httpsAgent,
 		},
-		http2: true,
 		retry: {
 			limit: 2,
 		},
@@ -118,7 +117,6 @@ export async function fetch_remote_api(
 			http: httpRequestService.httpAgent,
 			https: httpRequestService.httpsAgent,
 		},
-		http2: true,
 		retry: {
 			limit: 1,
 		},
@@ -175,7 +173,6 @@ export async function fetch_remote_user_id(
 				http: httpRequestService.httpAgent,
 				https: httpRequestService.httpsAgent,
 			},
-			http2: true,
 			retry: {
 				limit: 1,
 			},

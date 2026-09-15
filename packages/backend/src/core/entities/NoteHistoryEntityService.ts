@@ -4,7 +4,6 @@
  */
 
 import { Inject, Injectable } from '@nestjs/common';
-import { In } from 'typeorm';
 import { ModuleRef } from '@nestjs/core';
 import { DI } from '@/di-symbols.js';
 import type { Packed } from '@/misc/json-schema.js';
@@ -14,6 +13,7 @@ import type { MiNote } from '@/models/Note.js';
 import type { UsersRepository, NotesRepository, FollowingsRepository, PollsRepository, PollVotesRepository, NoteReactionsRepository, ChannelsRepository, NoteHistoryRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { DebounceLoader } from '@/misc/loader.js';
+import { shouldHideNoteByTime } from '@/misc/should-hide-note-by-time.js';
 import { IdService } from '@/core/IdService.js';
 import { NoteHistory } from '@/models/NoteHistory.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -120,14 +120,32 @@ export class NoteHistoryEntityService implements OnModuleInit {
 	@bindThis
 	public async packMany (
 		histories: NoteHistory[],
-		noteHost: MiNote['userHost'] | null,
+		note: MiNote,
 		me?: MiUser | null,
 	): Promise<Packed<'NoteHistory'>[]> {
+		if (histories.length === 0) return [];
+
+		// NoteHistory.userId は recordHistory で originalNote.userId から設定され、
+		// notes/update は他人のノートの編集を拒否するため、同一ノートの履歴の作者は全件ノート作者と一致する。
+		const author = note.user ?? await this.usersRepository.findOneBy({ id: note.userId });
+
 		const packed: Packed<'NoteHistory'>[] = [];
 		const meId = me?.id ?? null;
+		let isFollowingAuthor: boolean | null = null;
+		const checkFollowingAuthor = async (): Promise<boolean> => {
+			if (isFollowingAuthor != null) return isFollowingAuthor;
+			if (meId == null) return false;
+			isFollowingAuthor = await this.followingsRepository.exists({
+				where: {
+					followeeId: note.userId,
+					followerId: meId,
+				},
+			});
+			return isFollowingAuthor;
+		};
 		for (const history of histories) {
-			const packed_history = await this.pack(history.id, noteHost);
-			const isVisibleForMe = await this.isVisible(packed_history, meId);
+			const packed_history = await this.pack(history.id, note.userHost);
+			const isVisibleForMe = await this.isVisible(packed_history, meId, author, note, checkFollowingAuthor);
 			if (isVisibleForMe) {
 				packed.push(packed_history);
 			}
@@ -143,41 +161,61 @@ export class NoteHistoryEntityService implements OnModuleInit {
 	}
 
 	@bindThis
-	private async isVisible(packedHistory: Packed<'NoteHistory'>, meId: MiUser['id'] | null) {
-		let hide = false;
-		if (packedHistory.visibility === 'specified') {
-			if (meId == null) {
-				hide = true;
-			} else if (meId === packedHistory.userId) {
-				hide = false;
-			} else {
-				const specified = packedHistory.visibleUserIds?.some((id: string) => meId === id);
-				if (specified) {
-					hide = false;
-				} else {
-					hide = true;
-				}
-			}
-		}
-		if (packedHistory.visibility === 'followers') {
-			if (meId == null) {
-				hide = true;
-			} else if (meId === packedHistory.userId) {
-				hide = false;
-			} else {
-				const isFollowing = await this.followingsRepository.exists({
-					where: {
-						followeeId: packedHistory.userId,
-						followerId: meId,
-					},
-				});
-
-				hide = !isFollowing;
-			}
-		}
+	private async isVisible(
+		packedHistory: Packed<'NoteHistory'>,
+		meId: MiUser['id'] | null,
+		author: MiUser | null,
+		note: MiNote,
+		checkFollowingAuthor: () => Promise<boolean>,
+	): Promise<boolean> {
 		if (packedHistory.userId === meId) {
-			hide = false;
+			return true;
 		}
-		return !hide;
+
+		// makeNotesHiddenBefore / makeNotesFollowersOnlyBefore は「ノートが古いか」で判定するため、
+		// ノートの作成時刻（=IDに埋め込まれた時刻。編集しても変わらない）を基準にする。
+		const noteCreatedAt = this.idService.parse(note.id).date;
+
+		if (author != null) {
+			if (author.requireSigninToViewContents && meId == null) {
+				return false;
+			}
+			if (shouldHideNoteByTime(author.makeNotesHiddenBefore, noteCreatedAt)) {
+				return false;
+			}
+		}
+
+		let visibility = packedHistory.visibility;
+		if (
+			(visibility === 'public' || visibility === 'home') &&
+			author != null &&
+			shouldHideNoteByTime(author.makeNotesFollowersOnlyBefore, noteCreatedAt)
+		) {
+			visibility = 'followers';
+		}
+
+		if (visibility === 'specified') {
+			if (meId == null) {
+				return false;
+			}
+			return packedHistory.visibleUserIds?.some((id: string) => meId === id) ?? false;
+		}
+
+		if (visibility === 'followers') {
+			if (meId == null) {
+				return false;
+			}
+			if (note.replyUserId != null && meId === note.replyUserId) {
+				// 自分の投稿に対するリプライ
+				return true;
+			}
+			if (note.mentions.some((id: string) => meId === id)) {
+				// 自分へのメンション
+				return true;
+			}
+			return await checkFollowingAuthor();
+		}
+
+		return true;
 	}
 }

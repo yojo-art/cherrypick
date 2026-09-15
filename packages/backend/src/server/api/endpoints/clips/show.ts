@@ -11,6 +11,7 @@ import type { ClipFavoritesRemoteRepository, ClipsRepository } from '@/models/_.
 import { ClipEntityService } from '@/core/entities/ClipEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { ClipService } from '@/core/ClipService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -62,11 +63,15 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private clipFavoritesRemoteRepository: ClipFavoritesRemoteRepository,
 
 		private clipService: ClipService,
+		private utilityService: UtilityService,
 		private clipEntityService: ClipEntityService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const parsed_id = ps.clipId.split('@');
 			if (parsed_id.length === 2 ) {//is remote
+				if (!this.utilityService.isValidRemoteHost(parsed_id[1])) {
+					throw new ApiError(meta.errors.invalidIdFormat);
+				}
 				const clip = await clipService.showRemote(parsed_id[0], parsed_id[1], true).catch(err => {
 					console.error(err);
 					throw new ApiError(meta.errors.failedToResolveRemoteUser);

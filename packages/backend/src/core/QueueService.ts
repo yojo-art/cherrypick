@@ -87,8 +87,8 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	pattern: '0 4 * * *',
 }, {
 	name: 'autoDeleteNotes',
-	// 毎日午前3時に起動
-	pattern: '0 3 * * *',
+	// 10分おきに起動し、1回あたり少量ずつ削除する(1回の削除件数・トランザクションサイズを抑えるため)
+	pattern: '*/10 * * * *',
 }];
 
 function parseRedisInfo(infoText: string): Record<string, string> {

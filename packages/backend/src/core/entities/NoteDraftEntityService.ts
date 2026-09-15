@@ -12,6 +12,7 @@ import { awaitAll } from '@/misc/prelude/await-all.js';
 import type { MiUser, MiNote, MiNoteDraft } from '@/models/_.js';
 import type { NoteDraftsRepository, ChannelsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -140,7 +141,7 @@ export class NoteDraftEntityService implements OnModuleInit {
 				title: noteDraft.eventTitle,
 				start: noteDraft.eventStart?.getTime(),
 				end: noteDraft.eventEnd?.getTime(),
-				metadata: noteDraft.eventMetadata,
+				metadata: sanitizeEventMetadata(noteDraft.eventMetadata),
 			} : undefined,
 			searchableBy: noteDraft.searchableBy ?? null,
 

@@ -6,7 +6,7 @@
 export function parseSearchableByFromTags(tags: string[]): 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null {
 	if (tags.includes('searchable_by_all_users')) return 'public';
 	if (tags.includes('searchable_by_followers_only')) return 'followersAndReacted';
-	if (tags.includes('searchable_by_reacted_users_only')) return 'followersAndReacted';
+	if (tags.includes('searchable_by_reacted_users_only')) return 'reactedOnly';
 	if (tags.includes('searchable_by_nobody')) return 'private';
 	return null;
 }

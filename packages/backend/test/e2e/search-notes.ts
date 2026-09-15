@@ -6,7 +6,7 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { beforeAll, test, vi } from 'vitest';
+import { afterAll, beforeAll, describe, test, vi } from 'vitest';
 import { api, post, signup, uploadUrl } from '../utils.js';
 import { describeOpenSearchE2E } from '../helpers/describe-opensearch-e2e.js';
 import type * as misskey from 'misskey-js';
@@ -1053,6 +1053,193 @@ describeOpenSearchE2E('検索', () => {
 		assert.strictEqual(noteIds.includes(noteSearchableByPublic.id), true);
 		assert.strictEqual(noteIds.includes(noteSearchableByPrivate.id), false);
 		assert.strictEqual(noteIds.length, 1);
+	});
+
+	describe('イベント検索のsearchableBy', () => {
+		let eventer: misskey.entities.SignupResponse;
+		let eventPublic: misskey.entities.Note;
+		let eventNull: misskey.entities.Note;
+		let eventPrivate: misskey.entities.Note;
+		let eventUserPrivate: misskey.entities.Note;
+
+		beforeAll(async () => {
+			eventer = await signup({ username: 'eventSearchable' });
+			const start = Date.now();
+			eventPublic = await post(eventer, { text: 'event_searchable_test', searchableBy: 'public', event: { title: 'EventSearchablePublic', start } });
+			eventNull = await post(eventer, { text: 'event_searchable_test', event: { title: 'EventSearchableNull', start } });
+			eventPrivate = await post(eventer, { text: 'event_searchable_test', searchableBy: 'private', event: { title: 'EventSearchablePrivate', start } });
+		}, 1000 * 60);
+
+		test('note-levelのsearchableByが適用される', async () => {
+			const res = await api('notes/events/search', {
+				query: 'EventSearchable',
+				limit: 100,
+				sinceDate: Date.now() - 1000 * 60 * 60,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+
+			const noteIds = res.body.map(x => x.id);
+			assert.strictEqual(noteIds.includes(eventPublic.id), true);
+			assert.strictEqual(noteIds.includes(eventNull.id), true);
+			assert.strictEqual(noteIds.includes(eventPrivate.id), false);
+		});
+
+		test('user-levelのsearchableByが適用される', async () => {
+			const ires = await api('i/update', { searchableBy: 'private' }, eventer);
+			assert.strictEqual(ires.status, 200);
+			eventUserPrivate = await post(eventer, { text: 'event_searchable_test', event: { title: 'EventSearchableUserPrivate', start: Date.now() } });
+
+			const res = await api('notes/events/search', {
+				query: 'EventSearchable',
+				limit: 100,
+				sinceDate: Date.now() - 1000 * 60 * 60,
+			}, alice);
+			assert.strictEqual(res.status, 200);
+
+			const noteIds = res.body.map(x => x.id);
+			assert.strictEqual(noteIds.includes(eventPublic.id), true);
+			assert.strictEqual(noteIds.includes(eventNull.id), false);
+			assert.strictEqual(noteIds.includes(eventPrivate.id), false);
+			assert.strictEqual(noteIds.includes(eventUserPrivate.id), false);
+		});
+	});
+
+	describe('匿名検索のsearchableBy', () => {
+		let anonPrivate: misskey.entities.SignupResponse;
+		let anonFollowers: misskey.entities.SignupResponse;
+		let anonReacted: misskey.entities.SignupResponse;
+		let anonPublic: misskey.entities.SignupResponse;
+		let anonNull: misskey.entities.SignupResponse;
+		let anonNoIndex: misskey.entities.SignupResponse;
+		const anonNotes = {} as Record<string, misskey.entities.Note>;
+
+		const expectedVisible = [
+			'privateUserPublic',
+			'publicUserNull',
+			'nullUserNull',
+			'noIndexUserPublic',
+			'eventPublic',
+		];
+		const expectedHidden = [
+			'privateUserNull',
+			'privateUserPrivate',
+			'followersUserNull',
+			'reactedUserNull',
+			'noIndexUserNull',
+			'eventPrivate',
+		];
+
+		beforeAll(async () => {
+			anonPrivate = await signup({ username: 'anonSearchPrivate' });
+			assert.strictEqual((await api('i/update', { searchableBy: 'private' }, anonPrivate)).status, 200);
+			anonFollowers = await signup({ username: 'anonSearchFollowers' });
+			assert.strictEqual((await api('i/update', { searchableBy: 'followersAndReacted' }, anonFollowers)).status, 200);
+			anonReacted = await signup({ username: 'anonSearchReacted' });
+			assert.strictEqual((await api('i/update', { searchableBy: 'reactedOnly' }, anonReacted)).status, 200);
+			anonPublic = await signup({ username: 'anonSearchPublic' });
+			assert.strictEqual((await api('i/update', { searchableBy: 'public' }, anonPublic)).status, 200);
+			anonNull = await signup({ username: 'anonSearchNull' });
+			anonNoIndex = await signup({ username: 'anonSearchNoIndex' });
+			assert.strictEqual((await api('i/update', { isIndexable: false }, anonNoIndex)).status, 200);
+
+			// NOTE: advanced-search は形態素解析 (simple_query_string) のため、前方一致ではなく
+			// クエリ 'AnonSearchable' がトークンとしてそのまま含まれるようスペース区切りにする。
+			// アンダースコア結合だと sudachi のトークン分割に依存してヒットしなくなる。
+			anonNotes.privateUserNull = await post(anonPrivate, { text: 'AnonSearchable private user null' });
+			anonNotes.privateUserPublic = await post(anonPrivate, { text: 'AnonSearchable private user public', searchableBy: 'public' });
+			anonNotes.privateUserPrivate = await post(anonPrivate, { text: 'AnonSearchable private user private', searchableBy: 'private' });
+			anonNotes.followersUserNull = await post(anonFollowers, { text: 'AnonSearchable followers user null' });
+			anonNotes.reactedUserNull = await post(anonReacted, { text: 'AnonSearchable reacted user null' });
+			anonNotes.publicUserNull = await post(anonPublic, { text: 'AnonSearchable public user null' });
+			anonNotes.nullUserNull = await post(anonNull, { text: 'AnonSearchable null user null' });
+			anonNotes.noIndexUserNull = await post(anonNoIndex, { text: 'AnonSearchable noindex user null' });
+			anonNotes.noIndexUserPublic = await post(anonNoIndex, { text: 'AnonSearchable noindex user public', searchableBy: 'public' });
+			anonNotes.eventPrivate = await post(anonPrivate, { text: 'AnonSearchable event', searchableBy: 'private', event: { title: 'AnonSearchableEventPrivate', start: Date.now() } });
+			anonNotes.eventPublic = await post(anonPrivate, { text: 'AnonSearchable event', searchableBy: 'public', event: { title: 'AnonSearchableEventPublic', start: Date.now() } });
+
+			await api('admin/roles/update-default-policies', {
+				policies: {
+					canSearchNotes: true,
+					canAdvancedSearchNotes: true,
+				} as any,
+			}, root);
+
+			await vi.waitFor(async () => {
+				const res = await api('notes/search', { query: 'AnonSearchable', limit: 1 });
+				assert.strictEqual(res.status, 200);
+			}, { timeout: 10_000, interval: 250 });
+		}, 1000 * 60 * 2);
+
+		afterAll(async () => {
+			await api('admin/roles/update-default-policies', {
+				policies: {
+					canSearchNotes: false,
+					canAdvancedSearchNotes: false,
+				} as any,
+			}, root);
+		});
+
+		function assertSearchableBy(noteIds: string[]) {
+			for (const key of expectedVisible) {
+				assert.strictEqual(noteIds.includes(anonNotes[key].id), true, `${key} should be visible`);
+			}
+			for (const key of expectedHidden) {
+				assert.strictEqual(noteIds.includes(anonNotes[key].id), false, `${key} should be hidden`);
+			}
+		}
+
+		test('notes/search (匿名)', async () => {
+			await vi.waitFor(async () => {
+				const res = await api('notes/search', { query: 'AnonSearchable', limit: 100 });
+				assert.strictEqual(res.status, 200);
+				assertSearchableBy(res.body.map(x => x.id));
+			}, { timeout: 10_000, interval: 500 });
+		});
+
+		test('notes/advanced-search (匿名)', async () => {
+			await vi.waitFor(async () => {
+				const res = await api('notes/advanced-search', { query: 'AnonSearchable', limit: 100 });
+				assert.strictEqual(res.status, 200);
+				assertSearchableBy(res.body.map(x => x.id));
+			}, { timeout: 10_000, interval: 500 });
+		});
+
+		test('notes/events/search (匿名)', async () => {
+			const res = await api('notes/events/search', {
+				query: 'AnonSearchableEvent',
+				limit: 100,
+				sinceDate: Date.now() - 1000 * 60 * 60,
+			});
+			assert.strictEqual(res.status, 200);
+
+			const noteIds = res.body.map(x => x.id);
+			assert.strictEqual(noteIds.includes(anonNotes.eventPublic.id), true);
+			assert.strictEqual(noteIds.includes(anonNotes.eventPrivate.id), false);
+		});
+	});
+
+	describe('notes/search-by-tagのsearchableBy', () => {
+		let tagAuthor: misskey.entities.SignupResponse;
+
+		beforeAll(async () => {
+			tagAuthor = await signup({ username: 'tagSearchable' });
+		});
+
+		test('未認証でもsearchableByが適用される', async () => {
+			const tag = 'searchablebytagtest';
+			const notePublic = await post(tagAuthor, { text: `#${tag} public`, searchableBy: 'public' });
+			const notePrivate = await post(tagAuthor, { text: `#${tag} private`, searchableBy: 'private' });
+			assert.strictEqual((await api('i/update', { searchableBy: 'private' }, tagAuthor)).status, 200);
+			const noteUserPrivate = await post(tagAuthor, { text: `#${tag} user private` });
+
+			const res = await api('notes/search-by-tag', { tag, limit: 100 });
+			assert.strictEqual(res.status, 200);
+
+			const noteIds = res.body.map(x => x.id);
+			assert.strictEqual(noteIds.includes(notePublic.id), true);
+			assert.strictEqual(noteIds.includes(notePrivate.id), false);
+			assert.strictEqual(noteIds.includes(noteUserPrivate.id), false);
+		});
 	});
 
 	describeOpenSearchE2E('投稿日時指定検索', () => {

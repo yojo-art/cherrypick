@@ -55,7 +55,7 @@ type OpenSearchHit = {
 		id: string
 		userId: string
 		visibility: string
-		searchableBy: string
+		searchableBy?: string | null
 		visibleUserIds?: string[]
 		referenceUserId?: string
 		noteId?: string
@@ -1336,7 +1336,7 @@ export class AdvancedSearchService {
 					query: osFilter,
 					sort: [{ createdAt: { order: 'desc' } }],
 				},
-				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId', 'searchableBy'] : ['userId', 'visibility'],
+				_source: me ? ['userId', 'visibility', 'visibleUserIds', 'referenceUserId', 'searchableBy'] : ['userId', 'visibility', 'searchableBy'],
 				size: pagination.limit,
 			} as any;
 
@@ -1660,9 +1660,13 @@ export class AdvancedSearchService {
 				return null;
 			}
 		} else {
-			if (Note._source.searchableBy === 'public') return Note;
+			if (Note._source.searchableBy != null) {
+				return Note._source.searchableBy === 'public' ? Note : null;
+			}
 			const user = await this.cacheService.findUserById(Note._source.userId);
-			if (user.searchableBy === 'public') return Note;
+			if (user.searchableBy != null) {
+				return user.searchableBy === 'public' ? Note : null;
+			}
 			if (user.isIndexable) return Note;
 		}
 		return null;

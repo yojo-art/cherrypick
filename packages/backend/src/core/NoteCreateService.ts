@@ -57,6 +57,7 @@ import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { isReply } from '@/misc/is-reply.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
@@ -431,6 +432,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 					throw new IdentifiableError('4d0d475c-2d2f-4f4f-a581-7fa54b501e52', 'Event end time must be future time');
 				}
 			}
+			// event.metadata.url は MkEvent.vue の生 <a :href> に流れるため
+			// javascript: 等の危険なスキームを書き込み時に除去する
+			data.event = {
+				...data.event,
+				metadata: sanitizeEventMetadata(data.event.metadata),
+			};
 		}
 
 		let channel: MiChannel | null = null;
