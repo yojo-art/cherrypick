@@ -150,6 +150,8 @@ export class InboxProcessorService implements OnApplicationShutdown {
 					delete activity.signature;
 					this.logger.warn(`inbox activity remove JsonLD id=${activity.id} reason=${e}`);
 				}
+			} else {
+				delete activity.signature;
 			}
 		}
 
