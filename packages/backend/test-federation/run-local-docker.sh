@@ -66,7 +66,7 @@ fi
 # ──────────────────────────────────────────────
 # 1. Generate configs / certificates if missing
 # ──────────────────────────────────────────────
-if [[ ! -d certificates || ! -f .config/a.test.conf || ! -f .config/a.test.default.yml ]]; then
+if [[ ! -d certificates || ! -f .config/a.test.conf || ! -f .config/a.test.default.yml || ! -f stub-deliver-contexts.json ]]; then
     echo "==> Running setup.sh…"
     bash ./setup.sh
 fi
