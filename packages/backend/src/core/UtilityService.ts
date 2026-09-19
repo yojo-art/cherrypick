@@ -41,6 +41,18 @@ export class UtilityService {
 		return this.punyHost(uri) === this.toPuny(this.config.host);
 	}
 
+	@bindThis
+	public includesSelfHost(ids: string[]): boolean {
+		return ids.some(id => {
+			if (id.startsWith('https://www.w3.org/ns/activitystreams') || id === 'as:Public' || id === 'Public') return false;
+			try {
+				return this.isUriLocal(id);
+			} catch {
+				return false;
+			}
+		});
+	}
+
 	// メールアドレスのバリデーションを行う
 	// https://html.spec.whatwg.org/multipage/input.html#valid-e-mail-address
 	@bindThis
