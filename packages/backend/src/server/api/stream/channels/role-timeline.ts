@@ -58,6 +58,7 @@ export class RoleTimelineChannel extends Channel {
 
 			const filtered = await this.noteStreamingHidingService.filter(note, this.user?.id ?? null);
 			if (!filtered) return;
+			// eslint-disable-next-line no-param-reassign -- これ以降元の Note オブジェクトは見てはいけないので、いっそ再代入した方が安全
 			note = filtered;
 
 			if (this.user) {
