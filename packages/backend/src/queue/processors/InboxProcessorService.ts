@@ -13,7 +13,7 @@ import { FetchInstanceMetadataService } from '@/core/FetchInstanceMetadataServic
 import InstanceChart from '@/core/chart/charts/instance.js';
 import ApRequestChart from '@/core/chart/charts/ap-request.js';
 import FederationChart from '@/core/chart/charts/federation.js';
-import { getApId, isActor, isDelete } from '@/core/activitypub/type.js';
+import { getApId, getApIds, isActor, isDelete } from '@/core/activitypub/type.js';
 import type { IActivity } from '@/core/activitypub/type.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import type { MiUserPublickey } from '@/models/UserPublickey.js';
@@ -65,7 +65,7 @@ export class InboxProcessorService implements OnApplicationShutdown {
 	@bindThis
 	public async process(job: Bull.Job<InboxJobData>): Promise<string> {
 		const signature = job.data.signature;	// HTTP-signature
-		let activity = job.data.activity;
+		const activity = job.data.activity;
 
 		//#region Log
 		const info = Object.assign({}, activity);
@@ -138,79 +138,18 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		// また、signatureのsignerは、activity.actorと一致する必要がある
 		if (!httpSignatureValidated || authUser.user.uri !== getApId(activity.actor)) {
 			// 一致しなくても、でもLD-Signatureがありそうならそっちも見る
-			const ldSignature = activity.signature;
-			if (ldSignature) {
-				if (ldSignature.type !== 'RsaSignature2017') {
-					throw new Bull.UnrecoverableError(`skip: unsupported LD-signature type ${ldSignature.type}`);
-				}
-
-				// ldSignature.creator: https://example.oom/users/user#main-key
-				// みたいになっててUserを引っ張れば公開キーも入ることを期待する
-				if (ldSignature.creator) {
-					const candicate = ldSignature.creator.replace(/#.*/, '');
-					await this.apPersonService.resolvePerson(candicate).catch(() => null);
-				}
-
-				// keyIdからLD-Signatureのユーザーを取得
-				authUser = await this.apDbResolverService.getAuthUserFromKeyId(ldSignature.creator);
-				if (authUser == null) {
-					throw new Bull.UnrecoverableError('skip: LD-Signatureのユーザーが取得できませんでした');
-				}
-
-				if (authUser.key == null) {
-					throw new Bull.UnrecoverableError('skip: LD-SignatureのユーザーはpublicKeyを持っていませんでした');
-				}
-
-				const jsonLd = this.jsonLdService.use();
-
-				delete activity.signature;
+			await this.verifyJsonLD(authUser, activity, signature);
+		} else {
+			// yojo-art: HTTP-Signatureの検証を通過したため、JsonLD検証が必須ではないが、転送が必要か判定する
+			const audienceIds = [...getApIds(activity.to), ...getApIds(activity.cc), ...getApIds(activity.audience)];
+			if (this.utilityService.includesSelfHost(audienceIds)) {
+				//ローカルのユーザーが対象に指定されてそうな雰囲気があれば確定してなくてもとりあえず署名検証する
 				try {
-					activity = await jsonLd.compact(activity) as IActivity;
-				} catch (error) {
-					throw new Bull.UnrecoverableError(`skip: failed to compact activity: ${error}`);
+					await this.verifyJsonLD(authUser, activity, signature);
+				} catch(e) {
+					delete activity.signature;
+					this.logger.warn(`inbox activity remove JsonLD id=${activity.id} reason=${e}`);
 				}
-				try {
-					jsonLd.checkForForbiddenDirectives(activity);
-				} catch (error) {
-					throw new Bull.UnrecoverableError(`skip: ${error}`);
-				}
-
-				//#region Log
-				const compactedInfo = Object.assign({}, activity);
-				delete compactedInfo['@context'];
-				this.logger.debug(`compacted: ${JSON.stringify(compactedInfo, null, 2)}`);
-				//#endregion
-
-				activity.signature = ldSignature;
-
-				jsonLd.freeze();
-
-				// LD-Signature検証
-				let verified;
-				try {
-					verified = await jsonLd.verifyRsaSignature2017(activity, authUser.key.keyPem);
-					if (!verified) {
-						throw new Bull.UnrecoverableError('skip: LD-Signatureの検証に失敗しました');
-					}
-				} catch (error) {
-					if (error instanceof JsonLdError) {
-						throw new Bull.UnrecoverableError(`skip: encountered a JSON-LD error while verifying signature: ${error}`);
-					} else {
-						throw error;
-					}
-				}
-
-				// もう一度actorチェック
-				if (authUser.user.uri !== getApId(activity.actor)) {
-					throw new Bull.UnrecoverableError(`skip: LD-Signature user(${authUser.user.uri}) !== activity.actor(${getApId(activity.actor)})`);
-				}
-
-				const ldHost = this.utilityService.extractDbHost(authUser.user.uri);
-				if (!this.utilityService.isFederationAllowedHost(ldHost)) {
-					throw new Bull.UnrecoverableError(`Blocked request: ${ldHost}`);
-				}
-			} else {
-				throw new Bull.UnrecoverableError(`skip: http-signature verification failed and no LD-Signature. keyId=${signature.keyId}`);
 			}
 		}
 
@@ -273,6 +212,92 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			throw e;
 		}
 		return 'ok';
+	}
+
+	// yojo-art: jsonLDの署名検証を別関数に切り出した
+	@bindThis
+	private async verifyJsonLD(
+		authUser: {
+			user: MiRemoteUser;
+			key: MiUserPublickey | null;
+		} | null,
+		activity: IActivity,
+		signature: httpSignature.IParsedSignature,
+	) {
+		const ldSignature = activity.signature;
+		if (ldSignature) {
+			if (ldSignature.type !== 'RsaSignature2017') {
+				throw new Bull.UnrecoverableError(`skip: unsupported LD-signature type ${ldSignature.type}`);
+			}
+
+			// ldSignature.creator: https://example.oom/users/user#main-key
+			// みたいになっててUserを引っ張れば公開キーも入ることを期待する
+			if (ldSignature.creator) {
+				const candicate = ldSignature.creator.replace(/#.*/, '');
+				await this.apPersonService.resolvePerson(candicate).catch(() => null);
+			}
+
+			// keyIdからLD-Signatureのユーザーを取得
+			authUser = await this.apDbResolverService.getAuthUserFromKeyId(ldSignature.creator);
+			if (authUser == null) {
+				throw new Bull.UnrecoverableError('skip: LD-Signatureのユーザーが取得できませんでした');
+			}
+
+			if (authUser.key == null) {
+				throw new Bull.UnrecoverableError('skip: LD-SignatureのユーザーはpublicKeyを持っていませんでした');
+			}
+
+			const jsonLd = this.jsonLdService.use();
+
+			delete activity.signature;
+			try {
+				activity = await jsonLd.compact(activity) as IActivity;
+			} catch (error) {
+				throw new Bull.UnrecoverableError(`skip: failed to compact activity: ${error}`);
+			}
+			try {
+				jsonLd.checkForForbiddenDirectives(activity);
+			} catch (error) {
+				throw new Bull.UnrecoverableError(`skip: ${error}`);
+			}
+
+			//#region Log
+			const compactedInfo = Object.assign({}, activity);
+			delete compactedInfo['@context'];
+			this.logger.debug(`compacted: ${JSON.stringify(compactedInfo, null, 2)}`);
+			//#endregion
+
+			activity.signature = ldSignature;
+
+			jsonLd.freeze();
+
+			// LD-Signature検証
+			let verified;
+			try {
+				verified = await jsonLd.verifyRsaSignature2017(activity, authUser.key.keyPem);
+				if (!verified) {
+					throw new Bull.UnrecoverableError('skip: LD-Signatureの検証に失敗しました');
+				}
+			} catch (error) {
+				if (error instanceof JsonLdError) {
+					throw new Bull.UnrecoverableError(`skip: encountered a JSON-LD error while verifying signature: ${error}`);
+				} else {
+					throw error;
+				}
+			}
+
+			// もう一度actorチェック
+			if (authUser.user.uri !== getApId(activity.actor)) {
+				throw new Bull.UnrecoverableError(`skip: LD-Signature user(${authUser.user.uri}) !== activity.actor(${getApId(activity.actor)})`);
+			}
+
+			const ldHost = this.utilityService.extractDbHost(authUser.user.uri);
+			if (!this.utilityService.isFederationAllowedHost(ldHost)) {
+				throw new Bull.UnrecoverableError(`Blocked request: ${ldHost}`);
+			}
+		} else {
+			throw new Bull.UnrecoverableError(`skip: http-signature verification failed and no LD-Signature. keyId=${signature.keyId}`);
+		}
 	}
 
 	@bindThis
