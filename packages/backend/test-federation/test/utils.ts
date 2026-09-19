@@ -171,16 +171,14 @@ export type InboxJobInfo = {
 export async function findInboxJob(host: FederationTestTargetHost, activityId: string): Promise<InboxJobInfo | undefined> {
 	const admin = await fetchAdmin(host);
 
-	for (const state of ['failed', 'completed'] as const) {
-		const jobs = await admin.client.request('admin/queue/jobs', {
-			queue: 'inbox',
-			state: [state],
-			search: activityId,
-		}) as Array<{ data?: { activity?: { id?: string; } | null; } | null; failedReason?: string | null; }>;
-		const job = jobs.find(j => j.data?.activity?.id === activityId);
-		if (job != null) {
-			return { state, failedReason: job.failedReason ?? null };
-		}
+	const jobs = await admin.client.request('admin/queue/jobs', {
+		queue: 'inbox',
+		state: ['failed', 'completed'],
+		search: activityId,
+	}) as Array<{ data?: { activity?: { id?: string; } | null; } | null; failedReason?: string | null; isFailed: boolean; }>;
+	const job = jobs.find(j => j.data?.activity?.id === activityId);
+	if (job != null) {
+		return { state: job.isFailed ? 'failed' : 'completed', failedReason: job.failedReason ?? null };
 	}
 
 	return undefined;
