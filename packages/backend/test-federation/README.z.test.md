@@ -49,7 +49,7 @@
 - 絵文字画像は `stub/emoji/hello_world.png` の 1 枚を共通利用する
 - `outbox` / `inbox` / `.well-known/nodeinfo` / `manifest.json` など、リモートインスタンスとして参照される最小エンドポイントも置いている
 
-`bash ./setup.sh` で `z.test` の TLS 証明書・`.config/z.test.conf` を生成する。鍵ペアは `setup.sh` 時と `z.test.deliver` 起動時の双方で (再) 生成される。
+`bash ./setup.sh` で `z.test` の TLS 証明書・`.config/z.test.conf` を生成する。zack/mallory の鍵ペアは `setup.sh` では生成されず、`z.test.deliver` 起動のたびに (再) 生成される。
 
 ## LD署名用の依存調達 (`stub-vendor/`)
 
