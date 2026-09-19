@@ -178,6 +178,20 @@ describe('JsonLD署名検証 (チャンネル投稿)', () => {
 				inbox: { host: 'a.test', activityId, expect: 'failed' },
 			});
 		});
+
+		test('HTTP破壊+LD署名値改ざん は拒否される', async () => {
+			const activityId = await deliverChannelAnnounce({ ld: 'tampered-value', http: 'broken' });
+			await assertFederationTestNoteNotIngested(alice, activityId, {
+				inbox: { host: 'a.test', activityId, expect: 'failed' },
+			});
+		});
+
+		test('HTTP破壊+LD creator不一致 (mallory署名) は拒否される', async () => {
+			const activityId = await deliverChannelAnnounce({ ld: 'creator-mismatch', http: 'broken' });
+			await assertFederationTestNoteNotIngested(alice, activityId, {
+				inbox: { host: 'a.test', activityId, expect: 'failed' },
+			});
+		});
 	});
 
 	describe('チャンネルフォロワーへの中継 (fan-out)', () => {
