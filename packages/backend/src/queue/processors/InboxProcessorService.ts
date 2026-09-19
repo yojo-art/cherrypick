@@ -65,7 +65,7 @@ export class InboxProcessorService implements OnApplicationShutdown {
 	@bindThis
 	public async process(job: Bull.Job<InboxJobData>): Promise<string> {
 		const signature = job.data.signature;	// HTTP-signature
-		const activity = job.data.activity;
+		let activity = job.data.activity;
 
 		//#region Log
 		const info = Object.assign({}, activity);
@@ -138,14 +138,14 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		// また、signatureのsignerは、activity.actorと一致する必要がある
 		if (!httpSignatureValidated || authUser.user.uri !== getApId(activity.actor)) {
 			// 一致しなくても、でもLD-Signatureがありそうならそっちも見る
-			await this.verifyJsonLD(authUser, activity, signature);
+			({ authUser, activity } = await this.verifyJsonLD(authUser, activity, signature));
 		} else {
 			// yojo-art: HTTP-Signatureの検証を通過したため、JsonLD検証が必須ではないが、転送が必要か判定する
 			const audienceIds = [...getApIds(activity.to), ...getApIds(activity.cc), ...getApIds(activity.audience)];
 			if (this.utilityService.includesSelfHost(audienceIds)) {
 				//ローカルのユーザーが対象に指定されてそうな雰囲気があれば確定してなくてもとりあえず署名検証する
 				try {
-					await this.verifyJsonLD(authUser, activity, signature);
+					({ authUser, activity } = await this.verifyJsonLD(authUser, activity, signature));
 				} catch(e) {
 					delete activity.signature;
 					this.logger.warn(`inbox activity remove JsonLD id=${activity.id} reason=${e}`);
@@ -219,13 +219,23 @@ export class InboxProcessorService implements OnApplicationShutdown {
 	// yojo-art: jsonLDの署名検証を別関数に切り出した
 	@bindThis
 	private async verifyJsonLD(
-		authUser: {
+		_authUser: {
 			user: MiRemoteUser;
 			key: MiUserPublickey | null;
 		} | null,
-		activity: IActivity,
+		_activity: IActivity,
 		signature: httpSignature.IParsedSignature,
-	) {
+	) :Promise<
+		{
+			activity: IActivity,
+			authUser: {
+				user: MiRemoteUser;
+				key: MiUserPublickey | null;
+			},
+		}
+	> {
+		let authUser = _authUser;
+		let activity = _activity;
 		const ldSignature = activity.signature;
 		if (ldSignature) {
 			if (ldSignature.type !== 'RsaSignature2017') {
@@ -300,6 +310,7 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		} else {
 			throw new Bull.UnrecoverableError(`skip: http-signature verification failed and no LD-Signature. keyId=${signature.keyId}`);
 		}
+		return { activity, authUser };
 	}
 
 	@bindThis
