@@ -9,7 +9,7 @@ import * as assert from 'assert';
 import * as fs from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname } from 'node:path';
-import { describe, beforeAll, beforeEach, test, vi } from 'vitest';
+import { describe, beforeAll, beforeEach, afterEach, test, vi } from 'vitest';
 import { Test } from '@nestjs/testing';
 
 import { MockResolver } from '../misc/mock-resolver.js';
@@ -30,6 +30,8 @@ import { MiMeta, MiNote, UserProfilesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
 import { DownloadService } from '@/core/DownloadService.js';
+import { NoteUpdateService } from '@/core/NoteUpdateService.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { genAidx } from '@/misc/id/aidx.js';
 
 const _filename = fileURLToPath(import.meta.url);
@@ -99,6 +101,7 @@ describe('ActivityPub', () => {
 	let personService: ApPersonService;
 	let rendererService: ApRendererService;
 	let jsonLdService: JsonLdService;
+	let noteUpdateService: NoteUpdateService;
 	let resolver: MockResolver;
 
 	const metaInitial = {
@@ -152,6 +155,7 @@ describe('ActivityPub', () => {
 		rendererService = app.get<ApRendererService>(ApRendererService);
 		imageService = app.get<ApImageService>(ApImageService);
 		jsonLdService = app.get<JsonLdService>(JsonLdService);
+		noteUpdateService = app.get<NoteUpdateService>(NoteUpdateService);
 		resolver = new MockResolver(await app.resolve<LoggerService>(LoggerService));
 
 		// Prevent ApPersonService from fetching instance, as it causes Jest import-after-test error
@@ -555,6 +559,96 @@ describe('ActivityPub', () => {
 				'https://example.org/ns#unknown': 'test test bar',
 				// undefined: 'test test baz',
 			});
+		});
+	});
+
+	describe('Prohibited words on Update', () => {
+		const prohibitedWord = 'apapocbanned';
+		const prohibitedWordsErrorId = '689ee33f-f97c-479a-ac49-1b9f8140af99';
+
+		async function createNoteForUpdate(content = 'test test foo'): Promise<{ post: NonTransientIPost; note: MiNote }> {
+			const actor = createRandomActor();
+			const post: NonTransientIPost = { ...createRandomNote(actor), content };
+
+			resolver.register(actor.id, actor);
+			resolver.register(post.id, post);
+
+			const note = await noteService.createNote(post.id, undefined, resolver, true);
+			assert.ok(note);
+
+			return { post, note };
+		}
+
+		function isProhibitedWordsError(err: unknown): boolean {
+			return err instanceof IdentifiableError && err.id === prohibitedWordsErrorId;
+		}
+
+		beforeEach(() => {
+			updateMeta({ ...metaInitial, prohibitedWords: [prohibitedWord] });
+		});
+
+		afterEach(() => {
+			updateMeta(metaInitial);
+		});
+
+		test('Reject update with prohibited word in text', async () => {
+			const { post, note } = await createNoteForUpdate();
+			const updateSpy = vi.spyOn(noteUpdateService, 'update');
+
+			resolver.register(post.id, { ...post, content: `test test ${prohibitedWord}` });
+
+			await assert.rejects(
+				() => noteService.updateNote(post.id, note, resolver),
+				err => isProhibitedWordsError(err),
+			);
+
+			assert.strictEqual(updateSpy.mock.calls.length, 0);
+			const stored = await noteService.fetchNote(post.id);
+			assert.strictEqual(stored?.text, 'test test foo');
+		});
+
+		test('Reject update with prohibited word in cw', async () => {
+			const { post, note } = await createNoteForUpdate();
+			const updateSpy = vi.spyOn(noteUpdateService, 'update');
+
+			resolver.register(post.id, { ...post, summary: prohibitedWord, content: 'clean text' });
+
+			await assert.rejects(
+				() => noteService.updateNote(post.id, note, resolver),
+				err => isProhibitedWordsError(err),
+			);
+
+			assert.strictEqual(updateSpy.mock.calls.length, 0);
+			const stored = await noteService.fetchNote(post.id);
+			assert.strictEqual(stored?.text, 'test test foo');
+		});
+
+		test('Reject update with prohibited word in poll choices', async () => {
+			const { post, note } = await createNoteForUpdate();
+			const updateSpy = vi.spyOn(noteUpdateService, 'update');
+
+			resolver.register(post.id, { ...post, oneOf: [{ type: 'Note', name: `choice ${prohibitedWord}` }] });
+
+			await assert.rejects(
+				() => noteService.updateNote(post.id, note, resolver),
+				err => isProhibitedWordsError(err),
+			);
+
+			assert.strictEqual(updateSpy.mock.calls.length, 0);
+			const stored = await noteService.fetchNote(post.id);
+			assert.strictEqual(stored?.text, 'test test foo');
+		});
+
+		test('Apply update without prohibited words', async () => {
+			const { post, note } = await createNoteForUpdate();
+			const updateSpy = vi.spyOn(noteUpdateService, 'update');
+
+			resolver.register(post.id, { ...post, content: 'test test updated' });
+
+			const updated = await noteService.updateNote(post.id, note, resolver);
+
+			assert.strictEqual(updateSpy.mock.calls.length, 1);
+			assert.strictEqual(updated?.text, 'test test updated');
 		});
 	});
 });
