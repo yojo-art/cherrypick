@@ -202,6 +202,7 @@ describe('JsonLD署名検証 (チャンネル投稿)', () => {
 			bob = await createAccount('b.test');
 			const zackInB = await resolveRemoteUser('z.test', 'zack', bob);
 			await bob.client.request('following/create', { userId: zackInB.id });
+			assert(aliceCh.actorId);
 			const chActorInB = await resolveRemoteUser('a.test', aliceCh.actorId, bob);
 			assert(chActorInB.channelId);
 			const aliceChInB = await bob.client.request('channels/show', { channelId: chActorInB.channelId });
