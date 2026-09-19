@@ -36,29 +36,19 @@ function recordReceived(body) {
 	}
 }
 
-/** @type {string | undefined} */
-let privateKeyPem;
-/** @type {string | undefined} */
-let malloryPrivateKeyPem;
+/** @type {Map<string, string>} */
+const privateKeyPemCache = new Map();
 /** @type {any | undefined} */
 let jsonldLib;
 /** @type {Record<string, any> | undefined} */
 let ldContexts;
 
-async function getPrivateKeyPem() {
-	if (privateKeyPem == null) {
-		const key = JSON.parse(await readFile(join(STUB_ROOT, 'users/zack-key.json'), 'utf8'));
-		privateKeyPem = key.privateKeyPem;
+async function getPrivateKeyPem(actor = 'zack') {
+	if (!privateKeyPemCache.has(actor)) {
+		const key = JSON.parse(await readFile(join(STUB_ROOT, `users/${actor}-key.json`), 'utf8'));
+		privateKeyPemCache.set(actor, key.privateKeyPem);
 	}
-	return privateKeyPem;
-}
-
-async function getMalloryPrivateKeyPem() {
-	if (malloryPrivateKeyPem == null) {
-		const key = JSON.parse(await readFile(join(STUB_ROOT, 'users/mallory-key.json'), 'utf8'));
-		malloryPrivateKeyPem = key.privateKeyPem;
-	}
-	return malloryPrivateKeyPem;
+	return privateKeyPemCache.get(actor);
 }
 
 function loadJsonLd() {
@@ -149,7 +139,7 @@ function tamperMiddleChar(value) {
 async function applyLdMode(activity, ld) {
 	if (ld === 'creator-mismatch') {
 		// actor(zack)とは別アクター(mallory)の正規署名。actor binding 検査で拒否される想定
-		return await signActivityLdSignature(activity, await getMalloryPrivateKeyPem(), MALLORY_KEY_ID);
+		return await signActivityLdSignature(activity, await getPrivateKeyPem('mallory'), MALLORY_KEY_ID);
 	}
 	const signed = await signActivityLdSignature(activity, await getPrivateKeyPem(), KEY_ID);
 	if (ld === 'tampered-body') {
