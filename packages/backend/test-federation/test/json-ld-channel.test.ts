@@ -72,7 +72,7 @@ describe('JsonLD署名検証 (チャンネル投稿)', () => {
 		);
 
 		// deliver ワーカーの並行処理由来の配送順序の揺らぎを吸収する猶予付きで確認する
-		const targetJob = await findInboxJobWithGrace('b.test', activityId, 1_000);
+		const targetJob = await findInboxJobWithGrace('b.test', activityId, 10_000);
 		if (targetJob != null) {
 			throw new Error(`note should not have been relayed but was: ${activityId} (b.test inbox ${targetJob.state}: ${targetJob.failedReason ?? ''})`);
 		}
