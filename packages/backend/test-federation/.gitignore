@@ -5,9 +5,8 @@ docker.env
 *.test.conf
 *.test.default.yml
 *.test.config.json
-stub/users/zack
-stub/users/zack-key.json
-stub/users/mallory
-stub/users/mallory-key.json
+
+stub/users
 stub-vendor
+
 stub-deliver-contexts.json
