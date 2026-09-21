@@ -6,26 +6,26 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <div class="_gaps">
 	<div>
-		<FormSplit>
-			<MkInput v-model="host" :debounce="true" class="">
+		<div :class="$style.inputs">
+			<MkInput v-model="host" :debounce="true" class="" style="flex: 1;">
 				<template #prefix><i class="ti ti-search"></i></template>
 				<template v-if="host != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="host = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
 				<template #label>{{ i18n.ts.host }}</template>
 			</MkInput>
-			<MkInput v-model="softwareName" :debounce="true" class="">
+			<MkInput v-model="softwareName" :debounce="true" class="" style="flex: 1;">
 				<template #prefix><i class="ti ti-search"></i></template>
 				<template v-if="softwareName != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="softwareName = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
 				<template #label>{{ i18n.ts.softwareName }}</template>
 			</MkInput>
-		</FormSplit>
-		<FormSplit style="margin-top: var(--MI-margin);">
-			<MkSelect v-model="state" :items="stateDef">
+		</div>
+		<div :class="$style.inputs" style="margin-top: var(--MI-margin);">
+			<MkSelect v-model="state" :items="stateDef" style="flex: 1;">
 				<template #label>{{ i18n.ts.state }}</template>
 			</MkSelect>
-			<MkSelect v-model="sort" :items="sortDef">
+			<MkSelect v-model="sort" :items="sortDef" style="flex: 1;">
 				<template #label>{{ i18n.ts.sort }}</template>
 			</MkSelect>
-		</FormSplit>
+		</div>
 	</div>
 
 	<MkPagination v-slot="{items}" ref="instances" :key="host + softwareName + state" :paginator="paginator">
@@ -45,7 +45,6 @@ import MkInput from '@/components/MkInput.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import MkInstanceCardMini from '@/components/MkInstanceCardMini.vue';
-import FormSplit from '@/components/form/split.vue';
 import { i18n } from '@/i18n.js';
 import { useMkSelect } from '@/composables/use-mkselect.js';
 import { Paginator } from '@/utility/paginator.js';
@@ -123,6 +122,12 @@ function getStatus(instance: Misskey.entities.FederationInstance) {
 </script>
 
 <style lang="scss" module>
+.inputs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
 .items {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
