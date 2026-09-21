@@ -59,7 +59,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, useTemplateRef, shallowRef } from 'vue';
+import { onMounted, onUnmounted, computed, useTemplateRef, shallowRef } from 'vue';
 import { Chart } from 'chart.js';
 import type { MkSelectItem, ItemOption } from '@/components/MkSelect.vue';
 import type { ChartSrc } from '@/components/MkChart.vue';
@@ -167,9 +167,14 @@ const {
 	]),
 	initialValue: 'active-users',
 });
+
 const subDoughnutEl = useTemplateRef('subDoughnutEl');
 const pubDoughnutEl = useTemplateRef('pubDoughnutEl');
 const softwareDoughnutEl = useTemplateRef('softwareDoughnutEl');
+
+let subDoughnutChartInstance: Chart | null = null;
+let pubDoughnutChartInstance: Chart | null = null;
+let softwareDoughnutChartInstance: Chart | null = null;
 
 type ChartData = {
 	name: string,
@@ -250,7 +255,7 @@ onMounted(() => {
 			total: totalServerCount,
 		});
 		if (softwareDoughnutEl.value != null) {
-			createDoughnut(softwareDoughnutEl.value, externalTooltipHandler, sortedData);
+			softwareDoughnutChartInstance = createDoughnut(softwareDoughnutEl.value, externalTooltipHandler, sortedData);
 		}
 	});
 
@@ -281,7 +286,9 @@ onMounted(() => {
 			value: fedStats.otherFollowersCount,
 		});
 
-		if (subDoughnutEl.value != null) createDoughnut(subDoughnutEl.value, externalTooltipHandler1, subs);
+		if (subDoughnutEl.value != null) {
+			subDoughnutChartInstance = createDoughnut(subDoughnutEl.value, externalTooltipHandler1, subs);
+		}
 
 		const pubs: ChartData = fedStats.topPubInstances.map(x => ({
 			name: x.host,
@@ -298,8 +305,16 @@ onMounted(() => {
 			value: fedStats.otherFollowingCount,
 		});
 
-		if (pubDoughnutEl.value != null) createDoughnut(pubDoughnutEl.value, externalTooltipHandler2, pubs);
+		if (pubDoughnutEl.value != null) {
+			pubDoughnutChartInstance = createDoughnut(pubDoughnutEl.value, externalTooltipHandler2, pubs);
+		}
 	});
+});
+
+onUnmounted(() => {
+	subDoughnutChartInstance?.destroy();
+	pubDoughnutChartInstance?.destroy();
+	softwareDoughnutChartInstance?.destroy();
 });
 </script>
 

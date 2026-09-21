@@ -5,7 +5,7 @@
 
 import { watch, version as vueVersion, defineAsyncComponent } from 'vue';
 import { compareVersions } from 'compare-versions';
-import { version, basedMisskeyVersion, basedCherrypickVersion, lang, apiUrl, isSafeMode } from '@@/js/config.js';
+import { version, basedMisskeyVersion, basedCherrypickVersion, lang, isSafeMode } from '@@/js/config.js';
 import defaultLightTheme from '@@/themes/l-cherrypick.json5';
 import defaultDarkTheme from '@@/themes/d-cherrypick.json5';
 import { storeBootloaderErrors } from '@@/js/store-boot-errors';
@@ -28,8 +28,10 @@ import { analytics, initAnalytics } from '@/analytics.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { fetchCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
+import { migrateLegacyStoreValues } from '@/preferences/legacyStoreMigration.js';
 import { $i } from '@/i.js';
 import { launchPlugins } from '@/plugin.js';
+import { initTelemetry } from '@/telemetry.js';
 import { popup } from '@/os.js';
 
 export async function common(createVue: () => Promise<App<Element>>) {
@@ -135,6 +137,11 @@ export async function common(createVue: () => Promise<App<Element>>) {
 
 	await store.ready;
 	await deckStore.ready;
+
+	// 旧store (Pizzax) から preferences への一度だけの移行
+	if (!isSafeMode) {
+		await migrateLegacyStoreValues();
+	}
 
 	const fetchInstanceMetaPromise = fetchInstance();
 
@@ -307,40 +314,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		return root;
 	})();
 
-	if (instance.sentryForFrontend) {
-		const Sentry = await import('@sentry/vue');
-		Sentry.init({
-			app,
-			integrations: [
-				...(instance.sentryForFrontend.vueIntegration !== undefined ? [
-					Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined),
-				] : []),
-				...(instance.sentryForFrontend.browserTracingIntegration !== undefined ? [
-					Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined),
-				] : []),
-				...(instance.sentryForFrontend.replayIntegration !== undefined ? [
-					Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined),
-				] : []),
-			],
-
-			// Set tracesSampleRate to 1.0 to capture 100%
-			tracesSampleRate: 1.0,
-
-			// Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-			...(instance.sentryForFrontend.browserTracingIntegration !== undefined ? {
-				tracePropagationTargets: [apiUrl],
-			} : {}),
-
-			// Capture Replay for 10% of all sessions,
-			// plus for 100% of sessions with an error
-			...(instance.sentryForFrontend.replayIntegration !== undefined ? {
-				replaysSessionSampleRate: 0.1,
-				replaysOnErrorSampleRate: 1.0,
-			} : {}),
-
-			...instance.sentryForFrontend.options,
-		});
-	}
+	await initTelemetry(instance, app);
 
 	try {
 		await launchPlugins();

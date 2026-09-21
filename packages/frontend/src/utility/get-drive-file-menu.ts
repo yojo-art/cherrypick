@@ -7,6 +7,7 @@ import * as Misskey from 'misskey-js';
 import { defineAsyncComponent } from 'vue';
 import { selectDriveFolder } from './drive.js';
 import type { MenuItem } from '@/types/menu.js';
+import type { Content } from '@/components/MkLightbox.item.vue';
 import { i18n } from '@/i18n.js';
 import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
 import * as os from '@/os.js';
@@ -97,6 +98,7 @@ async function deleteFile(file: Misskey.entities.DriveFile) {
 	globalEvents.emit('driveFilesDeleted', [file]);
 }
 
+/** 自分のドライブファイルを操作する際のメニュー */
 export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Misskey.entities.DriveFolder | null): MenuItem[] {
 	const _isImage = file.type.startsWith('image/');
 
@@ -125,13 +127,23 @@ export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Miss
 		action: () => describe(file),
 	});
 
-	if (_isImage) {
+	if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
 		menuItems.push({
 			text: i18n.ts.preview,
 			icon: 'ti ti-photo-search',
 			action: async () => {
-				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkImgPreviewDialog.vue').then(x => x.default), {
-					file: file,
+				const contents :Content[] = [{
+					id: file.id,
+					type: file.type.startsWith('video/') ? 'video' : 'image',
+					url: file.url,
+					thumbnailUrl: file.thumbnailUrl,
+					filename: file.name,
+					file,
+				}];
+
+				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkLightbox.vue').then(x => x.default), {
+					defaultIndex: contents.findIndex(x => x.id === file.id),
+					contents,
 				}, {
 					closed: () => dispose(),
 				});
@@ -144,6 +156,7 @@ export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Miss
 		icon: 'ti ti-pencil',
 		action: () => os.post({
 			initialFiles: [file],
+			instant: true,
 		}),
 	}, {
 		text: i18n.ts.copyUrl,

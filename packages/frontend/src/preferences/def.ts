@@ -328,6 +328,10 @@ export const PREF_DEF = definePreferences({
 	limitWidthOfReaction: {
 		default: true,
 	},
+	reactions: {
+		accountDependent: true,
+		default: DEFAULT_EMOJIS,
+	},
 	forceShowAds: {
 		default: true,
 	},
@@ -734,10 +738,43 @@ export const PREF_DEF = definePreferences({
 	newNoteReceivedNotificationBehavior: {
 		default: 'count' as 'default' | 'count' | 'none',
 	},
+	searchEngine: {
+		default: 'google' as 'google' | 'bing' | 'yahoo' | 'baidu' | 'naver' | 'daum' | 'duckduckgo' | 'other',
+	},
+	searchEngineUrl: {
+		default: 'https://www.ecosia.org/search?',
+	},
+	searchEngineUrlQuery: {
+		default: 'q',
+	},
 
 	// - Settings/Navigation bar
 	bannerDisplay: {
 		default: 'topBottom' as 'all' | 'topBottom' | 'top' | 'bottom' | 'bg' | 'hide',
+	},
+	showMenuButtonInNavbar: {
+		default: true,
+	},
+	showHomeButtonInNavbar: {
+		default: true,
+	},
+	showExploreButtonInNavbar: {
+		default: false,
+	},
+	showSearchButtonInNavbar: {
+		default: false,
+	},
+	showNotificationButtonInNavbar: {
+		default: true,
+	},
+	showChatButtonInNavbar: {
+		default: false,
+	},
+	showWidgetButtonInNavbar: {
+		default: true,
+	},
+	showPostButtonInNavbar: {
+		default: true,
 	},
 
 	// - Settings/Timeline
