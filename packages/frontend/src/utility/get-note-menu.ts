@@ -39,7 +39,7 @@ const isInBrowserTranslationAvailable = (
 
 export async function getNoteClipMenu(props: {
 	note: Misskey.entities.Note;
-	currentClip?: Misskey.entities.Clip;
+	currentClip?: Misskey.entities.Clip | null;
 }) {
 	function getClipName(clip: Misskey.entities.Clip) {
 		if ($i && clip.userId === $i.id && clip.notesCount != null) {
@@ -192,8 +192,8 @@ export function getNoteMenu(props: {
 	translateStatus: Ref<TranslateStatus>;
 	viewTextSource: Ref<boolean>;
 	noNyaize: Ref<boolean>;
-	currentClip?: Misskey.entities.Clip;
-	currentAntenna?: Misskey.entities.Antenna;
+	currentClip?: Misskey.entities.Clip | null;
+	currentAntenna?: Misskey.entities.Antenna | null;
 }) {
 	const appearNote = getAppearNote(props.note) ?? props.note;
 	const link = appearNote.url ?? appearNote.uri;

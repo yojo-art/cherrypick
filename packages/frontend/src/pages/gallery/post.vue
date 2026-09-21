@@ -128,6 +128,7 @@ function shareWithNote() {
 	if (!post.value) return;
 	os.post({
 		initialText: `${post.value.title}\n${url}/gallery/${post.value.id}`,
+		instant: true,
 	});
 }
 

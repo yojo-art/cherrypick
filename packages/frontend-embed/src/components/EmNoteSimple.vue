@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div :class="$style.root" :style="{ cursor: expandOnNoteClick && enableNoteClick ? 'pointer' : '' }">
+<div :class="$style.root">
 	<div style="display: flex; padding-bottom: 10px;">
 		<EmAvatar :class="$style.avatar" :user="note.user" link preview/>
 		<div :class="$style.main">
