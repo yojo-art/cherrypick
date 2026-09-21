@@ -47,7 +47,7 @@
 		"cropperjs": "2.1.1",
 		"date-fns": "4.4.0",
 		"eventemitter3": "5.0.4",
-		"exifreader": "4.41.0",
+		"exifreader": "4.41.1",
 		"frontend-shared": "workspace:*",
 		"i18n": "workspace:*",
 		"icons-subsetter": "workspace:*",
