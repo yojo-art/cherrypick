@@ -7,14 +7,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 <div class="_gaps">
 	<div>
 		<div :class="$style.inputs">
-			<MkInput v-model="host" :debounce="true" class="" style="flex: 1;">
+			<MkInput ref="hostEl" v-model="host" :debounce="true" class="" style="flex: 1;">
 				<template #prefix><i class="ti ti-search"></i></template>
 				<template v-if="host != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="host = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
 				<template #label>{{ i18n.ts.host }}</template>
 			</MkInput>
-			<MkInput v-model="softwareName" :debounce="true" class="" style="flex: 1;">
+			<MkInput ref="softwareNameEl" v-model="softwareName" :debounce="true" class="" style="flex: 1;">
 				<template #prefix><i class="ti ti-search"></i></template>
-				<template v-if="softwareName != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="softwareName = ''; hostEl?.focus();"><i class="ti ti-x"></i></button></template>
+				<template v-if="softwareName != ''" #suffix><button type="button" :class="$style.deleteBtn" tabindex="-1" @click="softwareName = ''; softwareNameEl?.focus();"><i class="ti ti-x"></i></button></template>
 				<template #label>{{ i18n.ts.softwareName }}</template>
 			</MkInput>
 		</div>
@@ -111,6 +111,7 @@ const paginator = markRaw(new Paginator('federation/instances', {
 }));
 
 const hostEl = useTemplateRef('hostEl');
+const softwareNameEl = useTemplateRef('softwareNameEl');
 
 function getStatus(instance: Misskey.entities.FederationInstance) {
 	if (instance.isSuspended) return 'Suspended';
