@@ -241,7 +241,6 @@ export class ChatService implements OnApplicationShutdown {
 		// 3秒経っても既読にならなかったらイベント発行
 		if (this.userEntityService.isLocalUser(toUser)) {
 			const timer = setTimeout(async () => {
-
 				const marker = await this.redisClient.get(`newUserChatMessageExists:${toUser.id}:${fromUser.id}`);
 
 				if (marker == null) return; // 既読
@@ -327,7 +326,6 @@ export class ChatService implements OnApplicationShutdown {
 
 		// 3秒経っても既読にならなかったらイベント発行
 		const timer = setTimeout(async () => {
-
 			const redisPipeline = this.redisClient.pipeline();
 			for (const membership of membershipsOtherThanMe) {
 				redisPipeline.get(`newRoomChatMessageExists:${membership.userId}:${toRoom.id}`);
