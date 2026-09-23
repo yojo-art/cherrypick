@@ -4,7 +4,6 @@
  */
 
 import { setImmediate } from 'node:timers/promises';
-import util from 'util';
 import { In, DataSource } from 'typeorm';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import * as mfm from 'mfc-js';
@@ -356,9 +355,14 @@ export class NoteUpdateService implements OnApplicationShutdown {
 
 	@bindThis
 	private async deliverToConcerned(user: { id: MiLocalUser['id']; host: null; }, note: MiNote, content: any) {
-		console.log('deliverToConcerned', util.inspect(content, { depth: null }));
-		await this.apDeliverManagerService.deliverToFollowers(user, content);
-		await this.relayService.deliverToRelays(user, content);
+		// フォロワーへの配送は public/home/followers のみ、リレーへの配送は public のみ
+		// (NoteCreateService の作成時と同条件)。メンションされたリモートユーザーへの直接配送は維持する。
+		if (['public', 'home', 'followers'].includes(note.visibility)) {
+			await this.apDeliverManagerService.deliverToFollowers(user, content);
+		}
+		if (note.visibility === 'public') {
+			await this.relayService.deliverToRelays(user, content);
+		}
 		const remoteUsers = await this.getMentionedRemoteUsers(note);
 		for (const remoteUser of remoteUsers) {
 			await this.apDeliverManagerService.deliverToUser(user, content, remoteUser);

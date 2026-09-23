@@ -10,10 +10,12 @@
 import cluster from 'node:cluster';
 import { EventEmitter } from 'node:events';
 import process from 'node:process';
-import chalk from 'chalk';
+import { writeHeapSnapshot } from 'node:v8';
 import Xev from 'xev';
 import Logger from '@/logger.js';
 import { envOption } from '../env.js';
+import { installProcessErrorHandlers } from './process-error-handler.js';
+import { isShutdownInProgress } from './shutdown-handler.js';
 import { readyRef } from './ready.js';
 
 import 'reflect-metadata';
@@ -27,76 +29,46 @@ const logger = new Logger('core', 'cyan');
 const clusterLogger = logger.createSubLogger('cluster', 'orange');
 const ev = new Xev();
 
+installProcessErrorHandlers({ logger, quiet: envOption.quiet });
+
 //#region Events
 
-let isShuttingDown = false;
+// Listen new workers
+cluster.on('fork', worker => {
+	clusterLogger.debug(`Process forked: [${worker.id}]`);
+});
 
-if (cluster.isPrimary && !envOption.disableClustering) {
-	// Listen new workers
-	cluster.on('fork', worker => {
-		clusterLogger.debug(`Process forked: [${worker.id}]`);
-	});
+// Listen online workers
+cluster.on('online', worker => {
+	clusterLogger.debug(`Process is now online: [${worker.id}]`);
+});
 
-	// Listen online workers
-	cluster.on('online', worker => {
-		clusterLogger.debug(`Process is now online: [${worker.id}]`);
-	});
+// Listen for dying workers
+cluster.on('exit', worker => {
+	if (isShutdownInProgress()) {
+		clusterLogger.info(`Process exited during shutdown: [${worker.id}]`);
+		return;
+	}
 
-	// Listen for dying workers
-	cluster.on('exit', (worker, code, signal) => {
-		// Replace the dead worker,
-		// we're not sentimental
-		clusterLogger.error(chalk.red(`[${worker.id}] died (${signal || code})`));
-		if (!isShuttingDown) cluster.fork();
-		else clusterLogger.info(chalk.yellow('Worker respawn disabled because of shutdown'));
-	});
-
-	process.on('SIGINT', () => {
-		logger.warn(chalk.yellow('Process received SIGINT'));
-		isShuttingDown = true;
-	});
-
-	process.on('SIGTERM', () => {
-		logger.warn(chalk.yellow('Process received SIGTERM'));
-		isShuttingDown = true;
-	});
-}
-
-// Display detail of unhandled promise rejection
-if (!envOption.quiet) {
-	process.on('unhandledRejection', console.dir);
-}
-
-// Display detail of uncaught exception
-process.on('uncaughtException', err => {
-	try {
-		logger.error(err);
-		console.trace(err);
-	} catch { }
+	// 終了したワーカーは従来どおり再生成し、表示色は出力処理へ任せます。
+	clusterLogger.error(`[${worker.id}] died :(`);
+	cluster.fork();
 });
 
 // Dying away...
 process.on('exit', code => {
-	logger.warn(chalk.yellow(`The process is going to exit with code ${code}`));
-});
-
-process.on('warning', warning => {
-	if ((warning as never)['code'] !== 'CHERRYPICK_SHUTDOWN') return;
-	logger.warn(chalk.yellow(`${warning.message}: ${(warning as never)['detail']}`));
-	for (const id in cluster.workers) cluster.workers[id]?.process.kill('SIGTERM');
-	process.exit();
+	if (isShutdownInProgress()) return;
+	logger.info(`The process is going to exit with code ${code}`);
 });
 
 //#endregion
 
 if (!envOption.disableClustering) {
 	if (cluster.isPrimary) {
-		logger.info(`Start main process... pid: ${process.pid}`);
 		const { masterMain } = await import('./master.js');
 		await masterMain();
 		ev.mount();
 	} else if (cluster.isWorker) {
-		logger.info(`Start worker process... pid: ${process.pid}`);
 		const { workerMain } = await import('./worker.js');
 		await workerMain();
 	} else {
@@ -104,7 +76,6 @@ if (!envOption.disableClustering) {
 	}
 } else {
 	// 非clusterの場合はMasterのみが起動するため、Workerの処理は行わない(cluster.isWorker === trueの状態でこのブロックに来ることはない)
-	logger.info(`Start main process... pid: ${process.pid}`);
 	const { masterMain } = await import('./master.js');
 	await masterMain();
 	ev.mount();
@@ -114,10 +85,35 @@ process.on('message', msg => {
 	if (msg === 'gc') {
 		if (global.gc != null) {
 			logger.info('Manual GC triggered');
-			global.gc();
+			for (let i = 0; i < 3; i++) {
+				global.gc();
+			}
 			if (process.send != null) process.send('gc ok');
 		} else {
 			logger.warn('Manual GC requested but gc is not available. Start the process with --expose-gc to enable this feature.');
+			if (process.send != null) process.send('gc unavailable');
+		}
+	} else if (msg === 'memory usage') {
+		if (process.send != null) {
+			process.send({
+				type: 'memory usage',
+				value: process.memoryUsage(),
+			});
+		}
+	} else if (msg != null && typeof msg === 'object' && 'type' in msg && msg.type === 'heap snapshot' && 'path' in msg && typeof msg.path === 'string') {
+		if (process.send != null) {
+			try {
+				const path = writeHeapSnapshot(msg.path);
+				process.send({
+					type: 'heap snapshot',
+					path,
+				});
+			} catch (err) {
+				process.send({
+					type: 'heap snapshot error',
+					message: err instanceof Error ? err.message : String(err),
+				});
+			}
 		}
 	}
 });

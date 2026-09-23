@@ -9,6 +9,7 @@ import { IdService } from '@/core/IdService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { FlashService } from '@/core/FlashService.js';
+import { UtilityService } from '@/core/UtilityService.js';
 import { ApiError } from '../../error.js';
 
 export const meta = {
@@ -38,6 +39,12 @@ export const meta = {
 			code: 'ALREADY_LIKED',
 			id: '010065cf-ad43-40df-8067-abff9f4686e3',
 		},
+
+		failedToResolveRemoteUser: {
+			message: 'failedToResolveRemoteUser.',
+			code: 'FAILED_TO_RESOLVE_REMOTE_USER',
+			id: '1ec3b481-185d-4755-a017-f7b562bb7c9a',
+		},
 	},
 } as const;
 
@@ -61,12 +68,16 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private flashLikesRemoteRepository: FlashLikesRemoteRepository,
 
 		private flashService: FlashService,
+		private utilityService: UtilityService,
 		private idService: IdService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const flashIdArray = ps.flashId.split('@');
 			const host = flashIdArray.length > 1 ? flashIdArray[1] : null;
 			if (host) {
+				if (!this.utilityService.isValidRemoteHost(host)) {
+					throw new ApiError(meta.errors.failedToResolveRemoteUser);
+				}
 				const flashId = flashIdArray[0];
 				const flash = await flashService.showRemote(flashId, host);
 

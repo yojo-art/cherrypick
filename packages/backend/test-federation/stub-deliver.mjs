@@ -15,6 +15,21 @@ const ACTOR_URI = `https://${STUB_HOST}/users/zack`;
 const KEY_ID = `${ACTOR_URI}#main-key`;
 const ALLOWED_TARGETS = new Set(['a.test', 'b.test', 'c.test']);
 
+/**
+ * Record of activities POSTed to https://z.test/inbox by the tested instances.
+ * Lets federation tests observe (or assert the absence of) deliveries,
+ * e.g. to verify that a specified (DM) note edit is not sent to followers.
+ */
+const receivedActivities = [];
+const MAX_RECEIVED = 500;
+
+function recordReceived(body) {
+	receivedActivities.push({ receivedAt: new Date().toISOString(), body });
+	if (receivedActivities.length > MAX_RECEIVED) {
+		receivedActivities.splice(0, receivedActivities.length - MAX_RECEIVED);
+	}
+}
+
 /** @type {string | undefined} */
 let privateKeyPem;
 
@@ -114,6 +129,39 @@ async function deliverActivity(targetHost, notePath, placeholders = {}) {
 	};
 }
 
+async function deliverFollow(targetHost, object) {
+	if (!ALLOWED_TARGETS.has(targetHost)) {
+		throw new Error(`invalid targetHost: ${targetHost}`);
+	}
+
+	const activity = {
+		'@context': 'https://www.w3.org/ns/activitystreams',
+		type: 'Follow',
+		id: `https://${STUB_HOST}/activities/follow/${randomUUID()}`,
+		actor: ACTOR_URI,
+		object,
+	};
+	const body = JSON.stringify(activity);
+	const inboxUrl = `https://${targetHost}/inbox`;
+	const headers = createSignedActivityPost({
+		url: inboxUrl,
+		body,
+		privateKeyPem: await getPrivateKeyPem(),
+		keyId: KEY_ID,
+	});
+	const response = await fetch(inboxUrl, {
+		method: 'POST',
+		headers,
+		body,
+	});
+
+	return {
+		activityId: activity.id,
+		inboxUrl,
+		inboxStatus: response.status,
+	};
+}
+
 function readJsonBody(req) {
 	return new Promise((resolve, reject) => {
 		const chunks = [];
@@ -152,6 +200,51 @@ async function main() {
 				const result = await deliverActivity(targetHost, notePath, placeholders);
 				res.writeHead(200, { 'Content-Type': 'application/json' });
 				res.end(JSON.stringify(result));
+				return;
+			}
+
+			if (req.method === 'POST' && req.url === '/follow') {
+				const { targetHost, object } = await readJsonBody(req);
+				if (typeof targetHost !== 'string' || typeof object !== 'string') {
+					res.writeHead(400, { 'Content-Type': 'application/json' });
+					res.end(JSON.stringify({ error: 'targetHost and object are required' }));
+					return;
+				}
+
+				const result = await deliverFollow(targetHost, object);
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify(result));
+				return;
+			}
+
+			if (req.method === 'POST' && req.url === '/inbox') {
+				let body = null;
+				try {
+					body = await readJsonBody(req);
+				} catch {
+					body = null;
+				}
+				recordReceived(body);
+				res.writeHead(202, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify({ ok: true }));
+				return;
+			}
+
+			if (req.method === 'GET' && req.url.startsWith('/received')) {
+				const url = new URL(req.url, 'http://localhost');
+				const text = url.searchParams.get('text');
+				const list = text == null || text === ''
+					? receivedActivities
+					: receivedActivities.filter(entry => JSON.stringify(entry.body).includes(text));
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify(list));
+				return;
+			}
+
+			if (req.method === 'POST' && req.url === '/received/clear') {
+				receivedActivities.length = 0;
+				res.writeHead(200, { 'Content-Type': 'application/json' });
+				res.end(JSON.stringify({ ok: true }));
 				return;
 			}
 

@@ -5,6 +5,7 @@
 
 import { URL, domainToASCII } from 'node:url';
 import { Inject, Injectable } from '@nestjs/common';
+import ipaddr from 'ipaddr.js';
 import RE2 from 're2';
 import semver from 'semver';
 import { DI } from '@/di-symbols.js';
@@ -52,6 +53,47 @@ export class UtilityService {
 	public isBlockedHost(blockedHosts: string[], host: string | null): boolean {
 		if (host == null) return false;
 		return blockedHosts.some(x => `.${host.toLowerCase()}`.endsWith(`.${x}`));
+	}
+
+	/**
+	 * `host` 部分にパス・クエリ・フラグメント・ユーザー情報が混入していないか、
+	 * プライベート / ループバック / リンクローカル等の IP リテラルでないかを検証する。
+	 * `config.allowedPrivateNetworks` に含まれる範囲は許可する。
+	 */
+	@bindThis
+	public isValidRemoteHost(host: string): boolean {
+		let url: URL;
+		try {
+			url = new URL('https://' + host);
+		} catch {
+			return false;
+		}
+
+		if (url.username !== '' || url.password !== '' || url.pathname !== '/' || url.search !== '' || url.hash !== '') {
+			return false;
+		}
+
+		let hostname = url.hostname;
+		if (hostname.startsWith('[') && hostname.endsWith(']')) {
+			hostname = hostname.slice(1, -1);
+		}
+
+		if (hostname === '') return false;
+
+		if (ipaddr.isValid(hostname)) {
+			const parsedIp = ipaddr.parse(hostname);
+
+			for (const net of this.config.allowedPrivateNetworks ?? []) {
+				const cidr = ipaddr.parseCIDR(net);
+				if (cidr[0].kind() === parsedIp.kind() && parsedIp.match(cidr)) {
+					return true;
+				}
+			}
+
+			return parsedIp.range() === 'unicast';
+		}
+
+		return true;
 	}
 
 	@bindThis

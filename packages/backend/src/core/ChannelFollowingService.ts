@@ -8,7 +8,6 @@ import Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
 import type { UsersRepository, FollowingsRepository, ChannelsRepository, MiUser } from '@/models/_.js';
 import { MiChannel } from '@/models/_.js';
-import { IdService } from '@/core/IdService.js';
 import { GlobalEvents, GlobalEventService } from '@/core/GlobalEventService.js';
 import { bindThis } from '@/decorators.js';
 import { RedisKVCache } from '@/misc/cache.js';

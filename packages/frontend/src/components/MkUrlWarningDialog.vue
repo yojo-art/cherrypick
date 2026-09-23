@@ -20,8 +20,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 		<div :class="$style.buttons">
-			<MkButton data-cy-modal-dialog-cancel inline rounded @click="cancel">{{ i18n.ts.cancel }}</MkButton>
-			<MkButton data-cy-modal-dialog-ok inline primary rounded @click="ok"><i class="ti ti-external-link"></i> {{ i18n.ts.open }}</MkButton>
+			<MkButton data-testid="url-warning-dialog-cancel" inline rounded @click="cancel">{{ i18n.ts.cancel }}</MkButton>
+			<MkButton data-testid="url-warning-dialog-ok" inline primary rounded @click="ok"><i class="ti ti-external-link"></i> {{ i18n.ts.open }}</MkButton>
 		</div>
 	</div>
 </MkModal>

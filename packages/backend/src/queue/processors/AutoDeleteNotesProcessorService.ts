@@ -3,15 +3,36 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import { randomUUID } from 'node:crypto';
+import { setTimeout as sleep } from 'node:timers/promises';
 import { Inject, Injectable } from '@nestjs/common';
-import { IsNull, LessThan, Not } from 'typeorm';
+import * as Redis from 'ioredis';
+import { IsNull, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { NotesRepository, UsersRepository } from '@/models/_.js';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
+import { NoteDeleteService } from '@/core/NoteDeleteService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type * as Bull from 'bullmq';
+
+// 一度の実行(cronの1tick)で削除するノート数の上限。実行頻度を上げつつ1回あたりの
+// 削除件数・トランザクションサイズを抑える設計にしている(cronは10分おき)。
+const MAX_NOTES_PER_RUN = 200;
+// 1回の DELETE 文で処理する件数。MAX_NOTES_PER_RUN 分を一括で消すのではなく
+// 小分けにし、間に間隔を空けることで削除がパルス的に集中しないようにする。
+const SUB_BATCH_SIZE = 5;
+const SUB_BATCH_INTERVAL_MS = 1000;
+// 実行中フラグの Redis ロックキー / TTL。プロセスがクラッシュしてロック解放できなくても
+// 自動的に開放されるようにするための保険であり、チャンクを処理するたびに延長(ハートビート)
+// するので、生きて進捗している限りはTTLに関わらずロックを保持し続ける。
+// クラッシュ検知の保険なので長めに取っておき、単発クエリの詰まり(本来はDB側の
+// statement_timeoutで弾かれる想定)にも余裕を持たせる。
+const LOCK_KEY = 'autoDeleteNotes:lock';
+const LOCK_TTL_MS = 60 * 60 * 1000;
+const RELEASE_LOCK_SCRIPT = 'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("del", KEYS[1]) else return 0 end';
+const RENEW_LOCK_SCRIPT = 'if redis.call("get", KEYS[1]) == ARGV[1] then return redis.call("pexpire", KEYS[1], ARGV[2]) else return 0 end';
 
 @Injectable()
 export class AutoDeleteNotesProcessorService {
@@ -24,7 +45,11 @@ export class AutoDeleteNotesProcessorService {
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		private idService: IdService,
+		private noteDeleteService: NoteDeleteService,
 		private queueLoggerService: QueueLoggerService,
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('auto-delete-notes');
@@ -35,6 +60,37 @@ export class AutoDeleteNotesProcessorService {
 		deletedCount: number;
 		processedUsers: number;
 	}> {
+		// cluster (複数ワーカープロセス) 環境では同じ system キューを複数プロセスが
+		// 処理し得るため、in-memory なフラグではなく Redis ロックで前回実行中の
+		// 重複起動を防ぐ。
+		const lockToken = randomUUID();
+		const acquired = await this.redisClient.set(LOCK_KEY, lockToken, 'PX', LOCK_TTL_MS, 'NX');
+
+		if (acquired !== 'OK') {
+			this.logger.info('Previous auto-delete notes run is still in progress. Skipping this tick.');
+			return { deletedCount: 0, processedUsers: 0 };
+		}
+
+		try {
+			return await this.processWithLock(lockToken);
+		} finally {
+			await this.redisClient.eval(RELEASE_LOCK_SCRIPT, 1, LOCK_KEY, lockToken);
+		}
+	}
+
+	// 自分が取得したロックである限りTTLを延長する。既に他プロセスにロックを
+	// 奪われていた(=延長できなかった)場合は false を返す。
+	@bindThis
+	private async renewLock(lockToken: string): Promise<boolean> {
+		const result = await this.redisClient.eval(RENEW_LOCK_SCRIPT, 1, LOCK_KEY, lockToken, LOCK_TTL_MS);
+		return result === 1;
+	}
+
+	@bindThis
+	private async processWithLock(lockToken: string): Promise<{
+		deletedCount: number;
+		processedUsers: number;
+	}> {
 		this.logger.info('Starting auto-delete notes process...');
 
 		const stats = {
@@ -42,8 +98,10 @@ export class AutoDeleteNotesProcessorService {
 			processedUsers: 0,
 		};
 
-		// autoDeleteNotesAfterDays가 설정된 유저 찾기
+		// autoDeleteNotesAfterDays가 설정된 유저 찾기 (この設定はローカルユーザーの
+		// 自分自身しか書き込めないが、クエリ自体にも host IS NULL を明示しておく)
 		const usersWithAutoDelete = await this.usersRepository.findBy({
+			host: IsNull(),
 			autoDeleteNotesAfterDays: Not(IsNull()),
 		});
 
@@ -54,8 +112,12 @@ export class AutoDeleteNotesProcessorService {
 
 		this.logger.info(`Found ${usersWithAutoDelete.length} users with auto-delete settings.`);
 
-		// 각 유저별로 처리
+		// 각 유저별로 처리 (1回の実行あたり MAX_NOTES_PER_RUN 件に達したら打ち切り、
+		// 続きは次回の実行(10分後)に持ち越す)
+		let lockLost = false;
 		for (const user of usersWithAutoDelete) {
+			if (stats.deletedCount >= MAX_NOTES_PER_RUN || lockLost) break;
+
 			try {
 				const days = user.autoDeleteNotesAfterDays;
 				if (days === null || days <= 0) continue;
@@ -66,7 +128,7 @@ export class AutoDeleteNotesProcessorService {
 
 				this.logger.info(`Processing user ${user.id}: deleting notes older than ${days} days (before ${deleteBeforeDate.toISOString()})`);
 
-				// 삭제할 노트 찾기
+				// 삭제할 노트 찾기 (古いノートから優先的に削除する)
 				const queryBuilder = this.notesRepository.createQueryBuilder('note')
 					.where('note.userId = :userId', { userId: user.id })
 					.andWhere('note.id < :deleteBeforeId', { deleteBeforeId });
@@ -77,18 +139,41 @@ export class AutoDeleteNotesProcessorService {
 				}
 
 				const notesToDelete = await queryBuilder
-					.select('note.id')
-					.limit(1000) // 한 번에 최대 1000개씩 처리
+					.orderBy('note.id', 'ASC')
+					.limit(MAX_NOTES_PER_RUN - stats.deletedCount)
 					.getMany();
 
 				if (notesToDelete.length > 0) {
-					const noteIds = notesToDelete.map(note => note.id);
-					await this.notesRepository.delete(noteIds);
+					// SUB_BATCH_SIZE 件ずつに分けて NoteDeleteService を通して削除する (AP Delete 配送・
+					// ストリーム通知・検索 unindex・チャート・返信カウンタ等の副作用を実行するため)。
+					// 間に間隔を空けることで一度に大量の削除(とそれに伴うカスケード処理)が集中しないようにする
+					let deletedForUser = 0;
+					for (let i = 0; i < notesToDelete.length; i += SUB_BATCH_SIZE) {
+						const chunk = notesToDelete.slice(i, i + SUB_BATCH_SIZE);
+						for (const note of chunk) {
+							try {
+								await this.noteDeleteService.delete(user, note);
+								deletedForUser++;
+							} catch (error) {
+								this.logger.error(`Failed to delete note ${note.id} of user ${user.id}: ${error}`);
+							}
+						}
 
-					stats.deletedCount += noteIds.length;
-					this.logger.info(`Deleted ${noteIds.length} notes for user ${user.id}`);
-				} else {
-					this.logger.info(`No notes to delete for user ${user.id}`);
+						// チャンクを1つ処理するたびにロックのTTLを延長する。延長できなかった
+						// 場合、既に他プロセスがロックを奪って実行している可能性があるため
+						// ここで打ち切る(二重実行を避ける)
+						if (!await this.renewLock(lockToken)) {
+							this.logger.error('Lost the auto-delete notes lock mid-run (possibly stalled past the TTL); stopping this run.');
+							lockLost = true;
+							break;
+						}
+
+						if (i + SUB_BATCH_SIZE < notesToDelete.length) {
+							await sleep(SUB_BATCH_INTERVAL_MS);
+						}
+					}
+
+					stats.deletedCount += deletedForUser;
 				}
 
 				stats.processedUsers++;

@@ -162,14 +162,14 @@ const menuDisplay = store.model('menuDisplay');
 const showNavbarSubButtons = prefer.model('showNavbarSubButtons');
 const bannerDisplay = prefer.model('bannerDisplay');
 
-const showMenuButtonInNavbar = computed(store.makeGetterSetter('showMenuButtonInNavbar'));
-const showHomeButtonInNavbar = computed(store.makeGetterSetter('showHomeButtonInNavbar'));
-const showExploreButtonInNavbar = computed(store.makeGetterSetter('showExploreButtonInNavbar'));
-const showSearchButtonInNavbar = computed(store.makeGetterSetter('showSearchButtonInNavbar'));
-const showNotificationButtonInNavbar = computed(store.makeGetterSetter('showNotificationButtonInNavbar'));
-const showChatButtonInNavbar = computed(store.makeGetterSetter('showChatButtonInNavbar'));
-const showWidgetButtonInNavbar = computed(store.makeGetterSetter('showWidgetButtonInNavbar'));
-const showPostButtonInNavbar = computed(store.makeGetterSetter('showPostButtonInNavbar'));
+const showMenuButtonInNavbar = prefer.model('showMenuButtonInNavbar');
+const showHomeButtonInNavbar = prefer.model('showHomeButtonInNavbar');
+const showExploreButtonInNavbar = prefer.model('showExploreButtonInNavbar');
+const showSearchButtonInNavbar = prefer.model('showSearchButtonInNavbar');
+const showNotificationButtonInNavbar = prefer.model('showNotificationButtonInNavbar');
+const showChatButtonInNavbar = prefer.model('showChatButtonInNavbar');
+const showWidgetButtonInNavbar = prefer.model('showWidgetButtonInNavbar');
+const showPostButtonInNavbar = prefer.model('showPostButtonInNavbar');
 
 async function addItem(ev: MouseEvent) {
 	const menu = Object.keys(navbarItemDef).filter(k => !itemTypeValues.value.includes(k));
@@ -217,14 +217,14 @@ function reset() {
 }
 
 function resetButtomNavbar() {
-	store.set('showMenuButtonInNavbar', true);
-	store.set('showHomeButtonInNavbar', true);
-	store.set('showExploreButtonInNavbar', false);
-	store.set('showSearchButtonInNavbar', false);
-	store.set('showNotificationButtonInNavbar', true);
-	store.set('showChatButtonInNavbar', false);
-	store.set('showWidgetButtonInNavbar', true);
-	store.set('showPostButtonInNavbar', true);
+	prefer.commit('showMenuButtonInNavbar', true);
+	prefer.commit('showHomeButtonInNavbar', true);
+	prefer.commit('showExploreButtonInNavbar', false);
+	prefer.commit('showSearchButtonInNavbar', false);
+	prefer.commit('showNotificationButtonInNavbar', true);
+	prefer.commit('showChatButtonInNavbar', false);
+	prefer.commit('showWidgetButtonInNavbar', true);
+	prefer.commit('showPostButtonInNavbar', true);
 }
 
 function learnMoreBottomNavbar() {
