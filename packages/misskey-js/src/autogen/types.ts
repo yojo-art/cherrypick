@@ -23490,6 +23490,8 @@ export interface operations {
                 'application/json': {
                     /** @description Omit or use `null` to not filter by host. */
                     host?: string | null;
+                    /** @description Omit or use `null` to not filter by software name. */
+                    softwareName?: string | null;
                     blocked?: boolean | null;
                     notResponding?: boolean | null;
                     suspended?: boolean | null;
