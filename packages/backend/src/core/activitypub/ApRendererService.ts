@@ -1024,11 +1024,24 @@ export class ApRendererService {
 		const emojis = message.emojis && message.emojis.length > 0 ? await this.getEmojis(message.emojis) : [];
 		const apemojis = emojis.filter(emoji => !emoji.localOnly).map(emoji => this.renderEmoji(emoji));
 
+		// Render the raw chat text as safe HTML so remote instances rendering
+		// the federated Note cannot execute markup (e.g. <script>) sent by a
+		// local chat user. Misskey-family receivers keep receiving the exact
+		// original text via source/_misskey_content (see createChatMessage).
+		const { content } = this.apMfmService.getNoteHtml(
+			{ text: message.text ?? '', mentionedRemoteUsers: '[]' },
+		);
+
 		const note: IPost = {
 			id: message.uri ?? `${this.config.url}/chat/messages/${message.id}`,
 			type: 'Note',
 			attributedTo,
-			content: message.text ?? '',
+			content: content ?? '',
+			_misskey_content: message.text ?? '',
+			source: {
+				content: message.text ?? '',
+				mediaType: 'text/x.misskeymarkdown',
+			},
 			to,
 			published: this.idService.parse(message.id).date.toISOString(),
 			_misskey_talk: true, // Legacy Misskey chat

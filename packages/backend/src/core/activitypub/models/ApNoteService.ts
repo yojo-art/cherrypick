@@ -447,6 +447,15 @@ export class ApNoteService {
 
 		const event = await this.apEventService.extractEventFromNote(note, resolver).catch(() => undefined);
 
+		//#region Contents Check
+		// createNoteと同様に、リモートからの編集でも
+		// 禁止ワードフィルタを迂回できないようチェックする
+		const hasProhibitedWords = this.noteCreateService.checkProhibitedWordsContain({ cw, text, pollChoices: poll?.choices });
+		if (hasProhibitedWords) {
+			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
+		}
+		//#endregion
+
 		try {
 			return await this.noteUpdateService.update(actor, {
 				updatedAt: note.updated ? new Date(note.updated) : null,

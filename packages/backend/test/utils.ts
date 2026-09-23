@@ -679,9 +679,9 @@ export async function sendEnvUpdateRequest(params: { key: string, value?: string
 	}
 }
 
-export async function sendEnvResetRequest() {
+export async function stopTestServer() {
 	const res = await fetch(
-		`http://localhost:${port + 1000}/env-reset`,
+		`http://localhost:${port + 1000}/dispose`,
 		{
 			method: 'POST',
 			body: JSON.stringify({}),
@@ -689,7 +689,21 @@ export async function sendEnvResetRequest() {
 	);
 
 	if (res.status !== 200) {
-		throw new Error('server env update failed.');
+		throw new Error('server dispose failed.');
+	}
+}
+
+export async function startTestServer() {
+	const res = await fetch(
+		`http://localhost:${port + 1000}/launch`,
+		{
+			method: 'POST',
+			body: JSON.stringify({}),
+		},
+	);
+
+	if (res.status !== 200) {
+		throw new Error('server launch failed.');
 	}
 }
 
