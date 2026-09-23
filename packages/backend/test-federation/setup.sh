@@ -48,7 +48,33 @@ function generate_stub {
   sed "s/\${HOST}/$1/g" .config/example.stub.conf > .config/$1.conf
 }
 
+# z.test.deliver (LD署名生成用) の依存を調達する。
+# deliverコンテナは隔離NW (internal) のため起動時に npm install できない。
+# backend と同じ jsonld@9.0.0 を ./stub-vendor に前もって入れておく。
+function vendor_jsonld {
+  if ! (npm init -y --prefix ./stub-vendor >/dev/null 2>&1 && npm install --prefix ./stub-vendor --no-save --no-audit --no-fund jsonld@9.0.0); then
+    echo "WARNING: failed to vendor jsonld for z.test.deliver (network required)." >&2
+    echo "WARNING: LD-signature delivery modes (ld=valid/...) will fail until this succeeds." >&2
+  fi
+}
+
+# LD署名の正規化に使うコンテキストは backend の PRELOADED_CONTEXTS と完全一致が必要。
+# 手動コピーだとドリフトするため backend ソースから直接生成する (Node >= 22.18 の type stripping)。
+function generate_ld_contexts {
+  if ! node --input-type=module -e "
+import { writeFile } from 'node:fs/promises';
+const { PRELOADED_CONTEXTS } = await import('./../src/core/activitypub/misc/contexts.ts');
+await writeFile('./stub-deliver-contexts.json', JSON.stringify(PRELOADED_CONTEXTS, null, '\t') + '\n');
+"; then
+    echo "WARNING: failed to regenerate stub-deliver-contexts.json from src/core/activitypub/misc/contexts.ts (Node >= 22.18 required)." >&2
+    echo "WARNING: z.test.deliver LD-signature modes (ld=valid/...) require this file." >&2
+  fi
+}
+
 generate a.test
 generate b.test
 generate c.test
 generate_stub z.test
+
+vendor_jsonld
+generate_ld_contexts
