@@ -1,14 +1,9 @@
 /*
- * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-FileCopyrightText: syuilo and misskey-project, yojo-art team
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
 process.env.NODE_ENV = 'test';
-
-// Regression test for AP H9: /chat/messages/:id must not disclose 1:1 DM
-// body to unauthenticated requesters. Chat messages are delivered to remote
-// recipients as signed Create activities with the object embedded, so no
-// public ActivityPub GET route exists for them.
 
 import { describe, expect, test, beforeAll } from 'vitest';
 import { api, signup, relativeFetch } from '../utils.js';
