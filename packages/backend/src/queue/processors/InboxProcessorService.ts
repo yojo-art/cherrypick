@@ -138,17 +138,17 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		// また、signatureのsignerは、activity.actorと一致する必要がある
 		if (!httpSignatureValidated || authUser.user.uri !== getApId(activity.actor)) {
 			// 一致しなくても、でもLD-Signatureがありそうならそっちも見る
-			({ authUser, activity } = await this.verifyJsonLD(authUser, activity, signature));
+			({ authUser, activity } = await this.verifyJsonLd(authUser, activity, signature));
 		} else {
 			// yojo-art: HTTP-Signatureの検証を通過したため、JsonLD検証が必須ではないが、転送が必要か判定する
 			const audienceIds = [...getApIds(activity.to), ...getApIds(activity.cc), ...getApIds(activity.audience)];
 			if (this.utilityService.includesSelfHost(audienceIds)) {
-				//ローカルのユーザーが対象に指定されてそうな雰囲気があれば確定してなくてもとりあえず署名検証する
+				// ローカルのユーザーが対象に指定されていそうなら、転送のため JSON-LD 署名を検証する
 				try {
-					({ authUser, activity } = await this.verifyJsonLD(authUser, activity, signature));
-				} catch(e) {
+					({ activity } = await this.verifyJsonLd(authUser, activity, signature));
+				} catch (e) {
 					delete activity.signature;
-					this.logger.warn(`inbox activity remove JsonLD id=${activity.id} reason=${e}`);
+					this.logger.warn(`inbox activity removed JsonLD signature id=${activity.id}`);
 				}
 			} else {
 				delete activity.signature;
@@ -216,16 +216,16 @@ export class InboxProcessorService implements OnApplicationShutdown {
 		return 'ok';
 	}
 
-	// yojo-art: jsonLDの署名検証を別関数に切り出した
+	// yojo-art: JsonLd の署名検証を別関数に切り出した
 	@bindThis
-	private async verifyJsonLD(
+	private async verifyJsonLd(
 		_authUser: {
 			user: MiRemoteUser;
 			key: MiUserPublickey | null;
 		} | null,
 		_activity: IActivity,
 		signature: httpSignature.IParsedSignature,
-	) :Promise<
+	): Promise<
 		{
 			activity: IActivity,
 			authUser: {

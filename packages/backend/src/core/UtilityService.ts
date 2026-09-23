@@ -43,14 +43,7 @@ export class UtilityService {
 
 	@bindThis
 	public includesSelfHost(ids: string[]): boolean {
-		return ids.some(id => {
-			if (id.startsWith('https://www.w3.org/ns/activitystreams') || id === 'as:Public' || id === 'Public') return false;
-			try {
-				return this.isUriLocal(id);
-			} catch {
-				return false;
-			}
-		});
+		return ids.some(id => this.isUriLocal(id));
 	}
 
 	// メールアドレスのバリデーションを行う
