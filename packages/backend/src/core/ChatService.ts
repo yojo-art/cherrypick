@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import * as mfm from 'mfc-js';
 import * as Redis from 'ioredis';
 import { Brackets, In } from 'typeorm';
@@ -50,7 +50,7 @@ function normalizeEmojiString(x: string) {
 }
 
 @Injectable()
-export class ChatService {
+export class ChatService implements OnApplicationShutdown {
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -94,6 +94,13 @@ export class ChatService {
 		private customEmojiService: CustomEmojiService,
 		private moderationLogService: ModerationLogService,
 	) {
+	}
+
+	private isShuttingDown = false;
+
+	@bindThis
+	public onApplicationShutdown(): void {
+		this.isShuttingDown = true;
 	}
 
 	@bindThis
@@ -239,6 +246,8 @@ export class ChatService {
 		// 3秒経っても既読にならなかったらイベント発行
 		if (this.userEntityService.isLocalUser(toUser)) {
 			setTimeout(async () => {
+				if (this.isShuttingDown) return;
+
 				const marker = await this.redisClient.get(`newUserChatMessageExists:${toUser.id}:${fromUser.id}`);
 
 				if (marker == null) return; // 既読
@@ -323,6 +332,8 @@ export class ChatService {
 
 		// 3秒経っても既読にならなかったらイベント発行
 		setTimeout(async () => {
+			if (this.isShuttingDown) return;
+
 			const redisPipeline = this.redisClient.pipeline();
 			for (const membership of membershipsOtherThanMe) {
 				redisPipeline.get(`newRoomChatMessageExists:${membership.userId}:${toRoom.id}`);
