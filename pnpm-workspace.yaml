@@ -63,6 +63,9 @@ minimumReleaseAgeExclude:
   - form-data # 脆弱性対応。そのうち消す
   - tar
   - typeorm # 脆弱性対応 (CVE)。そのうち消す
+  - undici@6.28.1 || 7.29.1 # そのうち消す
+  # Renovate security update: nodemailer@9.1.1
+  - nodemailer@9.1.1
 overrides:
   '@aiscript-dev/aiscript-languageserver': '-'
   'bullmq>ioredis': 5.11.1

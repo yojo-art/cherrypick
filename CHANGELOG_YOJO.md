@@ -1,3 +1,19 @@
+## 1.11.2
+Cherrypick 4.17.0  
+Misskey 2026.6.0
+
+### Release Date
+2026-09-24
+
+### General
+- Fix: セキュリティに関する修正
+- Fix: セキュリティに関する修正 (Cherry-picked from misskey 2026.9.1)
+
+### Client
+
+### Server
+- Fix: 連合Updateにも禁止ワードチェックを適用 [#1376](https://github.com/yojo-art/cherrypick/pull/1376)
+
 ## 1.11.1
 Cherrypick 4.17.0  
 Misskey 2026.6.0
