@@ -87,7 +87,3 @@ vite.config.local-dev.ts.timestamp-*
 
 # Serena
 .serena
-
-# PR review worktrees
-.pr-review/*
-!.pr-review/known-false-positives.md
