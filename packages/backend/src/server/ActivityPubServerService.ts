@@ -14,7 +14,7 @@ import vary from 'vary';
 import secureJson from 'secure-json-parse';
 import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
+import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
 import * as url from '@/misc/prelude/url.js';
 import type { Config } from '@/config.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -72,9 +72,6 @@ export class ActivityPubServerService {
 
 		@Inject(DI.followRequestsRepository)
 		private followRequestsRepository: FollowRequestsRepository,
-
-		@Inject(DI.chatMessagesRepository)
-		private chatMessagesRepository: ChatMessagesRepository,
 
 		@Inject(DI.clipsRepository)
 		private clipsRepository: ClipsRepository,
@@ -913,52 +910,11 @@ export class ActivityPubServerService {
 			return (this.apRendererService.addContext(await this.packActivity(note)));
 		});
 
-		// chat message
-		fastify.get<{ Params: { id: string; } }>('/chat/messages/:id', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
-			vary(reply.raw, 'Accept');
-
-			if (this.meta.federation === 'none') {
-				reply.code(403);
-				return;
-			}
-
-			const message = await this.chatMessagesRepository.findOneBy({
-				id: request.params.id,
-			});
-
-			if (message == null) {
-				reply.code(404);
-				return;
-			}
-
-			// Get fromUser
-			const fromUser = await this.usersRepository.findOneBy({ id: message.fromUserId });
-			if (fromUser == null || fromUser.host !== null) {
-				reply.code(404);
-				return;
-			}
-
-			// Get toUser(s)
-			let toUsers: MiUser[] = [];
-			if (message.toUserId) {
-				// 1:1 chat
-				const toUser = await this.usersRepository.findOneBy({ id: message.toUserId });
-				if (toUser) toUsers = [toUser];
-			} else if (message.toRoomId) {
-				// Group chat - not yet fully implemented for ActivityPub
-				reply.code(404);
-				return;
-			}
-
-			if (toUsers.length === 0) {
-				reply.code(404);
-				return;
-			}
-
-			reply.header('Cache-Control', 'public, max-age=180');
-			this.setResponseType(request, reply);
-			return this.apRendererService.addContext(await this.apRendererService.renderChatMessage(message, fromUser, toUsers));
-		});
+		// chat message: no ActivityPub GET route.
+		// Chat messages are delivered to remote recipients as signed Create activities
+		// with the object embedded (see ChatService), so there is no legitimate pull
+		// consumer. A public GET here would disclose 1:1 DM text/attachments to any
+		// unauthenticated requester knowing the message ID, so it is intentionally omitted.
 
 		// outbox
 		fastify.get<{

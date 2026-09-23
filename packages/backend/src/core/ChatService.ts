@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Inject, Injectable } from '@nestjs/common';
+import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import * as mfm from 'mfc-js';
 import * as Redis from 'ioredis';
 import { Brackets, In } from 'typeorm';
@@ -50,7 +50,9 @@ function normalizeEmojiString(x: string) {
 }
 
 @Injectable()
-export class ChatService {
+export class ChatService implements OnApplicationShutdown {
+	private timers = new Set<NodeJS.Timeout>();
+
 	constructor(
 		@Inject(DI.config)
 		private config: Config,
@@ -238,7 +240,7 @@ export class ChatService {
 
 		// 3秒経っても既読にならなかったらイベント発行
 		if (this.userEntityService.isLocalUser(toUser)) {
-			setTimeout(async () => {
+			const timer = setTimeout(async () => {
 				const marker = await this.redisClient.get(`newUserChatMessageExists:${toUser.id}:${fromUser.id}`);
 
 				if (marker == null) return; // 既読
@@ -247,6 +249,7 @@ export class ChatService {
 				this.globalEventService.publishMainStream(toUser.id, 'newChatMessage', packedMessageForTo);
 				this.pushNotificationService.pushNotification(toUser.id, 'newChatMessage', packedMessageForTo);
 			}, 3000);
+			this.timers.add(timer);
 		}
 
 		// Federation: Send to remote user if applicable
@@ -322,7 +325,7 @@ export class ChatService {
 		redisPipeline.exec();
 
 		// 3秒経っても既読にならなかったらイベント発行
-		setTimeout(async () => {
+		const timer = setTimeout(async () => {
 			const redisPipeline = this.redisClient.pipeline();
 			for (const membership of membershipsOtherThanMe) {
 				redisPipeline.get(`newRoomChatMessageExists:${membership.userId}:${toRoom.id}`);
@@ -342,6 +345,7 @@ export class ChatService {
 				this.pushNotificationService.pushNotification(membershipsOtherThanMe[i].userId, 'newChatMessage', packedMessageForTo);
 			}
 		}, 3000);
+		this.timers.add(timer);
 
 		// Federation: Send to remote members if applicable
 		if (this.userEntityService.isLocalUser(fromUser)) {
@@ -1248,5 +1252,16 @@ export class ChatService {
 		const memberships = await query.take(limit).getMany();
 
 		return memberships;
+	}
+
+	@bindThis
+	public dispose(): void {
+		for (const timer of this.timers) clearTimeout(timer);
+		this.timers.clear();
+	}
+
+	@bindThis
+	public onApplicationShutdown(): void {
+		this.dispose();
 	}
 }
