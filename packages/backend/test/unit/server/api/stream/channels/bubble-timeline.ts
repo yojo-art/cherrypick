@@ -36,7 +36,7 @@ describe('BubbleTimelineChannel', () => {
 
 		metaService.fetch.mockResolvedValue({ bubbleInstances: ['bubble.example'] } as unknown as MiMeta);
 		roleService.getUserPolicies.mockResolvedValue({ ...DEFAULT_POLICIES });
-		noteStreamingHidingService.processHiding.mockResolvedValue({ shouldSkip: false });
+		noteStreamingHidingService.filter.mockImplementation(async note => note);
 
 		sendMessageToWs = vi.fn();
 		subscriber = new EventEmitter();
@@ -95,7 +95,7 @@ describe('BubbleTimelineChannel', () => {
 		const note = createNote();
 		await expect(onNote(channel, note)).resolves.toBeUndefined();
 
-		expect(noteStreamingHidingService.processHiding).toHaveBeenCalledWith(note, null);
+		expect(noteStreamingHidingService.filter).toHaveBeenCalledWith(note, null);
 		expect(sendMessageToWs).toHaveBeenCalledWith('channel', {
 			id: 'a',
 			type: 'note',
@@ -124,7 +124,7 @@ describe('BubbleTimelineChannel', () => {
 	});
 
 	test('NoteStreamingHidingService が非表示としたノートは受信しない', async () => {
-		noteStreamingHidingService.processHiding.mockResolvedValue({ shouldSkip: true });
+		noteStreamingHidingService.filter.mockResolvedValue(null);
 		const channel = createChannel(null);
 		await channel.init({});
 

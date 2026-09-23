@@ -210,7 +210,11 @@ export class ApOutboxFetchService implements OnModuleInit {
 					}
 					const fetch = await this.apNoteService.fetchNote(activity.object);
 					if (fetch) continue;
-					await this.apNoteService.createNote(activity.object, undefined, undefined, true);
+					// 帰属先をoutboxの持ち主に束縛する。activity.actorは上で
+					// user.uriと一致確認済みのため、userを渡すことでvalidateNoteが
+					// 同ホストの他ユーザ名義ノートを弾ける (なりすまし防止)。
+					// 上のAnnounce経路は第三者のノートを取得するため意図的に不変。
+					await this.apNoteService.createNote(activity.object, user, undefined, true);
 				}
 			} catch (err) {
 				//リモートのリモートが落ちてるなどで止まるとほかが見れなくなってしまうので再スローしない
