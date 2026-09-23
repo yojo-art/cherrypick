@@ -4,9 +4,10 @@
  */
 
 import { beforeAll } from 'vitest';
-import { initTestDb, sendEnvResetRequest } from './utils.js';
+import { initTestDb, startTestServer, stopTestServer } from './utils.js';
 
 beforeAll(async () => {
+	await stopTestServer();
 	await initTestDb(false);
-	await sendEnvResetRequest();
+	await startTestServer();
 });
