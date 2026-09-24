@@ -118,24 +118,8 @@ async function getHeapSnapshotStatistics(
 			await fs.copyFile(writtenPath, settings.heapSnapshotSavePath);
 		}
 
-		const snapshotStat = await fs.stat(writtenPath).catch((err: unknown) => {
-			throw new Error(`Failed to stat heap snapshot ${writtenPath} (requested ${snapshotPath}): ${err instanceof Error ? err.message : String(err)}`);
-		});
-		if (snapshotStat.size === 0) {
-			throw new Error(`Heap snapshot is empty (0 bytes): ${writtenPath} (requested ${snapshotPath}). The backend may have failed to write it (disk full, OOM during snapshot requiring ~2x heap, or clustering not disabled).`);
-		}
-
-		const raw = await fs.readFile(writtenPath, 'utf-8');
-		if (raw.trim().length === 0) {
-			throw new Error(`Heap snapshot is blank (size=${snapshotStat.size} bytes): ${writtenPath}`);
-		}
-		let snapshot: unknown;
-		try {
-			snapshot = JSON.parse(raw);
-		} catch (err) {
-			throw new Error(`Failed to parse heap snapshot ${writtenPath} (size=${snapshotStat.size} bytes, requested ${snapshotPath}): ${err instanceof Error ? err.message : String(err)}`);
-		}
-		return analyzeHeapSnapshot(snapshot as HeapSnapshotData, { breakdownTopN: settings.heapSnapshotBreakdownTopN });
+		const snapshot = JSON.parse(await fs.readFile(writtenPath, 'utf-8'));
+		return analyzeHeapSnapshot(snapshot, { breakdownTopN: settings.heapSnapshotBreakdownTopN });
 	} finally {
 		// 数百MBになることがあるため、解析後は必ず消す
 		await fs.unlink(writtenPath).catch(err => {
