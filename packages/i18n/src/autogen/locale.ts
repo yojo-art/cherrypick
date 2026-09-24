@@ -8320,6 +8320,14 @@ export interface Locale extends ILocale {
          */
         "deliverSuspendedSoftwareDescription": string;
         /**
+         * 受信停止中のソフトウェア
+         */
+        "receiveSuspendedSoftware": string;
+        /**
+         * 脆弱性などの理由で、サーバーのソフトウェアの名前及びバージョンの範囲を指定して受信を停止できます。対象のソフトウェアからのリクエストは、削除系も含めてすべて拒否されます。このバージョン情報はサーバーが提供したものであり、信頼性は保証されません。バージョン指定には semver の範囲指定が使用できますが、>= 2024.3.1 と指定すると 2024.3.1-custom.0 のようなカスタムバージョンが含まれないため、>= 2024.3.1-0 のように prerelease の指定を行うことを推奨します。
+         */
+        "receiveSuspendedSoftwareDescription": string;
+        /**
          * お一人様モード
          */
         "singleUserMode": string;

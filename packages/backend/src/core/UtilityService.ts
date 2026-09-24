@@ -196,15 +196,25 @@ export class UtilityService {
 
 	@bindThis
 	public isDeliverSuspendedSoftware(software: Pick<MiInstance, 'softwareName' | 'softwareVersion'>): SoftwareSuspension | undefined {
+		return this.isSoftwareSuspended(this.meta.deliverSuspendedSoftware, software);
+	}
+
+	@bindThis
+	public isReceiveSuspendedSoftware(software: Pick<MiInstance, 'softwareName' | 'softwareVersion'>): SoftwareSuspension | undefined {
+		return this.isSoftwareSuspended(this.meta.receiveSuspendedSoftware, software);
+	}
+
+	@bindThis
+	public isSoftwareSuspended(suspendedSoftware: SoftwareSuspension[], software: Pick<MiInstance, 'softwareName' | 'softwareVersion'>): SoftwareSuspension | undefined {
 		if (software.softwareName == null) return undefined;
 		if (software.softwareVersion == null) {
 			// software version is null; suspend iff versionRange is *
-			return this.meta.deliverSuspendedSoftware.find(x =>
+			return suspendedSoftware.find(x =>
 				x.software === software.softwareName
 				&& x.versionRange.trim() === '*');
 		} else {
 			const softwareVersion = software.softwareVersion;
-			return this.meta.deliverSuspendedSoftware.find(x =>
+			return suspendedSoftware.find(x =>
 				x.software === software.softwareName
 				&& semver.satisfies(softwareVersion, x.versionRange, { includePrerelease: true }));
 		}
