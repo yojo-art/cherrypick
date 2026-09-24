@@ -88,7 +88,6 @@ git diff --name-only develop -- 'locales/*.yml' | grep -v '^locales/ja-JP\.yml$'
 
 **注意:** `grep -v 'ja-JP.yml'` を **diff 本文** に当てると ja-JP.yml 単体の変更でも `+追加行` が素通りして必ず非空になる。`--name-only` でファイル名だけに絞ってから完全一致で除外するのが正しい。
 
-
 ## 例: 「ノートを削除しますか？」確認ダイアログを追加する
 
 1. `locales/ja-JP.yml`:

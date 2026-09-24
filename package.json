@@ -2,13 +2,13 @@
 	"name": "yojo-art",
 	"version": "1.11.2",
 	"basedCherrypickVersion": "4.17.0",
-	"basedMisskeyVersion": "2026.7.0",
+	"basedMisskeyVersion": "2026.9.1",
 	"codename": "tonjiru",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/yojo-art/cherrypick.git"
 	},
-	"packageManager": "pnpm@11.11.0",
+	"packageManager": "pnpm@11.25.0",
 	"workspaces": [
 		"packages/backend",
 		"packages/frontend-shared",
@@ -58,27 +58,27 @@
 		"schema:sync": "cd packages/backend && pnpm typeorm schema:sync -d ormconfig.js"
 	},
 	"dependencies": {
-		"esbuild": "0.28.1",
-		"execa": "9.6.1",
+		"esbuild": "0.28.2",
+		"execa": "10.0.1",
 		"ignore-walk": "9.0.0",
-		"js-yaml": "5.2.2",
-		"tar": "7.5.21"
+		"js-yaml": "5.4.1",
+		"tar": "7.5.22"
 	},
 	"devDependencies": {
 		"@babel/types": "7.29.7",
 		"@biomejs/biome": "2.3.1",
 		"@eslint/js": "9.39.5",
 		"@misskey-dev/eslint-plugin": "2.2.0",
-		"@types/node": "26.1.1",
-		"@typescript-eslint/eslint-plugin": "8.63.0",
-		"@typescript-eslint/parser": "8.63.0",
+		"@types/node": "26.4.0",
+		"@typescript-eslint/eslint-plugin": "8.68.0",
+		"@typescript-eslint/parser": "8.68.0",
 		"@typescript/native": "npm:typescript@7.0.2",
 		"cross-env": "10.1.0",
 		"eslint": "9.39.5",
-		"globals": "17.7.0",
+		"globals": "17.11.0",
 		"ncp": "2.0.0",
-		"pnpm": "11.11.0",
-		"start-server-and-test": "3.0.11",
+		"pnpm": "11.25.0",
+		"start-server-and-test": "3.0.12",
 		"typescript": "npm:@typescript/typescript6@6.0.2"
 	}
 }

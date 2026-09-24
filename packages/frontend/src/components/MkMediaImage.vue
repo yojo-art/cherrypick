@@ -75,6 +75,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { onMounted, onUnmounted, watch, ref, computed } from 'vue';
 import * as Misskey from 'misskey-js';
+import type { MediaComponentExposes } from '@/types/media-component.js';
 import { getStaticImageUrl } from '@/utility/media-proxy.js';
 import bytes from '@/filters/bytes.js';
 import MkImgWithBlurhash from '@/components/MkImgWithBlurhash.vue';
@@ -168,6 +169,10 @@ function showMenu(ev: PointerEvent) {
 function onContextmenu(ev: PointerEvent) {
 	os.contextMenu(getFileMenu(props.image, (newHide) => { hide.value = newHide; }), ev);
 }
+
+defineExpose<MediaComponentExposes>({
+	isRevealed: () => !hide.value,
+});
 
 onMounted(() => {
 	if (prefer.s.showingAnimatedImages === 'inactive') {

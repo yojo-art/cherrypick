@@ -353,9 +353,6 @@ export const PREF_DEF = definePreferences({
 	notificationStackAxis: {
 		default: 'vertical' as 'vertical' | 'horizontal',
 	},
-	enableCondensedLine: {
-		default: false,
-	},
 	keepScreenOn: {
 		default: false,
 	},

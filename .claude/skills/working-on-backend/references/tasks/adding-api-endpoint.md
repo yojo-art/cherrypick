@@ -253,12 +253,6 @@ PR に `packages/misskey-js/src/autogen/` 配下の差分が含まれていな�
 
 ---
 
-## 5. 仕上げフェーズ — CHANGELOG
-
-ユーザー影響がある (新機能 / 既存挙動変更) なら `CHANGELOG.md` の `## Unreleased` → `### Server` に 1 行追加する。詳細は [shipping-misskey-change スキル](../../../shipping-misskey-change/SKILL.md) に従う。
-
----
-
 ## 落とし穴サマリ (PR で頻発するミス)
 
 詳細な症状 → 原因 → 修正 のフォーマット → **[knowledge/api-meta-paramdef.md](../knowledge/api-meta-paramdef.md) §落とし穴**

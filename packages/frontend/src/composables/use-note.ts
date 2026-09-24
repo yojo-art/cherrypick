@@ -3,15 +3,20 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { ref, computed, watch } from 'vue';
-import type { Ref } from 'vue';
+import { ref, watch, computed } from 'vue';
 import * as Misskey from 'misskey-js';
 import { isLink } from '@@/js/is-link.js';
 import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@@/js/collapsed.js';
 import { host } from '@@/js/config.js';
 import { toUnicode } from 'punycode.js';
-import { pleaseLogin } from '@/utility/please-login.js';
+import type { Ref } from 'vue';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
+import type { TranslateStatus } from '@/utility/translate.js';
+import type { DI as DIType } from '@/di.js';
+import type { ExtractInjectedType } from '@/types/misc.js';
+import type { MenuItem } from '@/types/menu.js';
+import type { WordMuteResult } from '@/utility/check-word-mute.js';
+import { pleaseLogin } from '@/utility/please-login.js';
 import { checkWordMute } from '@/utility/check-word-mute.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import * as sound from '@/utility/sound.js';
@@ -20,7 +25,6 @@ import { reactionPicker } from '@/utility/reaction-picker.js';
 import { extractUrlFromMfm } from '@/utility/extract-url-from-mfm.js';
 import { parseMfmCached } from '@/utility/mfm-cache.js';
 import { getNoteClipMenu, getNoteMenu, getRenoteMenu, getRenoteOnly, getQuoteMenu, getAbuseNoteMenu, getCopyNoteLinkMenu } from '@/utility/get-note-menu.js';
-import type { TranslateStatus } from '@/utility/translate.js';
 import { noteEvents, useNoteCapture } from '@/composables/use-note-capture.js';
 import { deepClone } from '@/utility/clone.js';
 import { useTooltip } from '@/composables/use-tooltip.js';
@@ -42,9 +46,6 @@ import MkUsersTooltip from '@/components/MkUsersTooltip.vue';
 import MkReactionsViewerDetails from '@/components/MkReactionsViewer.details.vue';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { notePage } from '@/filters/note.js';
-import type { DI as DIType } from '@/di.js';
-import type { ExtractInjectedType } from '@/types/misc.js';
-import type { MenuItem } from '@/types/menu.js';
 
 export interface UseNoteProps {
 	note: Misskey.entities.Note;
@@ -77,36 +78,34 @@ export interface UseNoteOptions {
 	autoTranslateSkipLong?: boolean;
 }
 
-export function calculateMuteStatus<
-	CheckOnly extends boolean,
-	CheckForSensitiveMedia extends boolean,
-	ReturnTypeA = CheckOnly extends true ? boolean : Array<string | string[]> | false | 'sensitiveMute',
-	ReturnTypeB = CheckForSensitiveMedia extends true ? ReturnTypeA : Exclude<ReturnTypeA, 'sensitiveMute'>,
->(
+export function checkNoteWordMute(
 	noteToCheck: Misskey.entities.Note,
 	user: typeof $i,
 	mutedWords: Array<string | string[]> | null,
-	checkForSensitiveMedia: CheckForSensitiveMedia,
-	checkOnly: CheckOnly = false as CheckOnly,
-): ReturnTypeB {
+): WordMuteResult {
 	if (mutedWords != null) {
 		const result = checkWordMute(noteToCheck, user, mutedWords);
-		if (Array.isArray(result)) return checkOnly ? (result.length > 0) as ReturnTypeB : result as ReturnTypeB;
+		if (Array.isArray(result)) return result;
 
 		const replyResult = noteToCheck.reply && checkWordMute(noteToCheck.reply, user, mutedWords);
-		if (Array.isArray(replyResult)) return checkOnly ? (replyResult.length > 0) as ReturnTypeB : replyResult as ReturnTypeB;
+		if (Array.isArray(replyResult)) return replyResult;
 
 		const renoteResult = noteToCheck.renote && checkWordMute(noteToCheck.renote, user, mutedWords);
-		if (Array.isArray(renoteResult)) return checkOnly ? (renoteResult.length > 0) as ReturnTypeB : renoteResult as ReturnTypeB;
+		if (Array.isArray(renoteResult)) return renoteResult;
 	}
 
-	if (checkOnly) return false as ReturnTypeB;
+	return false;
+}
 
+export function checkBuiltinSoftMute(
+	noteToCheck: Misskey.entities.Note,
+	checkForSensitiveMedia: boolean,
+): 'sensitiveMute' | false {
 	if (checkForSensitiveMedia && noteToCheck.files?.some((v) => v.isSensitive)) {
-		return 'sensitiveMute' as ReturnTypeB;
+		return 'sensitiveMute' as never;
 	}
 
-	return false as ReturnTypeB;
+	return false;
 }
 
 /** MkNote, MkNoteDetailedの共通ロジック */
@@ -126,7 +125,7 @@ export function useNote(
 
 	// プラグインの割り込み処理
 	let rawNote = deepClone(props.note);
-	const hideByPlugin = ref(false);
+	let hideByPlugin = false;
 	const noteViewInterruptors = getPluginHandlers('note_view_interruptor');
 
 	if (noteViewInterruptors.length > 0) {
@@ -134,14 +133,19 @@ export function useNote(
 		for (const interruptor of noteViewInterruptors) {
 			try {
 				result = interruptor.handler(result!) as Misskey.entities.Note | null;
+
+				// nullになった場合（非表示）はこれ以上やることがないのでループを抜ける
+				if (result == null) {
+					break;
+				}
 			} catch (err) {
 				console.error(err);
 			}
 		}
 		if (result == null) {
-			hideByPlugin.value = true;
+			hideByPlugin = true;
 		} else {
-			rawNote = result as Misskey.entities.Note;
+			rawNote = result;
 		}
 	}
 
@@ -165,20 +169,22 @@ export function useNote(
 	const noNyaize = ref(false);
 
 	// ミュート判定
-	const muted = ref($i ? calculateMuteStatus(appearNote, $i, $i.mutedWords, inTimeline && !tl_withSensitive.value) : false);
-	const hardMuted = ref(props.withHardMute && $i ? calculateMuteStatus(appearNote, $i, $i.hardMutedWords, inTimeline && !tl_withSensitive.value, true) : false);
+	// mutedはミュート解除の操作で書き換わるのでrefだが、hardMutedは解除できないのでリアクティブにしない
+	const muted = ref($i ? checkNoteWordMute(appearNote, $i, $i.mutedWords) || checkBuiltinSoftMute(appearNote, inTimeline && !tl_withSensitive.value) : false);
+	const hardMuted = props.withHardMute && $i ? checkNoteWordMute(appearNote, $i, $i.hardMutedWords) : false;
 
-	// 計算プロパティ (Computed)
-	const isMyRenote = computed(() => $i && ($i.id === rawNote.userId));
-	const parsed = computed(() => appearNote.text ? parseMfmCached(appearNote.text) : null);
-	const urls = computed(() => parsed.value ? extractUrlFromMfm(parsed.value).filter((url) => appearNote.renote?.url !== url && appearNote.renote?.uri !== url) : null);
-	const isLong = computed(() => shouldCollapsed(appearNote, urls.value ?? []));
+	// 導出値
+	// rawNote / appearNote / $i.id / prefer.s は変化しないので一度だけ計算する
+	const isMyRenote = $i != null && ($i.id === rawNote.userId);
+	const parsed = appearNote.text ? parseMfmCached(appearNote.text) : null;
+	const urls = parsed ? extractUrlFromMfm(parsed).filter((url) => appearNote.renote?.url !== url && appearNote.renote?.uri !== url) : null;
+	const isLong = shouldCollapsed(appearNote, urls ?? []);
 	const isMFM = shouldMfmCollapsed(appearNote);
 	const isAnimatedMfm = $i ? undefined : shouldAnimatedMfm(appearNote);
 	const enableAnimatedMfm = $i ? true : prefer.model('animatedMfm');
-	const collapsed = ref(appearNote.cw == null && ((isLong.value && prefer.s.collapseLongNoteContent) || (isMFM && prefer.s.collapseDefault) || ((appearNote.files?.length ?? 0) > 0 && prefer.s.allMediaNoteCollapse)));
-	const showTicker = computed(() => (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance));
-	const canRenote = computed(() => ['public', 'home'].includes(appearNote.visibility) || (appearNote.visibility === 'followers' && appearNote.userId === $i?.id));
+	const collapsed = ref(appearNote.cw == null && ((isLong && prefer.s.collapseLongNoteContent) || (isMFM && prefer.s.collapseDefault) || ((appearNote.files?.length ?? 0) > 0 && prefer.s.allMediaNoteCollapse)));
+	const canRenote = ['public', 'home'].includes(appearNote.visibility) || (appearNote.visibility === 'followers' && appearNote.userId === $i?.id);
+	const showTicker = (prefer.s.instanceTicker === 'always') || (prefer.s.instanceTicker === 'remote' && appearNote.user.instance);
 	const renoteCollapsed = ref(
 		isRenote && (
 			prefer.s.forceCollapseAllRenotes || (
@@ -194,10 +200,10 @@ export function useNote(
 	);
 	const expandOnNoteClick = prefer.s.expandOnNoteClick;
 
-	const pleaseLoginContext = computed<OpenOnRemoteOptions>(() => ({
+	const pleaseLoginContext: OpenOnRemoteOptions = {
 		type: 'lookup',
 		url: `https://${host}/notes/${appearNote.id}`,
-	}));
+	};
 
 	const replyTo = computed(() => {
 		const username = appearNote.reply?.user.host == null ? `@${appearNote.reply?.user.username}` : `@${appearNote.reply?.user.username}@${toUnicode(appearNote.reply?.user.host)}`;
@@ -277,7 +283,7 @@ export function useNote(
 		return false;
 	})();
 
-	if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (!autoTranslateSkipLong || !isLong.value) && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate(true);
+	if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && (!autoTranslateSkipLong || !isLong) && (appearNote.cw == null || showContent.value) && appearNote.text && isForeignLanguage) translate(true);
 
 	function noteClick(ev: MouseEvent): void {
 		if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || prefer.s.expandOnNoteClickBehavior === 'doubleClick') ev.stopPropagation();
@@ -294,7 +300,7 @@ export function useNote(
 		haptic();
 
 		if (props.mock) return;
-		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext });
 		if (!isLoggedIn) return;
 		showMovedDialog();
 		if (els.renoteButton == null) return;
@@ -311,7 +317,7 @@ export function useNote(
 		haptic();
 
 		if (props.mock) return;
-		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext });
 		if (!isLoggedIn) return;
 		showMovedDialog();
 		if (els.renoteButton == null) return;
@@ -326,7 +332,7 @@ export function useNote(
 	function quote(): void {
 		haptic();
 
-		pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		pleaseLogin({ openOnRemote: pleaseLoginContext });
 		if (!$i) return;
 		if (props.mock) return;
 		if (appearNote.channel) {
@@ -354,7 +360,7 @@ export function useNote(
 		haptic();
 
 		if (props.mock) return;
-		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext });
 		if (!$i) return;
 		if (!isLoggedIn) return;
 		os.post({
@@ -365,10 +371,10 @@ export function useNote(
 		});
 	}
 
-	async function react(customCallback?: (reaction: string) => void) {
+	async function react(createReactionMock?: (reaction: string) => void) {
 		haptic();
 
-		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext });
 		if (!isLoggedIn) return;
 		showMovedDialog();
 
@@ -394,7 +400,7 @@ export function useNote(
 			blur();
 			reactionPicker.show(els.reactButton?.value ?? null, rawNote, async (reaction) => {
 				if (props.mock) {
-					if (customCallback) customCallback(reaction);
+					if (createReactionMock) createReactionMock(reaction);
 					return;
 				}
 				await toggleReaction(reaction);
@@ -453,7 +459,7 @@ export function useNote(
 
 	async function reactViaMfmEmoji(reaction: string) {
 		if (props.mock) return;
-		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext });
 		if (!isLoggedIn) return;
 		showMovedDialog();
 		notesReactionsCreate({
@@ -494,7 +500,7 @@ export function useNote(
 	function heartReact(): void {
 		haptic();
 
-		pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+		pleaseLogin({ openOnRemote: pleaseLoginContext });
 		showMovedDialog();
 
 		if (props.mock) return;
@@ -619,6 +625,8 @@ export function useNote(
 
 	async function showRenoteMenu() {
 		if (props.mock) return;
+		const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext });
+		if (!isLoggedIn) return;
 
 		const getUnrenote = () => ({
 			text: i18n.ts.unrenote,
@@ -648,7 +656,7 @@ export function useNote(
 		menuItems.push(getCopyNoteLinkMenu(rawNote, i18n.ts.copyLinkRenote));
 		menuItems.push({ type: 'divider' });
 
-		if (isMyRenote.value) {
+		if (isMyRenote) {
 			menuItems.push(getUnrenote());
 			os.popupMenu(menuItems, els.renoteTime?.value);
 		} else {
@@ -690,7 +698,7 @@ export function useNote(
 		enableAnimatedMfm,
 		expandOnNoteClick,
 
-		// 計算プロパティ
+		// 導出値
 		parsed,
 		urls,
 		isLong,

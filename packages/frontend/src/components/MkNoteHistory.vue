@@ -33,7 +33,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							v-if="raw"
 							:context="5"
 							:hideHeader="true"
-							:oldString="oldNote ? oldNote.text : null"
+							:oldString="oldNote?.text ?? ''"
 							:newString="newNote.text"
 						/>
 						<Mfm

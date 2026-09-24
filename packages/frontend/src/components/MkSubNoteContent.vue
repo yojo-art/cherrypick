@@ -69,7 +69,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div v-show="showContent">
 			<div v-if="note.files && note.files.length > 0">
-				<MkMediaList :mediaList="note.files" @click.stop/>
+				<MkMediaList :mediaList="note.files" :user="note.user" @click.stop/>
 			</div>
 			<div v-if="note.poll">
 				<MkPoll

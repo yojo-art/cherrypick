@@ -9,6 +9,8 @@ services:
     extends:
       file: ./compose.tpl.yml
       service: misskey
+    environment:
+      - CI=true
     command: >
       bash -c "
         npm install -g pnpm
@@ -38,6 +40,7 @@ services:
         condition: service_healthy
     environment:
       - NODE_ENV=development
+      - CI=true
       - NODE_EXTRA_CA_CERTS=/usr/local/share/ca-certificates/rootCA.crt
     volumes:
       - type: bind
@@ -115,6 +118,8 @@ services:
     depends_on:
       redis.test:
         condition: service_healthy
+    environment:
+      - CI=true
     volumes:
       - type: bind
         source: ../package.json
