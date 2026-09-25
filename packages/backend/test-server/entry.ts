@@ -18,8 +18,8 @@ installPrepareStackTrace();
  * バンドルはmodule runnerを通さずNodeが直接読み込んでいる (vitest.config.e2e.ts) ので、
  * Viteはその位置をsourcemapで変換できない。そこでNodeのsourcemapサポートで `src` の位置へ変換してから渡す。
  *
- * また、Viteの整形処理が例外を投げると、`error.stack` を自前で読むライブラリ (gotのRequestErrorなど) では
- * 捕捉されずにプロセスごと落ちてしまうため、失敗時は整形済みの位置のままフォールバックさせる。
+ * また、位置の変換やViteの整形処理が例外を投げると、`error.stack` を自前で読むライブラリ (gotのRequestErrorなど) では
+ * 捕捉されずにプロセスごと落ちてしまうため、失敗時はそこまでに得られた位置のままフォールバックさせる。
  */
 function installPrepareStackTrace() {
 	// サーバ本体を読み込む前に有効にしないと、そのsourcemapが記録されない
@@ -28,8 +28,9 @@ function installPrepareStackTrace() {
 	const prepare = Error.prepareStackTrace;
 
 	Error.prepareStackTrace = (error, callSites) => {
-		const mappedCallSites = callSites.map(mapBundledCallSite);
+		let mappedCallSites = callSites;
 		try {
+			mappedCallSites = callSites.map(mapBundledCallSite);
 			if (prepare != null) return prepare(error, mappedCallSites);
 		} catch {
 			// フォールバックする
