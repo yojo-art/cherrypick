@@ -96,6 +96,11 @@ export function forkBackendServer(backendDir: string) {
 		env: {
 			...process.env,
 			NODE_ENV: 'production',
+			// backend/src/env.ts は CP_ 接頭辞のみ読む (MK_ では届かず clustering が無効化されない)。
+			// 旧ベースとの互換のため MK_ も残す。
+			CP_DISABLE_CLUSTERING: '1',
+			CP_ONLY_SERVER: '1',
+			CP_NO_DAEMONS: '1',
 			MK_DISABLE_CLUSTERING: '1',
 			MK_ONLY_SERVER: '1',
 			MK_NO_DAEMONS: '1',
