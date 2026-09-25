@@ -17,6 +17,7 @@ services:
       - ./.config/docker.env
     environment:
       - NODE_ENV=production
+      - CI=true
     volumes:
       - type: bind
         source: ../../../built

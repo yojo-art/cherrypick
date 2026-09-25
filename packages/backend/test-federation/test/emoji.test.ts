@@ -1,7 +1,7 @@
-import { describe, test, beforeAll } from 'vitest';
 import assert, { deepStrictEqual, strictEqual } from 'assert';
+import { describe, test, beforeAll, vi } from 'vitest';
 import * as Misskey from 'misskey-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji, waitFor } from './utils.js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, waitForFollowRelation, WAIT_FOR_FEDERATION, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji, waitFor, sleep } from './utils.js';
 
 /**
  * リモートユーザーのプロフィール更新(users/show)がpredicateを満たすまでポーリングして待つ。
@@ -45,8 +45,17 @@ describe('Emoji', () => {
 		]);
 		await bob.client.request('following/create', { userId: aliceInB.id });
 		bAdmin = await fetchAdmin('b.test');
-		await sleep();
+		await waitForFollowRelation(bob, alice, 1);
 	});
+
+	async function waitForNoteInB(cond: (note: Misskey.entities.Note) => boolean): Promise<Misskey.entities.Note> {
+		return await vi.waitFor(async () => {
+			const notes = await bob.client.request('notes/timeline', {});
+			const noteInB = notes.at(0);
+			strictEqual(noteInB != null && cond(noteInB), true);
+			return noteInB!;
+		}, WAIT_FOR_FEDERATION);
+	}
 
 	test('Custom emoji are delivered with Note delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -60,12 +69,9 @@ describe('Emoji', () => {
 			isBasedOn: 'isBasedOn',
 		});
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
-		await sleep();
 
-		const notes = await bob.client.request('notes/timeline', {});
-		const noteInB = notes[0];
+		const noteInB = await waitForNoteInB(note => note.text === `I love \u200b:${emoji.name}:\u200b`);
 
-		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
@@ -101,13 +107,11 @@ describe('Emoji', () => {
 			description: 'description',
 		});
 		const note = (await alice.client.request('notes/create', { text: 'a' })).createdNote;
-		await sleep();
+		await waitForNoteInB(noteInB => noteInB.uri === `https://a.test/notes/${note.id}`);
 
 		await alice.client.request('notes/reactions/create', { noteId: note.id, reaction: `:${emoji.name}:` });
-		await sleep();
 
-		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
-		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
+		const noteInB = await waitForNoteInB(noteInB => noteInB.reactions[`:${emoji.name}@a.test:`] === 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		deepStrictEqual(JSON.stringify({
@@ -142,11 +146,11 @@ describe('Emoji', () => {
 		});
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
 
-		const renewedaliceInB = await waitForRemoteUserUpdate(bob, aliceInB.id, user =>
-			user.name === renewedAlice.name && emoji.name in user.emojis,
-		);
-
-		strictEqual(renewedaliceInB.name, renewedAlice.name);
+		const renewedaliceInB = await vi.waitFor(async () => {
+			const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+			strictEqual(renewedaliceInB.name, renewedAlice.name);
+			return renewedaliceInB;
+		}, WAIT_FOR_FEDERATION);
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
@@ -173,12 +177,9 @@ describe('Emoji', () => {
 	test('Local-only custom emoji aren\'t delivered with Note delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
-		await sleep();
 
-		const notes = await bob.client.request('notes/timeline', {});
-		const noteInB = notes[0];
+		const noteInB = await waitForNoteInB(note => note.text === `I love \u200b:${emoji.name}:\u200b`);
 
-		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
 		// deepStrictEqual(noteInB.emojis, {}); // TODO: this fails (why?)
 		deepStrictEqual({ ...noteInB.emojis }, {});
 	});
@@ -186,12 +187,11 @@ describe('Emoji', () => {
 	test('Local-only custom emoji aren\'t delivered with Reaction delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		const note = (await alice.client.request('notes/create', { text: 'a' })).createdNote;
-		await sleep();
+		await waitForNoteInB(noteInB => noteInB.uri === `https://a.test/notes/${note.id}`);
 
 		await alice.client.request('notes/reactions/create', { noteId: note.id, reaction: `:${emoji.name}:` });
-		await sleep();
 
-		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
+		const noteInB = await waitForNoteInB(noteInB => noteInB.reactions['❤'] === 1);
 		deepStrictEqual({ ...noteInB.reactions }, { '❤': 1 });
 		deepStrictEqual({ ...noteInB.reactionEmojis }, {});
 	});
@@ -200,9 +200,11 @@ describe('Emoji', () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
 
-		const renewedaliceInB = await waitForRemoteUserUpdate(bob, aliceInB.id, user => user.name === renewedAlice.name);
-
-		strictEqual(renewedaliceInB.name, renewedAlice.name);
+		const renewedaliceInB = await vi.waitFor(async () => {
+			const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+			strictEqual(renewedaliceInB.name, renewedAlice.name);
+			return renewedaliceInB;
+		}, WAIT_FOR_FEDERATION);
 		deepStrictEqual({ ...renewedaliceInB.emojis }, {});
 	});
 
@@ -230,7 +232,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch('https://b.test/api/admin/emoji/copy', {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -265,7 +267,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch('https://b.test/api/admin/emoji/steal', {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -393,7 +395,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch('https://b.test/api/admin/emoji/copy', {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -428,7 +430,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch('https://b.test/api/admin/emoji/steal', {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,

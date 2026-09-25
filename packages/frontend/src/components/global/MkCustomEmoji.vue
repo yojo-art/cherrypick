@@ -41,7 +41,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, defineAsyncComponent, onMounted, onUnmounted, inject, ref } from 'vue';
+import { computed, onMounted, onUnmounted, inject, ref } from 'vue';
+import { normalizeCustomEmojiName, isLocalCustomEmojiName, getCustomEmojiImagePath } from '@@/js/emoji-name.js';
 import type { MenuItem } from '@/types/menu.js';
 import { getProxiedImageUrl, getStaticImageUrl } from '@/utility/media-proxy.js';
 import { customEmojis, customEmojisMap } from '@/custom-emojis.js';
@@ -72,8 +73,8 @@ const props = defineProps<{
 
 const react = inject(DI.mfmEmojiReactCallback);
 
-const customEmojiName = computed(() => (props.name[0] === ':' ? props.name.substring(1, props.name.length - 1) : props.name).replace('@.', ''));
-const isLocal = computed(() => !props.host && (customEmojiName.value.endsWith('@.') || !customEmojiName.value.includes('@')));
+const customEmojiName = computed(() => normalizeCustomEmojiName(props.name));
+const isLocal = computed(() => isLocalCustomEmojiName(customEmojiName.value, props.host));
 const emojiCodeToMute = makeEmojiMuteKey(props);
 const isMuted = checkEmojiMuted(emojiCodeToMute);
 const shouldMute = computed(() => !props.ignoreMuted && isMuted.value);
@@ -85,7 +86,7 @@ const rawUrl = computed(() => {
 	if (isLocal.value) {
 		return customEmojisMap.get(customEmojiName.value)?.url ?? null;
 	}
-	return props.host ? `/emoji/${customEmojiName.value}@${props.host}.webp` : `/emoji/${customEmojiName.value}.webp`;
+	return getCustomEmojiImagePath(customEmojiName.value, props.host);
 });
 
 const playAnimation = ref(true);
