@@ -141,7 +141,7 @@ jobs:
         working-directory: head
         env:
           FRONTEND_BROWSER_METRICS_SAMPLE_COUNT: 5
-          MK_ENABLE_CROSS_ORIGIN_ISOLATION: "true"
+          CP_ENABLE_CROSS_ORIGIN_ISOLATION: "true"
           # 計測ハーネスはhead側のものを両方に使うが、成果物はrunnerのworkspace直下に出す
           FRONTEND_BROWSER_HEAP_SNAPSHOT_OUTPUT_DIR: ${{ github.workspace }}
         run: |
