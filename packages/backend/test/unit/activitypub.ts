@@ -26,7 +26,7 @@ import { GlobalModule } from '@/GlobalModule.js';
 import { CoreModule } from '@/core/CoreModule.js';
 import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { LoggerService } from '@/core/LoggerService.js';
-import { MiMeta, MiNote, UserProfilesRepository, UsersRepository, DriveFilesRepository } from '@/models/_.js';
+import { MiEmoji, MiMeta, MiNote, UserProfilesRepository, UsersRepository, DriveFilesRepository } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import { DI } from '@/di-symbols.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
@@ -551,6 +551,40 @@ describe('ActivityPub', () => {
 
 		afterEach(() => {
 			Object.assign(config, configBackup);
+		});
+
+		function makeEmoji(data: Partial<MiEmoji>): MiEmoji {
+			return {
+				id: genAidx(Date.now()),
+				name: 'test_emoji',
+				host: null,
+				originalUrl: 'https://s3.example.com/bucket/emoji-original.png',
+				publicUrl: 'https://s3.example.com/bucket/emoji.png',
+				type: 'image/png',
+				aliases: [],
+				license: null,
+				updatedAt: null,
+				...data,
+			} as MiEmoji;
+		}
+
+		test('AP配信するローカルの絵文字のURLにapFileBaseUrlを適用する', () => {
+			config.apFileBaseUrl = 'https://ap-files.example.com';
+			const rendered = rendererService.renderEmoji(makeEmoji({}));
+			assert.strictEqual(rendered.icon.url, 'https://ap-files.example.com/bucket/emoji.png');
+		});
+
+		test('内部ストレージの絵文字のURLにはapFileBaseUrlを適用しない', () => {
+			config.apFileBaseUrl = 'https://ap-files.example.com';
+			const url = `${config.url}/files/emoji`;
+			const rendered = rendererService.renderEmoji(makeEmoji({ publicUrl: url }));
+			assert.strictEqual(rendered.icon.url, url);
+		});
+
+		test('リモートの絵文字のURLにはapFileBaseUrlを適用しない', () => {
+			config.apFileBaseUrl = 'https://ap-files.example.com';
+			const rendered = rendererService.renderEmoji(makeEmoji({ host: 'remote.example.com', publicUrl: 'https://remote.example.com/emoji.png' }));
+			assert.strictEqual(rendered.icon.url, 'https://remote.example.com/emoji.png');
 		});
 
 		async function createPersonWithAvatarAndBanner(): Promise<MiRemoteUser> {

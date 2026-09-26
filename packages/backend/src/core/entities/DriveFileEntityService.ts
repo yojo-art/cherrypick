@@ -188,8 +188,27 @@ export class DriveFileEntityService {
 	 */
 	@bindThis
 	private applyApFileBaseUrl(file: MiDriveFile, url: string): string {
-		if (!this.config.apFileBaseUrl) return url;
 		if (file.storedInternal || file.userHost != null) return url;
+		return this.replaceOriginWithApFileBaseUrl(url);
+	}
+
+	/**
+	 * 保存先の分からないローカルファイルのURL (カスタム絵文字など) に apFileBaseUrl を適用する
+	 * このサーバー自身が配信するURL (内部ストレージ) には適用しない
+	 */
+	@bindThis
+	public applyApFileBaseUrlToLocalFileUrl(url: string): string {
+		try {
+			if (new URL(url).origin === new URL(this.config.url).origin) return url;
+		} catch {
+			return url;
+		}
+		return this.replaceOriginWithApFileBaseUrl(url);
+	}
+
+	@bindThis
+	private replaceOriginWithApFileBaseUrl(url: string): string {
+		if (!this.config.apFileBaseUrl) return url;
 
 		let baseUrl: URL;
 		let fileUrl: URL;

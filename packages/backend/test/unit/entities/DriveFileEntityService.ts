@@ -498,6 +498,23 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 			});
 		});
 
+		describe('applyApFileBaseUrlToLocalFileUrl', () => {
+			test('オブジェクトストレージのURLはオリジンを置換する', () => {
+				const service = createService({ apFileBaseUrl: 'https://ap-files.example.com' });
+				assert.strictEqual(service.applyApFileBaseUrlToLocalFileUrl('https://s3.example.com/bucket/emoji.png'), 'https://ap-files.example.com/bucket/emoji.png');
+			});
+
+			test('このサーバー自身が配信するURL (内部ストレージ) は置換しない', () => {
+				const service = createService({ apFileBaseUrl: 'https://ap-files.example.com' });
+				assert.strictEqual(service.applyApFileBaseUrlToLocalFileUrl('https://example.com/files/emoji'), 'https://example.com/files/emoji');
+			});
+
+			test('apFileBaseUrl未設定なら置換しない', () => {
+				const service = createService();
+				assert.strictEqual(service.applyApFileBaseUrlToLocalFileUrl('https://s3.example.com/bucket/emoji.png'), 'https://s3.example.com/bucket/emoji.png');
+			});
+		});
+
 		describe('allowProxiedUrl: true、未テストだった分岐', () => {
 			const remoteUri = 'https://remote.example/media/a.png';
 
