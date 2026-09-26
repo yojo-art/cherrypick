@@ -79,6 +79,10 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			return `Blocked request: ${host}`;
 		}
 
+		if (await this.isReceiveSuspendedHost(host)) {
+			return `Blocked request (software suspended): ${host}`;
+		}
+
 		const keyIdLower = signature.keyId.toLowerCase();
 		if (keyIdLower.startsWith('acct:')) {
 			return `Old keyId is no longer supported. ${keyIdLower}`;
@@ -307,10 +311,22 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			if (!this.utilityService.isFederationAllowedHost(ldHost)) {
 				throw new Bull.UnrecoverableError(`Blocked request: ${ldHost}`);
 			}
+
+			if (await this.isReceiveSuspendedHost(ldHost)) {
+				throw new Bull.UnrecoverableError(`Blocked request (software suspended): ${ldHost}`);
+			}
 		} else {
 			throw new Bull.UnrecoverableError(`skip: http-signature verification failed and no LD-Signature. keyId=${signature.keyId}`);
 		}
 		return { activity, authUser };
+	}
+
+	@bindThis
+	private async isReceiveSuspendedHost(host: string): Promise<boolean> {
+		// 受信停止設定が無ければインスタンス情報を引かない
+		if (this.meta.receiveSuspendedSoftware.length === 0) return false;
+		const instance = await this.federatedInstanceService.fetch(host);
+		return instance != null && this.utilityService.isReceiveSuspendedSoftware(instance) != null;
 	}
 
 	@bindThis
