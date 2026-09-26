@@ -196,7 +196,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 					if (banner) {
 						updates.bannerId = banner.id;
-						updates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+						updates.bannerUrl = this.driveFileEntityService.getPublicUrl({ file: banner, allowProxiedUrl: false });
 						updates.bannerBlurhash = banner.blurhash;
 					} else if (ps.bannerId === null) {
 						updates.bannerId = null;
@@ -214,7 +214,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 					if (icon) {
 						updates.avatarId = icon.id;
-						updates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
+						updates.avatarUrl = this.driveFileEntityService.getPublicUrl({ file: icon, mode: 'avatar', allowProxiedUrl: false });
 						updates.avatarBlurhash = icon.blurhash;
 					} else if (ps.iconId === null) {
 						updates.avatarId = null;

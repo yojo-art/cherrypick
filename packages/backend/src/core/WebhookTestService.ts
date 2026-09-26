@@ -13,6 +13,7 @@ import { type WebhookEventTypes } from '@/models/Webhook.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { type UserWebhookPayload, UserWebhookService } from '@/core/UserWebhookService.js';
 import { QueueService } from '@/core/QueueService.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { ModeratorInactivityRemainingTime } from '@/queue/processors/CheckModeratorsActivityProcessorService.js';
 
 const oneDayMillis = 24 * 60 * 60 * 1000;
@@ -163,6 +164,7 @@ export class WebhookTestService {
 		private userWebhookService: UserWebhookService,
 		private systemWebhookService: SystemWebhookService,
 		private queueService: QueueService,
+		private userEntityService: UserEntityService,
 	) {
 	}
 
@@ -432,7 +434,7 @@ export class WebhookTestService {
 			name: user.name,
 			username: user.username,
 			host: user.host,
-			avatarUrl: (user.avatarId == null ? null : user.avatarUrl) ?? '',
+			avatarUrl: this.userEntityService.getAvatarUrl(user),
 			avatarBlurhash: user.avatarId == null ? null : user.avatarBlurhash,
 			avatarDecorations: user.avatarDecorations.map(it => ({
 				id: it.id,
@@ -467,7 +469,7 @@ export class WebhookTestService {
 			createdAt: new Date().toISOString(),
 			updatedAt: user.updatedAt?.toISOString() ?? null,
 			lastFetchedAt: user.lastFetchedAt?.toISOString() ?? null,
-			bannerUrl: user.bannerId == null ? null : user.bannerUrl,
+			bannerUrl: this.userEntityService.getBannerUrl(user),
 			bannerBlurhash: user.bannerId == null ? null : user.bannerBlurhash,
 			isSilenced: false,
 			isSuspended: user.isSuspended,

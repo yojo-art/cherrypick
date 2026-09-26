@@ -54,6 +54,7 @@ import { SystemAccountService } from '@/core/SystemAccountService.js';
 import type { OnModuleInit } from '@nestjs/common';
 import type { NoteEntityService } from './NoteEntityService.js';
 import type { PageEntityService } from './PageEntityService.js';
+import type { DriveFileEntityService } from './DriveFileEntityService.js';
 import { toArray } from '@/misc/prelude/array.js';
 
 const Ajv = _Ajv.default;
@@ -91,6 +92,7 @@ export class UserEntityService implements OnModuleInit {
 	private apPersonService: ApPersonService;
 	private noteEntityService: NoteEntityService;
 	private pageEntityService: PageEntityService;
+	private driveFileEntityService: DriveFileEntityService;
 	private customEmojiService: CustomEmojiService;
 	private announcementService: AnnouncementService;
 	private roleService: RoleService;
@@ -155,6 +157,7 @@ export class UserEntityService implements OnModuleInit {
 		this.apPersonService = this.moduleRef.get('ApPersonService');
 		this.noteEntityService = this.moduleRef.get('NoteEntityService');
 		this.pageEntityService = this.moduleRef.get('PageEntityService');
+		this.driveFileEntityService = this.moduleRef.get('DriveFileEntityService');
 		this.customEmojiService = this.moduleRef.get('CustomEmojiService');
 		this.announcementService = this.moduleRef.get('AnnouncementService');
 		this.roleService = this.moduleRef.get('RoleService');
@@ -403,6 +406,24 @@ export class UserEntityService implements OnModuleInit {
 		}
 	}
 
+	/**
+	 * DBにはプロキシを通さないURLを保存しているため、APIで返す際にメディアプロキシのURLを付与する
+	 */
+	@bindThis
+	public getAvatarUrl(user: MiUser): string {
+		if (user.avatarId == null || !user.avatarUrl) return this.getIdenticonUrl(user);
+		return this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar');
+	}
+
+	/**
+	 * DBにはプロキシを通さないURLを保存しているため、APIで返す際にメディアプロキシのURLを付与する
+	 */
+	@bindThis
+	public getBannerUrl(user: MiUser): string | null {
+		if (user.bannerId == null || !user.bannerUrl) return null;
+		return this.driveFileEntityService.getBannerUrl(user.bannerUrl);
+	}
+
 	@bindThis
 	public getUserUri(user: MiLocalUser | MiPartialLocalUser | MiRemoteUser | MiPartialRemoteUser): string {
 		return this.isRemoteUser(user)
@@ -500,7 +521,7 @@ export class UserEntityService implements OnModuleInit {
 			name: user.name,
 			username: user.username,
 			host: user.host,
-			avatarUrl: (user.avatarId == null ? null : user.avatarUrl) ?? this.getIdenticonUrl(user),
+			avatarUrl: this.getAvatarUrl(user),
 			avatarBlurhash: (user.avatarId == null ? null : user.avatarBlurhash),
 			avatarDecorations: user.avatarDecorations.length > 0 ? this.avatarDecorationService.getAll((user.host === null) ? 'local' : 'remoteOnly', false).then(decorations => user.avatarDecorations.filter(ud => decorations.some(d => d.id === ud.id)).map(ud => ({
 				id: ud.id,
@@ -510,7 +531,7 @@ export class UserEntityService implements OnModuleInit {
 				offsetY: ud.offsetY || undefined,
 				scale: ud.scale || undefined,
 				opacity: ud.opacity || undefined,
-				url: decorations.find(d => d.id === ud.id)!.url,
+				url: this.avatarDecorationService.getPublicUrl(decorations.find(d => d.id === ud.id)!),
 			}))) : [],
 			isLocked: user.isLocked,
 			isBot: user.isBot,
@@ -553,7 +574,7 @@ export class UserEntityService implements OnModuleInit {
 				createdAt: this.idService.parse(user.id).date.toISOString(),
 				updatedAt: user.updatedAt ? user.updatedAt.toISOString() : null,
 				lastFetchedAt: user.lastFetchedAt ? user.lastFetchedAt.toISOString() : null,
-				bannerUrl: user.bannerId == null ? null : user.bannerUrl,
+				bannerUrl: this.getBannerUrl(user),
 				bannerBlurhash: user.bannerId == null ? null : user.bannerBlurhash,
 				isSilenced: this.roleService.getUserPolicies(user.id).then(r => !r.canPublicNote),
 				isSuspended: user.isSuspended,
@@ -567,7 +588,14 @@ export class UserEntityService implements OnModuleInit {
 				verifiedLinks: profile!.verifiedLinks,
 				followersCount: followersCount ?? 0,
 				followingCount: followingCount ?? 0,
-				mutualLinkSections: profile!.mutualLinkSections,
+				// DBにはプロキシを通さないURLを保存しているため、バナーと同じ判定でメディアプロキシのURLを付与する
+				mutualLinkSections: profile!.mutualLinkSections.map(section => ({
+					...section,
+					mutualLinks: section.mutualLinks.map(mutualLink => ({
+						...mutualLink,
+						imgSrc: this.driveFileEntityService.getBannerUrl(mutualLink.imgSrc),
+					})),
+				})),
 				notesCount: user.notesCount,
 				pinnedNoteIds: pins.map(pin => pin.noteId),
 				pinnedNotes: this.noteEntityService.packMany(pins.map(pin => pin.note!), me, {

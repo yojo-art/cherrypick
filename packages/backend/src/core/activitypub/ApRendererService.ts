@@ -248,7 +248,7 @@ export class ApRendererService {
 		return {
 			type: 'Document',
 			mediaType: file.webpublicType ?? file.type,
-			url: this.driveFileEntityService.getPublicUrl(file, undefined, true),
+			url: this.driveFileEntityService.getPublicUrl({ file: file, mode: undefined, ap: true, allowProxiedUrl: false }),
 			name: file.comment,
 			width: file.properties?.width,
 			height: file.properties?.height,
@@ -258,6 +258,9 @@ export class ApRendererService {
 
 	@bindThis
 	public renderEmoji(emoji: MiEmoji): IApEmoji {
+		// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
+		const url = emoji.publicUrl || emoji.originalUrl;
+
 		return {
 			id: `${this.config.url}/emojis/${emoji.name}`,
 			type: 'Emoji',
@@ -266,8 +269,7 @@ export class ApRendererService {
 			icon: {
 				type: 'Image',
 				mediaType: emoji.type ?? 'image/png',
-				// || emoji.originalUrl してるのは後方互換性のため（publicUrlはstringなので??はだめ）
-				url: emoji.publicUrl || emoji.originalUrl,
+				url: emoji.host == null ? this.driveFileEntityService.applyApFileBaseUrlToLocalFileUrl(url) : url,
 			},
 			_misskey_license: {
 				freeText: emoji.license,
@@ -345,7 +347,7 @@ export class ApRendererService {
 	public renderImage(file: MiDriveFile): IApImage {
 		return {
 			type: 'Image',
-			url: this.driveFileEntityService.getPublicUrl(file, undefined, true),
+			url: this.driveFileEntityService.getPublicUrl({ file: file, mode: undefined, ap: true, allowProxiedUrl: false }),
 			sensitive: file.isSensitive,
 			name: file.comment,
 		};

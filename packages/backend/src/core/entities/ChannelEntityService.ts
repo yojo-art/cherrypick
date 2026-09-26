@@ -80,7 +80,8 @@ export class ChannelEntityService {
 			const actor = opts?.actors?.get(channel.actorId)
 				?? await this.usersRepository.findOneBy({ id: channel.actorId });
 			channel.actor = actor;
-			iconUrl = actor?.avatarUrl ?? null;
+			// DBにはプロキシを通さないURLを保存しているため、返す際にメディアプロキシのURLを付与する
+			iconUrl = actor?.avatarId != null && actor.avatarUrl ? this.driveFileEntityService.getProxiedUrl(actor.avatarUrl, 'avatar') : null;
 		}
 
 		let isFollowing = false;
@@ -128,7 +129,8 @@ export class ChannelEntityService {
 			name: channel.name,
 			description: channel.description,
 			userId: channel.userId,
-			bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl(bannerFile) : null,
+			// ユーザーのバナーと同じ判定でメディアプロキシのURLを付与する
+			bannerUrl: bannerFile ? this.driveFileEntityService.getBannerUrl(this.driveFileEntityService.getPublicUrl({ file: bannerFile, allowProxiedUrl: false })) : null,
 			bannerId: channel.bannerId,
 			iconUrl: iconUrl,
 			pinnedNoteIds: channel.pinnedNoteIds,

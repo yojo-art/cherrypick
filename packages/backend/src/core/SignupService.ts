@@ -284,10 +284,10 @@ export class SignupService {
 				tags,
 				token: secret,
 				bannerId: bannerId ?? null,
-				bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl(bannerFile) : null,
+				bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl({ file: bannerFile, allowProxiedUrl: false }) : null,
 				bannerBlurhash: bannerFile ? bannerFile.blurhash : null,
 				avatarId: avatarId ?? null,
-				avatarUrl: avatarFile ? this.driveFileEntityService.getPublicUrl(avatarFile) : null,
+				avatarUrl: avatarFile ? this.driveFileEntityService.getPublicUrl({ file: avatarFile, allowProxiedUrl: false }) : null,
 				avatarBlurhash: avatarFile ? avatarFile.blurhash : null,
 			}));
 

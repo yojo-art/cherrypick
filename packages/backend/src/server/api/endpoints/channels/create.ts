@@ -133,7 +133,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				const { channel, account } = await this.signupService.signupChannel({
 					bannerId: banner?.id,
 					avatarId: icon?.id,
-					avatarUrl: icon ? this.driveFileEntityService.getPublicUrl(icon, 'avatar') : undefined,
+					avatarUrl: icon ? this.driveFileEntityService.getPublicUrl({ file: icon, mode: 'avatar', allowProxiedUrl: false }) : undefined,
 					avatarBlurhash: icon?.blurhash ?? undefined,
 					username: ps.username,
 					name: ps.name,
@@ -160,7 +160,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (banner) {
 					if (banner.id !== originalBanner?.id) createdCopyIds.push(banner.id);
 					accountUpdates.bannerId = banner.id;
-					accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl(banner);
+					accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl({ file: banner, allowProxiedUrl: false });
 					accountUpdates.bannerBlurhash = banner.blurhash;
 					await this.channelsRepository.update(channel.id, { bannerId: banner.id });
 				}
@@ -168,7 +168,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				if (icon) {
 					if (icon.id !== originalIcon?.id) createdCopyIds.push(icon.id);
 					accountUpdates.avatarId = icon.id;
-					accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl(icon, 'avatar');
+					accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl({ file: icon, mode: 'avatar', allowProxiedUrl: false });
 					accountUpdates.avatarBlurhash = icon.blurhash;
 				}
 				if (Object.keys(accountUpdates).length > 0) {

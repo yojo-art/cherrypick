@@ -5,10 +5,13 @@
 
 process.env.NODE_ENV = 'test';
 
+import * as assert from 'assert';
 import { afterAll, beforeAll, beforeEach, describe, expect, vi, test } from 'vitest';
 import { Test } from '@nestjs/testing';
 import type { TestingModule } from '@nestjs/testing';
-import type { DriveFilesRepository, DriveFoldersRepository, UsersRepository } from '@/models/_.js';
+import type { DriveFilesRepository, DriveFoldersRepository, MiMeta, UsersRepository } from '@/models/_.js';
+import type { Config } from '@/config.js';
+import type { MiDriveFile } from '@/models/DriveFile.js';
 import { GlobalModule } from '@/GlobalModule.js';
 import { CoreModule } from '@/core/CoreModule.js';
 import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
@@ -17,6 +20,42 @@ import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { DI } from '@/di-symbols.js';
 import { genAidx } from '@/misc/id/aidx.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
+
+function createService(
+	configOverrides: Partial<Config> = {},
+	metaOverrides: Partial<MiMeta> = {},
+): DriveFileEntityService {
+	return new DriveFileEntityService(
+		{
+			url: 'https://example.com',
+			mediaProxy: 'https://proxy.example.com',
+			externalMediaProxyEnabled: false,
+			...configOverrides,
+		} as Config,
+		{
+			proxyRemoteFiles: false,
+			...metaOverrides,
+		} as MiMeta,
+		{} as any,
+		{} as any,
+		{} as any,
+		{} as any,
+		{} as any,
+		{} as any,
+	);
+}
+
+function driveFile(overrides: Partial<MiDriveFile> = {}): MiDriveFile {
+	return {
+		url: 'https://example.com/files/raw',
+		webpublicUrl: 'https://example.com/files/public',
+		uri: null,
+		userHost: null,
+		isLink: false,
+		webpublicAccessKey: null,
+		...overrides,
+	} as MiDriveFile;
+}
 
 const describeBenchmark = process.env.RUN_BENCHMARKS === '1' ? describe : describe.skip;
 
@@ -222,6 +261,340 @@ describe('DriveFileEntityService', () => {
 			const elapsed = Date.now() - start;
 
 			console.log(`DriveFileEntityService.packMany benchmark: ${elapsed}ms`);
+		});
+	});
+});
+
+describe('DriveFileEntityService.getPublicUrl', () => {
+	describe('getPublicUrl', () => {
+		describe('allowProxiedUrl: false（デフォルト）', () => {
+			const service = createService({
+				externalMediaProxyEnabled: true,
+				remoteProxy: 'https://remote-proxy.example.com',
+			});
+
+			test('webpublicUrlがある場合はそれを返す', () => {
+				const file = driveFile();
+				assert.strictEqual(
+					service.getPublicUrl({ file }),
+					'https://example.com/files/public',
+				);
+			});
+
+			test('webpublicUrlがnullの場合はurlを返す', () => {
+				const file = driveFile({ webpublicUrl: null });
+				assert.strictEqual(
+					service.getPublicUrl({ file }),
+					'https://example.com/files/raw',
+				);
+			});
+
+			test('プロキシが有効でもリモートファイルはプロキシしない', () => {
+				const file = driveFile({
+					uri: 'https://remote.example/media/a.png',
+					userHost: 'remote.example',
+					webpublicAccessKey: 'accesskey1',
+				});
+				assert.strictEqual(
+					service.getPublicUrl({ file }),
+					'https://example.com/files/public',
+				);
+			});
+		});
+
+		describe('allowProxiedUrl: true、mode未指定（リグレッション: avatarにデフォルトしない）', () => {
+			test('ローカルファイルはavatarモードなしでwebpublicUrlを返す', () => {
+				const service = createService();
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					allowProxiedUrl: true,
+				});
+				assert.strictEqual(result, 'https://example.com/files/public');
+				assert.ok(!result.includes('avatar'));
+			});
+
+			test('remoteでexternalMediaProxyEnabled時はavatar=1なしのimage.webpを使う', () => {
+				const service = createService({
+					externalMediaProxyEnabled: true,
+				});
+				const uri = 'https://remote.example/media/a.png';
+				const result = service.getPublicUrl({
+					file: driveFile({
+						uri,
+						userHost: 'remote.example',
+						webpublicAccessKey: null,
+					}),
+					allowProxiedUrl: true,
+				});
+				assert.ok(result.startsWith('https://proxy.example.com/image.webp?'));
+				assert.ok(result.includes(`url=${encodeURIComponent(uri)}`));
+				assert.ok(!result.includes('avatar=1'));
+				assert.ok(!result.includes('/avatar.webp'));
+			});
+		});
+
+		describe("allowProxiedUrl: true、mode: 'avatar'", () => {
+			test('ローカルファイルはavatar=1付きのavatar.webpでプロキシされる', () => {
+				const service = createService();
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					mode: 'avatar',
+					allowProxiedUrl: true,
+				});
+				assert.ok(result.startsWith('https://proxy.example.com/avatar.webp?'));
+				assert.ok(result.includes('avatar=1'));
+				assert.ok(result.includes(`url=${encodeURIComponent('https://example.com/files/public')}`));
+			});
+
+			test('remoteでremoteProxyがあってもmodeがavatarならremoteProxy分岐をスキップする', () => {
+				const service = createService({
+					remoteProxy: 'https://remote-proxy.example.com',
+					externalMediaProxyEnabled: true,
+				});
+				const uri = 'https://remote.example/media/a.png';
+				const result = service.getPublicUrl({
+					file: driveFile({
+						uri,
+						userHost: 'remote.example',
+						webpublicAccessKey: 'accesskey1',
+					}),
+					mode: 'avatar',
+					allowProxiedUrl: true,
+				});
+				assert.ok(!result.startsWith('https://remote-proxy.example.com/'));
+				assert.ok(result.startsWith('https://proxy.example.com/'));
+				assert.ok(result.includes(`url=${encodeURIComponent(uri)}`));
+			});
+		});
+
+		describe('allowProxiedUrl: trueでremoteProxyあり（avatar以外）', () => {
+			test('絶対URLのremoteProxyはremoteProxy/keyを返す', () => {
+				const service = createService({
+					remoteProxy: 'https://remote-proxy.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile({
+						uri: 'https://remote.example/media/a.png',
+						userHost: 'remote.example',
+						webpublicAccessKey: 'accesskey1',
+					}),
+					allowProxiedUrl: true,
+				});
+				assert.strictEqual(result, 'https://remote-proxy.example.com/accesskey1');
+			});
+
+			test('相対パスのremoteProxyはconfig.urlを前置する', () => {
+				const service = createService({
+					remoteProxy: '/remote-proxy',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile({
+						uri: 'https://remote.example/media/a.png',
+						userHost: 'remote.example',
+						webpublicAccessKey: 'accesskey1',
+					}),
+					allowProxiedUrl: true,
+				});
+				assert.strictEqual(result, 'https://example.com/remote-proxy/accesskey1');
+			});
+		});
+
+		describe('ap: trueでapFileBaseUrlあり', () => {
+			test('allowProxiedUrlがtrueかつmode未指定ならオリジンを置換する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: true,
+				});
+				assert.strictEqual(result, 'https://ap-files.example.com/files/public');
+			});
+
+			test('allowProxiedUrlがfalseでもオリジンを置換する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://ap-files.example.com/files/public');
+			});
+
+			test('apがfalseならallowProxiedUrlがfalseでもオリジンを置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://example.com/files/public');
+			});
+
+			test('内部ストレージに保存されたファイルはオリジンを置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				for (const allowProxiedUrl of [true, false]) {
+					const result = service.getPublicUrl({
+						file: driveFile({ storedInternal: true }),
+						ap: true,
+						allowProxiedUrl,
+					});
+					assert.strictEqual(result, 'https://example.com/files/public');
+				}
+			});
+
+			test('リモートのファイルはオリジンを置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile({ userHost: 'remote.example', webpublicUrl: 'https://remote.example/media/a.png' }),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://remote.example/media/a.png');
+			});
+
+			test('ポート付きのオリジンも置換し、クエリは維持する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com/',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile({ webpublicUrl: 'https://s3.example.com:9000/bucket/a.png?v=1' }),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://ap-files.example.com/bucket/a.png?v=1');
+			});
+
+			test('apFileBaseUrlのパスを前置する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://cdn.example.com/ap/',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://cdn.example.com/ap/files/public');
+			});
+
+			test('apFileBaseUrlが不正なURLなら置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'not a url',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://example.com/files/public');
+			});
+		});
+
+		describe('applyApFileBaseUrlToLocalFileUrl', () => {
+			test('オブジェクトストレージのURLはオリジンを置換する', () => {
+				const service = createService({ apFileBaseUrl: 'https://ap-files.example.com' });
+				assert.strictEqual(service.applyApFileBaseUrlToLocalFileUrl('https://s3.example.com/bucket/emoji.png'), 'https://ap-files.example.com/bucket/emoji.png');
+			});
+
+			test('このサーバー自身が配信するURL (内部ストレージ) は置換しない', () => {
+				const service = createService({ apFileBaseUrl: 'https://ap-files.example.com' });
+				assert.strictEqual(service.applyApFileBaseUrlToLocalFileUrl('https://example.com/files/emoji'), 'https://example.com/files/emoji');
+			});
+
+			test('apFileBaseUrl未設定なら置換しない', () => {
+				const service = createService();
+				assert.strictEqual(service.applyApFileBaseUrlToLocalFileUrl('https://s3.example.com/bucket/emoji.png'), 'https://s3.example.com/bucket/emoji.png');
+			});
+		});
+
+		describe('allowProxiedUrl: true、未テストだった分岐', () => {
+			const remoteUri = 'https://remote.example/media/a.png';
+
+			test("remoteでexternalMediaProxyEnabledかつmode: 'avatar'ならuriをavatar.webpでプロキシする", () => {
+				const service = createService({ externalMediaProxyEnabled: true });
+				const result = new URL(service.getPublicUrl({
+					file: driveFile({ uri: remoteUri, userHost: 'remote.example' }),
+					mode: 'avatar',
+					allowProxiedUrl: true,
+				}));
+				assert.strictEqual(`${result.origin}${result.pathname}`, 'https://proxy.example.com/avatar.webp');
+				assert.strictEqual(result.searchParams.get('url'), remoteUri);
+				assert.strictEqual(result.searchParams.get('avatar'), '1');
+			});
+
+			test('isLinkかつproxyRemoteFilesならローカルの/files/keyを返す', () => {
+				const service = createService({}, { proxyRemoteFiles: true });
+				const result = service.getPublicUrl({
+					file: driveFile({ uri: remoteUri, isLink: true, webpublicAccessKey: 'accesskey1' }),
+					allowProxiedUrl: true,
+				});
+				assert.strictEqual(result, 'https://example.com/files/accesskey1');
+			});
+
+			test("isLinkかつproxyRemoteFilesでmode: 'avatar'ならuriをavatar.webpでプロキシする", () => {
+				const service = createService({}, { proxyRemoteFiles: true });
+				const result = new URL(service.getPublicUrl({
+					file: driveFile({ uri: remoteUri, isLink: true, webpublicAccessKey: 'accesskey1' }),
+					mode: 'avatar',
+					allowProxiedUrl: true,
+				}));
+				assert.strictEqual(`${result.origin}${result.pathname}`, 'https://proxy.example.com/avatar.webp');
+				assert.strictEqual(result.searchParams.get('url'), remoteUri);
+			});
+
+			test('webpublicAccessKeyに/を含む古いキーはremoteProxy・ローカルプロキシを使わない', () => {
+				const service = createService({ remoteProxy: 'https://remote-proxy.example.com' }, { proxyRemoteFiles: true });
+				const result = service.getPublicUrl({
+					file: driveFile({ uri: remoteUri, userHost: 'remote.example', isLink: true, webpublicAccessKey: 'old/object/key' }),
+					allowProxiedUrl: true,
+				});
+				assert.strictEqual(result, 'https://example.com/files/public');
+			});
+		});
+	});
+
+	describe('getProxiedUrl', () => {
+		const service = createService();
+		const original = 'https://remote.example/media/a.png';
+
+		test('通常のURLをプロキシURLにする', () => {
+			const result = new URL(service.getProxiedUrl(original));
+			assert.strictEqual(`${result.origin}${result.pathname}`, 'https://proxy.example.com/image.webp');
+			assert.strictEqual(result.searchParams.get('url'), original);
+		});
+	});
+
+	describe('getBannerUrl', () => {
+		const rawUrl = 'https://remote.example/media/banner.png';
+
+		// ローカル・リモートとも同じ判定になるため、ローカルのURLとリモートのURLの両方で確認する
+		// [externalMediaProxyEnabled, proxyRemoteFiles, プロキシするか]
+		describe.each([
+			[false, false, false],
+			[false, true, true],
+			[true, false, true],
+			[true, true, true],
+		])('externalMediaProxyEnabled=%s, proxyRemoteFiles=%s', (externalMediaProxyEnabled, proxyRemoteFiles, shouldProxy) => {
+			const service = createService({ externalMediaProxyEnabled }, { proxyRemoteFiles });
+
+			test.each([rawUrl, 'https://example.com/files/banner.png'])(shouldProxy ? '元のURL %s をプロキシする' : '元のURL %s をそのまま返す', (url) => {
+				const actual = service.getBannerUrl(url);
+				if (shouldProxy) {
+					const result = new URL(actual);
+					assert.strictEqual(`${result.origin}${result.pathname}`, 'https://proxy.example.com/image.webp');
+					assert.strictEqual(result.searchParams.get('url'), url);
+				} else {
+					assert.strictEqual(actual, url);
+				}
+			});
 		});
 	});
 });
