@@ -24,6 +24,7 @@ import { toArray } from '@/misc/prelude/array.js';
 import type { GlobalEventService } from '@/core/GlobalEventService.js';
 import type { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import type { FetchInstanceMetadataService } from '@/core/FetchInstanceMetadataService.js';
+import type { HttpRequestService } from '@/core/HttpRequestService.js';
 import { MiUserProfile } from '@/models/UserProfile.js';
 import { MiUserPublickey } from '@/models/UserPublickey.js';
 import type UsersChart from '@/core/chart/charts/users.js';
@@ -78,6 +79,7 @@ export class ApPersonService implements OnModuleInit {
 	private apLoggerService: ApLoggerService;
 	private accountMoveService: AccountMoveService;
 	private apClipService: ApClipService;
+	private httpRequestService: HttpRequestService;
 	private logger: Logger;
 
 	constructor(
@@ -136,7 +138,25 @@ export class ApPersonService implements OnModuleInit {
 		this.apLoggerService = this.moduleRef.get('ApLoggerService');
 		this.accountMoveService = this.moduleRef.get('AccountMoveService');
 		this.apClipService = this.moduleRef.get('ApClipService');
+		this.httpRequestService = this.moduleRef.get('HttpRequestService');
 		this.logger = this.apLoggerService.logger;
+	}
+
+	/**
+	 * リモートのコレクションの totalItems を取得する
+	 * HttpRequestService を通すことで、プロキシ設定・プライベートアドレスへの接続制限・タイムアウト・サイズ制限を適用する
+	 */
+	@bindThis
+	private async fetchCollectionTotalItems(collection: unknown): Promise<number | undefined> {
+		if (typeof collection !== 'string') return undefined;
+
+		try {
+			const data = await this.httpRequestService.getJson<{ totalItems?: unknown }>(collection, 'application/json');
+			const totalItems = data?.totalItems;
+			return typeof totalItems === 'number' && Number.isSafeInteger(totalItems) && totalItems >= 0 ? totalItems : undefined;
+		} catch {
+			return undefined;
+		}
 	}
 
 	/**
@@ -370,50 +390,9 @@ export class ApPersonService implements OnModuleInit {
 			throw new Error('unexpected schema of person url: ' + url);
 		}
 
-		let followersCount: number | undefined;
-
-		if (typeof person.followers === 'string') {
-			try {
-				const data = await fetch(person.followers, {
-					headers: { Accept: 'application/json' },
-				});
-				const jsonData = JSON.parse(await data.text());
-
-				followersCount = jsonData.totalItems;
-			} catch {
-				followersCount = undefined;
-			}
-		}
-
-		let followingCount: number | undefined;
-
-		if (typeof person.following === 'string') {
-			try {
-				const data = await fetch(person.following, {
-					headers: { Accept: 'application/json' },
-				});
-				const jsonData = JSON.parse(await data.text());
-
-				followingCount = jsonData.totalItems;
-			} catch (e) {
-				followingCount = undefined;
-			}
-		}
-
-		let notesCount: number | undefined;
-
-		if (typeof person.outbox === 'string') {
-			try {
-				const data = await fetch(person.outbox, {
-					headers: { Accept: 'application/json' },
-				});
-				const jsonData = JSON.parse(await data.text());
-
-				notesCount = jsonData.totalItems;
-			} catch (e) {
-				notesCount = undefined;
-			}
-		}
+		const followersCount = await this.fetchCollectionTotalItems(person.followers);
+		const followingCount = await this.fetchCollectionTotalItems(person.following);
+		const notesCount = await this.fetchCollectionTotalItems(person.outbox);
 
 		let channelModerator = null as MiUser | null;
 		if (isChannel) {
@@ -693,50 +672,9 @@ export class ApPersonService implements OnModuleInit {
 			}
 		}
 
-		let followersCount: number | undefined;
-
-		if (typeof person.followers === 'string') {
-			try {
-				const data = await fetch(person.followers, {
-					headers: { Accept: 'application/json' },
-				});
-				const jsonData = JSON.parse(await data.text());
-
-				followersCount = jsonData.totalItems;
-			} catch {
-				followersCount = undefined;
-			}
-		}
-
-		let followingCount: number | undefined;
-
-		if (typeof person.following === 'string') {
-			try {
-				const data = await fetch(person.following, {
-					headers: { Accept: 'application/json' },
-				});
-				const jsonData = JSON.parse(await data.text());
-
-				followingCount = jsonData.totalItems;
-			} catch {
-				followingCount = undefined;
-			}
-		}
-
-		let notesCount: number | undefined;
-
-		if (typeof person.outbox === 'string') {
-			try {
-				const data = await fetch(person.outbox, {
-					headers: { Accept: 'application/json' },
-				});
-				const jsonData = JSON.parse(await data.text());
-
-				notesCount = jsonData.totalItems;
-			} catch (e) {
-				notesCount = undefined;
-			}
-		}
+		const followersCount = await this.fetchCollectionTotalItems(person.followers);
+		const followingCount = await this.fetchCollectionTotalItems(person.following);
+		const notesCount = await this.fetchCollectionTotalItems(person.outbox);
 
 		const displayName = truncate(person.name, nameLength) ?? exist.name ?? exist.username;
 		let _description: string | null = null;

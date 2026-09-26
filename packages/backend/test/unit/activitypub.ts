@@ -30,6 +30,7 @@ import { MiMeta, MiNote, UserProfilesRepository } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
 import { DownloadService } from '@/core/DownloadService.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
 import { NoteUpdateService } from '@/core/NoteUpdateService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { genAidx } from '@/misc/id/aidx.js';
@@ -102,6 +103,8 @@ describe('ActivityPub', () => {
 	let rendererService: ApRendererService;
 	let jsonLdService: JsonLdService;
 	let noteUpdateService: NoteUpdateService;
+	let httpRequestService: HttpRequestService;
+	let federatedInstanceService: FederatedInstanceService;
 	let resolver: MockResolver;
 
 	const metaInitial = {
@@ -158,8 +161,10 @@ describe('ActivityPub', () => {
 		noteUpdateService = app.get<NoteUpdateService>(NoteUpdateService);
 		resolver = new MockResolver(await app.resolve<LoggerService>(LoggerService));
 
+		httpRequestService = app.get<HttpRequestService>(HttpRequestService);
+
 		// Prevent ApPersonService from fetching instance, as it causes Jest import-after-test error
-		const federatedInstanceService = app.get<FederatedInstanceService>(FederatedInstanceService);
+		federatedInstanceService = app.get<FederatedInstanceService>(FederatedInstanceService);
 		vi.spyOn(federatedInstanceService, 'fetch').mockImplementation(() => new Promise(() => { }));
 	});
 
@@ -271,6 +276,94 @@ describe('ActivityPub', () => {
 
 			const updatedUser = await personService.fetchPerson(actor.id);
 			assert.deepStrictEqual(updatedUser?.alsoKnownAs, [updatedActor.alsoKnownAs]);
+		});
+	});
+
+	describe('Collection counts', () => {
+		afterEach(() => {
+			vi.restoreAllMocks();
+			// restoreAllMocks は beforeAll で設定した FederatedInstanceService のモックも解除するため再設定する
+			vi.spyOn(federatedInstanceService, 'fetch').mockImplementation(() => new Promise(() => { }));
+		});
+
+		function createActorWithCollections(): NonTransientIActor {
+			const actor = createRandomActor();
+			return {
+				...actor,
+				followers: `${actor.id}/followers`,
+				following: `${actor.id}/following`,
+			};
+		}
+
+		test('コレクションの件数を HttpRequestService 経由で取得する', async () => {
+			const actor = createActorWithCollections();
+			resolver.register(actor.id, actor);
+
+			const totals: Record<string, number> = {
+				[`${actor.id}/followers`]: 12,
+				[`${actor.id}/following`]: 34,
+				[`${actor.id}/outbox`]: 56,
+			};
+			const getJsonSpy = vi.spyOn(httpRequestService, 'getJson').mockImplementation(async (url: string) => ({ totalItems: totals[url] }) as any);
+			const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
+			const user = await personService.createPerson(actor.id, resolver);
+
+			assert.deepStrictEqual(getJsonSpy.mock.calls.map(call => call[0]).sort(), Object.keys(totals).sort());
+			assert.strictEqual(fetchSpy.mock.calls.length, 0);
+			assert.strictEqual(user.followersCount, 12);
+			assert.strictEqual(user.followingCount, 34);
+			assert.strictEqual(user.notesCount, 56);
+		});
+
+		test('totalItems が非負の整数でない場合は無視する', async () => {
+			const actor = createActorWithCollections();
+			resolver.register(actor.id, actor);
+
+			const totals: Record<string, unknown> = {
+				[`${actor.id}/followers`]: '12',
+				[`${actor.id}/following`]: -1,
+				[`${actor.id}/outbox`]: 1.5,
+			};
+			vi.spyOn(httpRequestService, 'getJson').mockImplementation(async (url: string) => ({ totalItems: totals[url] }) as any);
+
+			const user = await personService.createPerson(actor.id, resolver);
+
+			assert.strictEqual(user.followersCount, 0);
+			assert.strictEqual(user.followingCount, 0);
+			assert.strictEqual(user.notesCount, 0);
+		});
+
+		test('件数の取得に失敗してもユーザーは作成される', async () => {
+			const actor = createActorWithCollections();
+			resolver.register(actor.id, actor);
+
+			vi.spyOn(httpRequestService, 'getJson').mockRejectedValue(new Error('Blocked address: 127.0.0.1'));
+
+			const user = await personService.createPerson(actor.id, resolver);
+
+			assert.strictEqual(user.uri, actor.id);
+			assert.strictEqual(user.followersCount, 0);
+		});
+
+		test('更新時もコレクションの件数を HttpRequestService 経由で取得する', async () => {
+			const actor = createActorWithCollections();
+			resolver.register(actor.id, actor);
+			vi.spyOn(httpRequestService, 'getJson').mockRejectedValue(new Error('not found'));
+			await personService.createPerson(actor.id, resolver);
+
+			vi.spyOn(httpRequestService, 'getJson').mockReset();
+			const getJsonSpy = vi.spyOn(httpRequestService, 'getJson').mockImplementation(async () => ({ totalItems: 7 }) as any);
+			const fetchSpy = vi.spyOn(globalThis, 'fetch');
+
+			await personService.updatePerson(actor.id, resolver, actor);
+
+			assert.strictEqual(getJsonSpy.mock.calls.length, 3);
+			assert.strictEqual(fetchSpy.mock.calls.length, 0);
+			const updatedUser = await personService.fetchPerson(actor.id);
+			assert.strictEqual(updatedUser?.followersCount, 7);
+			assert.strictEqual(updatedUser?.followingCount, 7);
+			assert.strictEqual(updatedUser?.notesCount, 7);
 		});
 	});
 
