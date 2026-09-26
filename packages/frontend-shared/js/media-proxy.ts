@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import type * as Misskey from 'cherrypick-js';
+import * as Misskey from 'cherrypick-js';
 import { query } from './url.js';
 
 export class MediaProxy {
@@ -38,47 +38,6 @@ export class MediaProxy {
 	public getProxiedImageUrlNullable(imageUrl: string | null | undefined, type?: 'preview'): string | null {
 		if (imageUrl == null) return null;
 		return this.getProxiedImageUrl(imageUrl, type);
-	}
-
-	private resolveAbsoluteUrl(imageUrl: string): string {
-		return imageUrl.startsWith('http') ? imageUrl : new URL(imageUrl, this.url).href;
-	}
-
-	private isLocalAvatarEndpoint(imageUrl: string): boolean {
-		try {
-			const u = new URL(this.resolveAbsoluteUrl(imageUrl));
-			const base = new URL(this.url);
-
-			if (u.origin !== base.origin) return false;
-
-			return u.pathname.startsWith('/identicon/')
-				|| u.pathname.startsWith('/avatar/')
-				|| u.pathname.startsWith('/static-assets/');
-		} catch {
-			return false;
-		}
-	}
-
-	public getAvatarUrl(avatarUrl: string, isStatic = false): string {
-		if (this.isLocalAvatarEndpoint(avatarUrl)) {
-			return this.resolveAbsoluteUrl(avatarUrl);
-		}
-
-		// /files/... など相対パスはプロキシ前に絶対URL化する
-		const resolved = avatarUrl.startsWith('/')
-			? this.resolveAbsoluteUrl(avatarUrl)
-			: avatarUrl;
-
-		if (isStatic) {
-			return this.getStaticImageUrl(resolved);
-		}
-
-		return this.getProxiedImageUrl(resolved, 'avatar');
-	}
-
-	public getAvatarUrlNullable(avatarUrl: string | null | undefined, isStatic = false): string | null {
-		if (avatarUrl == null) return null;
-		return this.getAvatarUrl(avatarUrl, isStatic);
 	}
 
 	public getStaticImageUrl(baseUrl: string): string {

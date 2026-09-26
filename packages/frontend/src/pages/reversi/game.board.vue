@@ -186,7 +186,7 @@ import { reactionPicker } from '@/utility/reaction-picker.js';
 import { confetti } from '@/utility/confetti.js';
 import { genId } from '@/utility/id.js';
 import { prefer } from '@/preferences.js';
-import { getAvatarUrl } from '@/utility/media-proxy.js';
+import { getStaticImageUrl } from '@/utility/media-proxy.js';
 import { store } from '@/store.js';
 
 //const $i = ensureSignin();
@@ -270,14 +270,12 @@ const playAnimation = ref(true);
 if (prefer.s.showingAnimatedImages === 'interaction') playAnimation.value = false;
 let playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 const blackUserUrl = computed(() => {
-	if (blackUser.value.avatarUrl == null) return null;
-	const isStatic = prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
-	return getAvatarUrl(blackUser.value.avatarUrl, isStatic);
+	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(blackUser.value.avatarUrl);
+	return blackUser.value.avatarUrl;
 });
 const whiteUserUrl = computed(() => {
-	if (whiteUser.value.avatarUrl == null) return null;
-	const isStatic = prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value);
-	return getAvatarUrl(whiteUser.value.avatarUrl, isStatic);
+	if (prefer.s.disableShowingAnimatedImages || prefer.s.dataSaver.avatar || (['interaction', 'inactive'].includes(<string>prefer.s.showingAnimatedImages) && !playAnimation.value)) return getStaticImageUrl(whiteUser.value.avatarUrl);
+	return whiteUser.value.avatarUrl;
 });
 
 watch(logPos, (v) => {
