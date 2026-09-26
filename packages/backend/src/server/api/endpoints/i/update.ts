@@ -463,7 +463,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 							id: this.idService.gen(),
 							url: mutualLink.url,
 							fileId: file.id,
-							imgSrc: this.driveFileEntityService.getPublicUrl({ file: file }),
+							imgSrc: this.driveFileEntityService.getPublicUrl({ file: file, allowProxiedUrl: false }),
 							description: mutualLink.description ?? null,
 						};
 					}));

@@ -142,7 +142,7 @@ export class DriveFileEntityService {
 		allowProxiedUrl = false,
 	}: {
 		file: MiDriveFile;
-		mode?: 'static' | 'avatar' | undefined,
+		mode?: 'avatar' | undefined,
 		ap?: boolean,
 		allowProxiedUrl?: boolean
 	}): string { // static = thumbnail
