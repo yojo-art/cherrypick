@@ -421,7 +421,7 @@ export class UserEntityService implements OnModuleInit {
 	@bindThis
 	public getBannerUrl(user: MiUser): string | null {
 		if (user.bannerId == null || !user.bannerUrl) return null;
-		return this.driveFileEntityService.getBannerUrl(user.bannerUrl, user.host != null);
+		return this.driveFileEntityService.getBannerUrl(user.bannerUrl);
 	}
 
 	@bindThis
@@ -593,7 +593,7 @@ export class UserEntityService implements OnModuleInit {
 					...section,
 					mutualLinks: section.mutualLinks.map(mutualLink => ({
 						...mutualLink,
-						imgSrc: this.driveFileEntityService.getBannerUrl(mutualLink.imgSrc, user.host != null),
+						imgSrc: this.driveFileEntityService.getBannerUrl(mutualLink.imgSrc),
 					})),
 				})),
 				notesCount: user.notesCount,

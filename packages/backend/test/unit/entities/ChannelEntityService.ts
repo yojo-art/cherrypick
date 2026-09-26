@@ -107,8 +107,18 @@ describe('ChannelEntityService', () => {
 		const remoteFile = bannerFile({ url: remoteUrl, uri: remoteUrl, userHost: 'remote.example', isLink: true, storedInternal: false });
 		const remoteChannel = channel({ host: 'remote.example' });
 
-		test.each([true, false])('ローカルのチャンネルのバナーはproxyRemoteFiles=%sでもプロキシする', async (proxyRemoteFiles) => {
-			const service = createService({}, { proxyRemoteFiles });
+		test('ローカルのチャンネルのバナーはproxyRemoteFiles=trueならプロキシする', async () => {
+			const service = createService({}, { proxyRemoteFiles: true });
+			assertProxied(await packBannerUrl(service, channel(), bannerFile()), 'https://example.com/files/raw');
+		});
+
+		test('ローカルのチャンネルのバナーはproxyRemoteFiles=falseなら元のURLを返す', async () => {
+			const service = createService({}, { proxyRemoteFiles: false });
+			assert.strictEqual(await packBannerUrl(service, channel(), bannerFile()), 'https://example.com/files/raw');
+		});
+
+		test('ローカルのチャンネルのバナーは外部メディアプロキシが有効ならproxyRemoteFiles=falseでもプロキシする', async () => {
+			const service = createService({ externalMediaProxyEnabled: true }, { proxyRemoteFiles: false });
 			assertProxied(await packBannerUrl(service, channel(), bannerFile()), 'https://example.com/files/raw');
 		});
 

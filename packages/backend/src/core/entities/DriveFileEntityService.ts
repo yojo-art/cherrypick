@@ -103,12 +103,11 @@ export class DriveFileEntityService {
 
 	/**
 	 * DBに保存したプロキシを通さないバナー (ユーザー・チャンネル・相互リンク) のURLに、APIで返す際のメディアプロキシのURLを付与する
-	 * ローカルのバナーは巨大な画像がそのまま使われないよう常にプロキシする
-	 * リモートのバナーはノートの添付ファイルと同様に、リモートのファイルをプロキシしない設定の場合は元のURLを返す
+	 * 外部メディアプロキシが無効で、リモートのファイルをプロキシしない設定の場合は、ローカル・リモートとも元のURLを返す (プロキシURLが残っていれば剥がす)
 	 */
 	@bindThis
-	public getBannerUrl(url: string, isRemote: boolean): string {
-		if (isRemote && !this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return this.unwrapProxiedUrl(url);
+	public getBannerUrl(url: string): string {
+		if (!this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return this.unwrapProxiedUrl(url);
 		return this.getProxiedUrl(url);
 	}
 

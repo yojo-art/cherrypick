@@ -330,16 +330,14 @@ describe('UserEntityService', () => {
 				expect(actual.searchParams.get('url')).toBe(`${config.url}/files/banner.png`);
 			});
 
-			test('リモートのファイルをプロキシしない設定でもローカルユーザーのバナーはプロキシURLを返す', () => {
+			test('リモートのファイルをプロキシしない設定ならローカルユーザーのバナーもそのままのURLを返す', () => {
 				const meta = app.get<MiMeta>(DI.meta);
 				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
 				meta.proxyRemoteFiles = false;
 				config.externalMediaProxyEnabled = false;
 				try {
 					const user = makeUser({ bannerId: 'file2', bannerUrl: `${config.url}/files/banner.png` });
-					const actual = new URL(service.getBannerUrl(user)!);
-					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
-					expect(actual.searchParams.get('url')).toBe(`${config.url}/files/banner.png`);
+					expect(service.getBannerUrl(user)).toBe(`${config.url}/files/banner.png`);
 				} finally {
 					meta.proxyRemoteFiles = original.proxyRemoteFiles;
 					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
@@ -369,15 +367,19 @@ describe('UserEntityService', () => {
 				}
 			});
 
-			test('外部メディアプロキシが有効ならproxyRemoteFilesが無効でもリモートユーザーのバナーをプロキシする', () => {
+			test.each([
+				['リモート', 'https://remote.example.com/files/banner.png', 'remote.example.com'],
+				['ローカル', 'https://local.example.com/files/banner.png', null],
+			])('外部メディアプロキシが有効ならproxyRemoteFilesが無効でも%sユーザーのバナーをプロキシする', (_, bannerUrl, host) => {
 				const meta = app.get<MiMeta>(DI.meta);
 				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
 				meta.proxyRemoteFiles = false;
 				config.externalMediaProxyEnabled = true;
 				try {
-					const user = makeUser({ bannerId: 'file2', bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' });
+					const user = makeUser({ bannerId: 'file2', bannerUrl, host });
 					const actual = new URL(service.getBannerUrl(user)!);
 					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+					expect(actual.searchParams.get('url')).toBe(bannerUrl);
 				} finally {
 					meta.proxyRemoteFiles = original.proxyRemoteFiles;
 					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
@@ -415,24 +417,19 @@ describe('UserEntityService', () => {
 					expect(actual.searchParams.get('avatar')).toBe('1');
 				});
 
-				test('ローカルユーザーのバナーは元のURLを取り出して包み直す', () => {
-					const user = makeUser({ bannerId: 'file2', bannerUrl: proxiedImageUrl(localBannerUrl) });
-					const actual = new URL(service.getBannerUrl(user)!);
-
-					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
-					expect(actual.searchParams.get('url')).toBe(localBannerUrl);
-				});
-
-				test(`リモートユーザーのバナーは${proxyRemoteFiles ? '元のURLを取り出して包み直す' : '元のURLを取り出してそのまま返す'}`, () => {
-					const user = makeUser({ bannerId: 'file2', bannerUrl: proxiedImageUrl(rawBannerUrl), host: 'remote.example.com' });
+				test.each([
+					['ローカル', localBannerUrl, null],
+					['リモート', rawBannerUrl, 'remote.example.com'],
+				])(`%sユーザーのバナーは${proxyRemoteFiles ? '元のURLを取り出して包み直す' : '元のURLを取り出してそのまま返す'}`, (_, bannerUrl, host) => {
+					const user = makeUser({ bannerId: 'file2', bannerUrl: proxiedImageUrl(bannerUrl), host });
 					const actual = service.getBannerUrl(user)!;
 
 					if (proxyRemoteFiles) {
 						const url = new URL(actual);
 						expect(`${url.origin}${url.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
-						expect(url.searchParams.get('url')).toBe(rawBannerUrl);
+						expect(url.searchParams.get('url')).toBe(bannerUrl);
 					} else {
-						expect(actual).toBe(rawBannerUrl);
+						expect(actual).toBe(bannerUrl);
 					}
 				});
 
@@ -542,60 +539,50 @@ describe('UserEntityService', () => {
 				}
 			}
 
-			test.each([true, false])('ローカルユーザーの画像はproxyRemoteFiles=%sでもプロキシURLを返す', async (proxyRemoteFiles) => {
-				const rawUrl = `${config.url}/files/mutual-link.png`;
-				await withSettings(proxyRemoteFiles, async () => {
-					expectProxied(await packImgSrc({}, rawUrl), rawUrl);
-				});
-			});
-
-			test('リモートユーザーの画像はproxyRemoteFiles=trueならプロキシURLを返す', async () => {
-				const rawUrl = 'https://remote.example.com/files/mutual-link.png';
-				await withSettings(true, async () => {
-					expectProxied(await packImgSrc({ host: 'remote.example.com' }, rawUrl), rawUrl);
-				});
-			});
-
-			test('リモートユーザーの画像はproxyRemoteFiles=falseなら元のURLを返す', async () => {
-				const rawUrl = 'https://remote.example.com/files/mutual-link.png';
-				await withSettings(false, async () => {
-					expect(await packImgSrc({ host: 'remote.example.com' }, rawUrl)).toBe(rawUrl);
-				});
-			});
-
-			// DBにプロキシURLが残っていた場合に、設定によらず元のURLを取り出せるか
-			describe.each([true, false])('proxyRemoteFiles=%s でDBの値が既にプロキシURLの場合', (proxyRemoteFiles) => {
+			// ローカル・リモートとも同じ判定になる
+			describe.each([
+				['ローカル', 'https://local.example.com/files/mutual-link.png', {}],
+				['リモート', 'https://remote.example.com/files/mutual-link.png', { host: 'remote.example.com' }],
+			] as [string, string, Partial<MiUser>][])('%sユーザーの画像', (_, rawUrl, userData) => {
 				const proxiedImageUrl = (url: string) => `${config.mediaProxy}/image.webp?url=${encodeURIComponent(url)}`;
 
-				test('ローカルユーザーの画像は元のURLを取り出して包み直す', async () => {
-					const rawUrl = `${config.url}/files/mutual-link.png`;
-					await withSettings(proxyRemoteFiles, async () => {
-						expectProxied(await packImgSrc({}, proxiedImageUrl(rawUrl)), rawUrl);
+				test('proxyRemoteFiles=trueならプロキシURLを返す', async () => {
+					await withSettings(true, async () => {
+						expectProxied(await packImgSrc(userData, rawUrl), rawUrl);
 					});
 				});
 
-				test(`リモートユーザーの画像は${proxyRemoteFiles ? '元のURLを取り出して包み直す' : '元のURLを取り出してそのまま返す'}`, async () => {
-					const rawUrl = 'https://remote.example.com/files/mutual-link.png';
-					await withSettings(proxyRemoteFiles, async () => {
-						const actual = await packImgSrc({ host: 'remote.example.com' }, proxiedImageUrl(rawUrl));
-						if (proxyRemoteFiles) expectProxied(actual, rawUrl);
-						else expect(actual).toBe(rawUrl);
+				test('proxyRemoteFiles=falseなら元のURLを返す', async () => {
+					await withSettings(false, async () => {
+						expect(await packImgSrc(userData, rawUrl)).toBe(rawUrl);
 					});
 				});
-			});
 
-			test('外部メディアプロキシが有効ならproxyRemoteFiles=falseでもリモートユーザーの画像をプロキシする', async () => {
-				const rawUrl = 'https://remote.example.com/files/mutual-link.png';
-				const meta = app.get<MiMeta>(DI.meta);
-				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
-				meta.proxyRemoteFiles = false;
-				config.externalMediaProxyEnabled = true;
-				try {
-					expectProxied(await packImgSrc({ host: 'remote.example.com' }, rawUrl), rawUrl);
-				} finally {
-					meta.proxyRemoteFiles = original.proxyRemoteFiles;
-					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
-				}
+				// DBにプロキシURLが残っていた場合に、設定によらず元のURLを取り出せるか
+				test('DBの値が既にプロキシURLでもproxyRemoteFiles=trueなら元のURLを取り出して包み直す', async () => {
+					await withSettings(true, async () => {
+						expectProxied(await packImgSrc(userData, proxiedImageUrl(rawUrl)), rawUrl);
+					});
+				});
+
+				test('DBの値が既にプロキシURLでもproxyRemoteFiles=falseなら元のURLを取り出して返す', async () => {
+					await withSettings(false, async () => {
+						expect(await packImgSrc(userData, proxiedImageUrl(rawUrl))).toBe(rawUrl);
+					});
+				});
+
+				test('外部メディアプロキシが有効ならproxyRemoteFiles=falseでもプロキシURLを返す', async () => {
+					const meta = app.get<MiMeta>(DI.meta);
+					const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+					meta.proxyRemoteFiles = false;
+					config.externalMediaProxyEnabled = true;
+					try {
+						expectProxied(await packImgSrc(userData, rawUrl), rawUrl);
+					} finally {
+						meta.proxyRemoteFiles = original.proxyRemoteFiles;
+						config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+					}
+				});
 			});
 
 			test('imgSrc以外のフィールドはそのまま返す', async () => {

@@ -602,27 +602,29 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 			assert.strictEqual(result.searchParams.get('url'), rawUrl);
 		}
 
-		// [isRemote, externalMediaProxyEnabled, proxyRemoteFiles, プロキシするか]
+		// ローカル・リモートとも同じ判定になるため、ローカルのURLとリモートのURLの両方で確認する
+		// [externalMediaProxyEnabled, proxyRemoteFiles, プロキシするか]
 		describe.each([
-			[false, false, false, true],
-			[false, false, true, true],
-			[false, true, false, true],
-			[false, true, true, true],
-			[true, false, false, false],
-			[true, false, true, true],
-			[true, true, false, true],
-			[true, true, true, true],
-		])('isRemote=%s, externalMediaProxyEnabled=%s, proxyRemoteFiles=%s', (isRemote, externalMediaProxyEnabled, proxyRemoteFiles, shouldProxy) => {
+			[false, false, false],
+			[false, true, true],
+			[true, false, true],
+			[true, true, true],
+		])('externalMediaProxyEnabled=%s, proxyRemoteFiles=%s', (externalMediaProxyEnabled, proxyRemoteFiles, shouldProxy) => {
 			const service = createService({ externalMediaProxyEnabled }, { proxyRemoteFiles });
 
-			test(shouldProxy ? '元のURLをプロキシする' : '元のURLをそのまま返す', () => {
-				const actual = service.getBannerUrl(rawUrl, isRemote);
-				if (shouldProxy) assertProxied(actual);
-				else assert.strictEqual(actual, rawUrl);
+			test.each([rawUrl, 'https://example.com/files/banner.png'])(shouldProxy ? '元のURL %s をプロキシする' : '元のURL %s をそのまま返す', (url) => {
+				const actual = service.getBannerUrl(url);
+				if (shouldProxy) {
+					const result = new URL(actual);
+					assert.strictEqual(`${result.origin}${result.pathname}`, 'https://proxy.example.com/image.webp');
+					assert.strictEqual(result.searchParams.get('url'), url);
+				} else {
+					assert.strictEqual(actual, url);
+				}
 			});
 
 			test(shouldProxy ? '既にプロキシURLなら元のURLを取り出して包み直す' : '既にプロキシURLなら元のURLを取り出して返す', () => {
-				const actual = service.getBannerUrl(proxiedUrl, isRemote);
+				const actual = service.getBannerUrl(proxiedUrl);
 				if (shouldProxy) assertProxied(actual);
 				else assert.strictEqual(actual, rawUrl);
 			});
