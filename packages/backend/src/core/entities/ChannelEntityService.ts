@@ -129,7 +129,8 @@ export class ChannelEntityService {
 			name: channel.name,
 			description: channel.description,
 			userId: channel.userId,
-			bannerUrl: bannerFile ? this.driveFileEntityService.getPublicUrl({ file: bannerFile, allowProxiedUrl: true }) : null,
+			// 巨大な画像がそのまま使われないよう、ローカルのファイルでもメディアプロキシを通す
+			bannerUrl: bannerFile ? this.driveFileEntityService.getProxiedUrl(this.driveFileEntityService.getPublicUrl({ file: bannerFile, allowProxiedUrl: false })) : null,
 			bannerId: channel.bannerId,
 			iconUrl: iconUrl,
 			pinnedNoteIds: channel.pinnedNoteIds,

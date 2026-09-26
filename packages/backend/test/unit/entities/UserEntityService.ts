@@ -322,9 +322,28 @@ describe('UserEntityService', () => {
 				expect(actual.searchParams.get('url')).toBe('https://remote.example.com/files/banner.png');
 			});
 
-			test('ローカルユーザーのバナーはそのままのURLを返す', () => {
+			test('ローカルユーザーのバナーもプロキシURLを返す', () => {
 				const user = makeUser({ bannerId: 'file2', bannerUrl: `${config.url}/files/banner.png` });
-				expect(service.getBannerUrl(user)).toBe(`${config.url}/files/banner.png`);
+				const actual = new URL(service.getBannerUrl(user)!);
+
+				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+				expect(actual.searchParams.get('url')).toBe(`${config.url}/files/banner.png`);
+			});
+
+			test('リモートのファイルをプロキシしない設定でもローカルユーザーのバナーはプロキシURLを返す', () => {
+				const meta = app.get<MiMeta>(DI.meta);
+				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+				meta.proxyRemoteFiles = false;
+				config.externalMediaProxyEnabled = false;
+				try {
+					const user = makeUser({ bannerId: 'file2', bannerUrl: `${config.url}/files/banner.png` });
+					const actual = new URL(service.getBannerUrl(user)!);
+					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+					expect(actual.searchParams.get('url')).toBe(`${config.url}/files/banner.png`);
+				} finally {
+					meta.proxyRemoteFiles = original.proxyRemoteFiles;
+					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+				}
 			});
 
 			test('リモートユーザーのbannerUrlが既にプロキシURLでも二重にプロキシしない', () => {

@@ -38,6 +38,13 @@ describe('アバター/バナーURLのメディアプロキシ', () => {
 		assert.strictEqual(url.searchParams.get('avatar'), '1');
 	}
 
+	function assertBannerProxyUrl(actual: string | null | undefined, originalUrl: string): void {
+		assert.ok(actual, 'URLが返される');
+		const url = new URL(actual);
+		assert.strictEqual(`${url.origin}${url.pathname}`, `${config.mediaProxy}/image.webp`);
+		assert.strictEqual(url.searchParams.get('url'), originalUrl);
+	}
+
 	beforeAll(async () => {
 		connection = await initTestDb(true);
 		usersRepository = connection.getRepository(MiUser);
@@ -73,14 +80,14 @@ describe('アバター/バナーURLのメディアプロキシ', () => {
 			assert.strictEqual(res.location, shown.avatarUrl);
 		});
 
-		test('ローカルユーザーのバナーはDBにもAPIにも元のURLのまま', async () => {
+		test('ローカルユーザーのバナーはDBに元のURLで保存され、APIではプロキシURLで返る', async () => {
 			const file = (await uploadFile(alice)).body!;
 			const response = await successfulApiCall({ endpoint: 'i/update', parameters: { bannerId: file.id }, user: alice });
 			const rawUrl = await rawUrlOf(file.id);
 
 			const stored = await usersRepository.findOneByOrFail({ id: alice.id });
 			assert.strictEqual(stored.bannerUrl, rawUrl);
-			assert.strictEqual(response.bannerUrl, rawUrl);
+			assertBannerProxyUrl(response.bannerUrl, rawUrl);
 		});
 	});
 
@@ -117,6 +124,24 @@ describe('アバター/バナーURLのメディアプロキシ', () => {
 			assert.strictEqual(updated.status, 200);
 
 			await assertChannelIcon(updated.body);
+		});
+
+		test('channels/create でバナーを設定するとDBに元のURL、APIにプロキシURLが入る', async () => {
+			const banner = (await uploadFile(root)).body!;
+			const res = await api('channels/create', { name: randomString(), username: randomString(), bannerId: banner.id }, root);
+			assert.strictEqual(res.status, 200);
+			assert.ok(res.body.actorId, 'チャンネルアカウントが作成される');
+
+			// バナーはチャンネルアカウント用にコピーされるため、チャンネルのbannerIdのファイルと比較する
+			assert.ok(res.body.bannerId, 'チャンネルのbannerIdが設定される');
+			const rawUrl = await rawUrlOf(res.body.bannerId);
+			assertBannerProxyUrl(res.body.bannerUrl, rawUrl);
+
+			const actor = await usersRepository.findOneByOrFail({ id: res.body.actorId });
+			assert.strictEqual(actor.bannerUrl, rawUrl, 'チャンネルアカウントのbannerUrlは元のURLで保存される');
+
+			const shown = await successfulApiCall({ endpoint: 'users/show', parameters: { userId: res.body.actorId }, user: root });
+			assert.strictEqual(shown.bannerUrl, res.body.bannerUrl, 'チャンネルのbannerUrlとアカウントのbannerUrlが一致する');
 		});
 	});
 });
