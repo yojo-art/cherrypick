@@ -236,6 +236,16 @@ export class NotificationEntityService implements OnModuleInit {
 		if (needsAbuseReport && !abuseReportReporter) {
 			return null;
 		}
+		// 被通報者も通知欄に表示するため reporter と同様に解決する
+		const abuseReportTargetUser = needsAbuseReport && abuseReport != null ? (
+			hint?.packedUsers != null && hint.packedUsers.has(abuseReport.targetUserId)
+				? hint.packedUsers.get(abuseReport.targetUserId)
+				: await this.userEntityService.pack(abuseReport.targetUserId, { id: meId })
+		) : undefined;
+		// if the target user has been deleted, don't show this notification
+		if (needsAbuseReport && !abuseReportTargetUser) {
+			return null;
+		}
 
 		const needsGroupInvitation = notification.type === 'groupInvited';
 		const groupInvitation = needsGroupInvitation ? await this.userGroupInvitationEntityService.pack(notification.userGroupInvitationId).catch(() => null) : undefined;
@@ -285,6 +295,7 @@ export class NotificationEntityService implements OnModuleInit {
 				reportId: notification.reportId,
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				targetUserId: abuseReport!.targetUserId,
+				targetUser: abuseReportTargetUser,
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				resolved: abuseReport!.resolved,
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
@@ -353,7 +364,8 @@ export class NotificationEntityService implements OnModuleInit {
 			if (notification.type === 'note:grouped') userIds.push(...notification.notifierIds);
 			if (notification.type === 'abuseReport') {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
-				userIds.push(abuseReports.get(notification.reportId)!.reporterId);
+				const abuseReport = abuseReports.get(notification.reportId)!;
+				userIds.push(abuseReport.reporterId, abuseReport.targetUserId);
 			}
 		}
 		const users = userIds.length > 0 ? await this.usersRepository.find({

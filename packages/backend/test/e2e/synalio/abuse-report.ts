@@ -80,6 +80,7 @@ describe('[シナリオ] ユーザ通報', () => {
 	function findAbuseReportNotification(body: unknown[], reportId: string) {
 		return body.find(n => (n as { type?: string }).type === 'abuseReport' && (n as { reportId?: string }).reportId === reportId) as {
 			targetUserId: string;
+			targetUser: { id: string };
 			userId: string;
 			resolved: boolean;
 			resolvedAs: string | null;
@@ -404,6 +405,7 @@ describe('[シナリオ] ユーザ通報', () => {
 				throw new Error('abuseReport notification not found');
 			}
 			expect(abuseNotif.targetUserId).toBe(alice.id);
+			expect(abuseNotif.targetUser.id).toBe(alice.id);
 			expect(abuseNotif.userId).toBe(bob.id);
 			expect(abuseNotif.resolved).toBe(false);
 			expect(abuseNotif.resolvedAs).toBeNull();

@@ -5389,6 +5389,7 @@ export type components = {
             reportId: string;
             /** Format: id */
             targetUserId: string;
+            targetUser: components['schemas']['UserLite'];
             resolved: boolean;
             /** @enum {string|null} */
             resolvedAs: 'accept' | 'reject' | null;

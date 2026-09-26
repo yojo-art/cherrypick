@@ -534,6 +534,11 @@ export const packedNotificationSchema = {
 				optional: false, nullable: false,
 				format: 'id',
 			},
+			targetUser: {
+				type: 'object',
+				ref: 'UserLite',
+				optional: false, nullable: false,
+			},
 			resolved: {
 				type: 'boolean',
 				optional: false, nullable: false,

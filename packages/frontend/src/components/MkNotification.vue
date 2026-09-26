@@ -134,7 +134,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				{{ notification.invitation.room.name }}
 			</div>
 			<MkA v-else-if="notification.type === 'abuseReport'" :class="$style.text" to="/admin/abuses">
-				{{ notification.resolved ? i18n.ts.resolved : i18n.ts.unresolved }}
+				{{ i18n.ts.target }}: <MkAcct :user="notification.targetUser"/> ({{ notification.resolved ? i18n.ts.resolved : i18n.ts.unresolved }})
 			</MkA>
 			<MkA v-else-if="notification.type === 'achievementEarned'" :class="$style.text" to="/my/achievements">
 				{{ i18n.ts._achievements._types[`_${notification.achievement}`].title }}
