@@ -129,8 +129,8 @@ export class ChannelEntityService {
 			name: channel.name,
 			description: channel.description,
 			userId: channel.userId,
-			// 巨大な画像がそのまま使われないよう、ローカルのファイルでもメディアプロキシを通す
-			bannerUrl: bannerFile ? this.driveFileEntityService.getProxiedUrl(this.driveFileEntityService.getPublicUrl({ file: bannerFile, allowProxiedUrl: false })) : null,
+			// リモートのチャンネルはアクターのバナーのファイルを使うため、ユーザーのバナーと同じ判定でプロキシする
+			bannerUrl: bannerFile ? this.driveFileEntityService.getBannerUrl(this.driveFileEntityService.getPublicUrl({ file: bannerFile, allowProxiedUrl: false }), bannerFile.userHost != null) : null,
 			bannerId: channel.bannerId,
 			iconUrl: iconUrl,
 			pinnedNoteIds: channel.pinnedNoteIds,

@@ -92,13 +92,24 @@ export class DriveFileEntityService {
 	 * 既にメディアプロキシのURLになっている場合は元のURLを取り出す (二重プロキシ防止)
 	 */
 	@bindThis
-	public unwrapProxiedUrl(url: string): string {
+	private unwrapProxiedUrl(url: string): string {
 		if (!url.startsWith(`${this.config.mediaProxy}/`)) return url;
 		try {
 			return new URL(url).searchParams.get('url') ?? url;
 		} catch {
 			return url;
 		}
+	}
+
+	/**
+	 * DBに保存したプロキシを通さないバナーのURLに、APIで返す際のメディアプロキシのURLを付与する
+	 * ローカルのバナーは巨大な画像がそのまま使われないよう常にプロキシする
+	 * リモートのバナーはノートの添付ファイルと同様に、リモートのファイルをプロキシしない設定の場合は元のURLを返す
+	 */
+	@bindThis
+	public getBannerUrl(url: string, isRemote: boolean): string {
+		if (isRemote && !this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return this.unwrapProxiedUrl(url);
+		return this.getProxiedUrl(url);
 	}
 
 	@bindThis

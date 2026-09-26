@@ -591,4 +591,41 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 			assert.strictEqual(result.searchParams.get('url'), proxied);
 		});
 	});
+
+	describe('getBannerUrl', () => {
+		const rawUrl = 'https://remote.example/media/banner.png';
+		const proxiedUrl = `https://proxy.example.com/image.webp?url=${encodeURIComponent(rawUrl)}`;
+
+		function assertProxied(actual: string): void {
+			const result = new URL(actual);
+			assert.strictEqual(`${result.origin}${result.pathname}`, 'https://proxy.example.com/image.webp');
+			assert.strictEqual(result.searchParams.get('url'), rawUrl);
+		}
+
+		// [isRemote, externalMediaProxyEnabled, proxyRemoteFiles, プロキシするか]
+		describe.each([
+			[false, false, false, true],
+			[false, false, true, true],
+			[false, true, false, true],
+			[false, true, true, true],
+			[true, false, false, false],
+			[true, false, true, true],
+			[true, true, false, true],
+			[true, true, true, true],
+		])('isRemote=%s, externalMediaProxyEnabled=%s, proxyRemoteFiles=%s', (isRemote, externalMediaProxyEnabled, proxyRemoteFiles, shouldProxy) => {
+			const service = createService({ externalMediaProxyEnabled }, { proxyRemoteFiles });
+
+			test(shouldProxy ? '元のURLをプロキシする' : '元のURLをそのまま返す', () => {
+				const actual = service.getBannerUrl(rawUrl, isRemote);
+				if (shouldProxy) assertProxied(actual);
+				else assert.strictEqual(actual, rawUrl);
+			});
+
+			test(shouldProxy ? '既にプロキシURLなら元のURLを取り出して包み直す' : '既にプロキシURLなら元のURLを取り出して返す', () => {
+				const actual = service.getBannerUrl(proxiedUrl, isRemote);
+				if (shouldProxy) assertProxied(actual);
+				else assert.strictEqual(actual, rawUrl);
+			});
+		});
+	});
 });
