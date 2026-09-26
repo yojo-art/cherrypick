@@ -14,6 +14,7 @@ import { genAidx } from '@/misc/id/aidx.js';
 import {
 	AvatarDecorationsRepository,
 	BlockingsRepository,
+	MiMeta,
 	FollowingsRepository, FollowRequestsRepository,
 	MiUserProfile, MutingsRepository, RenoteMutingsRepository,
 	UserMemoRepository,
@@ -333,6 +334,35 @@ describe('UserEntityService', () => {
 
 				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
 				expect(actual.searchParams.get('url')).toBe('https://remote.example.com/files/banner.png');
+			});
+
+			test('リモートのファイルをプロキシしない設定ならリモートユーザーのバナーはそのままのURLを返す', () => {
+				const meta = app.get<MiMeta>(DI.meta);
+				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+				meta.proxyRemoteFiles = false;
+				config.externalMediaProxyEnabled = false;
+				try {
+					const user = makeUser({ bannerId: 'file2', bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' });
+					expect(service.getBannerUrl(user)).toBe('https://remote.example.com/files/banner.png');
+				} finally {
+					meta.proxyRemoteFiles = original.proxyRemoteFiles;
+					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+				}
+			});
+
+			test('外部メディアプロキシが有効ならproxyRemoteFilesが無効でもリモートユーザーのバナーをプロキシする', () => {
+				const meta = app.get<MiMeta>(DI.meta);
+				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+				meta.proxyRemoteFiles = false;
+				config.externalMediaProxyEnabled = true;
+				try {
+					const user = makeUser({ bannerId: 'file2', bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' });
+					const actual = new URL(service.getBannerUrl(user)!);
+					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+				} finally {
+					meta.proxyRemoteFiles = original.proxyRemoteFiles;
+					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+				}
 			});
 
 			test('bannerUrlが空文字ならnullを返す', () => {

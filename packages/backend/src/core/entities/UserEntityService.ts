@@ -417,11 +417,13 @@ export class UserEntityService implements OnModuleInit {
 
 	/**
 	 * DBにはプロキシを通さないURLを保存しているため、リモートユーザーのバナーはAPIで返す際にメディアプロキシのURLを付与する
+	 * ノートの添付ファイルと同様に、リモートのファイルをプロキシしない設定の場合は元のURLを返す
 	 */
 	@bindThis
 	public getBannerUrl(user: MiUser): string | null {
 		if (user.bannerId == null || !user.bannerUrl) return null;
 		if (user.host == null) return user.bannerUrl;
+		if (!this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return user.bannerUrl;
 		return this.driveFileEntityService.getProxiedUrl(user.bannerUrl);
 	}
 
