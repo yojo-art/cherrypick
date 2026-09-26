@@ -87,6 +87,19 @@ describe('[シナリオ] ユーザ通報', () => {
 		} | undefined;
 	}
 
+	// in-app 通知は NotificationService.createNotification が非同期 (fire-and-forget) で
+	// 作成するため、固定時間 sleep ではなく出現 (present=false なら消滅) するまで polling する。
+	async function waitForAbuseReportNotification(user: UserToken, reportId: string, present = true) {
+		for (let i = 0; i < 50; i++) {
+			const res = await api('i/notifications', {}, user);
+			if (res.status !== 200) throw new Error(`i/notifications failed: ${res.status}`);
+			const notification = findAbuseReportNotification(res.body, reportId);
+			if ((notification != null) === present) return notification;
+			await setTimeout(100);
+		}
+		throw new Error(`abuseReport notification ${present ? 'not found' : 'still exists'}`);
+	}
+
 	async function resolveAbuseReport(args?: Partial<entities.AdminResolveAbuseUserReportRequest>, credential?: UserToken): Promise<entities.EmptyResponse> {
 		const res = await api(
 			'admin/resolve-abuse-user-report',
@@ -383,15 +396,9 @@ describe('[シナリオ] ユーザ通報', () => {
 			};
 			await createAbuseReport(abuse, bob);
 
-			// Redisに追加されるのを待つ
-			await setTimeout(100);
-
 			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
 
-			const notifRes = await api('i/notifications', {}, admin);
-			expect(notifRes.status).toBe(200);
-
-			const abuseNotif = findAbuseReportNotification(notifRes.body, abuseReportId);
+			const abuseNotif = await waitForAbuseReportNotification(admin, abuseReportId);
 
 			if (abuseNotif == null) {
 				throw new Error('abuseReport notification not found');
@@ -410,14 +417,13 @@ describe('[シナリオ] ユーザ通報', () => {
 				comment: randomString(),
 			};
 			await createAbuseReport(abuse, bob);
-			await setTimeout(100);
 
 			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
+			await waitForAbuseReportNotification(admin, abuseReportId);
 
 			await resolveAbuseReport({ reportId: abuseReportId }, admin);
 
-			const notifRes = await api('i/notifications', {}, admin);
-			const abuseNotif = findAbuseReportNotification(notifRes.body, abuseReportId);
+			const abuseNotif = await waitForAbuseReportNotification(admin, abuseReportId);
 
 			if (abuseNotif == null) {
 				throw new Error('abuseReport notification not found');
@@ -432,19 +438,14 @@ describe('[シナリオ] ユーザ通報', () => {
 			await api('admin/roles/assign', { userId: carol.id, roleId: moderatorRole.id }, admin);
 
 			await createAbuseReport({ userId: alice.id, comment: randomString() }, bob);
-			await setTimeout(100);
 
 			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
 
-			const before = await api('i/notifications', {}, carol);
-			expect(findAbuseReportNotification(before.body, abuseReportId)).toBeDefined();
+			await waitForAbuseReportNotification(carol, abuseReportId);
 
 			await api('admin/roles/unassign', { userId: carol.id, roleId: moderatorRole.id }, admin);
-			await setTimeout(100);
 
-			const after = await api('i/notifications', {}, carol);
-			expect(after.status).toBe(200);
-			expect(findAbuseReportNotification(after.body, abuseReportId)).toBeUndefined();
+			await waitForAbuseReportNotification(carol, abuseReportId, false);
 		});
 	});
 });
