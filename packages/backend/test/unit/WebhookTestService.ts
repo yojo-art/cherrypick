@@ -16,6 +16,7 @@ import { IdService } from '@/core/IdService.js';
 import { DI } from '@/di-symbols.js';
 import { QueueService } from '@/core/QueueService.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
 
 describe('WebhookTestService', () => {
 	let app: TestingModule;
@@ -67,6 +68,12 @@ describe('WebhookTestService', () => {
 					provide: QueueService, useFactory: () => ({
 						systemWebhookDeliver: vi.fn(),
 						userWebhookDeliver: vi.fn(),
+					}),
+				},
+				{
+					provide: UserEntityService, useFactory: () => ({
+						getAvatarUrl: vi.fn(() => 'https://example.com/identicon/dummy'),
+						getBannerUrl: vi.fn(() => null),
 					}),
 				},
 				{
