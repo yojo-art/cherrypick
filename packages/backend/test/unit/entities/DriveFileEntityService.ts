@@ -267,7 +267,7 @@ describe('DriveFileEntityService', () => {
 
 describe('DriveFileEntityService.getPublicUrl', () => {
 	describe('getPublicUrl', () => {
-		describe('allowProxiedUrl: false（デフォルト）', () => {
+		describe('allowProxiedUrl: false', () => {
 			const service = createService({
 				externalMediaProxyEnabled: true,
 				remoteProxy: 'https://remote-proxy.example.com',
@@ -276,7 +276,7 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 			test('webpublicUrlがある場合はそれを返す', () => {
 				const file = driveFile();
 				assert.strictEqual(
-					service.getPublicUrl({ file }),
+					service.getPublicUrl({ file, allowProxiedUrl: false }),
 					'https://example.com/files/public',
 				);
 			});
@@ -284,7 +284,7 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 			test('webpublicUrlがnullの場合はurlを返す', () => {
 				const file = driveFile({ webpublicUrl: null });
 				assert.strictEqual(
-					service.getPublicUrl({ file }),
+					service.getPublicUrl({ file, allowProxiedUrl: false }),
 					'https://example.com/files/raw',
 				);
 			});
@@ -296,9 +296,23 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 					webpublicAccessKey: 'accesskey1',
 				});
 				assert.strictEqual(
-					service.getPublicUrl({ file }),
+					service.getPublicUrl({ file, allowProxiedUrl: false }),
 					'https://example.com/files/public',
 				);
+			});
+		});
+
+		describe('allowProxiedUrl省略時（デフォルト）', () => {
+			test('allowProxiedUrl: trueと同じくプロキシ判定を行う', () => {
+				const service = createService({ externalMediaProxyEnabled: true });
+				const file = driveFile({
+					uri: 'https://remote.example/media/a.png',
+					userHost: 'remote.example',
+					webpublicAccessKey: null,
+				});
+				const result = service.getPublicUrl({ file });
+				assert.strictEqual(result, service.getPublicUrl({ file, allowProxiedUrl: true }));
+				assert.ok(result.startsWith('https://proxy.example.com/image.webp?'));
 			});
 		});
 

@@ -126,7 +126,7 @@ export class DriveFileEntityService {
 		file,
 		mode,
 		ap = false,
-		allowProxiedUrl = false,
+		allowProxiedUrl = true,
 	}: {
 		file: MiDriveFile;
 		mode?: 'avatar' | undefined,
