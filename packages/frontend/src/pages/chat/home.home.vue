@@ -41,7 +41,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onActivated, onDeactivated, onMounted, onUnmounted, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { useInterval } from '@@/js/use-interval.js';
 import XMessage from './XMessage.vue';
 import MkButton from '@/components/MkButton.vue';
@@ -75,7 +75,7 @@ const searchQuery = ref('');
 const searched = ref(false);
 const searchResults = ref<Misskey.entities.ChatMessage[]>([]);
 
-function start(ev: MouseEvent) {
+function start(ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts._chat.individualChat,
 		caption: i18n.ts._chat.individualChat_description,
@@ -134,7 +134,7 @@ async function search() {
 
 onMounted(() => {
 	updateCurrentAccountPartial({ hasUnreadChatMessages: false });
-	globalEvents.on('createChat', (ev) => start(ev));
+	globalEvents.on('createChat', (ev) => start(ev as PointerEvent));
 });
 
 onUnmounted(() => {

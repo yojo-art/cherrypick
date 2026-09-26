@@ -3,10 +3,11 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { defineAsyncComponent } from 'vue';
 import { selectDriveFolder } from './drive.js';
 import type { MenuItem } from '@/types/menu.js';
+import type { Content } from '@/components/MkLightbox.item.vue';
 import { i18n } from '@/i18n.js';
 import { copyToClipboard } from '@/utility/copy-to-clipboard.js';
 import * as os from '@/os.js';
@@ -24,6 +25,8 @@ function rename(file: Misskey.entities.DriveFile) {
 		misskeyApi('drive/files/update', {
 			fileId: file.id,
 			name: name,
+		}).then(updated => {
+			globalEvents.emit('driveFilesUpdated', [updated]);
 		});
 	});
 }
@@ -37,6 +40,8 @@ async function describe(file: Misskey.entities.DriveFile) {
 			misskeyApi('drive/files/update', {
 				fileId: file.id,
 				comment: caption.length === 0 ? null : caption,
+			}).then(updated => {
+				globalEvents.emit('driveFilesUpdated', [updated]);
 			});
 		},
 		closed: () => dispose(),
@@ -44,10 +49,13 @@ async function describe(file: Misskey.entities.DriveFile) {
 }
 
 function move(file: Misskey.entities.DriveFile) {
-	selectDriveFolder(null).then(folder => {
+	selectDriveFolder(null).then(({ canceled, folders }) => {
+		if (canceled) return;
 		misskeyApi('drive/files/update', {
 			fileId: file.id,
-			folderId: folder[0] ? folder[0].id : null,
+			folderId: folders[0] ? folders[0].id : null,
+		}).then(updated => {
+			globalEvents.emit('driveFilesUpdated', [updated]);
 		});
 	});
 }
@@ -56,6 +64,8 @@ function toggleSensitive(file: Misskey.entities.DriveFile) {
 	misskeyApi('drive/files/update', {
 		fileId: file.id,
 		isSensitive: !file.isSensitive,
+	}).then(updated => {
+		globalEvents.emit('driveFilesUpdated', [updated]);
 	}).catch(err => {
 		os.alert({
 			type: 'error',
@@ -88,8 +98,9 @@ async function deleteFile(file: Misskey.entities.DriveFile) {
 	globalEvents.emit('driveFilesDeleted', [file]);
 }
 
+/** 自分のドライブファイルを操作する際のメニュー */
 export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Misskey.entities.DriveFolder | null): MenuItem[] {
-	const isImage = file.type.startsWith('image/');
+	const _isImage = file.type.startsWith('image/');
 
 	const menuItems: MenuItem[] = [];
 
@@ -116,11 +127,36 @@ export function getDriveFileMenu(file: Misskey.entities.DriveFile, folder?: Miss
 		action: () => describe(file),
 	});
 
+	if (file.type.startsWith('image/') || file.type.startsWith('video/')) {
+		menuItems.push({
+			text: i18n.ts.preview,
+			icon: 'ti ti-photo-search',
+			action: async () => {
+				const contents :Content[] = [{
+					id: file.id,
+					type: file.type.startsWith('video/') ? 'video' : 'image',
+					url: file.url,
+					thumbnailUrl: file.thumbnailUrl,
+					filename: file.name,
+					file,
+				}];
+
+				const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkLightbox.vue').then(x => x.default), {
+					defaultIndex: contents.findIndex(x => x.id === file.id),
+					contents,
+				}, {
+					closed: () => dispose(),
+				});
+			},
+		});
+	}
+
 	menuItems.push({ type: 'divider' }, {
 		text: i18n.ts.createNoteFromTheFile,
 		icon: 'ti ti-pencil',
 		action: () => os.post({
 			initialFiles: [file],
+			instant: true,
 		}),
 	}, {
 		text: i18n.ts.copyUrl,

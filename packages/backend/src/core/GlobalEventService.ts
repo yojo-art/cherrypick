@@ -8,6 +8,7 @@ import * as Redis from 'ioredis';
 import * as Reversi from 'misskey-reversi';
 import type { MiChannel } from '@/models/Channel.js';
 import type { MiUser } from '@/models/User.js';
+import type { MiAnnouncement } from '@/models/Announcement.js';
 import type { MiUserProfile } from '@/models/UserProfile.js';
 import type { MiNote } from '@/models/Note.js';
 import type { MiAntenna } from '@/models/Antenna.js';
@@ -40,14 +41,20 @@ export interface BroadcastTypes {
 		emojis: Packed<'EmojiDetailed'>[];
 	};
 	emojiDeleted: {
-		emojis: {
-			id?: string;
-			name: string;
-			[other: string]: any;
-		}[];
+		emojis: Packed<'EmojiDetailed'>[];
 	};
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
+	};
+	announcementReacted: {
+		announcementId: MiAnnouncement['id'];
+		reaction: string;
+		userId: MiUser['id'];
+	};
+	announcementUnreacted: {
+		announcementId: MiAnnouncement['id'];
+		reaction: string;
+		userId: MiUser['id'];
 	};
 }
 
@@ -102,6 +109,8 @@ export interface MainEventTypes {
 	announcementCreated: {
 		announcement: Packed<'Announcement'>;
 	};
+	announcementReacted: BroadcastTypes['announcementReacted'];
+	announcementUnreacted: BroadcastTypes['announcementUnreacted'];
 }
 
 export interface DriveEventTypes {
@@ -124,7 +133,6 @@ export interface NoteEventTypes {
 	updated: {
 		cw: string | null;
 		text: string | null;
-		disableRightClick: boolean | null;
 		deleteAt: Date | null;
 	};
 	reacted: {
@@ -276,6 +284,8 @@ export interface InternalEventTypes {
 	metaUpdated: { before?: MiMeta; after: MiMeta; };
 	followChannel: { userId: MiUser['id']; channelId: MiChannel['id']; };
 	unfollowChannel: { userId: MiUser['id']; channelId: MiChannel['id']; };
+	muteChannel: { userId: MiUser['id']; channelId: MiChannel['id']; };
+	unmuteChannel: { userId: MiUser['id']; channelId: MiChannel['id']; };
 	updateUserProfile: MiUserProfile;
 	mute: { muterId: MiUser['id']; muteeId: MiUser['id']; };
 	unmute: { muterId: MiUser['id']; muteeId: MiUser['id']; };
@@ -284,7 +294,7 @@ export interface InternalEventTypes {
 	clearQuarantinedHostsCache: string;
 }
 
-type EventTypesToEventPayload<T> = EventUnionFromDictionary<UndefinedAsNullAll<SerializedAll<T>>>;
+export type EventTypesToEventPayload<T> = EventUnionFromDictionary<UndefinedAsNullAll<SerializedAll<T>>>;
 
 // name/messages(spec) pairs dictionary
 export type GlobalEvents = {

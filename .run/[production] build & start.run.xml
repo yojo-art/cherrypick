@@ -8,7 +8,7 @@
     <node-interpreter value="project" />
     <envs>
       <env name="NODE_ENV" value="production" />
-      <env name="CHERRYPICK_WEBFINGER_USE_HTTP" value="true" />
+      <env name="MISSKEY_WEBFINGER_USE_HTTP" value="true" />
     </envs>
     <method v="2">
       <option name="NpmBeforeRunTask" enabled="true">

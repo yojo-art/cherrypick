@@ -1,6 +1,33 @@
 import assert, { deepStrictEqual, strictEqual } from 'assert';
-import * as Misskey from 'cherrypick-js';
-import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, sleep, fetchAdmin } from './utils.js';
+import { describe, test, beforeAll, vi } from 'vitest';
+import * as Misskey from 'misskey-js';
+import { addCustomEmoji, createAccount, type LoginUser, resolveRemoteUser, waitForFollowRelation, WAIT_FOR_FEDERATION, fetchAdmin, requestFederationTestNote, waitForRemoteEmoji, waitFor, sleep } from './utils.js';
+
+/**
+ * リモートユーザーのプロフィール更新(users/show)がpredicateを満たすまでポーリングして待つ。
+ * predicateが真を返した時点の値を返す。
+ */
+export async function waitForRemoteUserUpdate(
+	viewer: LoginUser,
+	userId: string,
+	predicate: (user: Misskey.entities.UserDetailedNotMe) => boolean,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.UserDetailedNotMe> {
+	let user: Misskey.entities.UserDetailedNotMe | undefined;
+	try {
+		await waitFor(async () => {
+			try {
+				user = await viewer.client.request('users/show', { userId });
+				return predicate(user);
+			} catch {
+				return false;
+			}
+		}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
+	} catch {
+		throw new Error(`remote user update not observed: userId=${userId}, lastObserved=${JSON.stringify(user)}`);
+	}
+	return user as Misskey.entities.UserDetailedNotMe;
+}
 
 describe('Emoji', () => {
 	let alice: LoginUser, bob: LoginUser;
@@ -18,8 +45,17 @@ describe('Emoji', () => {
 		]);
 		await bob.client.request('following/create', { userId: aliceInB.id });
 		bAdmin = await fetchAdmin('b.test');
-		await sleep();
+		await waitForFollowRelation(bob, alice, 1);
 	});
+
+	async function waitForNoteInB(cond: (note: Misskey.entities.Note) => boolean): Promise<Misskey.entities.Note> {
+		return await vi.waitFor(async () => {
+			const notes = await bob.client.request('notes/timeline', {});
+			const noteInB = notes.at(0);
+			strictEqual(noteInB != null && cond(noteInB), true);
+			return noteInB!;
+		}, WAIT_FOR_FEDERATION);
+	}
 
 	test('Custom emoji are delivered with Note delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', {
@@ -33,12 +69,9 @@ describe('Emoji', () => {
 			isBasedOn: 'isBasedOn',
 		});
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
-		await sleep();
 
-		const notes = await bob.client.request('notes/timeline', {});
-		const noteInB = notes[0];
+		const noteInB = await waitForNoteInB(note => note.text === `I love \u200b:${emoji.name}:\u200b`);
 
-		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
@@ -74,13 +107,11 @@ describe('Emoji', () => {
 			description: 'description',
 		});
 		const note = (await alice.client.request('notes/create', { text: 'a' })).createdNote;
-		await sleep();
+		await waitForNoteInB(noteInB => noteInB.uri === `https://a.test/notes/${note.id}`);
 
 		await alice.client.request('notes/reactions/create', { noteId: note.id, reaction: `:${emoji.name}:` });
-		await sleep();
 
-		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
-		deepStrictEqual(noteInB.reactions[`:${emoji.name}@a.test:`], 1);
+		const noteInB = await waitForNoteInB(noteInB => noteInB.reactions[`:${emoji.name}@a.test:`] === 1);
 		deepStrictEqual(noteInB.reactionEmojis[`${emoji.name}@a.test`], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
 		deepStrictEqual(JSON.stringify({
@@ -114,10 +145,12 @@ describe('Emoji', () => {
 			description: 'description',
 		});
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
-		await sleep();
 
-		const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-		strictEqual(renewedaliceInB.name, renewedAlice.name);
+		const renewedaliceInB = await vi.waitFor(async () => {
+			const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+			strictEqual(renewedaliceInB.name, renewedAlice.name);
+			return renewedaliceInB;
+		}, WAIT_FOR_FEDERATION);
 		assert(emoji.name in renewedaliceInB.emojis);
 		strictEqual(renewedaliceInB.emojis[emoji.name], emoji.url);
 		const remoteEmoji = await bob.client.request('emoji', { name: emoji.name, host: 'a.test' });
@@ -144,12 +177,9 @@ describe('Emoji', () => {
 	test('Local-only custom emoji aren\'t delivered with Note delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		await alice.client.request('notes/create', { text: `I love :${emoji.name}:` });
-		await sleep();
 
-		const notes = await bob.client.request('notes/timeline', {});
-		const noteInB = notes[0];
+		const noteInB = await waitForNoteInB(note => note.text === `I love \u200b:${emoji.name}:\u200b`);
 
-		strictEqual(noteInB.text, `I love \u200b:${emoji.name}:\u200b`);
 		// deepStrictEqual(noteInB.emojis, {}); // TODO: this fails (why?)
 		deepStrictEqual({ ...noteInB.emojis }, {});
 	});
@@ -157,12 +187,11 @@ describe('Emoji', () => {
 	test('Local-only custom emoji aren\'t delivered with Reaction delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		const note = (await alice.client.request('notes/create', { text: 'a' })).createdNote;
-		await sleep();
+		await waitForNoteInB(noteInB => noteInB.uri === `https://a.test/notes/${note.id}`);
 
 		await alice.client.request('notes/reactions/create', { noteId: note.id, reaction: `:${emoji.name}:` });
-		await sleep();
 
-		const noteInB = (await bob.client.request('notes/timeline', {}))[0];
+		const noteInB = await waitForNoteInB(noteInB => noteInB.reactions['❤'] === 1);
 		deepStrictEqual({ ...noteInB.reactions }, { '❤': 1 });
 		deepStrictEqual({ ...noteInB.reactionEmojis }, {});
 	});
@@ -170,10 +199,12 @@ describe('Emoji', () => {
 	test('Local-only custom emoji aren\'t delivered with Profile delivery', async () => {
 		const emoji = await addCustomEmoji('a.test', { localOnly: true });
 		const renewedAlice = await alice.client.request('i/update', { name: `:${emoji.name}:` });
-		await sleep();
 
-		const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
-		strictEqual(renewedaliceInB.name, renewedAlice.name);
+		const renewedaliceInB = await vi.waitFor(async () => {
+			const renewedaliceInB = await bob.client.request('users/show', { userId: aliceInB.id });
+			strictEqual(renewedaliceInB.name, renewedAlice.name);
+			return renewedaliceInB;
+		}, WAIT_FOR_FEDERATION);
 		deepStrictEqual({ ...renewedaliceInB.emojis }, {});
 	});
 
@@ -201,7 +232,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch('https://b.test/api/admin/emoji/copy', {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -236,7 +267,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch('https://b.test/api/admin/emoji/steal', {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -364,7 +395,7 @@ describe('Emoji', () => {
 
 		// @ts-expect-error anyで警告が出るため
 		const emojiId = (await bAdmin.client.request('admin/emoji/list-remote')).find( x => x.name === emoji.name).id;
-		const res = await fetch(`https://b.test/api/admin/emoji/copy`, {
+		const res = await fetch('https://b.test/api/admin/emoji/copy', {
 			method: 'POST',
 			body: JSON.stringify({
 				emojiId: emojiId,
@@ -399,7 +430,7 @@ describe('Emoji', () => {
 		assert(noteInB.emojis != null);
 		assert(emoji.name in noteInB.emojis);
 		strictEqual(noteInB.emojis[emoji.name], emoji.url);
-		const res = await fetch(`https://b.test/api/admin/emoji/steal`, {
+		const res = await fetch('https://b.test/api/admin/emoji/steal', {
 			method: 'POST',
 			body: JSON.stringify({
 				name: emoji.name,
@@ -500,5 +531,69 @@ describe('Emoji', () => {
 			isBasedOn: 'isBasedOn',
 			importFrom: 'a.test',
 		}), JSON.stringify(res));
+	});
+});
+
+describe('AP絵文字タグの正規化 (#1049)', () => {
+	let bob: LoginUser;
+
+	beforeAll(async () => {
+		bob = await createAccount('b.test');
+		await sleep();
+	});
+
+	// 優先度1: insert前に未対応のcopyPermissionを正規化
+	test('insert前に未対応のcopyPermissionを正規化してリモートAP絵文字を登録する', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/10-copy-permission-none');
+
+		const emoji = await waitForRemoteEmoji(bob, 'copy_permission_none');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify([]));
+		strictEqual(emoji.copyPermission, null);
+		strictEqual(emoji.isSensitive, false);
+		strictEqual(emoji.license, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+	});
+
+	// 優先度2: 不正な拡張フィールド型を正規化
+	test('insert前に不正な拡張フィールドを正規化してリモートAP絵文字を登録する', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/20-invalid-extension-fields');
+
+		const emoji = await waitForRemoteEmoji(bob, 'invalid_extension_fields');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify([]));
+		strictEqual(emoji.copyPermission, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+	});
+
+	test('部分タグ更新時にタグから欠落した既存メタデータをクリアする', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/30-existing-remote-initial');
+		await waitForRemoteEmoji(bob, 'existing_remote');
+
+		await requestFederationTestNote(bob, 'ap-emoji-1049/40-existing-remote-partial-update');
+
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote');
+		strictEqual(emoji.copyPermission, 'deny');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify([]));
+		strictEqual(emoji.license, null);
+		strictEqual(emoji.category, null);
+		strictEqual(emoji.usageInfo, null);
+		strictEqual(emoji.description, null);
+		strictEqual(emoji.isBasedOn, null);
+		strictEqual(emoji.isSensitive, false);
+	});
+
+	test('keywordsが明示されたときのみaliasesを更新する', async () => {
+		await requestFederationTestNote(bob, 'ap-emoji-1049/50-existing-remote-alias-only-initial');
+		await waitForRemoteEmoji(bob, 'existing_remote_alias');
+
+		await requestFederationTestNote(bob, 'ap-emoji-1049/60-existing-remote-alias-update');
+
+		const emoji = await waitForRemoteEmoji(bob, 'existing_remote_alias');
+		deepStrictEqual(JSON.stringify(emoji.aliases), JSON.stringify(['new', 'alias']));
 	});
 });

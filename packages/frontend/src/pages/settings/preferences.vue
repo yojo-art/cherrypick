@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <SearchMarker path="/settings/preferences" :label="i18n.ts.preferences" :keywords="['general', 'preferences']" icon="ti ti-adjustments">
 	<div class="_gaps_m">
-		<MkFeatureBanner icon="/client-assets/gear_3d.png" color="#00ff9d">
+		<MkFeatureBanner icon="/fluent-emoji/2699.png" color="#00ff9d">
 			<SearchText>{{ i18n.ts._settings.preferencesBanner }}</SearchText>
 		</MkFeatureBanner>
 
@@ -31,12 +31,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</SearchMarker>
 
 						<SearchMarker :keywords="['device', 'type', 'kind', 'smartphone', 'tablet', 'desktop']">
-							<MkRadios v-model="overridedDeviceKind">
+							<MkRadios
+								v-model="overridedDeviceKind"
+								:options="[
+									{ value: null, label: i18n.ts.auto },
+									{ value: 'smartphone', label: i18n.ts.smartphone, icon: 'ti ti-device-mobile' },
+									{ value: 'tablet', label: i18n.ts.tablet, icon: 'ti ti-device-tablet' },
+									{ value: 'desktop', label: i18n.ts.desktop, icon: 'ti ti-device-desktop' },
+								]"
+							>
 								<template #label><SearchLabel>{{ i18n.ts.overridedDeviceKind }}</SearchLabel></template>
-								<option :value="null">{{ i18n.ts.auto }}</option>
-								<option value="smartphone"><i class="ti ti-device-mobile"/> {{ i18n.ts.smartphone }}</option>
-								<option value="tablet"><i class="ti ti-device-tablet"/> {{ i18n.ts.tablet }}</option>
-								<option value="desktop"><i class="ti ti-device-desktop"/> {{ i18n.ts.desktop }}</option>
 							</MkRadios>
 						</SearchMarker>
 
@@ -105,11 +109,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<SearchMarker :keywords="['emoji', 'style', 'native', 'system', 'fluent', 'twemoji']">
 							<MkPreferenceContainer k="emojiStyle">
 								<div>
-									<MkRadios v-model="emojiStyle">
+									<MkRadios
+										v-model="emojiStyle"
+										:options="[
+											{ value: 'native', label: i18n.ts.native },
+											{ value: 'fluentEmoji', label: 'Fluent Emoji' },
+											{ value: 'twemoji', label: 'Twemoji' },
+										]"
+									>
 										<template #label><SearchLabel>{{ i18n.ts.emojiStyle }}</SearchLabel></template>
-										<option value="native">{{ i18n.ts.native }}</option>
-										<option value="fluentEmoji">Fluent Emoji</option>
-										<option value="twemoji">Twemoji</option>
 									</MkRadios>
 									<div style="margin: 8px 0 0 0; font-size: 1.5em;"><Mfm :key="emojiStyle" text="🍮🍦🍭🍩🍰🍫🍬🥞🍪"/></div>
 								</div>
@@ -581,14 +589,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkPreferenceContainer>
 								</SearchMarker>
 
-								<SearchMarker :keywords="['reaction', 'confirm']">
-									<MkPreferenceContainer k="confirmOnReact">
-										<MkSwitch v-model="confirmOnReact">
-											<template #label><SearchLabel>{{ i18n.ts.confirmOnReact }}</SearchLabel></template>
-										</MkSwitch>
-									</MkPreferenceContainer>
-								</SearchMarker>
-
 								<SearchMarker :keywords="['image', 'photo', 'picture', 'media', 'thumbnail', 'quality', 'raw', 'attachment']">
 									<MkPreferenceContainer k="loadRawImages">
 										<MkSwitch v-model="loadRawImages">
@@ -631,11 +631,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 							<SearchMarker :keywords="['reaction', 'size', 'scale', 'display']">
 								<MkPreferenceContainer k="reactionsDisplaySize">
-									<MkRadios v-model="reactionsDisplaySize">
+									<MkRadios
+										v-model="reactionsDisplaySize"
+										:options="[
+											{ value: 'small', label: i18n.ts.small },
+											{ value: 'medium', label: i18n.ts.medium },
+											{ value: 'large', label: i18n.ts.large },
+										]"
+									>
 										<template #label><SearchLabel>{{ i18n.ts.reactionsDisplaySize }}</SearchLabel></template>
-										<option value="small">{{ i18n.ts.small }}</option>
-										<option value="medium">{{ i18n.ts.medium }}</option>
-										<option value="large">{{ i18n.ts.large }}</option>
 									</MkRadios>
 								</MkPreferenceContainer>
 							</SearchMarker>
@@ -650,31 +654,44 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 							<SearchMarker :keywords="['attachment', 'image', 'photo', 'picture', 'media', 'thumbnail', 'list', 'size', 'height']">
 								<MkPreferenceContainer k="mediaListWithOneImageAppearance">
-									<MkRadios v-model="mediaListWithOneImageAppearance">
+									<MkRadios
+										v-model="mediaListWithOneImageAppearance"
+										:options="[
+											{ value: 'expand', label: i18n.ts.default },
+											{ value: '16_9', label: i18n.tsx.limitTo({ x: '16:9' }) },
+											{ value: '1_1', label: i18n.tsx.limitTo({ x: '1:1' }) },
+											{ value: '2_3', label: i18n.tsx.limitTo({ x: '2:3' }) },
+										]"
+									>
 										<template #label><SearchLabel>{{ i18n.ts.mediaListWithOneImageAppearance }}</SearchLabel></template>
-										<option value="expand">{{ i18n.ts.default }}</option>
-										<option value="16_9">{{ i18n.tsx.limitTo({ x: '16:9' }) }}</option>
-										<option value="1_1">{{ i18n.tsx.limitTo({ x: '1:1' }) }}</option>
-										<option value="2_3">{{ i18n.tsx.limitTo({ x: '2:3' }) }}</option>
 									</MkRadios>
 								</MkPreferenceContainer>
 							</SearchMarker>
 
-							<SearchMarker :keywords="['ticker', 'information', 'label', 'instance', 'server', 'host', 'federation']">
-								<MkPreferenceContainer k="instanceTicker">
-									<MkSelect
-										v-if="instance.federation !== 'none'"
-										v-model="instanceTicker"
-										:items="[
-											{ label: i18n.ts._instanceTicker.none, value: 'none' },
-											{ label: i18n.ts._instanceTicker.remote, value: 'remote' },
-											{ label: i18n.ts._instanceTicker.always, value: 'always' },
-										]"
-									>
-										<template #label><SearchLabel>{{ i18n.ts.instanceTicker }}</SearchLabel></template>
-									</MkSelect>
+							<SearchMarker :keywords="['attachment', 'image', 'photo', 'picture', 'media', 'thumbnail', 'grid', 'wide', 'area']">
+								<MkPreferenceContainer k="showMediaListByGridInWideArea">
+									<MkSwitch v-model="showMediaListByGridInWideArea">
+										<template #label><SearchLabel>{{ i18n.ts.showMediaListByGridInWideArea }}</SearchLabel></template>
+									</MkSwitch>
 								</MkPreferenceContainer>
 							</SearchMarker>
+
+							<template v-if="instance.federation !== 'none'">
+								<SearchMarker :keywords="['ticker', 'information', 'label', 'instance', 'server', 'host', 'federation']">
+									<MkPreferenceContainer k="instanceTicker">
+										<MkSelect
+											v-model="instanceTicker"
+											:items="[
+												{ label: i18n.ts._instanceTicker.none, value: 'none' },
+												{ label: i18n.ts._instanceTicker.remote, value: 'remote' },
+												{ label: i18n.ts._instanceTicker.always, value: 'always' },
+											]"
+										>
+											<template #label><SearchLabel>{{ i18n.ts.instanceTicker }}</SearchLabel></template>
+										</MkSelect>
+									</MkPreferenceContainer>
+								</SearchMarker>
+							</template>
 
 							<SearchMarker :keywords="['attachment', 'image', 'photo', 'picture', 'media', 'thumbnail', 'nsfw', 'sensitive', 'display', 'show', 'hide', 'visibility']">
 								<MkPreferenceContainer k="nsfw">
@@ -735,6 +752,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkPreferenceContainer k="rememberNoteVisibility">
 									<MkSwitch v-model="rememberNoteVisibility">
 										<template #label><SearchLabel>{{ i18n.ts.rememberNoteVisibility }}</SearchLabel></template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+							<SearchMarker :keywords="['remember', 'keep', 'channel', 'visibility']">
+								<MkPreferenceContainer k="rememberChannelNoteVisibility">
+									<MkSwitch v-model="rememberChannelNoteVisibility">
+										<template #label><SearchLabel>{{ i18n.ts.rememberChannelNoteVisibility }}</SearchLabel></template>
 									</MkSwitch>
 								</MkPreferenceContainer>
 							</SearchMarker>
@@ -803,6 +827,28 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</MkFolder>
 							</MkDisableSection>
 						</SearchMarker>
+						<SearchMarker :keywords="['default', 'channel', 'visibility']">
+							<MkDisableSection :disabled="rememberChannelNoteVisibility">
+								<MkFolder>
+									<template #label><SearchLabel>{{ i18n.ts.defaultChannelNoteVisibility }}</SearchLabel></template>
+									<template v-if="defaultChannelNoteVisibility === 'public'" #suffix>{{ i18n.ts._visibility.public }}</template>
+									<template v-else-if="defaultChannelNoteVisibility === 'home'" #suffix>{{ i18n.ts._visibility.home }}</template>
+
+									<div class="_gaps_s">
+										<MkPreferenceContainer k="defaultChannelNoteVisibility">
+											<MkSelect
+												v-model="defaultChannelNoteVisibility"
+												:items="[
+													{ label: i18n.ts._visibility.public, value: 'public' },
+													{ label: i18n.ts._visibility.home, value: 'home' },
+												]"
+											>
+											</MkSelect>
+										</MkPreferenceContainer>
+									</div>
+								</MkFolder>
+							</MkDisableSection>
+						</SearchMarker>
 						<SearchMarker :keywords="['default', 'note', 'search']">
 							<MkDisableSection :disabled="rememberNoteSearchbility">
 								<MkFolder>
@@ -844,6 +890,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</MkPreferenceContainer>
 							</SearchMarker>
 
+							<SearchMarker :keywords="['group']">
+								<MkPreferenceContainer k="useGroupedNoteNotifications">
+									<MkSwitch v-model="useGroupedNoteNotifications" :disabled="!useGroupedNotifications">
+										<template #label>
+											<SearchLabel>{{ i18n.ts.useGroupedNoteNotifications }}</SearchLabel> <span
+												class="_beta"
+											>yojo-art</span>
+										</template>
+									</MkSwitch>
+								</MkPreferenceContainer>
+							</SearchMarker>
+
 							<SearchMarker :keywords="['show', 'reply', 'notification', 'note']">
 								<MkPreferenceContainer k="showReplyInNotification">
 									<MkSwitch v-model="showReplyInNotification">
@@ -855,22 +913,30 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<SearchMarker :keywords="['position']">
 							<MkPreferenceContainer k="notificationPosition">
-								<MkRadios v-model="notificationPosition">
+								<MkRadios
+									v-model="notificationPosition"
+									:options="[
+										{ value: 'leftTop', label: i18n.ts.leftTop, icon: 'ti ti-align-box-left-top' },
+										{ value: 'rightTop', label: i18n.ts.rightTop, icon: 'ti ti-align-box-right-top' },
+										{ value: 'leftBottom', label: i18n.ts.leftBottom, icon: 'ti ti-align-box-left-bottom' },
+										{ value: 'rightBottom', label: i18n.ts.rightBottom, icon: 'ti ti-align-box-right-bottom' },
+									]"
+								>
 									<template #label><SearchLabel>{{ i18n.ts.position }}</SearchLabel></template>
-									<option value="leftTop"><i class="ti ti-align-box-left-top"></i> {{ i18n.ts.leftTop }}</option>
-									<option value="rightTop"><i class="ti ti-align-box-right-top"></i> {{ i18n.ts.rightTop }}</option>
-									<option value="leftBottom"><i class="ti ti-align-box-left-bottom"></i> {{ i18n.ts.leftBottom }}</option>
-									<option value="rightBottom"><i class="ti ti-align-box-right-bottom"></i> {{ i18n.ts.rightBottom }}</option>
 								</MkRadios>
 							</MkPreferenceContainer>
 						</SearchMarker>
 
 						<SearchMarker :keywords="['stack', 'axis', 'direction']">
 							<MkPreferenceContainer k="notificationStackAxis">
-								<MkRadios v-model="notificationStackAxis">
+								<MkRadios
+									v-model="notificationStackAxis"
+									:options="[
+										{ value: 'vertical', label: i18n.ts.vertical, icon: 'ti ti-carousel-vertical' },
+										{ value: 'horizontal', label: i18n.ts.horizontal, icon: 'ti ti-carousel-horizontal' },
+									]"
+								>
 									<template #label><SearchLabel>{{ i18n.ts.stackAxis }}</SearchLabel></template>
-									<option value="vertical"><i class="ti ti-carousel-vertical"></i> {{ i18n.ts.vertical }}</option>
-									<option value="horizontal"><i class="ti ti-carousel-horizontal"></i> {{ i18n.ts.horizontal }}</option>
 								</MkRadios>
 							</MkPreferenceContainer>
 						</SearchMarker>
@@ -953,7 +1019,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<template #icon><SearchIcon><i class="ti ti-accessible"></i></SearchIcon></template>
 
 					<div class="_gaps_m">
-						<MkFeatureBanner icon="/client-assets/mens_room_3d.png" color="#0011ff">
+						<MkFeatureBanner icon="/fluent-emoji/1f6b9.png" color="#0011ff">
 							<SearchText>{{ i18n.ts._settings.accessibilityBanner }}</SearchText>
 						</MkFeatureBanner>
 
@@ -1105,6 +1171,18 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkSwitch :modelValue="!reduceAnimation" @update:modelValue="v => reduceAnimation = !v">
 									<template #label><SearchLabel>{{ i18n.ts._settings.uiAnimations }}</SearchLabel></template>
 									<template #caption><SearchText>{{ i18n.ts.turnOffToImprovePerformance }}</SearchText></template>
+								</MkSwitch>
+							</MkPreferenceContainer>
+						</SearchMarker>
+
+						<SearchMarker :keywords="['animation', 'image', 'photo', 'picture', 'media', 'thumbnail', 'gif']">
+							<MkPreferenceContainer k="disableShowingAnimatedImages">
+								<MkSwitch :modelValue="!disableShowingAnimatedImages" @update:modelValue="v => disableShowingAnimatedImages = !v">
+									<template #label><SearchLabel>{{ i18n.ts._settings.enableAnimatedImages }}</SearchLabel></template>
+									<template #caption>
+										<SearchText>{{ i18n.ts.turnOffToImprovePerformance }}</SearchText>
+										<div>{{ i18n.ts.disableShowingAnimatedImages_caption }}</div>
+									</template>
 								</MkSwitch>
 							</MkPreferenceContainer>
 						</SearchMarker>
@@ -1350,10 +1428,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 						<SearchMarker>
 							<MkPreferenceContainer k="hemisphere">
-								<MkRadios v-model="hemisphere">
+								<MkRadios
+									v-model="hemisphere"
+									:options="[
+										{ value: 'N', label: i18n.ts._hemisphere.N },
+										{ value: 'S', label: i18n.ts._hemisphere.S },
+									]"
+								>
 									<template #label><SearchLabel>{{ i18n.ts.hemisphere }}</SearchLabel></template>
-									<option value="N">{{ i18n.ts._hemisphere.N }}</option>
-									<option value="S">{{ i18n.ts._hemisphere.S }}</option>
 									<template #caption>{{ i18n.ts._hemisphere.caption }}</template>
 								</MkRadios>
 							</MkPreferenceContainer>
@@ -1377,7 +1459,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<template #caption><SearchText>{{ i18n.ts._searchSite.description }}</SearchText></template>
 							</MkSelect>
 
-							<template v-if="store.s.searchEngine == 'other'">
+							<template v-if="prefer.s.searchEngine == 'other'">
 								<SearchMarker>
 									<MkInput v-model="searchEngineUrl">
 										<template #label><SearchLabel>{{ i18n.ts._searchSite.otherSearchEngine }}</SearchLabel> <span class="_beta">CherryPick</span></template>
@@ -1427,7 +1509,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue';
 import { langs } from '@@/js/config.js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkRadios from '@/components/MkRadios.vue';
@@ -1462,12 +1544,12 @@ const $i = ensureSignin();
 
 const lang = ref(miLocalStorage.getItem('lang'));
 const dataSaver = ref(prefer.s.dataSaver);
-const realtimeMode = computed(store.makeGetterSetter('realtimeMode'));
+const realtimeMode = store.model('realtimeMode');
 const trustedDomains = ref(prefer.s.trustedDomains.join('\n'));
 
 // const fontSize = ref(miLocalStorage.getItem('fontSize'));
 const fontSize = prefer.model('fontSize');
-const fontSizeBefore = ref(miLocalStorage.getItem('fontSize'));
+const fontSizeBefore = ref(miLocalStorage.getItem('fontSize') as string | null);
 const useSystemFont = ref(miLocalStorage.getItem('useSystemFont') != null);
 const useBoldFont = ref(miLocalStorage.getItem('useBoldFont') === 'true');
 
@@ -1493,13 +1575,15 @@ const enableInfiniteScroll = prefer.model('enableInfiniteScroll');
 const useReactionPickerForContextMenu = prefer.model('useReactionPickerForContextMenu');
 const showAvailableReactionsFirstInNote = prefer.model('showAvailableReactionsFirstInNote');
 const useGroupedNotifications = prefer.model('useGroupedNotifications');
+const useGroupedNoteNotifications = prefer.model('useGroupedNoteNotifications');
 const alwaysConfirmFollow = prefer.model('alwaysConfirmFollow');
 const confirmWhenRevealingSensitiveMedia = prefer.model('confirmWhenRevealingSensitiveMedia');
-const confirmOnReact = prefer.model('confirmOnReact');
 const defaultNoteVisibility = prefer.model('defaultNoteVisibility');
+const defaultChannelNoteVisibility = prefer.model('defaultChannelNoteVisibility');
 const defaultNoteSearchbility = prefer.model('defaultNoteSearchbility');
 const defaultNoteLocalOnly = prefer.model('defaultNoteLocalOnly');
 const rememberNoteVisibility = prefer.model('rememberNoteVisibility');
+const rememberChannelNoteVisibility = prefer.model('rememberChannelNoteVisibility');
 const rememberNoteSearchbility = prefer.model('rememberNoteSearchbility');
 const showGapBetweenNotesInTimeline = prefer.model('showGapBetweenNotesInTimeline');
 const notificationPosition = prefer.model('notificationPosition');
@@ -1507,6 +1591,7 @@ const notificationStackAxis = prefer.model('notificationStackAxis');
 const instanceTicker = prefer.model('instanceTicker');
 const highlightSensitiveMedia = prefer.model('highlightSensitiveMedia');
 const mediaListWithOneImageAppearance = prefer.model('mediaListWithOneImageAppearance');
+const showMediaListByGridInWideArea = prefer.model('showMediaListByGridInWideArea');
 const reactionsDisplaySize = prefer.model('reactionsDisplaySize');
 const limitWidthOfReaction = prefer.model('limitWidthOfReaction');
 const squareAvatars = prefer.model('squareAvatars');
@@ -1565,9 +1650,9 @@ const disableNyaize = prefer.model('disableNyaize');
 const requireRefreshBehavior = prefer.model('requireRefreshBehavior');
 const newNoteReceivedNotificationBehavior = prefer.model('newNoteReceivedNotificationBehavior');
 const externalNavigationWarning = prefer.model('externalNavigationWarning');
-const searchEngine = computed(store.makeGetterSetter('searchEngine'));
-const searchEngineUrl = computed(store.makeGetterSetter('searchEngineUrl'));
-const searchEngineUrlQuery = computed(store.makeGetterSetter('searchEngineUrlQuery'));
+const searchEngine = prefer.model('searchEngine');
+const searchEngineUrl = prefer.model('searchEngineUrl');
+const searchEngineUrlQuery = prefer.model('searchEngineUrlQuery');
 const removeModalBgColorForBlur = prefer.model('removeModalBgColorForBlur');
 const setFederationAvatarShape = prefer.model('setFederationAvatarShape');
 const showUnreadNotificationsCount = prefer.model('showUnreadNotificationsCount');
@@ -1739,9 +1824,9 @@ function downloadEmojiIndex(lang: typeof emojiIndexLangs[number]) {
 
 		function download() {
 			switch (lang) {
-				case 'en-US': return import('../../unicode-emoji-indexes/en-US.json').then(x => x.default);
-				case 'ja-JP': return import('../../unicode-emoji-indexes/ja-JP.json').then(x => x.default);
-				case 'ja-JP_hira': return import('../../unicode-emoji-indexes/ja-JP_hira.json').then(x => x.default);
+				case 'en-US': return import('@misskey-dev/emoji-data/indexes/en-US.json').then(x => x.default);
+				case 'ja-JP': return import('@misskey-dev/emoji-data/indexes/ja-JP.json').then(x => x.default);
+				case 'ja-JP_hira': return import('@misskey-dev/emoji-data/indexes/ja-JP_hira.json').then(x => x.default);
 				default: throw new Error('unrecognized lang: ' + lang);
 			}
 		}
@@ -1782,13 +1867,17 @@ function removePinnedList() {
 
 function enableAllDataSaver() {
 	const g = { ...prefer.s.dataSaver };
-	Object.keys(g).forEach((key) => { g[key] = true; });
+
+	(Object.keys(g) as (keyof typeof g)[]).forEach((key) => { g[key] = true; });
+
 	dataSaver.value = g;
 }
 
 function disableAllDataSaver() {
 	const g = { ...prefer.s.dataSaver };
-	Object.keys(g).forEach((key) => { g[key] = false; });
+
+	(Object.keys(g) as (keyof typeof g)[]).forEach((key) => { g[key] = false; });
+
 	dataSaver.value = g;
 }
 

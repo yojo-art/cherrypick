@@ -37,7 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template #label>{{ i18n.ts.permission }}</template>
 							<template #suffix>{{ Object.keys(token.permission).length === 0 ? i18n.ts.none : Object.keys(token.permission).length }}</template>
 							<ul>
-								<li v-for="p in token.permission" :key="p">{{ i18n.ts._permissions[p] }}</li>
+								<li v-for="p in token.permission" :key="p">{{ (i18n.ts._permissions as any)[p] ?? p }}</li>
 							</ul>
 						</MkFolder>
 					</div>
@@ -50,7 +50,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkPagination from '@/components/MkPagination.vue';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
@@ -69,7 +69,7 @@ const paginator = markRaw(new Paginator('i/apps', {
 	},
 }));
 
-async function revoke(token) {
+async function revoke(token: Misskey.entities.IAppsResponse[number]) {
 	const { canceled } = await os.confirm({
 		type: 'warning',
 		text: i18n.tsx.removeAreYouSure({ x: token.name ?? '' }),

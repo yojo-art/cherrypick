@@ -5,14 +5,15 @@
 
 import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
+import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
-import type { PollsRepository, EmojisRepository, MiMeta, NotesRepository } from '@/models/_.js';
+import type { PollsRepository, EmojisRepository, MiMeta, NotesRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
 import type { Config } from '@/config.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
+import { acquireApObjectLock } from '@/misc/distributed-lock.js';
 import { toArray, toSingle, unique } from '@/misc/prelude/array.js';
 import type { MiEmoji } from '@/models/Emoji.js';
-import { AppLockService } from '@/core/AppLockService.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
 import type Logger from '@/logger.js';
@@ -31,6 +32,7 @@ import { ApDbResolverService } from '../ApDbResolverService.js';
 import { ApResolverService } from '../ApResolverService.js';
 import { ApAudienceService } from '../ApAudienceService.js';
 import { parseSearchableByFromProperty } from '../misc/searchableBy.js';
+import { normalizeApEmojiTag } from '../misc/normalize-ap-emoji-tag.js';
 import { ApPersonService } from './ApPersonService.js';
 import { extractApHashtags } from './tag.js';
 import { ApMentionService } from './ApMentionService.js';
@@ -51,6 +53,9 @@ export class ApNoteService {
 		@Inject(DI.meta)
 		private meta: MiMeta,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		@Inject(DI.pollsRepository)
 		private pollsRepository: PollsRepository,
 
@@ -59,6 +64,9 @@ export class ApNoteService {
 
 		@Inject(DI.notesRepository)
 		private notesRepository: NotesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
 
 		private idService: IdService,
 		private apMfmService: ApMfmService,
@@ -74,7 +82,6 @@ export class ApNoteService {
 		private apImageService: ApImageService,
 		private apQuestionService: ApQuestionService,
 		private apEventService: ApEventService,
-		private appLockService: AppLockService,
 		private pollService: PollService,
 		private noteCreateService: NoteCreateService,
 		private noteUpdateService: NoteUpdateService,
@@ -182,6 +189,7 @@ export class ApNoteService {
 			throw new IdentifiableError('85ab9bd7-3a41-4530-959d-f07073900109', 'actor has been suspended');
 		}
 
+		const apMentionRawCount = new Set(this.apMentionService.extractApMentionObjects(note.tag).map(x => x.href)).size;
 		const apMentions = await this.apMentionService.extractApMentions(note.tag, resolver);
 		const apHashtags = extractApHashtags(note.tag);
 
@@ -218,7 +226,7 @@ export class ApNoteService {
 			throw new IdentifiableError('85ab9bd7-3a41-4530-959d-f07073900109', 'actor has been suspended');
 		}
 
-		const noteAudience = await this.apAudienceService.parseAudience(actor, note.to, note.cc, resolver);
+		const noteAudience = await this.apAudienceService.parseAudience(actor, note.to, note.cc, note.audience, resolver);
 		const searchableBy = parseSearchableByFromProperty(actor.uri, actor.followersUri ?? undefined, note.searchableBy);
 		let visibility = noteAudience.visibility;
 		const visibleUsers = noteAudience.visibleUsers;
@@ -229,6 +237,24 @@ export class ApNoteService {
 				// こちらから匿名GET出来たものならばpublic
 				visibility = 'public';
 			}
+		}
+		let channel = null as MiChannel | null;
+		if (actor.channelId) {
+			//yojo-art: チャンネルアカウントによる投稿はすべてチャンネル投稿
+			channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
+			if (channel)channel.actor = actor;
+		} else {
+			//通常ノートはローカルユーザーにメンションされていることがあるのでccとメンション両方見る
+			const users = new Map(apMentions.concat(noteAudience.mentionedUsers).map(user => [user.id, user])).values();
+			for (const user of users) {
+				const channelId = user.channelId;
+				if (channelId) {
+					channel = await this.channelsRepository.findOneBy({ id: channelId });
+					if (channel)channel.actor = user;
+				}
+				if (channel) break;//最初に発見されたチャンネルに投稿
+			}
+			//TODO: チャンネル連合 チャンネルアカウントがユーザーをブロックしていた場合投稿を拒否する？
 		}
 
 		// 添付ファイル
@@ -330,11 +356,11 @@ export class ApNoteService {
 				cw,
 				text,
 				localOnly: false,
-				disableRightClick: note.disableRightClick,
 				visibility,
 				visibleUsers,
 				searchableBy: searchableBy,
 				apMentions,
+				apMentionRawCount,
 				apHashtags,
 				apEmojis,
 				poll,
@@ -342,6 +368,7 @@ export class ApNoteService {
 				uri: note.id,
 				url: url,
 				deleteAt: note.deleteAt ? new Date(note.deleteAt) : null,
+				channel,
 			}, silent);
 		} catch (err: any) {
 			if (err.name !== 'duplicated') {
@@ -420,6 +447,15 @@ export class ApNoteService {
 
 		const event = await this.apEventService.extractEventFromNote(note, resolver).catch(() => undefined);
 
+		//#region Contents Check
+		// createNoteと同様に、リモートからの編集でも
+		// 禁止ワードフィルタを迂回できないようチェックする
+		const hasProhibitedWords = this.noteCreateService.checkProhibitedWordsContain({ cw, text, pollChoices: poll?.choices });
+		if (hasProhibitedWords) {
+			throw new IdentifiableError('689ee33f-f97c-479a-ac49-1b9f8140af99', 'Note contains prohibited words');
+		}
+		//#endregion
+
 		try {
 			return await this.noteUpdateService.update(actor, {
 				updatedAt: note.updated ? new Date(note.updated) : null,
@@ -427,7 +463,6 @@ export class ApNoteService {
 				name: note.name,
 				cw,
 				text,
-				disableRightClick: note.disableRightClick,
 				apHashtags,
 				apEmojis,
 				poll,
@@ -454,7 +489,7 @@ export class ApNoteService {
 			throw new StatusError('blocked host', 451);
 		}
 
-		const unlock = await this.appLockService.getApLock(uri);
+		const unlock = await acquireApObjectLock(this.redisClient, uri);
 
 		try {
 			//#region このサーバーに既に登録されていたらそれを返す
@@ -491,6 +526,7 @@ export class ApNoteService {
 		return await Promise.all(eomjiTags.map(async tag => {
 			const name = tag.name.replaceAll(':', '');
 			tag.icon = toSingle(tag.icon);
+			const normalized = normalizeApEmojiTag(tag);
 
 			const exists = existingEmojis.find(x => x.name === name);
 
@@ -509,15 +545,15 @@ export class ApNoteService {
 						publicUrl: tag.icon.url,
 						updatedAt: new Date(),
 						// _misskey_license が存在しなければ `null`
-						license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-						isSensitive: tag.isSensitive ?? false,
-						copyPermission: tag.copyPermission,
-						category: tag.category,
-						aliases: tag.keywords,
-						usageInfo: tag.usageInfo,
-						author: tag.author ?? tag.crator,
-						description: tag.description,
-						isBasedOn: tag.isBasedOn,
+						license: normalized.license,
+						isSensitive: normalized.isSensitive,
+						copyPermission: normalized.copyPermission,
+						category: normalized.category,
+						aliases: normalized.aliases,
+						usageInfo: normalized.usageInfo,
+						author: normalized.author,
+						description: normalized.description,
+						isBasedOn: normalized.isBasedOn,
 					});
 
 					const emoji = await this.emojisRepository.findOneBy({ host, name });
@@ -539,15 +575,15 @@ export class ApNoteService {
 				publicUrl: tag.icon.url,
 				updatedAt: new Date(),
 				// _misskey_license が存在しなければ `null`
-				license: (tag.license ?? tag._misskey_license?.freeText ?? null),
-				isSensitive: tag.isSensitive ?? false,
-				copyPermission: tag.copyPermission,
-				category: tag.category,
-				aliases: tag.keywords,
-				usageInfo: tag.usageInfo,
-				author: tag.author ?? tag.crator,
-				description: tag.description,
-				isBasedOn: tag.isBasedOn,
+				license: normalized.license,
+				isSensitive: normalized.isSensitive,
+				copyPermission: normalized.copyPermission,
+				category: normalized.category,
+				aliases: normalized.aliases,
+				usageInfo: normalized.usageInfo,
+				author: normalized.author,
+				description: normalized.description,
+				isBasedOn: normalized.isBasedOn,
 			});
 		}));
 	}

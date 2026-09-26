@@ -79,7 +79,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { provide, ref, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkKeyValue from '@/components/MkKeyValue.vue';
@@ -115,7 +115,7 @@ watch(moderationNote, async () => {
 	});
 });
 
-function resolve(resolvedAs) {
+function resolve(resolvedAs: 'accept' | 'reject' | null) {
 	os.apiWithDialog('admin/resolve-abuse-user-report', {
 		reportId: props.report.id,
 		resolvedAs,
@@ -132,7 +132,7 @@ function forward() {
 	});
 }
 
-function showMenu(ev: MouseEvent) {
+function showMenu(ev: PointerEvent) {
 	os.popupMenu([{
 		icon: 'ti ti-hash',
 		text: 'Copy ID',

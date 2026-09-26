@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<PageWithHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :swipable="true" :displayMyAvatar="true" :canOmitTitle="!isFriendly().value">
+<PageWithHeader v-model:tab="src" :actions="headerActions" :tabs="$i ? headerTabs : headerTabsWhenNotLogin" :swipable="true" :displayMyAvatar="true" :canOmitTitle="true">
 	<div class="_spacer" style="--MI_SPACER-w: 800px;">
 		<MkTip v-if="isBasicTimeline(src)" :k="`tl.${src}`" style="margin-bottom: var(--MI-margin);">
 			{{ i18n.ts._timelineDescription[src] }}
@@ -25,7 +25,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkStreamingNotesTimeline
 			v-else
 			ref="tlComponent"
-			:key="src + withRenotes + withReplies + onlyFiles + onlyCats + withSensitive"
+			:key="src + withRenotes + withReplies + onlyFiles + onlyCats + withSensitive + withBots"
 			:class="$style.tl"
 			:src="(src.split(':')[0] as (BasicTimelineType | 'list'))"
 			:list="src.split(':')[1]"
@@ -34,6 +34,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			:withSensitive="withSensitive"
 			:onlyFiles="onlyFiles"
 			:onlyCats="onlyCats"
+			:withBots="withBots"
 			:sound="true"
 		/>
 	</div>
@@ -45,6 +46,7 @@ import { computed, watch, provide, useTemplateRef, defineAsyncComponent, ref, on
 import type { Tab } from '@/components/global/MkPageHeader.tabs.vue';
 import type { MenuItem } from '@/types/menu.js';
 import type { BasicTimelineType } from '@/timelines.js';
+import type { PageHeaderItem } from '@/types/page-header.js';
 import MkStreamingNotesTimeline from '@/components/MkStreamingNotesTimeline.vue';
 import MkPostForm from '@/components/MkPostForm.vue';
 import * as os from '@/os.js';
@@ -61,7 +63,6 @@ import { availableBasicTimelines, hasWithReplies, isAvailableBasicTimeline, isBa
 import { prefer } from '@/preferences.js';
 import { globalEvents } from '@/events.js';
 import { suggestReload } from '@/utility/reload-suggest.js';
-import { isFriendly } from '@/utility/is-friendly.js';
 import MkInfo from '@/components/MkInfo.vue';
 
 const DESKTOP_THRESHOLD = 1100;
@@ -125,6 +126,10 @@ const onlyCats = computed({
 	get: () => store.r.tl.value.filter.onlyCats,
 	set: (x: boolean) => saveTlFilter('onlyCats', x),
 });
+const withBots = computed({
+	get: () => store.r.tl.value.filter.withBots,
+	set: (x: boolean) => saveTlFilter('withBots', x),
+});
 
 watch([withReplies, onlyFiles, onlyCats], ([withRepliesTo, onlyFilesTo, onlyCatsTo]) => {
 	if (withRepliesTo) {
@@ -146,7 +151,6 @@ const withSensitive = computed<boolean>({
 const showFixedPostForm = prefer.model('showFixedPostForm');
 
 const enableWidgetsArea = ref(prefer.s.enableWidgetsArea);
-const friendlyUiEnableNotificationsArea = ref(prefer.s.friendlyUiEnableNotificationsArea);
 
 const enableHomeTimeline = ref(prefer.s.enableHomeTimeline);
 const enableLocalTimeline = ref(prefer.s.enableLocalTimeline);
@@ -156,6 +160,7 @@ const enableMediaTimeline = ref(prefer.s.enableMediaTimeline);
 const enableBubbleTimeline = ref(prefer.s.enableBubbleTimeline);
 const enableListTimeline = ref(prefer.s.enableListTimeline);
 const enableAntennaTimeline = ref(prefer.s.enableAntennaTimeline);
+const enableChannelTimeline = ref(prefer.s.enableChannelTimeline);
 const enableTagTimeline = ref(prefer.s.enableTagTimeline);
 
 const forceCollapseAllRenotes = ref(prefer.s.forceCollapseAllRenotes);
@@ -169,11 +174,6 @@ const disableNyaize = ref(prefer.s.disableNyaize);
 
 watch(enableWidgetsArea, (x) => {
 	prefer.commit('enableWidgetsArea', x);
-	suggestReload();
-});
-
-watch(friendlyUiEnableNotificationsArea, (x) => {
-	prefer.commit('friendlyUiEnableNotificationsArea', x);
 	suggestReload();
 });
 
@@ -219,6 +219,11 @@ watch(enableListTimeline, (x) => {
 
 watch(enableAntennaTimeline, (x) => {
 	prefer.commit('enableAntennaTimeline', x);
+	suggestReload();
+});
+
+watch(enableChannelTimeline, (x) => {
+	prefer.commit('enableChannelTimeline', x);
 	suggestReload();
 });
 
@@ -272,7 +277,7 @@ watch(disableNyaize, (x) => {
 	reloadNotification();
 });
 
-async function chooseList(ev: MouseEvent): Promise<void> {
+async function chooseList(ev: PointerEvent): Promise<void> {
 	const lists = await userListsCache.fetch();
 	const items: (MenuItem | undefined)[] = [
 		...lists.map(list => ({
@@ -291,7 +296,7 @@ async function chooseList(ev: MouseEvent): Promise<void> {
 	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);
 }
 
-async function chooseAntenna(ev: MouseEvent): Promise<void> {
+async function chooseAntenna(ev: PointerEvent): Promise<void> {
 	const antennas = await antennasCache.fetch();
 	const items: (MenuItem | undefined)[] = [
 		...antennas.map(antenna => ({
@@ -319,7 +324,7 @@ async function chooseHashTag(ev: MouseEvent): Promise<void> {
 			key: 'hashTag',
 		});
 	} catch (err) {
-		if (err.code === 'NO_SUCH_KEY') {
+		if ((err as any)?.code === 'NO_SUCH_KEY') {
 			tags = [];
 			await misskeyApi('i/registry/set', {
 				scope: ['client', 'base'],
@@ -352,7 +357,7 @@ async function chooseHashTag(ev: MouseEvent): Promise<void> {
 	os.popupMenu(items, ev.currentTarget ?? ev.target);
 }
 
-async function chooseChannel(ev: MouseEvent): Promise<void> {
+async function chooseChannel(ev: PointerEvent): Promise<void> {
 	const channels = await favoritedChannelsCache.fetch();
 	const items: (MenuItem | undefined)[] = [
 		...channels.map(channel => {
@@ -371,7 +376,7 @@ async function chooseChannel(ev: MouseEvent): Promise<void> {
 			type: 'link',
 			icon: 'ti ti-plus',
 			text: i18n.ts.createNew,
-			to: '/channels',
+			to: '/channels/new',
 		},
 	];
 	os.popupMenu(items.filter(i => i != null), ev.currentTarget ?? ev.target);
@@ -428,34 +433,12 @@ onActivated(() => {
 	switchTlIfNeeded();
 });
 
-const headerActions = computed(() => {
-	const items = [{
+const headerActions = computed<PageHeaderItem[]>(() => {
+	const items: PageHeaderItem[] = [{
 		icon: 'ti ti-dots',
 		text: i18n.ts.options,
 		handler: (ev) => {
 			const menuItems: MenuItem[] = [];
-
-			if (isFriendly().value) {
-				menuItems.push({
-					type: 'parent',
-					icon: 'ti ti-layout-board',
-					text: 'Friendly UI',
-					children: async () => {
-						const friendlyUiChildMenu = [] as MenuItem[];
-
-						if (isDesktop.value) {
-							friendlyUiChildMenu.push({
-								type: 'switch',
-								icon: 'ti ti-layout-sidebar-right',
-								text: i18n.ts._cherrypick.friendlyUiEnableNotificationsArea,
-								ref: friendlyUiEnableNotificationsArea,
-							});
-						}
-
-						return friendlyUiChildMenu;
-					},
-				});
-			}
 
 			menuItems.push({
 				type: 'switch',
@@ -495,6 +478,11 @@ const headerActions = computed(() => {
 						ref: enableGlobalTimeline,
 					}, {
 						type: 'switch',
+						text: i18n.ts._timelines.media,
+						icon: 'ti ti-photo',
+						ref: enableMediaTimeline,
+					}, {
+						type: 'switch',
 						text: i18n.ts._timelines.bubble,
 						icon: 'ti ti-droplet',
 						ref: enableBubbleTimeline,
@@ -513,6 +501,11 @@ const headerActions = computed(() => {
 						text: i18n.ts.antennas,
 						icon: 'ti ti-antenna',
 						ref: enableAntennaTimeline,
+					}, {
+						type: 'switch',
+						text: i18n.ts.channel,
+						icon: 'ti ti-device-tv',
+						ref: enableChannelTimeline,
 					}, {
 						type: 'switch',
 						text: i18n.ts.tags,
@@ -564,6 +557,11 @@ const headerActions = computed(() => {
 						icon: 'ti ti-cat',
 						text: i18n.ts.showCatOnly,
 						ref: onlyCats,
+					}, {
+						type: 'switch',
+						icon: 'ti ti-robot',
+						text: i18n.ts.includeBots,
+						ref: withBots,
 					}, { type: 'divider' }, {
 						type: 'switch',
 						text: i18n.ts.forceCollapseAllRenotes,
@@ -617,7 +615,7 @@ const headerActions = computed(() => {
 		items.unshift({
 			icon: 'ti ti-refresh',
 			text: i18n.ts.reload,
-			handler: (ev: Event) => {
+			handler: () => {
 				tlComponent.value?.reloadTimeline();
 			},
 		});
@@ -646,6 +644,11 @@ const headerTabs = computed(() => [...(prefer.r.pinnedUserLists.value.map(l => (
 	title: i18n.ts.antennas,
 	iconOnly: true,
 	onClick: chooseAntenna,
+}] : []), ...(prefer.s.enableChannelTimeline ? [{
+	icon: 'ti ti-device-tv',
+	title: i18n.ts.channel,
+	iconOnly: true,
+	onClick: chooseChannel,
 }] : []), ...(prefer.s.enableTagTimeline ? [{
 	icon: 'ti ti-hash',
 	title: i18n.ts.tags,

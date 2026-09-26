@@ -116,7 +116,7 @@ export async function loadAudio(url: string, options?: { useCache?: boolean; }) 
 
 	try {
 		response = await window.fetch(url);
-	} catch (err) {
+	} catch (_) {
 		return;
 	}
 
@@ -244,6 +244,11 @@ export async function getSoundDuration(file: string): Promise<number> {
 				audioEl.remove();
 			}
 		}, 100);
+		audioEl.addEventListener('error', () => {
+			resolve(0);
+			window.clearInterval(si);
+			audioEl.remove();
+		}, { once: true });
 	});
 }
 

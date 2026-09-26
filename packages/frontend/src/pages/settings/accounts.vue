@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { MenuItem } from '@/types/menu.js';
 import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
@@ -38,7 +38,7 @@ function refreshAllAccounts() {
 	// TODO
 }
 
-function showMenu(host: string, id: string, ev: MouseEvent) {
+function showMenu(host: string, id: string, ev: PointerEvent) {
 	let menu: MenuItem[];
 
 	menu = [{
@@ -54,7 +54,7 @@ function showMenu(host: string, id: string, ev: MouseEvent) {
 	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
-function addAccount(ev: MouseEvent) {
+function addAccount(ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts.existingAccount,
 		action: () => { addExistingAccount(); },

@@ -14,11 +14,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 						{ key: 'upcoming', label: i18n.ts._event.startDate },
 						{ key: 'future', label: i18n.ts.reverseChronological },
 					]"
-					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.scrollToTransparent]: showEl && !prefer.s.useBlurEffect }]"
+					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
 				>
 				</MkTab>
 			</template>
-			<MkNotesTimeline :noGap="!prefer.s.showGapBetweenNotesInTimeline" :paginator="eventsPaginator" :class="$style.tl" :getDate="include === 'upcoming' ? note => note.event.start : undefined "/>
+			<MkNotesTimeline :noGap="!prefer.s.showGapBetweenNotesInTimeline" :paginator="eventsPaginator" :class="$style.tl" :getDate="include === 'upcoming' ? (note: Misskey.entities.Note) => note.event?.start : undefined "/>
 		</MkStickyContainer>
 	</div>
 </div>
@@ -26,15 +26,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 import MkTab from '@/components/MkTab.vue';
 import { i18n } from '@/i18n.js';
 import { Paginator } from '@/utility/paginator.js';
 import { prefer } from '@/preferences.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -65,10 +62,6 @@ const eventsPaginator = markRaw(new Paginator('notes/events/search', {
 		background-color: color(from var(--MI_THEME-bg) srgb r g b / 1);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
-	}
-
-	&.scrollToTransparent {
-		background-color: transparent;
 	}
 }
 

@@ -35,7 +35,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<template v-if="eventMetadata && 'url' in eventMetadata && eventMetadata.url">
 			<dt :class="$style.key">URL</dt>
-			<dd :class="$style.value"><a :href="eventMetadata.url as string">{{ eventMetadata.url }}</a></dd>
+			<dd :class="$style.value">
+				<a v-if="safeEventUrl" :href="safeEventUrl" target="_blank" rel="noopener noreferrer">{{ eventMetadata.url }}</a>
+				<span v-else>{{ eventMetadata.url }}</span>
+			</dd>
 		</template>
 
 		<template v-if="eventMetadata && 'organizer' in eventMetadata && eventMetadata.organizer">
@@ -65,7 +68,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 		<template v-if="eventMetadata && 'offers' in eventMetadata && (eventMetadata.offers as { url?: string })?.url">
 			<dt :class="$style.key">{{ i18n.ts._event.ticketsUrl }}</dt>
-			<dd :class="$style.value"><a :href="(eventMetadata.offers as { url: string }).url">{{ (eventMetadata.offers as { url: string }).url }}</a></dd>
+			<dd :class="$style.value">
+				<a v-if="safeOffersUrl" :href="safeOffersUrl" target="_blank" rel="noopener noreferrer">{{ (eventMetadata.offers as { url: string }).url }}</a>
+				<span v-else>{{ (eventMetadata.offers as { url: string }).url }}</span>
+			</dd>
 		</template>
 
 		<template v-if="eventMetadata && 'isAccessibleForFree' in eventMetadata && eventMetadata.isAccessibleForFree">
@@ -98,7 +104,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { i18n } from '@/i18n.js';
 
 const props = defineProps<{
@@ -107,6 +113,29 @@ const props = defineProps<{
 
 const eventMetadata = computed(() => {
 	return props.note?.event?.metadata as Record<string, unknown> | undefined;
+});
+
+// metadata.url はユーザー入力・リモート由来の任意値が入る。生の :href に渡すと
+// javascript: 等で stored XSS になるため http(s) のみリンク化する。
+// scheme 判定は case-insensitive に行う (JaVaScRiPt: 対策)。
+function isSafeHttpUrl(value: unknown): value is string {
+	if (typeof value !== 'string') return false;
+	return /^https?:\/\//i.test(value.trim());
+}
+
+function toSafeHttpUrl(value: unknown): string | null {
+	if (!isSafeHttpUrl(value)) return null;
+	const trimmed = (value as string).trim();
+	return trimmed.length > 0 && trimmed.length <= 2048 ? trimmed : null;
+}
+
+const safeEventUrl = computed(() => {
+	return toSafeHttpUrl(eventMetadata.value?.url);
+});
+
+const safeOffersUrl = computed(() => {
+	const offers = eventMetadata.value?.offers as { url?: unknown } | undefined;
+	return toSafeHttpUrl(offers?.url);
 });
 </script>
 

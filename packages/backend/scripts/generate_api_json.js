@@ -22,7 +22,7 @@ async function main() {
 	const { loadConfig } = await import('../built/config.js');
 
 	/** @type {import('../src/server/api/openapi/gen-spec.js')} */
-	const { genOpenapiSpec } = await import('../built/server/api/openapi/gen-spec.js');
+	const { genOpenapiSpec } = await import('../built/gen-spec.js');
 
 	const config = loadConfig();
 	const spec = genOpenapiSpec(config, true);

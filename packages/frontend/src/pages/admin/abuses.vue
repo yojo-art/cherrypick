@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-if="tab === 'list'">
 			<div :class="$style.root" class="_gaps">
 				<div :class="$style.subMenus" class="_gaps">
-					<MkButton link to="/admin/abuse-report-notification-recipient" primary>{{ i18n.ts.notificationSetting }}</MkButton>
+					<MkButton type="routerLink" to="/admin/abuse-report-notification-recipient" primary>{{ i18n.ts.notificationSetting }}</MkButton>
 				</div>
 
 				<MkTip k="abuses">
@@ -182,7 +182,7 @@ const searchUsernameEl = ref(null);
 const searchHostEl = ref(null);
  */
 
-function resolved(reportId) {
+function resolved(reportId: string) {
 	paginator.removeItem(reportId);
 }
 

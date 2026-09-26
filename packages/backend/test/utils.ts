@@ -9,14 +9,14 @@ import { basename, isAbsolute } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { inspect } from 'node:util';
 import WebSocket, { ClientOptions } from 'ws';
-import fetch, { File, RequestInit, type Headers } from 'node-fetch';
+import fetch, { Blob, FormData } from 'node-fetch';
+import * as htmlParser from 'node-html-parser';
 import { DataSource } from 'typeorm';
-import { JSDOM } from 'jsdom';
-import { type Response } from 'node-fetch';
 import Fastify from 'fastify';
-import { entities } from '../src/postgres.js';
-import { loadConfig } from '../src/config.js';
-import type * as misskey from 'cherrypick-js';
+import type { RequestInit, Headers, Response } from 'node-fetch';
+import type * as misskey from 'misskey-js';
+import { entities } from '@/postgres.js';
+import { loadConfig } from '@/config.js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
 import { ApiError } from '@/server/api/error.js';
@@ -255,6 +255,17 @@ export const galleryPost = async (user: UserToken, galleryPost: Partial<misskey.
 	return res.body;
 };
 
+export const channel = async (user: UserToken, channel: Partial<misskey.entities.Channel> = {}): Promise<misskey.entities.Channel> => {
+	const res = await api('channels/create', {
+		bannerId: null,
+		description: null,
+		name: 'channel',
+		username: randomString(),
+		...channel,
+	}, user);
+	return res.body;
+};
+
 export const role = async (user: UserToken, role: Partial<misskey.entities.Role> = {}, policies: any = {}): Promise<misskey.entities.Role> => {
 	const res = await api('admin/roles/create', {
 		asBadge: false,
@@ -398,16 +409,51 @@ export function connectStream<C extends keyof misskey.Channels>(user: UserToken,
 }
 
 export const waitFire = async <C extends keyof misskey.Channels>(user: UserToken, channel: C, trgr: () => any, cond: (msg: Record<string, any>) => boolean, params?: misskey.Channels[C]['params']) => {
-	return new Promise<boolean>(async (res, rej) => {
+	let ws: WebSocket | undefined;
+
+	try {
+		let callback: (msg: Record<string, unknown>) => void;
+		const receivedPromise = new Promise<boolean>((resolve) => {
+			callback = (msg: Record<string, unknown>) => {
+				if (cond(msg)) {
+					resolve(true);
+				}
+			};
+		});
+
+		ws = await connectStream(user, channel, callback!, params);
+		await trgr();
+
+		return await Promise.race([
+			receivedPromise,
+			new Promise<void>((r) => setTimeout(() => r(), 3000)).then(() => false),
+		]);
+	} finally {
+		if (ws) ws.close();
+	}
+};
+
+/**
+ * 指定タイムアウトまでストリームを購読し、条件に合うメッセージを収集して返す。
+ * waitFire と異なり、最初の一致では終わらず timeout まで待つ。
+ */
+export const collectFire = async <C extends keyof misskey.Channels>(
+	user: UserToken,
+	channel: C,
+	trgr: () => any,
+	cond: (msg: Record<string, any>) => boolean,
+	timeout = 3000,
+	params?: misskey.Channels[C]['params'],
+): Promise<Record<string, any>[]> => {
+	return new Promise<Record<string, any>[]>(async (res, rej) => {
+		const collected: Record<string, any>[] = [];
 		let timer: NodeJS.Timeout | null = null;
 
 		let ws: WebSocket;
 		try {
 			ws = await connectStream(user, channel, msg => {
 				if (cond(msg)) {
-					ws.close();
-					if (timer) clearTimeout(timer);
-					res(true);
+					collected.push(msg);
 				}
 			}, params);
 		} catch (e) {
@@ -418,8 +464,8 @@ export const waitFire = async <C extends keyof misskey.Channels>(user: UserToken
 
 		timer = setTimeout(() => {
 			ws.close();
-			res(false);
-		}, 3000);
+			res(collected);
+		}, timeout);
 
 		try {
 			await trgr();
@@ -462,7 +508,7 @@ export function makeStreamCatcher<T>(
 
 export type SimpleGetResponse = {
 	status: number,
-	body: any | JSDOM | null,
+	body: any | null,
 	type: string | null,
 	location: string | null
 };
@@ -493,7 +539,7 @@ export const simpleGet = async (path: string, accept = '*/*', cookie: any = unde
 
 	const body =
 		jsonTypes.includes(res.headers.get('content-type') ?? '') ? await res.json() :
-		htmlTypes.includes(res.headers.get('content-type') ?? '') ? new JSDOM(await res.text()) :
+		htmlTypes.includes(res.headers.get('content-type') ?? '') ? htmlParser.parse(await res.text()) :
 		await bodyExtractor(res);
 
 	return {
@@ -633,7 +679,7 @@ export async function sendEnvUpdateRequest(params: { key: string, value?: string
 	}
 }
 
-export async function sendEnvResetRequest() {
+export async function sendEnvResetRequest(): Promise<void> {
 	const res = await fetch(
 		`http://localhost:${port + 1000}/env-reset`,
 		{
@@ -643,12 +689,12 @@ export async function sendEnvResetRequest() {
 	);
 
 	if (res.status !== 200) {
-		throw new Error('server env update failed.');
+		throw new Error('server env reset failed.');
 	}
 }
 
 // 与えられた値を強制的にエラーとみなす。この関数は型安全性を破壊するため、異常系のアサーション以外で用いられるべきではない。
-// FIXME(cherrypick-js): cherrypick-jsがエラー情報を公開するようになったらこの関数を廃止する
+// FIXME(misskey-js): misskey-jsがエラー情報を公開するようになったらこの関数を廃止する
 export function castAsError(obj: Record<string, unknown>): { error: ApiError } {
 	return obj as { error: ApiError };
 }

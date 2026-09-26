@@ -13,6 +13,7 @@ import type { MiUser } from '@/models/User.js';
 import type { MiNote } from '@/models/Note.js';
 import type { UsersRepository, NotesRepository, FollowingsRepository, PollsRepository, PollVotesRepository, NoteReactionsRepository, ChannelsRepository, MiMeta, EventsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import { shouldHideNoteByTime } from '@/misc/should-hide-note-by-time.js';
@@ -26,7 +27,7 @@ import type { UserEntityService } from './UserEntityService.js';
 import type { DriveFileEntityService } from './DriveFileEntityService.js';
 
 // is-renote.tsとよしなにリンク
-function isPureRenote(note: MiNote): note is MiNote & { renoteId: MiNote['id']; renote: MiNote } {
+export function isPureRenote(note: MiNote): note is MiNote & { renoteId: MiNote['id']; renote: MiNote } {
 	return (
 		note.renote != null &&
 		note.reply == null &&
@@ -240,7 +241,7 @@ export class NoteEntityService implements OnModuleInit {
 			title: event.title,
 			start: event.start.toISOString(),
 			end: event.end ? event.end.toISOString() : null,
-			metadata: event.metadata,
+			metadata: sanitizeEventMetadata(event.metadata),
 		};
 	}
 
@@ -306,7 +307,7 @@ export class NoteEntityService implements OnModuleInit {
 				return false;
 			} else if (meId === note.userId) {
 				return true;
-			} else if (note.reply && (meId === note.reply.userId)) {
+			} else if (note.replyUserId && (meId === note.replyUserId)) {
 				// 自分の投稿に対するリプライ
 				return true;
 			} else if (note.mentions && note.mentions.some(id => meId === id)) {
@@ -423,7 +424,6 @@ export class NoteEntityService implements OnModuleInit {
 			localOnly: note.localOnly,
 			reactionAcceptance: note.reactionAcceptance,
 			visibleUserIds: note.visibility === 'specified' ? note.visibleUserIds : undefined,
-			disableRightClick: note.disableRightClick || undefined,
 			renoteCount: note.renoteCount,
 			repliesCount: note.repliesCount,
 			reactionCount: Object.values(reactions).reduce((a, b) => a + b, 0),
@@ -486,7 +486,7 @@ export class NoteEntityService implements OnModuleInit {
 
 		this.treatVisibility(packed);
 
-		if (!opts.skipHide && await this.shouldHideNote(packed, meId)) {
+		if (!opts.skipHide && (await this.shouldHideNote(packed, meId))) {
 			this.hideNote(packed);
 		}
 
@@ -613,7 +613,11 @@ export class NoteEntityService implements OnModuleInit {
 	private findNoteOrFail(id: string): Promise<MiNote> {
 		return this.notesRepository.findOneOrFail({
 			where: { id },
-			relations: ['user', 'renote', 'reply'],
+			relations: {
+				user: true,
+				renote: true,
+				reply: true,
+			},
 		});
 	}
 

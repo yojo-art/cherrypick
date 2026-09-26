@@ -3,7 +3,6 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import CPPageHeader from './global/CPPageHeader.vue';
 import Mfm from './global/MkMfm.js';
 import MkA from './global/MkA.vue';
 import MkAcct from './global/MkAcct.vue';
@@ -50,7 +49,6 @@ export const components = {
 	RouterView: RouterView,
 	NestedRouterView: NestedRouterView,
 	StackingRouterView: StackingRouterView,
-	CPPageHeader: CPPageHeader,
 	Mfm: Mfm,
 	MkA: MkA,
 	MkAcct: MkAcct,
@@ -81,13 +79,12 @@ export const components = {
 	MkOfficialTag: MkOfficialTag,
 };
 
-declare module '@vue/runtime-core' {
+declare module 'vue' {
 	export interface GlobalComponents {
 		I18n: typeof I18n;
 		RouterView: typeof RouterView;
 		NestedRouterView: typeof NestedRouterView;
 		StackingRouterView: typeof StackingRouterView;
-		CPPageHeader: typeof CPPageHeader;
 		Mfm: typeof Mfm;
 		MkA: typeof MkA;
 		MkAcct: typeof MkAcct;

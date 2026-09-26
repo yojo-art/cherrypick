@@ -15,6 +15,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 				:disabled="disabled"
 				:required="required"
 				:readonly="readonly"
+				:placeholder="placeholder"
 				autocomplete="off"
 				wrap="off"
 				spellcheck="false"
@@ -40,18 +41,19 @@ import XCode from '@/components/MkCode.core.vue';
 
 const props = withDefaults(defineProps<{
 	modelValue: string | null;
-	lang: string;
+	lang?: string;
 	required?: boolean;
 	readonly?: boolean;
 	disabled?: boolean;
 	debounce?: boolean;
 	manualSave?: boolean;
+	placeholder?: string;
 }>(), {
 	lang: 'js',
 });
 
 const emit = defineEmits<{
-	(ev: 'change', _ev: KeyboardEvent): void;
+	(ev: 'change', _ev: InputEvent): void;
 	(ev: 'keydown', _ev: KeyboardEvent): void;
 	(ev: 'enter'): void;
 	(ev: 'update:modelValue', value: string): void;
@@ -63,15 +65,17 @@ const focused = ref(false);
 const changed = ref(false);
 const inputEl = useTemplateRef('inputEl');
 
-const focus = () => inputEl.value?.focus();
+function focus() {
+	inputEl.value?.focus();
+}
 
-const onInput = (ev) => {
-	v.value = ev.target?.value ?? v.value;
+function onInput(ev: InputEvent) {
+	v.value = (inputEl.value?.value) ?? '';
 	changed.value = true;
 	emit('change', ev);
-};
+}
 
-const onKeydown = (ev: KeyboardEvent) => {
+function onKeydown(ev: KeyboardEvent) {
 	if (ev.isComposing || ev.key === 'Process' || ev.keyCode === 229) return;
 
 	emit('keydown', ev);
@@ -102,12 +106,12 @@ const onKeydown = (ev: KeyboardEvent) => {
 		});
 		ev.preventDefault();
 	}
-};
+}
 
-const updated = () => {
+function updated() {
 	changed.value = false;
 	emit('update:modelValue', v.value);
-};
+}
 
 const debouncedUpdated = debounce(1000, updated);
 

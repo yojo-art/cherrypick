@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <XColumn :menu="menu" :column="column" :isStacked="isStacked" :refresher="reloadTimeline">
 	<template #header>
-		<i v-if="column.tl != null" :class="basicTimelineIconClass(column.tl)"/>
+		<i v-if="column.tl != null" :class="basicTimelineIconClass(column.tl)"></i>
 		<span style="margin-left: 8px;">{{ column.name || (column.tl ? i18n.ts._timelines[column.tl] : null) || i18n.ts._deck._columns.tl }}</span>
 	</template>
 
@@ -20,13 +20,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkStreamingNotesTimeline
 		v-else-if="column.tl"
 		ref="timeline"
-		:key="column.tl + withRenotes + withReplies + onlyFiles + onlyCats"
+		:key="column.tl + withRenotes + withReplies + onlyFiles + onlyCats + withBots"
 		:src="column.tl"
 		:withRenotes="withRenotes"
 		:withReplies="withReplies"
 		:withSensitive="withSensitive"
 		:onlyFiles="onlyFiles"
 		:onlyCats="onlyCats"
+		:withBots="withBots"
 		:sound="true"
 		:customSound="soundSetting"
 	/>
@@ -63,6 +64,7 @@ const withReplies = ref(props.column.withReplies ?? false);
 const withSensitive = ref(props.column.withSensitive ?? true);
 const onlyFiles = ref(props.column.onlyFiles ?? false);
 const onlyCats = ref(props.column.onlyCats ?? false);
+const withBots = ref(props.column.withBots ?? true);
 
 watch(withRenotes, v => {
 	updateColumn(props.column.id, {
@@ -94,6 +96,12 @@ watch(onlyCats, v => {
 	});
 });
 
+watch(withBots, v => {
+	updateColumn(props.column.id, {
+		withBots: v,
+	});
+});
+
 watch(soundSetting, v => {
 	updateColumn(props.column.id, { soundSetting: v });
 });
@@ -122,6 +130,7 @@ async function setType() {
 		}, {
 			value: 'media', label: i18n.ts._timelines.media,
 		}],
+		default: props.column.tl,
 	});
 	if (canceled) {
 		if (props.column.tl == null) {
@@ -174,6 +183,10 @@ const menu = computed<MenuItem[]>(() => {
 		type: 'switch',
 		text: i18n.ts.showCatOnly,
 		ref: onlyCats,
+	}, {
+		type: 'switch',
+		text: i18n.ts.includeBots,
+		ref: withBots,
 	});
 
 	return menuItems;

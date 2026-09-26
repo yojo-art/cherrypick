@@ -4,8 +4,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<img v-if="shouldMute" :class="$style.root" src="/client-assets/unknown.png" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click.stop="onClick"/>
-<img v-else-if="!useOsNativeEmojis" :class="$style.root" :src="url" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click.stop="onClick"/>
+<img v-if="shouldMute" :class="$style.root" src="/client-assets/unknown.png" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click="onClick"/>
+<img v-else-if="!useOsNativeEmojis" :class="$style.root" :src="url" :alt="props.emoji" decoding="async" @pointerenter="computeTitle" @click="onClick"/>
 <span v-else :alt="props.emoji" @pointerenter="computeTitle" @click.stop="onClick">{{ colorizedNativeEmoji }}</span>
 </template>
 
@@ -20,6 +20,7 @@ import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';
 import { DI } from '@/di.js';
 import { mute as muteEmoji, unmute as unmuteEmoji, checkMuted as checkMutedEmoji } from '@/utility/emoji-mute.js';
+import { addToEmojiPalette } from '@/utility/emoji-palette.js';
 
 const props = defineProps<{
 	emoji: string;
@@ -67,8 +68,9 @@ function unmute() {
 	});
 }
 
-function onClick(ev: MouseEvent) {
+function onClick(ev: PointerEvent) {
 	if (props.menu) {
+		ev.stopPropagation();
 		const menuItems: MenuItem[] = [];
 
 		menuItems.push({
@@ -94,17 +96,31 @@ function onClick(ev: MouseEvent) {
 
 		menuItems.push({
 			type: 'divider',
-		}, isMuted.value ? {
-			text: i18n.ts.emojiUnmute,
-			icon: 'ti ti-mood-smile',
+		});
+
+		if (isMuted.value) {
+			menuItems.push({
+				text: i18n.ts.emojiUnmute,
+				icon: 'ti ti-mood-smile',
+				action: () => {
+					unmute();
+				},
+			});
+		} else {
+			menuItems.push({
+				text: i18n.ts.emojiMute,
+				icon: 'ti ti-mood-off',
+				action: () => {
+					mute();
+				},
+			});
+		}
+
+		menuItems.push({
+			text: i18n.ts.addToEmojiPalette,
+			icon: 'ti ti-palette',
 			action: () => {
-				unmute();
-			},
-		} : {
-			text: i18n.ts.emojiMute,
-			icon: 'ti ti-mood-off',
-			action: () => {
-				mute();
+				addToEmojiPalette(props.emoji);
 			},
 		});
 

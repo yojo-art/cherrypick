@@ -40,12 +40,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts">
-export type OptionValue = string | number | null;
+import type { OptionValue } from '@/types/option-value.js';
 
 export type ItemOption<T extends OptionValue = OptionValue> = {
 	type?: 'option';
 	value: T;
 	label: string;
+	caption?: string;
 };
 
 export type ItemGroup<T extends OptionValue = OptionValue> = {
@@ -68,13 +69,12 @@ export type GetMkSelectValueTypesFromDef<T extends MkSelectItem[]> = T[number] e
 </script>
 
 <script lang="ts" setup generic="const ITEMS extends MkSelectItem[], MODELT extends OptionValue">
-import { onMounted, nextTick, ref, watch, computed, toRefs, useTemplateRef } from 'vue';
-import { useInterval } from '@@/js/use-interval.js';
+import { onMounted, onUnmounted, nextTick, ref, watch, computed, toRefs, useTemplateRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
 import * as os from '@/os.js';
 
 const props = defineProps<{
-	items: ITEMS;
+	items?: ITEMS;
 	required?: boolean;
 	readonly?: boolean;
 	disabled?: boolean;
@@ -109,26 +109,28 @@ const height =
 const focus = () => container.value?.focus();
 
 // このコンポーネントが作成された時、非表示状態である場合がある
-// 非表示状態だと要素の幅などは0になってしまうので、定期的に計算する
-useInterval(() => {
+// 非表示状態だと要素の幅などは0になってしまうので、ResizeObserverでサイズの変化を監視して計算する
+const updatePadding = (entries: ResizeObserverEntry[]) => {
 	if (inputEl.value == null) return;
 
-	if (prefixEl.value) {
-		if (prefixEl.value.offsetWidth) {
-			inputEl.value.style.paddingLeft = prefixEl.value.offsetWidth + 'px';
+	for (const entry of entries) {
+		const width = entry.borderBoxSize[0].inlineSize;
+		if (width === 0) continue;
+		if (entry.target === prefixEl.value) {
+			inputEl.value.style.paddingLeft = width + 'px';
+		} else if (entry.target === suffixEl.value) {
+			inputEl.value.style.paddingRight = width + 'px';
 		}
 	}
-	if (suffixEl.value) {
-		if (suffixEl.value.offsetWidth) {
-			inputEl.value.style.paddingRight = suffixEl.value.offsetWidth + 'px';
-		}
-	}
-}, 100, {
-	immediate: true,
-	afterMounted: true,
-});
+};
+
+let paddingObserver: ResizeObserver | null = null;
 
 onMounted(() => {
+	paddingObserver = new ResizeObserver(updatePadding);
+	if (prefixEl.value) paddingObserver.observe(prefixEl.value);
+	if (suffixEl.value) paddingObserver.observe(suffixEl.value);
+
 	nextTick(() => {
 		if (autofocus.value) {
 			focus();
@@ -136,9 +138,14 @@ onMounted(() => {
 	});
 });
 
+onUnmounted(() => {
+	paddingObserver?.disconnect();
+	paddingObserver = null;
+});
+
 watch([model, () => props.items], () => {
 	let found: ItemOption | null = null;
-	for (const item of props.items) {
+	for (const item of props.items ?? []) {
 		if (item.type === 'group') {
 			for (const option of item.items) {
 				if (option.value === model.value) {
@@ -166,7 +173,7 @@ function show() {
 
 	const menu: MenuItem[] = [];
 
-	for (const item of props.items) {
+	for (const item of props.items ?? []) {
 		if (item.type === 'group') {
 			if (item.label != null) {
 				menu.push({
@@ -177,6 +184,7 @@ function show() {
 			for (const option of item.items) {
 				menu.push({
 					text: option.label,
+					caption: option.caption,
 					active: computed(() => model.value === option.value),
 					action: () => {
 						model.value = option.value as ModelTChecked;
@@ -186,6 +194,7 @@ function show() {
 		} else {
 			menu.push({
 				text: item.label,
+				caption: item.caption,
 				active: computed(() => model.value === item.value),
 				action: () => {
 					model.value = item.value as ModelTChecked;

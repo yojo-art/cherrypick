@@ -15,12 +15,12 @@ import { SystemWebhookService } from '@/core/SystemWebhookService.js';
 import { UserSearchService } from '@/core/UserSearchService.js';
 import { WebhookTestService } from '@/core/WebhookTestService.js';
 import { FlashService } from '@/core/FlashService.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { AccountMoveService } from './AccountMoveService.js';
 import { AccountUpdateService } from './AccountUpdateService.js';
-import { AiService } from './AiService.js';
+import { SensitiveMediaDetectionService } from './SensitiveMediaDetectionService.js';
 import { AnnouncementService } from './AnnouncementService.js';
 import { AntennaService } from './AntennaService.js';
-import { AppLockService } from './AppLockService.js';
 import { AchievementService } from './AchievementService.js';
 import { AvatarDecorationService } from './AvatarDecorationService.js';
 import { CaptchaService } from './CaptchaService.js';
@@ -52,6 +52,7 @@ import { PollService } from './PollService.js';
 import { PushNotificationService } from './PushNotificationService.js';
 import { QueryService } from './QueryService.js';
 import { ReactionService } from './ReactionService.js';
+import { AnnouncementReactionService } from './AnnouncementReactionService.js';
 import { ReactionsBufferingService } from './ReactionsBufferingService.js';
 import { RelayService } from './RelayService.js';
 import { RoleService } from './RoleService.js';
@@ -123,6 +124,7 @@ import { RenoteMutingEntityService } from './entities/RenoteMutingEntityService.
 import { NoteEntityService } from './entities/NoteEntityService.js';
 import { NoteFavoriteEntityService } from './entities/NoteFavoriteEntityService.js';
 import { NoteReactionEntityService } from './entities/NoteReactionEntityService.js';
+import { AnnouncementReactionEntityService } from './entities/AnnouncementReactionEntityService.js';
 import { NoteDraftEntityService } from './entities/NoteDraftEntityService.js';
 import { NotificationEntityService } from './entities/NotificationEntityService.js';
 import { PageEntityService } from './entities/PageEntityService.js';
@@ -163,20 +165,21 @@ import { ApClipService } from './activitypub/models/ApClipService.js';
 import { QueueModule } from './QueueModule.js';
 import { QueueService } from './QueueService.js';
 import { LoggerService } from './LoggerService.js';
+import { TelemetryService } from './telemetry/TelemetryService.js';
 import { NoteHistorySerivce } from './NoteHistoryService.js';
 import { NoteHistoryEntityService } from './entities/NoteHistoryEntityService.js';
 import type { Provider } from '@nestjs/common';
 
 //#region 文字列ベースでのinjection用(循環参照対応のため)
 const $LoggerService: Provider = { provide: 'LoggerService', useExisting: LoggerService };
+const $TelemetryService: Provider = { provide: 'TelemetryService', useExisting: TelemetryService };
 const $AbuseReportService: Provider = { provide: 'AbuseReportService', useExisting: AbuseReportService };
 const $AbuseReportNotificationService: Provider = { provide: 'AbuseReportNotificationService', useExisting: AbuseReportNotificationService };
 const $AccountMoveService: Provider = { provide: 'AccountMoveService', useExisting: AccountMoveService };
 const $AccountUpdateService: Provider = { provide: 'AccountUpdateService', useExisting: AccountUpdateService };
-const $AiService: Provider = { provide: 'AiService', useExisting: AiService };
+const $SensitiveMediaDetectionService: Provider = { provide: 'SensitiveMediaDetectionService', useExisting: SensitiveMediaDetectionService };
 const $AnnouncementService: Provider = { provide: 'AnnouncementService', useExisting: AnnouncementService };
 const $AntennaService: Provider = { provide: 'AntennaService', useExisting: AntennaService };
-const $AppLockService: Provider = { provide: 'AppLockService', useExisting: AppLockService };
 const $AchievementService: Provider = { provide: 'AchievementService', useExisting: AchievementService };
 const $AvatarDecorationService: Provider = { provide: 'AvatarDecorationService', useExisting: AvatarDecorationService };
 const $CaptchaService: Provider = { provide: 'CaptchaService', useExisting: CaptchaService };
@@ -208,6 +211,7 @@ const $SystemAccountService: Provider = { provide: 'SystemAccountService', useEx
 const $PushNotificationService: Provider = { provide: 'PushNotificationService', useExisting: PushNotificationService };
 const $QueryService: Provider = { provide: 'QueryService', useExisting: QueryService };
 const $ReactionService: Provider = { provide: 'ReactionService', useExisting: ReactionService };
+const $AnnouncementReactionService: Provider = { provide: 'AnnouncementReactionService', useExisting: AnnouncementReactionService };
 const $ReactionsBufferingService: Provider = { provide: 'ReactionsBufferingService', useExisting: ReactionsBufferingService };
 const $RelayService: Provider = { provide: 'RelayService', useExisting: RelayService };
 const $RoleService: Provider = { provide: 'RoleService', useExisting: RoleService };
@@ -239,6 +243,7 @@ const $FeaturedService: Provider = { provide: 'FeaturedService', useExisting: Fe
 const $FanoutTimelineService: Provider = { provide: 'FanoutTimelineService', useExisting: FanoutTimelineService };
 const $FanoutTimelineEndpointService: Provider = { provide: 'FanoutTimelineEndpointService', useExisting: FanoutTimelineEndpointService };
 const $ChannelFollowingService: Provider = { provide: 'ChannelFollowingService', useExisting: ChannelFollowingService };
+const $ChannelMutingService: Provider = { provide: 'ChannelMutingService', useExisting: ChannelMutingService };
 const $ChatService: Provider = { provide: 'ChatService', useExisting: ChatService };
 const $RegistryApiService: Provider = { provide: 'RegistryApiService', useExisting: RegistryApiService };
 const $ReversiService: Provider = { provide: 'ReversiService', useExisting: ReversiService };
@@ -286,6 +291,7 @@ const $NoteEntityService: Provider = { provide: 'NoteEntityService', useExisting
 const $NoteFavoriteEntityService: Provider = { provide: 'NoteFavoriteEntityService', useExisting: NoteFavoriteEntityService };
 const $NoteHistoryEntityService: Provider = { provide: 'NoteHistoryEntityService', useExisting: NoteHistoryEntityService };
 const $NoteReactionEntityService: Provider = { provide: 'NoteReactionEntityService', useExisting: NoteReactionEntityService };
+const $AnnouncementReactionEntityService: Provider = { provide: 'AnnouncementReactionEntityService', useExisting: AnnouncementReactionEntityService };
 const $NoteDraftEntityService: Provider = { provide: 'NoteDraftEntityService', useExisting: NoteDraftEntityService };
 const $NotificationEntityService: Provider = { provide: 'NotificationEntityService', useExisting: NotificationEntityService };
 const $PageEntityService: Provider = { provide: 'PageEntityService', useExisting: PageEntityService };
@@ -336,10 +342,9 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		AbuseReportNotificationService,
 		AccountMoveService,
 		AccountUpdateService,
-		AiService,
+		SensitiveMediaDetectionService,
 		AnnouncementService,
 		AntennaService,
-		AppLockService,
 		AchievementService,
 		AvatarDecorationService,
 		CaptchaService,
@@ -371,6 +376,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		PushNotificationService,
 		QueryService,
 		ReactionService,
+		AnnouncementReactionService,
 		ReactionsBufferingService,
 		RelayService,
 		RoleService,
@@ -402,6 +408,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		FanoutTimelineService,
 		FanoutTimelineEndpointService,
 		ChannelFollowingService,
+		ChannelMutingService,
 		ChatService,
 		RegistryApiService,
 		ReversiService,
@@ -450,6 +457,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		NoteFavoriteEntityService,
 		NoteHistoryEntityService,
 		NoteReactionEntityService,
+		AnnouncementReactionEntityService,
 		NoteDraftEntityService,
 		NotificationEntityService,
 		PageEntityService,
@@ -490,6 +498,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		ApGameService,
 		ApClipService,
 		QueueService,
+		TelemetryService,
 
 		//#region 文字列ベースでのinjection用(循環参照対応のため)
 		$LoggerService,
@@ -497,10 +506,9 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$AbuseReportNotificationService,
 		$AccountMoveService,
 		$AccountUpdateService,
-		$AiService,
+		$SensitiveMediaDetectionService,
 		$AnnouncementService,
 		$AntennaService,
-		$AppLockService,
 		$AchievementService,
 		$AvatarDecorationService,
 		$CaptchaService,
@@ -532,6 +540,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$PushNotificationService,
 		$QueryService,
 		$ReactionService,
+		$AnnouncementReactionService,
 		$ReactionsBufferingService,
 		$RelayService,
 		$RoleService,
@@ -563,6 +572,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$FanoutTimelineService,
 		$FanoutTimelineEndpointService,
 		$ChannelFollowingService,
+		$ChannelMutingService,
 		$ChatService,
 		$RegistryApiService,
 		$ReversiService,
@@ -610,6 +620,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$NoteFavoriteEntityService,
 		$NoteHistoryEntityService,
 		$NoteReactionEntityService,
+		$AnnouncementReactionEntityService,
 		$NoteDraftEntityService,
 		$NotificationEntityService,
 		$PageEntityService,
@@ -645,6 +656,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$ApOutboxFetchService,
 		$ApPersonService,
 		$ApQuestionService,
+		$TelemetryService,
 		$ApEventService,
 		$ApGameService,
 		$ApClipService,
@@ -657,10 +669,9 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		AbuseReportNotificationService,
 		AccountMoveService,
 		AccountUpdateService,
-		AiService,
+		SensitiveMediaDetectionService,
 		AnnouncementService,
 		AntennaService,
-		AppLockService,
 		AchievementService,
 		AvatarDecorationService,
 		CaptchaService,
@@ -692,6 +703,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		PushNotificationService,
 		QueryService,
 		ReactionService,
+		AnnouncementReactionService,
 		ReactionsBufferingService,
 		RelayService,
 		RoleService,
@@ -723,6 +735,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		FanoutTimelineService,
 		FanoutTimelineEndpointService,
 		ChannelFollowingService,
+		ChannelMutingService,
 		ChatService,
 		RegistryApiService,
 		ReversiService,
@@ -770,6 +783,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		NoteFavoriteEntityService,
 		NoteHistoryEntityService,
 		NoteReactionEntityService,
+		AnnouncementReactionEntityService,
 		NoteDraftEntityService,
 		NotificationEntityService,
 		PageEntityService,
@@ -810,6 +824,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		ApGameService,
 		ApClipService,
 		QueueService,
+		TelemetryService,
 
 		//#region 文字列ベースでのinjection用(循環参照対応のため)
 		$LoggerService,
@@ -817,10 +832,9 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$AbuseReportNotificationService,
 		$AccountMoveService,
 		$AccountUpdateService,
-		$AiService,
+		$SensitiveMediaDetectionService,
 		$AnnouncementService,
 		$AntennaService,
-		$AppLockService,
 		$AchievementService,
 		$AvatarDecorationService,
 		$CaptchaService,
@@ -852,6 +866,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$PushNotificationService,
 		$QueryService,
 		$ReactionService,
+		$AnnouncementReactionService,
 		$ReactionsBufferingService,
 		$RelayService,
 		$RoleService,
@@ -883,6 +898,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$FanoutTimelineService,
 		$FanoutTimelineEndpointService,
 		$ChannelFollowingService,
+		$ChannelMutingService,
 		$ChatService,
 		$RegistryApiService,
 		$ReversiService,
@@ -929,6 +945,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$NoteFavoriteEntityService,
 		$NoteHistoryEntityService,
 		$NoteReactionEntityService,
+		$AnnouncementReactionEntityService,
 		$NoteDraftEntityService,
 		$NotificationEntityService,
 		$PageEntityService,
@@ -964,6 +981,7 @@ const $ApClipService: Provider = { provide: 'ApClipService', useExisting: ApClip
 		$ApOutboxFetchService,
 		$ApPersonService,
 		$ApQuestionService,
+		$TelemetryService,
 		$ApEventService,
 		$ApGameService,
 		$ApClipService,

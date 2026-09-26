@@ -20,13 +20,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 		</div>
 	</div>
-	<button v-if="(isLong || isMFM || (note.files && note.files.length) > 0 || note.poll) && collapsed" :class="$style.fade" class="_button" @click="collapsed = false">
+	<button v-if="(isLong || isMFM || (note.files?.length ?? 0) > 0 || note.poll) && collapsed" :class="$style.fade" class="_button" @click="collapsed = false">
 		<span :class="$style.fadeLabel">
 			{{ i18n.ts.showMore }}
 			<span v-if="note.files && note.files.length > 0" :class="$style.label">({{ collapseLabel }})</span>
 		</span>
 	</button>
-	<button v-else-if="(isLong || isMFM || (note.files && note.files.length) > 0 || note.poll) && !collapsed" :class="$style.showLess" class="_button" @click="collapsed = true">
+	<button v-else-if="(isLong || isMFM || (note.files?.length ?? 0) > 0 || note.poll) && !collapsed" :class="$style.showLess" class="_button" @click="collapsed = true">
 		<span :class="$style.showLessLabel">{{ i18n.ts.showLess }}</span>
 	</button>
 	<EmReactionsViewer v-if="note.reactionAcceptance !== 'likeOnly'" ref="reactionsViewer" :maxNumber="16" :note="note">
@@ -60,7 +60,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { concat } from '@@/js/array.js';
 import { url } from '@@/js/config.js';
 import { shouldCollapsed, shouldMfmCollapsed } from '@@/js/collapsed.js';
@@ -70,6 +70,7 @@ import { i18n } from '@/i18n.js';
 import EmA from '@/components/EmA.vue';
 import EmMfm from '@/components/EmMfm.js';
 import EmReactionsViewer from '@/components/EmReactionsViewer.vue';
+import number from '@/filters/number.js';
 
 const props = defineProps<{
 	note: Misskey.entities.Note;

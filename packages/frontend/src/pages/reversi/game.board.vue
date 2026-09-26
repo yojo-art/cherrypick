@@ -165,7 +165,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onActivated, onDeactivated, onMounted, onUnmounted, ref, shallowRef, triggerRef, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import * as Reversi from 'misskey-reversi';
 import { useInterval } from '@@/js/use-interval.js';
 import { url } from '@@/js/config.js';
@@ -176,7 +176,7 @@ import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { deepClone } from '@/utility/clone.js';
-import { ensureSignin, $i } from '@/i.js';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { userPage } from '@/filters/user.js';
@@ -187,9 +187,6 @@ import { confetti } from '@/utility/confetti.js';
 import { genId } from '@/utility/id.js';
 import { prefer } from '@/preferences.js';
 import { getStaticImageUrl } from '@/utility/media-proxy.js';
-import { store } from '@/store.js';
-
-//const $i = ensureSignin();
 
 const props = defineProps<{
 	game: Misskey.entities.ReversiGameDetailed;
@@ -354,10 +351,14 @@ if (!props.game.isEnded) {
 				props.connection!.send('claimTimeIsUp', {});
 			}
 		}
-	}, TIMER_INTERVAL_SEC * 1000, { immediate: false, afterMounted: true });
+	}, TIMER_INTERVAL_SEC * 1000, {
+		immediate: false,
+		afterMounted: true,
+		keepRunningWhenHidden: true, // 対局の制限時間管理のため、バックグラウンドでも止めない
+	});
 }
 
-async function onStreamLog(log) {
+async function onStreamLog(log: Reversi.Serializer.Log & { id: string | null }) {
 	game.value.logs = Reversi.Serializer.serializeLogs([
 		...Reversi.Serializer.deserializeLogs(game.value.logs),
 		log,
@@ -397,7 +398,10 @@ async function onStreamLog(log) {
 	}
 }
 
-function onStreamEnded(x) {
+function onStreamEnded(x: {
+	winnerId: Misskey.entities.User['id'] | null;
+	game: Misskey.entities.ReversiGameDetailed;
+}) {
 	game.value = deepClone(x.game);
 
 	if (game.value.winnerId === $i?.id) {
@@ -433,7 +437,7 @@ function checkEnd() {
 	}
 }
 
-function restoreGame(_game) {
+function restoreGame(_game: Misskey.entities.ReversiGameDetailed) {
 	game.value = deepClone(_game);
 
 	engine.value = Reversi.Serializer.restoreGame({
@@ -504,7 +508,7 @@ function resetTimer() {
 	playAnimationTimer = window.setTimeout(() => playAnimation.value = false, 5000);
 }
 
-const _reactionEmojis = ref(store.r.reactions);
+const _reactionEmojis = ref(prefer.s.reactions);
 const reactionEmojis = computed(() => _reactionEmojis.value.slice(0, 10));
 
 const blackUserEl = ref<HTMLElement | null>(null);

@@ -59,7 +59,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, computed, useTemplateRef, shallowRef } from 'vue';
+import { onMounted, onUnmounted, computed, useTemplateRef, shallowRef } from 'vue';
 import { Chart } from 'chart.js';
 import type { MkSelectItem, ItemOption } from '@/components/MkSelect.vue';
 import type { ChartSrc } from '@/components/MkChart.vue';
@@ -77,6 +77,7 @@ import MkRetentionHeatmap from '@/components/MkRetentionHeatmap.vue';
 import MkRetentionLineChart from '@/components/MkRetentionLineChart.vue';
 import { initChart } from '@/utility/init-chart.js';
 import { useMkSelect } from '@/composables/use-mkselect.js';
+import { themeManager } from '@/theme.js';
 
 initChart();
 
@@ -166,28 +167,30 @@ const {
 	]),
 	initialValue: 'active-users',
 });
+
 const subDoughnutEl = useTemplateRef('subDoughnutEl');
 const pubDoughnutEl = useTemplateRef('pubDoughnutEl');
 const softwareDoughnutEl = useTemplateRef('softwareDoughnutEl');
 
-const { handler: externalTooltipHandler1 } = useChartTooltip({
-	position: 'middle',
-});
-const { handler: externalTooltipHandler2 } = useChartTooltip({
-	position: 'middle',
-});
-const { handler: externalTooltipHandler3 } = useChartTooltip({
-	position: 'middle',
-});
+let subDoughnutChartInstance: Chart | null = null;
+let pubDoughnutChartInstance: Chart | null = null;
+let softwareDoughnutChartInstance: Chart | null = null;
 
-function createDoughnut(chartEl, tooltip, data) {
+type ChartData = {
+	name: string,
+	color: string,
+	value: number,
+	onClick?: () => void,
+}[];
+
+function createDoughnut(chartEl: HTMLCanvasElement, tooltip: ReturnType<typeof useChartTooltip>['handler'], data: ChartData) {
 	const chartInstance = new Chart(chartEl, {
 		type: 'doughnut',
 		data: {
 			labels: data.map(x => x.name),
 			datasets: [{
 				backgroundColor: data.map(x => x.color),
-				borderColor: getComputedStyle(window.document.documentElement).getPropertyValue('--MI_THEME-panel'),
+				borderColor: themeManager.currentCompiledTheme!.panel,
 				borderWidth: 2,
 				hoverOffset: 0,
 				data: data.map(x => x.value),
@@ -206,8 +209,8 @@ function createDoughnut(chartEl, tooltip, data) {
 			onClick: (ev) => {
 				if (ev.native == null) return;
 				const hit = chartInstance.getElementsAtEventForMode(ev.native, 'nearest', { intersect: true }, false)[0];
-				if (hit && data[hit.index].onClick) {
-					data[hit.index].onClick();
+				if (hit != null) {
+					data[hit.index].onClick?.();
 				}
 			},
 			plugins: {
@@ -233,14 +236,14 @@ onMounted(() => {
 	misskeyApiGet('federation/remote-software', { }).then(response => {
 		type ChartData = {
 			name: string,
-			color: string | null,
+			color: string,
 			value: number,
 			onClick?: () => void,
 		}[];
 
 		const data: ChartData = response.map(x => ({
 			name: x.softwareName,
-			color: x.color,
+			color: x.color ?? '#888888',
 			value: x.count,
 			onClick: () => {},
 		}));
@@ -251,16 +254,12 @@ onMounted(() => {
 			position: 'middle',
 			total: totalServerCount,
 		});
-		createDoughnut(softwareDoughnutEl.value, externalTooltipHandler, sortedData);
+		if (softwareDoughnutEl.value != null) {
+			softwareDoughnutChartInstance = createDoughnut(softwareDoughnutEl.value, externalTooltipHandler, sortedData);
+		}
 	});
 
 	misskeyApiGet('federation/stats', { limit: 30 }).then(fedStats => {
-		type ChartData = {
-			name: string,
-			color: string | null,
-			value: number,
-			onClick?: () => void,
-		}[];
 		let totalFollowersCount = fedStats.topSubInstances.reduce((partialSum, a) => partialSum + a.followersCount, 0) + fedStats.otherFollowersCount;
 		let totalFollowingCount = fedStats.topPubInstances.reduce((partialSum, a) => partialSum + a.followingCount, 0) + fedStats.otherFollowingCount;
 
@@ -274,7 +273,7 @@ onMounted(() => {
 		});
 		const subs: ChartData = fedStats.topSubInstances.map(x => ({
 			name: x.host,
-			color: x.themeColor,
+			color: x.themeColor ?? '#888888',
 			value: x.followersCount,
 			onClick: () => {
 				os.pageWindow(`/instance-info/${x.host}`);
@@ -287,11 +286,13 @@ onMounted(() => {
 			value: fedStats.otherFollowersCount,
 		});
 
-		createDoughnut(subDoughnutEl.value, externalTooltipHandler1, subs);
+		if (subDoughnutEl.value != null) {
+			subDoughnutChartInstance = createDoughnut(subDoughnutEl.value, externalTooltipHandler1, subs);
+		}
 
 		const pubs: ChartData = fedStats.topPubInstances.map(x => ({
 			name: x.host,
-			color: x.themeColor,
+			color: x.themeColor ?? '#888888',
 			value: x.followingCount,
 			onClick: () => {
 				os.pageWindow(`/instance-info/${x.host}`);
@@ -304,8 +305,16 @@ onMounted(() => {
 			value: fedStats.otherFollowingCount,
 		});
 
-		createDoughnut(pubDoughnutEl.value, externalTooltipHandler2, pubs);
+		if (pubDoughnutEl.value != null) {
+			pubDoughnutChartInstance = createDoughnut(pubDoughnutEl.value, externalTooltipHandler2, pubs);
+		}
 	});
+});
+
+onUnmounted(() => {
+	subDoughnutChartInstance?.destroy();
+	pubDoughnutChartInstance?.destroy();
+	softwareDoughnutChartInstance?.destroy();
 });
 </script>
 

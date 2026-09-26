@@ -10,6 +10,9 @@ services:
 
     command: sleep infinity
 
+    environment:
+      OBJECT_STORAGE_ENDPOINT: http://objectstorage:9000
+
     networks:
       - internal_network
       - external_network
@@ -26,25 +29,54 @@ services:
       interval: 5s
       retries: 20
 
+  redis-test:
+    restart: unless-stopped
+    image: redis:7-alpine
+    networks:
+      - internal_network
+    volumes:
+      - redis-test-data:/data
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 5s
+      retries: 20
+
   db:
     restart: unless-stopped
-    image: postgres:15-alpine
+    image: postgres:18-alpine
     networks:
       - internal_network
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
-      POSTGRES_DB: cherrypick
+      POSTGRES_DB: misskey
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - postgres-data:/var/lib/postgresql
+      - ./initdb.d:/docker-entrypoint-initdb.d:ro
     healthcheck:
       test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
       interval: 5s
       retries: 20
 
+  objectstorage:
+    restart: unless-stopped
+    image: rustfs/rustfs:1.0.0-rc.3
+    networks:
+      - internal_network
+    environment:
+      RUSTFS_ACCESS_KEY: rustfsadmin
+      RUSTFS_SECRET_KEY: rustfsadmin
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
 volumes:
   postgres-data:
   redis-data:
+  redis-test-data:
   node_modules:
 
 networks:

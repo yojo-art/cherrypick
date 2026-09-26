@@ -53,7 +53,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkNoteHeader from '@/components/MkNoteHeader.vue';
 import MkSubNoteContent from '@/components/MkSubNoteContent.vue';
 import MkCwButton from '@/components/MkCwButton.vue';
@@ -102,12 +102,12 @@ if (prefer.s.alwaysShowCw) showContent.value = true;
 
 function noteClick(ev: MouseEvent) {
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || prefer.s.expandOnNoteClickBehavior === 'doubleClick') ev.stopPropagation();
-	else router.pushByPath(notePage(props.note));
+	else if (props.note) router.pushByPath(notePage(props.note));
 }
 
 function noteDblClick(ev: MouseEvent) {
 	if (!expandOnNoteClick || window.getSelection()?.toString() !== '' || prefer.s.expandOnNoteClickBehavior === 'click') ev.stopPropagation();
-	else router.pushByPath(notePage(props.note));
+	else if (props.note) router.pushByPath(notePage(props.note));
 }
 </script>
 

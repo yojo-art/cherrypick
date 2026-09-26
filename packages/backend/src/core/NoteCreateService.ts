@@ -15,7 +15,7 @@ import type { IMentionedRemoteUsers } from '@/models/Note.js';
 import { MiNote } from '@/models/Note.js';
 import { MiEvent } from '@/models/Event.js';
 import type { IEvent } from '@/models/Event.js';
-import type { BlockingsRepository, ChannelFollowingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
+import type { BlockingsRepository, ChannelsRepository, DriveFilesRepository, FollowingsRepository, InstancesRepository, MiFollowing, MiMeta, MutingsRepository, NotesRepository, NoteThreadMutingsRepository, UserListMembershipsRepository, UserProfilesRepository, UsersRepository } from '@/models/_.js';
 import type { MiDriveFile } from '@/models/DriveFile.js';
 import type { MiApp } from '@/models/App.js';
 import { concat } from '@/misc/prelude/array.js';
@@ -57,9 +57,11 @@ import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { isReply } from '@/misc/is-reply.js';
 import { trackPromise } from '@/misc/promise-tracker.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { CollapsedQueue } from '@/misc/collapsed-queue.js';
 import { CacheService } from '@/core/CacheService.js';
 import { isQuote, isRenote } from '@/misc/is-renote.js';
+import { removeChannelMention } from '@/misc/escape-reg-exp.js';
 import { searchableTypes } from '../types.js';
 
 type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
@@ -67,10 +69,10 @@ type NotificationType = 'reply' | 'renote' | 'quote' | 'mention';
 class NotificationManager {
 	private notifier: { id: MiUser['id']; };
 	private note: MiNote;
-	private queue: {
+	private queue: Map<MiLocalUser['id'], {
 		target: MiLocalUser['id'];
 		reason: NotificationType;
-	}[];
+	}>;
 
 	constructor(
 		private mutingsRepository: MutingsRepository,
@@ -81,7 +83,7 @@ class NotificationManager {
 	) {
 		this.notifier = notifier;
 		this.note = note;
-		this.queue = [];
+		this.queue = new Map();
 	}
 
 	@bindThis
@@ -89,7 +91,7 @@ class NotificationManager {
 		// 自分自身へは通知しない
 		if (this.notifier.id === notifiee) return;
 
-		const exist = this.queue.find(x => x.target === notifiee);
+		const exist = this.queue.get(notifiee);
 
 		if (exist) {
 			// 「メンションされているかつ返信されている」場合は、メンションとしての通知ではなく返信としての通知にする
@@ -97,7 +99,7 @@ class NotificationManager {
 				exist.reason = reason;
 			}
 		} else {
-			this.queue.push({
+			this.queue.set(notifiee, {
 				reason: reason,
 				target: notifiee,
 			});
@@ -106,31 +108,49 @@ class NotificationManager {
 
 	@bindThis
 	public async notify() {
-		if (this.queue.length === 0) {
+		if (this.queue.size === 0) {
 			return;
 		}
-		let followers = [] as string[];
-		if (this.note.visibility === 'followers') {
-			const target_users = this.queue.map(x => x.target);
-			const raw_followers = await this.followingsRepository.find({
-				where: {
-					followeeId: this.note.userId,
-					followerHost: IsNull(),
-					followerId: Any(target_users),
-					isFollowerHibernated: false,
-				},
-				select: ['followerId'],
-			});
-			followers = raw_followers.map(x => x.followerId);
+
+		let visibleUserIds: Set<MiUser['id']> | null;
+
+		switch (this.note.visibility) {
+			case 'public':
+			case 'home':
+				visibleUserIds = null;
+				break;
+
+			case 'specified':
+				visibleUserIds = new Set(this.note.visibleUserIds);
+				break;
+
+			case 'followers': {
+			// TODO: フォロワー限定ノートにフォロワーではない人がメンションされた場合通知されるのが正しい挙動なのか確認（一部に挙動の不一致がありそう）。現状は通知されるためフィルタしない
+				const targetUserIds = this.queue.keys().toArray();
+				const followers = await this.followingsRepository.find({
+					where: {
+						followeeId: this.note.userId,
+						followerId: In(targetUserIds),
+						isFollowerHibernated: false,
+					},
+					select: { followerId: true },
+				});
+				visibleUserIds = new Set(followers.map(f => f.followerId));
+				break;
+			}
+
+			default:
+				visibleUserIds = new Set();
+				break;
 		}
-		for (const x of this.queue) {
-			if (this.note.visibility === 'public' || this.note.visibility === 'home' || //無条件に公開
-				 (this.note.visibility === 'specified' && this.note.visibleUserIds.includes(x.target)) || //宛先のユーザーである場合
-				 (this.note.visibility === 'followers' && followers.includes(x.target))) { //フォロワーである場合
-				//visibleUser
-			} else {
+
+		for (const x of this.queue.values()) {
+			const isVisibleToTarget = visibleUserIds === null || visibleUserIds.has(x.target);
+
+			if (!isVisibleToTarget) {
 				continue;
 			}
+
 			if (x.reason === 'renote') {
 				this.notificationService.createNotification(x.target, 'renote', {
 					noteId: this.note.id,
@@ -165,13 +185,13 @@ type Option = {
 	event?: IEvent | null;
 	localOnly?: boolean | null;
 	reactionAcceptance?: MiNote['reactionAcceptance'];
-	disableRightClick?: boolean | null;
 	cw?: string | null;
 	visibility?: string | null;
 	searchableBy: string | null,
 	visibleUsers?: MinimumUser[] | null;
 	channel?: MiChannel | null;
 	apMentions?: MinimumUser[] | null;
+	apMentionRawCount?: number | null;
 	apHashtags?: string[] | null;
 	apEmojis?: string[] | null;
 	uri?: string | null;
@@ -227,9 +247,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
 
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
-
 		@Inject(DI.blockingsRepository)
 		private blockingsRepository: BlockingsRepository,
 
@@ -273,6 +290,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
+		channelId: MiUser['channelId'];
 	}, data: {
 		createdAt: Date;
 		updatedAt?: Date | null;
@@ -287,7 +305,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 		channelId: MiChannel['id'] | null;
 		localOnly: boolean;
 		reactionAcceptance: MiNote['reactionAcceptance'];
-		disableRightClick: boolean | null;
 		poll: IPoll | null;
 		event: IEvent | null;
 		tagText?: string;
@@ -321,7 +338,11 @@ export class NoteCreateService implements OnApplicationShutdown {
 			// Fetch renote to note
 			renote = await this.notesRepository.findOne({
 				where: { id: data.renoteId },
-				relations: ['user', 'renote', 'reply'],
+				relations: {
+					user: true,
+					renote: true,
+					reply: true,
+				},
 			});
 
 			if (renote == null) {
@@ -370,14 +391,14 @@ export class NoteCreateService implements OnApplicationShutdown {
 			// Fetch reply
 			reply = await this.notesRepository.findOne({
 				where: { id: data.replyId },
-				relations: ['user'],
+				relations: { user: true },
 			});
 
 			if (reply == null) {
 				throw new IdentifiableError('60142edb-1519-408e-926d-4f108d27bee0', 'No such reply target');
 			} else if (isRenote(reply) && !isQuote(reply)) {
 				throw new IdentifiableError('f089e4e2-c0e7-4f60-8a23-e5a6bf786b36', 'Cannot reply to pure renote');
-			} else if (!await this.noteEntityService.isVisibleForMe(reply, user.id)) {
+			} else if (!(await this.noteEntityService.isVisibleForMe(reply, user.id))) {
 				throw new IdentifiableError('11cd37b3-a411-4f77-8633-c580ce6a8dce', 'No such reply target');
 			} else if (reply.visibility === 'specified' && data.visibility !== 'specified') {
 				throw new IdentifiableError('ced780a1-2012-4caf-bc7e-a95a291294cb', 'Cannot reply to specified note with different visibility');
@@ -411,6 +432,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 					throw new IdentifiableError('4d0d475c-2d2f-4f4f-a581-7fa54b501e52', 'Event end time must be future time');
 				}
 			}
+			// event.metadata.url は MkEvent.vue の生 <a :href> に流れるため
+			// javascript: 等の危険なスキームを書き込み時に除去する
+			data.event = {
+				...data.event,
+				metadata: sanitizeEventMetadata(data.event.metadata),
+			};
 		}
 
 		let channel: MiChannel | null = null;
@@ -419,6 +446,10 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			if (channel == null) {
 				throw new IdentifiableError('bfa3905b-25f5-4894-b430-da331a490e4b', 'No such channel');
+			}
+
+			if (data.visibility === 'followers' || data.visibility === 'specified') {
+				throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
 			}
 		}
 
@@ -435,7 +466,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			cw: data.cw,
 			localOnly: data.localOnly,
 			reactionAcceptance: data.reactionAcceptance,
-			disableRightClick: data.disableRightClick,
 			visibility: data.visibility,
 			searchableBy: data.searchableBy,
 			visibleUsers,
@@ -454,16 +484,18 @@ export class NoteCreateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 		isCat: MiUser['isCat'];
+		channelId: MiUser['channelId'];
 	}, data: Option, silent = false): Promise<MiNote> {
-		//このフォークではチャンネルの存在を認めない
-		data.channel = undefined;
 		//このフォークではローカルのみを認めない
 		data.localOnly = undefined;
 
 		if (data.createdAt == null) data.createdAt = new Date();
 		if (data.visibility == null) data.visibility = 'public';
 		if (data.localOnly == null) data.localOnly = false;
-		if (data.disableRightClick == null) data.disableRightClick = false;
+
+		if (data.channel && (data.visibility === 'followers' || data.visibility === 'specified')) {
+			throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
+		}
 
 		if (data.visibility === 'public') {
 			const sensitiveWords = this.meta.sensitiveWords;
@@ -490,6 +522,17 @@ export class NoteCreateService implements OnApplicationShutdown {
 			data.visibility = 'home';
 		}
 
+		if (data.text && data.channel) {
+			// yojo-art: チャンネル投稿のチャンネルへのメンションは表示しない
+			data.channel.actor ??= data.channel.actorId ? await this.cacheService.findUserById(data.channel.actorId) : null;
+			const username = data.channel.actor?.username;
+			if (username) {
+				const host = data.channel.actor?.host ?? null;
+				if (host === null)data.text = removeChannelMention(data.text, username, this.config.host);
+				data.text = removeChannelMention(data.text, username, host);
+			}
+		}
+
 		if (data.renote) {
 			switch (data.renote.visibility) {
 				case 'public':
@@ -507,13 +550,24 @@ export class NoteCreateService implements OnApplicationShutdown {
 						throw new Error('Renote target is not public or home');
 					}
 
-					// Renote対象がfollowersならfollowersにする
-					data.visibility = 'followers';
+					// followers noteはfollowers以下にrenote可能
+					if (data.visibility === 'public' || data.visibility === 'home') {
+						data.visibility = 'followers';
+					}
 					break;
 				case 'specified':
 					// specified / direct noteはreject
 					throw new Error('Renote target is not public or home');
 			}
+
+			// ローカルのみをRenoteしたらローカルのみにする
+			if (data.renote.localOnly && data.channel == null) {
+				data.localOnly = true;
+			}
+		}
+
+		if (data.channel && (data.visibility === 'followers' || data.visibility === 'specified')) {
+			throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
 		}
 
 		// Check blocking
@@ -528,19 +582,35 @@ export class NoteCreateService implements OnApplicationShutdown {
 			}
 		}
 
-		// 返信対象がpublicではないならhomeにする
-		if (data.reply && data.reply.visibility !== 'public' && data.visibility === 'public') {
-			data.visibility = 'home';
-		}
+		if (data.reply) {
+			switch (data.reply.visibility) {
+				case 'public':
+					// public noteは無条件にreply可能
+					break;
+				case 'home':
+					// home noteはhome以下にreply可能
+					if (data.visibility === 'public') {
+						data.visibility = 'home';
+					}
+					break;
+				case 'followers':
+					// followers noteはfollowers以下にreply可能
+					if (data.visibility === 'public' || data.visibility === 'home') {
+						data.visibility = 'followers';
+					}
+					break;
+				case 'specified':
+					// specified / direct noteはspecifiedのみreply可能
+					if (data.visibility !== 'specified') {
+						data.visibility = 'specified';
+					}
+					break;
+			}
 
-		// ローカルのみをRenoteしたらローカルのみにする
-		if (data.renote && data.renote.localOnly && data.channel == null) {
-			data.localOnly = true;
-		}
-
-		// ローカルのみにリプライしたらローカルのみにする
-		if (data.reply && data.reply.localOnly && data.channel == null) {
-			data.localOnly = true;
+			// ローカルのみにリプライしたらローカルのみにする
+			if (data.reply.localOnly && data.channel == null) {
+				data.localOnly = true;
+			}
 		}
 
 		if (data.text) {
@@ -575,7 +645,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			emojis = data.apEmojis ?? extractCustomEmojisFromMfm(combinedTokens);
 
-			mentionedUsers = data.apMentions ?? await this.extractMentionedUsers(user, combinedTokens);
+			mentionedUsers = data.apMentions ?? (await this.extractMentionedUsers(user, combinedTokens));
 		}
 
 		// if the host is media-silenced, custom emojis are not allowed
@@ -600,8 +670,13 @@ export class NoteCreateService implements OnApplicationShutdown {
 				data.visibleUsers.push(await this.usersRepository.findOneByOrFail({ id: data.reply!.userId }));
 			}
 		}
+		if (data.channel) {
+			//チャンネル投稿のチャンネルへのメンションは表示しない
+			mentionedUsers = mentionedUsers.filter(x => x.id !== data.channel?.actorId);
+		}
 
-		if (mentionedUsers.length > 0 && mentionedUsers.length > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
+		const effectiveMentionCount = Math.max(mentionedUsers.length, data.apMentionRawCount ?? 0);
+		if (effectiveMentionCount > 0 && effectiveMentionCount > (await this.roleService.getUserPolicies(user.id)).mentionLimit) {
 			throw new IdentifiableError('9f466dab-c856-48cd-9e65-ff90ff750580', 'Note contains too many mentions');
 		}
 		const note = await this.insertNote(user, data, tags, emojis, mentionedUsers);
@@ -637,7 +712,6 @@ export class NoteCreateService implements OnApplicationShutdown {
 			userId: user.id,
 			localOnly: data.localOnly!,
 			reactionAcceptance: data.reactionAcceptance ?? null,
-			disableRightClick: data.disableRightClick!,
 			deleteAt: data.deleteAt,
 			visibility: data.visibility as any,
 			searchableBy: data.searchableBy as any,
@@ -653,6 +727,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 			replyUserHost: data.reply ? data.reply.userHost : null,
 			renoteUserId: data.renote ? data.renote.userId : null,
 			renoteUserHost: data.renote ? data.renote.userHost : null,
+			renoteChannelId: data.renote ? data.renote.channelId : null,
 			userHost: user.host,
 		});
 
@@ -742,7 +817,12 @@ export class NoteCreateService implements OnApplicationShutdown {
 		username: MiUser['username'];
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
+		channelId: MiUser['channelId'];
 	}, data: Option, silent: boolean, tags: string[], mentionedUsers: MinimumUser[]) {
+		if (user.channelId != null) {
+			//チャンネルアカウントによる投稿はすべてチャンネル投稿にする
+			note.channelId = user.channelId;
+		}
 		this.notesChart.update(note, true);
 		if (note.visibility !== 'specified' && (this.meta.enableChartsForRemoteUser || (user.host == null))) {
 			this.perUserNotesChart.update(user, note, true);
@@ -779,14 +859,16 @@ export class NoteCreateService implements OnApplicationShutdown {
 			this.saveReply(data.reply, note);
 		}
 
-		if (data.reply == null && !silent) {
+		const isPureRenote = this.isRenote(data) && !this.isQuote(data) ? true : false;
+		if (user.channelId != null && isPureRenote) {
+			//チャンネルによる純粋リノートは通知しない
+		} else if (data.reply == null && !silent) {
 			// TODO: キャッシュ
 			this.followingsRepository.findBy({
 				followeeId: user.id,
 				notify: 'normal',
 			}).then(async followings => {
 				if (note.visibility !== 'specified') {
-					const isPureRenote = this.isRenote(data) && !this.isQuote(data) ? true : false;
 					for (const following of followings) {
 						// TODO: ワードミュート考慮
 						let isRenoteMuted = false;
@@ -865,7 +947,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				const type = this.isQuote(data) ? 'quote' : 'renote';
 
 				// Notify
-				if (data.renote.userHost === null) {
+				if (data.renote.userHost === null && !(user.channelId != null && type === 'renote')) {
 					nm.push(data.renote.userId, type);
 				}
 
@@ -878,6 +960,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 			nm.notify();
 
+			if (note.channelId != null && note.channel == null) {
+				note.channel = await this.channelsRepository.findOneBy({ id: note.channelId });
+			}
 			//#region AP deliver
 			if (!data.localOnly && this.userEntityService.isLocalUser(user)) {
 				await (async () => {
@@ -887,6 +972,20 @@ export class NoteCreateService implements OnApplicationShutdown {
 					// メンションされたリモートユーザーに配送
 					for (const u of mentionedUsers.filter(u => this.userEntityService.isRemoteUser(u))) {
 						dm.addDirectRecipe(u as MiRemoteUser);
+					}
+
+					if (note.channel != null && user.channelId === null && note.channel.actorId) {
+						// yojo-art: チャンネルのフォロワーに配送
+						if (isPureRenote) {
+							//チャンネル内リノート
+							dm.addChannelFollowersRecipe(note.channel.actorId);
+						} else if (note.channel.host != null) {
+							//リモートのチャンネルに投稿する時はそのホストに配送
+							note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+							if (note.channel.actor?.host && note.channel.actor.uri) {
+								dm.addDirectRecipe(note.channel.actor as MiRemoteUser);
+							}
+						}
 					}
 
 					// 投稿がリプライかつ投稿者がローカルユーザーかつリプライ先の投稿の投稿者がリモートユーザーなら配送
@@ -913,10 +1012,27 @@ export class NoteCreateService implements OnApplicationShutdown {
 					trackPromise(dm.execute());
 				})();
 			}
+			if (note.channel?.actorId != null && note.channel.host == null && !user.channelId && ['public', 'home'].includes(note.visibility) && !isPureRenote) {
+				//ローカルのチャンネルに投稿が作成された時リノートする
+				note.channel.actor ??= await this.usersRepository.findOneBy({ id: note.channel.actorId });
+				if (note.channel.actor) {
+					//awaitせず非同期でやる
+					trackPromise(this.create(note.channel.actor, {
+						createdAt: this.idService.parse(note.id).date,
+						renote: note,
+						visibility: note.visibility,
+						searchableBy: note.searchableBy,
+						channel: note.channel,
+					}));
+				} else {
+					console.log('チャンネルに連動したアカウントが見つからない');
+				}
+			}
 			//#endregion
 		}
 
-		if (data.channel) {
+		// yojo-art: チャンネルアカウントの自動リノートは除外する
+		if (data.channel && !user.channelId) {
 			this.channelsRepository.increment({ id: data.channel.id }, 'notesCount', 1);
 			this.channelsRepository.update(data.channel.id, {
 				lastNotedAt: new Date(),
@@ -1026,8 +1142,8 @@ export class NoteCreateService implements OnApplicationShutdown {
 		if (data.localOnly) return null;
 
 		const content = this.isRenote(data) && !this.isQuote(data)
-			? this.apRendererService.renderAnnounce(data.renote.uri ? data.renote.uri : `${this.config.url}/notes/${data.renote.id}`, note)
-			: this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
+			? await this.apRendererService.renderAnnounce(data.renote.uri ? data.renote.uri : `${this.config.url}/notes/${data.renote.id}`, note)
+			: await this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 
 		return this.apRendererService.addContext(content);
 	}
@@ -1066,17 +1182,21 @@ export class NoteCreateService implements OnApplicationShutdown {
 
 		const r = this.redisForTimelines.pipeline();
 
-		if (note.channelId) {
-			this.fanoutTimelineService.push(`channelTimeline:${note.channelId}`, note.id, this.config.perChannelMaxNoteCacheCount, r);
-
-			this.fanoutTimelineService.push(`userTimelineWithChannel:${user.id}`, note.id, note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax, r);
-
-			const channelFollowings = await this.channelFollowingsRepository.find({
+		if (note.channelId && note.channel == null) note.channel ??= await this.channelsRepository.findOneBy({ id: note.channelId });
+		if (note.channel?.actorId === user.id) {
+			//チャンネルユーザーが作成したチャンネル投稿
+			if (isRenote(note) && !isQuote(note)) {
+				//純粋リノートはTLに含めない
+				return;
+			}
+		}
+		if (note.channelId && note.channel) {
+			const channelFollowings = note.channel.actorId ? await this.followingsRepository.find({
 				where: {
-					followeeId: note.channelId,
+					followeeId: note.channel.actorId,
 				},
-				select: ['followerId'],
-			});
+				select: { followerId: true },
+			}) : [];
 
 			for (const channelFollowing of channelFollowings) {
 				this.fanoutTimelineService.push(`homeTimeline:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax, r);
@@ -1084,6 +1204,9 @@ export class NoteCreateService implements OnApplicationShutdown {
 					this.fanoutTimelineService.push(`homeTimelineWithFiles:${channelFollowing.followerId}`, note.id, this.meta.perUserHomeTimelineCacheMax / 2, r);
 				}
 			}
+			this.fanoutTimelineService.push(`channelTimeline:${note.channelId}`, note.id, this.config.perChannelMaxNoteCacheCount, r);
+
+			this.fanoutTimelineService.push(`userTimelineWithChannel:${user.id}`, note.id, note.userHost == null ? this.meta.perLocalUserUserTimelineCacheMax : this.meta.perRemoteUserUserTimelineCacheMax, r);
 		} else {
 			// TODO: キャッシュ？
 			// eslint-disable-next-line prefer-const
@@ -1094,13 +1217,20 @@ export class NoteCreateService implements OnApplicationShutdown {
 						followerHost: IsNull(),
 						isFollowerHibernated: false,
 					},
-					select: ['followerId', 'withReplies'],
+					select: {
+						followerId: true,
+						withReplies: true,
+					},
 				}),
 				this.userListMembershipsRepository.find({
 					where: {
 						userId: user.id,
 					},
-					select: ['userListId', 'userListUserId', 'withReplies'],
+					select: {
+						userListId: true,
+						userListUserId: true,
+						withReplies: true,
+					},
 				}),
 			]);
 
@@ -1208,7 +1338,7 @@ export class NoteCreateService implements OnApplicationShutdown {
 				id: In(samples.map(x => x.followerId)),
 				lastActiveDate: LessThan(new Date(Date.now() - (1000 * 60 * 60 * 24 * 50))),
 			},
-			select: ['id'],
+			select: { id: true },
 		});
 
 		if (hibernatedUsers.length > 0) {

@@ -5,9 +5,10 @@
 
 process.env.NODE_ENV = 'test';
 
-import { signup, uploadFile, relativeFetch } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import { beforeAll, describe, test, expect } from 'vitest';
 import { validateContentTypeSetAsActivityPub, validateContentTypeSetAsJsonLD } from '@/core/activitypub/misc/validator.js';
+import { signup, uploadFile, relativeFetch } from '../utils.js';
+import type * as misskey from 'misskey-js';
 
 describe('validateContentTypeSetAsActivityPub/JsonLD (deny case)', () => {
 	let alice: misskey.entities.SignupResponse;

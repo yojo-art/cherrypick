@@ -51,7 +51,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.main">
 			<EmNoteHeader :note="appearNote" :mini="true"/>
 			<div style="container-type: inline-size;">
-				<div v-if="appearNote.replyId" style="margin-bottom: 4px;">
+				<div v-if="appearNote.reply" style="margin-bottom: 4px;">
 					<EmA :class="$style.replyIcon" :to="`/notes/${appearNote.replyId}`" @click.stop><i class="ti ti-arrow-back-up"></i></EmA>
 					<EmA v-user-preview="appearNote.reply.userId" :class="$style.replyToText" :to="userPage(appearNote.reply.user)" @click.stop><span v-html="replyTo"></span></EmA>
 				</div>
@@ -122,7 +122,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, inject, ref, shallowRef } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { shouldCollapsed, shouldMfmCollapsed } from '@@/js/collapsed.js';
 import { url } from '@@/js/config.js';
 import { toUnicode } from 'punycode.js';
@@ -141,6 +141,7 @@ import EmTime from '@/components/EmTime.vue';
 import { userPage } from '@/utils.js';
 import { i18n } from '@/i18n.js';
 import { notePage } from '@/utils.js';
+import number from '@/filters/number.js';
 
 function getAppearNote(note: Misskey.entities.Note) {
 	return Misskey.note.isPureRenote(note) ? note.renote : note;
@@ -165,7 +166,7 @@ const isRenote = Misskey.note.isPureRenote(note.value);
 
 const rootEl = shallowRef<HTMLElement>();
 const renoteTime = shallowRef<HTMLElement>();
-const appearNote = computed(() => getAppearNote(note.value));
+const appearNote = computed(() => getAppearNote(note.value) ?? note.value);
 const showContent = ref(false);
 const parsed = computed(() => appearNote.value.text ? mfm.parse(appearNote.value.text) : null);
 const isLong = shouldCollapsed(appearNote.value, []);
@@ -174,7 +175,9 @@ const collapsed = ref(appearNote.value.cw == null && (isLong || (isMFM)));
 const isDeleted = ref(false);
 
 const replyTo = computed(() => {
-	const username = appearNote.value.reply.user.host == null ? `@${appearNote.value.reply.user.username}` : `@${appearNote.value.reply.user.username}@${toUnicode(appearNote.value.reply.user.host)}`;
+	const reply = appearNote.value.reply;
+	if (reply == null) return '';
+	const username = reply.user.host == null ? `@${reply.user.username}` : `@${reply.user.username}@${toUnicode(reply.user.host)}`;
 	const text = i18n.tsx.replyTo({ user: username });
 	const user = `<span style="color: var(--MI_THEME-accent); margin-right: 0.25em;">${username}</span>`;
 

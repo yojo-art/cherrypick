@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div :class="$style.root" class="_gaps_m">
 			<div :class="$style.addButton">
 				<MkButton primary @click="onAddButtonClicked">
-					<span class="ti ti-plus"/> {{ i18n.ts._abuseReport._notificationRecipient.createRecipient }}
+					<span class="ti ti-plus"></span> {{ i18n.ts._abuseReport._notificationRecipient.createRecipient }}
 				</MkButton>
 			</div>
 			<div :class="$style.subMenus" class="_gaps_s">
@@ -39,7 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script setup lang="ts">
-import { entities } from 'cherrypick-js';
+import { entities } from 'misskey-js';
 import { computed, defineAsyncComponent, onMounted, ref, useTemplateRef } from 'vue';
 import XRecipient from './notification-recipient.item.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';

@@ -1,0 +1,14 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/channel-mention/08-announce-audience",
+	"type": "Announce",
+	"actor": "https://z.test/users/zack",
+	"object": "https://z.test/notes/channel-mention/07-original",
+	"published": "2026-08-01T00:03:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"cc": [
+	],
+	"audience": "https://a.test/users/{{channelActor}}"
+}

@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkContainer from '@/components/MkContainer.vue';
 import MkChart from '@/components/MkChart.vue';
 import * as os from '@/os.js';
@@ -36,7 +36,7 @@ const props = withDefaults(defineProps<{
 
 const chartSrc = ref<'per-user-notes' | 'per-user-pv' | 'per-user-following' | 'per-user-followers'>('per-user-notes');
 
-function showMenu(ev: MouseEvent) {
+function showMenu(ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts.notes,
 		active: chartSrc.value === 'per-user-notes',

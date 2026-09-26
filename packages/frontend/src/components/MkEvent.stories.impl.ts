@@ -54,6 +54,7 @@ export const Default = {
 					description: 'Let\'s have a tea party!',
 				},
 			},
+			searchableBy: 'public',
 		},
 	},
 	parameters: {

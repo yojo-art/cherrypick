@@ -4,7 +4,7 @@
  */
 
 import { delay, http, HttpResponse } from 'msw';
-import { entities } from 'cherrypick-js';
+import { entities } from 'misskey-js';
 import { commonHandlers } from '../../../.storybook/mocks.js';
 import { emoji } from '../../../.storybook/fakes.js';
 import { fakeId } from '../../../.storybook/fake-utils.js';

@@ -56,11 +56,11 @@ const props = withDefaults(defineProps<{
 	userId?: string,
 	username?: string,
 	host?: string | null,
-	fileAttach?: string;
-	fileSensitive?: string;
+	fileAttach?: 'combined' | 'file-only' | 'no-file';
+	fileSensitive?: 'combined' | 'includeSensitive' | 'withOutSensitive' | 'sensitiveOnly';
 	reactions?: string;
 	reactionsExclude?: string;
-	following?: string;
+	following?: 'combined' | 'following' | 'notFollowing';
 	excludeReply?: boolean;
 	excludeCw?: boolean;
 	excludeQuote?: boolean;

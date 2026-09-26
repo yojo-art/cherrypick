@@ -118,7 +118,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<div :class="$style.draftActions" class="_buttons">
 								<template v-if="draft.scheduledAt != null && draft.isActuallyScheduled">
 									<MkButton
-										:class="$style.itemButton"
 										small
 										@click="cancelSchedule(draft)"
 									>
@@ -126,7 +125,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</MkButton>
 									<!-- TODO
 									<MkButton
-										:class="$style.itemButton"
 										small
 										@click="reSchedule(draft)"
 									>
@@ -136,7 +134,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</template>
 								<MkButton
 									v-else
-									:class="$style.itemButton"
 									small
 									@click="restoreDraft(draft)"
 								>
@@ -147,7 +144,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 									danger
 									small
 									:iconOnly="true"
-									:class="$style.itemButton"
 									style="margin-left: auto;"
 									@click="deleteDraft(draft)"
 								>
@@ -165,7 +161,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, shallowRef, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import MkModalWindow from '@/components/MkModalWindow.vue';

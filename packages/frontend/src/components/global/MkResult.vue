@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <Transition :name="prefer.s.animation ? '_transition_zoom' : ''" appear>
-	<div :class="[$style.root, { [$style.warn]: type === 'notFound', [$style.error]: type === 'error' }]" class="_gaps">
+	<div :class="$style.root" class="_gaps">
 		<img v-if="type === 'empty' && instance.infoImageUrl" :src="instance.infoImageUrl" draggable="false" :class="$style.img"/>
 		<MkSystemIcon v-else-if="type === 'empty'" type="info" :class="$style.icon"/>
 		<img v-if="type === 'notFound' && instance.notFoundImageUrl" :src="instance.notFoundImageUrl" draggable="false" :class="$style.img"/>
@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import {} from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { instance } from '@/instance.js';
 import { i18n } from '@/i18n.js';
 import { prefer } from '@/preferences.js';

@@ -18,10 +18,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 			<div class="_gaps_m">
 				<!--
-				<MkRadios v-if="instance.federation !== 'none'" v-model="searchOrigin" @update:modelValue="search()">
-					<option value="combined">{{ i18n.ts.all }}</option>
-					<option value="local">{{ i18n.ts.local }}</option>
-					<option value="remote">{{ i18n.ts.remote }}</option>
+				<MkRadios
+					v-if="instance.federation !== 'none'"
+					v-model="searchOrigin"
+					:options="[
+						{ value: 'combined', label: i18n.ts.all },
+						{ value: 'local', label: i18n.ts.local },
+						{ value: 'remote', label: i18n.ts.remote },
+					]"
+					@update:modelValue="search()"
+				>
 				</MkRadios>
 				-->
 				<MkSelect v-model="searchOrigin" :items="searchOriginDef" small @update:modelValue="search()"></MkSelect>
@@ -39,7 +45,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, markRaw, ref, shallowRef, toRef, useTemplateRef } from 'vue';
-import type { Endpoints } from 'cherrypick-js';
+import type { Endpoints } from 'misskey-js';
 import type { MkSelectItem } from '@/components/MkSelect.vue';
 import MkUserList from '@/components/MkUserList.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -135,7 +141,7 @@ async function search() {
 			});
 			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 			const res = await promise;
-			if (typeof res.error === 'undefined') {
+			if (res) {
 				router.pushByPath(`/@${res.username}@${res.host}`);
 			}
 		}
@@ -149,10 +155,10 @@ async function search() {
 		});
 		if (!confirm.canceled) {
 			router.push('/user-tags/:tag', {
-					params: {
-						tag: query.substring(1),
-					},
-				});
+				params: {
+					tag: query.substring(1),
+				},
+			});
 			return;
 		}
 	}

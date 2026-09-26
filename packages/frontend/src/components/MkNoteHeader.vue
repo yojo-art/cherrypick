@@ -41,7 +41,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<div v-if="mock">
 				<MkTime :time="note.createdAt" colored/>
 			</div>
-			<MkTime v-else-if="note.isSchedule" mode="absolute" :time="note.createdAt" colored/>
 			<MkA v-else :class="$style.time" :to="notePage(note)">
 				<MkTime :time="note.createdAt" :mode="prefer.s.enableAbsoluteTime ? 'absolute' : 'relative'" colored/>
 			</MkA>
@@ -56,7 +55,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { inject } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { i18n } from '@/i18n.js';
 import { notePage } from '@/filters/note.js';
 import { userPage } from '@/filters/user.js';
@@ -82,7 +81,7 @@ function showOnRemote() {
 }
 
 const notificationDelete = () => {
-	misskeyApi('notifications/delete', { notificationId: props.notificationId });
+	if (props.notificationId)misskeyApi('notifications/delete', { notificationId: props.notificationId });
 };
 </script>
 

@@ -164,7 +164,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				query.orderBy('event.start', 'ASC');
 			}
 
-			this.queryService.generateVisibilityQuery(query, me);
+			this.queryService.generateVisibilityQuery(query, me, { search: true });
 			this.queryService.generateBaseNoteFilteringQuery(query, me);
 
 			if (ps.offset) query.skip(ps.offset);

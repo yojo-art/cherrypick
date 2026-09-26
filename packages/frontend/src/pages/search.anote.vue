@@ -12,12 +12,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkFoldableSection :expanded="true">
 			<template #header>{{ i18n.ts.options }}</template>
 			<div class="_gaps_m">
-				<MkRadios v-model="searchOrigin" @update:modelValue="search()">
+				<MkRadios
+					v-model="searchOrigin" :options="[
+						{ value: 'combined', label: i18n.ts.all },
+						{ value: 'local', label: i18n.ts.local },
+						...noteSearchableScope == 'global' ? [
+							{ value: 'remote', label: i18n.ts.remote },
+							{ value: 'specified', label: i18n.ts.specifyHost },
+						] : [],
+					]" @update:modelValue="search()"
+				>
 					<template #label>{{ i18n.ts.host }}</template>
-					<option value="combined" default>{{ i18n.ts.all }}</option>
-					<option value="local">{{ i18n.ts.local }}</option>
-					<option v-if="noteSearchableScope == 'global'" value="remote">{{ i18n.ts.remote }}</option>
-					<option v-if="noteSearchableScope == 'global'" value="specified">{{ i18n.ts.specifyHost }}</option>
 				</MkRadios>
 				<MkInput v-if="noteSearchableScope === 'global'" v-model="hostInput" :disabled="user != null || searchOrigin == 'combined' || searchOrigin == 'local' || searchOrigin === 'remote'" :large="true" type="search" @enter.prevent="search">
 					<template #prefix><i class="ti ti-server"></i></template>
@@ -33,26 +38,38 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<button class="_button" :class="$style.remove" :disabled="user == null" @click="removeUser"><i class="ti ti-x"></i></button>
 						</div>
 					</div>
+					<div style="display: flex; gap: 8px;">
+						<MkInput v-model="rangeStartAt" type="datetime-local">
+							<template #label>{{ i18n.ts._search.postFrom }}</template>
+						</MkInput>
+						<MkInput v-model="rangeEndAt" type="datetime-local">
+							<template #label>{{ i18n.ts._search.postTo }}</template>
+						</MkInput>
+					</div>
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._fileOption.title }}</template>
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="isfileOnly" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._fileOption.combined }}</option>
-								<option value="file-only">{{ i18n.ts._advancedSearch._fileOption.fileAttachedOnly }}</option>
-								<option value="no-file">{{ i18n.ts._advancedSearch._fileOption.noFile }}</option>
-							</MkRadios>
+							<MkRadios
+								v-model="isfileOnly" :options="[
+									{ value: 'combined', label: i18n.ts._advancedSearch._fileOption.combined },
+									{ value: 'file-only', label: i18n.ts._advancedSearch._fileOption.fileAttachedOnly },
+									{ value: 'no-file', label: i18n.ts._advancedSearch._fileOption.noFile },
+								]" @update:modelValue="search()"
+							></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._fileNsfwOption.title }}</template>
 
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="sensitiveFilter" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._fileNsfwOption.combined }}</option>
-								<option value="withOutSensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive }}</option>
-								<option value="includeSensitive">{{ i18n.ts._advancedSearch._fileNsfwOption.includeSensitive }}</option>
-								<option value="sensitiveOnly">{{ i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly }}</option>
-							</MkRadios>
+							<MkRadios
+								v-model="sensitiveFilter" :options="[
+									{ value: 'combined', label: i18n.ts._advancedSearch._fileNsfwOption.combined },
+									{ value: 'withOutSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.withOutSensitive },
+									{ value: 'includeSensitive', label: i18n.ts._advancedSearch._fileNsfwOption.includeSensitive },
+									{ value: 'sensitiveOnly', label: i18n.ts._advancedSearch._fileNsfwOption.sensitiveOnly },
+								]" @update:modelValue="search()"
+							></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
@@ -69,11 +86,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 					<FormSection>
 						<template #label>{{ i18n.ts._advancedSearch._followingFilter.title }}</template>
 						<div style="text-align: center;" class="_gaps_m">
-							<MkRadios v-model="followingFilter" @update:modelValue="search()">
-								<option value="combined">{{ i18n.ts._advancedSearch._followingFilter.combined }}</option>
-								<option value="following">{{ i18n.ts._advancedSearch._followingFilter.following }}</option>
-								<option value="notFollowing">{{ i18n.ts._advancedSearch._followingFilter.notFollowing }}</option>
-							</MkRadios>
+							<MkRadios
+								v-model="followingFilter" :options="[
+									{ value: 'combined', label: i18n.ts._advancedSearch._followingFilter.combined },
+									{ value: 'following', label: i18n.ts._advancedSearch._followingFilter.following },
+									{ value: 'notFollowing', label: i18n.ts._advancedSearch._followingFilter.notFollowing },
+								]" @update:modelValue="search()"
+							></MkRadios>
 						</div>
 					</FormSection>
 					<FormSection>
@@ -104,7 +123,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { markRaw, ref, shallowRef, toRef } from 'vue';
-import type { UserDetailed } from 'cherrypick-js/entities.js';
+import type { UserDetailed } from 'misskey-js/entities.js';
 import MkRadios from '@/components/MkRadios.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
@@ -137,6 +156,8 @@ const props = withDefaults(defineProps<{
 	excludeCw?: boolean;
 	excludeQuote?: boolean;
 	strictSearch?: boolean;
+	rangeStartAt?: string | null;
+	rangeEndAt?: string | null;
 }>(), {
 	query: '',
 	userId: undefined,
@@ -151,6 +172,8 @@ const props = withDefaults(defineProps<{
 	excludeCw: false,
 	excludeQuote: false,
 	strictSearch: false,
+	rangeStartAt: null,
+	rangeEndAt: null,
 });
 const router = useRouter();
 
@@ -159,6 +182,8 @@ const searchQuery = ref(toRef(props, 'query').value);
 const paginator = shallowRef<Paginator<'notes/advanced-search'> | null>(null);
 const user = ref<UserDetailed | null>(null);
 const hostInput = ref(toRef(props, 'host').value);
+const rangeStartAt = ref<string | null>(toRef(props, 'rangeStartAt').value);
+const rangeEndAt = ref<string | null>(toRef(props, 'rangeEndAt').value);
 const searchOrigin = ref<'combined' | 'local' | 'remote' | 'specified'>('combined');
 const isLocalOnly = ref(false);
 const isfileOnly = ref(toRef(props, 'fileAttach').value);
@@ -192,6 +217,13 @@ function removeUser() {
 }
 
 const isApUserName = RegExp('^@[a-zA-Z0-9_.]+@[a-zA-Z0-9-_.]+[a-zA-Z]$');
+
+const searchRange = () => {
+	return {
+		rangeStartAt: rangeStartAt.value ? new Date(rangeStartAt.value).getTime() : null,
+		rangeEndAt: rangeEndAt.value ? new Date(rangeEndAt.value).getTime() : null,
+	};
+};
 
 async function search() {
 	const query = searchQuery.value.toString().trim();
@@ -234,7 +266,7 @@ async function search() {
 			});
 			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 			const res = await promise;
-			if (typeof res.error === 'undefined') {
+			if (res) {
 				router.pushByPath(`/@${res.username}@${res.host}`);
 			}
 		}
@@ -253,6 +285,7 @@ async function search() {
 			return;
 		}
 	}
+
 	const reactionsQuery = emojiSearchQuery.value.split(' ').filter( item => item !== '');
 	const excludeReactionsQuery = emojiExcludeSearchQuery.value.split(' ').filter( item => item !== '');
 	paginator.value = markRaw(new Paginator('notes/advanced-search', {
@@ -270,6 +303,7 @@ async function search() {
 			sensitiveFilter: sensitiveFilter.value,
 			followingFilter: followingFilter.value,
 			useStrictSearch: strictSearch.value,
+			...searchRange(),
 		},
 	}));
 	key.value++;
@@ -279,7 +313,7 @@ const customEmoji = /^:[a-zA-Z0-9_]+:$/;
 
 async function updateEmoji(ev: MouseEvent) {
 	emojiPicker.show(
-		ev.currentTarget ?? ev.target,
+		(ev.currentTarget ?? ev.target) as HTMLElement,
 		emoji => {
 			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
 			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;
@@ -290,7 +324,7 @@ async function updateEmoji(ev: MouseEvent) {
 
 async function updateEmojiExclude(ev: MouseEvent) {
 	emojiPicker.show(
-		ev.currentTarget ?? ev.target,
+		(ev.currentTarget ?? ev.target) as HTMLElement,
 		emoji => {
 			const reaction = customEmoji.test(emoji) ? emoji.slice(0, -1) + '*' : emoji;
 			const value = 0 < emojiSearchQuery.value.length ? ' ' + reaction : reaction;

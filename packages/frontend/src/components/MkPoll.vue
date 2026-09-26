@@ -28,7 +28,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onMounted, ref, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { host } from '@@/js/config.js';
 import { sum } from '@@/js/array.js';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
@@ -48,8 +48,6 @@ const props = defineProps<{
 	emojiUrls?: Record<string, string>;
 	author?: Misskey.entities.UserLite;
 	isTranslation?: boolean;
-	emojiUrls?: Record<string, string>;
-	author?: Misskey.entities.UserLite;
 }>();
 
 const translation = ref<Misskey.entities.NotesPollsTranslateResponse | null>(null);
@@ -97,7 +95,8 @@ const pleaseLoginContext = computed<OpenOnRemoteOptions>(() => ({
 const vote = async (id: number) => {
 	if (props.readOnly || closed.value || isVoted.value) return;
 
-	pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	const isLoggedIn = await pleaseLogin({ openOnRemote: pleaseLoginContext.value });
+	if (!isLoggedIn) return;
 
 	const { canceled } = await os.confirm({
 		type: 'question',

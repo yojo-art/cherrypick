@@ -9,14 +9,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<i class="ti ti-list"></i><span style="margin-left: 8px;">{{ column.name || column.timelineNameCache || i18n.ts._deck._columns.list }}</span>
 	</template>
 
-	<MkStreamingNotesTimeline v-if="column.listId" ref="timeline" src="list" :list="column.listId" :withRenotes="withRenotes"/>
+	<MkStreamingNotesTimeline v-if="column.listId" ref="timeline" :key="column.listId + withRenotes + withSensitive + onlyFiles" src="list" :list="column.listId" :withRenotes="withRenotes" :withSensitive="withSensitive" :onlyFiles="onlyFiles"/>
 </XColumn>
 </template>
 
 <script lang="ts" setup>
 import { watch, useTemplateRef, ref, onMounted } from 'vue';
 import XColumn from './column.vue';
-import type { entities as MisskeyEntities } from 'cherrypick-js';
+import type { entities as MisskeyEntities } from 'misskey-js';
 import type { Column } from '@/deck.js';
 import type { MenuItem } from '@/types/menu.js';
 import type { SoundStore } from '@/preferences/def.js';
@@ -35,6 +35,8 @@ const props = defineProps<{
 
 const timeline = useTemplateRef('timeline');
 const withRenotes = ref(props.column.withRenotes ?? true);
+const withSensitive = ref(props.column.withSensitive ?? true);
+const onlyFiles = ref(props.column.onlyFiles ?? false);
 const soundSetting = ref<SoundStore>(props.column.soundSetting ?? { type: null, volume: 1 });
 
 async function reloadTimeline() {
@@ -56,6 +58,18 @@ watch(withRenotes, v => {
 	});
 });
 
+watch(withSensitive, v => {
+	updateColumn(props.column.id, {
+		withSensitive: v,
+	});
+});
+
+watch(onlyFiles, v => {
+	updateColumn(props.column.id, {
+		onlyFiles: v,
+	});
+});
+
 watch(soundSetting, v => {
 	updateColumn(props.column.id, { soundSetting: v });
 });
@@ -74,7 +88,7 @@ async function setList() {
 				})),
 			} : undefined),
 		],
-		default: props.column.listId,
+		default: lists.find(x => x.id === props.column.listId)?.id,
 	});
 	if (canceled || listIdOrOperation == null) return;
 
@@ -102,7 +116,7 @@ async function setList() {
 }
 
 function editList() {
-	os.pageWindow('my/lists/' + props.column.listId);
+	os.pageWindow('/my/lists/' + props.column.listId);
 }
 
 const menu: MenuItem[] = [
@@ -120,6 +134,16 @@ const menu: MenuItem[] = [
 		type: 'switch',
 		text: i18n.ts.showRenotes,
 		ref: withRenotes,
+	},
+	{
+		type: 'switch',
+		text: i18n.ts.withSensitive,
+		ref: withSensitive,
+	},
+	{
+		type: 'switch',
+		text: i18n.ts.fileAttachedOnly,
+		ref: onlyFiles,
 	},
 	{
 		icon: 'ti ti-bell',

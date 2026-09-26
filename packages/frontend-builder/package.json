@@ -10,16 +10,17 @@
 		"./*": "./js/*"
 	},
 	"devDependencies": {
-		"@types/estree": "1.0.8",
-		"@types/node": "24.9.1",
-		"@typescript-eslint/eslint-plugin": "8.46.1",
-		"@typescript-eslint/parser": "8.46.1",
-		"rollup": "4.59.0",
-		"typescript": "5.9.3"
+		"@types/estree": "1.0.9",
+		"@types/node": "26.4.0",
+		"@typescript-eslint/eslint-plugin": "8.68.0",
+		"@typescript-eslint/parser": "8.68.0",
+		"rollup": "4.63.1"
 	},
 	"dependencies": {
-		"estree-walker": "3.0.3",
-		"magic-string": "0.30.19",
-		"vite": "7.3.2"
+		"i18n": "workspace:*",
+		"magic-string": "1.2.3",
+		"oxc-walker": "1.1.1",
+		"rolldown": "1.2.6",
+		"vite": "8.2.2"
 	}
 }

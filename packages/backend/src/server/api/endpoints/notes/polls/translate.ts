@@ -6,10 +6,11 @@
 import { URLSearchParams } from 'node:url';
 import fs from 'node:fs';
 import { Inject, Injectable } from '@nestjs/common';
-import { translate } from '@vitalets/google-translate-api';
 import { TranslationServiceClient } from '@google-cloud/translate';
 import { Endpoint } from '@/server/api/endpoint-base.js';
+import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
+import { GetterService } from '@/server/api/GetterService.js';
 import { createTemp } from '@/misc/create-temp.js';
 import { RoleService } from '@/core/RoleService.js';
 import { MiMeta } from '@/models/_.js';
@@ -36,6 +37,7 @@ export const meta = {
 					optional: false, nullable: true,
 				},
 			},
+			translator: { type: 'string', enum: ['deepl', 'ctav3', 'libretranslate'] },
 		},
 	},
 
@@ -44,6 +46,16 @@ export const meta = {
 			message: 'Translate of polls unavailable.',
 			code: 'UNAVAILABLE',
 			id: 'dc5ba5b7-0d50-4dcd-80f5-910f16a56b40',
+		},
+		noSuchNote: {
+			message: 'No such note.',
+			code: 'NO_SUCH_NOTE',
+			id: 'dc3b840b-5f55-4cc9-870f-f3689736fd8d',
+		},
+		cannotTranslateInvisibleNote: {
+			message: 'Cannot translate invisible note.',
+			code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
+			id: '1cfefacf-70d4-4231-ab68-de9a3e68e88b',
 		},
 		noTranslateService: {
 			message: 'Translate service is not available.',
@@ -71,6 +83,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.pollsRepository)
 		private pollsRepository: PollsRepository,
 
+		private noteEntityService: NoteEntityService,
+		private getterService: GetterService,
 		private httpRequestService: HttpRequestService,
 		private roleService: RoleService,
 	) {
@@ -80,70 +94,82 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.unavailable);
 			}
 
-			const poll = await this.pollsRepository.findOneByOrFail({ noteId: ps.noteId });
+			const note = await this.getterService.getNote(ps.noteId).catch(err => {
+				if (err.id === '9725d0ce-ba28-4dde-95a7-2cbb2c15de24') throw new ApiError(meta.errors.noSuchNote);
+				throw err;
+			});
+
+			if (!(await this.noteEntityService.isVisibleForMe(note, me.id))) {
+				throw new ApiError(meta.errors.cannotTranslateInvisibleNote);
+			}
+
+			const poll = await this.pollsRepository.findOneBy({ noteId: ps.noteId });
+			if (poll == null) {
+				throw new ApiError(meta.errors.noSuchNote);
+			}
 
 			if (poll.choices == null) {
 				return;
-			}
-
-			const translatorServices = [
-				'deepl',
-				'google_no_api',
-				'ctav3',
-				'Libretranslate',
-			];
-
-			if (this.serverSettings.translatorType == null || !translatorServices.includes(this.serverSettings.translatorType)) {
-				throw new ApiError(meta.errors.noTranslateService);
 			}
 
 			let targetLang = ps.targetLang;
 			if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
 
 			let translationResult;
-			if (this.serverSettings.translatorType === 'deepl') {
-				if (this.serverSettings.deeplAuthKey == null) {
-					throw new ApiError(meta.errors.unavailable);
+
+			const translatorType = this.serverSettings.translatorType?.toLowerCase() ?? null;
+			switch (translatorType) {
+				case 'deepl': {
+					if (this.serverSettings.deeplAuthKey == null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+					translationResult = await this.translateDeepL(
+						poll.choices,
+						targetLang,
+						this.serverSettings.deeplAuthKey,
+						this.serverSettings.deeplIsPro);
+					break;
 				}
-				translationResult = await this.translateDeepL(poll.choices, targetLang, this.serverSettings.deeplAuthKey, this.serverSettings.deeplIsPro, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'google_no_api') {
-				let targetLang = ps.targetLang;
-				if (targetLang.includes('-')) targetLang = targetLang.split('-')[0];
+				case 'ctav3': {
+					if (this.serverSettings.ctav3SaKey == null || this.serverSettings.ctav3ProjectId == null || this.serverSettings.ctav3Location == null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
 
-				const translatedChoices = await Promise.all(
-					poll.choices.map(async (choice) => {
-						const { text, raw } = await translate(choice, { to: targetLang });
-						return { translatedText: text, sourceLang: raw.src };
-					}),
-				);
-
-				return {
-					sourceLang: translatedChoices[0]?.sourceLang,
-					text: translatedChoices.map(choice => choice.translatedText),
-					translator: this.serverSettings.translatorType, // 修正点: 配列ではなく単一の文字列
-				};
-			} else if (this.serverSettings.translatorType === 'ctav3') {
-				if (this.serverSettings.ctav3SaKey == null) return Promise.resolve(204);
-				else if (this.serverSettings.ctav3ProjectId == null) return Promise.resolve(204);
-				else if (this.serverSettings.ctav3Location == null) return Promise.resolve(204);
-				translationResult = await this.apiCloudTranslationAdvanced(poll.choices, targetLang, this.serverSettings.ctav3SaKey, this.serverSettings.ctav3ProjectId, this.serverSettings.ctav3Location, this.serverSettings.ctav3Model, this.serverSettings.ctav3Glossary, this.serverSettings.translatorType);
-			} else if (this.serverSettings.translatorType === 'Libretranslate') {
-				const endPoint = this.serverSettings.libreTranslateEndPoint;
-				if (endPoint === null) throw new Error('libreTranslateEndPoint is null');
-				translationResult = await this.translateLibretranslate(poll.choices, targetLang, endPoint, this.serverSettings.libreTranslateApiKey);
-			} else {
-				throw new Error('Unsupported translator type');
+					translationResult = await this.apiCloudTranslationAdvanced(
+						poll.choices,
+						targetLang,
+						this.serverSettings.ctav3SaKey,
+						this.serverSettings.ctav3ProjectId,
+						this.serverSettings.ctav3Location,
+						this.serverSettings.ctav3Model,
+						this.serverSettings.ctav3Glossary);
+					break;
+				}
+				case 'libretranslate': {
+					const endPoint = this.serverSettings.libreTranslateEndPoint;
+					if (endPoint === null) {
+						throw new ApiError(meta.errors.unavailable);
+					}
+					translationResult = await this.translateLibretranslate(
+						poll.choices,
+						targetLang,
+						endPoint,
+						this.serverSettings.libreTranslateApiKey);
+					break;
+				}
+				default:
+					throw new ApiError(meta.errors.noTranslateService);
 			}
 
 			return Promise.resolve({
 				sourceLang: translationResult.sourceLang || '',
 				text: translationResult.text || [],
-				translator: translationResult.translator || [],
+				translator: translatorType,
 			});
 		});
 	}
 
-	private async translateDeepL(text: string[], targetLang: string, authKey: string, isPro: boolean, provider: string) {
+	private async translateDeepL(text: string[], targetLang: string, authKey: string, isPro: boolean) {
 		const params = new URLSearchParams();
 		params.append('auth_key', authKey);
 		params.append('target_lang', targetLang);
@@ -178,11 +204,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: translations[0]?.sourceLang || '',
 			text: translations.map(choice => choice.translatedText),
-			translator: provider,
 		};
 	}
 
-	private async apiCloudTranslationAdvanced(text: string[], targetLang: string, saKey: string, projectId: string, location: string, model: string | null, glossary: string | null, provider: string) {
+	private async apiCloudTranslationAdvanced(text: string[], targetLang: string, saKey: string, projectId: string, location: string, model: string | null, glossary: string | null) {
 		const [path, cleanup] = await createTemp();
 		fs.writeFileSync(path, saKey);
 
@@ -227,11 +252,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: detectedLanguage !== null ? detectedLanguage : detectedLanguageCode,
 			text: translatedText,
-			translator: provider,
 		};
 	}
 
-	private async translateLibretranslate(texts: string[], targetLang: string, endpoint: string, apiKey:string | null ) {
+	private async translateLibretranslate(texts: string[], targetLang: string, endpoint: string, apiKey:string | null) {
 		const translations = [];
 		const target = targetLang.split('-')[0];
 		for (const text of texts) {
@@ -264,7 +288,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		return {
 			sourceLang: translations[0]?.sourceLang || '',
 			text: translations.map(choice => choice.translatedText),
-			translator: 'Libretranslate',
 		};
 	}
 }

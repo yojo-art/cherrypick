@@ -6,6 +6,7 @@
 import { computed, reactive } from 'vue';
 import { ui } from '@@/js/config.js';
 import { clearCache } from './utility/clear-cache.js';
+import type { ComputedRef } from 'vue';
 import { $i } from '@/i.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { openInstanceMenu, openToolsMenu } from '@/ui/_common_/common.js';
@@ -13,9 +14,18 @@ import { lookup } from '@/utility/lookup.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { unisonReload } from '@/utility/unison-reload.js';
-import { donateCherryPick } from '@/utility/donate-cherrypick.js';
 
-export const navbarItemDef = reactive({
+export const navbarItemDef = reactive<{
+	[key: string]: {
+		title: string;
+		icon: string;
+		show?: ComputedRef<boolean>;
+		indicated?: ComputedRef<boolean>;
+		indicateValue?: ComputedRef<string>;
+		to?: string;
+		action?: (ev: PointerEvent) => void;
+	};
+}>({
 	notifications: {
 		title: i18n.ts.notifications,
 		icon: 'ti ti-bell',
@@ -124,12 +134,17 @@ export const navbarItemDef = reactive({
 		show: computed(() => $i != null),
 		to: '/my/clips',
 	},
+	channels: {
+		title: i18n.ts.channel,
+		icon: 'ti ti-device-tv',
+		to: '/channels',
+	},
 	chat: {
 		title: i18n.ts.directMessage_short,
 		icon: 'ti ti-messages',
 		to: '/chat',
 		show: computed(() => $i != null && $i.policies.chatAvailability !== 'unavailable'),
-		indicated: computed(() => $i?.hasUnreadChatMessages),
+		indicated: computed(() => $i?.hasUnreadChatMessages ?? false),
 	},
 	achievements: {
 		title: i18n.ts.achievements,
@@ -150,17 +165,10 @@ export const navbarItemDef = reactive({
 	ui: {
 		title: i18n.ts.switchUi,
 		icon: 'ti ti-devices',
-		action: (ev: MouseEvent) => {
+		action: (ev) => {
 			os.popupMenu([{
-				text: 'Friendly',
-				active: ui === 'friendly' || ui === null,
-				action: () => {
-					miLocalStorage.setItem('ui', 'friendly');
-					unisonReload();
-				},
-			}, {
-				text: 'Misskey',
-				active: ui === 'default',
+				text: i18n.ts.default,
+				active: ui === 'default' || ui === null,
 				action: () => {
 					miLocalStorage.setItem('ui', 'default');
 					unisonReload();
@@ -224,12 +232,6 @@ export const navbarItemDef = reactive({
 		icon: 'ti ti-user',
 		show: computed(() => $i != null),
 		to: `/@${$i?.username}`,
-	},
-	support: {
-		// title: i18n.tsx.supportThisInstance({ name: instance.name ?? host }),
-		title: i18n.tsx.supportThisInstance({ name: 'CherryPick' }),
-		icon: 'ti ti-pig-money',
-		action: (ev) => donateCherryPick(ev),
 	},
 	cacheClear: {
 		title: i18n.ts.clearCache,

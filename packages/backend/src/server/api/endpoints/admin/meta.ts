@@ -246,6 +246,22 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			sensitiveMediaDetectionApiUrl: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			sensitiveMediaDetectionApiKey: {
+				type: 'string',
+				optional: false, nullable: true,
+			},
+			sensitiveMediaDetectionTimeout: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
+			sensitiveMediaDetectionMaxImagesPerRequest: {
+				type: 'number',
+				optional: false, nullable: false,
+			},
 			proxyAccountId: {
 				type: 'string',
 				optional: false, nullable: false,
@@ -512,8 +528,7 @@ export const meta = {
 				optional: false, nullable: true,
 			},
 			clientOptions: {
-				type: 'object',
-				optional: false, nullable: false,
+				ref: 'MetaClientOptions',
 			},
 			description: {
 				type: 'string',
@@ -624,6 +639,14 @@ export const meta = {
 			urlPreviewDirectSummalyProxy: {
 				type: 'boolean',
 				optional: false, nullable: false,
+			},
+			urlPreviewSensitiveList: {
+				type: 'array',
+				optional: false, nullable: false,
+				items: {
+					type: 'string',
+					optional: false, nullable: false,
+				},
 			},
 			federation: {
 				type: 'string',
@@ -751,6 +774,10 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
+			opensearchEnabled: {
+				type: 'boolean',
+				optional: false, nullable: false,
+			},
 		},
 	},
 } as const;
@@ -849,6 +876,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				sensitiveMediaDetectionSensitivity: instance.sensitiveMediaDetectionSensitivity,
 				setSensitiveFlagAutomatically: instance.setSensitiveFlagAutomatically,
 				enableSensitiveMediaDetectionForVideos: instance.enableSensitiveMediaDetectionForVideos,
+				sensitiveMediaDetectionApiUrl: instance.sensitiveMediaDetectionApiUrl,
+				sensitiveMediaDetectionApiKey: instance.sensitiveMediaDetectionApiKey,
+				sensitiveMediaDetectionTimeout: instance.sensitiveMediaDetectionTimeout,
+				sensitiveMediaDetectionMaxImagesPerRequest: instance.sensitiveMediaDetectionMaxImagesPerRequest,
 				proxyAccountId: proxy.id,
 				email: instance.email,
 				smtpSecure: instance.smtpSecure,
@@ -924,6 +955,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				urlPreviewUserAgent: instance.urlPreviewUserAgent,
 				urlPreviewSummaryProxyUrl: instance.urlPreviewSummaryProxyUrl,
 				urlPreviewDirectSummalyProxy: instance.directSummalyProxy,
+				urlPreviewSensitiveList: instance.urlPreviewSensitiveList,
 				federation: instance.federation,
 				federationHosts: instance.federationHosts,
 				deliverSuspendedSoftware: instance.deliverSuspendedSoftware,
@@ -948,6 +980,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				moderatorInactivityLimitDays: instance.moderatorInactivityLimitDays,
 				bubbleInstances: instance.bubbleInstances,
 				customRobotsTxt: instance.customRobotsTxt,
+				opensearchEnabled: this.config.opensearch != null,
 			};
 		});
 	}

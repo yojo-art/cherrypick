@@ -15,14 +15,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<MkButton rounded full @click="emit('showMore')">{{ i18n.ts.showMore }} <i class="ti ti-arrow-right"></i></MkButton>
 		</div>
-		<p v-if="!fetching && notes.length == 0" :class="$style.empty">{{ i18n.ts.nothing }}</p>
+		<p v-if="!fetching && notes.length == 0">{{ i18n.ts.nothing }}</p>
 	</div>
 </MkContainer>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import MkButton from '@/components/MkButton.vue';
 import MkContainer from '@/components/MkContainer.vue';

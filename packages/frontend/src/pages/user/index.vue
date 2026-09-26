@@ -27,7 +27,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, computed, watch, ref, onUnmounted } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import * as os from '@/os.js';
 import { acct as getAcct } from '@/filters/user.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
@@ -162,7 +162,7 @@ const headerTabs = computed(() => user.value ? [{
 	icon: 'ti ti-code',
 }] : []);
 
-function menu(ev) {
+function menu(ev: MouseEvent) {
 	if (!user.value) return;
 	const { menu, cleanup } = getUserMenu(user.value, mainRouter);
 	os.popupMenu(menu, ev.currentTarget ?? ev.target).finally(cleanup);

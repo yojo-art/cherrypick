@@ -63,6 +63,8 @@ export const noteVisibilities = ['public', 'home', 'followers', 'specified'] as 
 
 export const noteReactionAcceptances = ['likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote', null] as const;
 
+export const announcementReactionAcceptances = ['likeOnly', 'none', null] as const;
+
 export const mutedNoteReasons = ['word', 'manual', 'spam', 'other'] as const;
 
 export const followingVisibilities = ['public', 'followers', 'private'] as const;
@@ -98,6 +100,8 @@ export const moderationLogTypes = [
 	'deleteRole',
 	'clearQueue',
 	'promoteQueue',
+	'pauseQueue',
+	'resumeQueue',
 	'deleteDriveFile',
 	'deleteNote',
 	'createGlobalAnnouncement',
@@ -122,6 +126,7 @@ export const moderationLogTypes = [
 	'createAvatarDecoration',
 	'updateAvatarDecoration',
 	'deleteAvatarDecoration',
+	'unsetMfa',
 	'unsetUserAvatar',
 	'unsetUserBanner',
 	'createSystemWebhook',
@@ -140,6 +145,12 @@ export const moderationLogTypes = [
 	'unsetUserMutualLink',
 	'quarantineRemoteInstance',
 	'unquarantineRemoteInstance',
+] as const;
+
+export const translateServices = [
+	'deepl',
+	'libretranslate',
+	'ctav3',
 ] as const;
 
 export type ModerationLogPayloads = {
@@ -207,6 +218,8 @@ export type ModerationLogPayloads = {
 	};
 	clearQueue: Record<string, never>;
 	promoteQueue: Record<string, never>;
+	pauseQueue: Record<string, never>;
+	resumeQueue: Record<string, never>;
 	deleteDriveFile: {
 		fileId: string;
 		fileUserId: string | null;
@@ -330,6 +343,11 @@ export type ModerationLogPayloads = {
 	deleteAvatarDecoration: {
 		avatarDecorationId: string;
 		avatarDecoration: any;
+	};
+	unsetMfa: {
+		userId: string;
+		userUsername: string;
+		userHost: string | null;
 	};
 	unsetUserAvatar: {
 		userId: string;

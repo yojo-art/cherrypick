@@ -3,9 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { computed, watch, version as vueVersion, defineAsyncComponent } from 'vue';
+import { watch, version as vueVersion, defineAsyncComponent } from 'vue';
 import { compareVersions } from 'compare-versions';
-import { version, basedMisskeyVersion, basedCherrypickVersion, lang, apiUrl, isSafeMode } from '@@/js/config.js';
+import { version, basedMisskeyVersion, basedCherrypickVersion, lang, isSafeMode } from '@@/js/config.js';
 import defaultLightTheme from '@@/themes/l-cherrypick.json5';
 import defaultDarkTheme from '@@/themes/d-cherrypick.json5';
 import { storeBootloaderErrors } from '@@/js/store-boot-errors';
@@ -13,13 +13,13 @@ import type { App } from 'vue';
 import widgets from '@/widgets/index.js';
 import directives from '@/directives/index.js';
 import components from '@/components/index.js';
-import { applyTheme } from '@/theme.js';
+import { themeManager } from '@/theme.js';
 import { isDeviceDarkmode } from '@/utility/is-device-darkmode.js';
-import { updateI18n, i18n } from '@/i18n.js';
+import { i18n } from '@/i18n.js';
 import { refreshCurrentAccount, login } from '@/accounts.js';
 import { store } from '@/store.js';
 import { fetchInstance, instance } from '@/instance.js';
-import { deviceKind, updateDeviceKind } from '@/utility/device-kind.js';
+import { updateDeviceKind } from '@/utility/device-kind.js';
 import { reloadChannel } from '@/utility/unison-reload.js';
 import { getUrlWithoutLoginId } from '@/utility/login-id.js';
 import { getAccountFromId } from '@/utility/get-account-from-id.js';
@@ -28,8 +28,10 @@ import { analytics, initAnalytics } from '@/analytics.js';
 import { miLocalStorage } from '@/local-storage.js';
 import { fetchCustomEmojis } from '@/custom-emojis.js';
 import { prefer } from '@/preferences.js';
+import { migrateLegacyStoreValues } from '@/preferences/legacyStoreMigration.js';
 import { $i } from '@/i.js';
 import { launchPlugins } from '@/plugin.js';
+import { initTelemetry } from '@/telemetry.js';
 import { popup } from '@/os.js';
 
 export async function common(createVue: () => Promise<App<Element>>) {
@@ -67,7 +69,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	let isClientMigrated = false;
 	const showPushNotificationDialog = miLocalStorage.getItem('showPushNotificationDialog');
 
-	if (miLocalStorage.getItem('ui') === null) miLocalStorage.setItem('ui', 'friendly');
+	if (miLocalStorage.getItem('ui') === null) miLocalStorage.setItem('ui', 'default');
 
 	if (instance.swPublickey && ('PushManager' in window) && $i && $i.token && showPushNotificationDialog == null) {
 		const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkPushNotification.vue')), {}, {
@@ -128,13 +130,6 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		else window.location.reload();
 	});
 
-	// If mobile, insert the viewport meta tag
-	if (['smartphone', 'tablet'].includes(deviceKind)) {
-		const viewport = window.document.getElementsByName('viewport').item(0);
-		viewport.setAttribute('content',
-			`${viewport.getAttribute('content')}, minimum-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover`);
-	}
-
 	//#region Set lang attr
 	const html = window.document.documentElement;
 	html.setAttribute('lang', lang);
@@ -142,6 +137,11 @@ export async function common(createVue: () => Promise<App<Element>>) {
 
 	await store.ready;
 	await deckStore.ready;
+
+	// 旧store (Pizzax) から preferences への一度だけの移行
+	if (!isSafeMode) {
+		await migrateLegacyStoreValues();
+	}
 
 	const fetchInstanceMetaPromise = fetchInstance();
 
@@ -181,8 +181,15 @@ export async function common(createVue: () => Promise<App<Element>>) {
 	});
 	//#endregion
 
+	if (!isSafeMode) {
+		// TODO: instance.defaultLightTheme/instance.defaultDarkThemeが不正な形式だった場合のケア
+		if (prefer.s.lightTheme == null && instance.defaultLightTheme != null) prefer.commit('lightTheme', JSON.parse(instance.defaultLightTheme));
+		if (prefer.s.darkTheme == null && instance.defaultDarkTheme != null) prefer.commit('darkTheme', JSON.parse(instance.defaultDarkTheme));
+	}
+
 	// NOTE: この処理は必ずクライアント更新チェック処理より後に来ること(テーマ再構築のため)
 	// NOTE: この処理は必ずダークモード判定処理より後に来ること(初回のテーマ適用のため)
+	// NOTE: この処理は必ずサーバーテーマ適用処理より後に来ること(二重発火を防ぐため)
 	// see: https://github.com/misskey-dev/misskey/issues/16562
 	watch(store.r.darkMode, (darkMode) => {
 		const theme = (() => {
@@ -193,31 +200,22 @@ export async function common(createVue: () => Promise<App<Element>>) {
 			}
 		})();
 
-		applyTheme(theme);
+		themeManager.updateTheme(theme);
 	}, { immediate: true });
 
 	window.document.documentElement.dataset.colorScheme = store.s.darkMode ? 'dark' : 'light';
 
 	if (!isSafeMode) {
-		const darkTheme = prefer.model('darkTheme');
-		const lightTheme = prefer.model('lightTheme');
-
-		watch(darkTheme, (theme) => {
+		watch(prefer.r.darkTheme, (theme) => {
 			if (store.s.darkMode) {
-				applyTheme(theme ?? defaultDarkTheme);
+				themeManager.updateTheme(theme ?? defaultDarkTheme);
 			}
 		});
 
-		watch(lightTheme, (theme) => {
+		watch(prefer.r.lightTheme, (theme) => {
 			if (!store.s.darkMode) {
-				applyTheme(theme ?? defaultLightTheme);
+				themeManager.updateTheme(theme ?? defaultLightTheme);
 			}
-		});
-
-		fetchInstanceMetaPromise.then(() => {
-			// TODO: instance.defaultLightTheme/instance.defaultDarkThemeが不正な形式だった場合のケア
-			if (prefer.s.lightTheme == null && instance.defaultLightTheme != null) prefer.commit('lightTheme', JSON.parse(instance.defaultLightTheme));
-			if (prefer.s.darkTheme == null && instance.defaultDarkTheme != null) prefer.commit('darkTheme', JSON.parse(instance.defaultDarkTheme));
 		});
 	}
 
@@ -316,40 +314,7 @@ export async function common(createVue: () => Promise<App<Element>>) {
 		return root;
 	})();
 
-	if (instance.sentryForFrontend) {
-		const Sentry = await import('@sentry/vue');
-		Sentry.init({
-			app,
-			integrations: [
-				...(instance.sentryForFrontend.vueIntegration !== undefined ? [
-					Sentry.vueIntegration(instance.sentryForFrontend.vueIntegration ?? undefined),
-				] : []),
-				...(instance.sentryForFrontend.browserTracingIntegration !== undefined ? [
-					Sentry.browserTracingIntegration(instance.sentryForFrontend.browserTracingIntegration ?? undefined),
-				] : []),
-				...(instance.sentryForFrontend.replayIntegration !== undefined ? [
-					Sentry.replayIntegration(instance.sentryForFrontend.replayIntegration ?? undefined),
-				] : []),
-			],
-
-			// Set tracesSampleRate to 1.0 to capture 100%
-			tracesSampleRate: 1.0,
-
-			// Set `tracePropagationTargets` to control for which URLs distributed tracing should be enabled
-			...(instance.sentryForFrontend.browserTracingIntegration !== undefined ? {
-				tracePropagationTargets: [apiUrl],
-			} : {}),
-
-			// Capture Replay for 10% of all sessions,
-			// plus for 100% of sessions with an error
-			...(instance.sentryForFrontend.replayIntegration !== undefined ? {
-				replaysSessionSampleRate: 0.1,
-				replaysOnErrorSampleRate: 1.0,
-			} : {}),
-
-			...instance.sentryForFrontend.options,
-		});
-	}
+	await initTelemetry(instance, app);
 
 	try {
 		await launchPlugins();

@@ -5,6 +5,7 @@
 
 import { Inject, Injectable } from '@nestjs/common';
 import { In } from 'typeorm';
+import * as Redis from 'ioredis';
 import { DI } from '@/di-symbols.js';
 import type { Config } from '@/config.js';
 import { UserFollowingService } from '@/core/UserFollowingService.js';
@@ -14,12 +15,12 @@ import { NotePiningService } from '@/core/NotePiningService.js';
 import { UserBlockingService } from '@/core/UserBlockingService.js';
 import { NoteDeleteService } from '@/core/NoteDeleteService.js';
 import { NoteCreateService } from '@/core/NoteCreateService.js';
+import { acquireApObjectLock } from '@/misc/distributed-lock.js';
 import { NoteUpdateService } from '@/core/NoteUpdateService.js';
 import { NotificationService } from '@/core/NotificationService.js';
 import { ChatService } from '@/core/ChatService.js';
 import { RoleService } from '@/core/RoleService.js';
 import { concat, toArray, toSingle, unique } from '@/misc/prelude/array.js';
-import { AppLockService } from '@/core/AppLockService.js';
 import type Logger from '@/logger.js';
 import { IdService } from '@/core/IdService.js';
 import { StatusError } from '@/misc/status-error.js';
@@ -27,12 +28,13 @@ import { UtilityService } from '@/core/UtilityService.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
-import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository } from '@/models/_.js';
+import type { UsersRepository, NotesRepository, FollowingsRepository, AbuseUserReportsRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ChatRoomsRepository, ChatRoomInvitationsRepository, ChatRoomMembershipsRepository, ChannelsRepository, MiChannel } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import type { MiRemoteUser } from '@/models/User.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { AbuseReportService } from '@/core/AbuseReportService.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
+import { trackPromise } from '@/misc/promise-tracker.js';
 import { getApHrefNullable, getApId, getApIds, getApType, isAccept, isActor, isAdd, isAnnounce, isBlock, isCollection, isCollectionOrOrderedCollection, isCreate, isDelete, isFlag, isFollow, isInvite, isLike, isMove, isPost, isRead, isReject, isRemove, isTombstone, isUndo, isUpdate, validActor, validPost, isJoin, isReversi, isLeave, isClip, isGame } from './type.js';
 import { ApNoteService } from './models/ApNoteService.js';
 import { ApLoggerService } from './ApLoggerService.js';
@@ -45,6 +47,7 @@ import { ApImageService } from './models/ApImageService.js';
 import { ApMfmService } from './ApMfmService.js';
 import { ApGameService } from './models/ApGameService.js';
 import { ApClipService } from './models/ApClipService.js';
+import { ApDeliverManagerService } from './ApDeliverManagerService.js';
 import type { Resolver } from './ApResolverService.js';
 import type { IAccept, IAdd, IAnnounce, IBlock, ICreate, IDelete, IFlag, IFollow, IInvite, ILike, IObject, IRead, IReject, IRemove, IUndo, IUpdate, IMove, IPost, IApGame, IJoin, ILeave } from './type.js';
 
@@ -56,8 +59,8 @@ export class ApInboxService {
 		@Inject(DI.config)
 		private config: Config,
 
-		@Inject(DI.meta)
-		private meta: MiMeta,
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
 
 		@Inject(DI.usersRepository)
 		private usersRepository: UsersRepository,
@@ -83,6 +86,9 @@ export class ApInboxService {
 		@Inject(DI.chatRoomMembershipsRepository)
 		private chatRoomMembershipsRepository: ChatRoomMembershipsRepository,
 
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
+
 		private userEntityService: UserEntityService,
 		private noteEntityService: NoteEntityService,
 		private utilityService: UtilityService,
@@ -100,7 +106,6 @@ export class ApInboxService {
 		private notificationService: NotificationService,
 		private chatService: ChatService,
 		private roleService: RoleService,
-		private appLockService: AppLockService,
 		private apResolverService: ApResolverService,
 		private apDbResolverService: ApDbResolverService,
 		private apLoggerService: ApLoggerService,
@@ -113,6 +118,7 @@ export class ApInboxService {
 		private globalEventService: GlobalEventService,
 		private apgameService: ApGameService,
 		private apClipService: ApClipService,
+		private apDeliverManagerService: ApDeliverManagerService,
 	) {
 		this.logger = this.apLoggerService.logger;
 	}
@@ -360,7 +366,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async add(actor: MiRemoteUser, activity: IAdd, resolver?: Resolver): Promise<string | void> {
-		if (actor.uri !== activity.actor) {
+		if (actor.uri !== getApId(activity.actor)) {
 			return 'invalid actor';
 		}
 
@@ -371,7 +377,10 @@ export class ApInboxService {
 		if (activity.target === actor.featured) {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
-			await this.notePiningService.addPinned(actor, note.id);
+			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
+				id: actor.channelId,
+			}) ?? undefined : undefined;
+			await this.notePiningService.addPinned(actor, note.id, channel);
 			return;
 		}
 
@@ -403,19 +412,19 @@ export class ApInboxService {
 
 	@bindThis
 	private async announceNote(actor: MiRemoteUser, activity: IAnnounce, target: IPost, resolver?: Resolver): Promise<string | void> {
-		const uri = getApId(activity);
-
 		if (actor.isSuspended) {
 			return;
 		}
 
+		// リレーからのAnnounceかチェック
+		const fromRelay = await this.relayService.isRelayActor(actor);
+		const uri = getApId(fromRelay ? target : activity);
+
 		// アナウンス先が許可されているかチェック
 		if (!this.utilityService.isFederationAllowedUri(uri)) return;
 
-		const relays = await this.relayService.getAcceptedRelays();
-		const fromRelay = !!actor.inbox && relays.map(r => r.inbox).includes(actor.inbox);
-
-		const unlock = await this.appLockService.getApLock(uri);
+		const activityUri = getApId(activity);
+		const unlock = await acquireApObjectLock(this.redisClient, activityUri);
 
 		try {
 			// 既に同じURIを持つものが登録されていないかチェック
@@ -440,23 +449,51 @@ export class ApInboxService {
 				throw err;
 			}
 
-			if (!await this.noteEntityService.isVisibleForMe(renote, actor.id)) {
-				return 'skip: invalid actor for this activity';
-			}
-
+			// リレーからのAnnounceはリノートを作成せず、ノートを直接公開する
 			if (fromRelay) {
-				const noteObj = await this.noteEntityService.pack(renote);
+				this.logger.info(`Publishing relay-delivered note: ${uri}`);
+				const noteObj = await this.noteEntityService.pack(renote, null, { skipHide: true, withReactionAndUserPairCache: true });
 				this.globalEventService.publishNotesStream(noteObj);
 				return;
 			}
 
+			if (!await this.noteEntityService.isVisibleForMe(renote, actor.id)) {
+				return 'skip: invalid actor for this activity';
+			}
+
 			this.logger.info(`Creating the (Re)Note: ${uri}`);
 
-			const activityAudience = await this.apAudienceService.parseAudience(actor, activity.to, activity.cc, resolver);
+			const activityAudience = await this.apAudienceService.parseAudience(actor, activity.to, activity.cc, activity.audience, resolver);
 			const createdAt = activity.published ? new Date(activity.published) : null;
 
 			if (createdAt && createdAt < this.idService.parse(renote.id).date) {
 				return 'skip: malformed createdAt';
+			}
+			let channel = null as MiChannel | null;
+			if (actor.channelId) {
+				//チャンネルアカウントによる投稿はすべてチャンネル投稿
+				channel = await this.channelsRepository.findOneBy({ id: actor.channelId });
+				if (channel)channel.actor = actor;
+			} else {
+				//リノートは本文情報が無いのでccにチャンネルアカウントが入ってるかだけ見る
+				for (const user of activityAudience.mentionedUsers) {
+					const channelId = user.channelId;
+					if (channelId) {
+						channel = await this.channelsRepository.findOneBy({ id: channelId });
+						if (channel)channel.actor = user;
+					}
+					if (channel) break;//最初に発見されたチャンネルに投稿
+				}
+				if (channel?.actor && channel.actor.host === null) {
+					//リモートユーザーによるローカルのチャンネルへの投稿
+					const user = { id: channel.actor.id, host: null };
+					if (activity.signature) {
+						//yojo-art: チャンネル連合 内容に署名されていれば転送する
+						const dm = this.apDeliverManagerService.createDeliverManager(user, activity);
+						dm.addChannelFollowersRecipe(user.id);
+						trackPromise(dm.execute());
+					}
+				}
 			}
 
 			await this.noteCreateService.create(actor, {
@@ -466,6 +503,7 @@ export class ApInboxService {
 				searchableBy: null,
 				visibleUsers: activityAudience.visibleUsers,
 				uri,
+				channel,
 			});
 		} finally {
 			unlock();
@@ -586,7 +624,7 @@ export class ApInboxService {
 			}
 		}
 
-		const unlock = await this.appLockService.getApLock(uri);
+		const unlock = await acquireApObjectLock(this.redisClient, uri);
 
 		try {
 			const exist = await this.apNoteService.fetchNote(note);
@@ -757,7 +795,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async delete(actor: MiRemoteUser, activity: IDelete): Promise<string> {
-		if (actor.uri !== activity.actor) {
+		if (actor.uri !== getApId(activity.actor)) {
 			return 'invalid actor';
 		}
 
@@ -822,7 +860,7 @@ export class ApInboxService {
 	private async deleteNote(actor: MiRemoteUser, uri: string): Promise<string> {
 		this.logger.info(`Deleting the Note: ${uri}`);
 
-		const unlock = await this.appLockService.getApLock(uri);
+		const unlock = await acquireApObjectLock(this.redisClient, uri);
 
 		try {
 			const note = await this.apDbResolverService.getNoteFromApId(uri);
@@ -978,7 +1016,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async remove(actor: MiRemoteUser, activity: IRemove, resolver?: Resolver): Promise<string | void> {
-		if (actor.uri !== activity.actor) {
+		if (actor.uri !== getApId(activity.actor)) {
 			return 'invalid actor';
 		}
 
@@ -989,7 +1027,10 @@ export class ApInboxService {
 		if (activity.target === actor.featured) {
 			const note = await this.apNoteService.resolveNote(activity.object, { resolver });
 			if (note == null) return 'note not found';
-			await this.notePiningService.removePinned(actor, note.id);
+			const channel = actor.channelId ? await this.channelsRepository.findOneBy({
+				id: actor.channelId,
+			}) ?? undefined : undefined;
+			await this.notePiningService.removePinned(actor, note.id, channel);
 			return;
 		}
 
@@ -1023,7 +1064,7 @@ export class ApInboxService {
 
 	@bindThis
 	private async undo(actor: MiRemoteUser, activity: IUndo, resolver?: Resolver): Promise<string> {
-		if (actor.uri !== activity.actor) {
+		if (actor.uri !== getApId(activity.actor)) {
 			return 'invalid actor';
 		}
 
@@ -1215,7 +1256,7 @@ export class ApInboxService {
 	private async update(actor: MiRemoteUser, activity: IUpdate, resolver?: Resolver): Promise<string> {
 		const uri = getApId(activity);
 
-		if (actor.uri !== activity.actor) {
+		if (actor.uri !== getApId(activity.actor)) {
 			return 'skip: invalid actor';
 		}
 
@@ -1278,7 +1319,7 @@ export class ApInboxService {
 			}
 		}
 
-		const unlock = await this.appLockService.getApLock(uri);
+		const unlock = await acquireApObjectLock(this.redisClient, uri);
 
 		try {
 			const target = await this.notesRepository.findOneBy({ uri: uri });

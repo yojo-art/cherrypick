@@ -8,8 +8,9 @@ import { ContextIdFactory, ModuleRef, REQUEST } from '@nestjs/core';
 import { Inject, Injectable, Scope } from '@nestjs/common';
 import { isJsonObject } from '@/misc/json-value.js';
 import type { JsonObject, JsonValue } from '@/misc/json-value.js';
+import { ChannelMutingService } from '@/core/ChannelMutingService.js';
 import { ChannelFollowingService } from '@/core/ChannelFollowingService.js';
-import type { StreamEventEmitter, GlobalEvents } from '@/core/GlobalEventService.js';
+import type { GlobalEvents, StreamEventEmitter } from '@/core/GlobalEventService.js';
 import { MiFollowing, MiUserProfile } from '@/models/_.js';
 import { CacheService } from '@/core/CacheService.js';
 import { bindThis } from '@/decorators.js';
@@ -41,6 +42,7 @@ import type Channel from './channel.js';
 import type { EventEmitter } from 'events';
 
 const MAX_CHANNELS_PER_CONNECTION = 32;
+const MAX_SUBSCRIBING_NOTES_PER_CONNECTION = 1536;
 
 /**
  * Main stream connection
@@ -53,10 +55,11 @@ export default class Connection {
 	private wsConnection: WebSocket.WebSocket;
 	public subscriber: StreamEventEmitter;
 	private channels: Map<string, Channel> = new Map();
-	private subscribingNotes: Partial<Record<string, number>> = {};
+	private subscribingNotes: Map<string, number> = new Map();
 	public userProfile: MiUserProfile | null = null;
 	public following: Record<string, Pick<MiFollowing, 'withReplies'> | undefined> = {};
 	public followingChannels: Set<string> = new Set();
+	public mutingChannels: Set<string> = new Set();
 	public userIdsWhoMeMuting: Set<string> = new Set();
 	public userIdsWhoBlockingMe: Set<string> = new Set();
 	public userIdsWhoMeMutingRenotes: Set<string> = new Set();
@@ -68,6 +71,7 @@ export default class Connection {
 		private notificationService: NotificationService,
 		private cacheService: CacheService,
 		private channelFollowingService: ChannelFollowingService,
+		private channelMutingService: ChannelMutingService,
 		@Inject(REQUEST)
 		request: ConnectionRequest,
 	) {
@@ -78,10 +82,19 @@ export default class Connection {
 	@bindThis
 	public async fetch() {
 		if (this.user == null) return;
-		const [userProfile, following, followingChannels, userIdsWhoMeMuting, userIdsWhoBlockingMe, userIdsWhoMeMutingRenotes] = await Promise.all([
+		const [
+			userProfile,
+			following,
+			followingChannels,
+			mutingChannels,
+			userIdsWhoMeMuting,
+			userIdsWhoBlockingMe,
+			userIdsWhoMeMutingRenotes,
+		] = await Promise.all([
 			this.cacheService.userProfileCache.fetch(this.user.id),
 			this.cacheService.userFollowingsCache.fetch(this.user.id),
 			this.channelFollowingService.userFollowingChannelsCache.fetch(this.user.id),
+			this.channelMutingService.mutingChannelsCache.fetch(this.user.id),
 			this.cacheService.userMutingsCache.fetch(this.user.id),
 			this.cacheService.userBlockedCache.fetch(this.user.id),
 			this.cacheService.renoteMutingsCache.fetch(this.user.id),
@@ -89,6 +102,7 @@ export default class Connection {
 		this.userProfile = userProfile;
 		this.following = following;
 		this.followingChannels = followingChannels;
+		this.mutingChannels = mutingChannels;
 		this.userIdsWhoMeMuting = userIdsWhoMeMuting;
 		this.userIdsWhoBlockingMe = userIdsWhoBlockingMe;
 		this.userIdsWhoMeMutingRenotes = userIdsWhoMeMutingRenotes;
@@ -127,7 +141,7 @@ export default class Connection {
 
 		try {
 			obj = JSON.parse(data.toString());
-		} catch (e) {
+		} catch (_) {
 			return;
 		}
 
@@ -165,9 +179,22 @@ export default class Connection {
 		if (!isJsonObject(payload)) return;
 		if (!payload.id || typeof payload.id !== 'string') return;
 
-		const current = this.subscribingNotes[payload.id] ?? 0;
+		const current = this.subscribingNotes.get(payload.id) ?? 0;
+
+		if (current === 0 && this.subscribingNotes.size >= MAX_SUBSCRIBING_NOTES_PER_CONNECTION) {
+			// 新規購読 かつ 購読上限に達している場合は、最も古い購読を解除して新規購読を追加する
+			const oldestId = this.subscribingNotes.keys().next().value;
+			if (oldestId != null) {
+				this.subscriber.off(`noteStream:${oldestId}`, this.onNoteStreamMessage);
+				this.subscribingNotes.delete(oldestId);
+			}
+		} else {
+			// access 順を更新して LRU を保つ
+			this.subscribingNotes.delete(payload.id);
+		}
+
 		const updated = current + 1;
-		this.subscribingNotes[payload.id] = updated;
+		this.subscribingNotes.set(payload.id, updated);
 
 		if (updated === 1) {
 			this.subscriber.on(`noteStream:${payload.id}`, this.onNoteStreamMessage);
@@ -182,13 +209,14 @@ export default class Connection {
 		if (!isJsonObject(payload)) return;
 		if (!payload.id || typeof payload.id !== 'string') return;
 
-		const current = this.subscribingNotes[payload.id];
+		const current = this.subscribingNotes.get(payload.id);
 		if (current == null) return;
 		const updated = current - 1;
-		this.subscribingNotes[payload.id] = updated;
 		if (updated <= 0) {
-			delete this.subscribingNotes[payload.id];
+			this.subscribingNotes.delete(payload.id);
 			this.subscriber.off(`noteStream:${payload.id}`, this.onNoteStreamMessage);
+		} else {
+			this.subscribingNotes.set(payload.id, updated);
 		}
 	}
 
@@ -370,9 +398,16 @@ export default class Connection {
 	@bindThis
 	public dispose() {
 		if (this.fetchIntervalId) clearInterval(this.fetchIntervalId);
+
 		for (const c of this.channels.values()) {
 			if (c.dispose) c.dispose();
 		}
+		this.channels.clear();
+
+		for (const id of this.subscribingNotes.keys()) {
+			this.subscriber.off(`noteStream:${id}`, this.onNoteStreamMessage);
+		}
+		this.subscribingNotes.clear();
 	}
 }
 

@@ -8,21 +8,27 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<div class="_spacer" style="--MI_SPACER-w: 900px;">
 		<div class="_gaps">
 			<div>
-				<MkInput v-model="host" :debounce="true" class="">
-					<template #prefix><i class="ti ti-search"></i></template>
-					<template #label>{{ i18n.ts.host }}</template>
-				</MkInput>
-				<FormSplit style="margin-top: var(--MI-margin);">
-					<MkSelect v-model="state" :items="stateDef">
+				<div :class="$style.inputs">
+					<MkInput v-model="host" :debounce="true" style="flex: 1;">
+						<template #prefix><i class="ti ti-search"></i></template>
+						<template #label>{{ i18n.ts.host }}</template>
+					</MkInput>
+					<MkInput v-model="softwareName" :debounce="true" style="flex: 1;">
+						<template #prefix><i class="ti ti-search"></i></template>
+						<template #label>{{ i18n.ts.softwareName }}</template>
+					</MkInput>
+				</div>
+				<div :class="$style.inputs" style="margin-top: var(--MI-margin);">
+					<MkSelect v-model="state" :items="stateDef" style="flex: 1;">
 						<template #label>{{ i18n.ts.state }}</template>
 					</MkSelect>
-					<MkSelect v-model="sort" :items="sortDef">
+					<MkSelect v-model="sort" :items="sortDef" style="flex: 1;">
 						<template #label>{{ i18n.ts.sort }}</template>
 					</MkSelect>
-				</FormSplit>
+				</div>
 			</div>
 
-			<MkPagination v-slot="{items}" :key="host + state" :paginator="paginator">
+			<MkPagination v-slot="{items}" :key="host + softwareName + state" :paginator="paginator">
 				<div :class="$style.instances">
 					<MkA v-for="instance in items" :key="instance.id" v-tooltip.mfm="`Status: ${getStatus(instance)}`" :class="$style.instance" :to="`/instance-info/${instance.host}`">
 						<MkInstanceCardMini :instance="instance"/>
@@ -35,19 +41,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { computed, markRaw, ref } from 'vue';
 import MkInput from '@/components/MkInput.vue';
 import MkSelect from '@/components/MkSelect.vue';
 import MkPagination from '@/components/MkPagination.vue';
 import MkInstanceCardMini from '@/components/MkInstanceCardMini.vue';
-import FormSplit from '@/components/form/split.vue';
 import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import { useMkSelect } from '@/composables/use-mkselect.js';
 import { Paginator } from '@/utility/paginator.js';
 
 const host = ref('');
+const softwareName = ref('');
 const {
 	model: state,
 	def: stateDef,
@@ -93,6 +99,7 @@ const paginator = markRaw(new Paginator('federation/instances', {
 	computedParams: computed(() => ({
 		sort: sort.value,
 		host: host.value !== '' ? host.value : null,
+		softwareName: softwareName.value !== '' ? softwareName.value : null,
 		...(
 			state.value === 'federating' ? { federating: true, suspended: false, blocked: false } :
 			state.value === 'subscribing' ? { subscribing: true, suspended: false, blocked: false } :
@@ -134,6 +141,12 @@ definePage(() => ({
 </script>
 
 <style lang="scss" module>
+.inputs {
+	display: flex;
+	gap: 8px;
+	flex-wrap: wrap;
+}
+
 .instances {
 	display: grid;
 	grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));

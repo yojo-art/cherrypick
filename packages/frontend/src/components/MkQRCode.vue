@@ -38,6 +38,10 @@ const props = defineProps<{
 	qrCode: string;
 }>();
 
+const emit = defineEmits<{
+	closed: [];
+}>();
+
 const modal = useTemplateRef('modal');
 
 const qrCodeEl = useTemplateRef('qrCodeEl');

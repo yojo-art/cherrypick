@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkAntennaEditor from '@/components/MkAntennaEditor.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -36,7 +36,17 @@ misskeyApi('antennas/show', { antennaId: props.antennaId }).then((antennaRespons
 	antenna.value = antennaResponse;
 });
 
-const headerActions = computed(() => []);
+const headerActions = computed(() => antenna.value ? [{
+	icon: 'ti ti-timeline',
+	text: i18n.ts.timeline,
+	handler: () => {
+		router.push('/timeline/antenna/:antennaId', {
+			params: {
+				antennaId: antenna.value!.id,
+			},
+		});
+	},
+}] : []);
 const headerTabs = computed(() => []);
 
 definePage(() => ({

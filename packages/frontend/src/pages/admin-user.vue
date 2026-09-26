@@ -96,9 +96,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 					<div>
 						<MkButton v-if="user.host == null" inline style="margin-right: 8px;" @click="resetPassword"><i class="ti ti-key"></i> {{ i18n.ts.resetPassword }}</MkButton>
-							<MkButton inline danger @click="unsetUserAvatar"><i class="ti ti-user-circle"></i> {{ i18n.ts.unsetUserAvatar }}</MkButton>
-							<MkButton inline danger @click="unsetUserBanner"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserBanner }}</MkButton>
-							<MkButton inline danger @click="unsetUserMutualLink"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserMutualLink }}</MkButton>
+						<MkButton v-if="user.host == null" inline @click="unsetMfa"><i class="ti ti-shield"></i> {{ i18n.ts.unsetMfa }}</MkButton>
+						<MkButton inline danger @click="unsetUserAvatar"><i class="ti ti-user-circle"></i> {{ i18n.ts.unsetUserAvatar }}</MkButton>
+						<MkButton inline danger @click="unsetUserBanner"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserBanner }}</MkButton>
+						<MkButton inline danger @click="unsetUserMutualLink"><i class="ti ti-photo"></i> {{ i18n.ts.unsetUserMutualLink }}</MkButton>
 					</div>
 
 					<MkFolder>
@@ -106,7 +107,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<template #label>{{ i18n.ts._role.policies }}</template>
 						<div class="_gaps">
 							<div v-for="policy in Object.keys(info.policies)" :key="policy">
-								{{ policy }} ... {{ info.policies[policy] }}
+								{{ policy }} ... {{ info.policies[policy as keyof typeof info.policies] }}
 							</div>
 						</div>
 					</MkFolder>
@@ -208,7 +209,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, defineAsyncComponent, watch, ref, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { url } from '@@/js/config.js';
 import type { ChartSrc } from '@/components/MkChart.vue';
 import MkChart from '@/components/MkChart.vue';
@@ -260,7 +261,7 @@ const user = ref(result.user);
 const info = ref(result.info);
 const ips = ref(result.ips);
 const showIpToolTip = ref(false);
-const ap = ref<any>(null);
+const ap = ref<Misskey.entities.ApGetResponse | null>(null);
 const moderator = ref(info.value.isModerator);
 const silenced = ref(info.value.isSilenced);
 const suspended = ref(info.value.isSuspended);
@@ -337,7 +338,7 @@ async function resetPassword() {
 	if (confirm.canceled) {
 		return;
 	} else {
-		const { password } = await misskeyApi('admin/reset-password', {
+		const { password } = await os.apiWithDialog('admin/reset-password', {
 			userId: user.value.id,
 		});
 		os.alert({
@@ -347,7 +348,21 @@ async function resetPassword() {
 	}
 }
 
-async function toggleSuspend(v) {
+async function unsetMfa() {
+	const confirm = await os.confirm({
+		type: 'warning',
+		text: i18n.ts.unsetMfaConfirm,
+	});
+	if (confirm.canceled) {
+		return;
+	} else {
+		await os.apiWithDialog('admin/unset-mfa', {
+			userId: user.value.id,
+		});
+	}
+}
+
+async function toggleSuspend(v: boolean) {
 	const confirm = await os.confirm({
 		type: 'warning',
 		text: v ? i18n.ts.suspendConfirm : i18n.ts.unsuspendConfirm,
@@ -405,7 +420,7 @@ async function unsetUserMutualLink() {
 	});
 	if (confirm.canceled) return;
 
-	await os.apiWithDialog('admin/unset-user-mutual-banner', {
+	await os.apiWithDialog('admin/unset-user-mutual-banner' as any, {
 		userId: user.value.id,
 	}).then(refreshUser);
 }
@@ -490,7 +505,7 @@ async function assignRole() {
 	refreshUser();
 }
 
-async function unassignRole(role: typeof info.value.roles[number], ev: MouseEvent) {
+async function unassignRole(role: typeof info.value.roles[number], ev: PointerEvent) {
 	os.popupMenu([{
 		text: i18n.ts.unassign,
 		icon: 'ti ti-x',
@@ -518,7 +533,7 @@ async function createAnnouncement() {
 	});
 }
 
-async function editAnnouncement(announcement) {
+async function editAnnouncement(announcement: Misskey.entities.AdminAnnouncementsListResponse[number]) {
 	const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkUserAnnouncementEditDialog.vue').then(x => x.default), {
 		user: user.value,
 		announcement,

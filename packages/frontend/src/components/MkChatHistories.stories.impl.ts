@@ -8,7 +8,7 @@ import { action } from 'storybook/actions';
 import { chatMessage } from '../../.storybook/fakes';
 import MkChatHistories from './MkChatHistories.vue';
 import type { StoryObj } from '@storybook/vue3';
-import type * as Misskey from 'cherrypick-js';
+import type * as Misskey from 'misskey-js';
 export const Default = {
 	render(args) {
 		return {

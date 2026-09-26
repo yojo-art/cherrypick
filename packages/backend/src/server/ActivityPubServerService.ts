@@ -14,7 +14,7 @@ import vary from 'vary';
 import secureJson from 'secure-json-parse';
 import * as mfm from 'mfc-js';
 import { DI } from '@/di-symbols.js';
-import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ChatMessagesRepository, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
+import type { FollowingsRepository, NotesRepository, EmojisRepository, NoteReactionsRepository, UserProfilesRepository, UserNotePiningsRepository, UsersRepository, FollowRequestsRepository, MiMeta, ClipsRepository, ClipNotesRepository, MiClipNote } from '@/models/_.js';
 import * as url from '@/misc/prelude/url.js';
 import type { Config } from '@/config.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
@@ -73,9 +73,6 @@ export class ActivityPubServerService {
 		@Inject(DI.followRequestsRepository)
 		private followRequestsRepository: FollowRequestsRepository,
 
-		@Inject(DI.chatMessagesRepository)
-		private chatMessagesRepository: ChatMessagesRepository,
-
 		@Inject(DI.clipsRepository)
 		private clipsRepository: ClipsRepository,
 
@@ -113,10 +110,10 @@ export class ActivityPubServerService {
 	private async packActivity(note: MiNote): Promise<any> {
 		if (isRenote(note) && !isQuote(note)) {
 			const renote = await this.notesRepository.findOneByOrFail({ id: note.renoteId });
-			return this.apRendererService.renderAnnounce(renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`, note);
+			return await this.apRendererService.renderAnnounce(renote.uri ? renote.uri : `${this.config.url}/notes/${renote.id}`, note);
 		}
 
-		return this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
+		return await this.apRendererService.renderCreate(await this.apRendererService.renderNote(note, false), note);
 	}
 
 	@bindThis
@@ -130,7 +127,7 @@ export class ActivityPubServerService {
 
 		try {
 			signature = httpSignature.parseRequest(request.raw, { 'headers': ['(request-target)', 'host', 'date'], authorizationHeaderName: 'signature' });
-		} catch (e) {
+		} catch (_) {
 			reply.code(401);
 			return;
 		}
@@ -188,7 +185,17 @@ export class ActivityPubServerService {
 			}
 		}
 
-		const activity = request.body as IActivity;
+		const body = request.body;
+
+		// Reject structurally invalid activities (e.g. missing actor) here instead
+		// of letting them fail deep inside the inbox processor. An actor-less
+		// activity can never be authenticated, so there is no point enqueueing it.
+		if (typeof body !== 'object' || body == null || !('actor' in body) || body.actor == null) {
+			reply.code(400);
+			return;
+		}
+
+		const activity = body as IActivity;
 		if (!activity.type || !signature.keyId) {
 			reply.code(400);
 			return;
@@ -421,7 +428,7 @@ export class ActivityPubServerService {
 			this.notesRepository.findOneByOrFail({ id: pining.noteId }))))
 			.filter(note => !note.localOnly && ['public', 'home'].includes(note.visibility));
 
-		const renderedNotes = await Promise.all(pinnedNotes.map(note => this.apRendererService.renderNote(note)));
+		const renderedNotes = user.channelId ? pinnedNotes.map(note => note.uri ?? `${this.config.url}/notes/${note.id}`) : await Promise.all(pinnedNotes.map(note => this.apRendererService.renderNote(note)));
 
 		const rendered = this.apRendererService.renderOrderedCollection(
 			`${this.config.url}/users/${userId}/collections/featured`,
@@ -822,6 +829,10 @@ export class ActivityPubServerService {
 		};
 
 		fastify.register(fastifyAccepts);
+
+		// raw-body shares `request.raw` with the body parser, so a string parser here would switch that stream
+		// to string mode and break raw-body. Keep only the `parseAs: 'buffer'` parsers below. The rest get 415 error.
+		fastify.removeAllContentTypeParsers();
 		fastify.addContentTypeParser('application/activity+json', { parseAs: 'buffer' }, almostDefaultJsonParser);
 		fastify.addContentTypeParser('application/ld+json', { parseAs: 'buffer' }, almostDefaultJsonParser);
 
@@ -899,52 +910,11 @@ export class ActivityPubServerService {
 			return (this.apRendererService.addContext(await this.packActivity(note)));
 		});
 
-		// chat message
-		fastify.get<{ Params: { id: string; } }>('/chat/messages/:id', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
-			vary(reply.raw, 'Accept');
-
-			if (this.meta.federation === 'none') {
-				reply.code(403);
-				return;
-			}
-
-			const message = await this.chatMessagesRepository.findOneBy({
-				id: request.params.id,
-			});
-
-			if (message == null) {
-				reply.code(404);
-				return;
-			}
-
-			// Get fromUser
-			const fromUser = await this.usersRepository.findOneBy({ id: message.fromUserId });
-			if (fromUser == null || fromUser.host !== null) {
-				reply.code(404);
-				return;
-			}
-
-			// Get toUser(s)
-			let toUsers: MiUser[] = [];
-			if (message.toUserId) {
-				// 1:1 chat
-				const toUser = await this.usersRepository.findOneBy({ id: message.toUserId });
-				if (toUser) toUsers = [toUser];
-			} else if (message.toRoomId) {
-				// Group chat - not yet fully implemented for ActivityPub
-				reply.code(404);
-				return;
-			}
-
-			if (toUsers.length === 0) {
-				reply.code(404);
-				return;
-			}
-
-			reply.header('Cache-Control', 'public, max-age=180');
-			this.setResponseType(request, reply);
-			return this.apRendererService.addContext(await this.apRendererService.renderChatMessage(message, fromUser, toUsers));
-		});
+		// chat message: no ActivityPub GET route.
+		// Chat messages are delivered to remote recipients as signed Create activities
+		// with the object embedded (see ChatService), so there is no legitimate pull
+		// consumer. A public GET here would disclose 1:1 DM text/attachments to any
+		// unauthenticated requester knowing the message ID, so it is intentionally omitted.
 
 		// outbox
 		fastify.get<{
@@ -1010,6 +980,20 @@ export class ActivityPubServerService {
 			}
 		});
 
+		fastify.get<{ Params: { channel: string; } }>('/channels/:channel', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
+			vary(reply.raw, 'Accept');
+
+			const channelId = request.params.channel;
+
+			const user = await this.usersRepository.findOneBy({
+				channelId,
+				host: IsNull(),
+				isSuspended: false,
+			});
+			if (user) reply.redirect(`/users/${user.id}`);
+			else reply.code(404);
+		});
+
 		fastify.get<{ Params: { user: string; } }>('/users/:user', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
 			vary(reply.raw, 'Accept');
 
@@ -1039,7 +1023,7 @@ export class ActivityPubServerService {
 				isSuspended: false,
 			});
 			if (user) reply.redirect(`/@${user.username}`);
-			reply.code(404);
+			else reply.code(404);
 		});
 
 		fastify.get<{ Params: { acct: string; } }>('/@:acct', { constraints: { apOrHtml: 'ap' } }, async (request, reply) => {
@@ -1051,6 +1035,8 @@ export class ActivityPubServerService {
 			}
 
 			const acct = Acct.parse(request.params.acct);
+			// normalize acct host
+			if (this.utilityService.isSelfHost(acct.host)) acct.host = null;
 
 			const user = await this.usersRepository.findOneBy({
 				usernameLower: acct.username.toLowerCase(),

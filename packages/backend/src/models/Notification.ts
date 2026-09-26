@@ -12,7 +12,7 @@ import { MiRole } from './Role.js';
 import { MiDriveFile } from './DriveFile.js';
 import { MiNoteDraft } from './NoteDraft.js';
 
-// cherrypick-js の notificationTypes と同期すべし
+// misskey-js の notificationTypes と同期すべし
 export type MiNotification = {
 	type: 'note';
 	id: string;

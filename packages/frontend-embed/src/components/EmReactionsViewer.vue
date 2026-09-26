@@ -11,7 +11,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { watch, ref } from 'vue';
 import XReaction from '@/components/EmReactionsViewer.reaction.vue';
 
@@ -27,8 +27,8 @@ const initialReactions = new Set(Object.keys(props.note.reactions));
 const reactions = ref<[string, number][]>([]);
 const hasMoreReactions = ref(false);
 
-if (props.note.myReaction && !Object.keys(reactions.value).includes(props.note.myReaction)) {
-	reactions.value[props.note.myReaction] = props.note.reactions[props.note.myReaction];
+if (props.note.myReaction != null && !(props.note.myReaction in props.note.reactions)) {
+	reactions.value.push([props.note.myReaction, props.note.reactions[props.note.myReaction]]);
 }
 
 function onMockToggleReaction(emoji: string, count: number) {

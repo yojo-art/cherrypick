@@ -8,7 +8,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkA :to="`/channels/${channel.id}`" class="eftoefju _panel" @click="updateLastReadedAt">
 		<div class="banner" :style="bannerStyle">
 			<div class="fade"></div>
-			<div class="name"><i class="ti ti-device-tv"></i> {{ channel.name }}</div>
+			<div class="name">
+				<img v-if="channel.iconUrl" class="icon" :src="channel.iconUrl" alt=""/>
+				<span><i class="ti ti-device-tv"></i> {{ channel.name }}</span>
+			</div>
 			<div v-if="channel.isSensitive" class="sensitiveIndicator">{{ i18n.ts.sensitive }}</div>
 			<div class="status">
 				<div>
@@ -26,6 +29,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<b>{{ channel.notesCount }}</b>
 						</template>
 					</I18n>
+				</div>
+				<div v-if="$i != null && $i.id === channel.userId" style="color: var(--MI_THEME-warn)">
+					<i class="ti ti-user-star ti-fw"></i>
+					<span style="margin-left: 4px;">{{ i18n.ts.youAreAdmin }}</span>
 				</div>
 			</div>
 		</div>
@@ -47,7 +54,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, ref, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
+import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { miLocalStorage } from '@/local-storage.js';
 
@@ -125,12 +133,23 @@ const bannerStyle = computed(() => {
 			position: absolute;
 			top: 16px;
 			left: 16px;
+			display: flex;
+			align-items: center;
+			gap: 10px;
 			max-width: calc(100% - 32px);
-			padding: 12px 16px;
+			padding: 8px 12px 8px 8px;
 			box-sizing: border-box;
 			background: rgba(0, 0, 0, 0.7);
 			color: #fff;
 			font-size: 1.2em;
+
+			> .icon {
+				width: 40px;
+				height: 40px;
+				border-radius: 8px;
+				object-fit: cover;
+				flex-shrink: 0;
+			}
 		}
 
 		> .status {

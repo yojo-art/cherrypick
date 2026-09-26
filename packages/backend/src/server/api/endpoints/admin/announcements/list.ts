@@ -51,11 +51,13 @@ export const meta = {
 				},
 				icon: {
 					type: 'string',
-					optional: false, nullable: true,
+					optional: false, nullable: false,
+					enum: ['info', 'warning', 'error', 'success'],
 				},
 				display: {
 					type: 'string',
 					optional: false, nullable: false,
+					enum: ['normal', 'banner', 'dialog'],
 				},
 				isActive: {
 					type: 'boolean',
@@ -72,6 +74,11 @@ export const meta = {
 				needConfirmationToRead: {
 					type: 'boolean',
 					optional: false, nullable: false,
+				},
+				reactionAcceptance: {
+					type: 'string',
+					optional: false, nullable: true,
+					enum: [null, 'likeOnly', 'none'],
 				},
 				userId: {
 					type: 'string',
@@ -154,6 +161,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				forExistingUsers: announcement.forExistingUsers,
 				silence: announcement.silence,
 				needConfirmationToRead: announcement.needConfirmationToRead,
+				reactionAcceptance: announcement.reactionAcceptance ?? null,
 				userId: announcement.userId,
 				reads: reads.get(announcement)!,
 			}));

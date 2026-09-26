@@ -5,7 +5,7 @@
 
 import { utils, values } from '@syuilo/aiscript';
 import { ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { assertStringAndIsIn } from './common.js';
 import type { Ref } from 'vue';
 import { genId } from '@/utility/id.js';
@@ -531,7 +531,7 @@ function getPostFormOptions(def: values.Value | undefined, call: (fn: values.VFn
 export function registerAsUiLib(components: Ref<AsUiComponent>[], done: (root: Ref<AsUiRoot>) => void) {
 	type OptionsConverter<T extends AsUiComponent, C> = (def: values.Value | undefined, call: C) => Options<T>;
 
-	const instances = {};
+	const instances = {} as Record<string, values.VObj>;
 
 	function createComponentInstance<T extends AsUiComponent, C>(
 		type: T['type'],
@@ -555,7 +555,7 @@ export function registerAsUiLib(components: Ref<AsUiComponent>[], done: (root: R
 				const updates = getOptions(def, call);
 				for (const update of def.value.keys()) {
 					if (!Object.hasOwn(updates, update)) continue;
-					component.value[update] = updates[update];
+					component.value[update] = updates[update as keyof Options<T>];
 				}
 			})],
 		]));

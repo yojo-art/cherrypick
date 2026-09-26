@@ -11,7 +11,7 @@ export const meta = {
 	tags: ['admin', 'emoji'],
 	secure: true,
 	requireCredential: true,
-	requiredRolePolicy: 'canManageCustomEmojis',
+	requireAdmin: true,
 } as const;
 
 export const paramDef = {

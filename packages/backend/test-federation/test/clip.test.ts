@@ -1,5 +1,6 @@
+import { beforeAll, describe, test } from 'vitest';
 import assert, { rejects, strictEqual } from 'node:assert';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { createAccount, deepStrictEqualWithExcludedFields, fetchAdmin, type LoginUser, resolveRemoteNote, resolveRemoteUser, sleep } from './utils.js';
 
 describe('Clips', () => {

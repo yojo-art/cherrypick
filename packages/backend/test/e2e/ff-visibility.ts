@@ -6,8 +6,9 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
+import { describe, beforeAll, test } from 'vitest';
 import { api, signup, simpleGet } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('FF visibility', () => {
 	let alice: misskey.entities.SignupResponse;

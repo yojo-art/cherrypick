@@ -9,7 +9,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<template #header>{{ i18n.ts._widgets.serverMetric }}</template>
 	<template #func="{ buttonStyleClass }"><button class="_button" :class="buttonStyleClass" @click="toggleView()"><i class="ti ti-selector"></i></button></template>
 
-	<div v-if="meta" data-cy-mkw-serverMetric class="mkw-serverMetric">
+	<div v-if="meta" data-testid="mkw-serverMetric" class="mkw-serverMetric">
 		<XCpuMemory v-if="widgetProps.view === 0" :connection="connection" :meta="meta"/>
 		<XNet v-else-if="widgetProps.view === 1" :connection="connection" :meta="meta"/>
 		<XCpuMemoryNetCompact v-else-if="widgetProps.view === 2" :connection="connection" :meta="meta"/>
@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onUnmounted, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { useWidgetPropsManager } from '../widget.js';
 import XCpuMemory from './cpu-mem.vue';
 import XCpuMemoryCompact from './cpu-mem-pie.vue';
@@ -46,10 +46,12 @@ const name = 'serverMetric';
 const widgetPropsDef = {
 	showHeader: {
 		type: 'boolean',
+		label: i18n.ts._widgetOptions.showHeader,
 		default: true,
 	},
 	transparent: {
 		type: 'boolean',
+		label: i18n.ts._widgetOptions.transparent,
 		default: false,
 	},
 	view: {

@@ -99,7 +99,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 import { computed, onMounted, ref, useTemplateRef, toRefs } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type {
 	MkSystemWebhookEditorProps,
 	MkSystemWebhookResult,
@@ -254,7 +254,7 @@ onMounted(async () => {
 					secret.value = res.secret;
 					isActive.value = res.isActive;
 					for (const ev of Object.keys(events.value)) {
-						events.value[ev] = res.on.includes(ev as SystemWebhookEventType);
+						events.value[ev as SystemWebhookEventType] = res.on.includes(ev as SystemWebhookEventType);
 					}
 					// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				} catch (ex: any) {

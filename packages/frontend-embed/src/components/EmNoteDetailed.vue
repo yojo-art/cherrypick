@@ -36,7 +36,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<span v-if="note.localOnly" style="margin-left: 0.5em;" :title="i18n.ts._visibility['disableFederation']"><i class="ti ti-rocket-off"></i></span>
 			<span :class="$style.renoteTime">
 				<button ref="renoteTime" class="_button">
-					<i class="ti ti-dots" :class="$style.renoteMenu" @mousedown.prevent="showRenoteMenu()"></i>
+					<i class="ti ti-dots" :class="$style.renoteMenu"></i>
 				</button>
 				<EmTime :time="note.createdAt"/>
 			</span>
@@ -157,7 +157,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, inject, ref } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { shouldCollapsed, shouldMfmCollapsed } from '@@/js/collapsed.js';
 import { url } from '@@/js/config.js';
 import I18n from '@/components/I18n.vue';
@@ -176,6 +176,7 @@ import { userPage } from '@/utils.js';
 import { notePage } from '@/utils.js';
 import { i18n } from '@/i18n.js';
 import { DI } from '@/di.js';
+import number from '@/filters/number.js';
 import EmMfm from '@/components/EmMfm.js';
 
 const props = defineProps<{

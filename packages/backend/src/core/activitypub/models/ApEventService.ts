@@ -7,6 +7,8 @@ import { Injectable } from '@nestjs/common';
 import type Logger from '@/logger.js';
 import { bindThis } from '@/decorators.js';
 import { IEvent } from '@/models/Event.js';
+import type { EventSchema } from '@/models/Event.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { isEvent } from '../type.js';
 import { ApLoggerService } from '../ApLoggerService.js';
 import { ApResolverService } from '../ApResolverService.js';
@@ -49,7 +51,10 @@ export class ApEventService {
 				title,
 				start,
 				end,
-				metadata: {
+				// note.href はリモート actor が任意値を仕込めるため、無検証で metadata.url に
+				// 入れると MkEvent.vue の生 <a :href> で stored XSS になる。
+				// note.id / note.url と同じく http(s) のみ許可する。
+				metadata: sanitizeEventMetadata<EventSchema>({
 					'@type': 'Event',
 					name: note.name,
 					url: note.href,
@@ -57,7 +62,7 @@ export class ApEventService {
 					endDate: end?.toISOString(),
 					description: note.summary,
 					identifier: note.id,
-				},
+				}),
 			};
 		} else {
 			throw new Error('Invalid event properties');

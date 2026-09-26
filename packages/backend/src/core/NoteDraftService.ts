@@ -15,6 +15,7 @@ import type { MiLocalUser, MiUser } from '@/models/User.js';
 import { IPoll } from '@/models/Poll.js';
 import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { isRenote, isQuote } from '@/misc/is-renote.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { QueueService } from '@/core/QueueService.js';
 import type { IEvent } from '@/models/Event.js';
@@ -122,6 +123,15 @@ export class NoteDraftService {
 		}
 		//#endregion
 
+		// Channel notes cannot be followers/specified — effective check for partial update
+		{
+			const effectiveChannelId = data.channelId !== undefined ? data.channelId : draft.channelId;
+			const effectiveVisibility = (data as any).visibility !== undefined ? (data as any).visibility : draft.visibility;
+			if (effectiveChannelId && (effectiveVisibility === 'followers' || effectiveVisibility === 'specified')) {
+				throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
+			}
+		}
+
 		await this.validate(me, data);
 
 		const updatedDraft = await this.noteDraftsRepository.createQueryBuilder().update()
@@ -189,10 +199,17 @@ export class NoteDraftService {
 			}
 		}
 
+		// eventMetadata は予約投稿時に note 化され MkEvent.vue の生 <a :href> に流れるため
+		// javascript: 等の危険なスキームを書き込み時に除去する。
+		// validate は create/update 両方から呼ばれるためここで正規化すれば両経路を覆う。
+		if (data.eventMetadata != null) {
+			data.eventMetadata = sanitizeEventMetadata(data.eventMetadata);
+		}
+
 		//#region visibleUsers
-		let visibleUsers: MiUser[] = [];
+		let _visibleUsers: MiUser[] = [];
 		if (data.visibleUserIds != null && data.visibleUserIds.length > 0) {
-			visibleUsers = await this.usersRepository.findBy({
+			_visibleUsers = await this.usersRepository.findBy({
 				id: In(data.visibleUserIds),
 			});
 		}
@@ -302,6 +319,10 @@ export class NoteDraftService {
 
 			if (channel == null) {
 				throw new IdentifiableError('6815399a-6f13-4069-b60d-ed5156249d12', 'No such channel');
+			}
+
+			if (data.visibility === 'followers' || data.visibility === 'specified') {
+				throw new IdentifiableError('4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b', 'Channel notes cannot be followers/specified');
 			}
 		}
 		//#endregion

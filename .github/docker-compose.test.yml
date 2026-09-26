@@ -1,0 +1,53 @@
+services:
+  web:
+    build:
+      context: ..
+      dockerfile: Dockerfile
+      args:
+        NODE_ENV: production
+    links:
+      - db
+      - redis
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    ports:
+      - "3000:3000"
+    networks:
+      - internal_network
+      - external_network
+    volumes:
+      - ../.config/default.yml:/cherrypick/.config/default.yml:ro
+    healthcheck:
+      test: ["CMD", "curl", "-sf", "-H", "Content-Type: application/json", "-d", "{}", "-X", "POST", "http://localhost:3000/api/meta"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    networks:
+      - internal_network
+    healthcheck:
+      test: "redis-cli ping"
+      interval: 5s
+      retries: 20
+
+  db:
+    image: postgres:18-alpine
+    networks:
+      - internal_network
+    env_file:
+      - ../.config/docker.env
+    healthcheck:
+      test: "pg_isready -U $$POSTGRES_USER -d $$POSTGRES_DB"
+      interval: 5s
+      retries: 20
+
+networks:
+  internal_network:
+    internal: true
+  external_network:

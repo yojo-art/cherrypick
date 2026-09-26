@@ -5,13 +5,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<MkMediaList v-if="image" :mediaList="[image]" :class="$style.mediaList"/>
+	<MkMediaList v-if="image" :mediaList="[image]" :user="page.user" :class="$style.mediaList"/>
 </div>
 </template>
 
 <script lang="ts" setup>
 import { onMounted, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkMediaList from '@/components/MkMediaList.vue';
 
 const props = defineProps<{

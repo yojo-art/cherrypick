@@ -3,8 +3,9 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { ModuleRef } from '@nestjs/core';
+import { DI } from '@/di-symbols.js';
 import type { MiMeta } from '@/models/Meta.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { Endpoint } from '@/server/api/endpoint-base.js';
@@ -70,7 +71,14 @@ export const paramDef = {
 		description: { type: 'string', nullable: true },
 		defaultLightTheme: { type: 'string', nullable: true },
 		defaultDarkTheme: { type: 'string', nullable: true },
-		clientOptions: { type: 'object', nullable: false },
+		clientOptions: {
+			type: 'object', nullable: false,
+			properties: {
+				entrancePageStyle: { type: 'string', nullable: false, enum: ['classic', 'simple'] },
+				showTimelineForVisitor: { type: 'boolean', nullable: false },
+				showActivitiesForVisitor: { type: 'boolean', nullable: false },
+			},
+		},
 		cacheRemoteFiles: { type: 'boolean' },
 		cacheRemoteSensitiveFiles: { type: 'boolean' },
 		emailRequiredForSignup: { type: 'boolean' },
@@ -93,6 +101,10 @@ export const paramDef = {
 		sensitiveMediaDetectionSensitivity: { type: 'string', enum: ['medium', 'low', 'high', 'veryLow', 'veryHigh'] },
 		setSensitiveFlagAutomatically: { type: 'boolean' },
 		enableSensitiveMediaDetectionForVideos: { type: 'boolean' },
+		sensitiveMediaDetectionApiUrl: { type: 'string', nullable: true },
+		sensitiveMediaDetectionApiKey: { type: 'string', nullable: true },
+		sensitiveMediaDetectionTimeout: { type: 'integer', minimum: 1 },
+		sensitiveMediaDetectionMaxImagesPerRequest: { type: 'integer', minimum: 1 },
 		maintainerName: { type: 'string', nullable: true },
 		maintainerEmail: { type: 'string', nullable: true },
 		langs: {
@@ -203,6 +215,12 @@ export const paramDef = {
 		urlPreviewUserAgent: { type: 'string', nullable: true },
 		urlPreviewSummaryProxyUrl: { type: 'string', nullable: true },
 		urlPreviewDirectSummalyProxy: { type: 'boolean' },
+		urlPreviewSensitiveList: {
+			type: 'array', nullable: true,
+			items: {
+				type: 'string',
+			},
+		},
 		federation: {
 			type: 'string',
 			enum: ['all', 'none', 'specified'],
@@ -263,6 +281,9 @@ export const paramDef = {
 @Injectable()
 export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
 	constructor(
+		@Inject(DI.meta)
+		private serverSettings: MiMeta,
+
 		private moduleRef: ModuleRef,
 		private metaService: MetaService,
 		private moderationLogService: ModerationLogService,
@@ -380,7 +401,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.clientOptions !== undefined) {
-				set.clientOptions = ps.clientOptions;
+				set.clientOptions = {
+					...this.serverSettings.clientOptions,
+					...ps.clientOptions,
+				};
 			}
 
 			if (ps.cacheRemoteFiles !== undefined) {
@@ -471,6 +495,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.enableSensitiveMediaDetectionForVideos !== undefined) {
 				set.enableSensitiveMediaDetectionForVideos = ps.enableSensitiveMediaDetectionForVideos;
+			}
+
+			if (ps.sensitiveMediaDetectionApiUrl !== undefined) {
+				set.sensitiveMediaDetectionApiUrl = ps.sensitiveMediaDetectionApiUrl === '' ? null : ps.sensitiveMediaDetectionApiUrl;
+			}
+
+			if (ps.sensitiveMediaDetectionApiKey !== undefined) {
+				set.sensitiveMediaDetectionApiKey = ps.sensitiveMediaDetectionApiKey === '' ? null : ps.sensitiveMediaDetectionApiKey;
+			}
+
+			if (ps.sensitiveMediaDetectionTimeout !== undefined) {
+				set.sensitiveMediaDetectionTimeout = ps.sensitiveMediaDetectionTimeout;
+			}
+
+			if (ps.sensitiveMediaDetectionMaxImagesPerRequest !== undefined) {
+				set.sensitiveMediaDetectionMaxImagesPerRequest = ps.sensitiveMediaDetectionMaxImagesPerRequest;
 			}
 
 			if (ps.maintainerName !== undefined) {
@@ -845,6 +885,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			if (ps.urlPreviewDirectSummalyProxy !== undefined) {
 				set.directSummalyProxy = ps.urlPreviewDirectSummalyProxy;
+			}
+
+			if (Array.isArray(ps.urlPreviewSensitiveList)) {
+				set.urlPreviewSensitiveList = ps.urlPreviewSensitiveList.filter(Boolean);
 			}
 
 			if (ps.federation !== undefined) {

@@ -4,8 +4,9 @@
  */
 
 export type PageHeaderItem = {
-	text: string;
+	text?: string;
 	icon: string;
 	highlighted?: boolean;
-	handler: (ev: MouseEvent) => void;
+	danger?: boolean;
+	handler: (ev: PointerEvent) => void | Promise<void>;
 };

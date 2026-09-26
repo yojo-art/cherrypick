@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import EmImgWithBlurhash from '@/components/EmImgWithBlurhash.vue';
 import { i18n } from '@/i18n.js';
 
@@ -64,7 +64,7 @@ const url = computed(() => (props.raw)
 	: props.image.thumbnailUrl,
 );
 
-async function onclick(ev: MouseEvent) {
+async function onclick(ev: PointerEvent) {
 	if (hide.value) {
 		ev.stopPropagation();
 		hide.value = false;

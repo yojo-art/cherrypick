@@ -22,23 +22,41 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<MkTextarea v-model="text">
 					<template #label>{{ i18n.ts.text }}</template>
 				</MkTextarea>
-				<MkRadios v-model="icon">
+				<MkRadios
+					v-model="icon"
+					:options="[
+						{ value: 'info', icon: 'ti ti-info-circle' },
+						{ value: 'warning', icon: 'ti ti-alert-triangle', iconStyle: 'color: var(--MI_THEME-warn);' },
+						{ value: 'error', icon: 'ti ti-circle-x', iconStyle: 'color: var(--MI_THEME-error);' },
+						{ value: 'success', icon: 'ti ti-check', iconStyle: 'color: var(--MI_THEME-success);' },
+					]"
+				>
 					<template #label>{{ i18n.ts.icon }}</template>
-					<option value="info"><i class="ti ti-info-circle"></i></option>
-					<option value="warning"><i class="ti ti-alert-triangle" style="color: var(--MI_THEME-warn);"></i></option>
-					<option value="error"><i class="ti ti-circle-x" style="color: var(--MI_THEME-error);"></i></option>
-					<option value="success"><i class="ti ti-check" style="color: var(--MI_THEME-success);"></i></option>
 				</MkRadios>
-				<MkRadios v-model="display">
+				<MkRadios
+					v-model="display"
+					:options="[
+						{ value: 'normal', label: i18n.ts.normal },
+						{ value: 'banner', label: i18n.ts.banner },
+						{ value: 'dialog', label: i18n.ts.dialog },
+					]"
+				>
 					<template #label>{{ i18n.ts.display }}</template>
-					<option value="normal">{{ i18n.ts.normal }}</option>
-					<option value="banner">{{ i18n.ts.banner }}</option>
-					<option value="dialog">{{ i18n.ts.dialog }}</option>
 				</MkRadios>
 				<MkSwitch v-model="needConfirmationToRead">
 					{{ i18n.ts._announcement.needConfirmationToRead }}
 					<template #caption>{{ i18n.ts._announcement.needConfirmationToReadDescription }}</template>
 				</MkSwitch>
+				<MkSelect
+					v-model="reactionAcceptance"
+					:items="[
+					{ label: i18n.ts.all, value: null },
+					{ label: i18n.ts.likeOnly, value: 'likeOnly' },
+						{ label: i18n.ts.none, value: 'none' },
+					]"
+				>
+					<template #label>{{ i18n.ts.reactionAcceptance }}</template>
+				</MkSelect>
 				<MkButton v-if="announcement" danger @click="del()"><i class="ti ti-trash"></i> {{ i18n.ts.delete }}</MkButton>
 			</div>
 		</div>
@@ -51,7 +69,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
@@ -61,6 +79,7 @@ import { i18n } from '@/i18n.js';
 import MkTextarea from '@/components/MkTextarea.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkRadios from '@/components/MkRadios.vue';
+import MkSelect from '@/components/MkSelect.vue';
 
 type AdminAnnouncementType = Misskey.entities.AdminAnnouncementsCreateRequest & { id: string; };
 
@@ -80,6 +99,7 @@ const text = ref(props.announcement ? props.announcement.text : '');
 const icon = ref(props.announcement ? props.announcement.icon : 'info');
 const display = ref(props.announcement ? props.announcement.display : 'dialog');
 const needConfirmationToRead = ref(props.announcement ? props.announcement.needConfirmationToRead : false);
+const reactionAcceptance = ref(props.announcement ? props.announcement.reactionAcceptance ?? null : null);
 
 async function done() {
 	const params = {
@@ -89,6 +109,7 @@ async function done() {
 		imageUrl: null,
 		display: display.value,
 		needConfirmationToRead: needConfirmationToRead.value,
+		reactionAcceptance: reactionAcceptance.value,
 		userId: props.user.id,
 	} satisfies Misskey.entities.AdminAnnouncementsCreateRequest;
 

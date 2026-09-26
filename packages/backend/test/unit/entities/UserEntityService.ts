@@ -4,6 +4,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
+import { describe, expect, beforeAll, afterAll, test } from 'vitest';
 import type { MiUser } from '@/models/User.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { GlobalModule } from '@/GlobalModule.js';
@@ -313,6 +314,16 @@ describe('UserEntityService', () => {
 			test('バナー未設定の場合はnullを返す', () => {
 				expect(service.getBannerUrl(makeUser({ bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' }))).toBeNull();
 			});
+		});
+
+		test('alsoKnownAs as string does not throw', async () => {
+			const me = await createUser();
+			const who = await createUser();
+
+			const whoWithStringAlsoKnownAs: MiUser = { ...who, alsoKnownAs: 'https://remote.example.com/users/alice' as any };
+
+			const actual = await service.pack(whoWithStringAlsoKnownAs, me, { schema: 'UserDetailedNotMe' }) as any;
+			expect(Array.isArray(actual.alsoKnownAs)).toBe(true);
 		});
 
 		describe('packManyによるpreloadがある時、preloadが無い時とpackの結果が同じになるか見たい', () => {

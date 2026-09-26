@@ -100,6 +100,10 @@ export class ApGameService {
 			//確実に利用できない時
 			return;
 		}
+		if (fromUser.channelId != null) {
+			//チャンネルアカウントはリバーシ不可
+			return;
+		}
 		const redisPipeline = this.redisClient.pipeline();
 		redisPipeline.zadd(`reversi:matchSpecific:${targetUser.id}`, Date.now(), JSON.stringify( {
 			from_user_id: fromUser.id,

@@ -136,6 +136,12 @@ export const meta = {
 			code: 'CANNOT_SCHEDULE_DELETE_EARLIER_THAN_NOW',
 			id: '9f04994a-3aa2-11ef-a495-177eea74788f',
 		},
+
+		channelVisibilityNotAllowed: {
+			message: 'Channel notes cannot be set to followers or specified visibility.',
+			code: 'CHANNEL_VISIBILITY_NOT_ALLOWED',
+			id: '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b',
+		},
 	},
 } as const;
 const searchableTypesForTest = ['public', 'followersAndReacted', 'reactedOnly', 'private', null] as const;
@@ -152,7 +158,6 @@ export const paramDef = {
 			type: 'string', nullable: true,
 			enum: process.env.NODE_ENV === 'test' ? searchableTypesForTest : searchableTypes,
 			default: process.env.NODE_ENV === 'test' ? null : 'public' },
-		disableRightClick: { type: 'boolean', default: false },
 		noExtractMentions: { type: 'boolean', default: false },
 		noExtractHashtags: { type: 'boolean', default: false },
 		noExtractEmojis: { type: 'boolean', default: false },
@@ -277,7 +282,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					cw: ps.cw ?? null,
 					localOnly: false,
 					reactionAcceptance: ps.reactionAcceptance,
-					disableRightClick: ps.disableRightClick,
 					searchableBy: ps.searchableBy,
 					visibility: ps.visibility,
 					visibleUserIds: ps.visibleUserIds ?? [],
@@ -328,6 +332,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 						throw new ApiError(meta.errors.cannotCreateAlreadyExpiredPoll);
 					} else if (err.id === 'bfa3905b-25f5-4894-b430-da331a490e4b') {
 						throw new ApiError(meta.errors.noSuchChannel);
+					} else if (err.id === '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b') {
+						throw new ApiError(meta.errors.channelVisibilityNotAllowed);
 					}
 				}
 				throw err;

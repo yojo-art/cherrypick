@@ -1019,6 +1019,7 @@ caption: "Titrare"
 loggedInAsBot: "Conectat în prezent ca bot"
 tools: "Unelte"
 cannotLoad: "Nu se poate încărca"
+cannotPreview: "Nu se poate previzualiza"
 numberOfProfileView: "Numărul de vizualizări ale profilului"
 like: "Îmi place!"
 unlike: "Îmi displace"
@@ -1216,6 +1217,11 @@ lastNDays: "Ultimele {n} zile"
 surrender: "Anulează"
 copyPreferenceId: "Copiază ID-ul preferințelor"
 information: "Despre"
+presets: "Presetate"
+previewingThemeRestore: "Restabilește"
+_imageEditing:
+  _vars:
+    filename: "Nume fișier"
 _chat:
   invitations: "Invită"
   noHistory: "Nu există istoric"
@@ -1298,6 +1304,12 @@ _widgets:
   jobQueue: "coada de job-uri"
   _userList:
     chooseList: "Selectează o listă"
+_widgetOptions:
+  height: "Înălţime"
+  _button:
+    colored: "Colorat"
+  _clock:
+    size: "Dimensiune"
 _cw:
   show: "Incarcă mai mult"
 _visibility:
@@ -1308,6 +1320,9 @@ _postForm:
   replyPlaceholder: "Răspunde la această notă..."
   quotePlaceholder: "Citează aceasta nota..."
   channelPlaceholder: "Postează pe un canal..."
+  _howToUse:
+    visibility_title: "Vizibilitate"
+    menu_title: "Meniu"
   _placeholders:
     a: "Ce mai faci?"
     b: "Ce se mai petrece in jurul tău?"

@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { apiUrl } from '@@/js/config.js';
 import type { UploaderFeatures } from '@/composables/use-uploader.js';
 import * as os from '@/os.js';
@@ -124,7 +124,7 @@ export function uploadFile(file: File | Blob, options: {
 			const driveFile = JSON.parse(ev.target.response);
 			globalEvents.emit('driveFileCreated', driveFile);
 			resolve(driveFile);
-		}) as (ev: ProgressEvent<EventTarget>) => any;
+		}) as (ev: ProgressEvent<EventTarget>) => void;
 
 		if (options.onProgress) {
 			xhr.upload.onprogress = ev => {
@@ -180,8 +180,9 @@ export function chooseFileFromPcAndUpload(
 export function chooseDriveFile(options: {
 	multiple?: boolean;
 } = {}): Promise<Misskey.entities.DriveFile[]> {
-	return new Promise(async resolve => {
-		const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkDriveFileSelectDialog.vue').then(x => x.default), {
+	return new Promise((resolve, rej) => {
+		let dispose: () => void;
+		os.popupAsyncWithDialog(import('@/components/MkDriveFileSelectDialog.vue').then(x => x.default), {
 			multiple: options.multiple ?? false,
 		}, {
 			done: files => {
@@ -190,7 +191,7 @@ export function chooseDriveFile(options: {
 				}
 			},
 			closed: () => dispose(),
-		});
+		}).then((d) => dispose = d.dispose, rej);
 	});
 }
 
@@ -251,17 +252,18 @@ function select(anchorElement: HTMLElement | EventTarget | null, label: string |
 
 type SelectFileOptions<M extends boolean> = {
 	anchorElement: HTMLElement | EventTarget | null;
-	multiple: M;
+	multiple?: M;
 	label?: string | null;
 	features?: UploaderFeatures;
 };
 
-export async function selectFile<
-	M extends boolean,
-	MR extends M extends true ? Misskey.entities.DriveFile[] : Misskey.entities.DriveFile,
->(opts: SelectFileOptions<M>): Promise<MR> {
+export async function selectFile(opts: Omit<SelectFileOptions<boolean>, 'multiple'> & { multiple?: false }): Promise<Misskey.entities.DriveFile>;
+export async function selectFile(opts: Omit<SelectFileOptions<boolean>, 'multiple'> & { multiple: true }): Promise<Misskey.entities.DriveFile[]>;
+export async function selectFile(
+	opts: SelectFileOptions<boolean>,
+): Promise<Misskey.entities.DriveFile | Misskey.entities.DriveFile[]> {
 	const files = await select(opts.anchorElement, opts.label ?? null, opts.multiple ?? false, opts.features);
-	return opts.multiple ? (files as MR) : (files[0]! as MR);
+	return opts.multiple ? files : files[0]!;
 }
 
 export async function createCroppedImageDriveFileFromImageDriveFile(imageDriveFile: Misskey.entities.DriveFile, options: {
@@ -300,15 +302,28 @@ export async function createCroppedImageDriveFileFromImageDriveFile(imageDriveFi
 	});
 }
 
-export async function selectDriveFolder(initialFolder: Misskey.entities.DriveFolder['id'] | null): Promise<(Misskey.entities.DriveFolder | null)[]> {
-	return new Promise(async resolve => {
-		const { dispose } = await os.popupAsyncWithDialog(import('@/components/MkDriveFolderSelectDialog.vue').then(x => x.default), {
+export async function selectDriveFolder(initialFolder: Misskey.entities.DriveFolder['id'] | null): Promise<{
+	canceled: false;
+	folders: (Misskey.entities.DriveFolder | null)[];
+} | {
+	canceled: true;
+	folders: undefined;
+}> {
+	return new Promise((resolve, reject) => {
+		let dispose: () => void;
+		os.popupAsyncWithDialog(import('@/components/MkDriveFolderSelectDialog.vue').then(x => x.default), {
 			initialFolder,
 		}, {
 			done: folders => {
-				resolve(folders);
+				resolve(folders == null ? {
+					canceled: true,
+					folders: undefined,
+				} : {
+					canceled: false,
+					folders,
+				});
 			},
 			closed: () => dispose(),
-		});
+		}).then(d => dispose = d.dispose, reject);
 	});
 }

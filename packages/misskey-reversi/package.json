@@ -28,14 +28,12 @@
 	},
 	"devDependencies": {
 		"@biomejs/biome": "2.3.1",
-		"@types/node": "24.9.1",
-		"@typescript-eslint/eslint-plugin": "8.48.1",
-		"@typescript-eslint/parser": "8.48.1",
-		"esbuild": "0.25.10",
-		"execa": "9.6.0",
-		"glob": "11.1.0",
-		"nodemon": "3.1.10",
-		"typescript": "5.9.3"
+		"@types/node": "26.4.0",
+		"@typescript-eslint/eslint-plugin": "8.68.0",
+		"@typescript-eslint/parser": "8.68.0",
+		"esbuild": "0.28.2",
+		"execa": "10.0.1",
+		"nodemon": "3.1.14"
 	},
 	"files": [
 		"built"

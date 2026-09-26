@@ -1,0 +1,11 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"id": "https://z.test/notes/channel-mention/03-original",
+	"type": "Note",
+	"attributedTo": "https://z.test/users/zack",
+	"content": "<p>original note for announce</p>",
+	"published": "2026-06-01T00:02:00.000Z",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	]
+}

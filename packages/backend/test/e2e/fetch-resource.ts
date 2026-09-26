@@ -6,9 +6,10 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { api, clip, galleryPost, page, play, post, signup, simpleGet, uploadFile } from '../utils.js';
+import { beforeAll, beforeEach, describe, test } from 'vitest';
+import { api, channel, clip, galleryPost, page, play, post, signup, simpleGet, uploadFile } from '../utils.js';
 import type { SimpleGetResponse } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 // Request Accept in lowercase
 const ONLY_AP = 'application/activity+json';
@@ -29,6 +30,7 @@ describe('Webリソース', () => {
 	let alicePlay: misskey.entities.Flash;
 	let aliceClip: misskey.entities.Clip;
 	let aliceGalleryPost: misskey.entities.GalleryPost;
+	let aliceChannel: misskey.entities.Channel;
 
 	let bob: misskey.entities.SignupResponse;
 
@@ -72,7 +74,7 @@ describe('Webリソース', () => {
 	};
 
 	const metaTag = (res: SimpleGetResponse, key: string, superkey = 'name'): string => {
-		return res.body.window.document.querySelector('meta[' + superkey + '="' + key + '"]')?.content;
+		return res.body.querySelector('meta[' + superkey + '="' + key + '"]')?.attributes.content;
 	};
 
 	beforeAll(async () => {
@@ -88,6 +90,7 @@ describe('Webリソース', () => {
 		aliceGalleryPost = await galleryPost(alice, {
 			fileIds: [aliceUploadedFile!.id],
 		});
+		aliceChannel = await channel(alice, {});
 
 		bob = await signup({ username: 'bob' });
 	}, 1000 * 60 * 2);
@@ -448,6 +451,23 @@ describe('Webリソース', () => {
 			// FIXME: misskey:gallery-post-idみたいなmetaタグの設定がない
 			// TODO profile.noCrawleの検証
 			// TODO twitter:creatorの検証
+		});
+
+		test('がGETできる。(存在しないIDでも。)', async () => await ok({
+			path: path('xxxxxxxxxx'),
+		}));
+	});
+
+	describe('/channels/:channel', () => {
+		const path = (channel: string): string => `/channels/${channel}`;
+
+		test('はGETできる。', async () => {
+			const res = await ok({
+				path: path(aliceChannel.id),
+			});
+
+			// FIXME: misskey関連のmetaタグの設定がない
+			// TODO ogタグの検証
 		});
 
 		test('がGETできる。(存在しないIDでも。)', async () => await ok({

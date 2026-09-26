@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { url } from '@@/js/config.js';
 import { shouldCollapsed } from '@@/js/collapsed.js';
 import { defineAsyncComponent } from 'vue';
@@ -11,6 +11,7 @@ import { claimAchievement } from './achievements.js';
 import { confirmRenote } from './check-last-renote.js';
 import type { Ref, ShallowRef } from 'vue';
 import type { MenuItem } from '@/types/menu.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
 import { instance } from '@/instance.js';
@@ -38,7 +39,7 @@ const isInBrowserTranslationAvailable = (
 
 export async function getNoteClipMenu(props: {
 	note: Misskey.entities.Note;
-	currentClip?: Misskey.entities.Clip;
+	currentClip?: Misskey.entities.Clip | null;
 }) {
 	function getClipName(clip: Misskey.entities.Clip) {
 		if ($i && clip.userId === $i.id && clip.notesCount != null) {
@@ -188,10 +189,11 @@ export function getNoteMenu(props: {
 	note: Misskey.entities.Note;
 	collapsed?: Ref<boolean>;
 	translation: Ref<Misskey.entities.NotesTranslateResponse | null>;
-	translating: Ref<boolean>;
+	translateStatus: Ref<TranslateStatus>;
 	viewTextSource: Ref<boolean>;
 	noNyaize: Ref<boolean>;
-	currentClip?: Misskey.entities.Clip;
+	currentClip?: Misskey.entities.Clip | null;
+	currentAntenna?: Misskey.entities.Antenna | null;
 }) {
 	const appearNote = getAppearNote(props.note) ?? props.note;
 	const link = appearNote.url ?? appearNote.uri;
@@ -324,7 +326,20 @@ export function getNoteMenu(props: {
 		os.apiWithDialog('clips/remove-note', { clipId: props.currentClip.id, noteId: appearNote.id });
 	}
 
-	async function promote(): Promise<void> {
+	async function removeFromAntenna(): Promise<void> {
+		if (!props.currentAntenna) return;
+
+		const { canceled } = await os.confirm({
+			type: 'warning',
+			text: i18n.tsx.removeNoteFromAntennaConfirm({ name: props.currentAntenna.name }),
+		});
+		if (canceled) return;
+
+		await os.apiWithDialog('antennas/remove-note', { antennaId: props.currentAntenna.id, noteId: appearNote.id });
+		globalEvents.emit('noteRemovedFromAntenna', props.currentAntenna.id, appearNote.id);
+	}
+
+	async function _promote(): Promise<void> {
 		const { canceled, result: days } = await os.inputNumber({
 			title: i18n.ts.numberOfDays,
 		});
@@ -368,12 +383,18 @@ export function getNoteMenu(props: {
 	async function translate(): Promise<void> {
 		if (props.translation.value != null) return;
 		if (props.collapsed?.value != null) props.collapsed.value = false;
-		if (prefer.s['experimental.enableWebTranslatorApi'] && isInBrowserTranslationAvailable && appearNote.text != null) {
-			props.translating.value = true;
+
+		let text = appearNote.text ?? '';
+		if (appearNote.cw != null) {
+			text = `${appearNote.cw}\n-----\n${text}`;
+		}
+
+		if (prefer.s['experimental.enableWebTranslatorApi'] && isInBrowserTranslationAvailable && text.trim() !== '') {
+			props.translateStatus.value = 'running';
 			try {
 				// @ts-expect-error 実験的なAPIなので型定義がない
 				const detector = await LanguageDetector.create();
-				const langResult = await detector.detect(appearNote.text);
+				const langResult = await detector.detect(text);
 				let localStorageLang = miLocalStorage.getItem('lang');
 				if (localStorageLang != null) {
 					localStorageLang = localStorageLang.split('-')[0];
@@ -383,7 +404,8 @@ export function getNoteMenu(props: {
 				if (langResult[0]?.detectedLanguage === localStorageLang || langResult[0]?.detectedLanguage === navigator.language) {
 					props.translation.value = {
 						sourceLang: langResult[0]?.detectedLanguage ?? 'unknown',
-						text: appearNote.text,
+						text: text,
+						translator: 'web',
 					};
 					return;
 				}
@@ -393,21 +415,22 @@ export function getNoteMenu(props: {
 					sourceLanguage: langResult[0]?.detectedLanguage,
 					targetLanguage: localStorageLang ?? navigator.language,
 				});
-				const translated = await translator.translate(appearNote.text);
+				const translated = await translator.translate(text);
 				props.translation.value = {
 					sourceLang: langResult[0]?.detectedLanguage ?? 'unknown',
 					text: translated,
+					translator: 'web',
 				};
 			} finally {
-				props.translating.value = false;
+				props.translateStatus.value = 'success';
 			}
 		} else if ($i?.policies.canUseTranslator && instance.translatorAvailable) {
-			props.translating.value = true;
+			props.translateStatus.value = 'running';
 			const res = await misskeyApi('notes/translate', {
 				noteId: appearNote.id,
 				targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
 			}).catch((err) => {
-				props.translating.value = false;
+				props.translateStatus.value = 'error';
 				os.alert(
 					{
 						type: 'error',
@@ -416,7 +439,7 @@ export function getNoteMenu(props: {
 					});
 				return null;
 			});
-			props.translating.value = false;
+			props.translateStatus.value = 'success';
 			props.translation.value = res;
 		}
 	}
@@ -638,6 +661,7 @@ export function getNoteMenu(props: {
 					text: i18n.ts.unRenoteAll,
 					action: unRenote,
 				});
+
 				return noteChildMenu;
 			},
 		});
@@ -712,11 +736,27 @@ export function getNoteMenu(props: {
 					action: delEdit,
 				});
 			}
+			if (props.currentAntenna != null) {
+				menuItems.push({
+					icon: 'ti ti-trash',
+					text: i18n.ts.removeFromAntenna,
+					danger: true,
+					action: removeFromAntenna,
+				});
+			}
 			menuItems.push({
 				icon: 'ti ti-trash',
 				text: i18n.ts.delete,
 				danger: true,
 				action: del,
+			});
+		} else if (props.currentAntenna != null) {
+			menuItems.push({ type: 'divider' });
+			menuItems.push({
+				icon: 'ti ti-trash',
+				text: i18n.ts.removeFromAntenna,
+				danger: true,
+				action: removeFromAntenna,
 			});
 		}
 	} else {
@@ -892,6 +932,30 @@ export function getQuoteMenu(props: {
 	return { menu };
 }
 
+async function checkRenoted(props: {
+	note: Misskey.entities.Note;
+	mock?: boolean;
+}): Promise<boolean> {
+	const appearNote = getAppearNote(props.note) ?? props.note;
+
+	if (!props.mock && $i) {
+		const state = await misskeyApi('notes/state', {
+			noteId: appearNote.id,
+		}) as { isFavorited: boolean; isMutedThread: boolean; isRenoted: boolean };
+
+		if (state.isRenoted) {
+			const { canceled } = await os.confirm({
+				type: 'warning',
+				title: i18n.ts.alreadyRenotedConfirm,
+				text: i18n.ts.alreadyRenotedConfirmDescription,
+				caption: i18n.ts.alreadyRenotedConfirmCaption,
+			});
+			if (canceled) return true;
+		}
+	}
+	return false;
+}
+
 export async function getRenoteMenu(props: {
 	note: Misskey.entities.Note;
 	renoteButton: ShallowRef<HTMLElement | null | undefined>;
@@ -899,7 +963,9 @@ export async function getRenoteMenu(props: {
 }) {
 	const appearNote = getAppearNote(props.note) ?? props.note;
 
+	const channelRenoteItems: MenuItem[] = [];
 	const normalRenoteItems: MenuItem[] = [];
+	const normalExternalChannelRenoteItems: MenuItem[] = [];
 	const visibilityRenoteItems: MenuItem[] = [];
 
 	// Add channel renote/quote buttons
@@ -919,7 +985,9 @@ export async function getRenoteMenu(props: {
 				}
 
 				if (!props.mock) {
-					const canceled = await confirmRenote(appearNote.id);
+					const result = await confirmRenote(appearNote.id);
+					if (result) return;
+					const canceled = await checkRenoted(props);
 					if (canceled) return;
 
 					misskeyApi('notes/create', {
@@ -945,7 +1013,9 @@ export async function getRenoteMenu(props: {
 				icon: 'ti ti-quote',
 				action: async () => {
 					if (!props.mock) {
-						const canceled = await confirmRenote(appearNote.id);
+						const result = await confirmRenote(appearNote.id);
+						if (result) return;
+						const canceled = await checkRenoted(props);
 						if (canceled) return;
 
 						os.post({
@@ -981,11 +1051,8 @@ export async function getRenoteMenu(props: {
 					visibility = smallerVisibility(visibility, 'home');
 				}
 
-				const result = await confirmRenote(appearNote.id);
-				if (result) return;
-
 				if (!props.mock) {
-					const canceled = await confirmRenote(appearNote.id);
+					const canceled = await checkRenoted(props);
 					if (canceled) return;
 
 					misskeyApi('notes/create', {
@@ -1005,7 +1072,9 @@ export async function getRenoteMenu(props: {
 				text: i18n.ts.quote,
 				icon: 'ti ti-quote',
 				action: async () => {
-					const canceled = await confirmRenote(appearNote.id);
+					const result =	await confirmRenote(appearNote.id);
+					if (result) return;
+					const canceled = await checkRenoted(props);
 					if (canceled) return;
 
 					os.post({
@@ -1014,6 +1083,47 @@ export async function getRenoteMenu(props: {
 				},
 			});
 		}
+
+		normalExternalChannelRenoteItems.push({
+			type: 'parent',
+			icon: 'ti ti-repeat',
+			text: appearNote.channel ? i18n.ts.renoteToOtherChannel : i18n.ts.renoteToChannel,
+			children: async () => {
+				const channels = await favoritedChannelsCache.fetch();
+				return channels.filter((channel) => {
+					if (!appearNote.channelId) return true;
+					return channel.id !== appearNote.channelId;
+				}).map((channel) => ({
+					text: channel.name,
+					action: async () => {
+						const el = props.renoteButton.value;
+						if (el && prefer.s.animation) {
+							const rect = el.getBoundingClientRect();
+							const x = rect.left + (el.offsetWidth / 2);
+							const y = rect.top + (el.offsetHeight / 2);
+							const { dispose } = os.popup(MkRippleEffect, { x, y }, {
+								end: () => dispose(),
+							});
+						}
+
+						if (!props.mock) {
+							const result =	await confirmRenote(appearNote.id);
+							if (result) return;
+							const canceled = await checkRenoted(props);
+							if (canceled) return;
+
+							misskeyApi('notes/create', {
+								renoteId: appearNote.id,
+								channelId: channel.id,
+							}).then((res) => {
+								os.toast(i18n.tsx.renotedToX({ name: channel.name }));
+								globalEvents.emit('notePosted', res.createdNote);
+							});
+						}
+					},
+				}));
+			},
+		});
 
 		// Add visibility section
 		if (prefer.s.renoteVisibilitySelection && !['followers', 'specified'].includes(appearNote.visibility)) {
@@ -1025,6 +1135,8 @@ export async function getRenoteMenu(props: {
 					action: async () => {
 						const result =	await confirmRenote(appearNote.id);
 						if (result) return;
+						const canceled = await checkRenoted(props);
+						if (canceled) return;
 
 						misskeyApi('notes/create', {
 							visibility: 'public',
@@ -1044,6 +1156,9 @@ export async function getRenoteMenu(props: {
 					action: async () => {
 						const result =	await confirmRenote(appearNote.id);
 						if (result) return;
+						const canceled = await checkRenoted(props);
+						if (canceled) return;
+
 						misskeyApi('notes/create', {
 							visibility: 'home',
 							renoteId: appearNote.id,
@@ -1061,6 +1176,9 @@ export async function getRenoteMenu(props: {
 				action: async () => {
 					const result =	await confirmRenote(appearNote.id);
 					if (result) return;
+					const canceled = await checkRenoted(props);
+					if (canceled) return;
+
 					misskeyApi('notes/create', {
 						visibility: 'followers',
 						renoteId: appearNote.id,
@@ -1074,7 +1192,9 @@ export async function getRenoteMenu(props: {
 
 	const renoteItems = addDividersBetweenMenuSections(
 		normalRenoteItems,
+		channelRenoteItems,
 		visibilityRenoteItems,
+		normalExternalChannelRenoteItems,
 	);
 
 	return {
@@ -1098,7 +1218,9 @@ export async function getRenoteOnly(props: {
 		if (canceled) return;
 	}
 
-	const canceled = await confirmRenote(appearNote.id);
+	const result = await confirmRenote(appearNote.id);
+	if (result) return;
+	const canceled = await checkRenoted(props);
 	if (canceled) return;
 
 	if (appearNote.channel) {
@@ -1133,7 +1255,7 @@ export async function getRenoteOnly(props: {
 			});
 		}
 
-		const configuredVisibility = store.s.rememberNoteVisibility ? store.s.visibility : store.s.defaultNoteVisibility;
+		const configuredVisibility = prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility;
 
 		let visibility = appearNote.visibility;
 		visibility = smallerVisibility(visibility, configuredVisibility);

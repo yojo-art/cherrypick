@@ -55,7 +55,7 @@ function onToggleSortOrderButtonClicked(order: SortOrder<T>) {
 	emitOrder(currentOrders.value);
 }
 
-function onAddSortOrderButtonClicked(ev: MouseEvent) {
+function onAddSortOrderButtonClicked(ev: PointerEvent) {
 	const menuItems: MenuItem[] = props.baseOrderKeyNames
 		.filter(baseKey => !currentOrders.value.map(it => it.key).includes(baseKey))
 		.map(it => {

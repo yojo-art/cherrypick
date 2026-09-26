@@ -24,7 +24,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<div :class="$style.headerRight">
 				<template v-if="!(targetChannel != null && fixed)">
-					<button v-if="targetChannel == null" ref="visibilityButton" v-click-anime v-tooltip="i18n.ts.visibility" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setVisibility">
+					<button ref="visibilityButton" v-click-anime v-tooltip="i18n.ts.visibility" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setVisibility">
 						<span v-if="visibility === 'public'"><i class="ti ti-world"></i></span>
 						<span v-if="visibility === 'home'"><i class="ti ti-home"></i></span>
 						<span v-if="visibility === 'followers'"><i class="ti ti-lock"></i></span>
@@ -32,21 +32,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<span :class="$style.headerRightButtonText">{{ i18n.ts._visibility[visibility] }}</span>
 					</button>
 
-					<button v-if="channel == null" ref="searchbilityButton" v-click-anime v-tooltip="i18n.ts._searchbility.tooltip" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setSearchbility">
+					<button ref="searchbilityButton" v-click-anime v-tooltip="i18n.ts._searchbility.tooltip" :class="['_button', $style.headerRightItem, $style.visibility]" @click="setSearchbility">
 						<span v-if="searchableBy === 'public'"><i class="ti ti-world-search"></i></span>
 						<span v-if="searchableBy === 'followersAndReacted'"><i class="ti ti-user-search"></i></span>
 						<span v-if="searchableBy === 'reactedOnly'"><i class="ti ti-lock-search"></i></span>
 						<span v-if="searchableBy === 'private'"><i class="ti ti-mail-search"></i></span>
 						<span :class="$style.headerRightButtonText">{{ i18n.ts._searchbility[searchableBy] }}</span>
 					</button>
-					<button v-else class="_button" :class="[$style.headerRightItem, $style.visibility]" disabled>
+					<button v-if="targetChannel!=null" class="_button" :class="[$style.headerRightItem, $style.visibility]" disabled>
 						<span><i class="ti ti-device-tv"></i></span>
 						<span :class="$style.headerRightButtonText">{{ targetChannel.name }}</span>
 					</button>
 				</template>
-				<button ref="otherSettingsButton" v-tooltip="i18n.ts.other" class="_button" :class="$style.headerRightItem" @click="showOtherSettings"><i class="ti ti-dots"></i></button>
 				<div :class="$style.submit">
-					<button v-click-anime class="_button" :class="$style.submitButton" :disabled="!canPost" data-cy-open-post-form-submit @click="post">
+					<button v-click-anime class="_button" :class="$style.submitButton" :disabled="!canPost" data-testid="post-form-simple-submit" @click="post">
 						<div :class="$style.submitInner">
 							<template v-if="posted"></template>
 							<template v-else-if="posting"><MkEllipsis/></template>
@@ -94,7 +93,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	</div>
 	<div :class="[$style.textOuter, { [$style.withCw]: useCw, [$style.showForm]: !showForm }]">
 		<div v-if="targetChannel" :class="$style.colorBar" :style="{ background: targetChannel.color }"></div>
-		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-cy-post-form-text @click="formClick" @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"/>
+		<textarea ref="textareaEl" v-model="text" :class="[$style.text]" :disabled="posting || posted" :readonly="textAreaReadOnly" :placeholder="placeholder" data-testid="post-form-simple-text" @click="formClick" @keydown="onKeydown" @keyup="onKeyup" @paste="onPaste" @compositionupdate="onCompositionUpdate" @compositionend="onCompositionEnd"></textarea>
 		<div v-if="maxTextLength - textLength < 100" :class="['_acrylic', $style.textCount, { [$style.textOver]: textLength > maxTextLength }]">{{ maxTextLength - textLength }}</div>
 	</div>
 	<div v-show="withHashtags && showForm" :class="$style.hashtags">
@@ -119,8 +118,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	>
 		<footer v-if="showForm" :class="$style.footer">
 			<div :class="$style.footerLeft">
-				<button v-tooltip="i18n.ts.attachFile + ' (' + i18n.ts.upload + ')'" class="_button" :class="$style.footerButton" @click="chooseFileFromPc"><i class="ti ti-photo-plus"></i></button>
-				<button v-tooltip="i18n.ts.attachFile + ' (' + i18n.ts.fromDrive + ')'" class="_button" :class="$style.footerButton" @click="chooseFileFromDrive"><i class="ti ti-cloud-download"></i></button>
+				<button v-tooltip="i18n.ts.attachFile" class="_button" :class="$style.footerButton" @click="showFileAttachmentMenu"><i class="ti ti-photo-plus"></i></button>
 				<button v-if="!props.updateMode" v-tooltip="i18n.ts.poll" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: poll }]" @click="togglePoll"><i class="ti ti-chart-arrows"></i></button>
 				<button v-tooltip="i18n.ts.useCw" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: useCw }]" @click="useCw = !useCw"><i class="ti ti-eye-off"></i></button>
 				<button v-tooltip="i18n.ts.hashtags" class="_button" :class="[$style.footerButton, { [$style.footerButtonActive]: withHashtags }]" @click="withHashtags = !withHashtags"><i class="ti ti-hash"></i></button>
@@ -128,14 +126,15 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<button v-tooltip="i18n.ts.event" class="_button" :class="$style.footerButton" @click="toggleEvent"><i class="ti ti-calendar"></i></button>
 				<button v-if="showAddMfmFunction" v-tooltip="i18n.ts.addMfmFunction" class="_button" :class="$style.footerButton" @click="insertMfmFunction"><i class="ti ti-palette"></i></button>
 				<button v-if="postFormActions.length > 0" v-tooltip="i18n.ts.plugins" class="_button" :class="$style.footerButton" @click="showActions"><i class="ti ti-plug"></i></button>
+				<button v-tooltip="i18n.ts.emoji" :class="['_button', $style.footerButton]" @click="insertEmoji"><i class="ti ti-mood-happy"></i></button>
 			</div>
 			<div :class="$style.footerRight">
-				<button v-tooltip="i18n.ts.emoji" :class="['_button', $style.footerButton]" @click="insertEmoji"><i class="ti ti-mood-happy"></i></button>
+				<button ref="otherSettingsButton" v-tooltip="i18n.ts.other" class="_button" :class="$style.footerRightItem" @click="showOtherSettings"><i class="ti ti-dots"></i></button>
 			</div>
 		</footer>
 	</Transition>
 	<datalist v-if="showForm" id="hashtags">
-		<option v-for="hashtag in recentHashtags" :key="hashtag" :value="hashtag"/>
+		<option v-for="hashtag in recentHashtags" :key="hashtag" :value="hashtag"></option>
 	</datalist>
 </div>
 </template>
@@ -143,7 +142,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { inject, watch, nextTick, onMounted, defineAsyncComponent, provide, shallowRef, ref, computed, useTemplateRef, onUnmounted } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import insertTextAtCursor from 'insert-text-at-cursor';
 import { toASCII } from 'punycode.js';
 import autosize from 'autosize';
@@ -241,7 +240,11 @@ watch(showProfilePreview, () => prefer.commit('showProfilePreview', showProfileP
 const showAddMfmFunction = ref(prefer.s.enableQuickAddMfmFunction);
 watch(showAddMfmFunction, () => prefer.commit('enableQuickAddMfmFunction', showAddMfmFunction.value));
 const cw = ref<string | null>(props.initialCw ?? null);
-const visibility = ref(props.initialVisibility ?? (prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility));
+const visibility = ref(props.initialVisibility ?? (
+	props.channel
+		? (prefer.s.rememberChannelNoteVisibility ? store.s.channelNoteVisibility : prefer.s.defaultChannelNoteVisibility)
+		: (prefer.s.rememberNoteVisibility ? store.s.visibility : prefer.s.defaultNoteVisibility)
+));
 const searchableBy = ref(prefer.s.rememberNoteSearchbility ? prefer.s.searchbility : prefer.s.defaultNoteSearchbility);
 const visibleUsers = ref<Misskey.entities.UserDetailed[]>([]);
 if (props.initialVisibleUsers) {
@@ -257,7 +260,6 @@ watch(hideTag, () => prefer.commit('hideTagUiTags', hideTag.value));
 const recentHashtags = ref(JSON.parse(miLocalStorage.getItem('hashtags') ?? '[]'));
 const imeText = ref('');
 const showingOptions = ref(false);
-const disableRightClick = ref(false);
 const saveToDraft = ref(false);
 const textAreaReadOnly = ref(false);
 const justEndedComposition = ref(false);
@@ -277,6 +279,7 @@ const scheduledDeleteAt = computed(() => {
 
 const uploader = useUploader({
 	multiple: true,
+	autoUpload: prefer.s.instantUploadInPostForm,
 });
 
 onUnmounted(() => {
@@ -413,7 +416,9 @@ if ($i.isSilenced && visibility.value === 'public') {
 }
 
 // 公開以外へのリプライ時は元の公開範囲を引き継ぐ
-if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTargetNote.value.visibility)) {
+// ただしチャンネル選択中は followers/specified への継承は行わない（チャンネルでは禁止のため必ずエラーになる）
+if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTargetNote.value.visibility)
+	&& !(targetChannel.value && ['followers', 'specified'].includes(replyTargetNote.value.visibility))) {
 	if (replyTargetNote.value.visibility === 'home' && visibility.value === 'followers') {
 		visibility.value = 'followers';
 	} else if (['home', 'followers'].includes(replyTargetNote.value.visibility) && visibility.value === 'specified') {
@@ -422,7 +427,7 @@ if (replyTargetNote.value && ['home', 'followers', 'specified'].includes(replyTa
 		visibility.value = replyTargetNote.value.visibility;
 	}
 
-	if (visibility.value === 'specified') {
+	if (visibility.value === 'specified' && !targetChannel.value) {
 		if (replyTargetNote.value.visibleUserIds) {
 			misskeyApi('users/show', {
 				userIds: replyTargetNote.value.visibleUserIds.filter(uid => uid !== $i.id && uid !== replyTargetNote.value?.userId),
@@ -444,6 +449,21 @@ if (props.specified) {
 	pushVisibleUser(props.specified);
 }
 
+if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+	visibility.value = 'public';
+}
+watch(targetChannel, (newChannel) => {
+	if (newChannel && (visibility.value === 'followers' || visibility.value === 'specified')) {
+		visibility.value = 'public';
+	}
+});
+// followers/specified がチャンネル選択中に外部から代入された場合も補正する
+watch(visibility, (newVis) => {
+	if (targetChannel.value && (newVis === 'followers' || newVis === 'specified')) {
+		visibility.value = 'public';
+	}
+});
+
 // keep cw when reply
 if (prefer.s.keepCw && replyTargetNote.value && replyTargetNote.value.cw) {
 	useCw.value = true;
@@ -454,7 +474,6 @@ function watchForDraft() {
 	watch(text, () => saveDraft());
 	watch(useCw, () => saveDraft());
 	watch(cw, () => saveDraft());
-	watch(disableRightClick, () => saveDraft());
 	watch(saveToDraft, () => saveDraft());
 	watch(poll, () => saveDraft());
 	watch(event, () => saveDraft());
@@ -529,7 +548,7 @@ function toggleEvent() {
 }
 
 function addTag(tag: string) {
-	insertTextAtCursor(textareaEl.value, ` #${tag} `);
+	if (textareaEl.value) insertTextAtCursor(textareaEl.value, ` #${tag} `);
 }
 
 function focus() {
@@ -556,18 +575,18 @@ function chooseFileFromDrive(ev: MouseEvent) {
 	});
 }
 
-function detachFile(id) {
+function detachFile(id: string) {
 	files.value = files.value.filter(x => x.id !== id);
 }
 
-function updateFileSensitive(file, sensitive) {
+function updateFileSensitive(file: Misskey.entities.DriveFile, sensitive: boolean) {
 	if (props.mock) {
 		emit('fileChangeSensitive', file.id, sensitive);
 	}
 	files.value[files.value.findIndex(x => x.id === file.id)].isSensitive = sensitive;
 }
 
-function updateFileName(file, name) {
+function updateFileName(file: Misskey.entities.DriveFile, name: string) {
 	files.value[files.value.findIndex(x => x.id === file.id)].name = name;
 }
 
@@ -575,13 +594,20 @@ function setVisibility() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkVisibilityPicker.vue')), {
 		currentVisibility: visibility.value,
 		isSilenced: $i.isSilenced,
+		isChannel: !!targetChannel.value,
 		anchorElement: visibilityButton.value,
 		...(replyTargetNote.value ? { isReplyVisibilitySpecified: replyTargetNote.value.visibility === 'specified' } : {}),
 	}, {
 		changeVisibility: v => {
 			visibility.value = v;
-			if (prefer.s.rememberNoteVisibility) {
-				store.set('visibility', visibility.value);
+			if (targetChannel.value) {
+				if (prefer.s.rememberChannelNoteVisibility) {
+					store.set('channelNoteVisibility', visibility.value);
+				}
+			} else {
+				if (prefer.s.rememberNoteVisibility) {
+					store.set('visibility', visibility.value);
+				}
 			}
 		},
 		closed: () => dispose(),
@@ -623,15 +649,33 @@ async function toggleReactionAcceptance() {
 //#region その他の設定メニューpopup
 function showOtherSettings() {
 	let reactionAcceptanceIcon = 'ti ti-icons';
+	let reactionAcceptanceCaption = '';
 
-	if (reactionAcceptance.value === 'likeOnly') {
-		reactionAcceptanceIcon = 'ti ti-heart _love';
-	} else if (reactionAcceptance.value === 'likeOnlyForRemote') {
-		reactionAcceptanceIcon = 'ti ti-heart-plus';
+	switch (reactionAcceptance.value) {
+		case 'likeOnly':
+			reactionAcceptanceIcon = 'ti ti-heart _love';
+			reactionAcceptanceCaption = i18n.ts.likeOnly;
+			break;
+
+		case 'likeOnlyForRemote':
+			reactionAcceptanceIcon = 'ti ti-heart-plus';
+			reactionAcceptanceCaption = i18n.ts.likeOnlyForRemote;
+			break;
+
+		case 'nonSensitiveOnly':
+			reactionAcceptanceCaption = i18n.ts.nonSensitiveOnly;
+			break;
+
+		case 'nonSensitiveOnlyForLocalLikeOnlyForRemote':
+			reactionAcceptanceCaption = i18n.ts.nonSensitiveOnlyForLocalLikeOnlyForRemote;
+			break;
+
+		default:
+			reactionAcceptanceCaption = i18n.ts.all;
+			break;
 	}
 
-	const menuItems:MenuItem[] = [];
-	menuItems.push({
+	const menuItems = [{
 		type: 'component',
 		component: XTextCounter,
 		props: {
@@ -640,13 +684,13 @@ function showOtherSettings() {
 	}, { type: 'divider' }, {
 		icon: reactionAcceptanceIcon,
 		text: i18n.ts.reactionAcceptance,
+		caption: reactionAcceptanceCaption,
 		action: () => {
 			toggleReactionAcceptance();
 		},
-	}, { type: 'divider' }, /*{
-		type: 'button',
-		text: i18n.ts._drafts.saveToDraft,
+	}, { type: 'divider' }, ...($i.policies.noteDraftLimit > 0 ? [{
 		icon: 'ti ti-cloud-upload',
+		text: i18n.ts._drafts.saveToDraft,
 		action: async () => {
 			if (!canSaveAsServerDraft.value) {
 				return os.alert({
@@ -656,13 +700,27 @@ function showOtherSettings() {
 			}
 			saveServerDraft();
 		},
-	}, */...($i.policies.scheduledNoteLimit > 0 ? [{
+	}] : []), {
+		type: 'button',
+		text: i18n.ts._drafts.listDrafts,
+		icon: 'ti ti-cloud-download',
+		action: () => {
+			showDraftsDialog(false);
+		},
+	}, { type: 'divider' }, ...($i.policies.scheduledNoteLimit > 0 ? [{
 		icon: 'ti ti-calendar-time',
 		text: i18n.ts.schedulePost + '...',
 		action: () => {
 			schedule();
 		},
 	}] : []), {
+		type: 'button',
+		text: i18n.ts._drafts.listScheduledNotes,
+		icon: 'ti ti-clock-down',
+		action: () => {
+			showDraftsDialog(true);
+		},
+	}, { type: 'divider' }, {
 		icon: 'ti ti-clock-hour-9',
 		text: i18n.ts.scheduledNoteDelete + '...',
 		action: () => {
@@ -675,20 +733,10 @@ function showOtherSettings() {
 			openMfmCheatSheet();
 		},
 	}, { type: 'divider' }, {
-		type: 'parent',
+		type: 'switch',
 		icon: 'ti ti-eye',
 		text: i18n.ts.preview,
-		children: [{
-			type: 'switch',
-			text: i18n.ts.previewNoteText,
-			icon: 'ti ti-eye',
-			ref: showPreview,
-		}, {
-			type: 'switch',
-			text: i18n.ts.previewNoteProfile,
-			icon: 'ti ti-user-circle',
-			ref: showProfilePreview,
-		}],
+		ref: showPreview,
 	}, {
 		icon: 'ti ti-trash',
 		text: i18n.ts.reset,
@@ -702,7 +750,8 @@ function showOtherSettings() {
 			if (canceled) return;
 			clear();
 		},
-	});
+	}] satisfies MenuItem[];
+
 	os.popupMenu(menuItems, otherSettingsButton.value);
 }
 //#endregion
@@ -723,7 +772,7 @@ function addVisibleUser() {
 	});
 }
 
-function removeVisibleUser(user) {
+function removeVisibleUser(user: Misskey.entities.UserDetailed) {
 	visibleUsers.value = erase(user, visibleUsers.value);
 }
 
@@ -736,7 +785,6 @@ function clear() {
 	scheduledAt.value = null;
 	scheduledNoteDelete.value = null;
 	saveToDraft.value = false;
-	disableRightClick.value = false;
 }
 
 function onKeydown(ev: KeyboardEvent) {
@@ -747,10 +795,18 @@ function onKeydown(ev: KeyboardEvent) {
 	}
 
 	if (prefer.s.postFormVisibilityHotkey) {
-		if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'specified')) visibility.value = 'public';
-		else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'public')) visibility.value = 'home';
-		else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'home')) visibility.value = 'followers';
-		else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'followers')) visibility.value = 'specified';
+		if (targetChannel.value) {
+			if (ev.ctrlKey && ev.shiftKey) {
+				if (visibility.value === 'followers' || visibility.value === 'specified') visibility.value = 'public';
+				else if (visibility.value === 'public') visibility.value = 'home';
+				else if (visibility.value === 'home') visibility.value = 'public';
+			}
+		} else {
+			if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'specified')) visibility.value = 'public';
+			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'public')) visibility.value = 'home';
+			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'home')) visibility.value = 'followers';
+			else if (ev.ctrlKey && ev.shiftKey && (visibility.value === 'followers')) visibility.value = 'specified';
+		}
 	}
 
 	// justEndedComposition.value is for Safari, which keyDown occurs after compositionend.
@@ -805,7 +861,7 @@ async function onPaste(ev: ClipboardEvent) {
 			text: i18n.ts.quoteQuestion,
 		}).then(({ canceled }) => {
 			if (canceled) {
-				insertTextAtCursor(textareaEl.value, paste);
+				if (textareaEl.value) insertTextAtCursor(textareaEl.value, paste);
 				return;
 			}
 
@@ -820,7 +876,7 @@ async function onPaste(ev: ClipboardEvent) {
 			text: i18n.ts.attachAsFileQuestion,
 		}).then(({ canceled }) => {
 			if (canceled) {
-				insertTextAtCursor(textareaEl.value, paste);
+				if (textareaEl.value) insertTextAtCursor(textareaEl.value, paste);
 				return;
 			}
 
@@ -831,7 +887,8 @@ async function onPaste(ev: ClipboardEvent) {
 	}
 }
 
-function onDragover(ev) {
+function onDragover(ev: DragEvent) {
+	if (ev.dataTransfer == null) return;
 	if (!ev.dataTransfer.items[0]) return;
 	const isFile = ev.dataTransfer.items[0].kind === 'file';
 	if (isFile || checkDragDataType(ev, ['driveFiles'])) {
@@ -896,7 +953,6 @@ function saveDraft() {
 			text: text.value,
 			useCw: useCw.value,
 			cw: cw.value,
-			disableRightClick: disableRightClick.value,
 			saveToDraft: text.value === '' ? false : saveToDraft.value,
 			visibility: visibility.value,
 			searchableBy: searchableBy.value,
@@ -929,7 +985,6 @@ async function saveServerDraft(options: {
 		...(serverDraftId.value == null ? {} : { draftId: serverDraftId.value }),
 		text: text.value,
 		cw: useCw.value ? cw.value || null : null,
-		disableRightClick: disableRightClick.value,
 		visibility: visibility.value,
 		hashtag: hashtags.value,
 		fileIds: files.value.map(f => f.id),
@@ -1091,7 +1146,6 @@ async function post(ev?: MouseEvent) {
 		searchableBy: searchableBy.value,
 		visibleUserIds: visibility.value === 'specified' ? visibleUsers.value.map(u => u.id) : undefined,
 		reactionAcceptance: reactionAcceptance.value,
-		disableRightClick: disableRightClick.value,
 		noteId: props.updateMode ? props.initialNote?.id : undefined,
 		scheduledDelete: scheduledNoteDelete.value,
 	};
@@ -1156,7 +1210,7 @@ async function post(ev?: MouseEvent) {
 			clear();
 		}
 
-		globalEvents.emit('notePosted', res.createdNote);
+		if (res && 'createdNote' in res) globalEvents.emit('notePosted', res.createdNote as Misskey.entities.Note);
 
 		nextTick(() => {
 			deleteDraft();
@@ -1252,7 +1306,7 @@ function cancel() {
 
 function insertMention() {
 	os.selectUser({ localOnly: false, includeSelf: true }).then(user => {
-		insertTextAtCursor(textareaEl.value, '@' + Misskey.acct.toString(user) + ' ');
+		if (textareaEl.value) insertTextAtCursor(textareaEl.value, '@' + Misskey.acct.toString(user) + ' ');
 	});
 }
 
@@ -1312,6 +1366,97 @@ function showActions(ev: MouseEvent) {
 
 async function openMfmCheatSheet() {
 	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkMfmCheatSheetDialog.vue')), {}, {
+		closed: () => {
+			dispose();
+		},
+	});
+}
+
+const postAccount = ref<Misskey.entities.UserDetailed | null>(null);
+
+function showDraftsDialog(scheduled: boolean) {
+	const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkNoteDraftsDialog.vue')), {
+		scheduled,
+	}, {
+		restore: async (draft: Misskey.entities.NoteDraft) => {
+			text.value = draft.text ?? '';
+			useCw.value = draft.cw != null;
+			cw.value = draft.cw ?? null;
+			visibility.value = draft.visibility;
+			// チャンネル選択中は followers/specified を許容しない
+			if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+				visibility.value = 'public';
+			}
+			//localOnly.value = draft.localOnly ?? false;
+			files.value = draft.files ?? [];
+			hashtags.value = draft.hashtag ?? '';
+			if (draft.deleteAt) {
+				scheduledNoteDelete.value = null;
+				nextTick(() => {
+					scheduledNoteDelete.value = {
+						deleteAt: draft.deleteAt ? (new Date(draft.deleteAt)).getTime() : null,
+						deleteAfter: null,
+					};
+				});
+			}
+			if (draft.hashtag) withHashtags.value = true;
+			if (draft.poll) {
+				// 投票を一時的に空にしないと反映されないため
+				poll.value = null;
+				nextTick(() => {
+					poll.value = {
+						choices: draft.poll!.choices,
+						multiple: draft.poll!.multiple,
+						expiresAt: draft.poll!.expiresAt ? (new Date(draft.poll!.expiresAt)).getTime() : null,
+						expiredAfter: null,
+					};
+				});
+			}
+			if (draft.event) {
+				event.value = null;
+				nextTick(() => {
+					const startValue = typeof draft.event!.start === 'string'
+						? (new Date(draft.event!.start)).getTime()
+						: draft.event!.start;
+					const endValue = typeof draft.event!.end === 'string'
+						? (new Date(draft.event!.end)).getTime()
+						: draft.event!.end;
+					event.value = {
+						title: draft.event!.title,
+						start: startValue,
+						end: endValue,
+						metadata: draft.event!.metadata,
+					};
+				});
+			}
+			if (draft.visibleUserIds) {
+				misskeyApi('users/show', { userIds: draft.visibleUserIds }).then(users => {
+					users.forEach(u => pushVisibleUser(u));
+				});
+			}
+			quoteId.value = draft.renoteId ?? null;
+			renoteTargetNote.value = draft.renote;
+			replyTargetNote.value = draft.reply;
+			reactionAcceptance.value = draft.reactionAcceptance;
+			scheduledAt.value = draft.scheduledAt ?? null;
+			if (draft.channel) targetChannel.value = draft.channel as unknown as Misskey.entities.Channel;
+
+			// draft復元後にチャンネルとvisibilityの不整合を補正
+			if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+				visibility.value = 'public';
+			}
+
+			visibleUsers.value = [];
+			draft.visibleUserIds?.forEach(uid => {
+				if (!visibleUsers.value.some(u => u.id === uid)) {
+					misskeyApi('users/show', { userId: uid }).then(user => {
+						pushVisibleUser(user);
+					});
+				}
+			});
+
+			serverDraftId.value = draft.id;
+		},
 		cancel: () => {
 
 		},
@@ -1321,94 +1466,8 @@ async function openMfmCheatSheet() {
 	});
 }
 
-const postAccount = ref<Misskey.entities.UserDetailed | null>(null);
-
 async function openAccountMenu(ev: MouseEvent) {
 	if (props.mock) return;
-
-	function showDraftsDialog(scheduled: boolean) {
-		const { dispose } = os.popup(defineAsyncComponent(() => import('@/components/MkNoteDraftsDialog.vue')), {
-			scheduled,
-		}, {
-			restore: async (draft: Misskey.entities.NoteDraft) => {
-				text.value = draft.text ?? '';
-				useCw.value = draft.cw != null;
-				cw.value = draft.cw ?? null;
-				disableRightClick.value = draft.disableRightClick ?? false;
-				visibility.value = draft.visibility;
-				//localOnly.value = draft.localOnly ?? false;
-				files.value = draft.files ?? [];
-				hashtags.value = draft.hashtag ?? '';
-				if (draft.deleteAt) {
-					scheduledNoteDelete.value = null;
-					nextTick(() => {
-						scheduledNoteDelete.value = {
-							deleteAt: draft.deleteAt ? (new Date(draft.deleteAt)).getTime() : null,
-							deleteAfter: null,
-						};
-					});
-				}
-				if (draft.hashtag) withHashtags.value = true;
-				if (draft.poll) {
-					// 投票を一時的に空にしないと反映されないため
-					poll.value = null;
-					nextTick(() => {
-						poll.value = {
-							choices: draft.poll!.choices,
-							multiple: draft.poll!.multiple,
-							expiresAt: draft.poll!.expiresAt ? (new Date(draft.poll!.expiresAt)).getTime() : null,
-							expiredAfter: null,
-						};
-					});
-				}
-				if (draft.event) {
-					event.value = null;
-					nextTick(() => {
-						const startValue = typeof draft.event!.start === 'string'
-							? (new Date(draft.event!.start)).getTime()
-							: draft.event!.start;
-						const endValue = typeof draft.event!.end === 'string'
-							? (new Date(draft.event!.end)).getTime()
-							: draft.event!.end;
-						event.value = {
-							title: draft.event!.title,
-							start: startValue,
-							end: endValue,
-							metadata: draft.event!.metadata,
-						};
-					});
-				}
-				if (draft.visibleUserIds) {
-					misskeyApi('users/show', { userIds: draft.visibleUserIds }).then(users => {
-						users.forEach(u => pushVisibleUser(u));
-					});
-				}
-				quoteId.value = draft.renoteId ?? null;
-				renoteTargetNote.value = draft.renote;
-				replyTargetNote.value = draft.reply;
-				reactionAcceptance.value = draft.reactionAcceptance;
-				scheduledAt.value = draft.scheduledAt ?? null;
-				if (draft.channel) targetChannel.value = draft.channel as unknown as Misskey.entities.Channel;
-
-				visibleUsers.value = [];
-				draft.visibleUserIds?.forEach(uid => {
-					if (!visibleUsers.value.some(u => u.id === uid)) {
-						misskeyApi('users/show', { userId: uid }).then(user => {
-							pushVisibleUser(user);
-						});
-					}
-				});
-
-				serverDraftId.value = draft.id;
-			},
-			cancel: () => {
-
-			},
-			closed: () => {
-				dispose();
-			},
-		});
-	}
 
 	const items = await getAccountMenu({
 		withExtraOperation: false,
@@ -1423,21 +1482,7 @@ async function openAccountMenu(ev: MouseEvent) {
 		},
 	});
 
-	os.popupMenu([{
-		type: 'button',
-		text: i18n.ts._drafts.listDrafts,
-		icon: 'ti ti-cloud-download',
-		action: () => {
-			showDraftsDialog(false);
-		},
-	}, {
-		type: 'button',
-		text: i18n.ts._drafts.listScheduledNotes,
-		icon: 'ti ti-clock-down',
-		action: () => {
-			showDraftsDialog(true);
-		},
-	}, { type: 'divider' }, ...items], (ev.currentTarget ?? ev.target ?? undefined) as HTMLElement | undefined);
+	os.popupMenu(items, (ev.currentTarget ?? ev.target ?? undefined) as HTMLElement | undefined);
 }
 
 function showPerUploadItemMenu(item: UploaderItem, ev: MouseEvent) {
@@ -1445,7 +1490,7 @@ function showPerUploadItemMenu(item: UploaderItem, ev: MouseEvent) {
 	os.popupMenu(menu, ev.currentTarget ?? ev.target);
 }
 
-function showPerUploadItemMenuViaContextmenu(item: UploaderItem, ev: MouseEvent) {
+function showPerUploadItemMenuViaContextmenu(item: UploaderItem, ev: PointerEvent) {
 	const menu = uploader.getMenu(item);
 	os.contextMenu(menu, ev);
 }
@@ -1479,6 +1524,27 @@ function cancelScheduleDelete() {
 	scheduledNoteDelete.value = null;
 }
 
+function showFileAttachmentMenu(ev: MouseEvent) {
+	const menuItems: MenuItem[] = [{
+		type: 'label',
+		text: i18n.ts.attachFile,
+	}, {
+		icon: 'ti ti-upload',
+		text: i18n.ts.upload,
+		action: () => {
+			chooseFileFromPc(ev);
+		},
+	}, {
+		icon: 'ti ti-cloud',
+		text: i18n.ts.fromDrive,
+		action: () => {
+			chooseFileFromDrive(ev);
+		},
+	}];
+
+	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
+}
+
 function showPostMenu(ev: MouseEvent) {
 	const menuItems: MenuItem[] = [];
 
@@ -1490,14 +1556,6 @@ function showPostMenu(ev: MouseEvent) {
 			ref: saveToDraft,
 		});
 	}
-
-	menuItems.push({ type: 'divider' }, {
-		type: 'switch',
-		text: i18n.ts.disableRightClick,
-		icon: 'ti ti-mouse-off',
-		ref: disableRightClick,
-		disabled: files.value.length < 1,
-	});
 
 	os.popupMenu(menuItems, ev.currentTarget ?? ev.target);
 }
@@ -1558,15 +1616,35 @@ onMounted(() => {
 	nextTick(() => {
 		// 書きかけの投稿を復元
 		if (!props.instant && !props.mention && !props.specified && !props.mock) {
-			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value];
+			const draft = JSON.parse(miLocalStorage.getItem('drafts') ?? '{}')[draftKey.value] as {
+				data: {
+					text: string;
+					useCw: boolean;
+					cw: string | null;
+					saveToDraft: boolean;
+					visibility: 'public' | 'home' | 'followers' | 'specified';
+					searchableBy: 'public' | 'followersAndReacted' | 'reactedOnly' | 'private' | null;
+					files: Misskey.entities.DriveFile[];
+					poll: PollEditorModelValue | { expiresAt: number | null; expiredAfter: number | null; choices: string[]; multiple: boolean; } | null;
+					event: Misskey.entities.Note['event'] | null;
+					visibleUserIds?: string[];
+					quoteId: string | null;
+					reactionAcceptance: 'likeOnly' | 'likeOnlyForRemote' | 'nonSensitiveOnly' | 'nonSensitiveOnlyForLocalLikeOnlyForRemote' | null;
+					scheduledAt: number | null;
+					scheduledNoteDelete: DeleteScheduleEditorModelValue | null;
+				};
+			} | undefined;
 			if (draft) {
 				text.value = draft.data.text;
 				useCw.value = draft.data.useCw;
 				cw.value = draft.data.cw;
-				disableRightClick.value = draft.data.disableRightClick;
 				saveToDraft.value = draft.data.saveToDraft;
 				visibility.value = draft.data.visibility;
-				searchableBy.value = draft.data.searchableBy;
+				// チャンネル選択中は followers/specified を許容しない
+				if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+					visibility.value = 'public';
+				}
+				if (draft.data.searchableBy != null) searchableBy.value = draft.data.searchableBy;
 				files.value = (draft.data.files || []).filter(draftFile => draftFile);
 				if (draft.data.poll) {
 					poll.value = draft.data.poll;
@@ -1593,7 +1671,11 @@ onMounted(() => {
 			useCw.value = init.cw != null;
 			cw.value = init.cw ?? null;
 			visibility.value = init.visibility;
-			searchableBy.value = init.searchableBy;
+			// チャンネル投稿の編集時は followers/specified を許容しない
+			if (targetChannel.value && (visibility.value === 'followers' || visibility.value === 'specified')) {
+				visibility.value = 'public';
+			}
+			searchableBy.value = init.searchableBy ?? searchableBy.value;
 			files.value = init.files ?? [];
 			if (init.poll) {
 				poll.value = {
@@ -1624,7 +1706,6 @@ onMounted(() => {
 			}
 			quoteId.value = renoteTargetNote.value ? renoteTargetNote.value.id : null;
 			reactionAcceptance.value = init.reactionAcceptance;
-			disableRightClick.value = init.disableRightClick != null;
 			saveToDraft.value = false;
 			if (init.deletedAt) {
 				scheduledNoteDelete.value = {

@@ -14,9 +14,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { onMounted, ref, useTemplateRef, watch, defineAsyncComponent } from 'vue';
+import { onMounted, ref, useTemplateRef, watch, defineAsyncComponent, provide } from 'vue';
 import XColumn from './column.vue';
-import type { entities as MisskeyEntities } from 'cherrypick-js';
+import type * as Misskey from 'misskey-js';
+import type { entities as MisskeyEntities } from 'misskey-js';
 import type { Column } from '@/deck.js';
 import type { MenuItem } from '@/types/menu.js';
 import type { SoundStore } from '@/preferences/def.js';
@@ -35,6 +36,14 @@ const props = defineProps<{
 
 const timeline = useTemplateRef('timeline');
 const soundSetting = ref<SoundStore>(props.column.soundSetting ?? { type: null, volume: 1 });
+const antenna = ref<Misskey.entities.Antenna | null>(null);
+
+provide('currentAntenna', antenna);
+
+watch(() => props.column.antennaId, async (antennaId) => {
+	if (antennaId == null) return;
+	antenna.value = await misskeyApi('antennas/show', { antennaId });
+}, { immediate: true });
 
 async function reloadTimeline() {
 	await timeline.value?.reloadTimeline();
@@ -67,7 +76,7 @@ async function setAntenna() {
 				})),
 			} : undefined),
 		],
-		default: props.column.antennaId,
+		default: antennas.find(x => x.id === props.column.antennaId)?.id,
 	});
 
 	if (canceled || antennaIdOrOperation == null) return;
@@ -88,16 +97,17 @@ async function setAntenna() {
 		return;
 	}
 
-	const antenna = antennas.find(x => x.id === antennaIdOrOperation)!;
+	const selectedAntenna = antennas.find(x => x.id === antennaIdOrOperation);
+	if (selectedAntenna == null) return;
 
 	updateColumn(props.column.id, {
-		antennaId: antenna.id,
-		timelineNameCache: antenna.name,
+		antennaId: selectedAntenna.id,
+		timelineNameCache: selectedAntenna.name,
 	});
 }
 
 function editAntenna() {
-	os.pageWindow('my/antennas/' + props.column.antennaId);
+	os.pageWindow('/my/antennas/' + props.column.antennaId);
 }
 
 const menu: MenuItem[] = [

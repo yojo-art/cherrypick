@@ -47,13 +47,16 @@ SPDX-License-Identifier: AGPL-3.0-only
 							-->
 
 							<SearchMarker>
-								<MkRadios v-model="provider">
+								<MkRadios
+									v-model="provider"
+									:options="[
+										{ value: null, label: i18n.ts.none },
+										{ value: 'deepl', label: 'DeepL' },
+										{ value: 'ctav3', label: 'Cloud Translation - Advanced(v3)' },
+										{ value: 'libretranslate', label: 'LibreTranslate' },
+									]"
+								>
 									<template #label><SearchLabel>Translator type</SearchLabel></template>
-									<option :value="null">{{ i18n.ts.none }}</option>
-									<option value="deepl">DeepL</option>
-									<option value="google_no_api">Google Translate(without API)</option>
-									<option value="ctav3">Cloud Translation - Advanced(v3)</option>
-									<option value="libretranslate">LibreTranslate</option>
 								</MkRadios>
 							</SearchMarker>
 
@@ -148,9 +151,19 @@ import { i18n } from '@/i18n.js';
 import { definePage } from '@/page.js';
 import MkFolder from '@/components/MkFolder.vue';
 
+const translateServices = [
+	'deepl',
+	'libretranslate',
+	'ctav3',
+] as const;
+
 const meta = await misskeyApi('admin/meta');
 
-const provider = ref(meta.translatorType);
+const provider = ref<(typeof translateServices)[number] | null>(
+	meta.translatorType != null && (translateServices as readonly string[]).includes(meta.translatorType)
+		? meta.translatorType as (typeof translateServices)[number]
+		: null,
+);
 const deeplAuthKey = ref(meta.deeplAuthKey ?? '');
 const deeplIsPro = ref(meta.deeplIsPro);
 const ctav3SaKey = ref(meta.ctav3SaKey ?? '');

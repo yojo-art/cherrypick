@@ -17,13 +17,17 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<template #label>Black</template>
 	</MkSwitch>
 
-	<MkRadios v-model="statusbar.size">
+	<MkRadios
+		v-model="statusbar.size"
+		:options="[
+			{ value: 'verySmall', label: i18n.ts.small + '+' },
+			{ value: 'small', label: i18n.ts.small },
+			{ value: 'medium', label: i18n.ts.medium },
+			{ value: 'large', label: i18n.ts.large },
+			{ value: 'veryLarge', label: i18n.ts.large + '+' },
+		]"
+	>
 		<template #label>{{ i18n.ts.size }}</template>
-		<option value="verySmall">{{ i18n.ts.small }}+</option>
-		<option value="small">{{ i18n.ts.small }}</option>
-		<option value="medium">{{ i18n.ts.medium }}</option>
-		<option value="large">{{ i18n.ts.large }}</option>
-		<option value="veryLarge">{{ i18n.ts.large }}+</option>
 	</MkRadios>
 
 	<template v-if="statusbar.type === 'rss'">
@@ -83,7 +87,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { reactive, computed, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { MkSelectItem } from '@/components/MkSelect.vue';
 import type { StatusbarStore } from '@/preferences/def.js';
 import MkSelect from '@/components/MkSelect.vue';

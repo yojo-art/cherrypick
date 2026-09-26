@@ -44,7 +44,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 import { computed, ref, toRefs, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { i18n } from '@/i18n.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInfo from '@/components/MkInfo.vue';
@@ -55,9 +55,9 @@ import MkModalWindow from '@/components/MkModalWindow.vue';
 import MkLoading from '@/components/global/MkLoading.vue';
 
 const emit = defineEmits<{
-	(ev: 'done', value: Misskey.entities.Role[]),
-	(ev: 'close'),
-	(ev: 'closed'),
+	(ev: 'done', value: Misskey.entities.Role[]): void;
+	(ev: 'close'): void;
+	(ev: 'closed'): void;
 }>();
 
 const props = withDefaults(defineProps<{

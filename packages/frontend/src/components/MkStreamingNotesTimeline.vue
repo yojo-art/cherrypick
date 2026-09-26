@@ -20,11 +20,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 		>
 			<div
 				v-if="paginator.queuedAheadItemsCount.value > 0 && ['default', 'count'].includes(prefer.s.newNoteReceivedNotificationBehavior)"
-				:class="[$style.new2, { [$style.showEl]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && !isFriendly().value, [$style.showElTab]: (showEl && ['hideHeaderOnly', 'hideHeaderFloatBtn', 'hide'].includes(<string>prefer.s.displayHeaderNavBarWhenScroll)) && isMobile && isFriendly().value, [$style.reduceAnimation]: !prefer.s.animation }]"
+				:class="[$style.new2, { [$style.reduceAnimation]: !prefer.s.animation }]"
 			>
 				<button class="_buttonPrimary" :class="$style.newButton2" @click="releaseQueue()">
 					<i class="ti ti-arrow-up"></i>
-					<I18n v-if="prefer.s.newNoteReceivedNotificationBehavior === 'count'" :src="i18n.ts.newNoteRecivedCount" textTag="span">
+					<I18n v-if="prefer.s.newNoteReceivedNotificationBehavior === 'count'" :src="paginator.queuedAheadItemsCount.value >= MAX_QUEUE_ITEMS ? i18n.ts.newNoteRecivedCountCapped : i18n.ts.newNoteRecivedCount" textTag="span">
 						<template #n>{{ paginator.queuedAheadItemsCount.value }}</template>
 					</I18n>
 					<span v-else-if="prefer.s.newNoteReceivedNotificationBehavior === 'default'">{{ i18n.ts.newNoteRecived }}</span>
@@ -82,7 +82,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, watch, onUnmounted, provide, useTemplateRef, TransitionGroup, onMounted, shallowRef, ref, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { useInterval } from '@@/js/use-interval.js';
 import { useDocumentVisibility } from '@@/js/use-document-visibility.js';
 import { getScrollContainer, scrollToTop } from '@@/js/scroll.js';
@@ -99,28 +99,12 @@ import { store } from '@/store.js';
 import MkNote from '@/components/MkNote.vue';
 import MkButton from '@/components/MkButton.vue';
 import { i18n } from '@/i18n.js';
+import { DI } from '@/di.js';
 import { globalEvents, useGlobalEvent } from '@/events.js';
 import { isSeparatorNeeded, getSeparatorInfo } from '@/utility/timeline-date-separate.js';
-import { Paginator } from '@/utility/paginator.js';
-import { deviceKind } from '@/utility/device-kind.js';
-import { isFriendly } from '@/utility/is-friendly.js';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
+import { MAX_QUEUE_ITEMS, Paginator } from '@/utility/paginator.js';
 import MkNoteMediaGrid from '@/components/MkNoteMediaGrid.vue';
 import { haptic, hapticConfirm } from '@/utility/haptic.js';
-
-const { showEl } = scrollToVisibility();
-
-const DESKTOP_THRESHOLD = 1100;
-const MOBILE_THRESHOLD = 500;
-
-// デスクトップでウィンドウを狭くしたときモバイルUIが表示されて欲しいことはあるので deviceKind === 'desktop' の判定は行わない
-const isDesktop = ref(window.innerWidth >= DESKTOP_THRESHOLD);
-const isMobile = ref(['smartphone', 'tablet'].includes(String(deviceKind)) || window.innerWidth <= MOBILE_THRESHOLD);
-const handleResize = () => {
-	isMobile.value = deviceKind === 'smartphone' || window.innerWidth <= MOBILE_THRESHOLD;
-};
-
-window.addEventListener('resize', handleResize);
 
 const noGap = !prefer.s.showGapBetweenNotesInTimeline;
 
@@ -137,19 +121,21 @@ const props = withDefaults(defineProps<{
 	withSensitive?: boolean;
 	onlyFiles?: boolean;
 	onlyCats?: boolean;
+	withBots?: boolean;
 }>(), {
 	withRenotes: true,
 	withReplies: false,
 	withSensitive: true,
 	onlyFiles: false,
 	onlyCats: false,
+	withBots: true,
 	sound: false,
 	customSound: null,
 });
 
 provide('inTimeline', true);
 provide('tl_withSensitive', computed(() => props.withSensitive));
-provide('inChannel', computed(() => props.src === 'channel'));
+provide(DI.inChannel, computed(() => props.src === 'channel' ? props.channel ?? null : null));
 
 let paginator: IPaginator<Misskey.entities.Note>;
 
@@ -166,6 +152,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -176,6 +163,7 @@ if (props.src === 'antenna') {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -186,6 +174,7 @@ if (props.src === 'antenna') {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -195,6 +184,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -205,6 +195,7 @@ if (props.src === 'antenna') {
 			withReplies: false,
 			withFiles: true,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -214,6 +205,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		})),
 		useShallowRef: true,
 	}));
@@ -234,6 +226,7 @@ if (props.src === 'antenna') {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 			listId: props.list!,
 		})),
 		useShallowRef: true,
@@ -295,7 +288,6 @@ onUnmounted(() => {
 	if (scrollContainer) {
 		scrollContainer.removeEventListener('scroll', onScrollContainerScroll);
 	}
-	window.removeEventListener('resize', handleResize);
 });
 
 const visibility = useDocumentVisibility();
@@ -341,6 +333,12 @@ if (!store.s.realtimeMode) {
 
 useGlobalEvent('noteDeleted', (noteId) => {
 	paginator.removeItem(noteId);
+});
+
+useGlobalEvent('noteRemovedFromAntenna', (antennaId, noteId) => {
+	if (props.src === 'antenna' && props.antenna === antennaId) {
+		paginator.removeItem(noteId);
+	}
 });
 
 function releaseQueue() {
@@ -401,6 +399,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.main = stream.useChannel('main');
 		connections.homeTimeline.on('note', prepend);
@@ -410,6 +409,7 @@ function connectChannel() {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.localTimeline.on('note', prepend);
 	} else if (props.src === 'social') {
@@ -418,6 +418,7 @@ function connectChannel() {
 			withReplies: props.withReplies,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.hybridTimeline.on('note', prepend);
 	} else if (props.src === 'global') {
@@ -425,6 +426,7 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.globalTimeline.on('note', prepend);
 	} else if (props.src === 'media') {
@@ -433,6 +435,7 @@ function connectChannel() {
 			withReplies: false,
 			withFiles: true,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.hybridTimeline.on('note', prepend);
 	} else if (props.src === 'bubble') {
@@ -440,25 +443,26 @@ function connectChannel() {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 		});
 		connections.bubbleTimeline.on('note', prepend);
 	} else if (props.src === 'mentions') {
 		connections.main = stream.useChannel('main');
 		connections.main.on('mention', prepend);
 	} else if (props.src === 'directs') {
-		const onNote = note => {
+		connections.main = stream.useChannel('main');
+		connections.main.on('mention', note => {
 			if (note.visibility === 'specified') {
 				prepend(note);
 			}
-		};
-		connections.main = stream.useChannel('main');
-		connections.main.on('mention', onNote);
+		});
 	} else if (props.src === 'list') {
 		if (props.list == null) return;
 		connections.userList = stream.useChannel('userList', {
 			withRenotes: props.withRenotes,
 			withFiles: props.onlyFiles ? true : undefined,
 			withCats: props.onlyCats,
+			withBots: props.withBots,
 			listId: props.list,
 		});
 		connections.userList.on('note', prepend);
@@ -491,7 +495,7 @@ if (store.s.realtimeMode) {
 	connectChannel();
 }
 
-watch(() => [props.list, props.antenna, props.channel, props.role, props.withRenotes], () => {
+watch(() => [props.list, props.antenna, props.channel, props.role, props.withRenotes, props.withBots], () => {
 	if (store.s.realtimeMode) {
 		disconnectChannel();
 		connectChannel();
@@ -613,14 +617,6 @@ defineExpose({
 
 	&:first-child {
 		margin-top: calc(-0.675em - 8px - var(--MI-margin));
-	}
-
-	&.showEl {
-		transform: translateY(calc(var(--MI-stickyTop, 0px) - 101px))
-	}
-
-	&.showElTab {
-		transform: translateY(calc(var(--MI-stickyTop, 0px) - 181px))
 	}
 
 	&.reduceAnimation {

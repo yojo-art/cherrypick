@@ -74,7 +74,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onMounted, onUnmounted, ref, watch } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import * as os from '@/os.js';
 import bytes from '@/filters/bytes.js';
 import { getStaticImageUrl } from '@/utility/media-proxy.js';
@@ -87,7 +87,7 @@ import MkRippleEffect from '@/components/MkRippleEffect.vue';
 import { confirmR18, wasConfirmR18 } from '@/utility/check-r18.js';
 
 const props = defineProps<{
-	note: Misskey.entities.Note & { files: Misskey.entities.DriveFile[] };
+	note: Misskey.entities.Note & { files?: Misskey.entities.DriveFile[] };
 }>();
 
 const showingFiles = ref<string[]>([]);

@@ -163,7 +163,7 @@ function getWeatherIcon(code: number): string {
 		71: 'ti ti-snowflake',
 		95: 'ti ti-bolt',
 	};
-	return icons[code] || 'ti ti-question-mark';
+	return icons[code as keyof typeof icons] || 'ti ti-question-mark';
 }
 
 function formatDate(time: Date): string {

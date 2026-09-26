@@ -142,10 +142,28 @@ export const meta = {
 			id: 'ed1952ac-2d26-4957-8b30-2deda76bedf7',
 		},
 
+		scheduledAtRequired: {
+			message: 'scheduledAt is required when isActuallyScheduled is true.',
+			code: 'SCHEDULED_AT_REQUIRED',
+			id: '15e28a55-e74c-4d65-89b7-8880cdaaa87d',
+		},
+
+		scheduledAtMustBeInFuture: {
+			message: 'scheduledAt must be in the future.',
+			code: 'SCHEDULED_AT_MUST_BE_IN_FUTURE',
+			id: 'e4bed6c9-017e-4934-aed0-01c22cc60ec1',
+		},
+
 		cannotScheduleDeleteEarlierThanNow: {
 			message: 'Cannot specify delete time earlier than now.',
 			code: 'CANNOT_SCHEDULE_DELETE_EARLIER_THAN_NOW',
 			id: '9f04994a-3aa2-11ef-a495-177eea74788f',
+		},
+
+		channelVisibilityNotAllowed: {
+			message: 'Channel notes cannot be set to followers or specified visibility.',
+			code: 'CHANNEL_VISIBILITY_NOT_ALLOWED',
+			id: '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b',
 		},
 	},
 
@@ -166,7 +184,6 @@ export const paramDef = {
 		hashtag: { type: 'string', nullable: true, maxLength: 200 },
 		localOnly: { type: 'boolean', default: false },
 		reactionAcceptance: { type: 'string', nullable: true, enum: [null, 'likeOnly', 'likeOnlyForRemote', 'nonSensitiveOnly', 'nonSensitiveOnlyForLocalLikeOnlyForRemote'], default: null },
-		disableRightClick: { type: 'boolean', default: false },
 		replyId: { type: 'string', format: 'misskey:id', nullable: true },
 		renoteId: { type: 'string', format: 'misskey:id', nullable: true },
 		channelId: { type: 'string', format: 'misskey:id', nullable: true },
@@ -248,7 +265,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				hashtag: ps.hashtag ?? null,
 				localOnly: ps.localOnly,
 				reactionAcceptance: ps.reactionAcceptance,
-				disableRightClick: ps.disableRightClick,
 				visibility: ps.visibility,
 				visibleUserIds: ps.visibleUserIds ?? [],
 				channelId: ps.channelId ?? null,
@@ -292,6 +308,12 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 							throw new ApiError(meta.errors.cannotReplyToSpecifiedVisibilityNoteWithExtendedVisibility);
 						case 'c3275f19-4558-4c59-83e1-4f684b5fab66':
 							throw new ApiError(meta.errors.tooManyScheduledNotes);
+						case '94a89a43-3591-400a-9c17-dd166e71fdfa':
+							throw new ApiError(meta.errors.scheduledAtRequired);
+						case 'b34d0c1b-996f-4e34-a428-c636d98df457':
+							throw new ApiError(meta.errors.scheduledAtMustBeInFuture);
+						case '4374a6b2-dd91-4b5a-ae5d-c14d9a38a48b':
+							throw new ApiError(meta.errors.channelVisibilityNotAllowed);
 						default:
 							throw err;
 					}

@@ -39,7 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { AISCRIPT_VERSION } from '@syuilo/aiscript';
 import MkButton from '@/components/MkButton.vue';
 import * as os from '@/os.js';
@@ -395,7 +395,7 @@ const {
 });
 const script = ref(flash.value?.script ?? PRESET_DEFAULT);
 
-function selectPreset(ev: MouseEvent) {
+function selectPreset(ev: PointerEvent) {
 	os.popupMenu([{
 		text: 'Omikuji',
 		action: () => {

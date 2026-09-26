@@ -23,12 +23,19 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<MkFoldableSection expanded>
 			<template #header>{{ i18n.ts.options }}</template>
 			<div class="_gaps_m">
+				<div style="display: flex; gap: 8px;">
+					<MkInput v-model="rangeStartAt" type="datetime-local">
+						<template #label>{{ i18n.ts._search.postFrom }}</template>
+					</MkInput>
+					<MkInput v-model="rangeEndAt" type="datetime-local">
+						<template #label>{{ i18n.ts._search.postTo }}</template>
+					</MkInput>
+				</div>
 				<!--
-				<MkRadios v-model="searchScope">
-					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="all">{{ i18n.ts._search.searchScopeAll }}</option>
-					<option value="local">{{ instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal }}</option>
-					<option v-if="instance.federation !== 'none' && noteSearchableScope === 'global'" value="server">{{ i18n.ts._search.searchScopeServer }}</option>
-					<option value="user">{{ i18n.ts._search.searchScopeUser }}</option>
+				<MkRadios
+					v-model="searchScope"
+					:options="searchScopeDef"
+				>
 				</MkRadios>
 				-->
 
@@ -81,7 +88,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 								<MkUserCardMini
 									:user="user"
 									:withChart="false"
-									:class="$style.userSelectedCard"
 								/>
 							</div>
 							<div>
@@ -124,7 +130,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, markRaw, ref, shallowRef, toRef, useTemplateRef } from 'vue';
 import { host as localHost } from '@@/js/config.js';
-import type * as Misskey from 'cherrypick-js';
+import type * as Misskey from 'misskey-js';
 import type { MkSelectItem } from '@/components/MkSelect.vue';
 import { $i } from '@/i.js';
 import { i18n } from '@/i18n.js';
@@ -159,25 +165,13 @@ const router = useRouter();
 const key = ref(0);
 const paginator = shallowRef<Paginator<'notes/search'> | null>(null);
 
-const searchScopeDef = computed(() => {
-	const items: MkSelectItem[] = [];
-	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
-		items.push({ label: i18n.ts._search.searchScopeAll, value: 'all' });
-	}
-	items.push({ label: instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal, value: 'local' });
-	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
-		items.push({ label: i18n.ts._search.searchScopeServer, value: 'server' });
-	}
-	items.push({ label: i18n.ts._search.searchScopeUser, value: 'user' });
-	return items;
-});
-
 const searchQuery = ref(toRef(props, 'query').value);
 const hostInput = ref(toRef(props, 'host').value);
+const rangeStartAt = ref<string | null>(null);
+const rangeEndAt = ref<string | null>(null);
 
 const user = shallowRef<Misskey.entities.UserDetailed | null>(null);
 
-// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 const noteSearchableScope = instance.noteSearchableScope ?? 'local';
 //#region set user
 let fetchedUser: Misskey.entities.UserDetailed | null = null;
@@ -212,15 +206,42 @@ const searchScope = ref<'all' | 'local' | 'server' | 'user'>((() => {
 	return 'all';
 })());
 
+const searchScopeDef = computed<MkSelectItem[]>(() => {
+	const options: MkSelectItem[] = [];
+
+	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
+		options.push({ value: 'all', label: i18n.ts._search.searchScopeAll });
+	}
+
+	options.push({ value: 'local', label: instance.federation === 'none' ? i18n.ts._search.searchScopeAll : i18n.ts._search.searchScopeLocal });
+
+	if (instance.federation !== 'none' && noteSearchableScope === 'global') {
+		options.push({ value: 'server', label: i18n.ts._search.searchScopeServer });
+	}
+
+	options.push({ value: 'user', label: i18n.ts._search.searchScopeUser });
+
+	return options;
+});
+
 type SearchParams = {
 	readonly query: string;
 	readonly host?: string;
 	readonly userId?: string;
+	readonly rangeStartAt?: number | null;
+	readonly rangeEndAt?: number | null;
 };
 
 const fixHostIfLocal = (target: string | null | undefined) => {
 	if (!target || target === localHost) return '.';
 	return target;
+};
+
+const searchRange = () => {
+	return {
+		rangeStartAt: rangeStartAt.value ? new Date(rangeStartAt.value).getTime() : null,
+		rangeEndAt: rangeEndAt.value ? new Date(rangeEndAt.value).getTime() : null,
+	};
 };
 
 const searchParams = computed<SearchParams | null>(() => {
@@ -233,6 +254,7 @@ const searchParams = computed<SearchParams | null>(() => {
 			query: trimmedQuery,
 			host: fixHostIfLocal(user.value.host),
 			userId: user.value.id,
+			...searchRange(),
 		};
 	}
 
@@ -247,6 +269,7 @@ const searchParams = computed<SearchParams | null>(() => {
 		return {
 			query: trimmedQuery,
 			host: fixHostIfLocal(trimmedHost),
+			...searchRange(),
 		};
 	}
 
@@ -254,11 +277,13 @@ const searchParams = computed<SearchParams | null>(() => {
 		return {
 			query: trimmedQuery,
 			host: '.',
+			...searchRange(),
 		};
 	}
 
 	return {
 		query: trimmedQuery,
+		...searchRange(),
 	};
 });
 
@@ -301,7 +326,6 @@ async function search() {
 						acct: `${res.object.username}@${res.object.host}`,
 					},
 				});
-			// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 			} else if (res.type === 'Note') {
 				router.push('/notes/:noteId/:initialTab?', {
 					params: {
@@ -325,8 +349,8 @@ async function search() {
 			});
 			os.promiseDialog(promise, null, null, i18n.ts.fetchingAsApObject);
 			const res = await promise;
-			if (typeof res.error === 'undefined') {
-				router.push(`/@${res.username}@${res.host}`);
+			if (res) {
+				router.pushByPath(`/@${res.username}@${res.host}`);
 			}
 		}
 	}

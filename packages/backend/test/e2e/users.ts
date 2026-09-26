@@ -6,9 +6,10 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
+import { beforeAll, beforeEach, describe, test } from 'vitest';
 import { inspect } from 'node:util';
 import { api, post, role, signup, successfulApiCall, uploadFile } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 
 describe('ユーザー', () => {
@@ -41,6 +42,7 @@ describe('ユーザー', () => {
 			isLocked: user.isLocked,
 			isBot: user.isBot,
 			isCat: user.isCat,
+			channelId: user.channelId,
 			instance: user.instance,
 			emojis: user.emojis,
 			onlineStatus: user.onlineStatus,
@@ -306,6 +308,8 @@ describe('ユーザー', () => {
 		// signupの時はtokenが含まれる特別なMeDetailedが返ってくる
 		assert.match(response.token, /[a-zA-Z0-9]{16}/);
 
+		//yojo-art 普通に作ったアカウントはチャンネルアカウントにならない
+		assert.strictEqual(response.channelId, undefined);
 		// UserLite
 		assert.match(response.id, /[0-9a-z]{10}/);
 		assert.strictEqual(response.name, null);

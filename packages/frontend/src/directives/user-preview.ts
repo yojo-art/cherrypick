@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { Directive } from 'vue';
 import { popup } from '@/os.js';
 import { isTouchUsing } from '@/utility/touch.js';
@@ -106,29 +106,24 @@ export class UserPreview {
 	}
 }
 
-interface UserPreviewDirectiveElement extends HTMLElement {
-	_userPreviewDirective_?: {
-		preview: UserPreview;
-	};
-}
+const states = new WeakMap<HTMLElement, UserPreview>();
 
 export const userPreviewDirective = {
 	mounted(el, binding) {
 		if (binding.value == null) return;
 		if (isTouchUsing) return;
 
-		// TODO: 新たにプロパティを作るのをやめMapを使う
-		// ただメモリ的には↓の方が省メモリかもしれないので検討中
-		const self = (el as any)._userPreviewDirective_ = {} as any;
-
-		self.preview = new UserPreview(el, binding.value);
+		// メモリ的にはWeakMapを使わずに要素にプロパティを生やしたほうが省メモリかもしれないので検討中
+		const preview = new UserPreview(el, binding.value);
+		states.set(el, preview);
 	},
 
 	unmounted(el, binding) {
 		if (binding.value == null) return;
-
-		const self = el._userPreviewDirective_;
-		if (self == null) return;
-		self.preview.detach();
+		const preview = states.get(el);
+		if (preview) {
+			preview.detach();
+			states.delete(el);
+		}
 	},
-} as Directive<UserPreviewDirectiveElement, string | Misskey.entities.UserDetailed | null | undefined>;
+} as Directive<HTMLElement, string | Misskey.entities.UserDetailed | null | undefined>;

@@ -5,13 +5,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div :class="$style.root">
-	<XNotification :notification="notification" :class="{ [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }" class="notification _acrylic" :full="false"/>
+	<XNotification :notification="notification" :class="{ [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }" class="notification _acrylic" :contentVisibilityAuto="false" :full="false"/>
 </div>
 </template>
 
 <script lang="ts" setup>
 import { } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import XNotification from '@/components/MkNotification.vue';
 import { prefer } from '@/preferences.js';
 

@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import type { AnalyticsInstance, AnalyticsPlugin } from 'analytics';
 
 /**
@@ -90,6 +90,7 @@ export async function initAnalytics(instance: Misskey.entities.MetaDetailed) {
 
 	// Google Analytics
 	if (instance.googleAnalyticsMeasurementId) {
+		//@ts-expect-error Dynamic import
 		const { default: googleAnalytics } = await import('@analytics/google-analytics');
 
 		plugins.push(googleAnalytics({

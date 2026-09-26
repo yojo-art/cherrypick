@@ -7,6 +7,21 @@ SPDX-License-Identifier: AGPL-3.0-only
 <PageWithHeader :actions="headerActions" :tabs="headerTabs">
 	<div class="_spacer" style="--MI_SPACER-w: 700px;">
 		<div v-if="channelId == null || channel != null" class="_gaps_m">
+			<MkInput v-model="username" type="text" pattern="^[a-zA-Z0-9_]{1,20}$" :spellcheck="false" :readonly="props.channelId != null" autocomplete="username" required @update:modelValue="onChangeUsername">
+				<template #label>{{ i18n.ts.username }} <div v-tooltip:dialog="i18n.ts.usernameInfo" class="_button _help"><i class="ti ti-help-circle"></i></div></template>
+				<template #prefix>@</template>
+				<template #suffix>@{{ host }}</template>
+				<template #caption>
+					<div><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.cannotBeChangedLater }}</div>
+					<span v-if="usernameState === 'wait'" style="color:#999"><MkLoading :em="true"/> {{ i18n.ts.checking }}</span>
+					<span v-else-if="usernameState === 'ok'" style="color: var(--MI_THEME-success)"><i class="ti ti-check ti-fw"></i> {{ i18n.ts.available }}</span>
+					<span v-else-if="usernameState === 'unavailable'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.unavailable }}</span>
+					<span v-else-if="usernameState === 'error'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.error }}</span>
+					<span v-else-if="usernameState === 'invalid-format'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.usernameInvalidFormat }}</span>
+					<span v-else-if="usernameState === 'min-range'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.tooShort }}</span>
+					<span v-else-if="usernameState === 'max-range'" style="color: var(--MI_THEME-error)"><i class="ti ti-alert-triangle ti-fw"></i> {{ i18n.ts.tooLong }}</span>
+				</template>
+			</MkInput>
 			<MkInput v-model="name">
 				<template #label>{{ i18n.ts.name }}</template>
 			</MkInput>
@@ -28,6 +43,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</MkSwitch>
 
 			<div>
+				<MkButton v-if="iconId == null && iconUrl == null" @click="setIconImage"><i class="ti ti-plus"></i> {{ i18n.ts._channel.setIcon }}</MkButton>
+				<div v-else-if="iconUrl" :class="$style.iconPreview">
+					<img :src="iconUrl" :class="$style.iconImage"/>
+					<MkButton @click="removeIconImage()"><i class="ti ti-trash"></i> {{ i18n.ts._channel.removeIcon }}</MkButton>
+				</div>
+			</div>
+
+			<div>
 				<MkButton v-if="bannerId == null" @click="setBannerImage"><i class="ti ti-plus"></i> {{ i18n.ts._channel.setBanner }}</MkButton>
 				<div v-else-if="bannerUrl">
 					<img :src="bannerUrl" style="width: 100%;"/>
@@ -41,20 +64,20 @@ SPDX-License-Identifier: AGPL-3.0-only
 				<div class="_gaps">
 					<MkButton primary rounded @click="addPinnedNote()"><i class="ti ti-plus"></i></MkButton>
 
-					<Sortable
-						v-model="pinnedNotes"
-						itemKey="id"
-						:handle="'.' + $style.pinnedNoteHandle"
-						:animation="150"
+					<MkDraggable
+						:modelValue="pinnedNoteIds.map(id => ({ id }))"
+						direction="vertical"
+						manualDragStart
+						@update:modelValue="v => pinnedNoteIds = v.map(x => x.id)"
 					>
-						<template #item="{element,index}">
+						<template #default="{ item, dragStart }">
 							<div :class="$style.pinnedNote">
-								<button class="_button" :class="$style.pinnedNoteHandle"><i class="ti ti-menu"></i></button>
-								{{ element.id }}
-								<button class="_button" :class="$style.pinnedNoteRemove" @click="removePinnedNote(index)"><i class="ti ti-x"></i></button>
+								<button class="_button" :class="$style.pinnedNoteHandle" tabindex="-1" :draggable="true" @dragstart.stop="dragStart"><i class="ti ti-menu"></i></button>
+								{{ item.id }}
+								<button class="_button" :class="$style.pinnedNoteRemove" @click="removePinnedNote(item.id)"><i class="ti ti-x"></i></button>
 							</div>
 						</template>
-					</Sortable>
+					</MkDraggable>
 				</div>
 			</MkFolder>
 
@@ -68,12 +91,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, watch, defineAsyncComponent } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import { computed, ref, watch } from 'vue';
+import * as Misskey from 'misskey-js';
+import { toUnicode } from 'punycode.js';
+import * as config from '@@/js/config.js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkColorInput from '@/components/MkColorInput.vue';
-import { selectFile } from '@/utility/drive.js';
+import { selectFile, chooseDriveFile } from '@/utility/drive.js';
 import * as os from '@/os.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
@@ -81,9 +106,8 @@ import { i18n } from '@/i18n.js';
 import MkFolder from '@/components/MkFolder.vue';
 import MkSwitch from '@/components/MkSwitch.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
+import MkDraggable from '@/components/MkDraggable.vue';
 import { useRouter } from '@/router.js';
-
-const Sortable = defineAsyncComponent(() => import('vuedraggable').then(x => x.default));
 
 const router = useRouter();
 
@@ -96,10 +120,17 @@ const name = ref<string>('');
 const description = ref<string | null>(null);
 const bannerUrl = ref<string | null>(null);
 const bannerId = ref<string | null>(null);
+const iconUrl = ref<string | null>(null);
+const iconId = ref<string | null | undefined>(undefined);
 const color = ref('#000');
 const isSensitive = ref(false);
 const allowRenoteToExternal = ref(true);
-const pinnedNotes = ref<{ id: Misskey.entities.Note['id'] }[]>([]);
+const pinnedNoteIds = ref<Misskey.entities.Note['id'][]>([]);
+
+const host = toUnicode(config.host);
+const username = ref<string>('');
+const usernameState = ref<null | 'wait' | 'ok' | 'unavailable' | 'error' | 'invalid-format' | 'min-range' | 'max-range'>(null);
+const usernameAbortController = ref<null | AbortController>(null);
 
 watch(() => bannerId.value, async () => {
 	if (bannerId.value == null) {
@@ -111,21 +142,73 @@ watch(() => bannerId.value, async () => {
 	}
 });
 
+watch(() => iconId.value, async () => {
+	if (iconId.value == null) {
+		if (iconId.value === null) {
+			iconUrl.value = null;
+		}
+	} else {
+		iconUrl.value = (await misskeyApi('drive/files/show', {
+			fileId: iconId.value,
+		})).url;
+	}
+});
+
+function onChangeUsername(): void {
+	if (username.value === '') {
+		usernameState.value = null;
+		return;
+	}
+
+	{
+		const err =
+			!username.value.match(/^[a-zA-Z0-9_]+$/) ? 'invalid-format' :
+			username.value.length < 1 ? 'min-range' :
+			username.value.length > 20 ? 'max-range' :
+			null;
+
+		if (err) {
+			usernameState.value = err;
+			return;
+		}
+	}
+
+	if (usernameAbortController.value != null) {
+		usernameAbortController.value.abort();
+	}
+	usernameState.value = 'wait';
+	usernameAbortController.value = new AbortController();
+
+	misskeyApi('username/available', {
+		username: username.value,
+	}, undefined, usernameAbortController.value.signal).then(result => {
+		usernameState.value = result.available ? 'ok' : 'unavailable';
+	}).catch((err) => {
+		if (err.name !== 'AbortError') {
+			usernameState.value = 'error';
+		}
+	});
+}
+
 async function fetchChannel() {
 	if (props.channelId == null) return;
 
 	const result = await misskeyApi('channels/show', {
 		channelId: props.channelId,
 	});
+	const actor = result.actorId ? await misskeyApi('users/show', {
+		userId: result.actorId,
+	}) : null;
 
 	name.value = result.name;
+	username.value = actor?.username ?? '';
 	description.value = result.description;
 	bannerId.value = result.bannerId;
 	bannerUrl.value = result.bannerUrl;
+	iconId.value = undefined;
+	iconUrl.value = result.iconUrl;
 	isSensitive.value = result.isSensitive;
-	pinnedNotes.value = result.pinnedNoteIds.map(id => ({
-		id,
-	}));
+	pinnedNoteIds.value = result.pinnedNoteIds;
 	color.value = result.color;
 	allowRenoteToExternal.value = result.allowRenoteToExternal;
 
@@ -143,20 +226,20 @@ async function addPinnedNote() {
 	const note = await os.apiWithDialog('notes/show', {
 		noteId: fromUrl ?? value,
 	});
-	pinnedNotes.value = [{
-		id: note.id,
-	}, ...pinnedNotes.value];
+	pinnedNoteIds.value.unshift(note.id);
 }
 
-function removePinnedNote(index: number) {
-	pinnedNotes.value.splice(index, 1);
+function removePinnedNote(id: string) {
+	pinnedNoteIds.value = pinnedNoteIds.value.filter(x => x !== id);
 }
 
 function save() {
 	const params = {
-		name: name.value,
+		name: name.value.length >= 1 ? name.value : username.value,
+		username: username.value,
 		description: description.value,
 		bannerId: bannerId.value,
+		...(iconId.value !== undefined ? { iconId: iconId.value } : {}),
 		color: color.value,
 		isSensitive: isSensitive.value,
 		allowRenoteToExternal: allowRenoteToExternal.value,
@@ -166,7 +249,7 @@ function save() {
 		os.apiWithDialog('channels/update', {
 			...params,
 			channelId: props.channelId,
-			pinnedNoteIds: pinnedNotes.value.map(x => x.id),
+			pinnedNoteIds: pinnedNoteIds.value,
 		});
 	} else {
 		os.apiWithDialog('channels/create', params).then(created => {
@@ -197,7 +280,7 @@ async function archive() {
 	});
 }
 
-function setBannerImage(evt) {
+function setBannerImage(evt: PointerEvent) {
 	selectFile({
 		anchorElement: evt.currentTarget ?? evt.target,
 		multiple: false,
@@ -208,6 +291,56 @@ function setBannerImage(evt) {
 
 function removeBannerImage() {
 	bannerId.value = null;
+}
+
+function setIconImage(ev: MouseEvent) {
+	async function done(driveFile: Misskey.entities.DriveFile) {
+		iconId.value = driveFile.id;
+		iconUrl.value = driveFile.url;
+	}
+
+	os.popupMenu([{
+		text: i18n.ts._channel.setIcon,
+		type: 'label',
+	}, {
+		text: i18n.ts.upload,
+		icon: 'ti ti-upload',
+		action: async () => {
+			const files = await os.chooseFileFromPc({ multiple: false });
+			const file = files[0];
+
+			let originalOrCropped = file;
+
+			const { canceled } = await os.confirm({
+				type: 'question',
+				text: i18n.ts.cropImageAsk,
+				okText: i18n.ts.cropYes,
+				cancelText: i18n.ts.cropNo,
+			});
+
+			if (!canceled) {
+				originalOrCropped = await os.cropImageFile(file, {
+					aspectRatio: 1,
+				});
+			}
+
+			const driveFile = (await os.launchUploader([originalOrCropped], { multiple: false }))[0];
+			done(driveFile);
+		},
+	}, {
+		text: i18n.ts.fromDrive,
+		icon: 'ti ti-cloud',
+		action: () => {
+			chooseDriveFile({ multiple: false }).then(files => {
+				done(files[0]);
+			});
+		},
+	}], ev.currentTarget ?? ev.target);
+}
+
+function removeIconImage() {
+	iconId.value = null;
+	iconUrl.value = null;
 }
 
 const headerActions = computed(() => []);
@@ -221,6 +354,20 @@ definePage(() => ({
 </script>
 
 <style lang="scss" module>
+.iconPreview {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	align-items: flex-start;
+}
+
+.iconImage {
+	width: 96px;
+	height: 96px;
+	object-fit: cover;
+	border-radius: 8px;
+}
+
 .pinnedNote {
 	position: relative;
 	display: block;

@@ -13,6 +13,7 @@ import {
 	MiAd,
 	MiAnnouncement,
 	MiAnnouncementRead,
+	MiAnnouncementReaction,
 	MiAntenna,
 	MiApp,
 	MiAuthSession,
@@ -21,7 +22,7 @@ import {
 	MiBubbleGameRecord,
 	MiChannel,
 	MiChannelFavorite,
-	MiChannelFollowing,
+	MiChannelMuting,
 	MiClip,
 	MiClipFavorite,
 	MiClipFavoriteRemote,
@@ -118,6 +119,12 @@ const $announcementsRepository: Provider = {
 const $announcementReadsRepository: Provider = {
 	provide: DI.announcementReadsRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiAnnouncementRead).extend(miRepository as MiRepository<MiAnnouncementRead>),
+	inject: [DI.db],
+};
+
+const $announcementReactionsRepository: Provider = {
+	provide: DI.announcementReactionsRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiAnnouncementReaction).extend(miRepository as MiRepository<MiAnnouncementReaction>),
 	inject: [DI.db],
 };
 
@@ -463,15 +470,15 @@ const $channelsRepository: Provider = {
 	inject: [DI.db],
 };
 
-const $channelFollowingsRepository: Provider = {
-	provide: DI.channelFollowingsRepository,
-	useFactory: (db: DataSource) => db.getRepository(MiChannelFollowing).extend(miRepository as MiRepository<MiChannelFollowing>),
-	inject: [DI.db],
-};
-
 const $channelFavoritesRepository: Provider = {
 	provide: DI.channelFavoritesRepository,
 	useFactory: (db: DataSource) => db.getRepository(MiChannelFavorite).extend(miRepository as MiRepository<MiChannelFavorite>),
+	inject: [DI.db],
+};
+
+const $channelMutingRepository: Provider = {
+	provide: DI.channelMutingRepository,
+	useFactory: (db: DataSource) => db.getRepository(MiChannelMuting).extend(miRepository as MiRepository<MiChannelMuting>),
 	inject: [DI.db],
 };
 
@@ -614,6 +621,7 @@ const $officialTagRepository: Provider = {
 		$notesRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
+		$announcementReactionsRepository,
 		$appsRepository,
 		$avatarDecorationsRepository,
 		$noteFavoritesRepository,
@@ -671,8 +679,8 @@ const $officialTagRepository: Provider = {
 		$promoReadsRepository,
 		$relaysRepository,
 		$channelsRepository,
-		$channelFollowingsRepository,
 		$channelFavoritesRepository,
+		$channelMutingRepository,
 		$registryItemsRepository,
 		$webhooksRepository,
 		$systemWebhooksRepository,
@@ -701,6 +709,7 @@ const $officialTagRepository: Provider = {
 		$notesRepository,
 		$announcementsRepository,
 		$announcementReadsRepository,
+		$announcementReactionsRepository,
 		$appsRepository,
 		$avatarDecorationsRepository,
 		$noteFavoritesRepository,
@@ -758,8 +767,8 @@ const $officialTagRepository: Provider = {
 		$promoReadsRepository,
 		$relaysRepository,
 		$channelsRepository,
-		$channelFollowingsRepository,
 		$channelFavoritesRepository,
+		$channelMutingRepository,
 		$registryItemsRepository,
 		$webhooksRepository,
 		$systemWebhooksRepository,

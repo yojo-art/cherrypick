@@ -5,7 +5,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div class="_spacer" style="--MI_SPACER-w: 800px;">
-	<div :class="$style.root">
+	<div>
 		<MkStickyContainer>
 			<template #header>
 				<MkTab
@@ -20,7 +20,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							label: i18n.ts.reaction
 						}] : []),
 					]"
-					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect, [$style.scrollToTransparent]: showEl && !prefer.s.useBlurEffect }]"
+					:class="[$style.tab, { [$style.reduceBlurEffect]: !prefer.s.useBlurEffect }]"
 				>
 				</MkTab>
 			</template>
@@ -35,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
 import MkTab from '@/components/MkTab.vue';
 import { i18n } from '@/i18n.js';
@@ -44,9 +44,6 @@ import { prefer } from '@/preferences.js';
 import { $i } from '@/i.js';
 import XReactions from '@/pages/user/reactions.vue';
 import XFiles from '@/pages/user/index.timeline.files.vue';
-import { scrollToVisibility } from '@/utility/scroll-to-visibility.js';
-
-const { showEl } = scrollToVisibility();
 
 const props = defineProps<{
 	user: Misskey.entities.UserDetailed;
@@ -93,10 +90,6 @@ const filesPaginator = markRaw(new Paginator('users/notes', {
 		background-color: color(from var(--MI_THEME-bg) srgb r g b / 1);
 		-webkit-backdrop-filter: none;
 		backdrop-filter: none;
-	}
-
-	&.scrollToTransparent {
-		background-color: transparent;
 	}
 }
 

@@ -5,6 +5,7 @@
 
 import { setTimeout } from 'node:timers/promises';
 import { Inject, Injectable } from '@nestjs/common';
+import * as Redis from 'ioredis';
 import { DataSource, IsNull, LessThan, QueryFailedError, Not } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MiMeta, MiNote, NotesRepository } from '@/models/_.js';
@@ -13,6 +14,11 @@ import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type * as Bull from 'bullmq';
+
+// 走査位置はジョブを跨いで引き継ぐ
+// Redisが飛んだ場合は先頭からやり直すだけで、データ不整合は起きない
+const CURSOR_REDIS_KEY = 'cleanRemoteNotes:cursor';
+const CURSOR_ORIGIN = '0';
 
 @Injectable()
 export class CleanRemoteNotesProcessorService {
@@ -27,6 +33,9 @@ export class CleanRemoteNotesProcessorService {
 
 		@Inject(DI.db)
 		private db: DataSource,
+
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
 
 		private idService: IdService,
 		private queueLoggerService: QueueLoggerService,
@@ -48,15 +57,30 @@ export class CleanRemoteNotesProcessorService {
 		deletedCount: number;
 		oldest: number | null;
 		newest: number | null;
+		cursor: string | null;
 		skipped: boolean;
 		transientErrors: number;
 	}> {
+		const getConfig = () => {
+			return {
+				enabled: this.meta.enableRemoteNotesCleaning,
+				maxDuration: this.meta.remoteNotesCleaningMaxProcessingDurationInMinutes * 60 * 1000, // Convert minutes to milliseconds
+				// The date limit for the newest note to be considered for deletion.
+				// All notes newer than this limit will always be retained.
+				newestLimit: this.idService.gen(Date.now() - (1000 * 60 * 60 * 24 * this.meta.remoteNotesCleaningExpiryDaysForEachNotes)),
+			};
+		};
+
+		const storedCursor = await this.redisClient.get(CURSOR_REDIS_KEY);
+
+		const initialConfig = getConfig();
 		if (!this.meta.enableRemoteNotesCleaning) {
 			this.logger.info('Remote notes cleaning is disabled, skipping...');
 			return {
 				deletedCount: 0,
 				oldest: null,
 				newest: null,
+				cursor: storedCursor,
 				skipped: true,
 				transientErrors: 0,
 			};
@@ -64,13 +88,9 @@ export class CleanRemoteNotesProcessorService {
 
 		this.logger.info('cleaning remote notes...');
 
-		const maxDuration = this.meta.remoteNotesCleaningMaxProcessingDurationInMinutes * 60 * 1000; // Convert minutes to milliseconds
 		const startAt = Date.now();
 
 		//#region queries
-		// The date limit for the newest note to be considered for deletion.
-		// All notes newer than this limit will always be retained.
-		const newestLimit = this.idService.gen(Date.now() - (1000 * 60 * 60 * 24 * this.meta.remoteNotesCleaningExpiryDaysForEachNotes));
 
 		// The condition for removing the notes.
 		// The note must be:
@@ -92,7 +112,7 @@ export class CleanRemoteNotesProcessorService {
 		const minId = (await this.notesRepository.createQueryBuilder('note')
 			.select('MIN(note.id)', 'minId')
 			.where({
-				id: LessThan(newestLimit),
+				id: LessThan(initialConfig.newestLimit),
 				userHost: Not(IsNull()),
 				replyId: IsNull(),
 				renoteId: IsNull(),
@@ -101,10 +121,12 @@ export class CleanRemoteNotesProcessorService {
 
 		if (!minId) {
 			this.logger.info('No notes can possibly be deleted, skipping...');
+			await this.redisClient.del(CURSOR_REDIS_KEY);
 			return {
 				deletedCount: 0,
 				oldest: null,
 				newest: null,
+				cursor: null,
 				skipped: false,
 				transientErrors: 0,
 			};
@@ -113,7 +135,18 @@ export class CleanRemoteNotesProcessorService {
 		// start with a conservative limit and adjust it based on the query duration
 		const minimumLimit = 10;
 		let currentLimit = 100;
-		let cursorLeft = '0';
+
+		let cursorLeft = (storedCursor !== null && storedCursor < initialConfig.newestLimit) ? storedCursor : CURSOR_ORIGIN;
+		if (cursorLeft !== CURSOR_ORIGIN) {
+			job.log(`Resuming from the cursor left by a previous run: ${cursorLeft}`);
+		}
+
+		// 末尾まで到達したら保存済みカーソルを捨て、次回の実行を先頭から始める
+		// クリップ解除やお気に入り解除で後から削除可能になったノートを拾い直すために必要
+		const restartFromBeginningNextTime = async () => {
+			await this.redisClient.del(CURSOR_REDIS_KEY);
+			cursorLeft = CURSOR_ORIGIN;
+		};
 
 		const candidateNotesCteName = 'candidate_notes';
 
@@ -155,12 +188,12 @@ export class CleanRemoteNotesProcessorService {
 		// | fff | fff    | TRUE        |
 		// | ggg | ggg    | FALSE       |
 		//
-		const candidateNotesQuery = this.db.createQueryBuilder()
+		const candidateNotesQuery = ({ limit }: { limit: number }) => this.db.createQueryBuilder()
 			.select(`"${candidateNotesCteName}"."id"`, 'id')
 			.addSelect('unremovable."id" IS NULL', 'isRemovable')
 			.addSelect(`BOOL_OR("${candidateNotesCteName}"."isBase")`, 'isBase')
 			.addCommonTableExpression(
-				`((SELECT "base".* FROM (${candidateNotesQueryBase.orderBy('note.id', 'ASC').limit(currentLimit).getQuery()}) AS "base") UNION ${candidateNotesQueryInductive.getQuery()})`,
+				`((SELECT "base".* FROM (${candidateNotesQueryBase.orderBy('note.id', 'ASC').limit(limit).getQuery()}) AS "base") UNION ${candidateNotesQueryInductive.getQuery()})`,
 				candidateNotesCteName,
 				{ recursive: true },
 			)
@@ -178,6 +211,11 @@ export class CleanRemoteNotesProcessorService {
 		let lowThroughputWarned = false;
 		let transientErrors = 0;
 		for (;;) {
+			const { enabled, maxDuration, newestLimit } = getConfig();
+			if (!enabled) {
+				this.logger.info('Remote notes cleaning is disabled, processing stopped...');
+				break;
+			}
 			//#region check time
 			const batchBeginAt = Date.now();
 
@@ -205,13 +243,48 @@ export class CleanRemoteNotesProcessorService {
 			let noteIds = null;
 
 			try {
-				noteIds = await candidateNotesQuery.setParameters(
+				noteIds = await candidateNotesQuery({ limit: currentLimit }).setParameters(
 					{ newestLimit, cursorLeft },
 				).getRawMany<{ id: MiNote['id'], isRemovable: boolean, isBase: boolean }>();
 			} catch (e) {
-				if (currentLimit > minimumLimit && e instanceof QueryFailedError && e.driverError?.code === '57014') {
-					// Statement timeout (maybe suddenly hit a large note tree), reduce the limit and try again
-					// continuous failures will eventually converge to currentLimit == minimumLimit and then throw
+				if (e instanceof QueryFailedError && e.driverError?.code === '57014') {
+					// Statement timeout (maybe suddenly hit a large note tree), if possible, reduce the limit and try again
+					// if not possible, skip the current batch of notes and find the next root note
+					if (currentLimit <= minimumLimit) {
+						job.log('Local note tree complexity is too high, finding next root note...');
+
+						// This query is only used to advance the cursor past the offending range;
+						// it intentionally omits the heavy NOT EXISTS subqueries in `removalCriteria`
+						// (user_note_pining / note_favorite / note_reaction) which would otherwise
+						// hit the same statement_timeout that triggered this fallback path (#17057).
+						// Strict removability is re-evaluated by the next iteration's CTE query.
+						const idWindow = await this.notesRepository.createQueryBuilder('note')
+							.select('id')
+							.where('note.id > :cursorLeft')
+							.andWhere('note."id" < :newestLimit')
+							.andWhere('note."userHost" IS NOT NULL')
+							.andWhere({ replyId: IsNull(), renoteId: IsNull() })
+							.orderBy('note.id', 'ASC')
+							.limit(minimumLimit + 1)
+							.setParameters({ cursorLeft, newestLimit })
+							.getRawMany<{ id?: MiNote['id'] }>();
+
+						job.log(`Skipped note IDs: ${idWindow.slice(0, minimumLimit).map(id => id.id).join(', ')}`);
+
+						const lastId = idWindow.at(minimumLimit)?.id;
+
+						if (!lastId) {
+							job.log('No more notes to clean. The next run will start from the beginning.');
+							await restartFromBeginningNextTime();
+							break;
+						}
+
+						cursorLeft = lastId;
+
+						// 毎バッチtimeoutし続ける場合、ここを保存しないと一晩ぶんの前進が失われる
+						await this.redisClient.set(CURSOR_REDIS_KEY, cursorLeft);
+						continue;
+					}
 					currentLimit = Math.max(minimumLimit, Math.floor(currentLimit * 0.25));
 					continue;
 				}
@@ -219,7 +292,8 @@ export class CleanRemoteNotesProcessorService {
 			}
 
 			if (noteIds.length === 0) {
-				job.log('No more notes to clean.');
+				job.log('No more notes to clean. The next run will start from the beginning.');
+				await restartFromBeginningNextTime();
 				break;
 			}
 
@@ -263,6 +337,8 @@ export class CleanRemoteNotesProcessorService {
 			}
 
 			cursorLeft = noteIds.filter(result => result.isBase).reduce((max, { id }) => id > max ? id : max, cursorLeft);
+			// 途中でジョブが落ちても進捗を失わないよう、バッチごとに保存する
+			await this.redisClient.set(CURSOR_REDIS_KEY, cursorLeft);
 
 			job.log(`Deleted ${noteIds.length} notes; ${Date.now() - batchBeginAt}ms`);
 
@@ -282,6 +358,7 @@ export class CleanRemoteNotesProcessorService {
 			deletedCount: stats.deletedCount,
 			oldest: stats.oldest,
 			newest: stats.newest,
+			cursor: cursorLeft === CURSOR_ORIGIN ? null : cursorLeft,
 			skipped: false,
 			transientErrors,
 		};

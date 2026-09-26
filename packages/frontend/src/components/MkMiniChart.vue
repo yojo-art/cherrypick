@@ -35,6 +35,7 @@ import { watch, ref } from 'vue';
 import tinycolor from 'tinycolor2';
 import { useInterval } from '@@/js/use-interval.js';
 import { genId } from '@/utility/id.js';
+import { themeManager } from '@/theme.js';
 
 const props = defineProps<{
 	src: number[];
@@ -47,8 +48,7 @@ const polylinePoints = ref('');
 const polygonPoints = ref('');
 const headX = ref<number | null>(null);
 const headY = ref<number | null>(null);
-const clock = ref<number | null>(null);
-const accent = tinycolor(getComputedStyle(window.document.documentElement).getPropertyValue('--MI_THEME-accent'));
+const accent = tinycolor(themeManager.currentCompiledTheme!.accent);
 const color = accent.toRgbString();
 
 function draw(): void {

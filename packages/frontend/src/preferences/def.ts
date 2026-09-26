@@ -3,16 +3,18 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { hemisphere } from '@@/js/intl-const.js';
+import { DEFAULT_EMOJIS } from '@@/js/const.js';
 import { prefersReducedMotion } from '@@/js/config.js';
 import { definePreferences } from './manager.js';
-import type { Theme } from '@/theme.js';
+import type { Theme } from '@@/js/theme.js';
 import type { SoundType } from '@/utility/sound.js';
 import type { Plugin } from '@/plugin.js';
 import type { DeviceKind } from '@/utility/device-kind.js';
 import type { DeckProfile } from '@/deck.js';
-import type { WatermarkPreset } from '@/utility/watermark.js';
+import type { WatermarkPreset } from '@/utility/watermark/WatermarkRenderer.js';
+import type { ImageFramePreset } from '@/utility/image-frame-renderer/ImageFrameRenderer.js';
 import { genId } from '@/utility/id.js';
 import { DEFAULT_DEVICE_KIND } from '@/utility/device-kind.js';
 import { deepEqual } from '@/utility/deep-equal.js';
@@ -102,7 +104,7 @@ export const PREF_DEF = definePreferences({
 		default: () => [{
 			id: genId(),
 			name: '',
-			emojis: ['👍', '❤️', '😆', '🤔', '😮', '🎉', '💢', '😥', '😇', '🍮'],
+			emojis: DEFAULT_EMOJIS,
 		}] as {
 			id: string;
 			name: string;
@@ -180,6 +182,12 @@ export const PREF_DEF = definePreferences({
 	rememberNoteVisibility: {
 		default: false,
 	},
+	rememberChannelNoteVisibility: {
+		default: false,
+	},
+	defaultChannelNoteVisibility: {
+		default: 'public' as (typeof Misskey.channelNoteVisibilities)[number],
+	},
 	rememberNoteSearchbility: {
 		default: false,
 	},
@@ -195,16 +203,18 @@ export const PREF_DEF = definePreferences({
 	menu: {
 		default: [
 			'notifications',
-			'chat',
-			'favorites',
-			'explore',
+			'clips',
+			'drive',
 			'followRequests',
+			'chat',
 			'-',
+			'official_tags',
+			'explore',
 			'announcements',
 			'channels',
 			'search',
 			'-',
-			'support',
+			'ui',
 		],
 	},
 	statusbars: {
@@ -241,10 +251,10 @@ export const PREF_DEF = definePreferences({
 		default: false,
 	},
 	disableShowingAnimatedImages: {
-		default: prefersReducedMotion,
+		default: false,
 	},
 	emojiStyle: {
-		default: 'twemoji', // twemoji / fluentEmoji / native
+		default: 'twemoji' as 'native' | 'fluentEmoji' | 'twemoji',
 	},
 	menuStyle: {
 		default: 'auto' as 'auto' | 'popup' | 'drawer',
@@ -318,6 +328,10 @@ export const PREF_DEF = definePreferences({
 	limitWidthOfReaction: {
 		default: true,
 	},
+	reactions: {
+		accountDependent: true,
+		default: DEFAULT_EMOJIS,
+	},
 	forceShowAds: {
 		default: true,
 	},
@@ -330,20 +344,23 @@ export const PREF_DEF = definePreferences({
 	mediaListWithOneImageAppearance: {
 		default: 'expand' as 'expand' | '16_9' | '1_1' | '2_3',
 	},
+	showMediaListByGridInWideArea: {
+		default: false,
+	},
 	notificationPosition: {
 		default: 'rightBottom' as 'leftTop' | 'leftBottom' | 'rightTop' | 'rightBottom',
 	},
 	notificationStackAxis: {
 		default: 'vertical' as 'vertical' | 'horizontal',
 	},
-	enableCondensedLine: {
-		default: false,
-	},
 	keepScreenOn: {
 		default: false,
 	},
 	useGroupedNotifications: {
 		default: true,
+	},
+	useGroupedNoteNotifications: {
+		default: false,
 	},
 	dataSaver: {
 		default: {
@@ -448,11 +465,40 @@ export const PREF_DEF = definePreferences({
 		accountDependent: true,
 		default: null as WatermarkPreset['id'] | null,
 	},
+	imageFramePresets: {
+		accountDependent: true,
+		default: [] as ImageFramePreset[],
+		mergeStrategy: (a, b) => {
+			const mergedItems = [] as typeof a;
+			for (const x of a.concat(b)) {
+				const sameIdItem = mergedItems.find(y => y.id === x.id);
+				if (sameIdItem != null) {
+					if (deepEqual(x, sameIdItem)) { // 完全な重複は無視
+						continue;
+					} else { // IDは同じなのに内容が違う場合はマージ不可とする
+						throw new Error();
+					}
+				} else {
+					mergedItems.push(x);
+				}
+			}
+			return mergedItems;
+		},
+	},
 	defaultImageCompressionLevel: {
 		default: 2 as 0 | 1 | 2 | 3,
 	},
-	defaultVideoCompressionLevel: {
-		default: 2 as 0 | 1 | 2 | 3,
+	instantUploadInPostForm: {
+		default: false,
+	},
+	defaultVideoQualityLevel: {
+		default: 'medium' as 'low' | 'medium' | 'high' | 'manual',
+	},
+	defaultVideoCodec: {
+		default: 'copy' as 'h264' | 'vp9' | 'copy',
+	},
+	defaultVideoBitrateValue: {
+		default: null as number | null,
 	},
 
 	'sound.masterVolume': {
@@ -482,6 +528,9 @@ export const PREF_DEF = definePreferences({
 	'sound.on.reaction': {
 		default: { type: 'syuilo/bubble2', volume: 1 } as SoundStore,
 	},
+	'sound.on.chat': {
+		default: { type: 'syuilo/waon', volume: 1 } as SoundStore,
+	},
 	'sound.on.chatMessage': {
 		default: { type: 'syuilo/waon', volume: 1 } as SoundStore,
 	},
@@ -496,7 +545,7 @@ export const PREF_DEF = definePreferences({
 		default: true,
 	},
 	'deck.columnAlign': {
-		default: 'center' as 'left' | 'right' | 'center',
+		default: 'center' as 'left' | 'center',
 	},
 	'deck.columnGap': {
 		default: 6,
@@ -686,10 +735,43 @@ export const PREF_DEF = definePreferences({
 	newNoteReceivedNotificationBehavior: {
 		default: 'count' as 'default' | 'count' | 'none',
 	},
+	searchEngine: {
+		default: 'google' as 'google' | 'bing' | 'yahoo' | 'baidu' | 'naver' | 'daum' | 'duckduckgo' | 'other',
+	},
+	searchEngineUrl: {
+		default: 'https://www.ecosia.org/search?',
+	},
+	searchEngineUrlQuery: {
+		default: 'q',
+	},
 
 	// - Settings/Navigation bar
 	bannerDisplay: {
 		default: 'topBottom' as 'all' | 'topBottom' | 'top' | 'bottom' | 'bg' | 'hide',
+	},
+	showMenuButtonInNavbar: {
+		default: true,
+	},
+	showHomeButtonInNavbar: {
+		default: true,
+	},
+	showExploreButtonInNavbar: {
+		default: false,
+	},
+	showSearchButtonInNavbar: {
+		default: false,
+	},
+	showNotificationButtonInNavbar: {
+		default: true,
+	},
+	showChatButtonInNavbar: {
+		default: false,
+	},
+	showWidgetButtonInNavbar: {
+		default: true,
+	},
+	showPostButtonInNavbar: {
+		default: true,
 	},
 
 	// - Settings/Timeline
@@ -746,17 +828,11 @@ export const PREF_DEF = definePreferences({
 	expandOnNoteClickBehavior: {
 		default: 'click' as 'click' | 'doubleClick',
 	},
-	displayHeaderNavBarWhenScroll: {
-		default: 'hideHeaderFloatBtn' as 'all' | 'hideHeaderOnly' | 'hideHeaderFloatBtn' | 'hideFloatBtnOnly' | 'hideFloatBtnNavBar' | 'hide',
-	},
 	reactableRemoteReactionEnabled: {
 		default: true,
 	},
 	showFollowingMessageInsteadOfButtonEnabled: {
 		default: true,
-	},
-	mobileHeaderChange: {
-		default: false,
 	},
 	renameTheButtonInPostFormToNya: {
 		default: false,
@@ -766,15 +842,6 @@ export const PREF_DEF = definePreferences({
 	},
 	enableWidgetsArea: {
 		default: true,
-	},
-	friendlyUiEnableNotificationsArea: {
-		default: true,
-	},
-	enableLongPressOpenAccountMenu: {
-		default: true,
-	},
-	friendlyUiShowAvatarDecorationsInNavBtn: {
-		default: false,
 	},
 	checkReactionDialog: {
 		default: false,
@@ -795,5 +862,8 @@ export const PREF_DEF = definePreferences({
 	},
 	'experimental.enableWebTranslatorApi': {
 		default: false,
+	},
+	'searchbility': {
+		default: 'public' as (typeof Misskey.noteSearchbility)[number],
 	},
 });

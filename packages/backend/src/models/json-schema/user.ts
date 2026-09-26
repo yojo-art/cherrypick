@@ -127,6 +127,11 @@ export const packedUserLiteSchema = {
 			type: 'boolean',
 			nullable: false, optional: true,
 		},
+		channelId: {
+			type: 'string',
+			nullable: false, optional: true,
+			format: 'id',
+		},
 		requireSigninToViewContents: {
 			type: 'boolean',
 			nullable: false, optional: true,
@@ -672,6 +677,9 @@ export const packedMeDetailedOnlySchema = {
 				achievementEarned: { optional: true, ...notificationRecieveConfig },
 				app: { optional: true, ...notificationRecieveConfig },
 				test: { optional: true, ...notificationRecieveConfig },
+				login: { optional: true, ...notificationRecieveConfig },
+				createToken: { optional: true, ...notificationRecieveConfig },
+				exportCompleted: { optional: true, ...notificationRecieveConfig },
 			},
 		},
 		emailNotificationTypes: {

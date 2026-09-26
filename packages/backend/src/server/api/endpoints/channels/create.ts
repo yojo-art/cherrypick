@@ -1,0 +1,205 @@
+/*
+ * SPDX-FileCopyrightText: syuilo and misskey-project
+ * SPDX-License-Identifier: AGPL-3.0-only
+ */
+
+import { Inject, Injectable } from '@nestjs/common';
+import ms from 'ms';
+import { Endpoint } from '@/server/api/endpoint-base.js';
+import type { ChannelsRepository, DriveFilesRepository, UsersRepository, MiChannel, MiUser } from '@/models/_.js';
+import { ChannelEntityService } from '@/core/entities/ChannelEntityService.js';
+import { DriveFileEntityService } from '@/core/entities/DriveFileEntityService.js';
+import { DI } from '@/di-symbols.js';
+import { UserEntityService } from '@/core/entities/UserEntityService.js';
+import { SignupService } from '@/core/SignupService.js';
+import { RoleService } from '@/core/RoleService.js';
+import { GlobalEventService } from '@/core/GlobalEventService.js';
+import { FastifyReplyError } from '@/misc/fastify-reply-error.js';
+import { ApiError } from '../../error.js';
+
+export const meta = {
+	tags: ['channels'],
+
+	requireCredential: true,
+
+	prohibitMoved: true,
+
+	kind: 'write:channels',
+
+	requiredRolePolicy: 'canCreateChannel',
+
+	limit: {
+		duration: ms('1hour'),
+		max: 10,
+	},
+
+	res: {
+		type: 'object',
+		optional: false, nullable: false,
+		ref: 'Channel',
+	},
+
+	errors: {
+		noSuchFile: {
+			message: 'No such file.',
+			code: 'NO_SUCH_FILE',
+			id: 'cd1e9f3e-5a12-4ab4-96f6-5d0a2cc32050',
+		},
+
+		iconNotAnImage: {
+			message: 'The icon file is not an image.',
+			code: 'ICON_NOT_AN_IMAGE',
+			id: '9b3f8c2a-4d71-4e6b-9a5f-1c8e2b7d4f90',
+		},
+
+		invalidUsername: {
+			message: 'Invalid Username',
+			code: 'INVALID_USERNAME',
+			id: '3f7d8c21-1c57-4854-9f02-0a2b4fc229df',
+		},
+	},
+} as const;
+
+export const paramDef = {
+	type: 'object',
+	properties: {
+		name: { type: 'string', minLength: 1, maxLength: 128 },
+		description: { type: 'string', nullable: true, maxLength: 2048 },
+		bannerId: { type: 'string', format: 'misskey:id', nullable: true },
+		iconId: { type: 'string', format: 'misskey:id', nullable: true },
+		color: { type: 'string', minLength: 1, maxLength: 16 },
+		isSensitive: { type: 'boolean', nullable: true },
+		allowRenoteToExternal: { type: 'boolean', nullable: true },
+		username: { type: 'string' },
+	},
+	required: ['username'],
+} as const;
+
+@Injectable()
+export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-disable-line import/no-default-export
+	constructor(
+		@Inject(DI.driveFilesRepository)
+		private driveFilesRepository: DriveFilesRepository,
+
+		@Inject(DI.channelsRepository)
+		private channelsRepository: ChannelsRepository,
+
+		@Inject(DI.usersRepository)
+		private usersRepository: UsersRepository,
+
+		private channelEntityService: ChannelEntityService,
+		private driveFileEntityService: DriveFileEntityService,
+		private userEntityService: UserEntityService,
+		private signupService: SignupService,
+		private roleService: RoleService,
+		private globalEventService: GlobalEventService,
+	) {
+		super(meta, paramDef, async (ps, me) => {
+			let banner = null;
+			if (ps.bannerId != null) {
+				banner = await this.driveFilesRepository.findOneBy({
+					id: ps.bannerId,
+					userId: me.id,
+				});
+
+				if (banner == null) {
+					throw new ApiError(meta.errors.noSuchFile);
+				}
+			}
+
+			let icon = null;
+			if (ps.iconId != null) {
+				icon = await this.driveFilesRepository.findOneBy({
+					id: ps.iconId,
+					userId: me.id,
+				});
+
+				if (icon == null) {
+					throw new ApiError(meta.errors.noSuchFile);
+				}
+				if (!icon.type.startsWith('image/')) {
+					throw new ApiError(meta.errors.iconNotAnImage);
+				}
+			}
+
+			// Validate username
+			if (ps.username && !this.userEntityService.validateLocalUsername(ps.username)) {
+				throw new ApiError(meta.errors.invalidUsername);
+			}
+			let _channel: MiChannel;
+			let actor: MiUser;
+			//チャンネルアカウントを作成
+			try {
+				const { channel, account } = await this.signupService.signupChannel({
+					bannerId: banner?.id,
+					avatarId: icon?.id,
+					avatarUrl: icon ? this.driveFileEntityService.getPublicUrl({ file: icon, mode: 'avatar', allowProxiedUrl: false }) : undefined,
+					avatarBlurhash: icon?.blurhash ?? undefined,
+					username: ps.username,
+					name: ps.name,
+					ownerId: me.id,
+					description: ps.description,
+					ignorePreservedUsernames: await this.roleService.isModerator(me),
+				});
+				_channel = channel;
+				actor = account;
+			} catch (err) {
+				throw new FastifyReplyError(400, typeof err === 'string' ? err : (err as Error).toString());
+			}
+			const channel = _channel;
+
+			// バナー・アイコンをチャンネルアカウントが所有するファイルとして複製する。
+			// 元ファイルは削除しない。複製に失敗した時は signupChannel で設定された
+			// ユーザーアップロード元のファイルがそのまま残る。
+			const accountUpdates = {} as Partial<MiUser>;
+			const originalBanner = banner;
+			const originalIcon = icon;
+			const createdCopyIds: string[] = [];
+			try {
+				banner = await this.channelEntityService.reuploadFileAsChannelAccount(banner, actor.id);
+				if (banner) {
+					if (banner.id !== originalBanner?.id) createdCopyIds.push(banner.id);
+					accountUpdates.bannerId = banner.id;
+					accountUpdates.bannerUrl = this.driveFileEntityService.getPublicUrl({ file: banner, allowProxiedUrl: false });
+					accountUpdates.bannerBlurhash = banner.blurhash;
+					await this.channelsRepository.update(channel.id, { bannerId: banner.id });
+				}
+				icon = await this.channelEntityService.reuploadFileAsChannelAccount(icon, actor.id);
+				if (icon) {
+					if (icon.id !== originalIcon?.id) createdCopyIds.push(icon.id);
+					accountUpdates.avatarId = icon.id;
+					accountUpdates.avatarUrl = this.driveFileEntityService.getPublicUrl({ file: icon, mode: 'avatar', allowProxiedUrl: false });
+					accountUpdates.avatarBlurhash = icon.blurhash;
+				}
+				if (Object.keys(accountUpdates).length > 0) {
+					await this.usersRepository.update(actor.id, accountUpdates);
+					this.globalEventService.publishInternalEvent('localUserUpdated', { id: actor.id });
+				}
+			} catch (e) {
+				// DB反映に失敗したらこの処理で新規作成した複製ファイルだけ後始末する（元ファイルは残す）
+				for (const fileId of createdCopyIds) {
+					await this.channelEntityService.deleteChannelAccountFile(fileId, actor.id);
+				}
+				throw e;
+			}
+
+			if (ps.name !== undefined || ps.color !== undefined || typeof ps.isSensitive === 'boolean' || typeof ps.allowRenoteToExternal === 'boolean') {
+				await this.channelsRepository.update(channel.id, {
+					...(ps.name !== undefined ? { name: ps.name } : {}),
+					...(ps.color !== undefined ? { color: ps.color } : {}),
+					...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
+					...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
+				});
+			}
+			return await this.channelEntityService.pack({
+				...channel,
+				...(banner ? { bannerId: banner.id } : {}),
+				...(ps.name !== undefined ? { name: ps.name } : {}),
+				...(ps.description !== undefined ? { description: ps.description } : {}),
+				...(ps.color !== undefined ? { color: ps.color } : {}),
+				...(typeof ps.isSensitive === 'boolean' ? { isSensitive: ps.isSensitive } : {}),
+				...(typeof ps.allowRenoteToExternal === 'boolean' ? { allowRenoteToExternal: ps.allowRenoteToExternal } : {}),
+			}, me);
+		});
+	}
+}

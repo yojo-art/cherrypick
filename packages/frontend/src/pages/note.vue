@@ -50,7 +50,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, watch, ref, markRaw } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { host } from '@@/js/config.js';
 import MkNoteDetailed from '@/components/MkNoteDetailed.vue';
 import MkNotesTimeline from '@/components/MkNotesTimeline.vue';
@@ -81,6 +81,12 @@ const note = ref<null | Misskey.entities.Note>(CTX_NOTE);
 const clips = ref<Misskey.entities.Clip[]>();
 const showPrev = ref<'user' | 'channel' | 'home' | 'local' | false>(false);
 const showNext = ref<'user' | 'channel' | 'home' | 'local' | false>(false);
+const initialTab = computed<'reactions' | 'replies' | 'renotes' | undefined>(() => {
+	if (['reactions', 'replies', 'renotes'].includes(props.initialTab ?? '')) {
+		return props.initialTab as 'reactions' | 'replies' | 'renotes';
+	}
+	return undefined;
+});
 const error = ref();
 
 const prevUserPaginator = markRaw(new Paginator('users/notes', {

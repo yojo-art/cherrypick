@@ -106,7 +106,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { markRaw, onDeactivated, onMounted, onUnmounted, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { useInterval } from '@@/js/use-interval.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { definePage } from '@/page.js';
@@ -198,7 +198,8 @@ async function matchHeatbeat() {
 }
 
 async function matchUser() {
-	pleaseLogin();
+	const isLoggedIn = await pleaseLogin();
+	if (!isLoggedIn) return;
 
 	const user = await os.selectUser({ includeSelf: false, localOnly: false });
 	if (user == null) return;
@@ -236,8 +237,9 @@ async function matchUser() {
 	matchHeatbeat();
 }
 
-function matchAny(ev: MouseEvent) {
-	pleaseLogin();
+async function matchAny(ev: PointerEvent) {
+	const isLoggedIn = await pleaseLogin();
+	if (!isLoggedIn) return;
 
 	os.popupMenu([{
 		text: i18n.ts._reversi.allowIrregularRules,
@@ -266,12 +268,12 @@ function cancelMatching() {
 	}
 }
 
-async function accept(user) {
+async function accept(user: Misskey.entities.UserLite) {
 	const game = await misskeyApi('reversi/match', {
 		userId: user.id,
 		accept_only: true,
 	});
-	if (game) {
+	if (game != null) {
 		startGame(game);
 	} else {
 		//受けようとした招待が見つからなかった場合最新の情報に更新
@@ -281,7 +283,11 @@ async function accept(user) {
 	}
 }
 
-useInterval(matchHeatbeat, 1000 * 5, { immediate: false, afterMounted: true });
+useInterval(matchHeatbeat, 1000 * 5, {
+	immediate: false,
+	afterMounted: true,
+	keepRunningWhenHidden: true, // バックグラウンドタブでもマッチング待機を維持する必要がある
+});
 
 onMounted(() => {
 	misskeyApi('reversi/invitations').then(_invitations => {

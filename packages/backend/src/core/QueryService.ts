@@ -7,7 +7,7 @@ import { Inject, Injectable } from '@nestjs/common';
 import { Brackets, ObjectLiteral } from 'typeorm';
 import { DI } from '@/di-symbols.js';
 import type { MiUser } from '@/models/User.js';
-import type { UserProfilesRepository, FollowingsRepository, ChannelFollowingsRepository, BlockingsRepository, NoteThreadMutingsRepository, MutingsRepository, RenoteMutingsRepository, MiMeta } from '@/models/_.js';
+import type { UserProfilesRepository, FollowingsRepository, BlockingsRepository, NoteThreadMutingsRepository, MutingsRepository, RenoteMutingsRepository, MiMeta } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
 import type { SelectQueryBuilder } from 'typeorm';
@@ -20,9 +20,6 @@ export class QueryService {
 
 		@Inject(DI.followingsRepository)
 		private followingsRepository: FollowingsRepository,
-
-		@Inject(DI.channelFollowingsRepository)
-		private channelFollowingsRepository: ChannelFollowingsRepository,
 
 		@Inject(DI.blockingsRepository)
 		private blockingsRepository: BlockingsRepository,
@@ -321,9 +318,13 @@ export class QueryService {
 			q.andWhere(new Brackets(qb => {
 				qb.where('note.searchableBy = \'public\'')
 					.orWhere( new Brackets(qb2 => {
-						qb2.where('user.searchableBy = \'public\'')
-							.orWhere( new Brackets(qb3 => {
-								qb3.where('user.isIndexable = TRUE');
+						qb2.where('note.searchableBy IS NULL')
+							.andWhere( new Brackets(qb3 => {
+								qb3.where('user.searchableBy = \'public\'')
+									.orWhere( new Brackets(qb4 => {
+										qb4.where('user.searchableBy IS NULL')
+											.andWhere('user.isIndexable = TRUE');
+									}));
 							}));
 					}));
 			}));

@@ -23,11 +23,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 		/>
 		<MkA v-if="note.renoteId" :class="$style.rp" :to="`/notes/${note.renoteId}`">RN: ...</MkA>
 		<div v-if="prefer.s.showTranslateButtonInNote && $i && (!prefer.s.useAutoTranslate || (!$i.policies.canUseAutoTranslate || (prefer.s.useAutoTranslate && (isLong || note.cw != null || !showContent)))) && instance.translatorAvailable && $i.policies.canUseTranslator && note.text && isForeignLanguage" style="padding: 5px 0; color: var(--MI_THEME-accent);">
-			<button v-if="!(translating || translation)" ref="translateButton" class="_button" @click.stop="translate()">{{ i18n.ts.translateNote }}</button>
-			<button v-else class="_button" @click.stop="translation = null">{{ i18n.ts.close }}</button>
+			<button v-if="translateStatus === 'none'" ref="translateButton" class="_button" @click.stop="translate(false)">{{ i18n.ts.translateNote }}</button>
+			<button v-else class="_button" @click.stop="translateStatus = 'none'; translation = null">{{ i18n.ts.close }}</button>
 		</div>
-		<div v-if="translating || translation" :class="$style.translation">
-			<MkLoading v-if="translating" mini/>
+		<div v-if="translateStatus !== 'none'" :class="$style.translation">
+			<MkLoading v-if="translateStatus === 'running'" mini/>
+			<MkResult v-else-if="translateStatus === 'error'" type="error" :text="i18n.ts.translateError">
+				<MkButton :class="$style.button" rounded @click.stop="() => translate(false)">{{ i18n.ts.retry }}</MkButton>
+			</MkResult>
 			<div v-else-if="translation">
 				<b>{{ i18n.tsx.translatedFrom({ x: translation.sourceLang }) }}:</b><hr style="margin: 10px 0;">
 				<Mfm
@@ -66,7 +69,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 		<div v-show="showContent">
 			<div v-if="note.files && note.files.length > 0">
-				<MkMediaList :mediaList="note.files" :disableRightClick="note.disableRightClick" @click.stop @contextmenu="disableRightClickHandler"/>
+				<MkMediaList :mediaList="note.files" :user="note.user" @click.stop/>
 			</div>
 			<div v-if="note.poll">
 				<MkPoll
@@ -169,12 +172,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { computed, inject, provide, ref, useTemplateRef, watch } from 'vue';
 import * as mfm from 'mfc-js';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { shouldCollapsed, shouldMfmCollapsed, shouldAnimatedMfm } from '@@/js/collapsed.js';
 import { concat } from '@@/js/array.js';
 import { host } from '@@/js/config.js';
 import type { Ref } from 'vue';
 import type { OpenOnRemoteOptions } from '@/utility/please-login.js';
+import type { TranslateStatus } from '@/utility/translate.js';
 import { parseMfmCached } from '@/utility/mfm-cache.js';
 import * as os from '@/os.js';
 import * as sound from '@/utility/sound.js';
@@ -199,8 +203,8 @@ import { deepClone } from '@/utility/clone.js';
 import { reactionPicker } from '@/utility/reaction-picker.js';
 import { claimAchievement } from '@/utility/achievements.js';
 import { noteEvents, useNoteCapture } from '@/composables/use-note-capture.js';
-import { haptic, hapticConfirm } from '@/utility/haptic.js';
-import { misskeyApi, misskeyApiGet } from '@/utility/misskey-api.js';
+import { haptic } from '@/utility/haptic.js';
+import { misskeyApi } from '@/utility/misskey-api.js';
 import { store } from '@/store.js';
 import { DI } from '@/di.js';
 import detectLanguage from '@/utility/detect-language.js';
@@ -230,7 +234,7 @@ const { $note: $note, subscribe: subscribeManuallyToNoteCapture } = useNoteCaptu
 	mock: props.mock,
 });
 
-const enableAnimatedMfm = $i ? true : computed(store.makeGetterSetter('animatedMfm'));
+const enableAnimatedMfm = $i ? true : prefer.model('animatedMfm');
 
 const rootEl = useTemplateRef('rootEl');
 const menuButton = useTemplateRef('menuButton');
@@ -244,7 +248,7 @@ const currentClip = inject<Ref<Misskey.entities.Clip> | null>('currentClip', nul
 
 const showContent = ref(true);
 const translation = ref<Misskey.entities.NotesTranslateResponse | null>(null);
-const translating = ref(false);
+const translateStatus = ref<TranslateStatus>('none');
 
 const viewTextSource = ref(false);
 const noNyaize = ref(false);
@@ -267,10 +271,6 @@ const collapseLabel = computed(() => {
 		props.note.files && props.note.files.length !== 0 ? [i18n.tsx._cw.files({ count: props.note.files.length })] : [],
 	] as string[][]).join(' / ');
 });
-
-const disableRightClickHandler = (event: Event) => {
-	if (props.note.disableRightClick) event.preventDefault();
-};
 
 provide(DI.mfmEmojiReactCallback, (reaction) => {
 	sound.playMisskeySfx('reaction');
@@ -308,10 +308,9 @@ if (!props.mock) {
 
 	if (props.note.reactionAcceptance === 'likeOnly') {
 		useTooltip(reactButton, async (showing) => {
-			const reactions = await misskeyApiGet('notes/reactions', {
+			const reactions = await misskeyApi('notes/reactions', {
 				noteId: props.note.id,
 				limit: 10,
-				_cacheKey_: $note.reactionCount,
 			});
 
 			const users = reactions.map(x => x.user);
@@ -434,15 +433,6 @@ function react(): void {
 	} else {
 		blur();
 		reactionPicker.show(reactButton.value ?? null, note, async (reaction) => {
-			if (prefer.s.confirmOnReact) {
-				const confirm = await os.confirm({
-					type: 'question',
-					text: i18n.tsx.reactAreYouSure({ emoji: reaction.replace('@.', '') }),
-				});
-
-				if (confirm.canceled) return;
-			}
-
 			if (props.mock) {
 				emit('reaction', reaction);
 				$note.reactions[reaction] = 1;
@@ -458,7 +448,7 @@ function react(): void {
 	}
 }
 
-async function toggleReaction(reaction) {
+async function toggleReaction(reaction: string) {
 	const oldReaction = $note.myReaction;
 	if (oldReaction) {
 		const confirm = await os.confirm({
@@ -567,7 +557,7 @@ function showMenu(): void {
 		return;
 	}
 
-	const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translating, viewTextSource, noNyaize, currentClip: currentClip?.value });
+	const { menu, cleanup } = getNoteMenu({ note: note, collapsed, translation, translateStatus, viewTextSource, noNyaize, currentClip: currentClip?.value });
 	os.popupMenu(menu, menuButton.value).then(focus).finally(cleanup);
 }
 
@@ -596,45 +586,40 @@ const isForeignLanguage: boolean = (note.text != null || note.poll != null) && (
 	return false;
 })();
 
-if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && !isLong && (note.cw == null || showContent.value) && note.text && isForeignLanguage) translate();
+if (prefer.s.useAutoTranslate && instance.translatorAvailable && $i && $i.policies.canUseTranslator && $i.policies.canUseAutoTranslate && !isLong && (note.cw == null || showContent.value) && note.text && isForeignLanguage) translate(true);
 
-async function translate(): Promise<void> {
+async function translate(isAuto: boolean): Promise<void> {
 	if (translation.value != null) return;
 	collapsed.value = false;
-	translating.value = true;
 
 	if (note.text == null) {
-		translating.value = false;
-		translation.value = {
-			sourceLang: '',
-			text: '',
-		};
+		translateStatus.value = 'success';
+		translation.value = null;
 		return;
 	}
-
-	haptic();
+	if (!isAuto) {
+		haptic();
+	}
 
 	if (props.mock) {
 		return;
 	}
 
-	const res = await misskeyApi('notes/translate', {
+	await misskeyApi('notes/translate', {
 		noteId: props.note.id,
 		targetLang: miLocalStorage.getItem('lang') ?? navigator.language,
+	}).then((r) => {
+		translateStatus.value = 'success';
+		translation.value = r;
 	}).catch((err) => {
-		translating.value = false;
+		translateStatus.value = 'error';
 		os.alert(
 			{
 				type: 'error',
-				title: err.message,
+				title: i18n.ts.translateError,
 				text: err.id,
 			});
-		return null;
 	});
-	translating.value = false;
-	translation.value = res;
-
-	hapticConfirm();
 }
 
 function focus() {
@@ -791,5 +776,9 @@ function emitUpdReaction(emoji: string, delta: number) {
 	gap: 6px;
 	flex-wrap: wrap;
 	margin-top: 6px;
+}
+
+.button {
+	margin: 0 auto;
 }
 </style>

@@ -51,7 +51,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 	<MkFoldableSection v-if="paginator">
 		<template #header>{{ i18n.ts.searchResult }}</template>
-		<MkNotesTimeline :key="key" :paginator="paginator" :getDate="eventSort === 'startDate' ? note => note.event.start : undefined"/>
+		<MkNotesTimeline :key="key" :paginator="paginator" :getDate="eventSort === 'startDate' ? (note: Misskey.entities.Note) => note.event?.start : undefined"/>
 	</MkFoldableSection>
 </div>
 </template>
@@ -68,6 +68,7 @@ import MkFolder from '@/components/MkFolder.vue';
 import { i18n } from '@/i18n.js';
 import MkFoldableSection from '@/components/MkFoldableSection.vue';
 import { Paginator } from '@/utility/paginator.js';
+import * as Misskey from 'misskey-js';
 
 const key = ref(0);
 const paginator = shallowRef<Paginator<'notes/events/search'> | null>(null);

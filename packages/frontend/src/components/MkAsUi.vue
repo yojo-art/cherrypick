@@ -106,7 +106,7 @@ const containerStyle = computed(() => {
 	const isBordered = c.borderWidth ?? c.borderColor ?? c.borderStyle;
 
 	const border = isBordered ? {
-		borderWidth: c.borderWidth ?? '1px',
+		borderWidth: `${c.borderWidth ?? 1}px`,
 		borderColor: c.borderColor ?? 'var(--MI_THEME-divider)',
 		borderStyle: c.borderStyle ?? 'solid',
 	} : undefined;
@@ -144,7 +144,7 @@ const {
 	initialValue: (c.type === 'select' && 'default' in c && typeof c.default !== 'boolean') ? c.default ?? null : null,
 });
 
-function onSelectUpdate(v) {
+function onSelectUpdate(v: string | null) {
 	valueForSelect.value = v;
 	if ('onChange' in c && c.onChange) {
 		c.onChange(v as never);

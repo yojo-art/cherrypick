@@ -112,44 +112,50 @@ export class RemoteUserResolveService {
 
 	@bindThis
 	private async updateRemote(user: MiRemoteUser, usernameLower: string, acctLower: string, username: string, host: string): Promise<MiLocalUser | MiRemoteUser> {
-		// 繋がらないインスタンスに何回も試行するのを防ぐ, 後続の同様処理の連続試行を防ぐ ため 試行前にも更新する
-		await this.usersRepository.update(user.id, {
-			lastFetchedAt: new Date(),
-		});
-
-		this.logger.info(`try resync: ${acctLower}`);
-		const self = await this.resolveSelf(acctLower);
-
-		if (user.uri !== self.href) {
-			// if uri mismatch, Fix (user@host <=> AP's Person id(RemoteUser.uri)) mapping.
-			this.logger.info(`uri missmatch: ${acctLower}`);
-			this.logger.info(`recovery missmatch uri for (username=${username}, host=${host}) from ${user.uri} to ${self.href}`);
-
-			// validate uri
-			const uri = new URL(self.href);
-			if (uri.hostname !== host) {
-				throw new Error('Invalid uri');
-			}
-
-			await this.usersRepository.update({
-				usernameLower,
-				host: host,
-			}, {
-				uri: self.href,
+		try {
+			// 繋がらないインスタンスに何回も試行するのを防ぐ, 後続の同様処理の連続試行を防ぐ ため 試行前にも更新する
+			await this.usersRepository.update(user.id, {
+				lastFetchedAt: new Date(),
 			});
-		} else {
-			this.logger.info(`uri is fine: ${acctLower}`);
-		}
 
-		await this.apPersonService.updatePerson(self.href);
+			this.logger.info(`try resync: ${acctLower}`);
+			const self = await this.resolveSelf(acctLower);
 
-		return await this.usersRepository.findOneBy({ uri: self.href }).then(u => {
-			if (u == null) {
-				throw new Error('user not found');
+			if (user.uri !== self.href) {
+				// if uri mismatch, Fix (user@host <=> AP's Person id(RemoteUser.uri)) mapping.
+				this.logger.info(`uri missmatch: ${acctLower}`);
+				this.logger.info(`recovery missmatch uri for (username=${username}, host=${host}) from ${user.uri} to ${self.href}`);
+
+				// validate uri
+				const uri = new URL(self.href);
+				if (uri.hostname !== host) {
+					throw new Error('Invalid uri');
+				}
+
+				await this.usersRepository.update({
+					usernameLower,
+					host: host,
+				}, {
+					uri: self.href,
+				});
 			} else {
-				return u as MiLocalUser | MiRemoteUser;
+				this.logger.info(`uri is fine: ${acctLower}`);
 			}
-		});
+
+			await this.apPersonService.updatePerson(self.href);
+
+			return await this.usersRepository.findOneBy({ uri: self.href }).then(u => {
+				if (u == null) {
+					throw new Error('user not found');
+				} else {
+					return u as MiLocalUser | MiRemoteUser;
+				}
+			});
+		} catch (err) {
+			// リモートサーバーが落ちているなどで再取得に失敗した場合は、キャッシュ済みのユーザー情報を返す
+			this.logger.warn(`failed to resync remote user, fallback to cached: ${acctLower}: ${err}`);
+			return user;
+		}
 	}
 
 	@bindThis

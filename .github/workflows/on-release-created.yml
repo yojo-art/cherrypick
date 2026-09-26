@@ -1,4 +1,4 @@
-name: On Release Created (Publish cherrypick-js)
+name: On Release Created (Publish misskey-js)
 
 on:
   release:
@@ -7,8 +7,8 @@ on:
   workflow_dispatch:
 
 jobs:
-  publish-cherrypick-js:
-    name: Publish cherrypick-js
+  publish-misskey-js:
+    name: Publish misskey-js
     runs-on: ubuntu-latest
 
     permissions:
@@ -16,23 +16,26 @@ jobs:
       id-token: write
 
     steps:
-      - uses: actions/checkout@v4.3.0
+      - uses: actions/checkout@v7.0.1
         with:
           submodules: true
       - name: Setup pnpm
-        uses: pnpm/action-setup@v4.2.0
+        uses: pnpm/action-setup@v6.0.10
       - name: Use Node.js
-        uses: actions/setup-node@v6.1.0
+        uses: actions/setup-node@v7.0.0
         with:
           node-version-file: '.node-version'
           cache: 'pnpm'
           # see https://docs.github.com/actions/use-cases-and-examples/publishing-packages/publishing-nodejs-packages#publishing-packages-to-the-npm-registry
           registry-url: 'https://registry.npmjs.org'
+      # Ensure npm 11.5.1 or later is installed
+      - name: Update npm
+        run: npm install -g npm@latest
       - name: Publish package
         run: |
           pnpm i --frozen-lockfile
           pnpm build
-          pnpm --filter cherrypick-js publish --access public --no-git-checks --provenance
+          pnpm --filter misskey-js publish --access public --no-git-checks --provenance
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}
           NPM_TOKEN: ${{ secrets.NODE_AUTH_TOKEN }}

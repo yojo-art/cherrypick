@@ -6,9 +6,10 @@
 process.env.NODE_ENV = 'test';
 
 import * as assert from 'assert';
-import { ReversiMatchResponse } from 'cherrypick-js/entities.js';
+import { describe, beforeAll, test } from 'vitest';
+import { ReversiMatchResponse } from 'misskey-js/entities.js';
 import { api, signup } from '../utils.js';
-import type * as misskey from 'cherrypick-js';
+import type * as misskey from 'misskey-js';
 
 describe('ReversiGame', () => {
 	let alice: misskey.entities.SignupResponse;

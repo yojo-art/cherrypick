@@ -14,6 +14,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	<MkPostForm
 		ref="form"
 		:class="$style.form"
+		class="_popup"
 		v-bind="props"
 		autofocus
 		freezeAfterPosted
@@ -73,6 +74,8 @@ function onModalClosed() {
 
 <style lang="scss" module>
 .form {
+	width: 100%;
+	max-width: 520px;
 	max-height: calc(100% - env(safe-area-inset-bottom));
 	margin: 0 auto auto auto;
 	overflow: scroll;

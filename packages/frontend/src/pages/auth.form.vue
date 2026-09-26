@@ -5,10 +5,10 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <section>
-	<div v-if="app.permission.length > 0">
+	<div v-if="permissions.length > 0">
 		<p>{{ i18n.tsx._auth.permission({ name }) }}</p>
 		<ul>
-			<li v-for="p in app.permission" :key="p">{{ i18n.ts._permissions[p] }}</li>
+			<li v-for="p in permissions" :key="p">{{ i18n.ts._permissions[p] ?? p }}</li>
 		</ul>
 	</div>
 	<div>{{ i18n.tsx._auth.shareAccess({ name: `${name} (${app.id})` }) }}</div>
@@ -21,7 +21,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import { i18n } from '@/i18n.js';
@@ -36,6 +36,10 @@ const emit = defineEmits<{
 }>();
 
 const app = computed(() => props.session.app);
+
+const permissions = computed(() => {
+	return props.session.app.permission.filter((p): p is typeof Misskey.permissions[number] => typeof p === 'string');
+});
 
 const name = computed(() => {
 	const el = window.document.createElement('div');

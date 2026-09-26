@@ -35,8 +35,10 @@ export interface IObject {
 	href?: string;
 	tag?: IObject | IObject[];
 	sensitive?: boolean;
-	disableRightClick?: boolean;
+	width?: number;
+	height?: number;
 	deleteAt?: Date;
+	audience?: string;
 }
 
 /**
@@ -59,10 +61,10 @@ export function getOneApId(value: ApObject): string {
 /**
  * Get ActivityStreams Object id
  */
-export function getApId(value: string | IObject): string {
+export function getApId(value: string | IObject | undefined): string {
 	if (typeof value === 'string') return value;
-	if (typeof value.id === 'string') return value.id;
-	throw new Error('cannot detemine id');
+	if (value != null && typeof value.id === 'string') return value.id;
+	throw new Error('cannot determine id');
 }
 
 /**
@@ -296,14 +298,14 @@ export interface IApEmoji extends IObject {
 	_misskey_license?: {
 		freeText: string | null;
 	};
-	copyPermission?: 'allow' | 'deny' | 'conditional';
+	copyPermission?: string;
 	isSensitive?: boolean;
 	category?: string;
 	license?: string;
 	keywords?: string[];
 	usageInfo?: string;
 	author?: string;
-	crator?: string;
+	creator?: string;
 	description?: string;
 	isBasedOn?: string;
 }

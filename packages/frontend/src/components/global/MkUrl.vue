@@ -49,7 +49,7 @@ const props = withDefaults(defineProps<{
 	rel?: string;
 	showUrlPreview?: boolean;
 	navigationBehavior?: MkABehavior;
-	host: string | null | undefined;
+	host?: string | null | undefined;
 }>(), {
 	showUrlPreview: true,
 });

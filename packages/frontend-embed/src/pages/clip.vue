@@ -39,7 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script setup lang="ts">
 import { ref, computed, inject, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { scrollToTop } from '@@/js/scroll.js';
 import { url, instanceName } from '@@/js/config.js';
 import { isLink } from '@@/js/is-link.js';
@@ -84,7 +84,7 @@ const pagination = computed(() => ({
 
 const notesEl = useTemplateRef('notesEl');
 
-function top(ev: MouseEvent) {
+function top(ev: PointerEvent) {
 	const target = ev.target as HTMLElement | null;
 	if (target && isLink(target)) return;
 

@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<div data-cy-mkw-slideshow class="kvausudm _panel mkw-slideshow" :style="{ height: widgetProps.height + 'px' }">
+<div data-testid="mkw-slideshow" class="kvausudm _panel mkw-slideshow" :style="{ height: widgetProps.height + 'px' }">
 	<div @click="choose">
 		<p v-if="widgetProps.folderId == null">
 			{{ i18n.ts.folder }}
@@ -18,7 +18,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { onMounted, ref, useTemplateRef } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { useInterval } from '@@/js/use-interval.js';
 import { useWidgetPropsManager } from './widget.js';
 import type { WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
@@ -33,6 +33,7 @@ const name = 'slideshow';
 const widgetPropsDef = {
 	height: {
 		type: 'number',
+		label: i18n.ts._widgetOptions.height,
 		default: 300,
 	},
 	folderId: {
@@ -95,11 +96,11 @@ const fetch = () => {
 };
 
 const choose = () => {
-	selectDriveFolder(null).then(folder => {
-		if (folder[0] == null) {
+	selectDriveFolder(null).then(({ folders, canceled }) => {
+		if (canceled || folders[0] == null) {
 			return;
 		}
-		widgetProps.folderId = folder[0].id;
+		widgetProps.folderId = folders[0].id;
 		save();
 		fetch();
 	});

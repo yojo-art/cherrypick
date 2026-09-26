@@ -51,7 +51,7 @@ export class MiNote {
 	})
 	public replyId: MiNote['id'] | null;
 
-	@ManyToOne(type => MiNote, {
+	@ManyToOne(() => MiNote, {
 		createForeignKeyConstraints: false,
 	})
 	@JoinColumn()
@@ -65,7 +65,7 @@ export class MiNote {
 	})
 	public renoteId: MiNote['id'] | null;
 
-	@ManyToOne(type => MiNote, {
+	@ManyToOne(() => MiNote, {
 		createForeignKeyConstraints: false,
 	})
 	@JoinColumn()
@@ -104,7 +104,7 @@ export class MiNote {
 	})
 	public userId: MiUser['id'];
 
-	@ManyToOne(type => MiUser, {
+	@ManyToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -123,7 +123,6 @@ export class MiNote {
 	@Column('boolean', {
 		default: false,
 	})
-	public disableRightClick: boolean;
 
 	@Column('smallint', {
 		default: 0,
@@ -247,7 +246,7 @@ export class MiNote {
 	})
 	public channelId: MiChannel['id'] | null;
 
-	@ManyToOne(type => MiChannel, {
+	@ManyToOne(() => MiChannel, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -286,6 +285,14 @@ export class MiNote {
 		comment: '[Denormalized]',
 	})
 	public renoteUserHost: string | null;
+
+	@Column({
+		...id(),
+		nullable: true,
+		comment: '[Denormalized]',
+	})
+	public renoteChannelId: MiChannel['id'] | null;
+	//#endregion
 
 	constructor(data: Partial<MiNote>) {
 		if (data == null) return;

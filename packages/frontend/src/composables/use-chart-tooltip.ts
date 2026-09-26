@@ -4,6 +4,7 @@
  */
 
 import { onUnmounted, onDeactivated, ref } from 'vue';
+import type { Chart, ChartType, TooltipModel } from 'chart.js';
 import * as os from '@/os.js';
 import MkChartTooltip from '@/components/MkChartTooltip.vue';
 
@@ -40,7 +41,7 @@ export function useChartTooltip(opts: { position: 'top' | 'middle', total?: numb
 		tooltipShowing.value = false;
 	});
 
-	function handler(context) {
+	function handler(context: { chart: Chart; tooltip: TooltipModel<ChartType> }) {
 		if (context.tooltip.opacity === 0) {
 			tooltipShowing.value = false;
 			return;
@@ -52,8 +53,8 @@ export function useChartTooltip(opts: { position: 'top' | 'middle', total?: numb
 				ratio = '(' + String(Math.round(Number(b.lines[0].replaceAll(/[^0-9]/gi, '')) / opts.total * 1000) / 10) + '%)';
 			}
 			return ({
-				backgroundColor: context.tooltip.labelColors[i].backgroundColor,
-				borderColor: context.tooltip.labelColors[i].borderColor,
+				backgroundColor: context.tooltip.labelColors[i].backgroundColor as string,
+				borderColor: context.tooltip.labelColors[i].borderColor as string,
 				text: b.lines[0] + ratio,
 			});
 		});

@@ -4,7 +4,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 -->
 
 <template>
-<MkContainer :showHeader="widgetProps.showHeader" :style="`height: ${widgetProps.height}px;`" :scrollable="true" data-cy-mkw-timeline class="mkw-timeline">
+<MkContainer :showHeader="widgetProps.showHeader" :style="`height: ${widgetProps.height}px;`" :scrollable="true" data-testid="mkw-timeline" class="mkw-timeline">
 	<template #icon>
 		<i v-if="isBasicTimeline(widgetProps.src)" :class="basicTimelineIconClass(widgetProps.src)"></i>
 		<i v-else-if="widgetProps.src === 'list'" class="ti ti-list"></i>
@@ -37,7 +37,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { useWidgetPropsManager } from './widget.js';
 import type { WidgetComponentEmits, WidgetComponentExpose, WidgetComponentProps } from './widget.js';
 import type { FormWithDefault, GetFormResultType } from '@/utility/form.js';
@@ -93,12 +93,12 @@ const { widgetProps, configure, save } = useWidgetPropsManager(name,
 const menuOpened = ref(false);
 
 const headerTitle = computed<string>(() => {
-	if (widgetProps.src === 'list' && widgetProps.list != null) {
-		return widgetProps.list.name;
-	} else if (widgetProps.src === 'antenna' && widgetProps.antenna != null) {
-		return widgetProps.antenna.name;
+	if (widgetProps.src === 'list') {
+		return widgetProps.list != null ? widgetProps.list.name : '?';
+	} else if (widgetProps.src === 'antenna') {
+		return widgetProps.antenna != null ? widgetProps.antenna.name : '?';
 	} else {
-		return i18n.ts._timelines[widgetProps.src];
+		return i18n.ts._timelines[widgetProps.src] ?? '?';
 	}
 });
 
@@ -107,7 +107,7 @@ const setSrc = (src: TlSrc) => {
 	save();
 };
 
-const choose = async (ev: MouseEvent) => {
+const choose = async (ev: PointerEvent) => {
 	menuOpened.value = true;
 	const [antennas, lists] = await Promise.all([
 		misskeyApi('antennas/list'),

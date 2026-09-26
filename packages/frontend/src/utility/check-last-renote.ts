@@ -7,6 +7,14 @@ import * as os from '@/os.js';
 import { prefer } from '@/preferences.js';
 
 export async function confirmRenote(renoteId:string) : Promise<boolean> {
+	if (prefer.s.showRenoteConfirmPopup) {
+		const { canceled } = await os.confirm({
+			type: 'info',
+			text: i18n.ts.renoteConfirm,
+			caption: i18n.ts.renoteConfirmDescription,
+		});
+		if (canceled) return canceled;
+	}
 	if (prefer.s.checkMultipleRenote === false ) return false;
 	const lastRenoteId = localStorage.getItem('lastRenoteId');
 	if (lastRenoteId) {

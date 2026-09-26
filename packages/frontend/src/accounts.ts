@@ -4,7 +4,7 @@
  */
 
 import { defineAsyncComponent, ref } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { apiUrl, host } from '@@/js/config.js';
 import type { MenuItem } from '@/types/menu.js';
 import * as os from '@/os.js';
@@ -127,10 +127,10 @@ export function updateCurrentAccount(accountData: Misskey.entities.MeDetailed) {
 	if (!$i) return;
 	const token = $i.token;
 	for (const key of Object.keys($i)) {
-		delete $i[key];
+		delete $i[key as keyof typeof $i];
 	}
 	for (const [key, value] of Object.entries(accountData)) {
-		$i[key] = value;
+		($i[key as keyof typeof accountData] as any) = value;
 	}
 	store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + $i.id]: $i });
 	$i.token = token;
@@ -140,7 +140,7 @@ export function updateCurrentAccount(accountData: Misskey.entities.MeDetailed) {
 export function updateCurrentAccountPartial(accountData: Partial<Misskey.entities.MeDetailed>) {
 	if (!$i) return;
 	for (const [key, value] of Object.entries(accountData)) {
-		$i[key] = value;
+		($i[key as keyof typeof accountData] as any) = value;
 	}
 
 	store.set('accountInfos', { ...store.s.accountInfos, [host + '/' + $i.id]: $i });

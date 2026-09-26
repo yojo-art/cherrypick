@@ -1,8 +1,9 @@
 import { deepStrictEqual, strictEqual } from 'assert';
+import { vi } from 'vitest';
 import { readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { WebSocket } from 'ws';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -34,10 +35,282 @@ export type Request = <
 	credential?: string | null,
 ) => Promise<Misskey.api.SwitchCaseResponseType<E, P>>;
 
-type Host = 'a.test' | 'b.test';
+type Host = 'a.test' | 'b.test' | 'c.test' | 'z.test';
+type FederationTestTargetHost = 'a.test' | 'b.test' | 'c.test';
+export const FEDERATION_STUB_HOST: Host = 'z.test';
+
+export function federationTestStubUri(path: string): string {
+	return `https://${FEDERATION_STUB_HOST}/${path}`;
+}
+
+type DeliverFederationTestNoteResponse = {
+	activityId: string;
+	inboxUrl: string;
+	inboxStatus: number;
+};
+
+/** z.test の LD 署名モード (`stub-deliver.mjs` の `ld` パラメータに対応) */
+export type FederationTestLdMode = 'none' | 'valid' | 'tampered-body' | 'tampered-value' | 'wrong-type' | 'creator-mismatch';
+/** z.test の HTTP 署名モード (`stub-deliver.mjs` の `http` パラメータに対応) */
+export type FederationTestHttpMode = 'valid' | 'broken';
+
+export type DeliverFederationTestNoteOptions = {
+	placeholders?: Record<string, string>;
+	ld?: FederationTestLdMode;
+	http?: FederationTestHttpMode;
+	activityId?: string;
+};
+
+/**
+ * z.test に stub Note の署名付き inbox 配送を依頼する。
+ * `notePath` は `stub/notes/` からの相対パス（例: `ap-emoji-1049/10-copy-permission-none`）。
+ * `options.placeholders` で stub Note JSON 内の `{{key}}` を実際の値に置換できる。
+ * `options.ld` で Activity への JsonLD 署名の付与・改変を制御できる（既定 `'none'`）。
+ * `options.http` を `'broken'` にすると HTTP Signature を破壊して配送する（LD フォールバック経路の検証用）。
+ * `options.activityId` で配送する Activity の `id` を上書きできる。
+ * stub ファイルの `type` が `Announce` の場合はそのまま Activity として配送し、
+ * それ以外は `Create` Activity でラップして配送する。
+ */
+export async function deliverFederationTestNote(
+	targetHost: FederationTestTargetHost,
+	notePath: string,
+	options?: DeliverFederationTestNoteOptions,
+): Promise<DeliverFederationTestNoteResponse> {
+	const response = await fetch(federationTestStubUri('deliver'), {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ targetHost, notePath, ...options }),
+	});
+	const body = await response.json() as DeliverFederationTestNoteResponse & { error?: string };
+	strictEqual(
+		response.status,
+		200,
+		`z.test deliver API failed for ${notePath} -> ${targetHost}: ${response.status} ${JSON.stringify(body)}`,
+	);
+	strictEqual(
+		body.inboxStatus,
+		202,
+		`z.test signed inbox delivery failed for ${notePath} -> ${targetHost}: inbox returned ${body.inboxStatus}`,
+	);
+	return body;
+}
+
+/**
+ * `viewer` のインスタンスが stub Note を連合受信するまで待つ。
+ * z.test の zack の `users/notes` で最新ノートが対象 URI になることを確認する。
+ */
+export async function waitForFederationTestNote(
+	viewer: LoginUser,
+	notePath: string,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.Note> {
+	return waitForFederationTestNoteUri(viewer, federationTestStubUri(`notes/${notePath}`), options);
+}
+
+/**
+ * `viewer` のインスタンスが指定 URI の stub Note を連合受信するまで待つ。
+ * Note の `id` が stub パスと一致しない場合 (`{{nonce}}` 等で一意化した場合) に使う。
+ * `users/notes` の最新20件から漏れていても、DBに保存済みなら `ap/show` で見つかる
+ * (同一 URI を繰り返し配送するテストで古いノートが窓から外れる対策)。
+ */
+export async function waitForFederationTestNoteUri(
+	viewer: LoginUser,
+	noteUri: string,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.Note> {
+	let note: Misskey.entities.Note | undefined;
+	const zack = await resolveRemoteUser(FEDERATION_STUB_HOST, 'zack', viewer);
+
+	await waitFor(async () => {
+		try {
+			const notes = await viewer.client.request('users/notes', {
+				userId: zack.id,
+				limit: 20,
+				withChannelNotes: true,
+			});
+			note = notes.find(candidate => candidate.uri === noteUri);
+			if (note != null) return true;
+		} catch {
+			// fall through to ap/show
+		}
+
+		try {
+			const res = await viewer.client.request('ap/show', { uri: noteUri });
+			if (res.type === 'Note' && res.object.uri === noteUri) {
+				note = res.object;
+				return true;
+			}
+		} catch {
+			// not ingested yet (remote fetch may fail)
+		}
+
+		return false;
+	}, { timeout: options?.timeout ?? 30_000, interval: 250 });
+
+	if (note == null) throw new Error(`federation test note not ingested: ${noteUri}`);
+	return note;
+}
+
+export type InboxJobExpectation = {
+	host: FederationTestTargetHost;
+	activityId: string;
+	/** 期待する終端状態 (署名検証などで拒否されるケースは 'failed') */
+	expect: 'failed' | 'completed';
+};
+
+export type InboxJobInfo = {
+	state: 'failed' | 'completed';
+	failedReason: string | null;
+};
+
+/**
+ * 受信側インスタンスの inbox キューに activityId の終端ジョブがあれば返す。
+ * まだ処理中・未到達なら undefined。
+ */
+export async function findInboxJob(host: FederationTestTargetHost, activityId: string): Promise<InboxJobInfo | undefined> {
+	const admin = await fetchAdmin(host);
+
+	const jobs = await admin.client.request('admin/queue/jobs', {
+		queue: 'inbox',
+		state: ['failed', 'completed'],
+		search: activityId,
+	}) as Array<{ data?: { activity?: { id?: string; } | null; } | null; failedReason?: string | null; isFailed: boolean; }>;
+	const job = jobs.find(j => j.data?.activity?.id === activityId);
+	if (job != null) {
+		return { state: job.isFailed ? 'failed' : 'completed', failedReason: job.failedReason ?? null };
+	}
+
+	return undefined;
+}
+
+/**
+ * 受信側インスタンスの inbox ジョブが終端状態 (failed / completed) になるまで待つ。
+ * BullMQ の admin API を使い、200ms 間隔でポーリングする。
+ * 署名拒否テストでは「処理が終わって failed になった」という決定論的な合図として使える。
+ */
+export async function waitForInboxJobSettled(
+	host: FederationTestTargetHost,
+	activityId: string,
+	options?: { timeout?: number; interval?: number },
+): Promise<InboxJobInfo> {
+	let settled: InboxJobInfo | undefined;
+
+	await waitFor(async () => {
+		settled = await findInboxJob(host, activityId);
+		return settled != null;
+	}, { timeout: options?.timeout ?? 30_000, interval: options?.interval ?? 200 });
+
+	if (settled == null) throw new Error(`inbox job did not settle: ${activityId}`);
+	return settled;
+}
+
+/**
+ * 受信側 (b.test) に中継 Announce が届くまで最大 `graceMs` だけ待ち、
+ * 届いた終端ジョブを返す (届かなければ undefined)。
+ * 不在判定で配送順序の揺らぎを吸収するための猶予付き一発引き。
+ */
+export async function findInboxJobWithGrace(
+	host: FederationTestTargetHost,
+	activityId: string,
+	graceMs: number,
+): Promise<InboxJobInfo | undefined> {
+	const deadline = Date.now() + graceMs;
+	for (;;) {
+		const job = await findInboxJob(host, activityId);
+		if (job != null || Date.now() >= deadline) return job;
+		await sleep(200);
+	}
+}
+
+/**
+ * `viewer` のインスタンスが指定 URI の stub Note を連合受信しないことを確認する。
+ * 不正署名の拒否テスト用。
+ *
+ * `options.inbox` を渡すと「inbox ジョブが `expect` の終端状態になった」という
+ * 決定論的な合図を待ってから一度だけ不在を確認する (固定 timeout 待ちを避ける)。
+ * 渡さない場合は `timeout` (既定 10s) の間ポーリングする。
+ */
+export async function assertFederationTestNoteNotIngested(
+	viewer: LoginUser,
+	noteUri: string,
+	options?: { timeout?: number; inbox?: InboxJobExpectation },
+): Promise<void> {
+	if (options?.inbox != null) {
+		const job = await waitForInboxJobSettled(options.inbox.host, options.inbox.activityId);
+		strictEqual(
+			job.state,
+			options.inbox.expect,
+			`unexpected inbox job state for ${options.inbox.activityId}: ${job.state} (${job.failedReason ?? ''})`,
+		);
+	}
+
+	const zack = await resolveRemoteUser(FEDERATION_STUB_HOST, 'zack', viewer);
+	const isIngested = async (): Promise<boolean> => {
+		const notes = await viewer.client.request('users/notes', {
+			userId: zack.id,
+			limit: 20,
+			withChannelNotes: true,
+		});
+		return notes.some(note => note.uri === noteUri);
+	};
+
+	if (options?.inbox != null) {
+		// ジョブが終端状態になった後なので、一度だけ確認すれば十分
+		if (await isIngested()) {
+			throw new Error(`federation test note should not have been ingested but was: ${noteUri}`);
+		}
+		return;
+	}
+
+	const timeout = options?.timeout ?? 10_000;
+	const start = Date.now();
+	for (;;) {
+		if (await isIngested()) {
+			throw new Error(`federation test note should not have been ingested but was: ${noteUri}`);
+		}
+		if (Date.now() - start >= timeout) return;
+		await sleep(1_000);
+	}
+}
 
 export async function sleep(ms = 250): Promise<void> {
 	return new Promise(resolve => setTimeout(resolve, ms));
+}
+
+type WaitForOptions = NonNullable<Parameters<typeof vi.waitFor>[1]>;
+
+/** 連合の反映を待つ上限。`vi.waitFor()` を使わない待ち合わせ (ストリーミング) にも使う */
+export const FEDERATION_TIMEOUT = 10000;
+
+/**
+ * 連合の反映は非同期なので、固定時間の `sleep()` だけで待つと CI の負荷次第で容易に flaky になる。
+ * 「一定時間待つ」のではなく「条件が満たされるまで待つ」ために `vi.waitFor()` へ渡すオプション。
+ * (`vi.waitFor()` の既定値は timeout 1000ms / interval 50ms で、連合の反映待ちには短すぎる)
+ */
+export const WAIT_FOR_FEDERATION: WaitForOptions = { timeout: FEDERATION_TIMEOUT, interval: 250 };
+
+/** アカウント削除・凍結など、明らかに時間のかかる処理を待つ場合の {@link WAIT_FOR_FEDERATION} */
+export const WAIT_FOR_SLOW_FEDERATION: WaitForOptions = { timeout: 30000, interval: 500 };
+
+/**
+ * Polls `predicate` until it resolves to `true`, or throws once `timeout` (ms) elapses.
+ * Prefer this over a fixed `sleep` when waiting for eventual federation propagation,
+ * so the test does not depend on a hard-coded delay being long enough.
+ */
+export async function waitFor(
+	predicate: () => Promise<boolean> | boolean,
+	{ timeout = 10_000, interval = 500 }: { timeout?: number; interval?: number } = {},
+): Promise<void> {
+	const start = Date.now();
+	for (;;) {
+		if (await predicate()) return;
+		if (Date.now() - start >= timeout) {
+			throw new Error(`waitFor: condition was not met within ${timeout}ms`);
+		}
+		await sleep(interval);
+	}
 }
 
 async function signin(
@@ -155,6 +428,41 @@ export async function createRole(
 	});
 }
 
+export function randomUsername() {
+	return crypto.randomUUID().replaceAll('-', '').substring(0, 20);
+}
+
+/**
+ * フォローは Follow → Accept の往復で成立するので、`sleep()` で待つと
+ * 「配送時点のフォロワー」に依存する配送 (Update / Note など) を取りこぼして flaky になる。
+ * followee 側から見たフォロワー数が期待値になるまで待つ。
+ */
+export async function waitForFollowers(followee: LoginUser, count: number, options: WaitForOptions = WAIT_FOR_FEDERATION): Promise<void> {
+	await vi.waitFor(async () => {
+		const followers = await followee.client.request('users/followers', { userId: followee.id });
+		strictEqual(followers.length, count);
+	}, options);
+}
+
+/** {@link waitForFollowers} の follower 側版 (Accept が返ってきたことを確認する) */
+export async function waitForFollowing(follower: LoginUser, count: number, options: WaitForOptions = WAIT_FOR_FEDERATION): Promise<void> {
+	await vi.waitFor(async () => {
+		const following = await follower.client.request('users/following', { userId: follower.id });
+		strictEqual(following.length, count);
+	}, options);
+}
+
+/**
+ * フォロー関係が両方のサーバーで反映されるまで待つ。
+ * 特に理由が無ければこちらを使う。
+ */
+export async function waitForFollowRelation(follower: LoginUser, followee: LoginUser, count: number, options: WaitForOptions = WAIT_FOR_FEDERATION): Promise<void> {
+	await Promise.all([
+		waitForFollowing(follower, count, options),
+		waitForFollowers(followee, count, options),
+	]);
+}
+
 export async function resolveRemoteUser(
 	host: Host,
 	id: string,
@@ -181,6 +489,48 @@ export async function resolveRemoteNote(
 			strictEqual(res.object.uri, uri);
 			return res.object;
 		});
+}
+
+/**
+ * z.test の stub Note を `targetHost` に連合配送し、取り込み完了まで待つ。
+ * `resolveRemoteNote` と違い inbox 配送を行う（静的スタブを Misskey に届けるため）。
+ */
+export async function requestFederationTestNote(
+	viewer: LoginUser,
+	notePath: string,
+	targetHost: FederationTestTargetHost = 'b.test',
+): Promise<Misskey.entities.Note> {
+	await deliverFederationTestNote(targetHost, notePath);
+	return await waitForFederationTestNote(viewer, notePath);
+}
+
+export async function fetchRemoteEmojiByName(
+	viewer: LoginUser,
+	name: string,
+	host: Host = FEDERATION_STUB_HOST,
+): Promise<Misskey.entities.EmojiDetailed> {
+	return await viewer.client.request('emoji', { name, host });
+}
+
+export async function waitForRemoteEmoji(
+	viewer: LoginUser,
+	name: string,
+	host: Host = FEDERATION_STUB_HOST,
+	options?: { timeout?: number },
+): Promise<Misskey.entities.EmojiDetailed> {
+	let emoji: Misskey.entities.EmojiDetailed | undefined;
+	await waitFor(async () => {
+		try {
+			emoji = await fetchRemoteEmojiByName(viewer, name, host);
+			return true;
+		} catch {
+			return false;
+		}
+	}, { timeout: options?.timeout ?? 30_000, interval: 1_000 });
+	if (emoji == null) {
+		throw new Error(`remote emoji not found: ${name}@${host} (note may be ingested but emoji was not registered)`);
+	}
+	return emoji;
 }
 
 export async function uploadFile(
@@ -224,6 +574,9 @@ export function deepStrictEqualWithExcludedFields<T>(actual: T, expected: T, exc
 	deepStrictEqual(_actual, _expected);
 }
 
+/** 「発火しない」ことの確認に使う待ち時間 */
+const NOT_FIRED_TIMEOUT = 500;
+
 export async function isFired<C extends keyof Misskey.Channels, T extends keyof Misskey.Channels[C]['events']>(
 	host: Host,
 	user: { i: string },
@@ -233,31 +586,33 @@ export async function isFired<C extends keyof Misskey.Channels, T extends keyof 
 	// @ts-expect-error TODO: why getting error here?
 	cond: (msg: Parameters<Misskey.Channels[C]['events'][T]>[0]) => boolean,
 	params?: Misskey.Channels[C]['params'],
+	timeout = NOT_FIRED_TIMEOUT,
 ): Promise<boolean> {
-	return new Promise<boolean>(async (resolve, reject) => {
-		const stream = new Misskey.Stream(`wss://${host}`, { token: user.i }, { WebSocket });
+	const stream = new Misskey.Stream(`wss://${host}`, { token: user.i }, { WebSocket });
+	// 先にイベントを受け取った場合でもタイマーが残り続けないよう、必ず解除する
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	try {
 		const connection = stream.useChannel(channel, params);
-		connection.on(type as any, ((msg: any) => {
-			if (cond(msg)) {
-				stream.close();
-				clearTimeout(timer);
-				resolve(true);
-			}
-		}) as any);
 
-		let timer: NodeJS.Timeout | undefined;
-
-		await trigger().then(() => {
-			timer = setTimeout(() => {
-				stream.close();
-				resolve(false);
-			}, 500);
-		}).catch(err => {
-			stream.close();
-			clearTimeout(timer);
-			reject(err);
+		const receivePromise = new Promise<boolean>((resolve) => {
+			connection.on(type as never, ((msg: any) => {
+				if (cond(msg)) {
+					resolve(true);
+				}
+			}) as any);
 		});
-	});
+
+		await trigger();
+		return await Promise.race([
+			receivePromise,
+			new Promise<boolean>(resolve => {
+				timer = setTimeout(() => resolve(false), timeout);
+			}),
+		]);
+	} finally {
+		clearTimeout(timer);
+		stream.close();
+	}
 };
 
 export async function isNoteUpdatedEventFired(
@@ -266,31 +621,34 @@ export async function isNoteUpdatedEventFired(
 	noteId: string,
 	trigger: () => Promise<unknown>,
 	cond: (msg: Parameters<Misskey.StreamEvents['noteUpdated']>[0]) => boolean,
+	timeout = NOT_FIRED_TIMEOUT,
 ): Promise<boolean> {
-	return new Promise<boolean>(async (resolve, reject) => {
-		const stream = new Misskey.Stream(`wss://${host}`, { token: user.i }, { WebSocket });
+	const stream = new Misskey.Stream(`wss://${host}`, { token: user.i }, { WebSocket });
+	// 先にイベントを受け取った場合でもタイマーが残り続けないよう、必ず解除する
+	let timer: ReturnType<typeof setTimeout> | undefined;
+	try {
 		stream.send('s', { id: noteId });
-		stream.on('noteUpdated', msg => {
-			if (cond(msg)) {
-				stream.close();
-				clearTimeout(timer);
-				resolve(true);
-			}
+
+		const receivePromise = new Promise<boolean>((resolve) => {
+			stream.on('noteUpdated', msg => {
+				if (cond(msg)) {
+					resolve(true);
+				}
+			});
 		});
 
-		let timer: NodeJS.Timeout | undefined;
+		await trigger();
 
-		await trigger().then(() => {
-			timer = setTimeout(() => {
-				stream.close();
-				resolve(false);
-			}, 500);
-		}).catch(err => {
-			stream.close();
-			clearTimeout(timer);
-			reject(err);
-		});
-	});
+		return await Promise.race([
+			receivePromise,
+			new Promise<boolean>(resolve => {
+				timer = setTimeout(() => resolve(false), timeout);
+			}),
+		]);
+	} finally {
+		clearTimeout(timer);
+		stream.close();
+	}
 };
 
 export async function assertNotificationReceived(
@@ -300,11 +658,26 @@ export async function assertNotificationReceived(
 	cond: (notification: Misskey.entities.Notification) => boolean,
 	expect: boolean,
 ) {
-	const streamingFired = await isFired(receiverHost, receiver, 'main', trigger, 'notification', cond);
+	const streamingFired = await isFired(
+		receiverHost,
+		receiver,
+		'main',
+		trigger,
+		'notification',
+		cond,
+		undefined,
+		expect ? FEDERATION_TIMEOUT : undefined,
+	);
 	strictEqual(streamingFired, expect);
 
-	const endpointFired = await receiver.client.request('i/notifications', {})
+	const fetchEndpointFired = async () => await receiver.client.request('i/notifications', {})
 		// eslint-disable-next-line @typescript-eslint/no-unnecessary-condition
 		.then(([notification]) => notification != null ? cond(notification) : false);
-	strictEqual(endpointFired, expect);
+
+	if (expect) {
+		await vi.waitFor(async () => strictEqual(await fetchEndpointFired(), true), WAIT_FOR_FEDERATION);
+	} else {
+		// 届かないことの確認は待っても意味がないので 1 回だけ確認する
+		strictEqual(await fetchEndpointFired(), false);
+	}
 }

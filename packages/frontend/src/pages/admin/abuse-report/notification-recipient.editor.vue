@@ -37,8 +37,8 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template #label>{{ i18n.ts._abuseReport._notificationRecipient.notifiedWebhook }}</template>
 						</MkSelect>
 						<MkButton rounded :class="$style.systemWebhookEditButton" @click="onEditSystemWebhookClicked">
-							<span v-if="systemWebhookId === null" class="ti ti-plus" style="line-height: normal"/>
-							<span v-else class="ti ti-settings" style="line-height: normal"/>
+							<span v-if="systemWebhookId === null" class="ti ti-plus" style="line-height: normal"></span>
+							<span v-else class="ti ti-settings" style="line-height: normal"></span>
 						</MkButton>
 					</div>
 				</div>
@@ -64,7 +64,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { computed, onMounted, ref, useTemplateRef, toRefs } from 'vue';
-import { entities } from 'cherrypick-js';
+import { entities } from 'misskey-js';
 import type { MkSystemWebhookResult } from '@/components/MkSystemWebhookEditor.impl.js';
 import MkButton from '@/components/MkButton.vue';
 import MkModalWindow from '@/components/MkModalWindow.vue';

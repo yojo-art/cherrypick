@@ -26,8 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 	:leaveToClass="prefer.s.animation ? $style.transition_menuDrawer_leaveTo : ''"
 >
 	<div v-if="drawerMenuShowing" :class="$style.menuDrawer">
-		<XNavbarFriendly v-if="isFriendly().value" style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
-		<XNavbar v-else style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
+		<XNavbar style="height: 100%;" :asDrawer="true" :showWidgetButton="false"/>
 	</div>
 </Transition>
 
@@ -108,7 +107,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <script lang="ts" setup>
 import { defineAsyncComponent, ref, TransitionGroup } from 'vue';
-import * as Misskey from 'cherrypick-js';
+import * as Misskey from 'misskey-js';
 import { isSafeMode } from '@@/js/config.js';
 import { swInject } from './sw-inject.js';
 import XNotification from './notification.vue';
@@ -124,9 +123,7 @@ import { prefer } from '@/preferences.js';
 import { globalEvents } from '@/events.js';
 import { store } from '@/store.js';
 import XNavbar from '@/ui/_common_/navbar.vue';
-import XNavbarFriendly from '@/ui/friendly/navbar.vue';
 import { haptic } from '@/utility/haptic.js';
-import { isFriendly } from '@/utility/is-friendly.js';
 
 const XStreamIndicator = defineAsyncComponent(() => import('./stream-indicator.vue'));
 const XWidgets = defineAsyncComponent(() => import('./widgets.vue'));
@@ -233,11 +230,11 @@ if ($i) {
 }
 .transition_notification_enterFrom {
 	opacity: 0;
-	transform: translateX(250px);
+	transform: translateX(var(--notificationSlideOffset, 250px));
 }
 .transition_notification_leaveTo {
 	opacity: 0;
-	transform: translateX(-250px);
+	transform: translateX(calc(-1 * var(--notificationSlideOffset, 250px)));
 }
 
 .menuDrawerBg {
@@ -288,6 +285,16 @@ if ($i) {
 	padding: 0 var(--MI-margin);
 	pointer-events: none;
 	display: flex;
+
+	&.notificationsPosition_rightTop,
+	&.notificationsPosition_rightBottom {
+		--notificationSlideOffset: 250px;
+	}
+
+	&.notificationsPosition_leftTop,
+	&.notificationsPosition_leftBottom {
+		--notificationSlideOffset: -250px;
+	}
 
 	&.notificationsPosition_leftTop {
 		top: var(--MI-margin);

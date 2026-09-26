@@ -3,6 +3,9 @@
 	extends: [
 		'config:recommended',
 	],
+	toolSettings: {
+		nodeMaxMemory: 4096,
+	},
 	timezone: 'Asia/Tokyo',
 	schedule: [
 		'* 0 * * *',
@@ -49,9 +52,9 @@
 			rebaseWhen: 'never',
 		},
 		{
-			groupName: '[cherrypick-js] Update dependencies',
+			groupName: '[misskey-js] Update dependencies',
 			matchFileNames: [
-				'packages/cherrypick-js/**/package.json',
+				'packages/misskey-js/**/package.json',
 			],
 		},
 		{

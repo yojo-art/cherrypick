@@ -7,8 +7,8 @@ import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { CustomEmojiService } from '@/core/CustomEmojiService.js';
 import { EmojiEntityService } from '@/core/entities/EmojiEntityService.js';
+import { IdentifiableError } from '@/misc/identifiable-error.js';
 import { ApiError } from '../../../error.js';
-import { IdentifiableError } from "@/misc/identifiable-error.js";
 
 export const meta = {
 	tags: ['admin'],
@@ -69,22 +69,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		private customEmojiService: CustomEmojiService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
-				try {
-					const imported = await this.customEmojiService.importEmoji({
-						id: ps.emojiId,
-						licenseReadText: ps.licenseReadText
-					}, me);
-					return this.emojiEntityService.packDetailed(imported);
-				} catch (err) {
-					if (err instanceof IdentifiableError) {
-						if (err.id === '1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e') throw new ApiError(meta.errors.noSuchEmoji);
-						if (err.id === '16bd0f1d-c797-468e-af3f-a7eede1fef72') throw new ApiError(meta.errors.copyIsNotAllowed);
-						if (err.id === '064ac9f8-5531-4e9b-b158-3cf8524d96ef') throw new ApiError(meta.errors.seeLicense);
-						if (err.id === '141c2c9af-0039-45e8-a99b-bc9027f4e0a9') throw new ApiError(meta.errors.duplicateName);
-						throw err;
-					}
+			try {
+				const imported = await this.customEmojiService.importEmoji({
+					id: ps.emojiId,
+					licenseReadText: ps.licenseReadText,
+				}, me);
+				return this.emojiEntityService.packDetailed(imported);
+			} catch (err) {
+				if (err instanceof IdentifiableError) {
+					if (err.id === '1bdcb17b-76de-4a33-8b5e-2649f6fe3f1e') throw new ApiError(meta.errors.noSuchEmoji);
+					if (err.id === '16bd0f1d-c797-468e-af3f-a7eede1fef72') throw new ApiError(meta.errors.copyIsNotAllowed);
+					if (err.id === '064ac9f8-5531-4e9b-b158-3cf8524d96ef') throw new ApiError(meta.errors.seeLicense);
+					if (err.id === '141c2c9af-0039-45e8-a99b-bc9027f4e0a9') throw new ApiError(meta.errors.duplicateName);
 					throw err;
 				}
+				throw err;
+			}
 		});
 	}
 }

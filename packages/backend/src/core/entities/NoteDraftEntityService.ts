@@ -12,6 +12,7 @@ import { awaitAll } from '@/misc/prelude/await-all.js';
 import type { MiUser, MiNote, MiNoteDraft } from '@/models/_.js';
 import type { NoteDraftsRepository, ChannelsRepository } from '@/models/_.js';
 import { bindThis } from '@/decorators.js';
+import { sanitizeEventMetadata } from '@/misc/sanitize-event-metadata.js';
 import { DebounceLoader } from '@/misc/loader.js';
 import { IdService } from '@/core/IdService.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -116,7 +117,6 @@ export class NoteDraftEntityService implements OnModuleInit {
 			localOnly: noteDraft.localOnly,
 			reactionAcceptance: noteDraft.reactionAcceptance,
 			visibleUserIds: noteDraft.visibleUserIds,
-			disableRightClick: noteDraft.disableRightClick || undefined,
 			hashtag: noteDraft.hashtag,
 			fileIds: noteDraft.fileIds,
 			files: packedFiles != null ? this.packAttachedFiles(noteDraft.fileIds, packedFiles) : this.driveFileEntityService.packManyByIds(noteDraft.fileIds),
@@ -141,7 +141,7 @@ export class NoteDraftEntityService implements OnModuleInit {
 				title: noteDraft.eventTitle,
 				start: noteDraft.eventStart?.getTime(),
 				end: noteDraft.eventEnd?.getTime(),
-				metadata: noteDraft.eventMetadata,
+				metadata: sanitizeEventMetadata(noteDraft.eventMetadata),
 			} : undefined,
 			searchableBy: noteDraft.searchableBy ?? null,
 
@@ -193,7 +193,9 @@ export class NoteDraftEntityService implements OnModuleInit {
 	private findNoteDraftOrFail(id: string): Promise<MiNoteDraft> {
 		return this.noteDraftsRepository.findOneOrFail({
 			where: { id },
-			relations: ['user'],
+			relations: {
+				user: true,
+			},
 		});
 	}
 }

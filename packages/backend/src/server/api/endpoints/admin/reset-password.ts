@@ -9,7 +9,9 @@ import * as argon2 from 'argon2';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import type { UsersRepository, UserProfilesRepository, MiMeta } from '@/models/_.js';
 import { DI } from '@/di-symbols.js';
+import { ApiError } from '@/server/api/error.js';
 import { secureRndstr } from '@/misc/secure-rndstr.js';
+import { RoleService } from '@/core/RoleService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 
 export const meta = {
@@ -18,6 +20,19 @@ export const meta = {
 	requireCredential: true,
 	requireModerator: true,
 	kind: 'write:admin:reset-password',
+
+	errors: {
+		noSuchUser: {
+			message: 'No such user.',
+			code: 'NO_SUCH_USER',
+			id: 'ccafc7fe-5074-4edd-9dc0-8ef9ef6a701d',
+		},
+		accessDenied: {
+			message: 'Access denied.',
+			code: 'ACCESS_DENIED',
+			id: 'cda8f8ce-89a6-4f92-8055-33bbe0c1464d',
+		},
+	},
 
 	res: {
 		type: 'object',
@@ -53,17 +68,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 		@Inject(DI.userProfilesRepository)
 		private userProfilesRepository: UserProfilesRepository,
 
+		private roleService: RoleService,
 		private moderationLogService: ModerationLogService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const user = await this.usersRepository.findOneBy({ id: ps.userId });
 
 			if (user == null) {
-				throw new Error('user not found');
+				throw new ApiError(meta.errors.noSuchUser);
 			}
 
-			if (this.serverSettings.rootUserId === user.id) {
-				throw new Error('cannot reset password of root');
+			if (await this.roleService.isAdministrator(user) && me.id !== user.id) {
+				throw new ApiError(meta.errors.accessDenied);
 			}
 
 			const passwd = secureRndstr(8);

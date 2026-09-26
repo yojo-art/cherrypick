@@ -35,7 +35,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <script lang="ts" setup>
 import { ref, computed } from 'vue';
 import JSON5 from 'json5';
-import type { Endpoints } from 'cherrypick-js';
+import type { Endpoints } from 'misskey-js';
 import MkButton from '@/components/MkButton.vue';
 import MkInput from '@/components/MkInput.vue';
 import MkTextarea from '@/components/MkTextarea.vue';
@@ -73,7 +73,7 @@ function onEndpointChange() {
 			return;
 		}
 
-		const endpointBody = {};
+		const endpointBody = {} as Record<string, unknown>;
 		for (const p of resp.params) {
 			endpointBody[p.name] =
 				p.type === 'String' ? '' :

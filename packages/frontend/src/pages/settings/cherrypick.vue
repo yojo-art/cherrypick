@@ -73,22 +73,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						</MkDisableSection>
 					</SearchMarker>
 				</div>
-
-				<SearchMarker :keywords="['display', 'header', 'navbar', 'scroll']">
-					<div>
-						<MkPreferenceContainer k="displayHeaderNavBarWhenScroll">
-							<MkRadios v-model="displayHeaderNavBarWhenScroll">
-								<template #label><SearchLabel>{{ i18n.ts._cherrypick.displayHeaderNavBarWhenScroll }}</SearchLabel></template>
-								<option value="all">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.all }}</option>
-								<option value="hideHeaderOnly">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideHeaderOnly }}</option>
-								<option value="hideHeaderFloatBtn">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideHeaderFloatBtn }}</option>
-								<option value="hideFloatBtnOnly">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideFloatBtnOnly }}</option>
-								<option value="hideFloatBtnNavBar">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hideFloatBtnNavBar }}</option>
-								<option value="hide">{{ i18n.ts._cherrypick._displayHeaderNavBarWhenScroll.hide }}</option>
-							</MkRadios>
-						</MkPreferenceContainer>
-					</div>
-				</SearchMarker>
 			</div>
 		</FormSection>
 
@@ -109,14 +93,6 @@ SPDX-License-Identifier: AGPL-3.0-only
 						<MkPreferenceContainer k="showFollowingMessageInsteadOfButtonEnabled">
 							<MkSwitch v-model="showFollowingMessageInsteadOfButtonEnabled">
 								<template #label><SearchLabel>{{ i18n.ts._cherrypick.showFollowingMessageInsteadOfButton }}</SearchLabel></template>
-							</MkSwitch>
-						</MkPreferenceContainer>
-					</SearchMarker>
-
-					<SearchMarker :keywords="['mobile', 'header', 'change']">
-						<MkPreferenceContainer k="mobileHeaderChange">
-							<MkSwitch v-model="mobileHeaderChange">
-								<template #label><SearchLabel>{{ i18n.ts._cherrypick.mobileHeaderChange }}</SearchLabel></template>
 							</MkSwitch>
 						</MkPreferenceContainer>
 					</SearchMarker>
@@ -144,44 +120,13 @@ SPDX-License-Identifier: AGPL-3.0-only
 							</MkSwitch>
 						</MkPreferenceContainer>
 					</SearchMarker>
-
-					<SearchMarker :keywords="['friendly']">
-						<div class="_gaps_s" style="margin: 0 10px;">
-							<div style="font-weight: bold; padding: 0.5em 0 0 0; margin: 0 0 8px 0;"><SearchLabel>Friendly UI</SearchLabel></div>
-
-							<SearchMarker :keywords="['enable', 'notification']">
-								<MkPreferenceContainer k="friendlyUiEnableNotificationsArea">
-									<MkSwitch v-model="friendlyUiEnableNotificationsArea">
-										<template #label><SearchLabel>{{ i18n.ts._cherrypick.friendlyUiEnableNotificationsArea }}</SearchLabel></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-
-							<SearchMarker :keywords="['enable', 'long', 'press', 'open', 'account', 'menu']">
-								<MkPreferenceContainer k="enableLongPressOpenAccountMenu">
-									<MkSwitch v-model="enableLongPressOpenAccountMenu">
-										<template #label><SearchLabel>{{ i18n.ts._cherrypick.enableLongPressOpenAccountMenu }}</SearchLabel></template>
-										<template #caption><SearchText>{{ i18n.ts._cherrypick.enableLongPressOpenAccountMenuDescription }}</SearchText></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-
-							<SearchMarker :keywords="['show', 'avatar', 'decoration', 'navbtn']">
-								<MkPreferenceContainer k="friendlyUiShowAvatarDecorationsInNavBtn">
-									<MkSwitch v-model="friendlyUiShowAvatarDecorationsInNavBtn">
-										<template #label><SearchLabel>{{ i18n.ts._cherrypick.friendlyUiShowAvatarDecorationsInNavBtn }}</SearchLabel></template>
-									</MkSwitch>
-								</MkPreferenceContainer>
-							</SearchMarker>
-						</div>
-					</SearchMarker>
 				</div>
 			</FormSection>
 		</SearchMarker>
 
 		<SearchMarker :keywords="['behavior', 'lab']">
 			<FormSection>
-				<template #label><i class="ti ti-flask"/> <SearchLabel>{{ i18n.ts.cherrypickLabs }}</SearchLabel></template>
+				<template #label><i class="ti ti-flask"></i> <SearchLabel>{{ i18n.ts.cherrypickLabs }}</SearchLabel></template>
 				<template #description><SearchText>{{ i18n.ts.cherrypickLabsDescription }}</SearchText></template>
 				<div class="_gaps_m">
 				</div>
@@ -210,15 +155,10 @@ const postFormVisibilityHotkey = prefer.model('postFormVisibilityHotkey');
 const showRenoteConfirmPopup = prefer.model('showRenoteConfirmPopup');
 const expandOnNoteClick = prefer.model('expandOnNoteClick');
 const expandOnNoteClickBehavior = prefer.model('expandOnNoteClickBehavior');
-const displayHeaderNavBarWhenScroll = prefer.model('displayHeaderNavBarWhenScroll');
 const reactableRemoteReactionEnabled = prefer.model('reactableRemoteReactionEnabled');
 const showFollowingMessageInsteadOfButtonEnabled = prefer.model('showFollowingMessageInsteadOfButtonEnabled');
-const mobileHeaderChange = prefer.model('mobileHeaderChange');
 const renameTheButtonInPostFormToNya = prefer.model('renameTheButtonInPostFormToNya');
 const enableWidgetsArea = prefer.model('enableWidgetsArea');
-const friendlyUiEnableNotificationsArea = prefer.model('friendlyUiEnableNotificationsArea');
-const enableLongPressOpenAccountMenu = prefer.model('enableLongPressOpenAccountMenu');
-const friendlyUiShowAvatarDecorationsInNavBtn = prefer.model('friendlyUiShowAvatarDecorationsInNavBtn');
 
 watch([
 	renameTheButtonInPostFormToNya,
@@ -229,10 +169,8 @@ watch([
 watch([
 	expandOnNoteClick,
 	reactableRemoteReactionEnabled,
-	mobileHeaderChange,
 	renameTheButtonInPostFormToNya,
 	enableWidgetsArea,
-	friendlyUiEnableNotificationsArea,
 ], () => {
 	suggestReload();
 });

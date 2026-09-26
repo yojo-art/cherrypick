@@ -66,7 +66,7 @@ export const packedRoleCondFormulaValueUserSettingBooleanSchema = {
 		type: {
 			type: 'string',
 			nullable: false, optional: false,
-			enum: ['isSuspended', 'isLocked', 'isBot', 'isCat', 'isExplorable'],
+			enum: ['isSuspended', 'isLocked', 'isBot', 'isChannel', 'isCat', 'isExplorable'],
 		},
 	},
 } as const;
@@ -236,6 +236,10 @@ export const packedRolePoliciesSchema = {
 			type: 'boolean',
 			optional: false, nullable: false,
 		},
+		canCreateChannel: {
+			type: 'boolean',
+			optional: false, nullable: false,
+		},
 		driveCapacityMb: {
 			type: 'integer',
 			optional: false, nullable: false,
@@ -351,6 +355,10 @@ export const packedRolePoliciesSchema = {
 		},
 		watermarkAvailable: {
 			type: 'boolean',
+			optional: false, nullable: false,
+		},
+		reactionLimit: {
+			type: 'integer',
 			optional: false, nullable: false,
 		},
 	},

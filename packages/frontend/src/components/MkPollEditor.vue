@@ -111,7 +111,7 @@ if (props.modelValue.expiresAt) {
 	expiration.value = 'infinite';
 }
 
-function onInput(i, value) {
+function onInput(i: number, value: string) {
 	choices.value[i] = value;
 }
 
@@ -123,7 +123,7 @@ function add() {
 	// });
 }
 
-function remove(i) {
+function remove(i: number) {
 	choices.value = choices.value.filter((_, _i) => _i !== i);
 }
 

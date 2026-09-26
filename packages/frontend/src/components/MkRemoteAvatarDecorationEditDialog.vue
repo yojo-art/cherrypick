@@ -26,7 +26,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 					</div>
 				</div>
 				<MkKeyValue>
-					<template #key>{{ i18n.ts.id }}</template>
+					<template #key>{{ i18n.ts.name }}</template>
 					<template #value>{{ name }}</template>
 				</MkKeyValue>
 				<MkKeyValue>

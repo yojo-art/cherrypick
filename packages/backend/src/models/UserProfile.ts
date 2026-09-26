@@ -18,7 +18,7 @@ export class MiUserProfile {
 	@PrimaryColumn(id())
 	public userId: MiUser['id'];
 
-	@OneToOne(type => MiUser, {
+	@OneToOne(() => MiUser, {
 		onDelete: 'CASCADE',
 	})
 	@JoinColumn()
@@ -230,7 +230,7 @@ export class MiUserProfile {
 	})
 	public pinnedPageId: MiPage['id'] | null;
 
-	@OneToOne(type => MiPage, {
+	@OneToOne(() => MiPage, {
 		onDelete: 'SET NULL',
 	})
 	@JoinColumn()
@@ -392,4 +392,8 @@ export const ACHIEVEMENT_TYPES = [
 	'tutorialCompleted',
 	'bubbleGameExplodingHead',
 	'bubbleGameDoubleExplodingHead',
+	'ohayoujo1',
+	'ohayoujo7',
+	'ohayoujo30',
+	'ohayoujo365',
 ] as const;
