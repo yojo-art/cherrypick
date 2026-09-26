@@ -380,18 +380,35 @@ describe('UserEntityService', () => {
 		describe('アバターデコレーションURLのメディアプロキシ付与', () => {
 			const rawUrl = 'https://remote.example.com/files/decoration.png';
 
+			// 以前のリモートのデコレーションは url にプロキシURLを保存していた
+			const legacyProxiedUrl = `https://old-proxy.example.com/avatar.webp?url=${encodeURIComponent(rawUrl)}&avatar=1`;
+
 			test('ローカルのデコレーションはそのままのURLを返す', () => {
 				const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
-				expect(avatarDecorationService.getPublicUrl({ url: `${config.url}/files/decoration.png`, host: null })).toBe(`${config.url}/files/decoration.png`);
+				expect(avatarDecorationService.getPublicUrl({ url: `${config.url}/files/decoration.png`, rawUrl: null, host: null })).toBe(`${config.url}/files/decoration.png`);
 			});
 
-			test('リモートのデコレーションはavatarモードのプロキシURLを返す', () => {
+			test('リモートのデコレーションはrawUrlをavatarモードのプロキシURLにして返す', () => {
 				const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
-				const actual = new URL(avatarDecorationService.getPublicUrl({ url: rawUrl, host: 'remote.example.com' }));
+				const actual = new URL(avatarDecorationService.getPublicUrl({ url: rawUrl, rawUrl, host: 'remote.example.com' }));
 
 				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
 				expect(actual.searchParams.get('url')).toBe(rawUrl);
 				expect(actual.searchParams.get('avatar')).toBe('1');
+			});
+
+			test('リモートのデコレーションのurlがプロキシURLでもrawUrlがあればrawUrlを使う', () => {
+				const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
+				const actual = new URL(avatarDecorationService.getPublicUrl({ url: legacyProxiedUrl, rawUrl, host: 'remote.example.com' }));
+
+				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
+				expect(actual.searchParams.get('url')).toBe(rawUrl);
+				expect(actual.searchParams.get('avatar')).toBe('1');
+			});
+
+			test.each([null, ''])('rawUrlが%sの古いリモートのデコレーションはurlをそのまま返す', (emptyRawUrl) => {
+				const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
+				expect(avatarDecorationService.getPublicUrl({ url: legacyProxiedUrl, rawUrl: emptyRawUrl, host: 'remote.example.com' })).toBe(legacyProxiedUrl);
 			});
 
 			test('packでリモートユーザーのデコレーションにプロキシURLを付与する', async () => {
@@ -400,7 +417,7 @@ describe('UserEntityService', () => {
 				const decorationId = genAidx(Date.now());
 				await avatarDecorationsRepository.insert({
 					id: decorationId,
-					url: rawUrl,
+					url: legacyProxiedUrl,
 					rawUrl,
 					name: 'remote-decoration',
 					description: '',
