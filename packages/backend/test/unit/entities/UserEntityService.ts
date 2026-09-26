@@ -563,6 +563,41 @@ describe('UserEntityService', () => {
 				});
 			});
 
+			// DBにプロキシURLが残っていた場合に、設定によらず元のURLを取り出せるか
+			describe.each([true, false])('proxyRemoteFiles=%s でDBの値が既にプロキシURLの場合', (proxyRemoteFiles) => {
+				const proxiedImageUrl = (url: string) => `${config.mediaProxy}/image.webp?url=${encodeURIComponent(url)}`;
+
+				test('ローカルユーザーの画像は元のURLを取り出して包み直す', async () => {
+					const rawUrl = `${config.url}/files/mutual-link.png`;
+					await withSettings(proxyRemoteFiles, async () => {
+						expectProxied(await packImgSrc({}, proxiedImageUrl(rawUrl)), rawUrl);
+					});
+				});
+
+				test(`リモートユーザーの画像は${proxyRemoteFiles ? '元のURLを取り出して包み直す' : '元のURLを取り出してそのまま返す'}`, async () => {
+					const rawUrl = 'https://remote.example.com/files/mutual-link.png';
+					await withSettings(proxyRemoteFiles, async () => {
+						const actual = await packImgSrc({ host: 'remote.example.com' }, proxiedImageUrl(rawUrl));
+						if (proxyRemoteFiles) expectProxied(actual, rawUrl);
+						else expect(actual).toBe(rawUrl);
+					});
+				});
+			});
+
+			test('外部メディアプロキシが有効ならproxyRemoteFiles=falseでもリモートユーザーの画像をプロキシする', async () => {
+				const rawUrl = 'https://remote.example.com/files/mutual-link.png';
+				const meta = app.get<MiMeta>(DI.meta);
+				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+				meta.proxyRemoteFiles = false;
+				config.externalMediaProxyEnabled = true;
+				try {
+					expectProxied(await packImgSrc({ host: 'remote.example.com' }, rawUrl), rawUrl);
+				} finally {
+					meta.proxyRemoteFiles = original.proxyRemoteFiles;
+					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+				}
+			});
+
 			test('imgSrc以外のフィールドはそのまま返す', async () => {
 				const me = await createUser();
 				const who = await createUser({}, { mutualLinkSections: mutualLinkSections(`${config.url}/files/mutual-link.png`) });
