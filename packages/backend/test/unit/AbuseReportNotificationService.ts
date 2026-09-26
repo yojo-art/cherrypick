@@ -454,6 +454,15 @@ describe('AbuseReportNotificationService', () => {
 			);
 		});
 
+		test('ロール未割当のrootも通知先に含めるようにモデレーター一覧を取得する', async () => {
+			await service.notifyInApp([buildReport()]);
+
+			expect(roleService.getModeratorIds).toHaveBeenCalledWith(expect.objectContaining({
+				includeAdmins: true,
+				includeRoot: true,
+			}));
+		});
+
 		test('通報が0件なら何もしない', async () => {
 			await service.notifyInApp([]);
 

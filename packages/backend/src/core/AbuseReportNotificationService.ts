@@ -113,8 +113,12 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 			return;
 		}
 
+		// root はロール未割当でも管理者として扱われる (RoleService.isModerator 参照) が、
+		// getModeratorIds はデフォルトで root を含めない。ロールを持たない root
+		// 一人で運用しているサーバーで誰にも届かなくなるため明示的に含める。
 		const moderatorIds = await this.roleService.getModeratorIds({
 			includeAdmins: true,
+			includeRoot: true,
 			excludeExpire: true,
 		});
 
