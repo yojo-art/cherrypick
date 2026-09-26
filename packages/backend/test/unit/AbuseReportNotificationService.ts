@@ -422,15 +422,17 @@ describe('AbuseReportNotificationService', () => {
 		}
 
 		test('モデレーターごとに通知が作成される(通報コメント・notifierIdは含まれない)', async () => {
-			// 被通報者はモデレーター以外 (被通報者がモデレーターのケースは別テストで確認)
-			const report = buildReport({ targetUserId: idService.gen(), targetUser: undefined });
+			// 通報者・被通報者ともモデレーター以外 (それぞれがモデレーターのケースは別テストで確認)
+			const report = buildReport({
+				reporterId: idService.gen(), reporter: null,
+				targetUserId: idService.gen(), targetUser: null,
+			});
 
 			await service.notifyInApp([report]);
 
 			// beforeEachでgetModeratorIdsは[root, alice, bob]を返すようモックされている。
-			// bob は通報者自身なので自分には作成されない (下の別テストで確認)。
-			expect(notificationService.createNotification).toHaveBeenCalledTimes(2);
-			for (const moderatorId of [root.id, alice.id]) {
+			expect(notificationService.createNotification).toHaveBeenCalledTimes(3);
+			for (const moderatorId of [root.id, alice.id, bob.id]) {
 				expect(notificationService.createNotification).toHaveBeenCalledWith(
 					moderatorId,
 					'abuseReport',
@@ -444,10 +446,14 @@ describe('AbuseReportNotificationService', () => {
 			// NotificationEntityService の汎用ミュート/サスペンド判定が通報者に
 			// 対して効いてしまうため、notifierId には依存せずここで明示的に
 			// 自己通知を抑止している (#20)。
-			const report = buildReport({ reporterId: bob.id });
+			const report = buildReport({
+				reporterId: bob.id, reporter: bob,
+				targetUserId: idService.gen(), targetUser: null,
+			});
 
 			await service.notifyInApp([report]);
 
+			expect(notificationService.createNotification).toHaveBeenCalledTimes(2);
 			expect(notificationService.createNotification).not.toHaveBeenCalledWith(
 				bob.id,
 				expect.anything(),
