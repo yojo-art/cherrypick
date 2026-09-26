@@ -79,11 +79,8 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			return `Blocked request: ${host}`;
 		}
 
-		{
-			const instance = await this.federatedInstanceService.fetch(host);
-			if (instance != null && this.utilityService.isReceiveSuspendedSoftware(instance)) {
-				return `Blocked request (software suspended): ${host}`;
-			}
+		if (await this.isReceiveSuspendedHost(host)) {
+			return `Blocked request (software suspended): ${host}`;
 		}
 
 		const keyIdLower = signature.keyId.toLowerCase();
@@ -156,13 +153,6 @@ export class InboxProcessorService implements OnApplicationShutdown {
 				} catch (e) {
 					delete activity.signature;
 					this.logger.warn(`inbox activity removed JsonLD signature id=${activity.id}`);
-				}
-
-				{
-					const ldInstance = await this.federatedInstanceService.fetch(ldHost);
-					if (ldInstance != null && this.utilityService.isReceiveSuspendedSoftware(ldInstance)) {
-						throw new Bull.UnrecoverableError(`Blocked request (software suspended): ${ldHost}`);
-					}
 				}
 			} else {
 				delete activity.signature;
@@ -321,10 +311,22 @@ export class InboxProcessorService implements OnApplicationShutdown {
 			if (!this.utilityService.isFederationAllowedHost(ldHost)) {
 				throw new Bull.UnrecoverableError(`Blocked request: ${ldHost}`);
 			}
+
+			if (await this.isReceiveSuspendedHost(ldHost)) {
+				throw new Bull.UnrecoverableError(`Blocked request (software suspended): ${ldHost}`);
+			}
 		} else {
 			throw new Bull.UnrecoverableError(`skip: http-signature verification failed and no LD-Signature. keyId=${signature.keyId}`);
 		}
 		return { activity, authUser };
+	}
+
+	@bindThis
+	private async isReceiveSuspendedHost(host: string): Promise<boolean> {
+		// 受信停止設定が無ければインスタンス情報を引かない
+		if (this.meta.receiveSuspendedSoftware.length === 0) return false;
+		const instance = await this.federatedInstanceService.fetch(host);
+		return instance != null && this.utilityService.isReceiveSuspendedSoftware(instance) != null;
 	}
 
 	@bindThis

@@ -4,7 +4,6 @@
  */
 
 import * as crypto from 'node:crypto';
-import { URL } from 'node:url';
 import { IncomingMessage } from 'node:http';
 import { Inject, Injectable } from '@nestjs/common';
 import fastifyAccepts from '@fastify/accepts';
@@ -27,7 +26,6 @@ import { countIf } from '@/misc/prelude/array.js';
 import type { MiNote } from '@/models/Note.js';
 import { QueryService } from '@/core/QueryService.js';
 import { UtilityService } from '@/core/UtilityService.js';
-import { FederatedInstanceService } from '@/core/FederatedInstanceService.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { bindThis } from '@/decorators.js';
 import { IActivity, IClip, IObject, IOrderedCollection, IOrderedCollectionPage } from '@/core/activitypub/type.js';
@@ -82,7 +80,6 @@ export class ActivityPubServerService {
 		private clipNotesRepository: ClipNotesRepository,
 
 		private utilityService: UtilityService,
-		private federatedInstanceService: FederatedInstanceService,
 		private userEntityService: UserEntityService,
 		private apRendererService: ApRendererService,
 		private queueService: QueueService,
@@ -120,7 +117,7 @@ export class ActivityPubServerService {
 	}
 
 	@bindThis
-	private async inbox(request: FastifyRequest, reply: FastifyReply) {
+	private inbox(request: FastifyRequest, reply: FastifyReply) {
 		if (this.meta.federation === 'none') {
 			reply.code(403);
 			return;
@@ -202,21 +199,6 @@ export class ActivityPubServerService {
 		if (!activity.type || !signature.keyId) {
 			reply.code(400);
 			return;
-		}
-		
-		// 受信停止中のソフトウェアからのリクエストはキューに入れずに拒否する
-		// (InboxProcessorService 側でも再検査する)
-		if (typeof signature.keyId === 'string') {
-			try {
-				const signerHost = this.utilityService.toPuny(new URL(signature.keyId).hostname);
-				const instance = await this.federatedInstanceService.fetch(signerHost);
-				if (instance != null && this.utilityService.isReceiveSuspendedSoftware(instance)) {
-					reply.code(403);
-					return;
-				}
-			} catch (_) {
-				// keyId が URL として解釈できない場合はキュー側の判定に委ねる
-			}
 		}
 
 		this.queueService.inbox(activity, signature);
