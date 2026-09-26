@@ -4,7 +4,7 @@
  */
 
 import { Test, TestingModule } from '@nestjs/testing';
-import { describe, expect, beforeAll, afterAll, test } from 'vitest';
+import { describe, expect, beforeAll, afterAll, beforeEach, afterEach, test } from 'vitest';
 import type { MiUser } from '@/models/User.js';
 import { UserEntityService } from '@/core/entities/UserEntityService.js';
 import { GlobalModule } from '@/GlobalModule.js';
@@ -382,6 +382,68 @@ describe('UserEntityService', () => {
 					meta.proxyRemoteFiles = original.proxyRemoteFiles;
 					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
 				}
+			});
+
+			// DBにプロキシURLが残っていた場合に、設定によらず元のURLを取り出せるか
+			describe.each([true, false])('proxyRemoteFiles=%s でDBの値が既にプロキシURLの場合', (proxyRemoteFiles) => {
+				const rawAvatarUrl = 'https://remote.example.com/files/avatar.png';
+				const rawBannerUrl = 'https://remote.example.com/files/banner.png';
+				const localBannerUrl = 'https://local.example.com/files/banner.png';
+				const proxiedAvatarUrl = (url: string) => `${config.mediaProxy}/avatar.webp?url=${encodeURIComponent(url)}&avatar=1`;
+				const proxiedImageUrl = (url: string) => `${config.mediaProxy}/image.webp?url=${encodeURIComponent(url)}`;
+				let original: { proxyRemoteFiles: boolean, externalMediaProxyEnabled: boolean };
+
+				beforeEach(() => {
+					const meta = app.get<MiMeta>(DI.meta);
+					original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+					meta.proxyRemoteFiles = proxyRemoteFiles;
+					config.externalMediaProxyEnabled = false;
+				});
+
+				afterEach(() => {
+					const meta = app.get<MiMeta>(DI.meta);
+					meta.proxyRemoteFiles = original.proxyRemoteFiles;
+					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+				});
+
+				test('リモートユーザーのアバターは元のURLを取り出してavatarモードで包み直す', () => {
+					const user = makeUser({ avatarId: 'file1', avatarUrl: proxiedAvatarUrl(rawAvatarUrl), host: 'remote.example.com' });
+					const actual = new URL(service.getAvatarUrl(user));
+
+					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
+					expect(actual.searchParams.get('url')).toBe(rawAvatarUrl);
+					expect(actual.searchParams.get('avatar')).toBe('1');
+				});
+
+				test('ローカルユーザーのバナーは元のURLを取り出して包み直す', () => {
+					const user = makeUser({ bannerId: 'file2', bannerUrl: proxiedImageUrl(localBannerUrl) });
+					const actual = new URL(service.getBannerUrl(user)!);
+
+					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+					expect(actual.searchParams.get('url')).toBe(localBannerUrl);
+				});
+
+				test(`リモートユーザーのバナーは${proxyRemoteFiles ? '元のURLを取り出して包み直す' : '元のURLを取り出してそのまま返す'}`, () => {
+					const user = makeUser({ bannerId: 'file2', bannerUrl: proxiedImageUrl(rawBannerUrl), host: 'remote.example.com' });
+					const actual = service.getBannerUrl(user)!;
+
+					if (proxyRemoteFiles) {
+						const url = new URL(actual);
+						expect(`${url.origin}${url.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+						expect(url.searchParams.get('url')).toBe(rawBannerUrl);
+					} else {
+						expect(actual).toBe(rawBannerUrl);
+					}
+				});
+
+				test('リモートのデコレーションは元のURLを取り出してavatarモードで包み直す', () => {
+					const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
+					const rawDecorationUrl = 'https://remote.example.com/files/decoration.png';
+					const actual = new URL(avatarDecorationService.getPublicUrl({ url: proxiedAvatarUrl(rawDecorationUrl), host: 'remote.example.com' }));
+
+					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
+					expect(actual.searchParams.get('url')).toBe(rawDecorationUrl);
+				});
 			});
 
 			test('bannerUrlが空文字ならnullを返す', () => {

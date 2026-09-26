@@ -423,7 +423,7 @@ export class UserEntityService implements OnModuleInit {
 	@bindThis
 	public getBannerUrl(user: MiUser): string | null {
 		if (user.bannerId == null || !user.bannerUrl) return null;
-		if (user.host != null && !this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return user.bannerUrl;
+		if (user.host != null && !this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return this.driveFileEntityService.unwrapProxiedUrl(user.bannerUrl);
 		return this.driveFileEntityService.getProxiedUrl(user.bannerUrl);
 	}
 

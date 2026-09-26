@@ -92,7 +92,7 @@ export class DriveFileEntityService {
 	 * 既にメディアプロキシのURLになっている場合は元のURLを取り出す (二重プロキシ防止)
 	 */
 	@bindThis
-	private unwrapProxiedUrl(url: string): string {
+	public unwrapProxiedUrl(url: string): string {
 		if (!url.startsWith(`${this.config.mediaProxy}/`)) return url;
 		try {
 			return new URL(url).searchParams.get('url') ?? url;
