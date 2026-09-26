@@ -77,7 +77,7 @@ export class DriveFileEntityService {
 	}
 
 	@bindThis
-	private getProxiedUrl(url: string, mode?: 'static' | 'avatar'): string {
+	public getProxiedUrl(url: string, mode?: 'static' | 'avatar'): string {
 		return appendQuery(
 			`${this.config.mediaProxy}/${mode ?? 'image'}.webp`,
 			query({

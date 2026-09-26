@@ -65,7 +65,7 @@ export class FeedService {
 			generator: 'CherryPick',
 			description: `${user.notesCount} Notes, ${profile.followingVisibility === 'public' ? user.followingCount : '?'} Following, ${profile.followersVisibility === 'public' ? user.followersCount : '?'} Followers${profile.description ? ` · ${profile.description}` : ''}`,
 			link: author.link,
-			image: (user.avatarId == null ? null : user.avatarUrl) ?? this.userEntityService.getIdenticonUrl(user),
+			image: this.userEntityService.getAvatarUrl(user),
 			feedLinks: {
 				json: `${author.link}.json`,
 				atom: `${author.link}.atom`,
