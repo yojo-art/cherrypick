@@ -3,6 +3,7 @@
  * SPDX-License-Identifier: AGPL-3.0-only
  */
 
+import ms from 'ms';
 import { Injectable } from '@nestjs/common';
 import { Endpoint } from '@/server/api/endpoint-base.js';
 import { ReversiService } from '@/core/ReversiService.js';
@@ -15,6 +16,12 @@ export const meta = {
 	requireCredential: true,
 
 	kind: 'write:account',
+
+	limit: {
+		duration: ms('1hour'),
+		max: 120,
+		minInterval: 3000,
+	},
 
 	errors: {
 		noSuchUser: {

@@ -318,9 +318,13 @@ export class QueryService {
 			q.andWhere(new Brackets(qb => {
 				qb.where('note.searchableBy = \'public\'')
 					.orWhere( new Brackets(qb2 => {
-						qb2.where('user.searchableBy = \'public\'')
-							.orWhere( new Brackets(qb3 => {
-								qb3.where('user.isIndexable = TRUE');
+						qb2.where('note.searchableBy IS NULL')
+							.andWhere( new Brackets(qb3 => {
+								qb3.where('user.searchableBy = \'public\'')
+									.orWhere( new Brackets(qb4 => {
+										qb4.where('user.searchableBy IS NULL')
+											.andWhere('user.isIndexable = TRUE');
+									}));
 							}));
 					}));
 			}));

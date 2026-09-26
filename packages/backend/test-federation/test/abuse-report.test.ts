@@ -1,7 +1,7 @@
-import { describe, test, beforeAll } from 'vitest';
 import { rejects, strictEqual } from 'node:assert';
+import { describe, test, beforeAll, vi } from 'vitest';
 import * as Misskey from 'misskey-js';
-import { createAccount, createModerator, resolveRemoteUser, waitFor, type LoginUser } from './utils.js';
+import { createAccount, createModerator, resolveRemoteUser, type LoginUser, WAIT_FOR_FEDERATION } from './utils.js';
 
 describe('Abuse report', () => {
 	describe('Forwarding report', () => {
@@ -32,15 +32,16 @@ describe('Abuse report', () => {
 			const report = reports.filter(report => report.comment === comment)[0];
 			await aModerator.client.request('admin/forward-abuse-user-report', { reportId: report.id });
 
-			await waitFor(async () => {
+			const reportInB = await vi.waitFor(async () => {
 				const reportsInB = await bModerator.client.request('admin/abuse-user-reports', {});
-				const reportInB = reportsInB.find(report => report.comment.includes(comment));
-				if (reportInB == null) return false;
-				// NOTE: reporter is not Alice, and is not moderator in A
-				strictEqual(reportInB.reporter.url, 'https://a.test/@system.actor');
-				strictEqual(reportInB.targetUserId, bob.id);
-				return true;
-			});
+				const reportInB = reportsInB.filter(report => report.comment.includes(comment))[0];
+
+				strictEqual(reportInB != null, true);
+				return reportInB;
+			}, WAIT_FOR_FEDERATION);
+			// NOTE: reporter is not Alice, and is not moderator in A
+			strictEqual(reportInB.reporter.url, 'https://a.test/@system.actor');
+			strictEqual(reportInB.targetUserId, bob.id);
 
 			// NOTE: cannot forward multiple times
 			await rejects(

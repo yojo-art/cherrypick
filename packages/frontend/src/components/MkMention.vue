@@ -41,7 +41,7 @@ const canonical = props.host === localHost ? `@${props.username}` : `@${props.us
 const url = `/${canonical}`;
 
 const isMe = $i && (
-	`@${props.username}@${toUnicode(props.host)}` === `@${$i.username}@${toUnicode(localHost)}`.toLowerCase()
+	`@${props.username}@${toUnicode(props.host)}`.toLowerCase() === `@${$i.username}@${toUnicode(localHost)}`.toLowerCase()
 );
 
 const playAnimation = ref(true);

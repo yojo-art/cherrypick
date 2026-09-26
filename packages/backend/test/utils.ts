@@ -12,11 +12,11 @@ import WebSocket, { ClientOptions } from 'ws';
 import fetch, { Blob, FormData } from 'node-fetch';
 import * as htmlParser from 'node-html-parser';
 import { DataSource } from 'typeorm';
-import type { RequestInit, Headers, Response } from 'node-fetch';
 import Fastify from 'fastify';
+import type { RequestInit, Headers, Response } from 'node-fetch';
+import type * as misskey from 'misskey-js';
 import { entities } from '@/postgres.js';
 import { loadConfig } from '@/config.js';
-import type * as misskey from 'misskey-js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
 import { ApiError } from '@/server/api/error.js';
@@ -679,7 +679,7 @@ export async function sendEnvUpdateRequest(params: { key: string, value?: string
 	}
 }
 
-export async function sendEnvResetRequest() {
+export async function sendEnvResetRequest(): Promise<void> {
 	const res = await fetch(
 		`http://localhost:${port + 1000}/env-reset`,
 		{
@@ -689,7 +689,7 @@ export async function sendEnvResetRequest() {
 	);
 
 	if (res.status !== 200) {
-		throw new Error('server env update failed.');
+		throw new Error('server env reset failed.');
 	}
 }
 

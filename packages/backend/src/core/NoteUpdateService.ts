@@ -4,7 +4,6 @@
  */
 
 import { setImmediate } from 'node:timers/promises';
-import util from 'util';
 import { In, DataSource } from 'typeorm';
 import { Inject, Injectable, OnApplicationShutdown } from '@nestjs/common';
 import * as mfm from 'mfc-js';
@@ -90,6 +89,13 @@ export class NoteUpdateService implements OnApplicationShutdown {
 		host: MiUser['host'];
 		isBot: MiUser['isBot'];
 	}, data: Option, note: MiNote, silent = false): Promise<MiNote | null> {
+		// 所有者検証はサービス内でも行う。AP Update経路はattributedTo/hostしか
+		// 検証しないため、同一ホストの別actorがURIを再利用してattributedToを
+		// 自分にしたUpdateを送ると、他人のノートを上書きできてしまう。
+		if (note.userId !== user.id) {
+			throw new Error('note.userId !== user.id: refusing to update another user\'s note');
+		}
+
 		if (data.updatedAt == null) data.updatedAt = new Date();
 
 		if (data.text) {
@@ -150,7 +156,15 @@ export class NoteUpdateService implements OnApplicationShutdown {
 	private async updateNote(user: {
 		id: MiUser['id']; host: MiUser['host'];
 	}, note: MiNote, data: Option, tags: string[], emojis: string[]): Promise<MiNote | null> {
-		const updatedAtHistory = note.updatedAtHistory ? note.updatedAtHistory : [];
+		// updatedAtHistoryは最大100件で保持する。notes/updateのレート制限が
+		// 効かないリモートからのAP Update再送でも更新のたびに追記され、
+		// 行と各パック応答が肥大化するため。上限を超えた分は古いものから
+		// 落とすが、最初に観測した1件は残す。
+		const maxUpdatedAtHistory = 100;
+		const history = note.updatedAtHistory ?? [];
+		const updatedAtHistory = history.length >= maxUpdatedAtHistory
+			? [history[0], ...history.slice(-(maxUpdatedAtHistory - 2))]
+			: history;
 
 		const values = new MiNote({
 			updatedAt: data.updatedAt,
@@ -356,9 +370,14 @@ export class NoteUpdateService implements OnApplicationShutdown {
 
 	@bindThis
 	private async deliverToConcerned(user: { id: MiLocalUser['id']; host: null; }, note: MiNote, content: any) {
-		console.log('deliverToConcerned', util.inspect(content, { depth: null }));
-		await this.apDeliverManagerService.deliverToFollowers(user, content);
-		await this.relayService.deliverToRelays(user, content);
+		// フォロワーへの配送は public/home/followers のみ、リレーへの配送は public のみ
+		// (NoteCreateService の作成時と同条件)。メンションされたリモートユーザーへの直接配送は維持する。
+		if (['public', 'home', 'followers'].includes(note.visibility)) {
+			await this.apDeliverManagerService.deliverToFollowers(user, content);
+		}
+		if (note.visibility === 'public') {
+			await this.relayService.deliverToRelays(user, content);
+		}
 		const remoteUsers = await this.getMentionedRemoteUsers(note);
 		for (const remoteUser of remoteUsers) {
 			await this.apDeliverManagerService.deliverToUser(user, content, remoteUser);

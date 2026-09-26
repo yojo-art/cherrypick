@@ -87,8 +87,8 @@ const REPEATABLE_SYSTEM_JOB_DEF = [{
 	pattern: '0 4 * * *',
 }, {
 	name: 'autoDeleteNotes',
-	// 毎日午前3時に起動
-	pattern: '0 3 * * *',
+	// 10分おきに起動し、1回あたり少量ずつ削除する(1回の削除件数・トランザクションサイズを抑えるため)
+	pattern: '*/10 * * * *',
 }];
 
 function parseRedisInfo(infoText: string): Record<string, string> {
@@ -974,7 +974,7 @@ export class QueueService implements OnModuleInit {
 		const isPaused = await queue.isPaused();
 		const metrics_completed = await queue.getMetrics('completed', 0, MetricsTime.ONE_WEEK);
 		const metrics_failed = await queue.getMetrics('failed', 0, MetricsTime.ONE_WEEK);
-		const db = parseRedisInfo(await (await queue.client).info());
+		const db = parseRedisInfo(await (await queue.getBackend().client).info());
 
 		return {
 			name: queueType,
