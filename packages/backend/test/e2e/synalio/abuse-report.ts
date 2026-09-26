@@ -425,5 +425,26 @@ describe('[シナリオ] ユーザ通報', () => {
 			expect(abuseNotif.resolved).toBe(true);
 			expect(abuseNotif.assigneeId).toBe(admin.id);
 		});
+
+		test('モデレーターでなくなったユーザには既存のabuseReport通知が返されない', async () => {
+			const carol = await signup({ username: 'carol' });
+			const moderatorRole = await role(admin, { isModerator: true });
+			await api('admin/roles/assign', { userId: carol.id, roleId: moderatorRole.id }, admin);
+
+			await createAbuseReport({ userId: alice.id, comment: randomString() }, bob);
+			await setTimeout(100);
+
+			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
+
+			const before = await api('i/notifications', {}, carol);
+			expect(findAbuseReportNotification(before.body, abuseReportId)).toBeDefined();
+
+			await api('admin/roles/unassign', { userId: carol.id, roleId: moderatorRole.id }, admin);
+			await setTimeout(100);
+
+			const after = await api('i/notifications', {}, carol);
+			expect(after.status).toBe(200);
+			expect(findAbuseReportNotification(after.body, abuseReportId)).toBeUndefined();
+		});
 	});
 });

@@ -15,6 +15,7 @@ import type { Packed } from '@/misc/json-schema.js';
 import { bindThis } from '@/decorators.js';
 import { FilterUnionByProperty, groupedNotificationTypes } from '@/types.js';
 import { CacheService } from '@/core/CacheService.js';
+import type { RoleService } from '@/core/RoleService.js';
 import { RoleEntityService } from './RoleEntityService.js';
 import { ChatEntityService } from './ChatEntityService.js';
 import type { OnModuleInit } from '@nestjs/common';
@@ -43,6 +44,7 @@ export class NotificationEntityService implements OnModuleInit {
 	private roleEntityService: RoleEntityService;
 	private chatEntityService: ChatEntityService;
 	private userGroupInvitationEntityService: UserGroupInvitationEntityService;
+	private roleService: RoleService;
 
 	constructor(
 		private moduleRef: ModuleRef,
@@ -72,6 +74,7 @@ export class NotificationEntityService implements OnModuleInit {
 		this.roleEntityService = this.moduleRef.get('RoleEntityService');
 		this.chatEntityService = this.moduleRef.get('ChatEntityService');
 		this.userGroupInvitationEntityService = this.moduleRef.get('UserGroupInvitationEntityService');
+		this.roleService = this.moduleRef.get('RoleService');
 	}
 
 	/**
@@ -87,6 +90,7 @@ export class NotificationEntityService implements OnModuleInit {
 			packedNotes: Map<MiNote['id'], Packed<'Note'>>;
 			packedUsers: Map<MiUser['id'], Packed<'UserLite'>>;
 			abuseReports?: Map<MiAbuseUserReport['id'], MiAbuseUserReport>;
+			isModerator?: boolean;
 		},
 	): Promise<Packed<'Notification'> | null> {
 		const notification = src;
@@ -200,6 +204,13 @@ export class NotificationEntityService implements OnModuleInit {
 		// 都度引き直す。他のモデレーターが対処した後も通知欄が「未対応」のまま
 		// 残るのを防ぐため。
 		const needsAbuseReport = notification.type === 'abuseReport';
+		// 通知は作成時点のモデレーターの Redis に残り続けるが、中身は read 時に最新の
+		// 通報から引き直すため、read 時点でもモデレーターであることを確認する。
+		// 降格した元モデレーターや、read:admin:abuse-user-reports を持たず
+		// read:notifications だけを持つトークンから通報の内容が読めないようにする。
+		if (needsAbuseReport && !(hint?.isModerator ?? await this.roleService.isModerator({ id: meId }))) {
+			return null;
+		}
 		const abuseReport = needsAbuseReport ? (
 			hint?.abuseReports != null
 				? (hint.abuseReports.get(notification.reportId) ?? null)
@@ -319,6 +330,13 @@ export class NotificationEntityService implements OnModuleInit {
 
 		// abuseReport の reporter は notifierId ではなく reportId 経由で解決するため
 		// (#packInternal 参照)、userIds を集める前に abuseReports を引いておく必要がある。
+		// モデレーターでなくなったユーザには abuseReport 通知を返さない (#packInternal 参照)
+		const hasAbuseReport = validNotifications.some(x => x.type === 'abuseReport');
+		const isModerator = hasAbuseReport ? await this.roleService.isModerator({ id: meId }) : false;
+		if (hasAbuseReport && !isModerator) {
+			validNotifications = validNotifications.filter(x => x.type !== 'abuseReport');
+		}
+
 		const reportIds = validNotifications.map(x => x.type === 'abuseReport' ? x.reportId : null).filter(x => x != null);
 		const abuseReportsArray = reportIds.length > 0 ? await this.abuseUserReportsRepository.find({
 			where: { id: In(reportIds) },
@@ -358,7 +376,7 @@ export class NotificationEntityService implements OnModuleInit {
 				x,
 				meId,
 				{ checkValidNotifier: false },
-				{ packedNotes, packedUsers, abuseReports },
+				{ packedNotes, packedUsers, abuseReports, isModerator },
 			);
 		});
 
@@ -377,6 +395,7 @@ export class NotificationEntityService implements OnModuleInit {
 			packedNotes: Map<MiNote['id'], Packed<'Note'>>;
 			packedUsers: Map<MiUser['id'], Packed<'UserLite'>>;
 			abuseReports?: Map<MiAbuseUserReport['id'], MiAbuseUserReport>;
+			isModerator?: boolean;
 		},
 	): Promise<Packed<'Notification'> | null> {
 		return await this.#packInternal(src, meId, options, hint);
