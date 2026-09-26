@@ -128,6 +128,11 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 				if (moderatorId === abuseReport.reporterId) {
 					continue;
 				}
+				// 通報されたのがモデレーター自身なら、その人には出さない
+				// (通知には通報者が含まれるため、被通報者に通報者が知られてしまう)。
+				if (moderatorId === abuseReport.targetUserId) {
+					continue;
+				}
 				this.notificationService.createNotification(moderatorId, 'abuseReport', {
 					reportId: abuseReport.id,
 				});

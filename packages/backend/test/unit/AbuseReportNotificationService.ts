@@ -422,7 +422,8 @@ describe('AbuseReportNotificationService', () => {
 		}
 
 		test('モデレーターごとに通知が作成される(通報コメント・notifierIdは含まれない)', async () => {
-			const report = buildReport();
+			// 被通報者はモデレーター以外 (被通報者がモデレーターのケースは別テストで確認)
+			const report = buildReport({ targetUserId: idService.gen(), targetUser: undefined });
 
 			await service.notifyInApp([report]);
 
@@ -452,6 +453,16 @@ describe('AbuseReportNotificationService', () => {
 				expect.anything(),
 				expect.anything(),
 			);
+		});
+
+		test('通報されたのがモデレーター自身の場合、その人には作成されない', async () => {
+			// root が alice を通報、alice はモデレーター
+			const report = buildReport({ reporterId: root.id, reporter: root, targetUserId: alice.id, targetUser: alice });
+
+			await service.notifyInApp([report]);
+
+			expect(notificationService.createNotification).toHaveBeenCalledTimes(1);
+			expect(notificationService.createNotification).toHaveBeenCalledWith(bob.id, 'abuseReport', { reportId: report.id });
 		});
 
 		test('ロール未割当のrootも通知先に含めるようにモデレーター一覧を取得する', async () => {
