@@ -325,6 +325,19 @@ describe('UserEntityService', () => {
 				expect(service.getBannerUrl(user)).toBe(`${config.url}/files/banner.png`);
 			});
 
+			test('リモートユーザーのbannerUrlが既にプロキシURLでも二重にプロキシしない', () => {
+				const proxied = `${config.mediaProxy}/image.webp?url=${encodeURIComponent('https://remote.example.com/files/banner.png')}`;
+				const user = makeUser({ bannerId: 'file2', bannerUrl: proxied, host: 'remote.example.com' });
+				const actual = new URL(service.getBannerUrl(user)!);
+
+				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+				expect(actual.searchParams.get('url')).toBe('https://remote.example.com/files/banner.png');
+			});
+
+			test('bannerUrlが空文字ならnullを返す', () => {
+				expect(service.getBannerUrl(makeUser({ bannerId: 'file2', bannerUrl: '', host: 'remote.example.com' }))).toBeNull();
+			});
+
 			test('バナー未設定の場合はnullを返す', () => {
 				expect(service.getBannerUrl(makeUser({ bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' }))).toBeNull();
 			});
