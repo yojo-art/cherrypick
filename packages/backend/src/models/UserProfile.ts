@@ -224,6 +224,14 @@ export class MiUserProfile {
 	})
 	public receiveAnnouncementEmail: boolean;
 
+	/**
+	 * モデレーター向け: 未確認の通報をナビゲーションのインジケーターで知らせるか
+	 */
+	@Column('boolean', {
+		default: true,
+	})
+	public receiveAbuseReportIndicator: boolean;
+
 	@Column({
 		...id(),
 		nullable: true,

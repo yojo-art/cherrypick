@@ -54,6 +54,13 @@ export const navbarItemDef = reactive<{
 		indicated: computed(() => $i != null && $i.hasPendingReceivedFollowRequest),
 		to: '/my/follow-requests',
 	},
+	abuseReports: {
+		title: i18n.ts.abuseReports,
+		icon: 'ti ti-exclamation-circle',
+		show: computed(() => $i != null && ($i.isAdmin || $i.isModerator)),
+		indicated: computed(() => $i != null && $i.hasUnreadAbuseReport),
+		to: '/admin/abuses',
+	},
 	explore: {
 		title: i18n.ts.explore,
 		icon: 'ti ti-hash',

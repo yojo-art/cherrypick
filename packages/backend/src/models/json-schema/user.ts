@@ -537,6 +537,10 @@ export const packedMeDetailedOnlySchema = {
 			type: 'boolean',
 			nullable: false, optional: false,
 		},
+		receiveAbuseReportIndicator: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
 		alwaysMarkNsfw: {
 			type: 'boolean',
 			nullable: false, optional: false,
@@ -616,6 +620,10 @@ export const packedMeDetailedOnlySchema = {
 			nullable: false, optional: false,
 		},
 		hasPendingReceivedFollowRequest: {
+			type: 'boolean',
+			nullable: false, optional: false,
+		},
+		hasUnreadAbuseReport: {
 			type: 'boolean',
 			nullable: false, optional: false,
 		},

@@ -36,6 +36,7 @@ export class AbuseReportService {
 	/**
 	 * ユーザからの通報をDBに記録し、その内容を下記の手段で管理者各位に通知する.
 	 * - 管理者用Redisイベント
+	 * - ナビゲーションの通報インジケーター（モデレーターごとの未読 Set）
 	 * - EMail（モデレータ権限所有者ユーザ＋metaテーブルに設定されているメールアドレス）
 	 * - SystemWebhook
 	 *
@@ -69,6 +70,7 @@ export class AbuseReportService {
 
 		return Promise.all([
 			this.abuseReportNotificationService.notifyAdminStream(reports),
+			this.abuseReportNotificationService.notifyIndicator(reports),
 			this.abuseReportNotificationService.notifySystemWebhook(reports, 'abuseReport'),
 			this.abuseReportNotificationService.notifyMail(reports),
 		]);
@@ -77,6 +79,7 @@ export class AbuseReportService {
 	/**
 	 * 通報を解決し、その内容を下記の手段で管理者各位に通知する.
 	 * - SystemWebhook
+	 * - ナビゲーションの通報インジケーターの消灯
 	 *
 	 * @param params 通報内容. もし複数件の通報に対応した時のために、あらかじめ複数件を処理できる前提で考える
 	 * @param moderator 通報を処理したユーザ
@@ -112,6 +115,8 @@ export class AbuseReportService {
 					resolvedAs: ps.resolvedAs,
 				});
 		}
+
+		await this.abuseReportNotificationService.clearIndicator(reports.map(it => it.id));
 
 		return this.abuseUserReportsRepository.findBy({ id: In(reports.map(it => it.id)) })
 			.then(reports => this.abuseReportNotificationService.notifySystemWebhook(reports, 'abuseReportResolved'));

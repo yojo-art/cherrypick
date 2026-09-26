@@ -18,6 +18,7 @@ import { DI } from '@/di-symbols.js';
 import { ApRendererService } from '@/core/activitypub/ApRendererService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
 import { QueueService } from '@/core/QueueService.js';
+import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationService.js';
 import { QueueLoggerService } from '../QueueLoggerService.js';
 import type { DbAbuseReportJobData } from '../types.js';
 import type * as Bull from 'bullmq';
@@ -44,6 +45,7 @@ export class ReportAbuseProcessorService {
 		private metaService: MetaService,
 		private emailService: EmailService,
 		private queueService: QueueService,
+		private abuseReportNotificationService: AbuseReportNotificationService,
 	) {
 		this.logger = this.queueLoggerService.logger.createSubLogger('report-abuse');
 	}
@@ -90,6 +92,8 @@ export class ReportAbuseProcessorService {
 					assigneeId: actor.id,
 					forwarded: resolver.forward && job.data.targetUserHost !== null && job.data.reporterHost === null,
 				});
+
+				await this.abuseReportNotificationService.clearIndicator([job.data.id]);
 
 				return;
 			}
