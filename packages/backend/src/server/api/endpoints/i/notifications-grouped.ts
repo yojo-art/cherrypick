@@ -166,6 +166,22 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					continue;
 				}
 
+				// 大量の通報で通知欄が埋まらないよう、対象ユーザーを問わず連続する通報をまとめる
+				if (prev.type === 'abuseReport' && notification.type === 'abuseReport') {
+					if (prevGroupedNotification.type !== 'abuseReport:grouped') {
+						groupedNotifications[groupedNotifications.length - 1] = {
+							type: 'abuseReport:grouped',
+							id: '',
+							createdAt: prev.createdAt,
+							reportIds: [prev.reportId],
+						};
+						prevGroupedNotification = groupedNotifications.at(-1)!;
+					}
+					(prevGroupedNotification as FilterUnionByProperty<MiGroupedNotification, 'type', 'abuseReport:grouped'>).reportIds.push(notification.reportId);
+					prevGroupedNotification.id = notification.id;
+					continue;
+				}
+
 				groupedNotifications.push(notification);
 			}
 

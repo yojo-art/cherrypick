@@ -12996,6 +12996,10 @@ export interface Locale extends ILocale {
          * 通報がありました
          */
         "abuseReport": string;
+        /**
+         * {n}件の通報がありました
+         */
+        "abuseReportGrouped": ParameterizedString<"n">;
         "_types": {
             /**
              * すべて

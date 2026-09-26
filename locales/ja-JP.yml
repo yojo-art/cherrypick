@@ -3421,6 +3421,7 @@ _notification:
   createToken: "アクセストークンが作成されました"
   createTokenDescription: "心当たりがない場合は「{text}」を通じてアクセストークンを削除してください。"
   abuseReport: "通報がありました"
+  abuseReportGrouped: "{n}件の通報がありました"
 
   _types:
     all: "すべて"

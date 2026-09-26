@@ -12,6 +12,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		<div v-else-if="notification.type === 'reaction:grouped'" :class="[$style.icon, $style.icon_reactionGroup]"><i class="ti ti-plus" style="line-height: 1;"></i></div>
 		<div v-else-if="notification.type === 'renote:grouped'" :class="[$style.icon, $style.icon_renoteGroup]"><i class="ti ti-repeat" style="line-height: 1;"></i></div>
 		<div v-else-if="notification.type === 'note:grouped'" :class="[$style.icon, $style.icon_noteGroup]"><i class="ti ti-pencil" style="line-height: 1;"></i></div>
+		<div v-else-if="notification.type === 'abuseReport:grouped'" :class="[$style.icon, $style.icon_abuseReportGroup]"><i class="ti ti-flag" style="line-height: 1;"></i></div>
 		<MkAvatar v-else-if="'user' in notification" :class="$style.icon" :user="notification.user" link preview/>
 		<img v-else-if="'icon' in notification && notification.icon != null" :class="[$style.icon, $style.icon_app]" :src="notification.icon" alt=""/>
 		<div
@@ -86,6 +87,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 			<span v-else-if="notification.type === 'reaction:grouped'" :class="$style.headerText">{{ i18n.tsx._notification.reactedBySomeUsers({ n: getActualReactedUsersCount(notification) }) }}</span>
 			<span v-else-if="notification.type === 'renote:grouped'" :class="$style.headerText">{{ i18n.tsx._notification.renotedBySomeUsers({ n: notification.users.length }) }}</span>
 			<span v-else-if="notification.type === 'note:grouped'" :class="$style.headerText">{{ i18n.tsx._notification.notedBySomeUsers({ n: notification.noteIds.length }) }}</span>
+			<span v-else-if="notification.type === 'abuseReport:grouped'" :class="$style.headerText">{{ i18n.tsx._notification.abuseReportGrouped({ n: notification.reportIds.length }) }}</span>
 			<span v-else-if="notification.type === 'app'" :class="$style.headerText">{{ notification.header }}</span>
 			<MkTime v-if="withTime" :time="notification.createdAt" :class="$style.headerTime" :mode="prefer.s.enableAbsoluteTime ? 'absolute' : 'relative'"/>
 			<div v-if="withDelete && notification.type !== 'login'">
@@ -135,6 +137,9 @@ SPDX-License-Identifier: AGPL-3.0-only
 			</div>
 			<MkA v-else-if="notification.type === 'abuseReport'" :class="$style.text" to="/admin/abuses">
 				{{ i18n.ts.target }}: <MkAcct :user="notification.targetUser"/> ({{ notification.resolved ? i18n.ts.resolved : i18n.ts.unresolved }})
+			</MkA>
+			<MkA v-else-if="notification.type === 'abuseReport:grouped'" :class="$style.text" to="/admin/abuses">
+				{{ i18n.ts.unresolved }}: {{ notification.unresolvedCount }}
 			</MkA>
 			<MkA v-else-if="notification.type === 'achievementEarned'" :class="$style.text" to="/my/achievements">
 				{{ i18n.ts._achievements._types[`_${notification.achievement}`].title }}
@@ -198,6 +203,11 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</div>
 			</div>
 			<div v-else-if="notification.type === 'note:grouped'">
+				<div v-for="user of notification.users" :key="user.id" :class="$style.reactionsItem">
+					<MkAvatar :class="$style.reactionsItemAvatar" :user="user" link preview/>
+				</div>
+			</div>
+			<div v-else-if="notification.type === 'abuseReport:grouped'">
 				<div v-for="user of notification.users" :key="user.id" :class="$style.reactionsItem">
 					<MkAvatar :class="$style.reactionsItemAvatar" :user="user" link preview/>
 				</div>
@@ -334,7 +344,8 @@ const rejectGroupInvitation = () => {
 .icon_reactionGroup,
 .icon_reactionGroupHeart,
 .icon_renoteGroup,
-.icon_noteGroup {
+.icon_noteGroup,
+.icon_abuseReportGroup {
 	display: grid;
 	align-items: center;
 	justify-items: center;
@@ -359,6 +370,10 @@ const rejectGroupInvitation = () => {
 
 .icon_noteGroup {
 	background: var(--eventRenote);
+}
+
+.icon_abuseReportGroup {
+	background: var(--eventOther);
 }
 
 .icon_scheduleNote {

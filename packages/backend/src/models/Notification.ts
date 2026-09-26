@@ -184,4 +184,10 @@ export type MiGroupedNotification = MiNotification | {
 	createdAt: string;
 	notifierIds: MiUser['id'][];
 	noteIds: string[];
+} | {
+	// 連続する abuseReport 通知をまとめたもの (大量の通報で通知欄が埋まるのを防ぐ)
+	type: 'abuseReport:grouped';
+	id: string;
+	createdAt: string;
+	reportIds: MiAbuseUserReport['id'][];
 };

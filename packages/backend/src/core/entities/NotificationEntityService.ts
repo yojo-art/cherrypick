@@ -182,6 +182,43 @@ export class NotificationEntityService implements OnModuleInit {
 				noteIds: notification.noteIds,
 				users,
 			});
+		} else if (notification.type === 'abuseReport:grouped') {
+			// abuseReport と同様、read 時点でもモデレーターであることを確認する
+			if (!(hint?.isModerator ?? await this.roleService.isModerator({ id: meId }))) {
+				return null;
+			}
+
+			const abuseReports = hint?.abuseReports ?? new Map(
+				(await this.abuseUserReportsRepository.findBy({ id: In(notification.reportIds) })).map(r => [r.id, r]),
+			);
+			// 削除された通報は除外する
+			const reports = notification.reportIds.map(id => abuseReports.get(id)).filter(x => x != null);
+			if (reports.length === 0) {
+				return null;
+			}
+
+			const reporterIds = [...new Set(reports.map(r => r.reporterId))];
+			const users = (await Promise.all(reporterIds.map(reporterId => {
+				const packedUser = hint?.packedUsers != null ? hint.packedUsers.get(reporterId) : null;
+				if (packedUser) {
+					return packedUser;
+				}
+
+				return this.userEntityService.pack(reporterId, { id: meId });
+			}))).filter(x => x != null);
+			// if all reporters have been deleted, don't show this notification
+			if (users.length === 0) {
+				return null;
+			}
+
+			return await awaitAll({
+				id: notification.id,
+				createdAt: new Date(notification.createdAt).toISOString(),
+				type: notification.type,
+				reportIds: reports.map(r => r.id),
+				users,
+				unresolvedCount: reports.filter(r => !r.resolved).length,
+			});
 		}
 		//#endregion
 
@@ -342,13 +379,16 @@ export class NotificationEntityService implements OnModuleInit {
 		// abuseReport の reporter は notifierId ではなく reportId 経由で解決するため
 		// (#packInternal 参照)、userIds を集める前に abuseReports を引いておく必要がある。
 		// モデレーターでなくなったユーザには abuseReport 通知を返さない (#packInternal 参照)
-		const hasAbuseReport = validNotifications.some(x => x.type === 'abuseReport');
+		const hasAbuseReport = validNotifications.some(x => x.type === 'abuseReport' || x.type === 'abuseReport:grouped');
 		const isModerator = hasAbuseReport ? await this.roleService.isModerator({ id: meId }) : false;
 		if (hasAbuseReport && !isModerator) {
-			validNotifications = validNotifications.filter(x => x.type !== 'abuseReport');
+			validNotifications = validNotifications.filter(x => x.type !== 'abuseReport' && x.type !== 'abuseReport:grouped');
 		}
 
-		const reportIds = validNotifications.map(x => x.type === 'abuseReport' ? x.reportId : null).filter(x => x != null);
+		const reportIds = validNotifications.flatMap(x =>
+			x.type === 'abuseReport' ? [x.reportId]
+			: x.type === 'abuseReport:grouped' ? x.reportIds
+			: []);
 		const abuseReportsArray = reportIds.length > 0 ? await this.abuseUserReportsRepository.find({
 			where: { id: In(reportIds) },
 		}) : [];
@@ -366,6 +406,9 @@ export class NotificationEntityService implements OnModuleInit {
 				// eslint-disable-next-line @typescript-eslint/no-non-null-assertion
 				const abuseReport = abuseReports.get(notification.reportId)!;
 				userIds.push(abuseReport.reporterId, abuseReport.targetUserId);
+			}
+			if (notification.type === 'abuseReport:grouped') {
+				userIds.push(...notification.reportIds.map(id => abuseReports.get(id)?.reporterId).filter(x => x != null));
 			}
 		}
 		const users = userIds.length > 0 ? await this.usersRepository.find({

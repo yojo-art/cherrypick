@@ -439,15 +439,48 @@ describe('[シナリオ] ユーザ通報', () => {
 			const moderatorRole = await role(admin, { isModerator: true });
 			await api('admin/roles/assign', { userId: carol.id, roleId: moderatorRole.id }, admin);
 
+			// 2件連続で通報し、グループ化された通知も確認できるようにする
+			await createAbuseReport({ userId: alice.id, comment: randomString() }, bob);
 			await createAbuseReport({ userId: alice.id, comment: randomString() }, bob);
 
 			const abuseReportId = (await api('admin/abuse-user-reports', {}, admin)).body[0].id;
 
 			await waitForAbuseReportNotification(carol, abuseReportId);
+			const groupedBefore = await api('i/notifications-grouped', {}, carol);
+			expect(groupedBefore.body.some(n => n.type === 'abuseReport:grouped')).toBe(true);
 
 			await api('admin/roles/unassign', { userId: carol.id, roleId: moderatorRole.id }, admin);
 
 			await waitForAbuseReportNotification(carol, abuseReportId, false);
+			const groupedAfter = await api('i/notifications-grouped', {}, carol);
+			expect(groupedAfter.status).toBe(200);
+			expect(groupedAfter.body.some(n => n.type === 'abuseReport' || n.type === 'abuseReport:grouped')).toBe(false);
+		});
+
+		test('連続する通報はi/notifications-groupedでabuseReport:groupedにまとめられる', async () => {
+			await createAbuseReport({ userId: alice.id, comment: randomString() }, bob);
+			await createAbuseReport({ userId: bob.id, comment: randomString() }, alice);
+			await createAbuseReport({ userId: alice.id, comment: randomString() }, bob);
+
+			const reportIds = (await api('admin/abuse-user-reports', { limit: 3 }, admin)).body.map(r => r.id);
+			expect(reportIds.length).toBe(3);
+			for (const reportId of reportIds) {
+				await waitForAbuseReportNotification(admin, reportId);
+			}
+
+			const res = await api('i/notifications-grouped', {}, admin);
+			expect(res.status).toBe(200);
+
+			const grouped = res.body[0];
+			if (grouped.type !== 'abuseReport:grouped') {
+				throw new Error(`expected abuseReport:grouped but got ${grouped.type}`);
+			}
+			expect(grouped.reportIds).toEqual(expect.arrayContaining(reportIds));
+			// 通報者は重複除去される
+			const reporterIds = grouped.users.map(u => u.id);
+			expect(new Set(reporterIds).size).toBe(reporterIds.length);
+			expect(reporterIds).toEqual(expect.arrayContaining([alice.id, bob.id]));
+			expect(grouped.unresolvedCount).toBeGreaterThanOrEqual(3);
 		});
 	});
 });

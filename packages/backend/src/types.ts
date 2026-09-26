@@ -57,6 +57,7 @@ export const groupedNotificationTypes = [
 	'reaction:grouped',
 	'renote:grouped',
 	'note:grouped',
+	'abuseReport:grouped',
 ] as const;
 
 export const obsoleteNotificationTypes = ['pollVote'/*, 'groupInvited'*/] as const;

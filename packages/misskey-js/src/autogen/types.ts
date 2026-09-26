@@ -5374,6 +5374,16 @@ export type components = {
             /** Format: date-time */
             createdAt: string;
             /** @enum {string} */
+            type: 'abuseReport:grouped';
+            reportIds: string[];
+            users: components['schemas']['UserLite'][];
+            unresolvedCount: number;
+        } | {
+            /** Format: id */
+            id: string;
+            /** Format: date-time */
+            createdAt: string;
+            /** @enum {string} */
             type: 'test';
         } | {
             /** Format: id */
