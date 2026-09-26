@@ -138,7 +138,7 @@ export class DriveFileEntityService {
 	}): string { // static = thumbnail
 		if (!allowProxiedUrl) {
 			const url = file.webpublicUrl ?? file.url;
-			return ap ? this.applyApFileBaseUrl(url) : url;
+			return ap ? this.applyApFileBaseUrl(file, url) : url;
 		}
 
 		// PublicUrlにはexternalMediaProxyEnabledでもremoteProxyを使う
@@ -176,7 +176,7 @@ export class DriveFileEntityService {
 		}
 
 		if (ap) {
-			return this.applyApFileBaseUrl(url);
+			return this.applyApFileBaseUrl(file, url);
 		}
 
 		return url;
@@ -184,17 +184,25 @@ export class DriveFileEntityService {
 
 	/**
 	 * AP で配信するファイルURLのオリジンを apFileBaseUrl に置き換える
+	 * apFileBaseUrl はオブジェクトストレージ上のローカルファイル専用のため、内部ストレージのファイルやリモートのファイルには適用しない
 	 */
 	@bindThis
-	private applyApFileBaseUrl(url: string): string {
+	private applyApFileBaseUrl(file: MiDriveFile, url: string): string {
 		if (!this.config.apFileBaseUrl) return url;
+		if (file.storedInternal || file.userHost != null) return url;
 
-		const baseUrl = this.config.apFileBaseUrl;
-		const isValidBaseUrl = /^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}(\/.*)?$/i.test(baseUrl);
-		if (!isValidBaseUrl) return url;
+		let baseUrl: URL;
+		let fileUrl: URL;
+		try {
+			baseUrl = new URL(this.config.apFileBaseUrl);
+			fileUrl = new URL(url);
+		} catch {
+			return url;
+		}
+		if (baseUrl.protocol !== 'https:' && baseUrl.protocol !== 'http:') return url;
 
-		const trimmedBaseUrl = baseUrl.replace(/\/$/, '');
-		return url.replace(/^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}/, trimmedBaseUrl);
+		const basePath = baseUrl.pathname.replace(/\/$/, '');
+		return `${baseUrl.origin}${basePath}${fileUrl.pathname}${fileUrl.search}${fileUrl.hash}`;
 	}
 
 	@bindThis

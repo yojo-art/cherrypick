@@ -434,6 +434,68 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 				});
 				assert.strictEqual(result, 'https://example.com/files/public');
 			});
+
+			test('内部ストレージに保存されたファイルはオリジンを置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				for (const allowProxiedUrl of [true, false]) {
+					const result = service.getPublicUrl({
+						file: driveFile({ storedInternal: true }),
+						ap: true,
+						allowProxiedUrl,
+					});
+					assert.strictEqual(result, 'https://example.com/files/public');
+				}
+			});
+
+			test('リモートのファイルはオリジンを置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile({ userHost: 'remote.example', webpublicUrl: 'https://remote.example/media/a.png' }),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://remote.example/media/a.png');
+			});
+
+			test('ポート付きのオリジンも置換し、クエリは維持する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com/',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile({ webpublicUrl: 'https://s3.example.com:9000/bucket/a.png?v=1' }),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://ap-files.example.com/bucket/a.png?v=1');
+			});
+
+			test('apFileBaseUrlのパスを前置する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://cdn.example.com/ap/',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://cdn.example.com/ap/files/public');
+			});
+
+			test('apFileBaseUrlが不正なURLなら置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'not a url',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://example.com/files/public');
+			});
 		});
 
 		describe('allowProxiedUrl: true、未テストだった分岐', () => {
