@@ -508,6 +508,71 @@ describe('UserEntityService', () => {
 			});
 		});
 
+		describe('相互リンクの画像URLのメディアプロキシ付与', () => {
+			function mutualLinkSections(imgSrc: string) {
+				return [{
+					name: 'section',
+					mutualLinks: [{ id: 'link1', fileId: 'file1', description: 'desc', imgSrc, url: 'https://link.example.com/' }],
+				}];
+			}
+
+			async function packImgSrc(userData: Partial<MiUser>, imgSrc: string): Promise<string> {
+				const me = await createUser();
+				const who = await createUser(userData, { mutualLinkSections: mutualLinkSections(imgSrc) });
+				const actual = await service.pack(who, me, { schema: 'UserDetailed' }) as any;
+				return actual.mutualLinkSections[0].mutualLinks[0].imgSrc;
+			}
+
+			function expectProxied(actual: string, rawUrl: string): void {
+				const url = new URL(actual);
+				expect(`${url.origin}${url.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
+				expect(url.searchParams.get('url')).toBe(rawUrl);
+			}
+
+			async function withSettings(proxyRemoteFiles: boolean, fn: () => Promise<void>): Promise<void> {
+				const meta = app.get<MiMeta>(DI.meta);
+				const original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
+				meta.proxyRemoteFiles = proxyRemoteFiles;
+				config.externalMediaProxyEnabled = false;
+				try {
+					await fn();
+				} finally {
+					meta.proxyRemoteFiles = original.proxyRemoteFiles;
+					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
+				}
+			}
+
+			test.each([true, false])('ローカルユーザーの画像はproxyRemoteFiles=%sでもプロキシURLを返す', async (proxyRemoteFiles) => {
+				const rawUrl = `${config.url}/files/mutual-link.png`;
+				await withSettings(proxyRemoteFiles, async () => {
+					expectProxied(await packImgSrc({}, rawUrl), rawUrl);
+				});
+			});
+
+			test('リモートユーザーの画像はproxyRemoteFiles=trueならプロキシURLを返す', async () => {
+				const rawUrl = 'https://remote.example.com/files/mutual-link.png';
+				await withSettings(true, async () => {
+					expectProxied(await packImgSrc({ host: 'remote.example.com' }, rawUrl), rawUrl);
+				});
+			});
+
+			test('リモートユーザーの画像はproxyRemoteFiles=falseなら元のURLを返す', async () => {
+				const rawUrl = 'https://remote.example.com/files/mutual-link.png';
+				await withSettings(false, async () => {
+					expect(await packImgSrc({ host: 'remote.example.com' }, rawUrl)).toBe(rawUrl);
+				});
+			});
+
+			test('imgSrc以外のフィールドはそのまま返す', async () => {
+				const me = await createUser();
+				const who = await createUser({}, { mutualLinkSections: mutualLinkSections(`${config.url}/files/mutual-link.png`) });
+				const actual = await service.pack(who, me, { schema: 'UserDetailed' }) as any;
+
+				expect(actual.mutualLinkSections[0].name).toBe('section');
+				expect(actual.mutualLinkSections[0].mutualLinks[0]).toMatchObject({ id: 'link1', fileId: 'file1', description: 'desc', url: 'https://link.example.com/' });
+			});
+		});
+
 		test('alsoKnownAs as string does not throw', async () => {
 			const me = await createUser();
 			const who = await createUser();

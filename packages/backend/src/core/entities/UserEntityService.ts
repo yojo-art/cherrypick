@@ -588,7 +588,14 @@ export class UserEntityService implements OnModuleInit {
 				verifiedLinks: profile!.verifiedLinks,
 				followersCount: followersCount ?? 0,
 				followingCount: followingCount ?? 0,
-				mutualLinkSections: profile!.mutualLinkSections,
+				// DBにはプロキシを通さないURLを保存しているため、バナーと同じ判定でメディアプロキシのURLを付与する
+				mutualLinkSections: profile!.mutualLinkSections.map(section => ({
+					...section,
+					mutualLinks: section.mutualLinks.map(mutualLink => ({
+						...mutualLink,
+						imgSrc: this.driveFileEntityService.getBannerUrl(mutualLink.imgSrc, user.host != null),
+					})),
+				})),
 				notesCount: user.notesCount,
 				pinnedNoteIds: pins.map(pin => pin.noteId),
 				pinnedNotes: this.noteEntityService.packMany(pins.map(pin => pin.note!), me, {

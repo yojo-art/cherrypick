@@ -13,6 +13,7 @@ import type { DataSource, Repository } from 'typeorm';
 import { loadConfig } from '@/config.js';
 import { MiUser } from '@/models/User.js';
 import { MiDriveFile } from '@/models/DriveFile.js';
+import { MiUserProfile } from '@/models/UserProfile.js';
 
 // DBには元のURLを保存し、APIで返すときにメディアプロキシのURLを付与することを確認する
 describe('アバター/バナーURLのメディアプロキシ', () => {
@@ -21,6 +22,7 @@ describe('アバター/バナーURLのメディアプロキシ', () => {
 	let connection: DataSource;
 	let usersRepository: Repository<MiUser>;
 	let driveFilesRepository: Repository<MiDriveFile>;
+	let userProfilesRepository: Repository<MiUserProfile>;
 
 	let root: misskey.entities.SignupResponse;
 	let alice: misskey.entities.SignupResponse;
@@ -49,6 +51,7 @@ describe('アバター/バナーURLのメディアプロキシ', () => {
 		connection = await initTestDb(true);
 		usersRepository = connection.getRepository(MiUser);
 		driveFilesRepository = connection.getRepository(MiDriveFile);
+		userProfilesRepository = connection.getRepository(MiUserProfile);
 
 		root = await signup({ username: 'root' });
 		alice = await signup({ username: 'alice' });
@@ -88,6 +91,23 @@ describe('アバター/バナーURLのメディアプロキシ', () => {
 			const stored = await usersRepository.findOneByOrFail({ id: alice.id });
 			assert.strictEqual(stored.bannerUrl, rawUrl);
 			assertBannerProxyUrl(response.bannerUrl, rawUrl);
+		});
+
+		test('相互リンクの画像はDBに元のURLで保存され、APIではプロキシURLで返る', async () => {
+			const file = (await uploadFile(alice)).body!;
+			const response = await successfulApiCall({
+				endpoint: 'i/update',
+				parameters: { mutualLinkSections: [{ name: 'section', mutualLinks: [{ url: 'https://link.example.com/', fileId: file.id }] }] },
+				user: alice,
+			});
+			const rawUrl = await rawUrlOf(file.id);
+
+			const stored = await userProfilesRepository.findOneByOrFail({ userId: alice.id });
+			assert.strictEqual(stored.mutualLinkSections[0].mutualLinks[0].imgSrc, rawUrl);
+			assertBannerProxyUrl(response.mutualLinkSections[0].mutualLinks[0].imgSrc, rawUrl);
+
+			const shown = await successfulApiCall({ endpoint: 'users/show', parameters: { userId: alice.id }, user: root });
+			assertBannerProxyUrl(shown.mutualLinkSections[0].mutualLinks[0].imgSrc, rawUrl);
 		});
 	});
 
