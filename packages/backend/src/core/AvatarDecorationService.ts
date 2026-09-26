@@ -124,23 +124,10 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		return appendQuery(
 			`${this.config.mediaProxy}/${mode ?? 'image'}.webp`,
 			query({
-				url: this.unwrapProxiedUrl(url),
+				url,
 				...(mode ? { [mode]: '1' } : {}),
 			}),
 		);
-	}
-
-	/**
-	 * 既にメディアプロキシのURLになっている場合は元のURLを取り出す (二重プロキシ防止)
-	 */
-	@bindThis
-	private unwrapProxiedUrl(url: string): string {
-		if (!url.startsWith(`${this.config.mediaProxy}/`)) return url;
-		try {
-			return new URL(url).searchParams.get('url') ?? url;
-		} catch {
-			return url;
-		}
 	}
 
 	/**

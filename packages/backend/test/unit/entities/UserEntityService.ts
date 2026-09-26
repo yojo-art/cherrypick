@@ -305,15 +305,6 @@ describe('UserEntityService', () => {
 				expect(service.getAvatarUrl(user)).toBe(service.getIdenticonUrl(user));
 			});
 
-			test('avatarUrlが既にプロキシURLでも二重にプロキシしない', () => {
-				const proxied = `${config.mediaProxy}/avatar.webp?url=${encodeURIComponent('https://remote.example.com/files/avatar.png')}&avatar=1`;
-				const user = makeUser({ avatarId: 'file1', avatarUrl: proxied, host: 'remote.example.com' });
-				const actual = new URL(service.getAvatarUrl(user));
-
-				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
-				expect(actual.searchParams.get('url')).toBe('https://remote.example.com/files/avatar.png');
-			});
-
 			test('リモートユーザーのバナーはプロキシURLを返す', () => {
 				const user = makeUser({ bannerId: 'file2', bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' });
 				const actual = new URL(service.getBannerUrl(user)!);
@@ -342,15 +333,6 @@ describe('UserEntityService', () => {
 					meta.proxyRemoteFiles = original.proxyRemoteFiles;
 					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
 				}
-			});
-
-			test('リモートユーザーのbannerUrlが既にプロキシURLでも二重にプロキシしない', () => {
-				const proxied = `${config.mediaProxy}/image.webp?url=${encodeURIComponent('https://remote.example.com/files/banner.png')}`;
-				const user = makeUser({ bannerId: 'file2', bannerUrl: proxied, host: 'remote.example.com' });
-				const actual = new URL(service.getBannerUrl(user)!);
-
-				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
-				expect(actual.searchParams.get('url')).toBe('https://remote.example.com/files/banner.png');
 			});
 
 			test('リモートのファイルをプロキシしない設定ならリモートユーザーのバナーはそのままのURLを返す', () => {
@@ -386,63 +368,6 @@ describe('UserEntityService', () => {
 				}
 			});
 
-			// DBにプロキシURLが残っていた場合に、設定によらず元のURLを取り出せるか
-			describe.each([true, false])('proxyRemoteFiles=%s でDBの値が既にプロキシURLの場合', (proxyRemoteFiles) => {
-				const rawAvatarUrl = 'https://remote.example.com/files/avatar.png';
-				const rawBannerUrl = 'https://remote.example.com/files/banner.png';
-				const localBannerUrl = 'https://local.example.com/files/banner.png';
-				const proxiedAvatarUrl = (url: string) => `${config.mediaProxy}/avatar.webp?url=${encodeURIComponent(url)}&avatar=1`;
-				const proxiedImageUrl = (url: string) => `${config.mediaProxy}/image.webp?url=${encodeURIComponent(url)}`;
-				let original: { proxyRemoteFiles: boolean, externalMediaProxyEnabled: boolean };
-
-				beforeEach(() => {
-					const meta = app.get<MiMeta>(DI.meta);
-					original = { proxyRemoteFiles: meta.proxyRemoteFiles, externalMediaProxyEnabled: config.externalMediaProxyEnabled };
-					meta.proxyRemoteFiles = proxyRemoteFiles;
-					config.externalMediaProxyEnabled = false;
-				});
-
-				afterEach(() => {
-					const meta = app.get<MiMeta>(DI.meta);
-					meta.proxyRemoteFiles = original.proxyRemoteFiles;
-					config.externalMediaProxyEnabled = original.externalMediaProxyEnabled;
-				});
-
-				test('リモートユーザーのアバターは元のURLを取り出してavatarモードで包み直す', () => {
-					const user = makeUser({ avatarId: 'file1', avatarUrl: proxiedAvatarUrl(rawAvatarUrl), host: 'remote.example.com' });
-					const actual = new URL(service.getAvatarUrl(user));
-
-					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
-					expect(actual.searchParams.get('url')).toBe(rawAvatarUrl);
-					expect(actual.searchParams.get('avatar')).toBe('1');
-				});
-
-				test.each([
-					['ローカル', localBannerUrl, null],
-					['リモート', rawBannerUrl, 'remote.example.com'],
-				])(`%sユーザーのバナーは${proxyRemoteFiles ? '元のURLを取り出して包み直す' : '元のURLを取り出してそのまま返す'}`, (_, bannerUrl, host) => {
-					const user = makeUser({ bannerId: 'file2', bannerUrl: proxiedImageUrl(bannerUrl), host });
-					const actual = service.getBannerUrl(user)!;
-
-					if (proxyRemoteFiles) {
-						const url = new URL(actual);
-						expect(`${url.origin}${url.pathname}`).toBe(`${config.mediaProxy}/image.webp`);
-						expect(url.searchParams.get('url')).toBe(bannerUrl);
-					} else {
-						expect(actual).toBe(bannerUrl);
-					}
-				});
-
-				test('リモートのデコレーションは元のURLを取り出してavatarモードで包み直す', () => {
-					const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
-					const rawDecorationUrl = 'https://remote.example.com/files/decoration.png';
-					const actual = new URL(avatarDecorationService.getPublicUrl({ url: proxiedAvatarUrl(rawDecorationUrl), host: 'remote.example.com' }));
-
-					expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
-					expect(actual.searchParams.get('url')).toBe(rawDecorationUrl);
-				});
-			});
-
 			test('bannerUrlが空文字ならnullを返す', () => {
 				expect(service.getBannerUrl(makeUser({ bannerId: 'file2', bannerUrl: '', host: 'remote.example.com' }))).toBeNull();
 			});
@@ -467,15 +392,6 @@ describe('UserEntityService', () => {
 				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
 				expect(actual.searchParams.get('url')).toBe(rawUrl);
 				expect(actual.searchParams.get('avatar')).toBe('1');
-			});
-
-			test('リモートのデコレーションのurlが既にプロキシURLでも二重にプロキシしない', () => {
-				const avatarDecorationService = app.get<AvatarDecorationService>(AvatarDecorationService);
-				const proxied = `${config.mediaProxy}/avatar.webp?url=${encodeURIComponent(rawUrl)}&avatar=1`;
-				const actual = new URL(avatarDecorationService.getPublicUrl({ url: proxied, host: 'remote.example.com' }));
-
-				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
-				expect(actual.searchParams.get('url')).toBe(rawUrl);
 			});
 
 			test('packでリモートユーザーのデコレーションにプロキシURLを付与する', async () => {
@@ -544,8 +460,6 @@ describe('UserEntityService', () => {
 				['ローカル', 'https://local.example.com/files/mutual-link.png', {}],
 				['リモート', 'https://remote.example.com/files/mutual-link.png', { host: 'remote.example.com' }],
 			] as [string, string, Partial<MiUser>][])('%sユーザーの画像', (_, rawUrl, userData) => {
-				const proxiedImageUrl = (url: string) => `${config.mediaProxy}/image.webp?url=${encodeURIComponent(url)}`;
-
 				test('proxyRemoteFiles=trueならプロキシURLを返す', async () => {
 					await withSettings(true, async () => {
 						expectProxied(await packImgSrc(userData, rawUrl), rawUrl);
@@ -555,19 +469,6 @@ describe('UserEntityService', () => {
 				test('proxyRemoteFiles=falseなら元のURLを返す', async () => {
 					await withSettings(false, async () => {
 						expect(await packImgSrc(userData, rawUrl)).toBe(rawUrl);
-					});
-				});
-
-				// DBにプロキシURLが残っていた場合に、設定によらず元のURLを取り出せるか
-				test('DBの値が既にプロキシURLでもproxyRemoteFiles=trueなら元のURLを取り出して包み直す', async () => {
-					await withSettings(true, async () => {
-						expectProxied(await packImgSrc(userData, proxiedImageUrl(rawUrl)), rawUrl);
-					});
-				});
-
-				test('DBの値が既にプロキシURLでもproxyRemoteFiles=falseなら元のURLを取り出して返す', async () => {
-					await withSettings(false, async () => {
-						expect(await packImgSrc(userData, proxiedImageUrl(rawUrl))).toBe(rawUrl);
 					});
 				});
 

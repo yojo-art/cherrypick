@@ -82,32 +82,19 @@ export class DriveFileEntityService {
 		return appendQuery(
 			`${this.config.mediaProxy}/${mode ?? 'image'}.webp`,
 			query({
-				url: this.unwrapProxiedUrl(url),
+				url,
 				...(mode ? { [mode]: '1' } : {}),
 			}),
 		);
 	}
 
 	/**
-	 * 既にメディアプロキシのURLになっている場合は元のURLを取り出す (二重プロキシ防止)
-	 */
-	@bindThis
-	private unwrapProxiedUrl(url: string): string {
-		if (!url.startsWith(`${this.config.mediaProxy}/`)) return url;
-		try {
-			return new URL(url).searchParams.get('url') ?? url;
-		} catch {
-			return url;
-		}
-	}
-
-	/**
 	 * DBに保存したプロキシを通さないバナー (ユーザー・チャンネル・相互リンク) のURLに、APIで返す際のメディアプロキシのURLを付与する
-	 * 外部メディアプロキシが無効で、リモートのファイルをプロキシしない設定の場合は、ローカル・リモートとも元のURLを返す (プロキシURLが残っていれば剥がす)
+	 * 外部メディアプロキシが無効で、リモートのファイルをプロキシしない設定の場合は、ローカル・リモートとも元のURLを返す
 	 */
 	@bindThis
 	public getBannerUrl(url: string): string {
-		if (!this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return this.unwrapProxiedUrl(url);
+		if (!this.config.externalMediaProxyEnabled && !this.meta.proxyRemoteFiles) return url;
 		return this.getProxiedUrl(url);
 	}
 
