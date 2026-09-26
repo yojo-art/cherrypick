@@ -24,6 +24,7 @@ import {
 	passwordSchema,
 } from '@/models/User.js';
 import type {
+	AbuseUserReportsRepository,
 	BlockingsRepository,
 	FollowingsRepository,
 	FollowRequestsRepository,
@@ -147,6 +148,9 @@ export class UserEntityService implements OnModuleInit {
 
 		@Inject(DI.userMemosRepository)
 		private userMemosRepository: UserMemoRepository,
+
+		@Inject(DI.abuseUserReportsRepository)
+		private abuseUserReportsRepository: AbuseUserReportsRepository,
 
 	) {
 	}
@@ -382,6 +386,35 @@ export class UserEntityService implements OnModuleInit {
 		return count > 0;
 	}
 
+	/**
+	 * モデレーター向けナビゲーションの通報インジケーター用に、未確認の通報があるかを返す.
+	 * 未読 Set (`unreadAbuseReport:{userId}`) と既読マーカー (`readAbuseReport:{userId}`) は
+	 * {@link AbuseReportNotificationService} と `admin/abuse-report/mark-as-read` が管理する.
+	 * 呼び出し側でモデレーター判定と `receiveAbuseReportIndicator` の確認を済ませること.
+	 */
+	@bindThis
+	public async getHasUnreadAbuseReport(userId: MiUser['id']): Promise<boolean> {
+		const card = await this.redisClient.scard(`unreadAbuseReport:${userId}`);
+		if (card > 0) return true;
+
+		const keyExists = await this.redisClient.exists(`unreadAbuseReport:${userId}`);
+		if (keyExists) return false;
+
+		// 明示的に既読にされていれば未読でない
+		const readMarkerExists = await this.redisClient.exists(`readAbuseReport:${userId}`);
+		if (readMarkerExists) return false;
+
+		// fail-closed: キー欠落・失効・flush後で未読マーカーも既読マーカーも無ければDBの未解決通報を見る.
+		// 自分が通報者/被通報者の通報は未読 Set にも入れないので、ここでも除外する.
+		return await this.abuseUserReportsRepository.exists({
+			where: {
+				resolved: false,
+				reporterId: Not(userId),
+				targetUserId: Not(userId),
+			},
+		});
+	}
+
 	@bindThis
 	public getOnlineStatus(user: MiUser): 'unknown' | 'online' | 'active' | 'offline' {
 		if (user.hideOnlineStatus) return 'unknown';
@@ -610,6 +643,7 @@ export class UserEntityService implements OnModuleInit {
 				isAdmin: isAdmin,
 				injectFeaturedNote: profile!.injectFeaturedNote,
 				receiveAnnouncementEmail: profile!.receiveAnnouncementEmail,
+				receiveAbuseReportIndicator: profile!.receiveAbuseReportIndicator,
 				alwaysMarkNsfw: profile!.alwaysMarkNsfw,
 				autoSensitive: profile!.autoSensitive,
 				carefulBot: profile!.carefulBot,
@@ -629,6 +663,10 @@ export class UserEntityService implements OnModuleInit {
 				hasUnreadChannel: false, // 後方互換性のため
 				hasUnreadNotification: notificationsInfo?.hasUnread, // 後方互換性のため
 				hasPendingReceivedFollowRequest: this.getHasPendingReceivedFollowRequest(user.id),
+				// モデレーターでない・インジケーターを無効にしているユーザには常に false を返す
+				hasUnreadAbuseReport: profile!.receiveAbuseReportIndicator
+					? isModerator!.then(m => m ? this.getHasUnreadAbuseReport(user.id) : false)
+					: false,
 				unreadNotificationsCount: notificationsInfo?.unreadCount,
 				mutedWords: profile!.mutedWords,
 				hardMutedWords: profile!.hardMutedWords,

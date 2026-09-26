@@ -52,6 +52,15 @@ export type paths = {
          */
         post: operations['admin___abuse-report-resolver___update'];
     };
+    '/admin/abuse-report/mark-as-read': {
+        /**
+         * admin/abuse-report/mark-as-read
+         * @description No description provided.
+         *
+         *     **Credential required**: *Yes* / **Permission**: *write:admin:resolve-abuse-user-report*
+         */
+        post: operations['admin___abuse-report___mark-as-read'];
+    };
     '/admin/abuse-report/notification-recipient/create': {
         /**
          * admin/abuse-report/notification-recipient/create
@@ -4625,6 +4634,7 @@ export type components = {
             isAdmin: boolean;
             injectFeaturedNote: boolean;
             receiveAnnouncementEmail: boolean;
+            receiveAbuseReportIndicator: boolean;
             alwaysMarkNsfw: boolean;
             autoSensitive: boolean;
             carefulBot: boolean;
@@ -4645,6 +4655,7 @@ export type components = {
             hasUnreadChatMessages: boolean;
             hasUnreadNotification: boolean;
             hasPendingReceivedFollowRequest: boolean;
+            hasUnreadAbuseReport: boolean;
             unreadNotificationsCount: number;
             mutedWords: string[][];
             hardMutedWords: string[][];
@@ -6696,6 +6707,61 @@ export interface operations {
                 };
             };
         };
+        responses: {
+            /** @description OK (without any results) */
+            204: {
+                headers: {
+                    [name: string]: unknown;
+                };
+            };
+            /** @description Client error */
+            400: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Authentication error */
+            401: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Forbidden error */
+            403: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description I'm Ai */
+            418: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+            /** @description Internal server error */
+            500: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    'application/json': components['schemas']['Error'];
+                };
+            };
+        };
+    };
+    'admin___abuse-report___mark-as-read': {
         responses: {
             /** @description OK (without any results) */
             204: {
@@ -30388,6 +30454,7 @@ export interface operations {
                     isCat?: boolean;
                     injectFeaturedNote?: boolean;
                     receiveAnnouncementEmail?: boolean;
+                    receiveAbuseReportIndicator?: boolean;
                     alwaysMarkNsfw?: boolean;
                     autoSensitive?: boolean;
                     /** @enum {string} */

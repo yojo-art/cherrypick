@@ -6,6 +6,7 @@
 import { describe, expect, beforeAll, afterAll, beforeEach, afterEach, test, vi } from 'vitest';
 import type { Mocked } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
+import * as Redis from 'ioredis';
 import { randomString } from '../utils.js';
 import { AbuseReportNotificationService } from '@/core/AbuseReportNotificationService.js';
 import {
@@ -46,6 +47,8 @@ describe('AbuseReportNotificationService', () => {
 	let roleService: Mocked<RoleService>;
 	let emailService: Mocked<EmailService>;
 	let webhookService: Mocked<SystemWebhookService>;
+	let globalEventService: Mocked<GlobalEventService>;
+	let redisClient: Redis.Redis;
 
 	// --------------------------------------------------------------------------------------
 
@@ -72,6 +75,25 @@ describe('AbuseReportNotificationService', () => {
 		});
 
 		return user;
+	}
+
+	function buildReport(data: { targetUser: MiUser; reporter: MiUser }): MiAbuseUserReport {
+		return {
+			id: idService.gen(),
+			targetUserId: data.targetUser.id,
+			targetUser: data.targetUser,
+			reporterId: data.reporter.id,
+			reporter: data.reporter,
+			assigneeId: null,
+			assignee: null,
+			resolved: false,
+			forwarded: false,
+			comment: 'test',
+			moderationNote: '',
+			resolvedAs: null,
+			targetUserHost: null,
+			reporterHost: null,
+		};
 	}
 
 	async function createWebhook(data: Partial<MiSystemWebhook> = {}) {
@@ -131,7 +153,7 @@ describe('AbuseReportNotificationService', () => {
 						provide: ModerationLogService, useFactory: () => ({ log: () => Promise.resolve() }),
 					},
 					{
-						provide: GlobalEventService, useFactory: () => ({ publishAdminStream: vi.fn() }),
+						provide: GlobalEventService, useFactory: () => ({ publishAdminStream: vi.fn(), publishMainStream: vi.fn() }),
 					},
 				],
 			})
@@ -147,6 +169,8 @@ describe('AbuseReportNotificationService', () => {
 		roleService = app.get(RoleService) as Mocked<RoleService>;
 		emailService = app.get<EmailService>(EmailService) as Mocked<EmailService>;
 		webhookService = app.get<SystemWebhookService>(SystemWebhookService) as Mocked<SystemWebhookService>;
+		globalEventService = app.get<GlobalEventService>(GlobalEventService) as Mocked<GlobalEventService>;
+		redisClient = app.get(DI.redis);
 
 		app.enableShutdownHooks();
 	});
@@ -164,6 +188,10 @@ describe('AbuseReportNotificationService', () => {
 	afterEach(async () => {
 		emailService.sendEmail.mockClear();
 		webhookService.enqueueSystemWebhook.mockClear();
+		globalEventService.publishMainStream.mockClear();
+		roleService.getModeratorIds.mockClear();
+
+		await redisClient.del(...[root, alice, bob].map(u => `unreadAbuseReport:${u.id}`));
 
 		await usersRepository.createQueryBuilder().delete().execute();
 		await userProfilesRepository.createQueryBuilder().delete().execute();
@@ -390,6 +418,76 @@ describe('AbuseReportNotificationService', () => {
 			expect(webhookService.enqueueSystemWebhook).toHaveBeenCalledTimes(1);
 			expect(webhookService.enqueueSystemWebhook.mock.calls[0][0]).toBe('abuseReport');
 			expect(webhookService.enqueueSystemWebhook.mock.calls[0][2]).toEqual({ excludes: [systemWebhook2.id] });
+		});
+	});
+
+	describe('notifyIndicator', () => {
+		let carol: MiUser;
+		let dave: MiUser;
+
+		beforeEach(async () => {
+			carol = await createUser({ username: 'carol', usernameLower: 'carol' });
+			dave = await createUser({ username: 'dave', usernameLower: 'dave' });
+		});
+
+		test('ロール未割当のrootも含めてモデレーター一覧を取得する', async () => {
+			await service.notifyIndicator([buildReport({ targetUser: carol, reporter: dave })]);
+
+			expect(roleService.getModeratorIds).toHaveBeenCalledWith({
+				includeAdmins: true,
+				includeRoot: true,
+				excludeExpire: true,
+			});
+		});
+
+		test('全モデレーターの未読Setに通報IDが追加され、meUpdatedが配信される', async () => {
+			const report = buildReport({ targetUser: carol, reporter: dave });
+
+			await service.notifyIndicator([report]);
+
+			for (const moderator of [root, alice, bob]) {
+				expect(await redisClient.smembers(`unreadAbuseReport:${moderator.id}`)).toEqual([report.id]);
+			}
+			await vi.waitFor(() => expect(globalEventService.publishMainStream).toHaveBeenCalledTimes(3));
+			expect(globalEventService.publishMainStream.mock.calls.map(c => c[0]).sort())
+				.toEqual([root.id, alice.id, bob.id].sort());
+			expect(globalEventService.publishMainStream.mock.calls.every(c => c[1] === 'meUpdated')).toBe(true);
+		});
+
+		test('通報者本人であるモデレーターの未読Setには追加されない', async () => {
+			const report = buildReport({ targetUser: carol, reporter: alice });
+
+			await service.notifyIndicator([report]);
+
+			expect(await redisClient.exists(`unreadAbuseReport:${alice.id}`)).toBe(0);
+			expect(await redisClient.smembers(`unreadAbuseReport:${bob.id}`)).toEqual([report.id]);
+		});
+
+		test('被通報者本人であるモデレーターの未読Setには追加されない', async () => {
+			const report = buildReport({ targetUser: alice, reporter: carol });
+
+			await service.notifyIndicator([report]);
+
+			expect(await redisClient.exists(`unreadAbuseReport:${alice.id}`)).toBe(0);
+			expect(await redisClient.smembers(`unreadAbuseReport:${bob.id}`)).toEqual([report.id]);
+		});
+	});
+
+	describe('clearIndicator', () => {
+		test('解決した通報IDだけが全モデレーターの未読Setから取り除かれ、meUpdatedが配信される', async () => {
+			const carol = await createUser({ username: 'carol', usernameLower: 'carol' });
+			const resolved = buildReport({ targetUser: carol, reporter: carol });
+			const remaining = buildReport({ targetUser: carol, reporter: carol });
+			for (const moderator of [root, alice, bob]) {
+				await redisClient.sadd(`unreadAbuseReport:${moderator.id}`, resolved.id, remaining.id);
+			}
+
+			await service.clearIndicator([resolved.id]);
+
+			for (const moderator of [root, alice, bob]) {
+				expect(await redisClient.smembers(`unreadAbuseReport:${moderator.id}`)).toEqual([remaining.id]);
+			}
+			await vi.waitFor(() => expect(globalEventService.publishMainStream).toHaveBeenCalledTimes(3));
 		});
 	});
 });

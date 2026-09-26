@@ -58,6 +58,14 @@ SPDX-License-Identifier: AGPL-3.0-only
 				</MkFolder>
 			</SearchMarker>
 		</FormSection>
+		<FormSection v-if="$i.isAdmin || $i.isModerator">
+			<SearchMarker :keywords="['abuse', 'report', 'moderator', 'indicator']">
+				<MkSwitch :modelValue="$i.receiveAbuseReportIndicator" @update:modelValue="onChangeReceiveAbuseReportIndicator">
+					<template #label><SearchLabel>{{ i18n.ts.receiveAbuseReportIndicator }}</SearchLabel></template>
+					<template #caption>{{ i18n.ts.receiveAbuseReportIndicatorDescription }}</template>
+				</MkSwitch>
+			</SearchMarker>
+		</FormSection>
 		<FormSection>
 			<div class="_gaps_m">
 				<FormLink to="/settings/sounds">{{ i18n.ts.notificationSoundSettings }}</FormLink>
@@ -140,6 +148,15 @@ const allowButton = useTemplateRef('allowButton');
 const pushRegistrationInServer = computed(() => allowButton.value?.pushRegistrationInServer);
 const sendReadMessage = computed(() => pushRegistrationInServer.value?.sendReadMessage || false);
 const userLists = await misskeyApi('users/lists/list');
+
+async function onChangeReceiveAbuseReportIndicator(v: boolean) {
+	await os.apiWithDialog('i/update', {
+		receiveAbuseReportIndicator: v,
+	}).then(i => {
+		$i.receiveAbuseReportIndicator = i.receiveAbuseReportIndicator;
+		$i.hasUnreadAbuseReport = i.hasUnreadAbuseReport;
+	});
+}
 
 async function readAllNotifications() {
 	await os.apiWithDialog('notifications/mark-all-as-read', {});

@@ -11,6 +11,7 @@
  */
 
 export * as 'admin/abort-full-index' from './endpoints/admin/abort-full-index.js';
+export * as 'admin/abuse-report/mark-as-read' from './endpoints/admin/abuse-report/mark-as-read.js';
 export * as 'admin/abuse-report/notification-recipient/create' from './endpoints/admin/abuse-report/notification-recipient/create.js';
 export * as 'admin/abuse-report/notification-recipient/delete' from './endpoints/admin/abuse-report/notification-recipient/delete.js';
 export * as 'admin/abuse-report/notification-recipient/list' from './endpoints/admin/abuse-report/notification-recipient/list.js';

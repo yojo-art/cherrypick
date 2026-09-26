@@ -34,6 +34,9 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 		@Inject(DI.abuseReportNotificationRecipientRepository)
 		private abuseReportNotificationRecipientRepository: AbuseReportNotificationRecipientRepository,
 
+		@Inject(DI.redis)
+		private redisClient: Redis.Redis,
+
 		@Inject(DI.redisForSub)
 		private redisForSub: Redis.Redis,
 
@@ -79,6 +82,95 @@ export class AbuseReportNotificationService implements OnApplicationShutdown {
 					},
 				);
 			}
+		}
+	}
+
+	/**
+	 * ナビゲーションの通報インジケーター用に、各モデレーターの未読 Set
+	 * (`unreadAbuseReport:{userId}`) へ{@link abuseReports}の ID を追加し、MeDetailed を配信する.
+	 * **upstream には無い機能** — in-app 通知と違い、既読化 (`admin/abuse-report/mark-as-read`) と
+	 * 解決 ({@link clearIndicator}) で点灯が消えるため、対処済みの通報が残り続けない。
+	 * 通知先ユーザは{@link getModeratorIds}の取得結果に依る (ロール未割当の root も含める)。
+	 * 通報者自身・被通報者自身であるモデレーターの Set には入れない。
+	 *
+	 * `receiveAbuseReportIndicator` が無効なモデレーターにも Set には記録する
+	 * (後から有効化したときに未確認分が点灯するように)。表示可否は MeDetailed 側で判定する。
+	 *
+	 * @see RoleService.getModeratorIds
+	 * @see UserEntityService.getHasUnreadAbuseReport
+	 */
+	@bindThis
+	public async notifyIndicator(abuseReports: MiAbuseUserReport[]) {
+		if (abuseReports.length <= 0) {
+			return;
+		}
+
+		const moderatorIds = await this.roleService.getModeratorIds({
+			includeAdmins: true,
+			includeRoot: true,
+			excludeExpire: true,
+		});
+
+		const notifiedModeratorIds: MiUser['id'][] = [];
+		const pipeline = this.redisClient.pipeline();
+		for (const moderatorId of moderatorIds) {
+			const reportIds = abuseReports
+				.filter(it => it.reporterId !== moderatorId && it.targetUserId !== moderatorId)
+				.map(it => it.id);
+			if (reportIds.length <= 0) continue;
+
+			pipeline.sadd(`unreadAbuseReport:${moderatorId}`, ...reportIds);
+			notifiedModeratorIds.push(moderatorId);
+		}
+
+		if (notifiedModeratorIds.length <= 0) {
+			return;
+		}
+
+		await pipeline.exec();
+
+		this.publishMeUpdated(notifiedModeratorIds);
+	}
+
+	/**
+	 * 解決された{@link reportIds}を全モデレーターの未読 Set から取り除き、MeDetailed を配信する.
+	 * 他のモデレーターが解決した時点で全員のインジケーターが消えるようにするため。
+	 *
+	 * @see notifyIndicator
+	 */
+	@bindThis
+	public async clearIndicator(reportIds: MiAbuseUserReport['id'][]) {
+		if (reportIds.length <= 0) {
+			return;
+		}
+
+		const moderatorIds = await this.roleService.getModeratorIds({
+			includeAdmins: true,
+			includeRoot: true,
+			excludeExpire: true,
+		});
+
+		if (moderatorIds.length <= 0) {
+			return;
+		}
+
+		const pipeline = this.redisClient.pipeline();
+		for (const moderatorId of moderatorIds) {
+			pipeline.srem(`unreadAbuseReport:${moderatorId}`, ...reportIds);
+		}
+		await pipeline.exec();
+
+		this.publishMeUpdated(moderatorIds);
+	}
+
+	@bindThis
+	private publishMeUpdated(userIds: MiUser['id'][]) {
+		for (const userId of userIds) {
+			this.userEntityService.pack(userId, { id: userId }, {
+				schema: 'MeDetailed',
+			}).then(packed => this.globalEventService.publishMainStream(userId, 'meUpdated', packed))
+				// best-effort: 配信できなくても次回の /i 取得で反映されるため握りつぶす
+				.catch(() => {});
 		}
 	}
 
