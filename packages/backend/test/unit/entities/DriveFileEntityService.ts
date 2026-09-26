@@ -411,6 +411,29 @@ describe('DriveFileEntityService.getPublicUrl', () => {
 				});
 				assert.strictEqual(result, 'https://ap-files.example.com/files/public');
 			});
+
+			test('allowProxiedUrlがfalseでもオリジンを置換する', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					ap: true,
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://ap-files.example.com/files/public');
+			});
+
+			test('apがfalseならallowProxiedUrlがfalseでもオリジンを置換しない', () => {
+				const service = createService({
+					apFileBaseUrl: 'https://ap-files.example.com',
+				});
+				const result = service.getPublicUrl({
+					file: driveFile(),
+					allowProxiedUrl: false,
+				});
+				assert.strictEqual(result, 'https://example.com/files/public');
+			});
 		});
 	});
 });

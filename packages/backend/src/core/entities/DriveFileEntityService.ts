@@ -82,10 +82,23 @@ export class DriveFileEntityService {
 		return appendQuery(
 			`${this.config.mediaProxy}/${mode ?? 'image'}.webp`,
 			query({
-				url,
+				url: this.unwrapProxiedUrl(url),
 				...(mode ? { [mode]: '1' } : {}),
 			}),
 		);
+	}
+
+	/**
+	 * 既にメディアプロキシのURLになっている場合は元のURLを取り出す (二重プロキシ防止)
+	 */
+	@bindThis
+	private unwrapProxiedUrl(url: string): string {
+		if (!url.startsWith(`${this.config.mediaProxy}/`)) return url;
+		try {
+			return new URL(url).searchParams.get('url') ?? url;
+		} catch {
+			return url;
+		}
 	}
 
 	@bindThis
@@ -124,7 +137,8 @@ export class DriveFileEntityService {
 		allowProxiedUrl?: boolean
 	}): string { // static = thumbnail
 		if (!allowProxiedUrl) {
-			return file.webpublicUrl ?? file.url;
+			const url = file.webpublicUrl ?? file.url;
+			return ap ? this.applyApFileBaseUrl(url) : url;
 		}
 
 		// PublicUrlにはexternalMediaProxyEnabledでもremoteProxyを使う
@@ -161,16 +175,26 @@ export class DriveFileEntityService {
 			return this.getProxiedUrl(url, 'avatar');
 		}
 
-		if (ap && this.config.apFileBaseUrl) {
-			const baseUrl = this.config.apFileBaseUrl;
-			const isValidBaseUrl = /^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}(\/.*)?$/i.test(baseUrl);
-			if (isValidBaseUrl) {
-				const trimmedBaseUrl = baseUrl.replace(/\/$/, '');
-				return url.replace(/^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}/, trimmedBaseUrl);
-			}
+		if (ap) {
+			return this.applyApFileBaseUrl(url);
 		}
 
 		return url;
+	}
+
+	/**
+	 * AP で配信するファイルURLのオリジンを apFileBaseUrl に置き換える
+	 */
+	@bindThis
+	private applyApFileBaseUrl(url: string): string {
+		if (!this.config.apFileBaseUrl) return url;
+
+		const baseUrl = this.config.apFileBaseUrl;
+		const isValidBaseUrl = /^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}(\/.*)?$/i.test(baseUrl);
+		if (!isValidBaseUrl) return url;
+
+		const trimmedBaseUrl = baseUrl.replace(/\/$/, '');
+		return url.replace(/^https?:\/\/[\w.-]+\.[a-zA-Z]{2,}/, trimmedBaseUrl);
 	}
 
 	@bindThis
