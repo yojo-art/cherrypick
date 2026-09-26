@@ -532,7 +532,7 @@ export class UserEntityService implements OnModuleInit {
 				offsetY: ud.offsetY || undefined,
 				scale: ud.scale || undefined,
 				opacity: ud.opacity || undefined,
-				url: decorations.find(d => d.id === ud.id)!.url,
+				url: this.avatarDecorationService.getPublicUrl(decorations.find(d => d.id === ud.id)!),
 			}))) : [],
 			isLocked: user.isLocked,
 			isBot: user.isBot,

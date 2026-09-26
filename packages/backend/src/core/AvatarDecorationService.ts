@@ -124,10 +124,32 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 		return appendQuery(
 			`${this.config.mediaProxy}/${mode ?? 'image'}.webp`,
 			query({
-				url,
+				url: this.unwrapProxiedUrl(url),
 				...(mode ? { [mode]: '1' } : {}),
 			}),
 		);
+	}
+
+	/**
+	 * 既にメディアプロキシのURLになっている場合は元のURLを取り出す (二重プロキシ防止)
+	 */
+	@bindThis
+	private unwrapProxiedUrl(url: string): string {
+		if (!url.startsWith(`${this.config.mediaProxy}/`)) return url;
+		try {
+			return new URL(url).searchParams.get('url') ?? url;
+		} catch {
+			return url;
+		}
+	}
+
+	/**
+	 * DBにはプロキシを通さないURLを保存しているため、リモートのデコレーションはAPIで返す際にメディアプロキシのURLを付与する
+	 */
+	@bindThis
+	public getPublicUrl(decoration: Pick<MiAvatarDecoration, 'url' | 'host'>): string {
+		if (decoration.host == null) return decoration.url;
+		return this.getProxiedUrl(decoration.url, 'avatar');
 	}
 
 	@bindThis
@@ -194,7 +216,7 @@ export class AvatarDecorationService implements OnApplicationShutdown {
 			const decorationData = {
 				name: name,
 				description: description,
-				url: this.getProxiedUrl(avatarDecoration.url, 'avatar'),
+				url: avatarDecoration.url,
 				remoteId: avatarDecorationId,
 				host: userHost,
 				rawUrl: avatarDecoration.url,

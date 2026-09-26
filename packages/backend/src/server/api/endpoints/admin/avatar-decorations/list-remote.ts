@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { DI } from '@/di-symbols.js';
 import { IdService } from '@/core/IdService.js';
 import { QueryService } from '@/core/QueryService.js';
+import { AvatarDecorationService } from '@/core/AvatarDecorationService.js';
 import type { AvatarDecorationsRepository } from '@/models/_.js';
 
 export const meta = {
@@ -92,6 +93,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 		private idService: IdService,
 		private queryService: QueryService,
+		private avatarDecorationService: AvatarDecorationService,
 	) {
 		super(meta, paramDef, async (ps, me) => {
 			const query = this.queryService.makePaginationQuery(
@@ -111,7 +113,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				updatedAt: avatarDecorations.updatedAt?.toISOString() ?? null,
 				name: avatarDecorations.name,
 				description: avatarDecorations.description,
-				url: avatarDecorations.url,
+				url: this.avatarDecorationService.getPublicUrl(avatarDecorations),
 				roleIdsThatCanBeUsedThisDecoration: avatarDecorations.roleIdsThatCanBeUsedThisDecoration,
 				host: avatarDecorations.host!,
 			}));
