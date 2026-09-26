@@ -411,7 +411,7 @@ export class UserEntityService implements OnModuleInit {
 	 */
 	@bindThis
 	public getAvatarUrl(user: MiUser): string {
-		if (user.avatarId == null || user.avatarUrl == null) return this.getIdenticonUrl(user);
+		if (user.avatarId == null || !user.avatarUrl) return this.getIdenticonUrl(user);
 		return this.driveFileEntityService.getProxiedUrl(user.avatarUrl, 'avatar');
 	}
 
@@ -420,7 +420,7 @@ export class UserEntityService implements OnModuleInit {
 	 */
 	@bindThis
 	public getBannerUrl(user: MiUser): string | null {
-		if (user.bannerId == null || user.bannerUrl == null) return null;
+		if (user.bannerId == null || !user.bannerUrl) return null;
 		if (user.host == null) return user.bannerUrl;
 		return this.driveFileEntityService.getProxiedUrl(user.bannerUrl);
 	}

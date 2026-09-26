@@ -298,6 +298,20 @@ describe('UserEntityService', () => {
 				expect(service.getAvatarUrl(user)).toBe(service.getIdenticonUrl(user));
 			});
 
+			test('avatarUrlが空文字ならidenticonのURLを返す', () => {
+				const user = makeUser({ avatarId: 'file1', avatarUrl: '' });
+				expect(service.getAvatarUrl(user)).toBe(service.getIdenticonUrl(user));
+			});
+
+			test('avatarUrlが既にプロキシURLでも二重にプロキシしない', () => {
+				const proxied = `${config.mediaProxy}/avatar.webp?url=${encodeURIComponent('https://remote.example.com/files/avatar.png')}&avatar=1`;
+				const user = makeUser({ avatarId: 'file1', avatarUrl: proxied, host: 'remote.example.com' });
+				const actual = new URL(service.getAvatarUrl(user));
+
+				expect(`${actual.origin}${actual.pathname}`).toBe(`${config.mediaProxy}/avatar.webp`);
+				expect(actual.searchParams.get('url')).toBe('https://remote.example.com/files/avatar.png');
+			});
+
 			test('リモートユーザーのバナーはプロキシURLを返す', () => {
 				const user = makeUser({ bannerId: 'file2', bannerUrl: 'https://remote.example.com/files/banner.png', host: 'remote.example.com' });
 				const actual = new URL(service.getBannerUrl(user)!);

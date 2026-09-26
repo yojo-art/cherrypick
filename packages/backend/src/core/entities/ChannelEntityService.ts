@@ -81,7 +81,7 @@ export class ChannelEntityService {
 				?? await this.usersRepository.findOneBy({ id: channel.actorId });
 			channel.actor = actor;
 			// DBにはプロキシを通さないURLを保存しているため、返す際にメディアプロキシのURLを付与する
-			iconUrl = actor?.avatarId != null && actor.avatarUrl != null ? this.driveFileEntityService.getProxiedUrl(actor.avatarUrl, 'avatar') : null;
+			iconUrl = actor?.avatarId != null && actor.avatarUrl ? this.driveFileEntityService.getProxiedUrl(actor.avatarUrl, 'avatar') : null;
 		}
 
 		let isFollowing = false;

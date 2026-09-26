@@ -11,8 +11,8 @@ export class NormalizeUserAvatarBannerUrl1790435604498 {
      * @param {QueryRunner} queryRunner
      */
     async up(queryRunner) {
-        await queryRunner.query(`UPDATE "user" SET "avatarUrl" = COALESCE("drive_file"."webpublicUrl", "drive_file"."url") FROM "drive_file" WHERE "user"."avatarId" = "drive_file"."id"`);
-        await queryRunner.query(`UPDATE "user" SET "bannerUrl" = COALESCE("drive_file"."webpublicUrl", "drive_file"."url") FROM "drive_file" WHERE "user"."bannerId" = "drive_file"."id"`);
+        await queryRunner.query(`UPDATE "user" SET "avatarUrl" = NULLIF(COALESCE("drive_file"."webpublicUrl", "drive_file"."url"), '') FROM "drive_file" WHERE "user"."avatarId" = "drive_file"."id"`);
+        await queryRunner.query(`UPDATE "user" SET "bannerUrl" = NULLIF(COALESCE("drive_file"."webpublicUrl", "drive_file"."url"), '') FROM "drive_file" WHERE "user"."bannerId" = "drive_file"."id"`);
     }
 
     /**
