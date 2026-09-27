@@ -582,6 +582,9 @@ export const PREF_DEF = definePreferences({
 	showUnreadNotificationsCount: {
 		default: false,
 	},
+	abuseReportIndicator: {
+		default: true,
+	},
 	setFederationAvatarShape: {
 		default: true,
 	},

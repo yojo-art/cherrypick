@@ -4691,11 +4691,11 @@ export interface Locale extends ILocale {
      */
     "thereIsUnresolvedAbuseReportWarning": string;
     /**
-     * 未確認の通報をナビゲーションで知らせる
+     * 未解決の通報をナビゲーションで知らせる
      */
     "receiveAbuseReportIndicator": string;
     /**
-     * 新しい通報があると、ナビゲーションの「通報」が点滅します。通報ページを開くか、通報が解決されると消えます。
+     * 未解決の通報があると、ナビゲーションの「通報」が点滅します。すべて解決されると消えます。この設定は端末ごとに保存されます。
      */
     "receiveAbuseReportIndicatorDescription": string;
     /**

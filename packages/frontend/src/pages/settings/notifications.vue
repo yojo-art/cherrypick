@@ -60,10 +60,12 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</FormSection>
 		<FormSection v-if="$i.isAdmin || $i.isModerator">
 			<SearchMarker :keywords="['abuse', 'report', 'moderator', 'indicator']">
-				<MkSwitch :modelValue="$i.receiveAbuseReportIndicator" @update:modelValue="onChangeReceiveAbuseReportIndicator">
-					<template #label><SearchLabel>{{ i18n.ts.receiveAbuseReportIndicator }}</SearchLabel></template>
-					<template #caption>{{ i18n.ts.receiveAbuseReportIndicatorDescription }}</template>
-				</MkSwitch>
+				<MkPreferenceContainer k="abuseReportIndicator">
+					<MkSwitch v-model="abuseReportIndicator">
+						<template #label><SearchLabel>{{ i18n.ts.receiveAbuseReportIndicator }}</SearchLabel></template>
+						<template #caption>{{ i18n.ts.receiveAbuseReportIndicatorDescription }}</template>
+					</MkSwitch>
+				</MkPreferenceContainer>
 			</SearchMarker>
 		</FormSection>
 		<FormSection>
@@ -116,6 +118,8 @@ import MkPagination from '@/components/MkPagination.vue';
 import { userPage } from '@/filters/user.js';
 import MkUserCardMini from '@/components/MkUserCardMini.vue';
 import { flushNotification } from '@/utility/check-nortification-delete.js';
+import MkPreferenceContainer from '@/components/MkPreferenceContainer.vue';
+import { prefer } from '@/preferences.js';
 
 const $i = ensureSignin();
 
@@ -149,14 +153,7 @@ const pushRegistrationInServer = computed(() => allowButton.value?.pushRegistrat
 const sendReadMessage = computed(() => pushRegistrationInServer.value?.sendReadMessage || false);
 const userLists = await misskeyApi('users/lists/list');
 
-async function onChangeReceiveAbuseReportIndicator(v: boolean) {
-	await os.apiWithDialog('i/update', {
-		receiveAbuseReportIndicator: v,
-	}).then(i => {
-		$i.receiveAbuseReportIndicator = i.receiveAbuseReportIndicator;
-		$i.hasUnreadAbuseReport = i.hasUnreadAbuseReport;
-	});
-}
+const abuseReportIndicator = prefer.model('abuseReportIndicator');
 
 async function readAllNotifications() {
 	await os.apiWithDialog('notifications/mark-all-as-read', {});

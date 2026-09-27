@@ -31,6 +31,7 @@ import { isBirthday } from '@/utility/is-birthday.js';
 import { userName } from '@/filters/user.js';
 import { misskeyApi } from '@/utility/misskey-api.js';
 import * as os from '@/os.js';
+import { fetchUnresolvedAbuseReport } from '@/utility/unresolved-abuse-report.js';
 
 export async function mainBoot() {
 	const { isClientUpdated, isClientMigrated } = await common(async () => {
@@ -106,6 +107,9 @@ export async function mainBoot() {
 	}
 
 	if ($i) {
+		// ナビゲーションの「通報」の点滅用 (モデレーター以外では何もしない)
+		fetchUnresolvedAbuseReport();
+
 		store.loaded.then(async () => {
 			if (store.s.accountSetupWizard !== -1) {
 				const { dispose } = popup(defineAsyncComponent(() => import('@/components/MkUserSetupDialog.vue')), {}, {
@@ -335,6 +339,14 @@ export async function mainBoot() {
 			stream.on('announcementCreated', onAnnouncementCreated);
 
 			const main = markRaw(stream.useChannel('main', null, 'System'));
+
+			// ナビゲーションの「通報」の点滅用
+			if ($i.isAdmin || $i.isModerator) {
+				const admin = markRaw(stream.useChannel('admin', null, 'System'));
+				admin.on('newAbuseUserReport', () => {
+					fetchUnresolvedAbuseReport();
+				});
+			}
 
 			// 自分の情報が更新されたとき
 			main.on('meUpdated', i => {

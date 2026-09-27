@@ -14,6 +14,8 @@ import { lookup } from '@/utility/lookup.js';
 import * as os from '@/os.js';
 import { i18n } from '@/i18n.js';
 import { unisonReload } from '@/utility/unison-reload.js';
+import { prefer } from '@/preferences.js';
+import { hasUnresolvedAbuseReport } from '@/utility/unresolved-abuse-report.js';
 
 export const navbarItemDef = reactive<{
 	[key: string]: {
@@ -58,7 +60,7 @@ export const navbarItemDef = reactive<{
 		title: i18n.ts.abuseReports,
 		icon: 'ti ti-exclamation-circle',
 		show: computed(() => $i != null && ($i.isAdmin || $i.isModerator)),
-		indicated: computed(() => $i != null && $i.hasUnreadAbuseReport),
+		indicated: computed(() => prefer.r.abuseReportIndicator.value && hasUnresolvedAbuseReport.value),
 		to: '/admin/abuses',
 	},
 	explore: {

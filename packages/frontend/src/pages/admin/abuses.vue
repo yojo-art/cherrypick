@@ -82,7 +82,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 </template>
 
 <script lang="ts" setup>
-import { computed, ref, markRaw, watch } from 'vue';
+import { computed, ref, markRaw } from 'vue';
 import * as os from '@/os.js';
 import MkSelect from '@/components/MkSelect.vue';
 import MkPagination from '@/components/MkPagination.vue';
@@ -94,7 +94,7 @@ import { definePage } from '@/page.js';
 import { useMkSelect } from '@/composables/use-mkselect.js';
 import MkButton from '@/components/MkButton.vue';
 import { Paginator } from '@/utility/paginator.js';
-import { misskeyApi } from '@/utility/misskey-api.js';
+import { fetchUnresolvedAbuseReport } from '@/utility/unresolved-abuse-report.js';
 
 const {
 	model: state,
@@ -174,14 +174,6 @@ const paginator = markRaw(new Paginator('admin/abuse-user-reports', {
 	})),
 }));
 
-// 一覧の取得が完了したら、ナビゲーションの通報インジケーターを既読にする.
-// 一覧タブへ戻ったときやフィルタ変更時も MkPagination が再取得するので、取得完了 (true → false) の瞬間だけを見る
-watch(() => paginator.fetching.value, (fetching, prevFetching) => {
-	if (!prevFetching || fetching) return;
-	if (tab.value !== 'list' || paginator.error.value) return;
-	misskeyApi('admin/abuse-report/mark-as-read', {});
-});
-
 const resolverPaginator = markRaw(new Paginator('admin/abuse-report-resolver/list', {
 	limit: 10,
 }));
@@ -193,6 +185,7 @@ const searchHostEl = ref(null);
 
 function resolved(reportId: string) {
 	paginator.removeItem(reportId);
+	fetchUnresolvedAbuseReport();
 }
 
 function edit(id: string) {

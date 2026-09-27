@@ -206,7 +206,6 @@ export const paramDef = {
 		isCat: { type: 'boolean' },
 		injectFeaturedNote: { type: 'boolean' },
 		receiveAnnouncementEmail: { type: 'boolean' },
-		receiveAbuseReportIndicator: { type: 'boolean' },
 		alwaysMarkNsfw: { type: 'boolean' },
 		autoSensitive: { type: 'boolean' },
 		followingVisibility: { type: 'string', enum: ['public', 'followers', 'private'] },
@@ -413,7 +412,6 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			if (typeof ps.isCat === 'boolean') updates.isCat = ps.isCat;
 			if (typeof ps.injectFeaturedNote === 'boolean') profileUpdates.injectFeaturedNote = ps.injectFeaturedNote;
 			if (typeof ps.receiveAnnouncementEmail === 'boolean') profileUpdates.receiveAnnouncementEmail = ps.receiveAnnouncementEmail;
-			if (typeof ps.receiveAbuseReportIndicator === 'boolean') profileUpdates.receiveAbuseReportIndicator = ps.receiveAbuseReportIndicator;
 			if (typeof ps.alwaysMarkNsfw === 'boolean') {
 				policies ??= await this.roleService.getUserPolicies(user.id);
 				if (policies.alwaysMarkNsfw) throw new ApiError(meta.errors.restrictedByRole);
