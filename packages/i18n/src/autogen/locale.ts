@@ -6563,6 +6563,10 @@ export interface Locale extends ILocale {
      * ピクセルアート拡大モード
      */
     "pixelatedZoom": string;
+    /**
+     * 変更する場合は入力してください
+     */
+    "leaveEmptyToKeepCurrent": string;
     "_imageEditing": {
         "_vars": {
             /**

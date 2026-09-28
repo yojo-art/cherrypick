@@ -63,7 +63,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 							<template v-if="provider === 'deepl'">
 								<div class="_gaps_m">
 									<SearchMarker>
-										<MkInput v-model="deeplAuthKey">
+										<MkInput v-model="deeplAuthKey" type="password" autocomplete="new-password" :placeholder="meta.hasDeeplAuthKey ? i18n.ts.leaveEmptyToKeepCurrent.toString() : ''">
 											<template #prefix><i class="ti ti-key"></i></template>
 											<template #label><SearchLabel>Auth Key</SearchLabel></template>
 										</MkInput>
@@ -164,7 +164,7 @@ const provider = ref<(typeof translateServices)[number] | null>(
 		? meta.translatorType as (typeof translateServices)[number]
 		: null,
 );
-const deeplAuthKey = ref(meta.deeplAuthKey ?? '');
+const deeplAuthKey = ref('');
 const deeplIsPro = ref(meta.deeplIsPro);
 const ctav3SaKey = ref(meta.ctav3SaKey ?? '');
 const ctav3ProjectId = ref(meta.ctav3ProjectId ?? '');
@@ -178,7 +178,7 @@ const googleAnalyticsMeasurementId = ref(meta.googleAnalyticsMeasurementId ?? ''
 function save_deepl() {
 	os.apiWithDialog('admin/update-meta', {
 		translatorType: provider.value,
-		deeplAuthKey: deeplAuthKey.value,
+		deeplAuthKey: deeplAuthKey.value === '' ? undefined : deeplAuthKey.value,
 		deeplIsPro: deeplIsPro.value,
 		ctav3SaKey: ctav3SaKey.value,
 		ctav3ProjectId: ctav3ProjectId.value,

@@ -212,21 +212,21 @@ export const meta = {
 					type: 'string',
 				},
 			},
-			hcaptchaSecretKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasHcaptchaSecretKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
-			mcaptchaSecretKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasMcaptchaSecretKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
-			recaptchaSecretKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasRecaptchaSecretKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
-			turnstileSecretKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasTurnstileSecretKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			sensitiveMediaDetection: {
 				type: 'string',
@@ -287,13 +287,13 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			smtpPass: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasSmtpPass: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
-			swPrivateKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasSwPrivateKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			useObjectStorage: {
 				type: 'boolean',
@@ -327,9 +327,9 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			objectStorageSecretKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasObjectStorageSecretKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			objectStorageUseSSL: {
 				type: 'boolean',
@@ -403,9 +403,9 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
-			verifymailAuthKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasVerifymailAuthKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			enableTruemailApi: {
 				type: 'boolean',
@@ -415,9 +415,9 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			truemailAuthKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasTruemailAuthKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			enableChartsForRemoteUser: {
 				type: 'boolean',
@@ -483,9 +483,9 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			deeplAuthKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasDeeplAuthKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			deeplIsPro: {
 				type: 'boolean',
@@ -868,10 +868,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				prohibitedWords: instance.prohibitedWords,
 				prohibitedWordsForNameOfUser: instance.prohibitedWordsForNameOfUser,
 				preservedUsernames: instance.preservedUsernames,
-				hcaptchaSecretKey: instance.hcaptchaSecretKey,
-				mcaptchaSecretKey: instance.mcaptchaSecretKey,
-				recaptchaSecretKey: instance.recaptchaSecretKey,
-				turnstileSecretKey: instance.turnstileSecretKey,
+				hasHcaptchaSecretKey: instance.hcaptchaSecretKey !== null,
+				hasMcaptchaSecretKey: instance.mcaptchaSecretKey !== null,
+				hasRecaptchaSecretKey: instance.recaptchaSecretKey !== null,
+				hasTurnstileSecretKey: instance.turnstileSecretKey !== null,
 				sensitiveMediaDetection: instance.sensitiveMediaDetection,
 				sensitiveMediaDetectionSensitivity: instance.sensitiveMediaDetectionSensitivity,
 				setSensitiveFlagAutomatically: instance.setSensitiveFlagAutomatically,
@@ -886,8 +886,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				smtpHost: instance.smtpHost,
 				smtpPort: instance.smtpPort,
 				smtpUser: instance.smtpUser,
-				smtpPass: instance.smtpPass,
-				swPrivateKey: instance.swPrivateKey,
+				hasSmtpPass: instance.smtpPass !== null,
+				hasSwPrivateKey: instance.swPrivateKey !== null,
 				useObjectStorage: instance.useObjectStorage,
 				objectStorageBaseUrl: instance.objectStorageBaseUrl,
 				objectStorageBucket: instance.objectStorageBucket,
@@ -896,7 +896,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				objectStorageRegion: instance.objectStorageRegion,
 				objectStoragePort: instance.objectStoragePort,
 				objectStorageAccessKey: instance.objectStorageAccessKey,
-				objectStorageSecretKey: instance.objectStorageSecretKey,
+				hasObjectStorageSecretKey: instance.objectStorageSecretKey !== null,
 				objectStorageUseSSL: instance.objectStorageUseSSL,
 				objectStorageUseProxy: instance.objectStorageUseProxy,
 				objectStorageSetPublicRead: instance.objectStorageSetPublicRead,
@@ -914,7 +914,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				remoteObjectStorageUseProxy: instance.remoteObjectStorageUseProxy,
 				remoteObjectStorageSetPublicRead: instance.remoteObjectStorageSetPublicRead,
 				remoteObjectStorageS3ForcePathStyle: instance.remoteObjectStorageS3ForcePathStyle,
-				deeplAuthKey: instance.deeplAuthKey,
+				hasDeeplAuthKey: instance.deeplAuthKey !== null,
 				deeplIsPro: instance.deeplIsPro,
 				ctav3SaKey: instance.ctav3SaKey,
 				ctav3ProjectId: instance.ctav3ProjectId,
@@ -926,10 +926,10 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				enableIpLogging: instance.enableIpLogging,
 				enableActiveEmailValidation: instance.enableActiveEmailValidation,
 				enableVerifymailApi: instance.enableVerifymailApi,
-				verifymailAuthKey: instance.verifymailAuthKey,
+				hasVerifymailAuthKey: instance.verifymailAuthKey !== null,
 				enableTruemailApi: instance.enableTruemailApi,
 				truemailInstance: instance.truemailInstance,
-				truemailAuthKey: instance.truemailAuthKey,
+				hasTruemailAuthKey: instance.truemailAuthKey !== null,
 				enableChartsForRemoteUser: instance.enableChartsForRemoteUser,
 				enableChartsForFederatedInstances: instance.enableChartsForFederatedInstances,
 				enableStatsForFederatedInstances: instance.enableStatsForFederatedInstances,

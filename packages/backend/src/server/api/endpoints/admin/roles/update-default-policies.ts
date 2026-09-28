@@ -8,6 +8,7 @@ import { Endpoint } from '@/server/api/endpoint-base.js';
 import { GlobalEventService } from '@/core/GlobalEventService.js';
 import { MetaService } from '@/core/MetaService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
+import { maskMetaSecrets } from '@/misc/mask-secret.js';
 
 export const meta = {
 	tags: ['admin', 'role'],
@@ -47,8 +48,8 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 
 			this.globalEventService.publishInternalEvent('policiesUpdated', after.policies);
 			this.moderationLogService.log(me, 'updateServerSettings', {
-				before: before.policies,
-				after: after.policies,
+				before: maskMetaSecrets(before.policies),
+				after: maskMetaSecrets(after.policies),
 			});
 		});
 	}

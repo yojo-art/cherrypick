@@ -47,7 +47,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 										</MkInput>
 									</SearchMarker>
 									<SearchMarker>
-										<MkInput v-model="smtpPass" type="password" autocomplete="new-password">
+										<MkInput v-model="smtpPass" type="password" autocomplete="new-password" :placeholder="meta.hasSmtpPass ? i18n.ts.leaveEmptyToKeepCurrent.toString() : ''">
 											<template #label><SearchLabel>{{ i18n.ts.smtpPass }}</SearchLabel></template>
 										</MkInput>
 									</SearchMarker>
@@ -103,7 +103,7 @@ const smtpSecure = ref(meta.smtpSecure);
 const smtpHost = ref(meta.smtpHost);
 const smtpPort = ref(meta.smtpPort);
 const smtpUser = ref(meta.smtpUser);
-const smtpPass = ref(meta.smtpPass);
+const smtpPass = ref('');
 
 async function testEmail() {
 	const { canceled, result: destination } = await os.inputText({
@@ -129,7 +129,7 @@ function save() {
 		smtpHost: smtpHost.value,
 		smtpPort: smtpPort.value,
 		smtpUser: smtpUser.value,
-		smtpPass: smtpPass.value,
+		smtpPass: smtpPass.value === '' ? undefined : smtpPass.value,
 	}).then(() => {
 		fetchInstance(true);
 	});

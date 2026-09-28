@@ -141,7 +141,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</SearchMarker>
 
 								<SearchMarker>
-									<MkInput v-model="serviceWorkerForm.state.swPrivateKey">
+									<MkInput v-model="serviceWorkerForm.state.swPrivateKey" type="password" :placeholder="meta.hasSwPrivateKey ? i18n.ts.leaveEmptyToKeepCurrent.toString() : ''">
 										<template #label><SearchLabel>Private key</SearchLabel><span v-if="serviceWorkerForm.modifiedStates.swPrivateKey" class="_modified">{{ i18n.ts.modified }}</span></template>
 										<template #prefix><i class="ti ti-key"></i></template>
 									</MkInput>
@@ -485,12 +485,12 @@ const pinnedUsersForm = useForm({
 const serviceWorkerForm = useForm({
 	enableServiceWorker: meta.enableServiceWorker,
 	swPublicKey: meta.swPublickey ?? '',
-	swPrivateKey: meta.swPrivateKey ?? '',
+	swPrivateKey: '',
 }, async (state) => {
 	await os.apiWithDialog('admin/update-meta', {
 		enableServiceWorker: state.enableServiceWorker,
 		swPublicKey: state.swPublicKey,
-		swPrivateKey: state.swPrivateKey,
+		swPrivateKey: state.swPrivateKey === '' ? undefined : state.swPrivateKey,
 	});
 	fetchInstance(true);
 });

@@ -13,6 +13,7 @@ import { bindThis } from '@/decorators.js';
 import { IdService } from '@/core/IdService.js';
 import type { Packed } from '@/misc/json-schema.js';
 import { UserEntityService } from './UserEntityService.js';
+import { maskMetaSecrets } from '@/misc/mask-secret.js';
 
 @Injectable()
 export class ModerationLogEntityService {
@@ -34,11 +35,20 @@ export class ModerationLogEntityService {
 	) {
 		const log = typeof src === 'object' ? src : await this.moderationLogsRepository.findOneByOrFail({ id: src });
 
+		let info = log.info;
+		if (log.type === 'updateServerSettings' && info && typeof info === 'object') {
+			info = {
+				...info,
+				before: maskMetaSecrets(info.before),
+				after: maskMetaSecrets(info.after),
+			};
+		}
+
 		return await awaitAll({
 			id: log.id,
 			createdAt: this.idService.parse(log.id).date.toISOString(),
 			type: log.type,
-			info: log.info,
+			info,
 			userId: log.userId,
 			user: hint?.packedUser ?? this.userEntityService.pack(log.user ?? log.userId, null, {
 				schema: 'UserDetailedNotMe',
