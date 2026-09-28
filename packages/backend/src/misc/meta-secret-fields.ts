@@ -14,4 +14,7 @@ export const META_SECRET_FIELDS = [
 	'deeplAuthKey',
 	'verifymailAuthKey',
 	'truemailAuthKey',
+	'remoteObjectStorageSecretKey',
+	'ctav3SaKey',
+	'libreTranslateApiKey',
 ] as const;

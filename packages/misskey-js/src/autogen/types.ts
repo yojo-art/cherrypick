@@ -11005,7 +11005,7 @@ export interface operations {
                         remoteObjectStorageRegion: string | null;
                         remoteObjectStoragePort: number | null;
                         remoteObjectStorageAccessKey: string | null;
-                        remoteObjectStorageSecretKey: string | null;
+                        hasRemoteObjectStorageSecretKey: boolean;
                         remoteObjectStorageUseSSL: boolean;
                         remoteObjectStorageUseProxy: boolean;
                         remoteObjectStorageSetPublicRead: boolean;
@@ -11034,13 +11034,13 @@ export interface operations {
                         backgroundImageUrl: string | null;
                         hasDeeplAuthKey: boolean;
                         deeplIsPro: boolean;
-                        ctav3SaKey: string | null;
+                        hasCtav3SaKey: boolean;
                         ctav3ProjectId: string | null;
                         ctav3Location: string | null;
                         ctav3Model: string | null;
                         ctav3Glossary: string | null;
                         libreTranslateEndPoint: string | null;
-                        libreTranslateApiKey: string | null;
+                        hasLibreTranslateApiKey: boolean;
                         defaultDarkTheme: string | null;
                         defaultLightTheme: string | null;
                         clientOptions: components['schemas']['MetaClientOptions'];

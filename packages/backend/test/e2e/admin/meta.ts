@@ -22,6 +22,9 @@ describe('/admin/meta エンドポイント', () => {
 		'deeplAuthKey',
 		'verifymailAuthKey',
 		'truemailAuthKey',
+		'remoteObjectStorageSecretKey',
+		'ctav3SaKey',
+		'libreTranslateApiKey',
 	] as const;
 
 	const clearSecrets = () => {

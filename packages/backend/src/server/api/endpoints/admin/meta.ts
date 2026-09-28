@@ -375,9 +375,9 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			remoteObjectStorageSecretKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasRemoteObjectStorageSecretKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			remoteObjectStorageUseSSL: {
 				type: 'boolean',
@@ -491,9 +491,9 @@ export const meta = {
 				type: 'boolean',
 				optional: false, nullable: false,
 			},
-			ctav3SaKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasCtav3SaKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			ctav3ProjectId: {
 				type: 'string',
@@ -515,9 +515,9 @@ export const meta = {
 				type: 'string',
 				optional: false, nullable: true,
 			},
-			libreTranslateApiKey: {
-				type: 'string',
-				optional: false, nullable: true,
+			hasLibreTranslateApiKey: {
+				type: 'boolean',
+				optional: false, nullable: false,
 			},
 			defaultDarkTheme: {
 				type: 'string',
@@ -909,20 +909,20 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				remoteObjectStorageRegion: instance.remoteObjectStorageRegion,
 				remoteObjectStoragePort: instance.remoteObjectStoragePort,
 				remoteObjectStorageAccessKey: instance.remoteObjectStorageAccessKey,
-				remoteObjectStorageSecretKey: instance.remoteObjectStorageSecretKey,
+				hasRemoteObjectStorageSecretKey: instance.remoteObjectStorageSecretKey !== null,
 				remoteObjectStorageUseSSL: instance.remoteObjectStorageUseSSL,
 				remoteObjectStorageUseProxy: instance.remoteObjectStorageUseProxy,
 				remoteObjectStorageSetPublicRead: instance.remoteObjectStorageSetPublicRead,
 				remoteObjectStorageS3ForcePathStyle: instance.remoteObjectStorageS3ForcePathStyle,
 				hasDeeplAuthKey: instance.deeplAuthKey !== null,
 				deeplIsPro: instance.deeplIsPro,
-				ctav3SaKey: instance.ctav3SaKey,
+				hasCtav3SaKey: instance.ctav3SaKey !== null,
 				ctav3ProjectId: instance.ctav3ProjectId,
 				ctav3Location: instance.ctav3Location,
 				ctav3Model: instance.ctav3Model,
 				ctav3Glossary: instance.ctav3Glossary,
 				libreTranslateEndPoint: instance.libreTranslateEndPoint,
-				libreTranslateApiKey: instance.libreTranslateApiKey,
+				hasLibreTranslateApiKey: instance.libreTranslateApiKey !== null,
 				enableIpLogging: instance.enableIpLogging,
 				enableActiveEmailValidation: instance.enableActiveEmailValidation,
 				enableVerifymailApi: instance.enableVerifymailApi,

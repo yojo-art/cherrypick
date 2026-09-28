@@ -687,7 +687,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.remoteObjectStorageSecretKey !== undefined) {
-				set.remoteObjectStorageSecretKey = ps.remoteObjectStorageSecretKey;
+				if (ps.remoteObjectStorageSecretKey === '') {
+					set.remoteObjectStorageSecretKey = null;
+				} else {
+					set.remoteObjectStorageSecretKey = ps.remoteObjectStorageSecretKey;
+				}
 			}
 
 			if (ps.remoteObjectStorageUseSSL !== undefined) {
@@ -727,7 +731,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.ctav3SaKey !== undefined) {
-				set.ctav3SaKey = ps.ctav3SaKey;
+				if (ps.ctav3SaKey === '') {
+					set.ctav3SaKey = null;
+				} else {
+					set.ctav3SaKey = ps.ctav3SaKey;
+				}
 			}
 
 			if (ps.ctav3ProjectId !== undefined) {
@@ -751,7 +759,11 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			}
 
 			if (ps.libreTranslateApiKey !== undefined) {
-				set.libreTranslateApiKey = ps.libreTranslateApiKey;
+				if (ps.libreTranslateApiKey === '') {
+					set.libreTranslateApiKey = null;
+				} else {
+					set.libreTranslateApiKey = ps.libreTranslateApiKey;
+				}
 			}
 
 			if (ps.enableIpLogging !== undefined) {

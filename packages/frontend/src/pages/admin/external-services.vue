@@ -79,7 +79,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 							<template v-else-if="provider === 'ctav3'">
 								<SearchMarker>
-									<MkInput v-model="ctav3SaKey" type="password">
+									<MkInput v-model="ctav3SaKey" type="password" autocomplete="new-password" :placeholder="meta.hasCtav3SaKey ? i18n.ts.leaveEmptyToKeepCurrent.toString() : ''">
 										<template #prefix><i class="ti ti-key"></i></template>
 										<template #label><SearchLabel>Service account key(json)</SearchLabel></template>
 									</MkInput>
@@ -120,7 +120,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 									</SearchMarker>
 
 									<SearchMarker>
-										<MkInput v-model="libreTranslateApiKey">
+										<MkInput v-model="libreTranslateApiKey" type="password" autocomplete="new-password" :placeholder="meta.hasLibreTranslateApiKey ? i18n.ts.leaveEmptyToKeepCurrent.toString() : ''">
 											<template #prefix><i class="ti ti-key"></i></template>
 											<template #label><SearchLabel>Api Key</SearchLabel></template>
 										</MkInput>
@@ -166,13 +166,13 @@ const provider = ref<(typeof translateServices)[number] | null>(
 );
 const deeplAuthKey = ref('');
 const deeplIsPro = ref(meta.deeplIsPro);
-const ctav3SaKey = ref(meta.ctav3SaKey ?? '');
+const ctav3SaKey = ref('');
 const ctav3ProjectId = ref(meta.ctav3ProjectId ?? '');
 const ctav3Location = ref(meta.ctav3Location ?? '');
 const ctav3Model = ref(meta.ctav3Model ?? '');
 const ctav3Glossary = ref(meta.ctav3Glossary ?? '');
 const libreTranslateEndPoint = ref(meta.libreTranslateEndPoint ?? '');
-const libreTranslateApiKey = ref(meta.libreTranslateApiKey ?? '');
+const libreTranslateApiKey = ref('');
 const googleAnalyticsMeasurementId = ref(meta.googleAnalyticsMeasurementId ?? '');
 
 function save_deepl() {
@@ -180,13 +180,13 @@ function save_deepl() {
 		translatorType: provider.value,
 		deeplAuthKey: deeplAuthKey.value === '' ? undefined : deeplAuthKey.value,
 		deeplIsPro: deeplIsPro.value,
-		ctav3SaKey: ctav3SaKey.value,
+		ctav3SaKey: ctav3SaKey.value === '' ? undefined : ctav3SaKey.value,
 		ctav3ProjectId: ctav3ProjectId.value,
 		ctav3Location: ctav3Location.value,
 		ctav3Model: ctav3Model.value,
 		ctav3Glossary: ctav3Glossary.value,
 		libreTranslateEndPoint: libreTranslateEndPoint.value,
-		libreTranslateApiKey: libreTranslateApiKey.value,
+		libreTranslateApiKey: libreTranslateApiKey.value === '' ? undefined : libreTranslateApiKey.value,
 	}).then(() => {
 		fetchInstance(true);
 	});

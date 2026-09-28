@@ -170,7 +170,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 								</SearchMarker>
 
 								<SearchMarker>
-									<MkInput v-model="remoteObjectStorageForm.state.remoteObjectStorageSecretKey" type="password" autocomplete="new-password">
+									<MkInput v-model="remoteObjectStorageForm.state.remoteObjectStorageSecretKey" type="password" autocomplete="new-password" :placeholder="meta.hasRemoteObjectStorageSecretKey ? i18n.ts.leaveEmptyToKeepCurrent.toString() : ''">
 										<template #prefix><i class="ti ti-key"></i></template>
 										<template #label>Secret key<span v-if="remoteObjectStorageForm.modifiedStates.remoteObjectStorageSecretKey" class="_modified">{{ i18n.ts.modified }}</span></template>
 									</MkInput>
@@ -268,7 +268,7 @@ const remoteObjectStorageForm = useForm({
 	remoteObjectStorageEndpoint: meta.remoteObjectStorageEndpoint,
 	remoteObjectStorageRegion: meta.remoteObjectStorageRegion,
 	remoteObjectStorageAccessKey: meta.remoteObjectStorageAccessKey,
-	remoteObjectStorageSecretKey: meta.remoteObjectStorageSecretKey,
+	remoteObjectStorageSecretKey: '',
 	remoteObjectStorageUseSSL: meta.remoteObjectStorageUseSSL,
 	remoteObjectStorageUseProxy: meta.remoteObjectStorageUseProxy,
 	remoteObjectStorageSetPublicRead: meta.remoteObjectStorageSetPublicRead,
@@ -282,7 +282,7 @@ const remoteObjectStorageForm = useForm({
 		remoteObjectStorageEndpoint: state.remoteObjectStorageEndpoint,
 		remoteObjectStorageRegion: state.remoteObjectStorageRegion,
 		remoteObjectStorageAccessKey: state.remoteObjectStorageAccessKey,
-		remoteObjectStorageSecretKey: state.remoteObjectStorageSecretKey,
+		remoteObjectStorageSecretKey: state.remoteObjectStorageSecretKey === '' ? undefined : state.remoteObjectStorageSecretKey,
 		remoteObjectStorageUseSSL: state.remoteObjectStorageUseSSL,
 		remoteObjectStorageUseProxy: state.remoteObjectStorageUseProxy,
 		remoteObjectStorageSetPublicRead: state.remoteObjectStorageSetPublicRead,
