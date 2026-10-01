@@ -39,7 +39,7 @@ const isInBrowserTranslationAvailable = (
 
 export async function getNoteClipMenu(props: {
 	note: Misskey.entities.Note;
-	currentClip?: Misskey.entities.Clip;
+	currentClip?: Misskey.entities.Clip | null;
 }) {
 	function getClipName(clip: Misskey.entities.Clip) {
 		if ($i && clip.userId === $i.id && clip.notesCount != null) {
@@ -192,8 +192,8 @@ export function getNoteMenu(props: {
 	translateStatus: Ref<TranslateStatus>;
 	viewTextSource: Ref<boolean>;
 	noNyaize: Ref<boolean>;
-	currentClip?: Misskey.entities.Clip;
-	currentAntenna?: Misskey.entities.Antenna;
+	currentClip?: Misskey.entities.Clip | null;
+	currentAntenna?: Misskey.entities.Antenna | null;
 }) {
 	const appearNote = getAppearNote(props.note) ?? props.note;
 	const link = appearNote.url ?? appearNote.uri;
@@ -383,12 +383,18 @@ export function getNoteMenu(props: {
 	async function translate(): Promise<void> {
 		if (props.translation.value != null) return;
 		if (props.collapsed?.value != null) props.collapsed.value = false;
-		if (prefer.s['experimental.enableWebTranslatorApi'] && isInBrowserTranslationAvailable && appearNote.text != null) {
+
+		let text = appearNote.text ?? '';
+		if (appearNote.cw != null) {
+			text = `${appearNote.cw}\n-----\n${text}`;
+		}
+
+		if (prefer.s['experimental.enableWebTranslatorApi'] && isInBrowserTranslationAvailable && text.trim() !== '') {
 			props.translateStatus.value = 'running';
 			try {
 				// @ts-expect-error 実験的なAPIなので型定義がない
 				const detector = await LanguageDetector.create();
-				const langResult = await detector.detect(appearNote.text);
+				const langResult = await detector.detect(text);
 				let localStorageLang = miLocalStorage.getItem('lang');
 				if (localStorageLang != null) {
 					localStorageLang = localStorageLang.split('-')[0];
@@ -398,7 +404,7 @@ export function getNoteMenu(props: {
 				if (langResult[0]?.detectedLanguage === localStorageLang || langResult[0]?.detectedLanguage === navigator.language) {
 					props.translation.value = {
 						sourceLang: langResult[0]?.detectedLanguage ?? 'unknown',
-						text: appearNote.text,
+						text: text,
 						translator: 'web',
 					};
 					return;
@@ -409,7 +415,7 @@ export function getNoteMenu(props: {
 					sourceLanguage: langResult[0]?.detectedLanguage,
 					targetLanguage: localStorageLang ?? navigator.language,
 				});
-				const translated = await translator.translate(appearNote.text);
+				const translated = await translator.translate(text);
 				props.translation.value = {
 					sourceLang: langResult[0]?.detectedLanguage ?? 'unknown',
 					text: translated,

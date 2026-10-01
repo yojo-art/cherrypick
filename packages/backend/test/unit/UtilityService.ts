@@ -11,7 +11,7 @@ import type { MiMeta } from '@/models/Meta.js';
 process.env.NODE_ENV = 'test';
 
 function createService(allowedPrivateNetworks?: string[]): UtilityService {
-	return new UtilityService({ allowedPrivateNetworks } as unknown as Config, {} as unknown as MiMeta);
+	return new UtilityService({ host: 'example.com', allowedPrivateNetworks } as unknown as Config, {} as unknown as MiMeta);
 }
 
 describe('UtilityService:isValidRemoteHost', () => {
@@ -53,5 +53,35 @@ describe('UtilityService:isValidRemoteHost', () => {
 		const service = createService(['127.0.0.0/8']);
 		expect(service.isValidRemoteHost('127.0.0.1')).toBe(true);
 		expect(service.isValidRemoteHost('10.0.0.1')).toBe(false);
+	});
+});
+
+describe('UtilityService:includesSelfHost', () => {
+	test('returns true when local user URI is included', () => {
+		const service = createService();
+		expect(service.includesSelfHost(['https://example.com/users/alice'])).toBe(true);
+	});
+
+	test('returns true when at least one URI points to the local host', () => {
+		const service = createService();
+		expect(service.includesSelfHost([
+			'https://remote.example/users/bob',
+			'https://example.com/users/alice',
+		])).toBe(true);
+	});
+
+	test('returns false for ActivityStreams Public collection', () => {
+		const service = createService();
+		expect(service.includesSelfHost(['https://www.w3.org/ns/activitystreams#Public'])).toBe(false);
+	});
+
+	test('returns false for remote URIs only', () => {
+		const service = createService();
+		expect(service.includesSelfHost(['https://remote.example/users/bob'])).toBe(false);
+	});
+
+	test('returns false for empty array', () => {
+		const service = createService();
+		expect(service.includesSelfHost([])).toBe(false);
 	});
 });

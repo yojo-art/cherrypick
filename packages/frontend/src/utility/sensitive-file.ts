@@ -10,8 +10,8 @@ import { i18n } from '@/i18n.js';
 import { confirmR18, wasConfirmR18 } from '@/utility/check-r18.js';
 import MkRippleEffect from '@/components/MkRippleEffect.vue';
 
-export function shouldHideFileByDefault(file: Misskey.entities.DriveFile): boolean {
-	if (prefer.s.nsfw === 'force' || prefer.s.dataSaver.media) {
+export function shouldHideFileByDefault(file: Misskey.entities.DriveFile, ignoreDataSaver = false): boolean {
+	if (prefer.s.nsfw === 'force' || (!ignoreDataSaver && prefer.s.dataSaver.media)) {
 		return true;
 	}
 

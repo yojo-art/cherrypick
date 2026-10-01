@@ -64,12 +64,34 @@ describeOpenSearchE2E('advanced-search E2Eテスト', { requireOpenSearch: true 
 
 		beforeAll(async () => {
 			for (let i = 0; i < NOTE_COUNT; i++) {
-				await post(root, { text: `fullIndexNote_test_${i}` });
+				// 2200連打中の1件の過渡失敗がそのまま notesCount の off-by-one になるため、
+				// ステータスを検証してリトライする (CI: Expected 2200 notes, but got 2199)
+				let created = false;
+				let lastDetail = '';
+				for (let attempt = 1; attempt <= 3 && !created; attempt++) {
+					const res = await api('notes/create', { text: `fullIndexNote_test_${i}` }, root);
+					if (res.status === 200 && res.body?.createdNote) {
+						created = true;
+					} else {
+						lastDetail = `status=${res.status} body=${JSON.stringify(res.body)?.slice(0, 500)}`;
+						if (attempt < 3) await sleep(500);
+					}
+				}
+				assert.ok(created, `notes/create failed at i=${i} after 3 attempts (${lastDetail})`);
 			}
 
-			const userInfo = await api('users/show', { userId: root.id }, root);
-			assert.strictEqual(userInfo.status, 200);
-			assert.strictEqual(userInfo.body.notesCount, NOTE_COUNT, `Expected ${NOTE_COUNT} notes, but got ${userInfo.body.notesCount}`);
+			// notesCount の反映遅延を吸収するため、単発の strictEqual ではなくポーリングする
+			const start = Date.now();
+			const timeoutMs = 60000;
+			let notesCount = -1;
+			while (Date.now() - start < timeoutMs) {
+				const userInfo = await api('users/show', { userId: root.id }, root);
+				assert.strictEqual(userInfo.status, 200);
+				notesCount = userInfo.body.notesCount;
+				if (notesCount === NOTE_COUNT) break;
+				await sleep(1000);
+			}
+			assert.strictEqual(notesCount, NOTE_COUNT, `Expected ${NOTE_COUNT} notes, but got ${notesCount}`);
 			await sleep();
 		}, 300000);
 

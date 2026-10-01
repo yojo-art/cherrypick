@@ -7,8 +7,9 @@ import { Inject, Injectable, Scope } from '@nestjs/common';
 import { REQUEST } from '@nestjs/core';
 import { NoteEntityService } from '@/core/entities/NoteEntityService.js';
 import { bindThis } from '@/decorators.js';
-import { RoleService } from '@/core/RoleService.js';
 import { isRenotePacked, isQuotePacked } from '@/misc/is-renote.js';
+import { DI } from '@/di-symbols.js';
+import type { RolesRepository } from '@/models/_.js';
 import type { GlobalEvents } from '@/core/GlobalEventService.js';
 import type { JsonObject } from '@/misc/json-value.js';
 import { NoteStreamingHidingService } from '../NoteStreamingHidingService.js';
@@ -25,8 +26,10 @@ export class RoleTimelineChannel extends Channel {
 		@Inject(REQUEST)
 		request: ChannelRequest,
 
+		@Inject(DI.rolesRepository)
+		private rolesRepository: RolesRepository,
+
 		private noteEntityService: NoteEntityService,
-		private roleservice: RoleService,
 		private noteStreamingHidingService: NoteStreamingHidingService,
 	) {
 		super(request);
@@ -35,20 +38,29 @@ export class RoleTimelineChannel extends Channel {
 
 	@bindThis
 	public async init(params: JsonObject) {
-		if (typeof params.roleId !== 'string') return;
+		if (typeof params.roleId !== 'string') return false;
 		this.roleId = params.roleId;
 
+		if (!await this.isAvailable()) return false;
+
 		this.subscriber.on(`roleTimelineStream:${this.roleId}`, this.onEvent);
+		return true;
+	}
+
+	@bindThis
+	private async isAvailable() {
+		return await this.rolesRepository.exists({
+			where: { id: this.roleId, isPublic: true, isExplorable: true },
+		});
 	}
 
 	@bindThis
 	private async onEvent(data: GlobalEvents['roleTimeline']['payload']) {
+		if (!await this.isAvailable()) return;
+
 		if (data.type === 'note') {
 			let note = data.body;
 
-			if (!(await this.roleservice.isExplorable({ id: this.roleId }))) {
-				return;
-			}
 			if (note.visibility !== 'public') return;
 			if (note.user.requireSigninToViewContents && this.user == null) return;
 			if (note.renote && note.renote.user.requireSigninToViewContents && this.user == null) return;
@@ -58,7 +70,7 @@ export class RoleTimelineChannel extends Channel {
 
 			const filtered = await this.noteStreamingHidingService.filter(note, this.user?.id ?? null);
 			if (!filtered) return;
-			// eslint-disable-next-line no-param-reassign -- これ以降元の Note オブジェクトは見てはいけないので、いっそ再代入した方が安全
+
 			note = filtered;
 
 			if (this.user) {

@@ -142,6 +142,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 			.andWhere('user.channelId IS NULL');
 
 		this.queryService.generateBaseNoteFilteringQuery(query, me);
+		if (me == null) this.queryService.generateUgcVisibilityQueryForVisitor(query);
 		this.queryService.generateVisibilityQuery(query, me);
 
 		if (me) {

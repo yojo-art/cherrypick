@@ -93,7 +93,18 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 				throw new ApiError(meta.errors.cannotTranslateInvisibleNote);
 			}
 
-			if (note.text == null) {
+			// makeNotesHiddenBefore などで中身が隠されるノート
+			const packedNote = await this.noteEntityService.pack(note, me);
+			if (packedNote.isHidden) {
+				throw new ApiError(meta.errors.cannotTranslateInvisibleNote);
+			}
+
+			let text = note.text ?? '';
+			if (note.cw != null) {
+				text = `${note.cw}\n-----\n${text}`;
+			}
+
+			if (text.trim() === '') {
 				return;
 			}
 
@@ -111,7 +122,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 
 					translationResult = await this.translateDeepL(
-						(note.cw ? note.cw + '\n' : '') + note.text,
+						text,
 						targetLang,
 						this.serverSettings.deeplAuthKey,
 						this.serverSettings.deeplIsPro);
@@ -125,7 +136,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 
 					translationResult = await this.apiCloudTranslationAdvanced(
-						(note.cw ? note.cw + '\n' : '') + note.text,
+						text,
 						targetLang,
 						this.serverSettings.ctav3SaKey,
 						this.serverSettings.ctav3ProjectId,
@@ -143,7 +154,7 @@ export default class extends Endpoint<typeof meta, typeof paramDef> { // eslint-
 					}
 
 					translationResult = await this.translateLibretranslate(
-						(note.cw ? note.cw + '\n' : '') + note.text,
+						text,
 						targetLang,
 						endPoint,
 						this.serverSettings.libreTranslateApiKey);

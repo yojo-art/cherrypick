@@ -12,11 +12,11 @@ import WebSocket, { ClientOptions } from 'ws';
 import fetch, { Blob, FormData } from 'node-fetch';
 import * as htmlParser from 'node-html-parser';
 import { DataSource } from 'typeorm';
-import type { RequestInit, Headers, Response } from 'node-fetch';
 import Fastify from 'fastify';
+import type { RequestInit, Headers, Response } from 'node-fetch';
+import type * as misskey from 'misskey-js';
 import { entities } from '@/postgres.js';
 import { loadConfig } from '@/config.js';
-import type * as misskey from 'misskey-js';
 import { DEFAULT_POLICIES } from '@/core/RoleService.js';
 import { validateContentTypeSetAsActivityPub } from '@/core/activitypub/misc/validator.js';
 import { ApiError } from '@/server/api/error.js';
@@ -679,9 +679,9 @@ export async function sendEnvUpdateRequest(params: { key: string, value?: string
 	}
 }
 
-export async function stopTestServer() {
+export async function sendEnvResetRequest(): Promise<void> {
 	const res = await fetch(
-		`http://localhost:${port + 1000}/dispose`,
+		`http://localhost:${port + 1000}/env-reset`,
 		{
 			method: 'POST',
 			body: JSON.stringify({}),
@@ -689,21 +689,7 @@ export async function stopTestServer() {
 	);
 
 	if (res.status !== 200) {
-		throw new Error('server dispose failed.');
-	}
-}
-
-export async function startTestServer() {
-	const res = await fetch(
-		`http://localhost:${port + 1000}/launch`,
-		{
-			method: 'POST',
-			body: JSON.stringify({}),
-		},
-	);
-
-	if (res.status !== 200) {
-		throw new Error('server launch failed.');
+		throw new Error('server env reset failed.');
 	}
 }
 

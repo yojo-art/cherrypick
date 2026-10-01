@@ -5,31 +5,31 @@ SPDX-License-Identifier: AGPL-3.0-only
 
 <template>
 <div ref="rootEl" :class="[$style.root, { [$style.reduceAnimation]: !prefer.s.animation }]">
-	<button v-if="store.s.showMenuButtonInNavbar" :class="$style.item" class="_button" @click="drawerMenuShowing = true">
+	<button v-if="prefer.s.showMenuButtonInNavbar" :class="$style.item" class="_button" @click="drawerMenuShowing = true">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-menu-2"></i><span v-if="menuIndicated" :class="$style.itemIndicator" class="_blink"><i class="_indicatorCircle"></i></span>
 		</div>
 	</button>
 
-	<button v-if="store.s.showHomeButtonInNavbar" :class="$style.item" class="_button" @click="clickHomeButton">
+	<button v-if="prefer.s.showHomeButtonInNavbar" :class="$style.item" class="_button" @click="clickHomeButton">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-home"></i>
 		</div>
 	</button>
 
-	<button v-if="store.s.showExploreButtonInNavbar" :class="$style.item" class="_button" @click="clickExploreButton">
+	<button v-if="prefer.s.showExploreButtonInNavbar" :class="$style.item" class="_button" @click="clickExploreButton">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-hash"></i>
 		</div>
 	</button>
 
-	<button v-if="store.s.showSearchButtonInNavbar" :class="$style.item" class="_button" @click="clickSearchButton">
+	<button v-if="prefer.s.showSearchButtonInNavbar" :class="$style.item" class="_button" @click="clickSearchButton">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-search"></i>
 		</div>
 	</button>
 
-	<button v-if="store.s.showNotificationButtonInNavbar" :class="$style.item" class="_button" @click="clickNotificationButton">
+	<button v-if="prefer.s.showNotificationButtonInNavbar" :class="$style.item" class="_button" @click="clickNotificationButton">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-bell"></i>
 			<span v-if="$i?.hasUnreadNotification" :class="$style.itemIndicator" class="_blink">
@@ -39,7 +39,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 		</div>
 	</button>
 
-	<button v-if="store.s.showChatButtonInNavbar && $i != null && $i.policies.chatAvailability !== 'unavailable'" :class="$style.item" class="_button" @click="clickChatButton">
+	<button v-if="prefer.s.showChatButtonInNavbar && $i != null && $i.policies.chatAvailability !== 'unavailable'" :class="$style.item" class="_button" @click="clickChatButton">
 		<div :class="$style.itemInner">
 			<i :class="$style.itemIcon" class="ti ti-messages"></i>
 			<span v-if="$i?.hasUnreadChatMessages" :class="$style.itemIndicator" class="_blink">
@@ -69,7 +69,6 @@ import * as os from '@/os.js';
 import { mainRouter } from '@/router.js';
 import { navbarItemDef } from '@/navbar.js';
 import { prefer } from '@/preferences.js';
-import { store } from '@/store.js';
 import { haptic } from '@/utility/haptic.js';
 
 const drawerMenuShowing = defineModel<boolean>('drawerMenuShowing');

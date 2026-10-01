@@ -1,0 +1,12 @@
+{
+	"@context": "https://www.w3.org/ns/activitystreams",
+	"type": "Announce",
+	"actor": "https://z.test/users/zack",
+	"object": "https://z.test/notes/json-ld-signature/10-ch-original",
+	"to": [
+		"https://www.w3.org/ns/activitystreams#Public"
+	],
+	"cc": [
+		"{{channelActor}}"
+	]
+}

@@ -6,7 +6,7 @@ SPDX-License-Identifier: AGPL-3.0-only
 <template>
 <PageWithHeader v-model:tab="tab" :actions="headerActions" :tabs="headerTabs" :user="user" :swipable="true">
 	<div v-if="user">
-		<XHome v-if="tab === 'home'" :user="user" @showMoreFiles="() => { tab = 'files'; }"/>
+		<XHome v-if="tab === 'home'" :user="user" :refreshUser="refreshUser" @showMoreFiles="() => { tab = 'files'; }"/>
 		<XNotes v-else-if="tab === 'notes'" :user="user"/>
 		<XFiles v-else-if="tab === 'files'" :user="user"/>
 		<XEvent v-else-if="tab === 'events'" :user="user"/>
@@ -77,6 +77,7 @@ const tab = ref(props.page);
 const user = ref<null | Misskey.entities.UserDetailed>(CTX_USER);
 const error = ref<any>(null);
 
+// 初回読込時専用（使える場合はサーバーコンテキストから取得する）
 function fetchUser(): void {
 	if (props.acct == null) return;
 
@@ -101,6 +102,14 @@ function fetchUser(): void {
 watch(() => props.acct, fetchUser, {
 	immediate: true,
 });
+
+// 再読込時専用（強制fetch）
+async function refreshUser(): Promise<void> {
+	if (props.acct == null) return;
+
+	const { username, host } = Misskey.acct.parse(props.acct);
+	user.value = await misskeyApi('users/show', { username, host });
+}
 
 onUnmounted(() => {
 	window.removeEventListener('resize', handleResize);

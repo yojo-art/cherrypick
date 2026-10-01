@@ -4,11 +4,11 @@
  */
 
 import { beforeEach, describe, expect, test, vi } from 'vitest';
+import type { Mocked } from 'vitest';
+import type { Response } from 'node-fetch';
 import { HttpRequestService } from '@/core/HttpRequestService.js';
 import FetchRssEndpoint, { meta } from '@/server/api/endpoints/fetch-rss.js';
 import { ApiError } from '@/server/api/error.js';
-import type { Mocked } from 'vitest';
-import type { Response } from 'node-fetch';
 
 const rssParserMocks = vi.hoisted(() => ({
 	constructor: vi.fn(),

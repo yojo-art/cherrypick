@@ -53,7 +53,10 @@ describe('endpoints/notes/translate', () => {
 		httpRequestService = { send: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 		getterService = { getNote: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 		roleService = { getUserPolicies: vi.fn<(...args: any[]) => Promise<any>>() } as any;
-		noteEntityService = { isVisibleForMe: vi.fn<(...args: any[]) => Promise<boolean>>() } as any;
+		noteEntityService = {
+			isVisibleForMe: vi.fn<(...args: any[]) => Promise<boolean>>(),
+			pack: vi.fn<(...args: any[]) => Promise<any>>(),
+		} as any;
 
 		const moduleRef: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -76,6 +79,7 @@ describe('endpoints/notes/translate', () => {
 		roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
 		getterService.getNote.mockResolvedValue(note);
 		noteEntityService.isVisibleForMe.mockResolvedValue(true);
+		noteEntityService.pack.mockResolvedValue({ isHidden: false } as any);
 	};
 
 	beforeEach(() => vi.clearAllMocks());
@@ -109,6 +113,16 @@ describe('endpoints/notes/translate', () => {
 			});
 		});
 
+		it('pack結果がisHiddenならCANNOT_TRANSLATE_INVISIBLE_NOTE', async () => {
+			await buildModule(deeplSettings);
+			setHappyPath();
+			noteEntityService.pack.mockResolvedValue({ isHidden: true } as any);
+
+			await expect(callEndpoint()).rejects.toMatchObject({
+				code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
+			});
+		});
+
 		it('note.textがnullならundefinedを返す', async () => {
 			await buildModule(deeplSettings);
 			setHappyPath({ text: null, cw: null });
@@ -125,8 +139,8 @@ describe('endpoints/notes/translate', () => {
 	});
 
 	describe('CW結合', () => {
-		// note.cw が存在する場合 `cw + '\n' + text` が翻訳対象になる仕様
-		it('CWがある時、DeepLには「cw\\ntext」が渡される', async () => {
+		// note.cw が存在する場合 `cw + '\\n-----\\n' + text` が翻訳対象になる仕様
+		it('CWがある時、DeepLには「cw\\n-----\\ntext」が渡される', async () => {
 			await buildModule(deeplSettings);
 			setHappyPath({ text: '本文', cw: '注意' });
 			httpRequestService.send.mockResolvedValue(deeplResponse('cw\nbody') as any);
@@ -137,10 +151,10 @@ describe('endpoints/notes/translate', () => {
 			const body = (options as any).body;
 			// URLSearchParamsはエンコードするので decode して確認
 			const decoded = decodeURIComponent(body);
-			expect(decoded).toContain('text=注意\n本文');
+			expect(decoded).toContain('text=注意\n-----\n本文');
 		});
 
-		it('CWがある時、ctav3 contents には「cw\\ntext」が単一要素として渡される', async () => {
+		it('CWがある時、ctav3 contents には「cw\\n-----\\ntext」が単一要素として渡される', async () => {
 			await buildModule(ctav3Settings);
 			setHappyPath({ text: '本文', cw: '注意' });
 			mockTranslateText.mockResolvedValue(ctav3SingleResponse('translated'));
@@ -148,10 +162,10 @@ describe('endpoints/notes/translate', () => {
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
 			const callArg = (mockTranslateText as any).mock.calls[0][0];
-			expect((callArg as any).contents).toEqual(['注意\n本文']);
+			expect((callArg as any).contents).toEqual(['注意\n-----\n本文']);
 		});
 
-		it('CWがある時、Libreにも「cw\\ntext」が渡される', async () => {
+		it('CWがある時、Libreにも「cw\\n-----\\ntext」が渡される', async () => {
 			await buildModule(libreSettings);
 			setHappyPath({ text: '本文', cw: '注意' });
 			httpRequestService.send.mockResolvedValue(libreResponse('translated') as any);
@@ -159,7 +173,7 @@ describe('endpoints/notes/translate', () => {
 			await callEndpoint({ noteId: 'n1', targetLang: 'en' });
 
 			const [, options] = (httpRequestService.send as any).mock.calls[0];
-			expect(JSON.parse((options as any).body).q).toBe('注意\n本文');
+			expect(JSON.parse((options as any).body).q).toBe('注意\n-----\n本文');
 		});
 
 		it('CWがnullなら text のみが渡される', async () => {

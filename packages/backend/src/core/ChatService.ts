@@ -31,6 +31,8 @@ import { NotificationService } from '@/core/NotificationService.js';
 import { ModerationLogService } from '@/core/ModerationLogService.js';
 import { emojiRegex } from '@/misc/emoji-regex.js';
 
+export class ChatMessageAccessError extends Error {}
+
 const MAX_ROOM_MEMBERS = 50;
 const MAX_REACTIONS_PER_MESSAGE = 100;
 const isCustomEmojiRegexp = /^:([\w+-]+)(?:@\.)?:$/;
@@ -1149,26 +1151,27 @@ export class ChatService implements OnApplicationShutdown {
 			}
 		}
 
-		const message = await this.chatMessagesRepository.findOneByOrFail({ id: messageId });
+		const message = await this.chatMessagesRepository.findOneBy({ id: messageId });
+		if (message == null) throw new ChatMessageAccessError('no such message');
 
 		if (message.fromUserId === userId) {
-			throw new Error('cannot react to own message');
+			throw new ChatMessageAccessError('cannot react to own message');
 		}
 
 		if (message.toRoomId === null && message.toUserId !== userId) {
-			throw new Error('cannot react to others message');
-		}
-
-		if (message.reactions.length >= MAX_REACTIONS_PER_MESSAGE) {
-			throw new Error('too many reactions');
+			throw new ChatMessageAccessError('cannot react to others message');
 		}
 
 		const room = message.toRoomId ? await this.chatRoomsRepository.findOneByOrFail({ id: message.toRoomId }) : null;
 
 		if (room) {
 			if (!(await this.isRoomMember(room, userId))) {
-				throw new Error('cannot react to others message');
+				throw new ChatMessageAccessError('cannot react to others message');
 			}
+		}
+
+		if (message.reactions.length >= MAX_REACTIONS_PER_MESSAGE) {
+			throw new Error('too many reactions');
 		}
 
 		await this.chatMessagesRepository.createQueryBuilder().update()
@@ -1210,11 +1213,18 @@ export class ChatService implements OnApplicationShutdown {
 			reaction = `:${name}:`;
 		}
 
-		// NOTE: 自分のリアクションを(あれば)削除するだけなので諸々の権限チェックは必要なし
-
-		const message = await this.chatMessagesRepository.findOneByOrFail({ id: messageId });
+		const message = await this.chatMessagesRepository.findOneBy({ id: messageId });
+		if (message == null) throw new ChatMessageAccessError('no such message');
 
 		const room = message.toRoomId ? await this.chatRoomsRepository.findOneByOrFail({ id: message.toRoomId }) : null;
+
+		if (room) {
+			if (!(await this.isRoomMember(room, userId))) {
+				throw new ChatMessageAccessError('cannot unreact to others message');
+			}
+		} else if (message.fromUserId !== userId && message.toUserId !== userId) {
+			throw new ChatMessageAccessError('cannot unreact to others message');
+		}
 
 		await this.chatMessagesRepository.createQueryBuilder().update()
 			.set({
