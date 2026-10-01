@@ -54,6 +54,7 @@ import { ReactionsBufferingService } from '@/core/ReactionsBufferingService.js';
 import { ApClipService } from '@/core/activitypub/models/ApClipService.js';
 import { ChatService } from '@/core/ChatService.js';
 import { SystemAccountService } from '@/core/SystemAccountService.js';
+import { HttpRequestService } from '@/core/HttpRequestService.js';
 
 process.env.NODE_ENV = 'test';
 
@@ -179,6 +180,7 @@ describe('UserEntityService', () => {
 				ApClipService,
 				ChatService,
 				SystemAccountService,
+				HttpRequestService,
 			];
 
 			app = await Test.createTestingModule({
