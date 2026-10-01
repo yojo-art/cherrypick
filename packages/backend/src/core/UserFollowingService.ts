@@ -394,7 +394,7 @@ export class UserFollowingService implements OnModuleInit {
 
 		this.cacheService.userFollowingsCache.refresh(follower.id);
 
-		this.decrementFollowing(following.follower, following.followee);
+		await this.decrementFollowing(following.follower, following.followee);
 
 		if (this.userEntityService.isLocalUser(following.follower)) {
 			//followeeがチャンネルでfollowerがユーザー

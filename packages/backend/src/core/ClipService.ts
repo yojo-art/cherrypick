@@ -287,16 +287,14 @@ export class ClipService {
 			throw new ClipService.NoSuchClipError();
 		}
 
-		const note = await this.notesRepository.findOneBy({ id: noteId });
-
-		if (note == null) {
-			throw new ClipService.NoSuchNoteError();
-		}
-
-		await this.clipNotesRepository.delete({
+		const result = await this.clipNotesRepository.delete({
 			noteId: noteId,
 			clipId: clip.id,
 		});
+
+		if (result.affected === 0) {
+			throw new ClipService.NoSuchNoteError();
+		}
 
 		await this.advancedSearchService.unindexFavorite(undefined, noteId, clip.id, me.id);
 		this.notesRepository.decrement({ id: noteId }, 'clippedCount', 1);

@@ -53,7 +53,10 @@ describe('endpoints/notes/translate', () => {
 		httpRequestService = { send: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 		getterService = { getNote: vi.fn<(...args: any[]) => Promise<any>>() } as any;
 		roleService = { getUserPolicies: vi.fn<(...args: any[]) => Promise<any>>() } as any;
-		noteEntityService = { isVisibleForMe: vi.fn<(...args: any[]) => Promise<boolean>>() } as any;
+		noteEntityService = {
+			isVisibleForMe: vi.fn<(...args: any[]) => Promise<boolean>>(),
+			pack: vi.fn<(...args: any[]) => Promise<any>>(),
+		} as any;
 
 		const moduleRef: TestingModule = await Test.createTestingModule({
 			providers: [
@@ -76,6 +79,7 @@ describe('endpoints/notes/translate', () => {
 		roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
 		getterService.getNote.mockResolvedValue(note);
 		noteEntityService.isVisibleForMe.mockResolvedValue(true);
+		noteEntityService.pack.mockResolvedValue({ isHidden: false } as any);
 	};
 
 	beforeEach(() => vi.clearAllMocks());
@@ -103,6 +107,16 @@ describe('endpoints/notes/translate', () => {
 			roleService.getUserPolicies.mockResolvedValue({ canUseTranslator: true } as any);
 			getterService.getNote.mockResolvedValue(targetNote);
 			noteEntityService.isVisibleForMe.mockResolvedValue(false);
+
+			await expect(callEndpoint()).rejects.toMatchObject({
+				code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
+			});
+		});
+
+		it('pack結果がisHiddenならCANNOT_TRANSLATE_INVISIBLE_NOTE', async () => {
+			await buildModule(deeplSettings);
+			setHappyPath();
+			noteEntityService.pack.mockResolvedValue({ isHidden: true } as any);
 
 			await expect(callEndpoint()).rejects.toMatchObject({
 				code: 'CANNOT_TRANSLATE_INVISIBLE_NOTE',
