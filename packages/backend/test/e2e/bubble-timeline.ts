@@ -15,7 +15,7 @@ describe('Bubble timeline streaming', () => {
 
 	beforeAll(async () => {
 		root = await signup({ username: 'bubble_root' });
-		await api('admin/update-meta', { bubbleInstances: ['bubble.example'] }, root);
+		await api('admin/update-meta', { bubbleInstances: ['bubble.example'], ugcVisibilityForVisitor: 'all' }, root);
 		// MetaService のキャッシュが Redis 経由で更新されるまで待つ
 		await new Promise(resolve => setTimeout(resolve, 250));
 	}, 1000 * 60);

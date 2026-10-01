@@ -64,6 +64,10 @@ const notesPaginator = markRaw(new Paginator('users/notes', {
 	})),
 }));
 
+defineExpose({
+	reload: () => (tab.value === 'featured' ? featuredPaginator : notesPaginator).reload(),
+});
+
 const filesPaginator = markRaw(new Paginator('users/notes', {
 	limit: 30,
 	computedParams: computed(() => ({
