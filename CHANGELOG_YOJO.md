@@ -1,3 +1,23 @@
+## 1.12.0
+Cherrypick 4.17.0  
+Misskey 2026.10.0
+
+### Release Date
+2026-10-02
+
+### General
+- Misskey 2026.7.0 のマージ [#1379](https://github.com/yojo-art/cherrypick/pull/1379)
+- Misskey 2026.9.1 のマージ [#1393](https://github.com/yojo-art/cherrypick/pull/1393)
+- Misskey 2026.10.0 のマージ [#1400](https://github.com/yojo-art/cherrypick/pull/1400)
+- Feat: 連合サーバー検索にソフトウェア名フィルタを追加 [#1381](https://github.com/yojo-art/cherrypick/pull/1381)
+- Feat: コントロールパネルの連合にソフトウェア名検索を追加 [#1389](https://github.com/yojo-art/cherrypick/pull/1389)
+
+### Client
+
+### Server
+- Fix: セキュリティに関する修正
+- Fix: JsonLD署名検証が必要な可能性があれば署名検証する [#1375](https://github.com/yojo-art/cherrypick/pull/1375)
+
 ## 1.11.2
 Cherrypick 4.17.0  
 Misskey 2026.6.0
