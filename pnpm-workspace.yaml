@@ -62,6 +62,8 @@ minimumReleaseAgeExclude:
   - nodemailer@9.1.1
   # Renovate security update: fastify@5.12.5
   - fastify@5.12.5
+  # Renovate security update: happy-dom@21.0.4
+  - happy-dom@21.0.4
 overrides:
   '@aiscript-dev/aiscript-languageserver': '-'
   chokidar: 5.0.0
